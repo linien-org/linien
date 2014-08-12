@@ -10,29 +10,29 @@ from migen.bus.transactions import TWrite
 
 
 class Iir(Module, AutoCSR):
-    def __init__(self, order=2, mode="pipelined",
-            signal_width=25, coeff_width=18, intermediate_width=48,
+    def __init__(self, order=1, mode="pipelined",
+            signal_width=18, coeff_width=25, intermediate_width=48,
             wait=4):
         assert mode in ("pipelined", "iterative")
 
         self.x = Signal((signal_width, True))
         self.y = Signal((signal_width, True))
-        self.mode_in = Signal(2) # hold, clear
-        self.mode_out = Signal(2)
+        self.mode_in = Signal(4) # holda, holdb, cleara, clearb
+        self.mode_out = Signal(4)
 
-        self.r_cmd = CSRStorage(2)
-        self.r_mask = CSRStorage(2)
-        self.r_mode = CSRStatus(2)
-        self.r_bias = CSRStorage(intermediate_width)
+        self.r_cmd = CSRStorage(4)
+        self.r_mask = CSRStorage(4)
+        self.r_mode = CSRStatus(4)
+        self.r_bias = CSRStorage(signal_width)
 
         self.c = c = {}
         for i in "ab":
             for j in range(order + 1):
                 name = "%s%i" % (i, j)
                 if name == "a0":
-                    ci = Signal(max=intermediate_width)
+                    ci = Signal(max=intermediate_width, name=name)
                 else:
-                    ci = Signal((coeff_width, True))
+                    ci = Signal((coeff_width, True), name=name)
                 rci = CSRStorage(flen(ci), name=name)
                 self.comb += ci.eq(rci.storage)
                 c[name] = ci
@@ -40,16 +40,17 @@ class Iir(Module, AutoCSR):
 
         ###
 
-        yn = Signal((signal_width + 1, True))
+        yn = Signal((intermediate_width, True))
         yo = Signal((signal_width, True))
         self.sync += yo.eq(self.y)
         rail = Signal()
-        mode = Signal(2)
         self.comb += [
                 self.mode_out.eq((self.mode_in & ~self.r_mask.storage) |
-                    self.r_cmd.storage | Cat(rail, 0)),
+                    self.r_cmd.storage | Cat(rail, 0, 0, 0)),
                 self.r_mode.status.eq(self.mode_out),
-                rail.eq(yn[-2] != yn[-1]),
+                rail.eq(
+                    (yn[-1] & (~yn[signal_width-1:-1] != 0)) |
+                    (~yn[-1] & (yn[signal_width-1:-1] != 0))),
                 If(rail,
                     self.y.eq(yo),
                 ).Else(
@@ -57,19 +58,24 @@ class Iir(Module, AutoCSR):
                 )]
 
         if mode == "pipelined":
-            self.latency = 2
+            self.latency = order + 1
             self.interval = 1
-            stage = Signal((intermediate_width, True))
-            self.sync += stage.eq(self.r_bias.storage)
-            stages = [stage]
-            r = [("b%i" % i, self.x) for i in reversed(range(order + 1))]
-            r += [("a%i" % i, self.y) for i in reversed(range(1, order + 1))]
-            for i, (coeff, sig) in enumerate(r):
-                stage, _stage = Signal.like(stage), stage
-                stages.append(stage)
-                self.sync += If(~self.mode_out[0], stage.eq(c[coeff]*sig + _stage))
+            stage = Signal((intermediate_width, True), name="i_0")
+            self.sync += stage.eq(self.r_bias.storage << c["a0"])
+            r = [("b%i" % i, self.x, 1) for i in reversed(range(order + 1))]
+            r += [("a%i" % i, self.y, 0) for i in reversed(range(1, order + 1))]
+            for coeff, sig, side in r:
+                _stage = stage
+                stage = Signal((intermediate_width, True), name="i_" + coeff)
+                m = Mux(self.mode_out[side], 0, _stage)
+                self.sync += [
+                        If(self.mode_out[side + 2],
+                            stage.eq(0)
+                        ).Else(
+                            stage.eq(c[coeff]*sig + m)
+                        )
+                ]
             self.comb += yn.eq(stage >> c["a0"])
-            self.sync += If(self.mode_out[1], [i.eq(0) for i in stages])
 
         elif mode == "iterative":
             self.latency = (2*order+1)*wait
@@ -122,24 +128,29 @@ class Iir(Module, AutoCSR):
 
 
 class TB(Module):
-    def __init__(self, gen=[], params={}, **kwargs):
+    def __init__(self, gen=[], **kwargs):
         self.submodules.iir = Iir(**kwargs)
         self.desc = self.iir.get_csrs()
         self.submodules.bank = Bank(self.desc)
-        self.submodules.init = Initiator(self.writes(params),
+        self.submodules.init = Initiator(self.writes(),
                 self.bank.bus)
+        self.params = {}
         self.gen = iter(gen)
         self.x = []
         self.y = []
 
-    def writes(self, params):
-        for k in sorted(params):
+    def writes(self):
+        for k in sorted(self.params):
             n = flen(self.iir.c[k])
-            v = params[k]
-            print(k, v, hex(v))
-            for i in range(0, n, 8):
-                adr = get_offset(self.desc, k) + (n - i + 8 - 1)//8 - 1
-                yield TWrite(adr, (v >> i) & 0xff)
+            v = self.params[k] #& ((1<<n) - 1)
+            print(k, hex(v))
+            a = get_offset(self.desc, k)
+            b = (n + 8 - 1)//8
+            for i in reversed(range(b)):
+                vi = (v >> (i*8)) & 0xff
+                print(i, a, vi)
+                yield TWrite(a, vi)
+                a += 1
 
     def do_simulation(self, selfp):
         try:
@@ -158,15 +169,16 @@ def get_params(typ="pi", f=1., k=1., g=1., shift=None, width=25, fs=1.):
     f *= math.pi/fs
     if typ == "pi":
         p = {
-                "a1": (1 - f/g)/(1 + f/g),
-                "b0": k*(1 + f)/(1 + f/g),
+                "a1":  (1 - f/g)/(1 + f/g),
+                "b0":  k*(1 + f)/(1 + f/g),
                 "b1": -k*(1 - f)/(1 + f/g),
-                }
+        }
     if shift is None:
-        shift = width + 1 - max(bits_for(v, require_sign_bit=True)
-                for v in p.values())
+        shift = width - 1 - max(math.ceil(math.log2(abs(p[k]))) for k in p)
     for k in p:
         p[k] = int(p[k]*2**shift)
+        n = bits_for(p[k], True)
+        assert n <= width, (k, hex(p[k]), n, width)
     p["a0"] = shift
     return p
 
@@ -178,15 +190,17 @@ def main():
     from matplotlib import pyplot as plt
     import numpy as np
 
-    #iir = Iir()
-    #print(verilog.convert(iir, ios={iir.x, iir.y,
-    #    iir.mode_in, iir.mode_out}))
+    iir = Iir()
+    print(verilog.convert(iir, ios={iir.x, iir.y,
+        iir.mode_in, iir.mode_out}))
 
-    n = 1000
+    n = 10000
     x = np.zeros(n)
-    x[100:n/2] = 1e-3
-    p = get_params("pi", f=1e-3, k=1e-2, g=1e9)
-    tb = TB(x, p, order=1, mode="pipelined")
+    x[n/4:n/2] = .5
+    x[n/2:3*n/4] = -x[n/4:n/2]
+    tb = TB(x, order=1, mode="pipelined")
+    tb.params = get_params("pi", f=4e-6, k=1., g=1e90,
+            width=flen(tb.iir.c["a1"]))
     #print(verilog.convert(tb))
     run_simulation(tb, vcd_name="iir.vcd")
     plt.plot(tb.x)
