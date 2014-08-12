@@ -10,6 +10,7 @@ from migen.bank.description import *
 from migen.fhdl.bitcontainer import bits_for
 from migen.genlib.cordic import Cordic
 
+from iir import Iir
 
 ports_layout = [
         ("i", (18, True)),
@@ -84,25 +85,15 @@ class InOut(Module, AutoCSR):
 class IIR1(Module, AutoCSR):
     def __init__(self):
         self.ports = Record(ports_layout)
-        self._a0 = CSRStorage(8)
-        self._a1 = CSRStorage(coeff_width)
-        self._b0 = CSRStorage(coeff_width)
-        self._b1 = CSRStorage(coeff_width)
-
-        self.comb += self.ports.o.eq(self.ports.i)
+        self.submodules.m = Iir(signal_width=flen(self.ports.i), order=1)
+        self.comb += self.ports.o.eq(self.m.y), self.m.x.eq(self.ports.i)
 
 
 class IIR2(Module, AutoCSR):
     def __init__(self):
         self.ports = Record(ports_layout)
-        self._a0 = CSRStorage(8)
-        self._a1 = CSRStorage(coeff_width)
-        self._a2 = CSRStorage(coeff_width)
-        self._b0 = CSRStorage(coeff_width)
-        self._b1 = CSRStorage(coeff_width)
-        self._b2 = CSRStorage(coeff_width)
-        
-        self.comb += self.ports.o.eq(self.ports.i)
+        self.submodules.m = Iir(signal_width=flen(self.ports.i), order=2)
+        self.comb += self.ports.o.eq(self.m.y), self.m.x.eq(self.ports.i)
 
 
 class FilterMux(Module, AutoCSR):
