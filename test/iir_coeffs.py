@@ -1,4 +1,8 @@
 from math import log2, ceil
+import warnings
+
+import numpy as np
+import scipy.signal
 
 
 def make_filter(name, k=1., f=0., g=1., q=.5):
@@ -60,6 +64,7 @@ def make_filter(name, k=1., f=0., g=1., q=.5):
 
 def quantize_filter(b, a, shift=None, width=25):
     b, a = [i/a[0] for i in b], [i/a[0] for i in a]
+
     if shift is None:
         shift = width
         for i in b + a:
@@ -69,9 +74,17 @@ def quantize_filter(b, a, shift=None, width=25):
             shift = min(shift, int(width - 1 - m))
     s = 2**shift - 1 # -1 is not really correct but gives 
     # more dynamic range in the a[1] == 1 case
+    
     b = [int(round(i*s)) for i in b]
     a = [int(i*s) for i in a]
+
+    m = 2**(width - 1)
     for i in b + a:
-        m = 2**(width - 1)
         assert -m <= i < m, (hex(i), hex(m))
+
+    z, p, k = scipy.signal.tf2zpk(b, a)
+    if np.any(np.absolute(p) > 1):
+        warnings.warn("unstable filter: z={}, p={}, k={}".format(
+            z, p, k), RuntimeWarning)
+
     return b, a, shift

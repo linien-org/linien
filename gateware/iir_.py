@@ -31,6 +31,8 @@ class IIR(Module):
 
         ##
 
+        self.comb += self.scale.eq(self.a[0])
+
         if form == "tdf2":
             z0 = 0
             for i in reversed(range(order + 1)):

@@ -5,13 +5,17 @@ import warnings
 
 from migen.fhdl.std import *
 from migen.sim.generic import run_simulation, StopSimulation
+from migen.bus.csr import Initiator
+from migen.bank.csrgen import get_offset, Bank
+from migen.bus.transactions import TWrite
 
 from gateware.iir_ import IIR
+from gateware.iir import Iir
 from iir_coeffs import make_filter, quantize_filter
 
 
 class Filter(Module):
-    def __init__(self, dut, amplitude, samples=1<<12):
+    def __init__(self, dut, amplitude, warmup=200, samples=1<<12):
         self.submodules.dut = dut
         self.scale = 2**(flen(self.dut.x) - 1) - 1
 
@@ -19,12 +23,16 @@ class Filter(Module):
         self.x = np.random.uniform(-amplitude*self.scale, amplitude*self.scale,
                 samples).astype(np.int)
         self.y = np.empty_like(self.x)
-        self.gen = iter(self.x)
+        self.xgen = iter(self.x)
+        self.warmup = warmup
 
     def do_simulation(self, selfp):
+        c = selfp.simulator.cycle_counter - self.warmup
+        if c < 0:
+            return
         try:
-            selfp.dut.x = next(self.gen)
-            self.y[selfp.simulator.cycle_counter] = selfp.dut.y
+            selfp.dut.x = next(self.xgen)
+            self.y[c] = selfp.dut.y
         except StopIteration:
             raise StopSimulation
 
@@ -35,24 +43,55 @@ class Filter(Module):
         return x, y
 
 
+class CsrParams(Module):
+    def __init__(self, dut, params):
+        self.submodules.dut = dut
+        self.desc = dut.get_csrs()
+        self.submodules.bank = Bank(self.desc)
+        self.submodules.init = Initiator(self.writes(),
+                self.bank.bus)
+        self.params = params
+        self.x = dut.x
+        self.y = dut.y
+        self.latency = dut.latency
+
+    def writes(self):
+        for k in sorted(self.params):
+            for c in self.desc:
+                if c.name == k:
+                    n = c.size
+                    break
+            a = get_offset(self.desc, k)
+            v = self.params[k]
+            print(k, hex(v))
+            b = (n + 8 - 1)//8
+            for i in reversed(range(b)):
+                vi = (v >> (i*8)) & 0xff
+                #print(i, a, vi)
+                yield TWrite(a, vi)
+                a += 1
+
+
+class ResetParams(Module):
+    def __init__(self, dut, params):
+        self.submodules.dut = dut
+        self.x = dut.x
+        self.y = dut.y
+        self.latency = dut.latency
+        for k, v in params.items():
+            getattr(dut, k[0])[int(k[1])].reset = v
+
+
 class Transfer:
     def __init__(self, b, a, amplitude, samples=1<<12, scale=None, **kwargs):
-        self.a0 = a = np.array(a)
-        self.b0 = b = np.array(b)
         kwargs["order"] = len(b) - 1
-        
-        self.tb = Filter(IIR(**kwargs), amplitude, samples)
-        self.b, self.a, shift = quantize_filter(b, a, width=flen(self.tb.dut.a[0]))
-        self.tb.dut.scale.reset = shift
-        for i in range(len(b)):
-            self.tb.dut.b[i].reset = int(self.b[i])
-            self.tb.dut.a[i].reset = int(self.a[i])
-        
-        z, p, k = scipy.signal.tf2zpk(self.b, self.a)
-        if np.any(np.absolute(p) > 1):
-            warnings.warn("unstable filter: z={}, p={}, k={}".format(
-                z, p, k), RuntimeWarning)
- 
+        self.b0, self.a0 = b, a = np.array(b), np.array(a)
+        dut = self.make_dut(b, a, kwargs)
+        self.tb = Filter(dut, amplitude, samples)
+
+    def make_dut(self, b, a, kwargs):
+        raise NotImplementedError
+
     def analyze(self):
         fig, ax = plt.subplots(3, 1, figsize=(12, 15))
         x, y = self.tb.run()
@@ -109,3 +148,35 @@ class Transfer:
         ax[2].set_ylabel("phase (deg)")
         ax[2].grid(True)
         return fig
+
+
+class ResetTransfer(Transfer):
+    def make_dut(self, b, a, kwargs):
+        dut = IIR(**kwargs)
+        self.b, self.a, shift = quantize_filter(b, a, width=flen(dut.a[1]))
+        
+        params = {}
+        for i, bi in enumerate(self.b):
+            params["b%i" % i] = bi
+        for i, ai in enumerate(self.a):
+            params["a%i" % i] = ai
+        params["a0"] = shift
+
+        dut = ResetParams(dut, params)
+        return dut
+
+
+class CsrTransfer(Transfer):
+    def make_dut(self, b, a, kwargs):
+        dut = Iir(**kwargs)
+        self.b, self.a, shift = quantize_filter(b, a, width=flen(dut.c["a1"]))
+
+        params = {}
+        for i, bi in enumerate(self.b):
+            params["b%i" % i] = bi
+        for i, ai in enumerate(self.a):
+            params["a%i" % i] = ai
+        params["a0"] = shift
+
+        dut = CsrParams(dut, params)
+        return dut
