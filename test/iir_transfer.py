@@ -56,12 +56,12 @@ class TB(Module):
 def get_params(typ="PI", f=1., k=1., g=1., shift=None, width=25, fs=1., q=.5):
     f *= np.pi/fs
     b, a = make_filter(typ, k=k, f=f, g=g, q=q)
-    b, a = quantize_filter(b, a, shift, width)
+    b, a, shift = quantize_filter(b, a, shift, width)
     p = {}
     for i, (ai, bi) in enumerate(zip(a, b)):
         p["a%i" % i] = ai
         p["b%i" % i] = bi
-    return p
+    return p, shift
 
 
 def _main2():
@@ -79,8 +79,9 @@ def _main2():
     x[n/4:n/2] = .5
     x[n/2:3*n/4] = -x[n/4:n/2]
     tb = TB(x, order=1, mode="pipelined")
-    tb.params = get_params("PI", f=5e-6, k=1., g=1e4,
+    tb.params, shift = get_params("PI", f=5e-4, k=1., g=1e4,
             width=flen(tb.iir.c["a1"]))
+    tb.params["a0"] = shift
     #print(verilog.convert(tb))
     run_simulation(tb, vcd_name="iir.vcd")
     plt.plot(tb.x)
@@ -117,5 +118,5 @@ def _pid():
 	plt.show()
 
 if __name__ == "__main__":
-    #_pid()
-    _main2()
+    _pid()
+    #_main2()

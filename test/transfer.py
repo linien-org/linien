@@ -7,39 +7,16 @@ from migen.fhdl.std import *
 from migen.sim.generic import run_simulation, StopSimulation
 
 from gateware.iir_ import IIR
+from iir_coeffs import make_filter, quantize_filter
 
 
-class Transfer(Module):
-    def __init__(self, b, a, amplitude=None, samples=1<<12, scale=None, **kwargs):
-        a = np.array(a)
-        b = np.array(b)
-        self.b0 = b/a[0]
-        self.a0 = a/a[0]
-        kwargs["order"] = len(b) - 1
-        self.submodules.dut = IIR(**kwargs)
-        w = 2**(self.dut.width - 1) - 1
-        if scale is None:
-            bits = np.ceil(np.log2(np.fabs([b, a]).max()))
-            scale = int(self.dut.width - 1 - bits)
-        self.dut.scale.reset = scale
-        s = 2**scale - 1 # otherwise 1 will not fit
-        self.b = np.around(b*s/a[0]).astype(np.int)
-        self.a = np.ceil(a*s/a[0]).astype(np.int)
-        if np.any(np.fabs([self.b, self.a]) > w):
-            raise ValueError("coefficient overflow: b={}, a={}, w={}".format(
-                self.b, self.a, w))
-        z, p, k = scipy.signal.tf2zpk(self.b, self.a)
-        if np.any(np.absolute(p) > 1):
-            warnings.warn("unstable filter: z={}, p={}, k={}".format(
-                z, p, k), RuntimeWarning)
-        if amplitude is None:
-            amplitude = min(1, 1/k/1000)
-        for i in range(len(b)):
-            self.dut.b[i].reset = int(self.b[i])
-            self.dut.a[i].reset = int(self.a[i])
+class Filter(Module):
+    def __init__(self, dut, amplitude, samples=1<<12):
+        self.submodules.dut = dut
+        self.scale = 2**(flen(self.dut.x) - 1) - 1
 
         np.random.seed(299792458)
-        self.x = np.random.uniform(-amplitude*w, amplitude*w,
+        self.x = np.random.uniform(-amplitude*self.scale, amplitude*self.scale,
                 samples).astype(np.int)
         self.y = np.empty_like(self.x)
         self.gen = iter(self.x)
@@ -53,17 +30,35 @@ class Transfer(Module):
 
     def run(self):
         run_simulation(self)
-        w = 2**(self.dut.width - 1) - 1
-        x = self.x[:-self.dut.latency-1]/w
-        y = self.y[self.dut.latency+1:]/w
+        x = self.x[:-self.dut.latency-1]/self.scale
+        y = self.y[self.dut.latency+1:]/self.scale
         return x, y
 
+
+class Transfer:
+    def __init__(self, b, a, amplitude, samples=1<<12, scale=None, **kwargs):
+        self.a0 = a = np.array(a)
+        self.b0 = b = np.array(b)
+        kwargs["order"] = len(b) - 1
+        
+        self.tb = Filter(IIR(**kwargs), amplitude, samples)
+        self.b, self.a, shift = quantize_filter(b, a, width=flen(self.tb.dut.a[0]))
+        self.tb.dut.scale.reset = shift
+        for i in range(len(b)):
+            self.tb.dut.b[i].reset = int(self.b[i])
+            self.tb.dut.a[i].reset = int(self.a[i])
+        
+        z, p, k = scipy.signal.tf2zpk(self.b, self.a)
+        if np.any(np.absolute(p) > 1):
+            warnings.warn("unstable filter: z={}, p={}, k={}".format(
+                z, p, k), RuntimeWarning)
+ 
     def analyze(self):
-        x, y = self.run()
+        fig, ax = plt.subplots(3, 1, figsize=(12, 15))
+        x, y = self.tb.run()
         y0 = scipy.signal.lfilter(self.b, self.a, x)
         np.clip(y0, -10, 10, y0)
         yd = plt.mlab.detrend_linear(y - y0)
-        fig, ax = plt.subplots(3)
         n = len(x) #200
         ax[0].plot(x[:n], "c-.", label="input")
         ax[0].plot(y[:n], "r-", label="output")
@@ -96,7 +91,7 @@ class Transfer(Module):
         ax[1].plot(f1, 20*np.log10(np.abs(t1)), "k-")
         ax[1].plot(f1, 20*np.log10(np.abs(t2)), "k:")
         ax[1].plot(f,  20*np.log10(np.abs(td)), "b:")
-        #ax[1].set_ylim(-50, 10)
+        ax[1].set_ylim(-80, None)
         ax[1].set_xlim(fmin, 1.)
         ax[1].set_xscale("log")
         ax[1].set_xlabel("frequency (fs/2)")
@@ -107,6 +102,7 @@ class Transfer(Module):
         ax[2].plot(f1, np.rad2deg(np.angle(t1)), "k--")
         ax[2].plot(f1, np.rad2deg(np.angle(t2)), "k:")
         #ax[2].plot(f,  np.rad2deg(np.angle(td)), "b:")
+        #ax[2].set_ylim()
         ax[2].set_xlim(fmin, 1.)
         ax[2].set_xscale("log")
         ax[2].set_xlabel("frequency (fs/2)")

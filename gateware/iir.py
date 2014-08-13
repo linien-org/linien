@@ -27,7 +27,7 @@ class Iir(Module, AutoCSR):
                 else:
                     ci = Signal((coeff_width, True), name=name)
                 rci = CSRStorage(flen(ci), name=name)
-                self.sync += ci.eq(rci.storage)
+                self.comb += ci.eq(rci.storage)
                 c[name] = ci
                 setattr(self, "r_" + name, rci)
 
@@ -36,19 +36,19 @@ class Iir(Module, AutoCSR):
         yn = Signal((intermediate_width, True))
         yo = Signal((signal_width, True))
         self.sync += yo.eq(self.y)
-        rail = Signal()
+        railed = Signal()
         mode_in = Signal.like(self.mode_out)
         mode = Signal.like(self.mode_out)
         self.comb += [
-                rail.eq(
-                    (yn[-1] & (~yn[signal_width-1:-1] != 0)) |
-                    (~yn[-1] & (yn[signal_width-1:-1] != 0))),
-                If(rail,
+                railed.eq(
+                    (yn[-1] & (~yn[signal_width - 1:-1] != 0)) |
+                    (~yn[-1] & (yn[signal_width - 1:-1] != 0))),
+                If(railed,
                     self.y.eq(yo),
                 ).Else(
                     self.y.eq(yn),
                 ),
-                mode.eq(mode_in | Cat(rail, 0, 0, 0)),
+                mode.eq(mode_in | Cat(railed, 0, 0, 0)),
                 self.r_mode.status.eq(self.mode_out)
         ]
         self.sync += [
@@ -57,29 +57,28 @@ class Iir(Module, AutoCSR):
                 self.mode_out.eq(mode)
         ]
 
+        z = Signal((intermediate_width, True), name="z_bias")
+        self.sync += z.eq(self.r_bias.storage << c["a0"])
+        
         if mode == "pipelined":
             self.latency = order*wait + 1
             self.interval = 1
-            stage = Signal((intermediate_width, True), name="i_0")
-            self.sync += stage.eq(self.r_bias.storage << c["a0"])
             r = [("b%i" % i, self.x, 1) for i in reversed(range(order + 1))]
             r += [("a%i" % i, -self.y, 0) for i in reversed(range(1, order + 1))]
             for coeff, sig, side in r:
-                _stage = stage
-                stage = Signal((intermediate_width, True), name="i_" + coeff)
+                z0, z = z, Signal((intermediate_width, True), name="z_" + coeff)
                 self.sync += [
                         If(mode[side + 2],
-                            stage.eq(0)
+                            z.eq(0)
                         ).Else(
-                            stage.eq(c[coeff]*sig + Mux(mode[side], 0, _stage))
+                            z.eq(c[coeff]*sig + Mux(mode[side], 0, z0))
                         )
                 ]
                 for i in range(wait - 1):
-                    _stage = stage
-                    stage = Signal((intermediate_width, True), name="ir%i_%s" %
+                    z0, z = z, Signal((intermediate_width, True), name="zr%i_%s" %
                             (i, coeff))
-                    self.sync += stage.eq(_stage)
-            self.comb += yn.eq(stage >> c["a0"])
+                    self.sync += z.eq(z0)
+            self.comb += yn.eq(z >> c["a0"])
 
         elif mode == "iterative":
             self.latency = (2*order+1)*wait
