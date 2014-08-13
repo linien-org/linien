@@ -1,12 +1,5 @@
-import math
-
 from migen.fhdl.std import *
 from migen.bank.description import CSRStorage, CSRStatus, AutoCSR
-
-from migen.fhdl.bitcontainer import bits_for
-from migen.bus.csr import Initiator
-from migen.bank.csrgen import get_offset, Bank
-from migen.bus.transactions import TWrite
 
 
 class Iir(Module, AutoCSR):
@@ -70,7 +63,7 @@ class Iir(Module, AutoCSR):
             stage = Signal((intermediate_width, True), name="i_0")
             self.sync += stage.eq(self.r_bias.storage << c["a0"])
             r = [("b%i" % i, self.x, 1) for i in reversed(range(order + 1))]
-            r += [("a%i" % i, self.y, 0) for i in reversed(range(1, order + 1))]
+            r += [("a%i" % i, -self.y, 0) for i in reversed(range(1, order + 1))]
             for coeff, sig, side in r:
                 _stage = stage
                 stage = Signal((intermediate_width, True), name="i_" + coeff)
@@ -135,90 +128,3 @@ class Iir(Module, AutoCSR):
                         Cat(*xx[1:]).eq(0),
                         Cat(yn, *yy).eq(0),
                     )]
-
-
-
-class TB(Module):
-    def __init__(self, gen=[], **kwargs):
-        self.submodules.iir = Iir(**kwargs)
-        self.desc = self.iir.get_csrs()
-        self.submodules.bank = Bank(self.desc)
-        self.submodules.init = Initiator(self.writes(),
-                self.bank.bus)
-        self.params = {}
-        self.gen = iter(gen)
-        self.x = []
-        self.y = []
-
-    def writes(self):
-        for k in sorted(self.params):
-            n = flen(self.iir.c[k])
-            v = self.params[k] #& ((1<<n) - 1)
-            print(k, hex(v))
-            a = get_offset(self.desc, k)
-            b = (n + 8 - 1)//8
-            for i in reversed(range(b)):
-                vi = (v >> (i*8)) & 0xff
-                print(i, a, vi)
-                yield TWrite(a, vi)
-                a += 1
-
-    def do_simulation(self, selfp):
-        try:
-            xi = next(self.gen)
-        except StopIteration:
-            raise StopSimulation
-        self.x.append(xi)
-        xi = xi*2**(flen(self.iir.x)-1)
-        selfp.iir.x = xi
-        yi = selfp.iir.y
-        yi = yi/2**(flen(self.iir.y)-1)
-        self.y.append(yi)
-
-
-def get_params(typ="pi", f=1., k=1., g=1., shift=None, width=25, fs=1.):
-    f *= math.pi/fs
-    if typ == "pi":
-        p = {
-                "a1":  (1 - f/g)/(1 + f/g),
-                "b0":  k*(1 + f)/(1 + f/g),
-                "b1": -k*(1 - f)/(1 + f/g),
-        }
-    if shift is None:
-        shift = width - 1 - max(math.ceil(math.log2(abs(p[k]))) for k in p)
-    for k in p:
-        p[k] = int(p[k]*2**shift)
-        n = bits_for(p[k], True)
-        assert n <= width, (k, hex(p[k]), n, width)
-    p["a0"] = shift
-    return p
-
-
-
-def main():
-    from migen.fhdl import verilog
-    from migen.sim.generic import run_simulation
-    from matplotlib import pyplot as plt
-    import numpy as np
-
-    iir = Iir()
-    print(verilog.convert(iir, ios={iir.x, iir.y,
-        iir.mode_in, iir.mode_out}))
-
-    n = 10000
-    x = np.zeros(n)
-    x[n/4:n/2] = .5
-    x[n/2:3*n/4] = -x[n/4:n/2]
-    tb = TB(x, order=1, mode="pipelined")
-    tb.params = get_params("pi", f=5e-6, k=1., g=1e9,
-            width=flen(tb.iir.c["a1"]))
-    #print(verilog.convert(tb))
-    run_simulation(tb, vcd_name="iir.vcd")
-    plt.plot(tb.x)
-    plt.plot(tb.y)
-    plt.show()
-
-
-if __name__ == "__main__":
-    main()
-

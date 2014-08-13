@@ -1,3 +1,6 @@
+from math import log2
+
+
 def make_filter(name, k=1., f=0., g=1., q=.5):
     if name == "LP": # k/(s + 1)
         b = [f*k/(f + 2), f*k/(f + 2)]
@@ -43,4 +46,21 @@ def make_filter(name, k=1., f=0., g=1., q=.5):
         b = [2*g*k*(f**2*q + 2*f + 4*q)/(q*(f**2*g**2 + 4*f*g + 4)), 4*g*k*(f**2 - 4)/(f**2*g**2 + 4*f*g + 4), 2*g*k*(f**2*q - 2*f + 4*q)/(q*(f**2*g**2 + 4*f*g + 4))]
         a = [1, 4/(-f*g - 2), (-f*g + 2)/(f*g + 2)]
 
+    return b, a
+
+
+def quantize_filter(b, a, shift=None, width=25):
+    b, a = [i/a[0] for i in b], [i/a[0] for i in a]
+    if shift is None:
+        m = log2(max(abs(i) for i in a + b))
+        if int(m) == m:
+            m += 1
+        shift = width - 2 - int(m)
+    s = 2**shift
+    b = [int(round(i*s)) for i in b]
+    a = [int(i*s) for i in a]
+    for i in b + a:
+        m = 2**(width - 1)
+        assert abs(i) < m, (hex(abs(i)), hex(m))
+    a[0] = shift
     return b, a
