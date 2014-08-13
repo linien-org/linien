@@ -62,7 +62,7 @@ def _iir():
 def _pid():
 	kwargs = dict(samples=1<<14, amplitude=.8)
 	#b, a = make_filter("LP", f=.1, k=500.)
-	b, a = make_filter("PI", f=.000008, k=1-1e-5, g=1e20)
+	b, a = make_filter("PI", f=8e-6, k=1.-1e-5, g=1e20)
 	#b, a = make_filter("IHO", f=.05, k=.04, g=10., q=10.)
 	#b, a = make_filter("LP2", f=.002, k=20., q=1.)
 	#b, a = make_filter("P", k=30)

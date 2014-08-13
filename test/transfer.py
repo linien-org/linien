@@ -15,7 +15,7 @@ from iir_coeffs import make_filter, quantize_filter
 
 
 class Filter(Module):
-    def __init__(self, dut, amplitude, warmup=200, samples=1<<12):
+    def __init__(self, dut, amplitude, samples, warmup=200):
         self.submodules.dut = dut
         self.scale = 2**(flen(self.dut.x) - 1) - 1
 
@@ -63,11 +63,9 @@ class CsrParams(Module):
                     break
             a = get_offset(self.desc, k)
             v = self.params[k]
-            print(k, hex(v))
             b = (n + 8 - 1)//8
             for i in reversed(range(b)):
                 vi = (v >> (i*8)) & 0xff
-                #print(i, a, vi)
                 yield TWrite(a, vi)
                 a += 1
 
@@ -83,7 +81,7 @@ class ResetParams(Module):
 
 
 class Transfer:
-    def __init__(self, b, a, amplitude, samples=1<<12, scale=None, **kwargs):
+    def __init__(self, b, a, amplitude, samples=1<<12, **kwargs):
         kwargs["order"] = len(b) - 1
         self.b0, self.a0 = b, a = np.array(b), np.array(a)
         dut = self.make_dut(b, a, kwargs)
@@ -93,7 +91,7 @@ class Transfer:
         raise NotImplementedError
 
     def analyze(self):
-        fig, ax = plt.subplots(3, 1, figsize=(12, 15))
+        fig, ax = plt.subplots(3, 1, figsize=(15, 20))
         x, y = self.tb.run()
         y0 = scipy.signal.lfilter(self.b, self.a, x)
         np.clip(y0, -10, 10, y0)
@@ -130,8 +128,8 @@ class Transfer:
         ax[1].plot(f1, 20*np.log10(np.abs(t1)), "k-")
         ax[1].plot(f1, 20*np.log10(np.abs(t2)), "k:")
         ax[1].plot(f,  20*np.log10(np.abs(td)), "b:")
-        ax[1].set_ylim(-80, None)
-        ax[1].set_xlim(fmin, 1.)
+        ax[1].set_ylim(-60, None)
+        ax[1].set_xlim(fmin/2, 1.)
         ax[1].set_xscale("log")
         ax[1].set_xlabel("frequency (fs/2)")
         ax[1].set_ylabel("magnitude (dB)")
