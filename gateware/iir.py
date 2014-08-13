@@ -61,7 +61,7 @@ class Iir(Module, AutoCSR):
         self.sync += z.eq(self.r_bias.storage << c["a0"])
         
         if mode == "pipelined":
-            self.latency = order*wait + 1
+            self.latency = (order + 1)*wait
             self.interval = 1
             r = [("b%i" % i, self.x, 1) for i in reversed(range(order + 1))]
             r += [("a%i" % i, -self.y, 0) for i in reversed(range(1, order + 1))]

@@ -69,13 +69,12 @@ def quantize_filter(b, a, shift=None, width=25):
         shift = width
         for i in b + a:
             m = ceil(log2(abs(i)))
-            #if i > 0 and int(m) == m:
-            #    m += 1
+            if i > 0 and int(m) == m:
+                m += 1
             shift = min(shift, int(width - 1 - m))
-    s = 2**shift - 1 # -1 is not really correct but gives 
-    # more dynamic range in the a[1] == 1 case
+    s = 2**shift
     
-    b = [int(round(i*s)) for i in b]
+    b = [int(i*s) for i in b]
     a = [int(i*s) for i in a]
 
     m = 2**(width - 1)

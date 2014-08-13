@@ -19,9 +19,13 @@ class Filter(Module):
         self.submodules.dut = dut
         self.scale = 2**(flen(self.dut.x) - 1) - 1
 
-        np.random.seed(299792458)
-        self.x = np.random.uniform(-amplitude*self.scale, amplitude*self.scale,
+        if isinstance(amplitude, float):
+            np.random.seed(299792458)
+            x = np.random.uniform(-amplitude*self.scale, amplitude*self.scale,
                 samples).astype(np.int)
+        else:
+            x = (amplitude*self.scale).astype(np.int)
+        self.x = x
         self.y = np.empty_like(self.x)
         self.xgen = iter(self.x)
         self.warmup = warmup
@@ -36,8 +40,8 @@ class Filter(Module):
         except StopIteration:
             raise StopSimulation
 
-    def run(self):
-        run_simulation(self)
+    def run(self, **kwargs):
+        run_simulation(self, **kwargs)
         x = self.x[:-self.dut.latency-1]/self.scale
         y = self.y[self.dut.latency+1:]/self.scale
         return x, y
@@ -108,12 +112,11 @@ class Transfer:
         #tx, fx = plt.mlab.psd(x)
         #ty, fy = plt.mlab.psd(y)
         #ax[1].plot(fx, 10*np.log10(ty/tx))
-        n = len(x) #//4
         w = np.hanning(n)
-        x = (x.reshape(-1, n)*w).sum(0)
-        y = (y.reshape(-1, n)*w).sum(0)
-        y0 = (y0.reshape(-1, n)*w).sum(0)
-        yd = (yd.reshape(-1, n)*w).sum(0)
+        x *= w
+        y *= w
+        y0 *= w
+        yd *= w
         xf = np.fft.rfft(x)
         t = np.fft.rfft(y)/xf
         t0 = np.fft.rfft(y0)/xf
@@ -154,10 +157,9 @@ class ResetTransfer(Transfer):
         self.b, self.a, shift = quantize_filter(b, a, width=flen(dut.a[1]))
         
         params = {}
-        for i, bi in enumerate(self.b):
-            params["b%i" % i] = bi
-        for i, ai in enumerate(self.a):
+        for i, (ai, bi) in enumerate(zip(self.a, self.b)):
             params["a%i" % i] = ai
+            params["b%i" % i] = bi
         params["a0"] = shift
 
         dut = ResetParams(dut, params)
@@ -170,10 +172,9 @@ class CsrTransfer(Transfer):
         self.b, self.a, shift = quantize_filter(b, a, width=flen(dut.c["a1"]))
 
         params = {}
-        for i, bi in enumerate(self.b):
-            params["b%i" % i] = bi
-        for i, ai in enumerate(self.a):
+        for i, (ai, bi) in enumerate(zip(self.a, self.b)):
             params["a%i" % i] = ai
+            params["b%i" % i] = bi
         params["a0"] = shift
 
         dut = CsrParams(dut, params)
