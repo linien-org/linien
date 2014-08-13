@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.signal
-import warnings
 
 from migen.fhdl.std import *
 from migen.sim.generic import run_simulation, StopSimulation
@@ -9,9 +8,7 @@ from migen.bus.csr import Initiator
 from migen.bank.csrgen import get_offset, Bank
 from migen.bus.transactions import TWrite
 
-from gateware.iir_ import IIR
-from gateware.iir import Iir
-from iir_coeffs import make_filter, quantize_filter
+from iir_coeffs import get_params
 
 
 class Filter(Module):
@@ -85,13 +82,12 @@ class ResetParams(Module):
 
 
 class Transfer:
-    def __init__(self, b, a, amplitude, samples=1<<12, **kwargs):
-        kwargs["order"] = len(b) - 1
+    def __init__(self, b, a, dut, amplitude=.5, samples=1<<12):
         self.b0, self.a0 = b, a = np.array(b), np.array(a)
-        dut = self.make_dut(b, a, kwargs)
+        dut = self.wrap_dut(b, a, dut)
         self.tb = Filter(dut, amplitude, samples)
 
-    def make_dut(self, b, a, kwargs):
+    def wrap_dut(self, b, a, dut):
         raise NotImplementedError
 
     def analyze(self):
@@ -152,30 +148,14 @@ class Transfer:
 
 
 class ResetTransfer(Transfer):
-    def make_dut(self, b, a, kwargs):
-        dut = IIR(**kwargs)
-        self.b, self.a, shift = quantize_filter(b, a, width=flen(dut.a[1]))
-        
-        params = {}
-        for i, (ai, bi) in enumerate(zip(self.a, self.b)):
-            params["a%i" % i] = ai
-            params["b%i" % i] = bi
-        params["a0"] = shift
-
+    def wrap_dut(self, b, a, dut):
+        self.b, self.a, params = get_params(b, a, width=flen(dut.a[1]))
         dut = ResetParams(dut, params)
         return dut
 
 
 class CsrTransfer(Transfer):
-    def make_dut(self, b, a, kwargs):
-        dut = Iir(**kwargs)
-        self.b, self.a, shift = quantize_filter(b, a, width=flen(dut.c["a1"]))
-
-        params = {}
-        for i, (ai, bi) in enumerate(zip(self.a, self.b)):
-            params["a%i" % i] = ai
-            params["b%i" % i] = bi
-        params["a0"] = shift
-
+    def wrap_dut(self, b, a, dut):
+        self.b, self.a, params = get_params(b, a, width=flen(dut.c["a1"]))
         dut = CsrParams(dut, params)
         return dut
