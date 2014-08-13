@@ -12,54 +12,55 @@ from migen.genlib.cordic import Cordic
 
 from iir import Iir
 
-ports_layout = [
-        ("i", (18, True)),
-        ("o", (18, True)),
-]
+signal_width = 25 
+coeff_width = 18
 
-coeff_width = 25
+ports_layout = [
+        ("i", (signal_width, True)),
+        ("o", (signal_width, True)),
+]
 
 
 class Sweep(Module):
     def __init__(self):
-        self.o = Signal((18, True))
+        self.o = Signal((signal_width, True))
 
 
 class InOut(Module, AutoCSR):
     def __init__(self, i, o):
         self.ports = Record(ports_layout)
 
-        self._in_min = CSRStorage(18)
-        self._in_max = CSRStorage(18)
-        self._in_shift = CSRStorage(18)
-        self._in_val = CSRStatus(18)
+        self._in_min = CSRStorage(signal_width)
+        self._in_max = CSRStorage(signal_width)
+        self._in_shift = CSRStorage(signal_width)
+        self._in_val = CSRStatus(signal_width)
         self._in_low = CSRStatus()
         self._in_high = CSRStatus()
 
         self._demod = CSRStorage()
-        self._demod_amp = CSRStorage(18)
-        self._demod_phase = CSRStorage(18)
+        self._demod_amp = CSRStorage(signal_width)
+        self._demod_phase = CSRStorage(signal_width)
 
         self._mod = CSRStorage()
-        self._mod_amp = CSRStorage(18)
+        self._mod_amp = CSRStorage(signal_width)
         self._mod_freq = CSRStorage(32)
 
         self._sweep = CSRStorage()
-        self._sweep_amp = CSRStorage(18)
-        self._sweep_offset = CSRStorage(18)
-        self._sweep_freq = CSRStorage(18)
+        self._sweep_amp = CSRStorage(signal_width)
+        self._sweep_offset = CSRStorage(signal_width)
+        self._sweep_freq = CSRStorage(signal_width)
 
-        self._out_min = CSRStorage(18)
-        self._out_max = CSRStorage(18)
-        self._out_shift = CSRStorage(18)
-        self._out_val = CSRStatus(18)
+        self._out_min = CSRStorage(signal_width)
+        self._out_max = CSRStorage(signal_width)
+        self._out_shift = CSRStorage(signal_width)
+        self._out_val = CSRStatus(signal_width)
         self._out_low = CSRStatus()
         self._out_high = CSRStatus()
 
         ###
 
-        self.submodules.mod = Cordic(width=18, guard=None)
-        self.submodules.demod = Cordic(width=18, guard=None)
+        self.submodules.mod = Cordic(width=signal_width, guard=None)
+        self.submodules.demod = Cordic(width=signal_width, guard=None)
         self.submodules.sweep = Sweep()
         mod_phase = Signal(32)
         demod_phase = Signal(32)
@@ -85,14 +86,14 @@ class InOut(Module, AutoCSR):
 class IIR1(Module, AutoCSR):
     def __init__(self):
         self.ports = Record(ports_layout)
-        self.submodules.m = Iir(signal_width=flen(self.ports.i), order=1)
+        self.submodules.m = Iir(signal_width=flen(self.ports.i), order=1, wait=2)
         self.comb += self.ports.o.eq(self.m.y), self.m.x.eq(self.ports.i)
 
 
 class IIR2(Module, AutoCSR):
     def __init__(self):
         self.ports = Record(ports_layout)
-        self.submodules.m = Iir(signal_width=flen(self.ports.i), order=2)
+        self.submodules.m = Iir(signal_width=flen(self.ports.i), order=2, wait=2)
         self.comb += self.ports.o.eq(self.m.y), self.m.x.eq(self.ports.i)
 
 

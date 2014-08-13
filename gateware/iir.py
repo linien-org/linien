@@ -11,8 +11,8 @@ from migen.bus.transactions import TWrite
 
 class Iir(Module, AutoCSR):
     def __init__(self, order=1, mode="pipelined",
-            signal_width=18, coeff_width=25, intermediate_width=48,
-            wait=4):
+            signal_width=25, coeff_width=18, intermediate_width=48,
+            wait=1):
         assert mode in ("pipelined", "iterative")
 
         self.x = Signal((signal_width, True))
@@ -34,7 +34,7 @@ class Iir(Module, AutoCSR):
                 else:
                     ci = Signal((coeff_width, True), name=name)
                 rci = CSRStorage(flen(ci), name=name)
-                self.comb += ci.eq(rci.storage)
+                self.sync += ci.eq(rci.storage)
                 c[name] = ci
                 setattr(self, "r_" + name, rci)
 
@@ -44,10 +44,9 @@ class Iir(Module, AutoCSR):
         yo = Signal((signal_width, True))
         self.sync += yo.eq(self.y)
         rail = Signal()
+        mode_in = Signal.like(self.mode_out)
+        mode = Signal.like(self.mode_out)
         self.comb += [
-                self.mode_out.eq((self.mode_in & ~self.r_mask.storage) |
-                    self.r_cmd.storage | Cat(rail, 0, 0, 0)),
-                self.r_mode.status.eq(self.mode_out),
                 rail.eq(
                     (yn[-1] & (~yn[signal_width-1:-1] != 0)) |
                     (~yn[-1] & (yn[signal_width-1:-1] != 0))),
@@ -55,10 +54,18 @@ class Iir(Module, AutoCSR):
                     self.y.eq(yo),
                 ).Else(
                     self.y.eq(yn),
-                )]
+                ),
+                mode.eq(mode_in | Cat(rail, 0, 0, 0)),
+                self.r_mode.status.eq(self.mode_out)
+        ]
+        self.sync += [
+                mode_in.eq((self.mode_in & ~self.r_mask.storage) |
+                    self.r_cmd.storage),
+                self.mode_out.eq(mode)
+        ]
 
         if mode == "pipelined":
-            self.latency = order + 1
+            self.latency = order*wait + 1
             self.interval = 1
             stage = Signal((intermediate_width, True), name="i_0")
             self.sync += stage.eq(self.r_bias.storage << c["a0"])
@@ -67,14 +74,18 @@ class Iir(Module, AutoCSR):
             for coeff, sig, side in r:
                 _stage = stage
                 stage = Signal((intermediate_width, True), name="i_" + coeff)
-                m = Mux(self.mode_out[side], 0, _stage)
                 self.sync += [
-                        If(self.mode_out[side + 2],
+                        If(mode[side + 2],
                             stage.eq(0)
                         ).Else(
-                            stage.eq(c[coeff]*sig + m)
+                            stage.eq(c[coeff]*sig + Mux(mode[side], 0, _stage))
                         )
                 ]
+                for i in range(wait - 1):
+                    _stage = stage
+                    stage = Signal((intermediate_width, True), name="ir%i_%s" %
+                            (i, coeff))
+                    self.sync += stage.eq(_stage)
             self.comb += yn.eq(stage >> c["a0"])
 
         elif mode == "iterative":
@@ -199,7 +210,7 @@ def main():
     x[n/4:n/2] = .5
     x[n/2:3*n/4] = -x[n/4:n/2]
     tb = TB(x, order=1, mode="pipelined")
-    tb.params = get_params("pi", f=4e-6, k=1., g=1e90,
+    tb.params = get_params("pi", f=5e-6, k=1., g=1e9,
             width=flen(tb.iir.c["a1"]))
     #print(verilog.convert(tb))
     run_simulation(tb, vcd_name="iir.vcd")
