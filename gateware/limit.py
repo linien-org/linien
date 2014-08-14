@@ -1,57 +1,31 @@
 from migen.fhdl.std import *
+from migen.bank.description import CSRStorage, CSRStatus, AutoCSR
 
 
-class Limit(Module):
-    def __init__(self, width=16):
-        self.minval = Signal((width, True))
-        self.maxval = Signal((width, True))
-        self.x = Signal((width, True))
-        self.y = Signal((width, True))
-        self.railed = Signal(2)
+class Limit(Module, AutoCSR):
+    def __init__(self, signal_width=25):
+        self.r_minval = CSRStorage(signal_width)
+        self.r_maxval = CSRStorage(signal_width)
+        self.r_railed = CSRStatus(1)
+        minval = Signal((signal_width, True))
+        maxval = Signal((signal_width, True))
+        self.x = Signal((signal_width, True))
+        self.y = Signal((signal_width, True))
+        self.railed = Signal()
         self.comb += [
-                If(self.x >= self.maxval,
-                    self.y.eq(self.maxval),
-                    self.railed.eq(0b01),
-                ).Elif(self.x <= self.minval,
-                    self.y.eq(self.minval),
-                    self.railed.eq(0b10),
+                minval.eq(self.r_minval.storage),
+                maxval.eq(self.r_maxval.storage),
+                self.r_railed.status.eq(self.railed),
+        ]
+        self.sync += [
+                If(self.x > maxval,
+                    self.y.eq(maxval),
+                    self.railed.eq(1)
+                ).Elif(self.x < minval,
+                    self.y.eq(minval),
+                    self.railed.eq(1)
                 ).Else(
                     self.y.eq(self.x),
-                    self.railed.eq(0b00),
-                )]
-
-
-class TB(Module):
-    def __init__(self, **kwargs):
-        self.submodules.limit = Limit(**kwargs)
-        self.x = []
-        self.y = []
-
-    def do_simulation(self, s):
-        if s.cycle_counter == 0:
-            s.wr(self.limit.maxval, 1<<10)
-            s.wr(self.limit.minval, 0xffff&(-(1<<10)))
-        s.wr(self.limit.x, s.cycle_counter << 6)
-        self.x.append(s.rd(self.limit.x))
-        self.y.append(s.rd(self.limit.y))
-
-
-def main():
-    from migen.fhdl import verilog
-    from migen.sim.generic import Simulator, TopLevel
-    import matplotlib.pyplot as plt
-
-    s = Limit()
-    print(verilog.convert(s, ios=set()))
-
-    n = 1<<10
-    tb = TB()
-    sim = Simulator(tb, TopLevel("limit.vcd"))
-    sim.run(n)
-    plt.plot(tb.x)
-    plt.plot(tb.y)
-    plt.show()
-
-
-if __name__ == "__main__":
-    main()
+                    self.railed.eq(0)
+                )
+        ]

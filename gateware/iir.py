@@ -39,10 +39,12 @@ class Iir(Module, AutoCSR):
         railed = Signal()
         mode_in = Signal.like(self.mode_out)
         mode = Signal.like(self.mode_out)
+        #limit = (1<<(signal_width - 1)) - 1
         self.comb += [
                 railed.eq(
                     (yn[-1] & (~yn[signal_width - 1:-1] != 0)) |
                     (~yn[-1] & (yn[signal_width - 1:-1] != 0))),
+                    #(yn < -limit) | (yn >= limit)),
                 If(railed,
                     self.y.eq(yo),
                 ).Else(

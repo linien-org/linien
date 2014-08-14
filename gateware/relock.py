@@ -1,8 +1,9 @@
 from migen.fhdl.std import *
+from migen.bank.description import CSRStorage, CSRStatus, AutoCSR
 
 
-class Relock(Module):
-    def __init__(self, width=16, step_width=32):
+class Relock(Module, AutoCSR):
+    def __init__(self, signal_width=16, step_width=32):
         guard = step_width - width
 
         self.stop = Signal()

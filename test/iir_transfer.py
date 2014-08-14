@@ -22,7 +22,7 @@ def _iir2():
     x[n/4:n/2] = .1
     x[n/2:3*n/4] = -x[n/4:n/2]
 
-    b, a = make_filter("PI", f=2e-5, k=1-1e-5, g=1e20)
+    b, a = make_filter("PI", f=2e-2, k=1-1e-5, g=1e20)
     tb = CsrTransfer(b, a, Iir(order=1, mode="pipelined"), x)
     #print(verilog.convert(tb.tb))
     x, y = tb.tb.run(vcd_name="iir.vcd")
@@ -53,12 +53,12 @@ def _pid():
 	#b, a = make_filter("NOTCH", f=.02, k=10., q=.5)
 	#tb = ResetTransfer(b, a, form="tdf2", **kwargs)
 	tb = CsrTransfer(b, a, Iir(order=len(b) - 1), amplitude=.8, samples=1<<14)
-	#print(tb.b, tb.a)
+	print(tb.b, tb.a)
 	tb.analyze()
 	plt.show()
 
 
 if __name__ == "__main__":
-    #_iir2()
+    _iir2()
     #_iir()
-    _pid()
+    #_pid()

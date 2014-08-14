@@ -11,6 +11,7 @@ from migen.fhdl.bitcontainer import bits_for
 from migen.genlib.cordic import Cordic
 
 from iir import Iir
+from limit import Limit
 
 signal_width = 25 
 coeff_width = 18
@@ -62,6 +63,7 @@ class InOut(Module, AutoCSR):
         self.submodules.mod = Cordic(width=signal_width, guard=None)
         self.submodules.demod = Cordic(width=signal_width, guard=None)
         self.submodules.sweep = Sweep()
+        self.submodules.limit = Limit()
         mod_phase = Signal(32)
         demod_phase = Signal(32)
 
@@ -76,10 +78,11 @@ class InOut(Module, AutoCSR):
                 self.demod.xi.eq(i),
                 self.demod.zi.eq(demod_phase),
                 self.ports.o.eq(Mux(self._demod.storage, self.demod.xo, i)),
-                o.eq(self.ports.i
+                self.limit.x.eq(self.ports.i
                     + Mux(self._mod.storage, self.mod.xo, 0)
                     + Mux(self._sweep.storage, self.sweep.o, 0)
                 ),
+                o.eq(self.limit.y),
         ]
 
 
@@ -196,4 +199,4 @@ if __name__ == "__main__":
     redpid = RedPid()
     v = verilog.convert(redpid, name="redpid", ios=redpid.ios)
     open("redpid.v", "w").write(v)
-    print(v)
+    #print(v)
