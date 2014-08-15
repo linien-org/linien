@@ -258,7 +258,7 @@ class RedPid(Module):
                 o_sys_ack_o=asg_sys.ack,
         )
 
-        self.comb += io.oa.eq(asg[0]), io.ob.eq(asg[1])
+        self.sync += io.oa.eq(asg[0]), io.ob.eq(asg[1])
 
         xadc = platform.request("xadc") 
         ams_sys = Record(sys_layout)
