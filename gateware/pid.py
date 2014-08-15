@@ -10,10 +10,10 @@ from migen.bank.description import *
 from migen.fhdl.bitcontainer import bits_for
 from migen.genlib.cordic import Cordic
 
-from iir import Iir
-from limit import Limit
+from .iir import Iir
+from .limit import Limit
 
-signal_width = 25 
+signal_width = 25
 coeff_width = 18
 
 ports_layout = [
@@ -60,8 +60,8 @@ class InOut(Module, AutoCSR):
 
         ###
 
-        self.submodules.mod = Cordic(width=signal_width, guard=None)
-        self.submodules.demod = Cordic(width=signal_width, guard=None)
+        #self.submodules.mod = Cordic(width=signal_width, guard=None)
+        #self.submodules.demod = Cordic(width=signal_width, guard=None)
         self.submodules.sweep = Sweep()
         self.submodules.limit = Limit()
         mod_phase = Signal(32)
@@ -73,14 +73,15 @@ class InOut(Module, AutoCSR):
         ]
 
         self.comb += [
-                self.mod.xi.eq(self._mod_amp.storage),
-                self.mod.zi.eq(mod_phase),
-                self.demod.xi.eq(i),
-                self.demod.zi.eq(demod_phase),
-                self.ports.o.eq(Mux(self._demod.storage, self.demod.xo, i)),
+                #self.mod.xi.eq(self._mod_amp.storage),
+                #self.mod.zi.eq(mod_phase),
+                #self.demod.xi.eq(i),
+                #self.demod.zi.eq(demod_phase),
+                #self.ports.o.eq(Mux(self._demod.storage, self.demod.xo, i)),
+                self.ports.o.eq(i),
                 self.limit.x.eq(self.ports.i
-                    + Mux(self._mod.storage, self.mod.xo, 0)
-                    + Mux(self._sweep.storage, self.sweep.o, 0)
+                    #+ Mux(self._mod.storage, self.mod.xo, 0)
+                    #+ Mux(self._sweep.storage, self.sweep.o, 0)
                 ),
                 o.eq(self.limit.y),
         ]
@@ -89,15 +90,17 @@ class InOut(Module, AutoCSR):
 class IIR1(Module, AutoCSR):
     def __init__(self):
         self.ports = Record(ports_layout)
-        self.submodules.m = Iir(signal_width=flen(self.ports.i), order=1, wait=2)
-        self.comb += self.ports.o.eq(self.m.y), self.m.x.eq(self.ports.i)
+        self.submodules.m = Iir(signal_width=flen(self.ports.i), coeff_width=coeff_width,
+                order=1)
+        self.sync += self.ports.o.eq(self.m.y), self.m.x.eq(self.ports.i)
 
 
 class IIR2(Module, AutoCSR):
     def __init__(self):
         self.ports = Record(ports_layout)
-        self.submodules.m = Iir(signal_width=flen(self.ports.i), order=2, wait=2)
-        self.comb += self.ports.o.eq(self.m.y), self.m.x.eq(self.ports.i)
+        self.submodules.m = Iir(signal_width=flen(self.ports.i), coeff_width=coeff_width,
+                order=2)
+        self.sync += self.ports.o.eq(self.m.y), self.m.x.eq(self.ports.i)
 
 
 class FilterMux(Module, AutoCSR):
@@ -174,8 +177,9 @@ class RedPid(Module):
 
         parts = OrderedDict(
                 io_a=InOut(dat.a_i, dat.a_o), io_b=InOut(dat.b_i, dat.b_o),
-                iir1_a=IIR1(), iir1_b=IIR1(), iir1_c=IIR1(), iir1_d=IIR1(),
-                iir2_a=IIR2(), iir2_b=IIR2(), iir2_c=IIR2(), iir2_d=IIR2(),
+                iir1_a=IIR1(),
+                #iir1_b=IIR1(), iir1_c=IIR1(), iir1_d=IIR1(),
+                #iir2_a=IIR2(), iir2_b=IIR2(), iir2_c=IIR2(), iir2_d=IIR2(),
         )
         self.submodules.mux = FilterMux(parts.values())
         self.csr_map = {"mux": 31}

@@ -5,54 +5,47 @@ from mibuild.crg import SimpleCRG
 from mibuild.xilinx_common import CRG_DS
 from mibuild.xilinx_vivado import XilinxVivadoPlatform
 
+# https://github.com/RedPitaya/RedPitaya/blob/master/FPGA/release1/fpga/code/red_pitaya.xdc
+
 _io = [
     ("clk125", 0,
         Subsignal("p", Pins("U18")),
         Subsignal("n", Pins("U19")),
         IOStandard("DIFF_HSTL_I_18")
-    ),
+    )
+]
 
-    ("user_led", 0, Pins("F16"), IOStandard("LVCMOS33"),
-            Drive(8), Misc("SLEW SLOW")),
-    ("user_led", 1, Pins("F17"), IOStandard("LVCMOS33"),
-            Drive(8), Misc("SLEW SLOW")),
-    ("user_led", 2, Pins("G15"), IOStandard("LVCMOS33"),
-            Drive(8), Misc("SLEW SLOW")),
-    ("user_led", 3, Pins("H15"), IOStandard("LVCMOS33"),
-            Drive(8), Misc("SLEW SLOW")),
-    ("user_led", 4, Pins("K14"), IOStandard("LVCMOS33"),
-            Drive(8), Misc("SLEW SLOW")),
-    ("user_led", 5, Pins("G14"), IOStandard("LVCMOS33"),
-            Drive(8), Misc("SLEW SLOW")),
-    ("user_led", 6, Pins("J15"), IOStandard("LVCMOS33"),
-            Drive(8), Misc("SLEW SLOW")),
-    ("user_led", 7, Pins("J14"), IOStandard("LVCMOS33"),
-            Drive(8), Misc("SLEW SLOW")),
+_io += [
+    ("user_led", i, Pins(p), IOStandard("LVCMOS33"),
+            Drive(8), Misc("SLEW SLOW")) for i, p in enumerate(
+                "F16 F17 G15 H15 K14 G14 J15 J14".split())
+]
 
+_io += [
     ("adc_clk", 0,
-        Subsignal("clk", Pins("N20 P20"), IOStandard("LVCMOS18"),
-            Drive(8)),
-        Subsignal("cdcs", Pins("V18"), IOStandard("LVCMOS18"),
-            Drive(8)),
-        Misc("SLEW FAST")
+        Subsignal("clk", Pins("N20 P20")),
+        Subsignal("cdcs", Pins("V18")),
+        Misc("SLEW FAST"), IOStandard("LVCMOS18"), Drive(8)
     ),
 
     ("adc", 0, Pins("V17 U17 Y17 W16 Y16 W15 W14 Y14 "
         "W13 V12 V13 T14 T15 V15 T16 V16"),
-        IOStandard("LVCMOS18")),
+        IOStandard("LVCMOS18")), # Misc("IOB TRUE")
 
     ("adc", 1, Pins("T17 R16 R18 P16 P18 N17 R19 T20 "
         "T19 U20 V20 W20 W19 Y19 W18 Y18"),
-        IOStandard("LVCMOS18")),
+        IOStandard("LVCMOS18")), # Misc("IOB TRUE")
 
-    ("dac_clk", 0, Pins("M18"), Drive(8), Misc("SLEW FAST")),
+    ("dac_clk", 0, Pins("M18"), Drive(8), Misc("SLEW FAST"),
+        IOStandard("LVCMOS33")),
 
     ("dac", 0, 
         Subsignal("data", Pins("M19 M20 L19 L20 K19 J19 J20 H20 "
             "G19 G20 F19 F20 D20 D19"), Misc("SLEW SLOW"), Drive(4)),
+        # Misc("IOB TRUE")
         Subsignal("wrt", Pins("M17"), Drive(8), Misc("SLEW FAST")),
         Subsignal("sel", Pins("N16"), Drive(8), Misc("SLEW FAST")),
-        Subsignal("rst", Pins("M18"), Drive(8), Misc("SLEW FAST")),
+        Subsignal("rst", Pins("N15"), Drive(8), Misc("SLEW FAST")),
         IOStandard("LVCMOS33")
     ),
 
@@ -63,7 +56,7 @@ _io = [
     ("dac_pwm", 2, Pins("P15"), IOStandard("LVCMOS18"),
         Misc("DRIVE=12"), Misc("SLEW FAST")),
     ("dac_pwm", 3, Pins("U13"), IOStandard("LVCMOS18"),
-        Misc("DRIVE=12"), Misc("SLEW FAST")),
+        Misc("DRIVE=12"), Misc("SLEW FAST")), # all IOB
 
     ("xadc", 0,
         Subsignal("p", Pins("C20 E17 B19 E18 K9")),
@@ -72,50 +65,73 @@ _io = [
     ),
 
     ("exp", 0,
-        Subsignal("p0", Pins("G17"), Misc("PULLDOWN")),
-        Subsignal("n0", Pins("G18"), Misc("PULLDOWN")),
-        Subsignal("p1", Pins("H16")),
-        Subsignal("n1", Pins("H17")),
-        Subsignal("p2", Pins("J18")),
-        Subsignal("n2", Pins("H18")),
-        Subsignal("p3", Pins("K17")),
-        Subsignal("n3", Pins("K18")),
-        Subsignal("p4", Pins("L14")),
-        Subsignal("n4", Pins("L15")),
-        Subsignal("p5", Pins("L16")),
-        Subsignal("n5", Pins("L17")),
-        Subsignal("p6", Pins("K16")),
-        Subsignal("n6", Pins("J16")),
-        Subsignal("p7", Pins("M14"), Misc("PULLUP")),
-        Subsignal("n7", Pins("M15"), Misc("PULLUP")),
+        Subsignal("p", Pins("G17 H16 J18 K17 L14 L16 K16 M14")),
+        Subsignal("n", Pins("G18 H17 H18 K18 L15 L17 J16 M15")),
         IOStandard("LVCMOS33"), Drive(8), Misc("SLEW FAST")
     ),
 
     ("sata", 0,
-        Subsignal("rx_p", Pins("P14")),
-        Subsignal("rx_n", Pins("R14")),
-        Subsignal("tx_p", Pins("T12")),
-        Subsignal("tx_n", Pins("U12")),
-        IOStandard("DIFF_SSTL18_I")
+        Subsignal("rx_p", Pins("T12")),
+        Subsignal("rx_n", Pins("U12")),
+        Subsignal("tx_p", Pins("U14")),
+        Subsignal("tx_n", Pins("U15")),
+        #IOStandard("DIFF_SSTL18_I")
     ),
 
     ("sata", 1,
-        Subsignal("rx_p", Pins("N18")),
-        Subsignal("rx_n", Pins("N19")),
-        Subsignal("tx_p", Pins("U14")),
-        Subsignal("tx_n", Pins("U15")),
-        IOStandard("DIFF_SSTL18_I")
+        Subsignal("rx_p", Pins("P14")),
+        Subsignal("rx_n", Pins("R14")),
+        Subsignal("tx_p", Pins("N18")),
+        Subsignal("tx_n", Pins("P19")),
+        #IOStandard("DIFF_SSTL18_I")
     ),
+
+    ("cpu", 0,
+            Subsignal("FIXED_IO_mio", Pins("_ "*54)),
+            Subsignal("FIXED_IO_ps_clk", Pins("_ "*1)),
+            Subsignal("FIXED_IO_ps_porb", Pins("_ "*1)),
+            Subsignal("FIXED_IO_ps_srstb", Pins("_ "*1)),
+            Subsignal("FIXED_IO_ddr_vrn", Pins("_ "*1)),
+            Subsignal("FIXED_IO_ddr_vrp", Pins("_ "*1)),
+            Subsignal("DDR_addr", Pins("_ "*15)),
+            Subsignal("DDR_ba", Pins("_ "* 3)),
+            Subsignal("DDR_cas_n", Pins("_ "*1)),
+            Subsignal("DDR_ck_n", Pins("_ "*1)),
+            Subsignal("DDR_ck_p", Pins("_ "*1)),
+            Subsignal("DDR_cke", Pins("_ "*1)),
+            Subsignal("DDR_cs_n", Pins("_ "*1)),
+            Subsignal("DDR_dm", Pins("_ "* 4)),
+            Subsignal("DDR_dq", Pins("_ "*32)),
+            Subsignal("DDR_dqs_n", Pins("_ "* 4)),
+            Subsignal("DDR_dqs_p", Pins("_ "* 4)),
+            Subsignal("DDR_odt", Pins("_ "*1)),
+            Subsignal("DDR_ras_n", Pins("_ "*1)),
+            Subsignal("DDR_reset_n", Pins("_ "*1)),
+            Subsignal("DDR_we_n", Pins("_ "*1)),
+    ),
+
 ]
 
 
 class Platform(XilinxVivadoPlatform):
-    def __init__(self, ):
-        XilinxVivadoPlatform.__init__(self, "xc7z010-clg400-1", _io,
-                lambda p: CRG_DS(p, "clk125", None))
+    def __init__(self):
+        XilinxVivadoPlatform.__init__(self, "xc7z010-clg400-1", _io)
+                #lambda p: CRG_DS(p, "clk125", None))
 
     def do_finalize(self, fragment):
         try:
             self.add_period_constraint(self.lookup_request("clk125").p, 8)
-        except ConstrainError:
+        except ConstraintError:
             pass
+        try:
+            self.add_period_constraint(self.lookup_request("sata", 1).tx_p, 4)
+        except ConstraintError:
+            pass
+
+
+        for r, obj in self.constraint_manager.matched:
+            if r[0] == "cpu":
+                for s in r[2:]:
+                    for c in s.constraints:
+                        if isinstance(c, Pins):
+                            c.identifiers = []

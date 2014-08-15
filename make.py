@@ -4,11 +4,8 @@ from gateware.platform import Platform
 from gateware.redpid import RedPid
 
 
-def _main():
-    platform = Platform()
-    pdq = RedPid(platform)
-    platform.build_cmdline(pdq, build_name="redpid")
-
-
 if __name__ == "__main__":
-    _main()
+    platform = Platform()
+    redpid = RedPid(platform)
+    platform.add_source_dir("verilog")
+    platform.build_cmdline(redpid, build_name="redpid")

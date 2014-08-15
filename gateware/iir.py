@@ -1,22 +1,19 @@
 from migen.fhdl.std import *
-from migen.bank.description import CSRStorage, CSRStatus, AutoCSR
+from migen.bank.description import CSRStorage
+
+from .filter import Filter
 
 
-class Iir(Module, AutoCSR):
+class Iir(Filter):
     def __init__(self, order=1, mode="pipelined",
-            signal_width=25, coeff_width=18, intermediate_width=48,
+            signal_width=24, coeff_width=18, intermediate_width=None,
             wait=1):
+        Filter.__init__(self, signal_width)
         assert mode in ("pipelined", "iterative")
+        if intermediate_width is None:
+            intermediate_width = signal_width + coeff_width
 
-        self.x = Signal((signal_width, True))
-        self.y = Signal((signal_width, True))
-        self.mode_in = Signal(4) # holda, holdb, cleara, clearb
-        self.mode_out = Signal(4)
-
-        self.r_cmd = CSRStorage(4)
-        self.r_mask = CSRStorage(4)
-        self.r_mode = CSRStatus(4)
-        self.r_bias = CSRStorage(signal_width)
+        self.r_z0 = CSRStorage(signal_width)
 
         self.c = c = {}
         for i in "ab":
@@ -27,60 +24,49 @@ class Iir(Module, AutoCSR):
                 else:
                     ci = Signal((coeff_width, True), name=name)
                 rci = CSRStorage(flen(ci), name=name)
-                self.comb += ci.eq(rci.storage)
+                self.sync += ci.eq(rci.storage)
                 c[name] = ci
                 setattr(self, "r_" + name, rci)
 
         ###
 
-        yn = Signal((intermediate_width, True))
-        yo = Signal((signal_width, True))
-        self.sync += yo.eq(self.y)
+        y_last = Signal.like(self.y)
+        self.sync += y_last.eq(self.y)
         railed = Signal()
-        mode_in = Signal.like(self.mode_out)
-        mode = Signal.like(self.mode_out)
-        #limit = (1<<(signal_width - 1)) - 1
+        y_next = Signal((intermediate_width, True))
         self.comb += [
-                railed.eq(
-                    (yn[-1] & (~yn[signal_width - 1:-1] != 0)) |
-                    (~yn[-1] & (yn[signal_width - 1:-1] != 0))),
-                    #(yn < -limit) | (yn >= limit)),
+                railed.eq(Replicate(y_next[signal_width-1:-1], 1) !=
+                    Replicate(y_next[-1], intermediate_width - signal_width)),
                 If(railed,
-                    self.y.eq(yo),
+                    self.y.eq(y_last),
                 ).Else(
-                    self.y.eq(yn),
+                    self.y.eq(y_next),
                 ),
-                mode.eq(mode_in | Cat(railed, 0, 0, 0)),
-                self.r_mode.status.eq(self.mode_out)
         ]
-        self.sync += [
-                mode_in.eq((self.mode_in & ~self.r_mask.storage) |
-                    self.r_cmd.storage),
-                self.mode_out.eq(mode)
-        ]
+        self.sync += self.mode_out.eq(self.mode)
 
-        z = Signal((intermediate_width, True), name="z_bias")
-        self.sync += z.eq(self.r_bias.storage << c["a0"])
-        
+        z = Signal((intermediate_width, True), name="z")
+        self.sync += z.eq(self.r_z0.storage << c["a0"])
+
         if mode == "pipelined":
             self.latency = (order + 1)*wait
             self.interval = 1
-            r = [("b%i" % i, self.x, 1) for i in reversed(range(order + 1))]
-            r += [("a%i" % i, -self.y, 0) for i in reversed(range(1, order + 1))]
-            for coeff, sig, side in r:
+            r = [("b%i" % i, self.x, 0, False) for i in reversed(range(order + 1))]
+            r += [("a%i" % i, self.y, 1, True) for i in reversed(range(1, order + 1))]
+            for coeff, signal, side, invert in r:
                 z0, z = z, Signal((intermediate_width, True), name="z_" + coeff)
                 self.sync += [
-                        If(mode[side + 2],
+                        If(self.mode[side + 2],
                             z.eq(0)
-                        ).Else(
-                            z.eq(c[coeff]*sig + Mux(mode[side], 0, z0))
+                        ).Elif(~self.mode[side],
+                            z.eq(z0 + signal*c[coeff])
                         )
                 ]
                 for i in range(wait - 1):
-                    z0, z = z, Signal((intermediate_width, True), name="zr%i_%s" %
-                            (i, coeff))
+                    z0, z = z, Signal((intermediate_width, True),
+                            name="zr%i_%s" % (i, coeff))
                     self.sync += z.eq(z0)
-            self.comb += yn.eq(z >> c["a0"])
+            self.comb += y_next.eq(z >> c["a0"])
 
         elif mode == "iterative":
             self.latency = (2*order+1)*wait
