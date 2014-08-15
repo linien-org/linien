@@ -290,7 +290,7 @@ class RedPid(Module):
         sata1 = platform.request("sata", 1)
         daisy_rdy = Signal()
         daisy_sys = Record(sys_layout)
-        self.specials.ams = Instance("red_pitaya_daisy",
+        self.specials.daisy = Instance("red_pitaya_daisy",
                 o_daisy_p_o=Cat(sata0.rx_p, sata0.tx_p),
                 o_daisy_n_o=Cat(sata0.rx_n, sata0.tx_n),
                 i_daisy_p_i=Cat(sata1.rx_p, sata1.tx_p),
