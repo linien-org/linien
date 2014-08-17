@@ -39,6 +39,57 @@ class SysInterconnect(Module):
                     Array([Cat(s.rdata, s.err, s.ack) for s in slaves])[cs]),
         ]
 
+
+class CRG(Module):
+    def __init__(self, clk125, rst):
+        self.clock_domains.cd_sys = ClockDomain()
+        self.clock_domains.cd_sys2 = ClockDomain()
+        self.clock_domains.cd_sys2p = ClockDomain()
+        self.clock_domains.cd_ser = ClockDomain()
+
+        i, b = Signal(), Signal()
+        clk, clkb = Signal(7), Signal(7)
+        locked = Signal()
+        self.specials += [
+                Instance("IBUFDS", i_I=clk125.p, i_IB=clk125.n, o_O=i),
+                Instance("BUFG", i_I=i, o_O=b),
+                Instance("PLLE2_BASE",
+                    p_BANDWIDTH="OPTIMIZED",
+                    p_DIVCLK_DIVIDE=1,
+                    p_CLKFBOUT_MULT=8,
+                    p_CLKFBOUT_PHASE=0.,
+                    p_CLKIN1_PERIOD=8.,
+                    p_REF_JITTER1=0.01,
+                    p_STARTUP_WAIT="FALSE",
+                    i_CLKIN1=b, i_PWRDWN=0, i_RST=rst,
+                    o_CLKFBOUT=clk[6], i_CLKFBIN=clkb[6],
+                    p_CLKOUT0_DIVIDE=8, p_CLKOUT0_PHASE=0.,
+                    p_CLKOUT0_DUTY_CYCLE=0.5, o_CLKOUT0=clk[0],
+                    p_CLKOUT1_DIVIDE=4, p_CLKOUT1_PHASE=0.,
+                    p_CLKOUT1_DUTY_CYCLE=0.5, o_CLKOUT1=clk[1],
+                    p_CLKOUT2_DIVIDE=4, p_CLKOUT2_PHASE=-45.,
+                    p_CLKOUT2_DUTY_CYCLE=0.5, o_CLKOUT2=clk[2],
+                    p_CLKOUT3_DIVIDE=4, p_CLKOUT3_PHASE=0.,
+                    p_CLKOUT3_DUTY_CYCLE=0.5, o_CLKOUT3=clk[3],
+                    p_CLKOUT4_DIVIDE=4, p_CLKOUT4_PHASE=0.,
+                    p_CLKOUT4_DUTY_CYCLE=0.5, o_CLKOUT4=clk[4],
+                    p_CLKOUT5_DIVIDE=4, p_CLKOUT5_PHASE=0.,
+                    p_CLKOUT5_DUTY_CYCLE=0.5, o_CLKOUT5=clk[5],
+                    o_LOCKED=locked,
+                )
+        ]
+        rst = Signal.like(clk)
+        for i, o, r in zip(clk, clkb, rst):
+            self.specials += [
+                    Instance("BUFG", i_I=i, o_O=o),
+                    Instance("FD", p_INIT=1, i_D=~locked, i_C=o, o_Q=r)
+            ]
+        for c, r, d in zip(clkb, rst,
+                [self.cd_sys, self.cd_sys2, self.cd_sys2p, self.cd_ser]):
+            self.comb += d.clk.eq(c), d.rst.eq(r)
+
+
+
 cpu_layout = [
        ("FIXED_IO_mio", 54),
        ("FIXED_IO_ps_clk", 1),
@@ -74,7 +125,6 @@ class RedPid(Module):
         ps_sys = Record(sys_layout)
         fclk = Signal(4)
         frstn = Signal(4)
-        ser_clk = Signal()
         self.specials.ps = Instance("red_pitaya_ps",
             io_FIXED_IO_mio=ps_io.FIXED_IO_mio,
             io_FIXED_IO_ps_clk=ps_io.FIXED_IO_ps_clk,
@@ -129,50 +179,41 @@ class RedPid(Module):
             i_spi_mosi_i=0,
         )
 
-        self.clock_domains.cd_sys = ClockDomain()
-        self.sync += self.cd_sys.rst.eq(frstn[0])
+        self.submodules.crg = CRG(platform.request("clk125"), frstn[0])
 
         adc_clk = platform.request("adc_clk")
         adc_clk.cdcs.reset = 1
         adc_clk.clk.reset = 0b10
 
-        clk125 = platform.request("clk125")
-
-        dac = platform.request("dac")
-
-        dac_pwm = Cat(*(platform.request("dac_pwm", i) for i in range(4)))
 
         io = Record([
             ("ia", (14, True)), ("ib", (14, True)),
             ("oa", (14, True)), ("ob", (14, True))
         ])
+        adca, adcb = [platform.request("adc", i) for i in range(2)]
+        dac = platform.request("dac")
+        daca, dacb = Signal(flen(dac.data)), Signal(flen(dac.data))
+        self.sync += [ # signed and negative amplifier gain
+                io.ia.eq(Cat(~adca[:-1], adca[-1])),
+                io.ib.eq(Cat(~adcb[:-1], adcb[-1])),
+                daca.eq(Cat(~io.oa[:-1], io.oa[-1])),
+                dacb.eq(Cat(~io.ob[:-1], io.ob[-1])),
+        ]
+        self.specials += [
+                Instance("ODDR", i_D1=0, i_D2=1, i_C=ClockSignal("sys2p"),
+                    o_Q=platform.request("dac_clk")),
+                Instance("ODDR", i_D1=0, i_D2=1, i_C=ClockSignal("sys2"),
+                    o_Q=dac.wrt),
+                Instance("ODDR", i_D1=1, i_D2=0, i_C=ClockSignal(),
+                    o_Q=dac.sel),
+                Instance("ODDR", i_D1=~ResetSignal(), i_D2=~ResetSignal(),
+                    i_C=ClockSignal(), o_Q=dac.rst),
+                [Instance("ODDR", i_D1=bi, i_D2=ai, i_C=ClockSignal(),
+                    o_Q=di) for ai, bi, di in zip(daca, dacb, dac.data)]
+        ]
+
+        dac_pwm = Cat(*(platform.request("dac_pwm", i) for i in range(4)))
         pwm = [Signal(24) for i in range(4)]
-
-        self.specials.analog = Instance("red_pitaya_analog",
-                i_adc_dat_a_i=platform.request("adc", 0),
-                i_adc_dat_b_i=platform.request("adc", 1),
-                i_adc_clk_p_i=clk125.p,
-                i_adc_clk_n_i=clk125.n,
-                o_dac_dat_o=dac.data,
-                o_dac_wrt_o=dac.wrt,
-                o_dac_sel_o=dac.sel,
-                o_dac_clk_o=platform.request("dac_clk"),
-                o_dac_rst_o=dac.rst,
-                o_dac_pwm_o=dac_pwm,
-
-                o_adc_dat_a_o=io.ia,
-                o_adc_dat_b_o=io.ib,
-                o_adc_clk_o=self.cd_sys.clk,
-                i_adc_rst_i=ResetSignal(),
-                o_ser_clk_o=ser_clk,
-                i_dac_dat_a_i=io.oa,
-                i_dac_dat_b_i=io.ob,
-                i_dac_pwm_a_i=pwm[0],
-                i_dac_pwm_b_i=pwm[1],
-                i_dac_pwm_c_i=pwm[2],
-                i_dac_pwm_d_i=pwm[3],
-                #o_dac_pwm_sync_o=,
-        )
 
         exp_q = platform.request("exp")
         n = flen(exp_q.p)
@@ -296,7 +337,7 @@ class RedPid(Module):
                 i_daisy_p_i=Cat(sata1.rx_p, sata1.tx_p),
                 i_daisy_n_i=Cat(sata1.rx_n, sata1.tx_n),
 
-                i_ser_clk_i=ser_clk,
+                i_ser_clk_i=ClockSignal("ser"),
                 i_dly_clk_i=fclk[3],
 
                 i_par_clk_i=ClockSignal(),
