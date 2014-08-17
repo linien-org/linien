@@ -301,75 +301,8 @@ class RedPid(Module):
 
         self.sync += io.oa.eq(asg[0]), io.ob.eq(asg[1])
 
-        xadc = platform.request("xadc") 
-        ams_sys = Record(sys_layout)
-        self.specials.ams = Instance("red_pitaya_ams",
-                i_clk_i=ClockSignal(),
-                i_rstn_i=~ResetSignal(),
-
-                i_vinp_i=xadc.p,
-                i_vinn_i=xadc.n,
-
-                o_dac_a_o=pwm[0],
-                o_dac_b_o=pwm[1],
-                o_dac_c_o=pwm[2],
-                o_dac_d_o=pwm[3],
-
-                i_sys_clk_i=ams_sys.clk,
-                i_sys_rstn_i=ams_sys.rstn,
-                i_sys_addr_i=ams_sys.addr,
-                i_sys_wdata_i=ams_sys.wdata,
-                i_sys_sel_i=ams_sys.sel,
-                i_sys_wen_i=ams_sys.wen,
-                i_sys_ren_i=ams_sys.ren,
-                o_sys_rdata_o=ams_sys.rdata,
-                o_sys_err_o=ams_sys.err,
-                o_sys_ack_o=ams_sys.ack,
-        )
-
-        sata0 = platform.request("sata", 0)
-        sata1 = platform.request("sata", 1)
-        daisy_rdy = Signal()
-        daisy_sys = Record(sys_layout)
-        self.specials.daisy = Instance("red_pitaya_daisy",
-                o_daisy_p_o=Cat(sata0.rx_p, sata0.tx_p),
-                o_daisy_n_o=Cat(sata0.rx_n, sata0.tx_n),
-                i_daisy_p_i=Cat(sata1.rx_p, sata1.tx_p),
-                i_daisy_n_i=Cat(sata1.rx_n, sata1.tx_n),
-
-                i_ser_clk_i=ClockSignal("ser"),
-                i_dly_clk_i=fclk[3],
-
-                i_par_clk_i=ClockSignal(),
-                i_par_rstn_i=~ResetSignal(),
-                o_par_rdy_o=daisy_rdy,
-                i_par_dv_i=daisy_rdy,
-                i_par_dat_i=0x1234,
-                #o_par_clk_o=,
-                #o_par_rstn_o=,
-                #o_par_dv_o=,
-                #o_par_dat_o=,
-                #o_debug_o=,
-
-                i_sys_clk_i=daisy_sys.clk,
-                i_sys_rstn_i=daisy_sys.rstn,
-                i_sys_addr_i=daisy_sys.addr,
-                i_sys_wdata_i=daisy_sys.wdata,
-                i_sys_sel_i=daisy_sys.sel,
-                i_sys_wen_i=daisy_sys.wen,
-                i_sys_ren_i=daisy_sys.ren,
-                o_sys_rdata_o=daisy_sys.rdata,
-                o_sys_err_o=daisy_sys.err,
-                o_sys_ack_o=daisy_sys.ack,
-        )
-
         pid_sys = Record(sys_layout)
         pid_sys.ack.reset = 1
-        unused_sys = Record(sys_layout)
-        unused_sys.ack.reset = 1
-        test_sys = Record(sys_layout)
-        test_sys.ack.reset = 1
 
         self.submodules.intercon = SysInterconnect(ps_sys,
-                hk_sys, scope_sys, asg_sys, pid_sys,
-                ams_sys, daisy_sys, unused_sys, test_sys)
+                hk_sys, scope_sys, asg_sys, pid_sys)
