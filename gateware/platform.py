@@ -22,22 +22,15 @@ _io += [
 ]
 
 _io += [
-    ("adc_clk", 0,
+    ("adc", 0,
         Subsignal("clk", Pins("N20 P20")),
         Subsignal("cdcs", Pins("V18")),
+        Subsignal("data_a", Pins("V17 U17 Y17 W16 Y16 W15 W14 Y14 "
+            "W13 V12 V13 T14 T15 V15 T16 V16"), Misc("IOB TRUE")),
+        Subsignal("data_b", Pins("T17 R16 R18 P16 P18 N17 R19 T20 "
+            "T19 U20 V20 W20 W19 Y19 W18 Y18"), Misc("IOB TRUE")),
         Misc("SLEW FAST"), IOStandard("LVCMOS18"), Drive(8)
     ),
-
-    ("adc", 0, Pins("V17 U17 Y17 W16 Y16 W15 W14 Y14 "
-        "W13 V12 V13 T14 T15 V15 T16 V16"),
-        IOStandard("LVCMOS18")), # Misc("IOB TRUE")
-
-    ("adc", 1, Pins("T17 R16 R18 P16 P18 N17 R19 T20 "
-        "T19 U20 V20 W20 W19 Y19 W18 Y18"),
-        IOStandard("LVCMOS18")), # Misc("IOB TRUE")
-
-    ("dac_clk", 0, Pins("M18"), Drive(8), Misc("SLEW FAST"),
-        IOStandard("LVCMOS33")),
 
     ("dac", 0, 
         Subsignal("data", Pins("M19 M20 L19 L20 K19 J19 J20 H20 "
@@ -46,16 +39,17 @@ _io += [
         Subsignal("wrt", Pins("M17"), Drive(8), Misc("SLEW FAST")),
         Subsignal("sel", Pins("N16"), Drive(8), Misc("SLEW FAST")),
         Subsignal("rst", Pins("N15"), Drive(8), Misc("SLEW FAST")),
+        Subsignal("clk", Pins("M18"), Drive(8), Misc("SLEW FAST")),
         IOStandard("LVCMOS33")
     ),
 
-    ("dac_pwm", 0, Pins("T10"), IOStandard("LVCMOS18"),
+    ("pwm", 0, Pins("T10"), IOStandard("LVCMOS18"),
         Misc("DRIVE=12"), Misc("SLEW FAST")),
-    ("dac_pwm", 1, Pins("T11"), IOStandard("LVCMOS18"),
+    ("pwm", 1, Pins("T11"), IOStandard("LVCMOS18"),
         Misc("DRIVE=12"), Misc("SLEW FAST")),
-    ("dac_pwm", 2, Pins("P15"), IOStandard("LVCMOS18"),
+    ("pwm", 2, Pins("P15"), IOStandard("LVCMOS18"),
         Misc("DRIVE=12"), Misc("SLEW FAST")),
-    ("dac_pwm", 3, Pins("U13"), IOStandard("LVCMOS18"),
+    ("pwm", 3, Pins("U13"), IOStandard("LVCMOS18"),
         Misc("DRIVE=12"), Misc("SLEW FAST")), # all IOB
 
     ("xadc", 0,
@@ -120,14 +114,22 @@ class Platform(XilinxVivadoPlatform):
 
     def do_finalize(self, fragment):
         try:
-            self.add_period_constraint(self.lookup_request("clk125").p, 8)
-        except ConstraintError:
+            clk125 = self.lookup_request("clk125")
+            self.add_period_constraint(clk125.p, 8)
+            for i in range(2):
+                try:
+                    adc = self.lookup_request("adc", i)
+                    #self.add_platform_command("set_input_delay "
+                    #    "-clock {clk} 3.4 [get_ports {data}]",
+                    #    clk=clk125, data=adc[0])
+                except ConstraintError:
+                    pass
+        except ConstrainError:
             pass
         try:
             self.add_period_constraint(self.lookup_request("sata", 1).tx_p, 4)
         except ConstraintError:
             pass
-
 
         for r, obj in self.constraint_manager.matched:
             if r[0] == "cpu":

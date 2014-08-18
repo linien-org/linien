@@ -13,6 +13,7 @@ from migen.genlib.cordic import Cordic
 from .iir import Iir
 from .limit import Limit
 
+
 signal_width = 25
 coeff_width = 18
 

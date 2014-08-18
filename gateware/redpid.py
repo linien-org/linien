@@ -8,99 +8,45 @@ from migen.bus import wishbone
 
 from .delta_sigma import DeltaSigma
 from .pid import Pid
-
-
-sys_layout = [
-    ("rstn", 1),
-    ("clk", 1),
-    ("addr", 32),
-    ("wdata", 32),
-    ("sel", 4),
-    ("wen", 1),
-    ("ren", 1),
-    ("rdata", 32),
-    ("err", 1),
-    ("ack", 1),
-]
-
-
-class SysInterconnect(Module):
-    def __init__(self, master, *slaves):
-        for s in slaves:
-            self.comb += [
-                    s.clk.eq(master.clk),
-                    s.rstn.eq(master.rstn),
-                    s.addr.eq(master.addr),
-                    s.wdata.eq(master.wdata),
-                    s.sel.eq(master.sel),
-            ]
-        cs = Signal(max=len(slaves))
-        self.comb += [
-                cs.eq(master.addr[20:23]),
-                Array([Cat(s.wen, s.ren) for s in slaves])[cs].eq(
-                    Cat(master.wen, master.ren)),
-                Cat(master.rdata, master.err, master.ack).eq(
-                    Array([Cat(s.rdata, s.err, s.ack) for s in slaves])[cs]),
-        ]
-
-
-class Sys2Wishbone(Module):
-    def __init__(self):
-        self.wishbone = wb = wishbone.Interface()
-        self.sys = Record(sys_layout)
-
-        ###
-
-        adr = Signal.like(self.sys.addr)
-        re = Signal()
-
-        self.specials += Instance("bus_clk_bridge",
-                i_sys_clk_i=self.sys.clk, i_sys_rstn_i=self.sys.rstn,
-                i_sys_addr_i=self.sys.addr, i_sys_wdata_i=self.sys.wdata,
-                i_sys_sel_i=self.sys.sel, i_sys_wen_i=self.sys.wen,
-                i_sys_ren_i=self.sys.ren, o_sys_rdata_o=self.sys.rdata,
-                o_sys_err_o=self.sys.err, o_sys_ack_o=self.sys.ack,
-                i_clk_i=ClockSignal(), i_rstn_i=ResetSignal(),
-                o_addr_o=adr, o_wdata_o=wb.dat_w, o_wen_o=wb.we,
-                o_ren_o=re, i_rdata_i=wb.dat_r, i_err_i=wb.err,
-                i_ack_i=wb.ack,
-        )
-        self.comb += [
-                wb.stb.eq(re | wb.we),
-                wb.cyc.eq(wb.stb),
-                wb.adr.eq(adr[2:]),
-        ]
+from .pitaya_ps import Sys2Wishbone, SysInterconnect, PitayaPS, sys_layout
 
 
 
 class CRG(Module):
-    def __init__(self, clk125, rst):
+    def __init__(self, clk_adc, rst):
+        self.clock_domains.cd_adc = ClockDomain()
         self.clock_domains.cd_sys = ClockDomain()
-        self.clock_domains.cd_sys2 = ClockDomain()
+        self.clock_domains.cd_sys4 = ClockDomain()
         self.clock_domains.cd_sys2p = ClockDomain()
         self.clock_domains.cd_ser = ClockDomain()
 
-        i, b = Signal(), Signal()
-        clk, clkb = Signal(7), Signal(7)
+        clk_adci, clk_adcb = Signal(), Signal()
+        clk, clkb = Signal(6), Signal(6)
+        clk_fb, clk_fbb = Signal(), Signal()
         locked = Signal()
         self.specials += [
-                Instance("IBUFDS", i_I=clk125.p, i_IB=clk125.n, o_O=i),
-                Instance("BUFG", i_I=i, o_O=b),
+                Instance("IBUFDS", i_I=clk_adc.p, i_IB=clk_adc.n, o_O=clk_adci),
+                Instance("BUFG", i_I=clk_adci, o_O=clk_adcb),
+        ]
+        self.comb += self.cd_adc.clk.eq(clk_adcb)
+        self.specials += Instance("FD", p_INIT=1, i_D=~locked, i_C=self.cd_adc.clk,
+                o_Q=self.cd_adc.rst)
+        self.specials += [
                 Instance("PLLE2_BASE",
                     p_BANDWIDTH="OPTIMIZED",
                     p_DIVCLK_DIVIDE=1,
-                    p_CLKFBOUT_MULT=8,
                     p_CLKFBOUT_PHASE=0.,
+                    p_CLKFBOUT_MULT=8,
                     p_CLKIN1_PERIOD=8.,
                     p_REF_JITTER1=0.01,
                     p_STARTUP_WAIT="FALSE",
-                    i_CLKIN1=b, i_PWRDWN=0, i_RST=rst,
-                    o_CLKFBOUT=clk[6], i_CLKFBIN=clkb[6],
+                    i_CLKIN1=clk_adcb, i_PWRDWN=0, i_RST=rst,
+                    i_CLKFBIN=clk_fbb, o_CLKFBOUT=clk_fb,
                     p_CLKOUT0_DIVIDE=8, p_CLKOUT0_PHASE=0.,
                     p_CLKOUT0_DUTY_CYCLE=0.5, o_CLKOUT0=clk[0],
-                    p_CLKOUT1_DIVIDE=4, p_CLKOUT1_PHASE=0.,
+                    p_CLKOUT1_DIVIDE=2, p_CLKOUT1_PHASE=0.,
                     p_CLKOUT1_DUTY_CYCLE=0.5, o_CLKOUT1=clk[1],
-                    p_CLKOUT2_DIVIDE=4, p_CLKOUT2_PHASE=-45.,
+                    p_CLKOUT2_DIVIDE=4, p_CLKOUT2_PHASE=90.,
                     p_CLKOUT2_DUTY_CYCLE=0.5, o_CLKOUT2=clk[2],
                     p_CLKOUT3_DIVIDE=4, p_CLKOUT3_PHASE=0.,
                     p_CLKOUT3_DUTY_CYCLE=0.5, o_CLKOUT3=clk[3],
@@ -111,41 +57,42 @@ class CRG(Module):
                     o_LOCKED=locked,
                 )
         ]
-        rst = Signal.like(clk)
-        for i, o, r in zip(clk, clkb, rst):
+        self.specials += Instance("BUFG", i_I=clk_fb, o_O=clk_fbb)
+        for i, o, d in zip(clk, clkb,
+                [self.cd_sys, self.cd_sys4, self.cd_sys2p, self.cd_ser]):
             self.specials += [
-                    Instance("BUFG", i_I=i, o_O=o),
-                    Instance("FD", p_INIT=1, i_D=~locked, i_C=o, o_Q=r)
+                    Instance("BUFG", i_I=i, o_O=d.clk),
+                    Instance("FD", p_INIT=1, i_D=~locked, i_C=d.clk, o_Q=d.rst)
             ]
-        for c, r, d in zip(clkb, rst,
-                [self.cd_sys, self.cd_sys2, self.cd_sys2p, self.cd_ser]):
-            self.comb += d.clk.eq(c), d.rst.eq(r)
 
 
 
-cpu_layout = [
-       ("FIXED_IO_mio", 54),
-       ("FIXED_IO_ps_clk", 1),
-       ("FIXED_IO_ps_porb", 1),
-       ("FIXED_IO_ps_srstb", 1),
-       ("FIXED_IO_ddr_vrn", 1),
-       ("FIXED_IO_ddr_vrp", 1),
-       ("DDR_addr", 15),
-       ("DDR_ba",  3),
-       ("DDR_cas_n", 1),
-       ("DDR_ck_n", 1),
-       ("DDR_ck_p", 1),
-       ("DDR_cke", 1),
-       ("DDR_cs_n", 1),
-       ("DDR_dm",  4),
-       ("DDR_dq", 32),
-       ("DDR_dqs_n",  4),
-       ("DDR_dqs_p",  4),
-       ("DDR_odt", 1),
-       ("DDR_ras_n", 1),
-       ("DDR_reset_n", 1),
-       ("DDR_we_n", 1),
-]
+
+class PitayaAnalog(Module):
+    def __init__(self, adc, dac):
+        self.comb += adc.cdcs.eq(1), adc.clk.eq(0b10)
+
+        self.adc_a, self.adc_b, self.dac_a, self.dac_b = [
+                Signal((14, True)) for i in range(4)]
+        adca, adcb = Signal.like(adc.data_a), Signal.like(adc.data_b)
+        self.sync.adc += adca.eq(adc.data_a), adcb.eq(adc.data_b)
+        daca, dacb = Signal(flen(dac.data)), Signal(flen(dac.data))
+        sign = 1<<(flen(dac.data) - 1)
+        self.sync += [ # signed and negative amplifier gain
+                daca.eq(sign ^ -self.dac_a), dacb.eq(sign ^ -self.dac_b),
+                self.adc_a.eq(-(sign ^ adca[2:])), self.adc_b.eq(-(sign ^ adcb[2:])),
+        ]
+        self.comb += dac.rst.eq(ResetSignal())
+        self.specials += [
+                Instance("ODDR", i_D1=1, i_D2=0, i_C=ClockSignal("sys2p"),
+                    o_Q=dac.clk),
+                Instance("ODDR", i_D1=1, i_D2=0, i_C=ClockSignal("sys2p"),
+                    o_Q=dac.wrt),
+                Instance("ODDR", i_D1=1, i_D2=0, i_C=ClockSignal(),
+                    o_Q=dac.sel),
+                [Instance("ODDR", i_D1=ai, i_D2=bi, i_C=ClockSignal(),
+                    o_Q=di) for ai, bi, di in zip(daca, dacb, dac.data)]
+        ]
 
 
 #     tcl.append("read_xdc ../verilog/dont_touch.xdc")
@@ -154,102 +101,18 @@ cpu_layout = [
 class RedPid(Module):
     def __init__(self, platform):
 
-        ps_io = platform.request("cpu")
-        ps_sys = Record(sys_layout)
-        fclk = Signal(4)
-        frstn = Signal(4)
-        self.specials.ps = Instance("red_pitaya_ps",
-            io_FIXED_IO_mio=ps_io.FIXED_IO_mio,
-            io_FIXED_IO_ps_clk=ps_io.FIXED_IO_ps_clk,
-            io_FIXED_IO_ps_porb=ps_io.FIXED_IO_ps_porb,
-            io_FIXED_IO_ps_srstb=ps_io.FIXED_IO_ps_srstb,
-            io_FIXED_IO_ddr_vrn=ps_io.FIXED_IO_ddr_vrn,
-            io_FIXED_IO_ddr_vrp=ps_io.FIXED_IO_ddr_vrp,
-            io_DDR_addr=ps_io.DDR_addr,
-            io_DDR_ba=ps_io.DDR_ba,
-            io_DDR_cas_n=ps_io.DDR_cas_n,
-            io_DDR_ck_n=ps_io.DDR_ck_n,
-            io_DDR_ck_p=ps_io.DDR_ck_p,
-            io_DDR_cke=ps_io.DDR_cke,
-            io_DDR_cs_n=ps_io.DDR_cs_n,
-            io_DDR_dm=ps_io.DDR_dm,
-            io_DDR_dq=ps_io.DDR_dq,
-            io_DDR_dqs_n=ps_io.DDR_dqs_n,
-            io_DDR_dqs_p=ps_io.DDR_dqs_p,
-            io_DDR_odt=ps_io.DDR_odt,
-            io_DDR_ras_n=ps_io.DDR_ras_n,
-            io_DDR_reset_n=ps_io.DDR_reset_n,
-            io_DDR_we_n=ps_io.DDR_we_n,
+        self.submodules.ps = PitayaPS(platform.request("cpu"))
 
-            o_fclk_clk_o=fclk,
-            o_fclk_rstn_o=frstn,
+        self.submodules.crg = CRG(platform.request("clk125"), ~self.ps.frstn[0])
 
-            o_sys_clk_o=ps_sys.clk,
-            o_sys_rstn_o=ps_sys.rstn,
-            o_sys_addr_o=ps_sys.addr,
-            o_sys_wdata_o=ps_sys.wdata,
-            o_sys_sel_o=ps_sys.sel,
-            o_sys_wen_o=ps_sys.wen,
-            o_sys_ren_o=ps_sys.ren,
-            i_sys_rdata_i=ps_sys.rdata,
-            i_sys_err_i=ps_sys.err,
-            i_sys_ack_i=ps_sys.ack,
-
-            #o_spi_ss_o=spim.ss,
-            #o_spi_ss1_o=spim.ss1,
-            #o_spi_ss2_o=spim.ss2,
-            #o_spi_sclk_o=spim.sclk,
-            #o_spi_mosi_o=spim.mosi,
-            #i_spi_miso_i=spim.miso,
-            i_spi_miso_i=0,
-
-            #i_spi_ss_i=spis.ss,
-            #i_spi_sclk_i=spis.sclk,
-            #i_spi_mosi_i=spis.mosi,
-            #o_spi_miso_o=spis.miso,
-            i_spi_ss_i=0,
-            i_spi_sclk_i=0,
-            i_spi_mosi_i=0,
-        )
-
-        self.submodules.crg = CRG(platform.request("clk125"), frstn[0])
-
-        adc_clk = platform.request("adc_clk")
-        adc_clk.cdcs.reset = 1
-        adc_clk.clk.reset = 0b10
-
-
-        io = Record([
-            ("ia", (14, True)), ("ib", (14, True)),
-            ("oa", (14, True)), ("ob", (14, True))
-        ])
-        adca, adcb = [platform.request("adc", i) for i in range(2)]
-        dac = platform.request("dac")
-        daca, dacb = Signal(flen(dac.data)), Signal(flen(dac.data))
-        self.sync += [ # signed and negative amplifier gain
-                io.ia.eq(Cat(~adca[:-1], adca[-1])),
-                io.ib.eq(Cat(~adcb[:-1], adcb[-1])),
-                daca.eq(Cat(~io.oa[:-1], io.oa[-1])),
-                dacb.eq(Cat(~io.ob[:-1], io.ob[-1])),
-        ]
-        self.specials += [
-                Instance("ODDR", i_D1=0, i_D2=1, i_C=ClockSignal("sys2p"),
-                    o_Q=platform.request("dac_clk")),
-                Instance("ODDR", i_D1=0, i_D2=1, i_C=ClockSignal("sys2"),
-                    o_Q=dac.wrt),
-                Instance("ODDR", i_D1=1, i_D2=0, i_C=ClockSignal(),
-                    o_Q=dac.sel),
-                Instance("ODDR", i_D1=~ResetSignal(), i_D2=~ResetSignal(),
-                    i_C=ClockSignal(), o_Q=dac.rst),
-                [Instance("ODDR", i_D1=bi, i_D2=ai, i_C=ClockSignal(),
-                    o_Q=di) for ai, bi, di in zip(daca, dacb, dac.data)]
-        ]
+        self.submodules.analog = PitayaAnalog(platform.request("adc"),
+            platform.request("dac"))
 
         pwm = []
         for i in range(4):
             ds = DeltaSigma(width=24)
             self.submodules += ds
-            self.comb += platform.request("dac_pwm", i).eq(ds.out)
+            self.comb += platform.request("pwm", i).eq(ds.out)
             pwm.append(ds.data)
 
         exp_q = platform.request("exp")
@@ -293,8 +156,8 @@ class RedPid(Module):
         asg_trig = Signal()
         scope_sys = Record(sys_layout)
         self.specials.scope = Instance("red_pitaya_scope",
-                i_adc_a_i=io.ia,
-                i_adc_b_i=io.ib,
+                i_adc_a_i=self.analog.adc_a,
+                i_adc_b_i=self.analog.adc_b,
                 i_adc_clk_i=ClockSignal(),
                 i_adc_rstn_i=~ResetSignal(),
                 i_trig_ext_i=exp.pi[0],
@@ -341,11 +204,11 @@ class RedPid(Module):
         self.submodules.wbcon = wishbone.InterconnectPointToPoint(
                 self.sys2wb.wishbone, self.pid.wishbone)
         self.comb += [
-                self.pid.ins[0].eq(io.ia),
-                self.pid.ins[1].eq(io.ib),
-                io.oa.eq(asg[0] + self.pid.outs[0]),
-                io.ob.eq(asg[1] + self.pid.outs[1])
+                self.pid.ins[0].eq(self.analog.adc_a),
+                self.pid.ins[1].eq(self.analog.adc_b),
+                self.analog.dac_a.eq(asg[0] + self.pid.outs[0]),
+                self.analog.dac_b.eq(asg[1] + self.pid.outs[1])
         ]
 
-        self.submodules.intercon = SysInterconnect(ps_sys,
+        self.submodules.intercon = SysInterconnect(self.ps.axi.sys,
                 hk_sys, scope_sys, asg_sys, self.sys2wb.sys)
