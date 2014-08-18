@@ -139,6 +139,32 @@ class Pitaya2Wishbone(Module):
         ]
 
 
+class Pid(Module):
+    def __init__(self):
+        self.ins = [Signal((14, True)) for i in range(2)]
+        self.outs = [Signal((14, True)) for i in range(2)]
+        parts = OrderedDict(
+                io_a=InOut(self.ins[0], self.outs[0]), 
+                io_b=InOut(self.ins[1], self.outs[1]), 
+                iir1_a=IIR1(),
+                #iir1_b=IIR1(), iir1_c=IIR1(), iir1_d=IIR1(),
+                #iir2_a=IIR2(), iir2_b=IIR2(), iir2_c=IIR2(), iir2_d=IIR2(),
+        )
+        self.submodules.mux = FilterMux(parts.values())
+        self.csr_map = {"mux": 31}
+        for i, (k, v) in enumerate(parts.items()):
+            setattr(self.submodules, k, v)
+            self.csr_map[k] = i
+
+        self.submodules.csrbanks = csrgen.BankArray(self,
+                    lambda name, mem: self.csr_map[name if mem is None
+                        else name + "_" + mem.name_override])
+        self.submodules.wb2csr = wishbone2csr.WB2CSR()
+        self.submodules.csrcon = csr.Interconnect(self.wb2csr.csr,
+                self.csrbanks.get_buses())
+        self.wishbone = self.wb2csr.wishbone
+
+
 class RedPid(Module):
     def __init__(self):
         clk_i = Signal()
@@ -174,28 +200,16 @@ class RedPid(Module):
                 self.cd_sys.clk.eq(clk_i),
                 self.cd_sys.rst.eq(~rstn_i),
         ]
-
-        parts = OrderedDict(
-                io_a=InOut(dat.a_i, dat.a_o), io_b=InOut(dat.b_i, dat.b_o),
-                iir1_a=IIR1(),
-                #iir1_b=IIR1(), iir1_c=IIR1(), iir1_d=IIR1(),
-                #iir2_a=IIR2(), iir2_b=IIR2(), iir2_c=IIR2(), iir2_d=IIR2(),
-        )
-        self.submodules.mux = FilterMux(parts.values())
-        self.csr_map = {"mux": 31}
-        for i, (k, v) in enumerate(parts.items()):
-            setattr(self.submodules, k, v)
-            self.csr_map[k] = i
-
-        self.submodules.csrbanks = csrgen.BankArray(self,
-                    lambda name, mem: self.csr_map[name if mem is None
-                        else name + "_" + mem.name_override])
-        self.submodules.wb2csr = wishbone2csr.WB2CSR()
-        self.submodules.csrcon = csr.Interconnect(self.wb2csr.csr,
-                self.csrbanks.get_buses())
+        self.submodules.pid = Pid()
+        self.comb += [
+                self.pid.ins[0].eq(dat.a_i),
+                self.pid.ins[1].eq(dat.b_i),
+                dat.a_o.eq(self.pid.outs[0]),
+                dat.b_o.eq(self.pid.outs[1]),
+        ]
         self.submodules.pitaya = Pitaya2Wishbone(sys)
         self.submodules.wbcon = wishbone.InterconnectPointToPoint(
-                self.pitaya.wishbone, self.wb2csr.wishbone)
+                self.pitaya.wishbone, self.pid.wishbone)
 
 
 if __name__ == "__main__":

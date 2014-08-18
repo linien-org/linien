@@ -2,8 +2,12 @@
 
 from migen.fhdl.std import *
 from migen.genlib.record import *
+from migen.bus import wishbone
 
 # https://github.com/RedPitaya/RedPitaya/blob/master/FPGA/release1/fpga/code/rtl/red_pitaya_daisy.v
+
+from .delta_sigma import DeltaSigma
+from .pid import Pid
 
 
 sys_layout = [
@@ -38,6 +42,35 @@ class SysInterconnect(Module):
                 Cat(master.rdata, master.err, master.ack).eq(
                     Array([Cat(s.rdata, s.err, s.ack) for s in slaves])[cs]),
         ]
+
+
+class Sys2Wishbone(Module):
+    def __init__(self):
+        self.wishbone = wb = wishbone.Interface()
+        self.sys = Record(sys_layout)
+
+        ###
+
+        adr = Signal.like(self.sys.addr)
+        re = Signal()
+
+        self.specials += Instance("bus_clk_bridge",
+                i_sys_clk_i=self.sys.clk, i_sys_rstn_i=self.sys.rstn,
+                i_sys_addr_i=self.sys.addr, i_sys_wdata_i=self.sys.wdata,
+                i_sys_sel_i=self.sys.sel, i_sys_wen_i=self.sys.wen,
+                i_sys_ren_i=self.sys.ren, o_sys_rdata_o=self.sys.rdata,
+                o_sys_err_o=self.sys.err, o_sys_ack_o=self.sys.ack,
+                i_clk_i=ClockSignal(), i_rstn_i=ResetSignal(),
+                o_addr_o=adr, o_wdata_o=wb.dat_w, o_wen_o=wb.we,
+                o_ren_o=re, i_rdata_i=wb.dat_r, i_err_i=wb.err,
+                i_ack_i=wb.ack,
+        )
+        self.comb += [
+                wb.stb.eq(re | wb.we),
+                wb.cyc.eq(wb.stb),
+                wb.adr.eq(adr[2:]),
+        ]
+
 
 
 class CRG(Module):
@@ -212,8 +245,12 @@ class RedPid(Module):
                     o_Q=di) for ai, bi, di in zip(daca, dacb, dac.data)]
         ]
 
-        dac_pwm = Cat(*(platform.request("dac_pwm", i) for i in range(4)))
-        pwm = [Signal(24) for i in range(4)]
+        pwm = []
+        for i in range(4):
+            ds = DeltaSigma(width=24)
+            self.submodules += ds
+            self.comb += platform.request("dac_pwm", i).eq(ds.out)
+            pwm.append(ds.data)
 
         exp_q = platform.request("exp")
         n = flen(exp_q.p)
@@ -299,10 +336,16 @@ class RedPid(Module):
                 o_sys_ack_o=asg_sys.ack,
         )
 
-        self.sync += io.oa.eq(asg[0]), io.ob.eq(asg[1])
-
-        pid_sys = Record(sys_layout)
-        pid_sys.ack.reset = 1
+        self.submodules.pid = Pid()
+        self.submodules.sys2wb = Sys2Wishbone()
+        self.submodules.wbcon = wishbone.InterconnectPointToPoint(
+                self.sys2wb.wishbone, self.pid.wishbone)
+        self.comb += [
+                self.pid.ins[0].eq(io.ia),
+                self.pid.ins[1].eq(io.ib),
+                io.oa.eq(asg[0] + self.pid.outs[0]),
+                io.ob.eq(asg[1] + self.pid.outs[1])
+        ]
 
         self.submodules.intercon = SysInterconnect(ps_sys,
-                hk_sys, scope_sys, asg_sys, pid_sys)
+                hk_sys, scope_sys, asg_sys, self.sys2wb.sys)
