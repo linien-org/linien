@@ -89,13 +89,13 @@ class PitayaAnalog(Module):
 
         self.comb += dac.rst.eq(ResetSignal())
         self.specials += [
-                Instance("ODDR", i_D1=0, i_D2=1, i_C=ClockSignal("sys2p"),
+                Instance("ODDR", i_D1=0, i_D2=1, i_C=ClockSignal("sys2"),
                     o_Q=dac.clk, i_CE=1, i_R=0, i_S=0),
                 Instance("ODDR", i_D1=0, i_D2=1, i_C=ClockSignal("sys2"),
                     o_Q=dac.wrt, i_CE=1, i_R=0, i_S=0),
-                Instance("ODDR", i_D1=1, i_D2=0, i_C=ClockSignal(),
+                Instance("ODDR", i_D1=0, i_D2=1, i_C=ClockSignal(),
                     o_Q=dac.sel, i_CE=1, i_R=0, i_S=0),
-                [Instance("ODDR", i_D1=bi, i_D2=ai, i_C=ClockSignal(),
+                [Instance("ODDR", i_D1=ai, i_D2=bi, i_C=ClockSignal(),
                     o_Q=di, i_CE=1, i_R=0, i_S=0)
                     for ai, bi, di in zip(daca, dacb, dac.data)]
         ]
