@@ -149,13 +149,15 @@ class Transfer:
 
 class ResetTransfer(Transfer):
     def wrap_dut(self, b, a, dut):
-        self.b, self.a, params = get_params(b, a, width=flen(dut.a[1]))
+        self.b, self.a, params = get_params(b, a, shift=dut.shift.reset,
+                width=flen(dut.a[1]))
         dut = ResetParams(dut, params)
         return dut
 
 
 class CsrTransfer(Transfer):
     def wrap_dut(self, b, a, dut):
-        self.b, self.a, params = get_params(b, a, width=flen(dut.c["a1"]))
+        self.b, self.a, params = get_params(b, a, shift=dut.r_shift.status.reset,
+                width=flen(dut.c["a1"]))
         dut = CsrParams(dut, params)
         return dut

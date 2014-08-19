@@ -1,5 +1,5 @@
 from migen.fhdl.std import *
-from migen.bank.description import CSRStorage
+from migen.bank.description import CSRStorage, CSRStatus
 
 from .filter import Filter
 
@@ -7,21 +7,23 @@ from .filter import Filter
 class Iir(Filter):
     def __init__(self, order=1, mode="pipelined",
             signal_width=25, coeff_width=18,
-            wait=1):
+            wait=1, shift=16, intermediate_width=None):
         Filter.__init__(self, signal_width)
         assert mode in ("pipelined", "iterative")
-        intermediate_width = signal_width + coeff_width
+        if intermediate_width is None:
+            intermediate_width = signal_width + coeff_width
 
         self.r_z0 = CSRStorage(signal_width)
+        self.r_shift = CSRStatus(8)
+        self.r_shift.status.reset = shift
 
         self.c = c = {}
         for i in "ab":
             for j in range(order + 1):
                 name = "%s%i" % (i, j)
                 if name == "a0":
-                    ci = Signal(max=intermediate_width, name=name)
-                else:
-                    ci = Signal((coeff_width, True), name=name)
+                    continue
+                ci = Signal((coeff_width, True), name=name)
                 rci = CSRStorage(flen(ci), name=name)
                 self.sync += ci.eq(rci.storage)
                 c[name] = ci
@@ -29,42 +31,49 @@ class Iir(Filter):
 
         ###
 
-        z = Signal((intermediate_width, True), name="z")
-        self.sync += z.eq(self.r_z0.storage << c["a0"])
+        z = Signal((intermediate_width, True), name="z0r")
+        self.sync += z.eq(Cat(Replicate(0, shift), self.r_z0.storage,
+            Replicate(self.r_z0.storage[-1], intermediate_width-signal_width-shift)))
+        zr, z = z, Signal.like(z, name="z0")
+        self.sync += z.eq(zr)
 
-        y_last = Signal.like(self.y)
-        self.sync += y_last.eq(self.y)
-        railed = Signal()
+        y = Signal.like(self.y)
+        x = Signal.like(self.x)
         y_next = Signal.like(z)
+        y_over = y_next[shift+signal_width-1:]
+        y_pat = Signal.like(y_over, reset=-1)
+        railed = Signal()
         self.comb += [
-                railed.eq(y_next[signal_width-1:-1] !=
-                    Replicate(y_next[-1], coeff_width)),
-                If(railed,
-                    self.y.eq(y_last),
-                ).Else(
-                    self.y.eq(y_next),
+                railed.eq(~((y_over == y_pat) | (y_over == ~y_pat))),
+                self.y.eq(y)
+        ]
+        self.sync += [
+                If(self.mode[2],
+                    x.eq(0)
+                ).Elif(~self.mode[0],
+                    x.eq(self.x)
                 ),
+                If(self.mode[3],
+                    y.eq(0)
+                ).Elif(~self.mode[1] & ~railed,
+                    y.eq(y_next[shift:])
+                )
         ]
         self.sync += self.mode_out.eq(self.mode)
 
         if mode == "pipelined":
             self.latency = (order + 1)*wait
             self.interval = 1
-            r = [("b%i" % i, self.x, 0, False) for i in reversed(range(order + 1))]
-            r += [("a%i" % i, self.y, 1, True) for i in reversed(range(1, order + 1))]
+            r = [("b%i" % i, x, 0, False) for i in reversed(range(order + 1))]
+            r += [("a%i" % i, y, 1, True) for i in reversed(range(1, order + 1))]
             for coeff, signal, side, invert in r:
                 z0, z = z, Signal.like(z, name="z_" + coeff)
-                self.sync += [
-                        If(self.mode[side + 2],
-                            z.eq(0)
-                        ).Elif(~self.mode[side],
-                            z.eq(z0 + signal*c[coeff])
-                        )
-                ]
-                for i in range(wait - 1):
+                self.comb += z.eq(z0 + signal*c[coeff])
+                z_next = z
+                for i in range(wait):
                     z0, z = z, Signal.like(z, name="zr%i_%s" % (i, coeff))
                     self.sync += z.eq(z0)
-            self.comb += y_next.eq(z >> c["a0"])
+            self.comb += y_next.eq(z_next)
 
         elif mode == "iterative":
             self.latency = (2*order+1)*wait

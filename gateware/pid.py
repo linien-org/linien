@@ -93,7 +93,7 @@ class IIR1(Module, AutoCSR):
         self.ports = Record(ports_layout)
         self.submodules.m = Iir(signal_width=flen(self.ports.i), coeff_width=coeff_width,
                 order=1)
-        self.sync += self.ports.o.eq(self.m.y), self.m.x.eq(self.ports.i)
+        self.comb += self.ports.o.eq(self.m.y), self.m.x.eq(self.ports.i)
 
 
 class IIR2(Module, AutoCSR):
@@ -101,7 +101,7 @@ class IIR2(Module, AutoCSR):
         self.ports = Record(ports_layout)
         self.submodules.m = Iir(signal_width=flen(self.ports.i), coeff_width=coeff_width,
                 order=2)
-        self.sync += self.ports.o.eq(self.m.y), self.m.x.eq(self.ports.i)
+        self.comb += self.ports.o.eq(self.m.y), self.m.x.eq(self.ports.i)
 
 
 class FilterMux(Module, AutoCSR):
@@ -111,7 +111,8 @@ class FilterMux(Module, AutoCSR):
         for i, part in enumerate(parts):
             m = CSRStorage(bits_for(len(parts)))
             setattr(self, "_mux%i" % i, m)
-            self.sync += part.ports.i.eq(outs[m.storage])
+            mr = Signal.like(m.storage)
+            self.sync += mr.eq(m.storage), part.ports.i.eq(outs[mr])
 
 
 class Pitaya2Wishbone(Module):
@@ -120,6 +121,7 @@ class Pitaya2Wishbone(Module):
 
         ###
 
+        re = Signal()
         adr = Signal.like(sys.addr_i)
 
         self.specials += Instance("bus_clk_bridge",
@@ -130,11 +132,12 @@ class Pitaya2Wishbone(Module):
                 o_sys_err_o=sys.err_o, o_sys_ack_o=sys.ack_o,
                 i_clk_i=ClockSignal(), i_rstn_i=ResetSignal(),
                 o_addr_o=adr, o_wdata_o=wb.dat_w, o_wen_o=wb.we,
-                o_ren_o=wb.stb, i_rdata_i=wb.dat_r, i_err_i=wb.err,
+                o_ren_o=re, i_rdata_i=wb.dat_r, i_err_i=wb.err,
                 i_ack_i=wb.ack,
         )
 
         self.comb += [
+                wb.stb.eq(re | wb.we),
                 wb.cyc.eq(wb.stb),
                 wb.adr.eq(adr[2:]),
         ]

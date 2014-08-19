@@ -95,5 +95,6 @@ def get_params(b, a, shift=None, width=25):
     for i, (ai, bi) in enumerate(zip(a, b)):
         params["a%i" % i] = -ai
         params["b%i" % i] = bi
-    params["a0"] = shift
+    del params["a0"]
+    #params["shift"] = shift
     return b, a, params
