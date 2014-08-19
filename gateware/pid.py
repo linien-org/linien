@@ -131,15 +131,16 @@ class Pitaya2Wishbone(Module):
                 i_sys_ren_i=sys.ren_i, o_sys_rdata_o=sys.rdata_o,
                 o_sys_err_o=sys.err_o, o_sys_ack_o=sys.ack_o,
                 i_clk_i=ClockSignal(), i_rstn_i=~ResetSignal(),
-                o_addr_o=adr, o_wdata_o=wb.dat_w, o_wen_o=wb.we,
-                o_ren_o=re, i_rdata_i=wb.dat_r, i_err_i=wb.err,
-                i_ack_i=wb.ack,
+                o_addr_o=adr, o_ren_o=re, i_rdata_i=wb.dat_r,
+                o_wen_o=wb.we, o_wdata_o=wb.dat_w,
+                i_err_i=wb.err, i_ack_i=wb.ack,
         )
 
         self.comb += [
-                wb.stb.eq(re | wb.we),
-                wb.cyc.eq(wb.stb),
+                wb.cyc.eq(re | wb.we),
+                wb.stb.eq(wb.cyc),
                 wb.adr.eq(adr[2:]),
+                wb.sel.eq(0b1111)
         ]
 
 
@@ -150,8 +151,7 @@ class Pid(Module):
         parts = OrderedDict(
                 io_a=InOut(self.ins[0], self.outs[0]), 
                 io_b=InOut(self.ins[1], self.outs[1]), 
-                iir1_a=IIR1(),
-                #iir1_b=IIR1(), iir1_c=IIR1(), iir1_d=IIR1(),
+                iir1_a=IIR1(), #iir1_b=IIR1(), iir1_c=IIR1(), iir1_d=IIR1(),
                 #iir2_a=IIR2(), iir2_b=IIR2(), iir2_c=IIR2(), iir2_d=IIR2(),
         )
         self.submodules.mux = FilterMux(parts.values())

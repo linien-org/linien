@@ -283,11 +283,11 @@ class Sys2Wishbone(Module):
                 i_clk_i=ClockSignal(), i_rstn_i=~ResetSignal(),
                 o_addr_o=adr, o_wen_o=wb.we, o_ren_o=re,
                 o_wdata_o=wb.dat_w, i_rdata_i=wb.dat_r,
-                i_err_i=wb.err, i_ack_i=wb.ack,
+                i_err_i=wb.err, i_ack_i=wb.ack
         )
         self.comb += [
-                wb.stb.eq(re | wb.we),
-                wb.cyc.eq(wb.stb),
+                wb.cyc.eq(re | wb.we),
+                wb.stb.eq(wb.cyc),
                 wb.adr.eq(adr[2:]),
-                wb.sel.eq(0b1111),
+                wb.sel.eq(0b1111)
         ]
