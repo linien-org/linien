@@ -242,22 +242,25 @@ class Axi2Sys(Module):
 
 class SysInterconnect(Module):
     def __init__(self, master, *slaves):
-        for s in slaves:
+        cs = Signal(max=len(slaves))
+        self.comb += cs.eq(master.addr[20:23])
+        rets = []
+        for i, s in enumerate(slaves):
+            sel = Signal()
             self.comb += [
+                    sel.eq(cs == i),
                     s.clk.eq(master.clk),
                     s.rstn.eq(master.rstn),
                     s.addr.eq(master.addr),
                     s.wdata.eq(master.wdata),
                     s.sel.eq(master.sel),
+                    s.wen.eq(sel & master.wen),
+                    s.ren.eq(sel & master.ren),
             ]
-        cs = Signal(max=len(slaves))
-        self.comb += [
-                cs.eq(master.addr[20:23]),
-                Array([Cat(s.wen, s.ren) for s in slaves])[cs].eq(
-                    Cat(master.wen, master.ren)),
-                Cat(master.rdata, master.err, master.ack).eq(
-                    Array([Cat(s.rdata, s.err, s.ack) for s in slaves])[cs]),
-        ]
+            ret = Cat(s.err, s.ack, s.rdata)
+            rets.append(Replicate(sel, flen(ret)) & ret)
+        self.comb += Cat(master.err, master.ack, master.rdata).eq(
+                optree("|", rets))
 
 
 class Sys2Wishbone(Module):
@@ -278,12 +281,13 @@ class Sys2Wishbone(Module):
                 o_sys_err_o=self.sys.err, o_sys_ack_o=self.sys.ack,
 
                 i_clk_i=ClockSignal(), i_rstn_i=ResetSignal(),
-                o_addr_o=adr, o_wdata_o=wb.dat_w, o_wen_o=wb.we,
-                o_ren_o=re, i_rdata_i=wb.dat_r, i_err_i=wb.err,
-                i_ack_i=wb.ack,
+                o_addr_o=adr, o_wen_o=wb.we, o_ren_o=re,
+                o_wdata_o=wb.dat_w, i_rdata_i=wb.dat_r,
+                i_err_i=wb.err, i_ack_i=wb.ack,
         )
         self.comb += [
                 wb.stb.eq(re | wb.we),
                 wb.cyc.eq(wb.stb),
                 wb.adr.eq(adr[2:]),
+                wb.sel.eq(0b1111),
         ]

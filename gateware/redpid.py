@@ -18,6 +18,7 @@ class CRG(Module):
         self.clock_domains.cd_sys = ClockDomain()
         self.clock_domains.cd_sys4 = ClockDomain()
         self.clock_domains.cd_sys2p = ClockDomain()
+        self.clock_domains.cd_sys2 = ClockDomain()
         self.clock_domains.cd_ser = ClockDomain()
 
         clk_adci, clk_adcb = Signal(), Signal()
@@ -46,7 +47,7 @@ class CRG(Module):
                     p_CLKOUT0_DUTY_CYCLE=0.5, o_CLKOUT0=clk[0],
                     p_CLKOUT1_DIVIDE=2, p_CLKOUT1_PHASE=0.,
                     p_CLKOUT1_DUTY_CYCLE=0.5, o_CLKOUT1=clk[1],
-                    p_CLKOUT2_DIVIDE=4, p_CLKOUT2_PHASE=90.,
+                    p_CLKOUT2_DIVIDE=4, p_CLKOUT2_PHASE=-45.,
                     p_CLKOUT2_DUTY_CYCLE=0.5, o_CLKOUT2=clk[2],
                     p_CLKOUT3_DIVIDE=4, p_CLKOUT3_PHASE=0.,
                     p_CLKOUT3_DUTY_CYCLE=0.5, o_CLKOUT3=clk[3],
@@ -59,7 +60,8 @@ class CRG(Module):
         ]
         self.specials += Instance("BUFG", i_I=clk_fb, o_O=clk_fbb)
         for i, o, d in zip(clk, clkb,
-                [self.cd_sys, self.cd_sys4, self.cd_sys2p, self.cd_ser]):
+                [self.cd_sys, self.cd_sys4, self.cd_sys2p, self.cd_sys2,
+                    self.cd_ser]):
             self.specials += [
                     Instance("BUFG", i_I=i, o_O=d.clk),
                     Instance("FD", p_INIT=1, i_D=~locked, i_C=d.clk, o_Q=d.rst)
@@ -72,26 +74,30 @@ class PitayaAnalog(Module):
     def __init__(self, adc, dac):
         self.comb += adc.cdcs.eq(1), adc.clk.eq(0b10)
 
-        self.adc_a, self.adc_b, self.dac_a, self.dac_b = [
-                Signal((14, True)) for i in range(4)]
-        adca, adcb = Signal.like(adc.data_a), Signal.like(adc.data_b)
-        self.sync.adc += adca.eq(adc.data_a), adcb.eq(adc.data_b)
-        daca, dacb = Signal(flen(dac.data)), Signal(flen(dac.data))
         sign = 1<<(flen(dac.data) - 1)
-        self.sync += [ # signed and negative amplifier gain
-                daca.eq(sign ^ -self.dac_a), dacb.eq(sign ^ -self.dac_b),
-                self.adc_a.eq(-(sign ^ adca[2:])), self.adc_b.eq(-(sign ^ adcb[2:])),
-        ]
+        size = flen(dac.data), True
+
+        self.adc_a, self.adc_b = Signal(size), Signal(size)
+        self.dac_a, self.dac_b = Signal(size), Signal(size)
+
+        adca, adcb = Signal(size), Signal(size)
+        self.sync.adc += adca.eq(sign ^ adc.data_a[2:]), adcb.eq(sign ^ adc.data_b[2:])
+        self.sync += self.adc_a.eq(-adca), self.adc_b.eq(-adcb)
+
+        daca, dacb = Signal.like(dac.data), Signal.like(dac.data)
+        self.sync += daca.eq(sign ^ -self.dac_a), dacb.eq(sign ^ -self.dac_b)
+
         self.comb += dac.rst.eq(ResetSignal())
         self.specials += [
-                Instance("ODDR", i_D1=1, i_D2=0, i_C=ClockSignal("sys2p"),
-                    o_Q=dac.clk),
-                Instance("ODDR", i_D1=1, i_D2=0, i_C=ClockSignal("sys2p"),
-                    o_Q=dac.wrt),
+                Instance("ODDR", i_D1=0, i_D2=1, i_C=ClockSignal("sys2p"),
+                    o_Q=dac.clk, i_CE=1, i_R=0, i_S=0),
+                Instance("ODDR", i_D1=0, i_D2=1, i_C=ClockSignal("sys2"),
+                    o_Q=dac.wrt, i_CE=1, i_R=0, i_S=0),
                 Instance("ODDR", i_D1=1, i_D2=0, i_C=ClockSignal(),
-                    o_Q=dac.sel),
-                [Instance("ODDR", i_D1=ai, i_D2=bi, i_C=ClockSignal(),
-                    o_Q=di) for ai, bi, di in zip(daca, dacb, dac.data)]
+                    o_Q=dac.sel, i_CE=1, i_R=0, i_S=0),
+                [Instance("ODDR", i_D1=bi, i_D2=ai, i_C=ClockSignal(),
+                    o_Q=di, i_CE=1, i_R=0, i_S=0)
+                    for ai, bi, di in zip(daca, dacb, dac.data)]
         ]
 
 
