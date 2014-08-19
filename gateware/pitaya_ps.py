@@ -66,7 +66,7 @@ class PitayaPS(Module):
     def __init__(self, cpu):
         self.fclk = Signal(4)
         self.frstn = Signal(4)
-        
+
         ###
 
         self.submodules.axi = Axi2Sys()
@@ -221,7 +221,7 @@ class Axi2Sys(Module):
                 i_axi_arprot_i=self.axi.arprot,
                 i_axi_arvalid_i=self.axi.arvalid,
                 o_axi_arready_o=self.axi.arready,
-    
+
                 o_axi_rid_o=self.axi.rid,
                 o_axi_rdata_o=self.axi.rdata,
                 o_axi_rresp_o=self.axi.rresp,
