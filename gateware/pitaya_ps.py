@@ -280,7 +280,7 @@ class Sys2Wishbone(Module):
                 i_sys_ren_i=self.sys.ren, o_sys_rdata_o=self.sys.rdata,
                 o_sys_err_o=self.sys.err, o_sys_ack_o=self.sys.ack,
 
-                i_clk_i=ClockSignal(), i_rstn_i=ResetSignal(),
+                i_clk_i=ClockSignal(), i_rstn_i=~ResetSignal(),
                 o_addr_o=adr, o_wen_o=wb.we, o_ren_o=re,
                 o_wdata_o=wb.dat_w, i_rdata_i=wb.dat_r,
                 i_err_i=wb.err, i_ack_i=wb.ack,

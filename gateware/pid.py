@@ -130,7 +130,7 @@ class Pitaya2Wishbone(Module):
                 i_sys_sel_i=sys.sel_i, i_sys_wen_i=sys.wen_i,
                 i_sys_ren_i=sys.ren_i, o_sys_rdata_o=sys.rdata_o,
                 o_sys_err_o=sys.err_o, o_sys_ack_o=sys.ack_o,
-                i_clk_i=ClockSignal(), i_rstn_i=ResetSignal(),
+                i_clk_i=ClockSignal(), i_rstn_i=~ResetSignal(),
                 o_addr_o=adr, o_wdata_o=wb.dat_w, o_wen_o=wb.we,
                 o_ren_o=re, i_rdata_i=wb.dat_r, i_err_i=wb.err,
                 i_ack_i=wb.ack,
