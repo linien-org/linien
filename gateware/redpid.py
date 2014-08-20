@@ -2,13 +2,14 @@
 
 from migen.fhdl.std import *
 from migen.genlib.record import *
-from migen.bus import wishbone
+from migen.bus import csr
+from migen.bank import csrgen
 
 # https://github.com/RedPitaya/RedPitaya/blob/master/FPGA/release1/fpga/code/rtl/red_pitaya_daisy.v
 
 from .delta_sigma import DeltaSigma
 from .pid import Pid
-from .pitaya_ps import Sys2Wishbone, SysInterconnect, PitayaPS, sys_layout
+from .pitaya_ps import SysCDC, Sys2CSR, SysInterconnect, PitayaPS, sys_layout
 
 
 
@@ -206,9 +207,7 @@ class RedPid(Module):
         )
 
         self.submodules.pid = Pid()
-        self.submodules.sys2wb = Sys2Wishbone()
-        self.submodules.wbcon = wishbone.InterconnectPointToPoint(
-                self.sys2wb.wishbone, self.pid.wishbone)
+
         self.comb += [
                 self.pid.ins[0].eq(self.analog.adc_a),
                 self.pid.ins[1].eq(self.analog.adc_b),
@@ -216,5 +215,15 @@ class RedPid(Module):
                 self.analog.dac_b.eq(asg[1] + self.pid.outs[1])
         ]
 
-        self.submodules.intercon = SysInterconnect(self.ps.axi.sys,
-                hk_sys, scope_sys, asg_sys, self.sys2wb.sys)
+        csr_map = {"pid": 0}
+        self.submodules.csrbanks = csrgen.BankArray(self,
+                    lambda name, mem: csr_map[name if mem is None
+                        else name + "_" + mem.name_override])
+        self.submodules.sys2csr = Sys2CSR()
+        self.submodules.csrcon = csr.Interconnect(self.sys2csr.csr,
+                self.csrbanks.get_buses())
+        self.submodules.syscdc = SysCDC()
+        self.comb += self.syscdc.target.connect(self.sys2csr.sys)
+
+        self.submodules.ic = SysInterconnect(self.ps.axi.sys,
+                hk_sys, scope_sys, asg_sys, self.syscdc.source)

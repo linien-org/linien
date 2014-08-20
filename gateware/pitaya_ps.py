@@ -1,20 +1,19 @@
 from migen.fhdl.std import *
 from migen.genlib.record import *
-from migen.bus import wishbone
-
+from migen.bus import wishbone, csr
 
 
 sys_layout = [
-    ("rstn", 1),
-    ("clk", 1),
-    ("addr", 32),
-    ("wdata", 32),
-    ("sel", 4),
-    ("wen", 1),
-    ("ren", 1),
-    ("rdata", 32),
-    ("err", 1),
-    ("ack", 1),
+    ("rstn", 1, DIR_M_TO_S),
+    ("clk", 1, DIR_M_TO_S),
+    ("addr", 32, DIR_M_TO_S),
+    ("wdata", 32, DIR_M_TO_S),
+    ("sel", 4, DIR_M_TO_S),
+    ("wen", 1, DIR_M_TO_S),
+    ("ren", 1, DIR_M_TO_S),
+    ("rdata", 32, DIR_S_TO_M),
+    ("err", 1, DIR_S_TO_M),
+    ("ack", 1, DIR_S_TO_M),
 ]
 
 
@@ -266,28 +265,79 @@ class SysInterconnect(Module):
 class Sys2Wishbone(Module):
     def __init__(self):
         self.wishbone = wb = wishbone.Interface()
+        self.sys = sys = Record(sys_layout)
+
+        ###
+
+        sys2 = Record(sys_layout)
+
+        self.specials += Instance("bus_clk_bridge",
+                i_sys_clk_i=sys.clk, i_sys_rstn_i=sys.rstn,
+                i_sys_addr_i=sys.addr, i_sys_wdata_i=sys.wdata,
+                i_sys_sel_i=sys.sel, i_sys_wen_i=sys.wen,
+                i_sys_ren_i=sys.ren, o_sys_rdata_o=sys.rdata,
+                o_sys_err_o=sys.err, o_sys_ack_o=sys.ack,
+
+                i_clk_i=ClockSignal(), i_rstn_i=~ResetSignal(),
+                o_addr_o=sys2.addr, o_wen_o=sys2.wen, o_ren_o=sys2.ren,
+                o_wdata_o=sys2.wdata, i_rdata_i=sys2.rdata,
+                i_err_i=sys2.err, i_ack_i=sys2.ack
+        )
+        self.sync += [
+                If(sys2.ren | sys2.wen,
+                    wb.cyc.eq(1),
+                    wb.adr.eq(sys2.addr[2:]),
+                    wb.we.eq(sys2.wen),
+                    wb.dat_w.eq(sys2.wdata)
+                ).Elif(wb.ack,
+                    wb.cyc.eq(0)
+                )
+        ]
+        self.comb += [
+                wb.stb.eq(wb.cyc),
+                sys2.rdata.eq(wb.dat_r),
+                sys2.ack.eq(wb.ack),
+                sys2.err.eq(wb.err)
+        ]
+
+
+class SysCDC(Module):
+    def __init__(self, cd_target="sys"):
+        self.source = Record(sys_layout)
+        self.target = Record(sys_layout)
+
+        self.specials += Instance("bus_clk_bridge",
+                i_sys_clk_i=self.source.clk, i_sys_rstn_i=self.source.rstn,
+                i_sys_addr_i=self.source.addr, i_sys_wdata_i=self.source.wdata,
+                i_sys_sel_i=self.source.sel, i_sys_wen_i=self.source.wen,
+                i_sys_ren_i=self.source.ren, o_sys_rdata_o=self.source.rdata,
+                o_sys_err_o=self.source.err, o_sys_ack_o=self.source.ack,
+
+                i_clk_i=self.target.clk, i_rstn_i=self.target.rstn,
+                o_addr_o=self.target.addr, o_wdata_o=self.target.wdata,
+                o_wen_o=self.target.wen,
+                o_ren_o=self.target.ren, i_rdata_i=self.target.rdata,
+                i_err_i=self.target.err, i_ack_i=self.target.ack
+        )
+        self.comb += [
+                self.target.clk.eq(ClockSignal(cd_target)),
+                self.target.rstn.eq(~ResetSignal(cd_target))
+        ]
+
+
+class Sys2CSR(Module):
+    def __init__(self):
+        self.csr = csr.Interface()
         self.sys = Record(sys_layout)
 
         ###
 
-        adr = Signal.like(self.sys.addr)
-        re = Signal()
-
-        self.specials += Instance("bus_clk_bridge",
-                i_sys_clk_i=self.sys.clk, i_sys_rstn_i=self.sys.rstn,
-                i_sys_addr_i=self.sys.addr, i_sys_wdata_i=self.sys.wdata,
-                i_sys_sel_i=self.sys.sel, i_sys_wen_i=self.sys.wen,
-                i_sys_ren_i=self.sys.ren, o_sys_rdata_o=self.sys.rdata,
-                o_sys_err_o=self.sys.err, o_sys_ack_o=self.sys.ack,
-
-                i_clk_i=ClockSignal(), i_rstn_i=~ResetSignal(),
-                o_addr_o=adr, o_wen_o=wb.we, o_ren_o=re,
-                o_wdata_o=wb.dat_w, i_rdata_i=wb.dat_r,
-                i_err_i=wb.err, i_ack_i=wb.ack
-        )
         self.comb += [
-                wb.cyc.eq(re | wb.we),
-                wb.stb.eq(wb.cyc),
-                wb.adr.eq(adr[2:]),
-                wb.sel.eq(0b1111)
+                self.csr.adr.eq(self.sys.addr[2:]),
+                self.csr.we.eq(self.sys.wen),
+                self.csr.dat_w.eq(self.sys.wdata)
+        ]
+        self.sync += [
+                self.sys.ack.eq(self.sys.wen | self.sys.ren),
+                self.sys.rdata.eq(self.csr.dat_r)
         ]

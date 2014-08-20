@@ -11,7 +11,7 @@ if __name__ == "__main__":
     redpid = RedPid(platform)
 
     csr_base = 0x40300000
-    for name, csrs, mapaddr, rmap in redpid.pid.csrbanks.banks:
+    for name, csrs, mapaddr, rmap in redpid.csrbanks.banks:
         reg_base = csr_base + 0x800*mapaddr
         busword = flen(rmap.bus.dat_w)
         for csr in csrs:

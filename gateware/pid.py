@@ -4,8 +4,6 @@ from collections import OrderedDict
 
 from migen.fhdl.std import *
 from migen.genlib.record import *
-from migen.bus import wishbone2csr, csr, wishbone
-from migen.bank import csrgen
 from migen.bank.description import *
 from migen.fhdl.bitcontainer import bits_for
 from migen.genlib.cordic import Cordic
@@ -115,110 +113,20 @@ class FilterMux(Module, AutoCSR):
             self.sync += mr.eq(m.storage), part.ports.i.eq(outs[mr])
 
 
-class Pitaya2Wishbone(Module):
-    def __init__(self, sys):
-        self.wishbone = wb = wishbone.Interface()
-
-        ###
-
-        re = Signal()
-        adr = Signal.like(sys.addr_i)
-
-        self.specials += Instance("bus_clk_bridge",
-                i_sys_clk_i=sys.clk_i, i_sys_rstn_i=sys.rstn_i,
-                i_sys_addr_i=sys.addr_i, i_sys_wdata_i=sys.wdata_i,
-                i_sys_sel_i=sys.sel_i, i_sys_wen_i=sys.wen_i,
-                i_sys_ren_i=sys.ren_i, o_sys_rdata_o=sys.rdata_o,
-                o_sys_err_o=sys.err_o, o_sys_ack_o=sys.ack_o,
-                i_clk_i=ClockSignal(), i_rstn_i=~ResetSignal(),
-                o_addr_o=adr, o_ren_o=re, i_rdata_i=wb.dat_r,
-                o_wen_o=wb.we, o_wdata_o=wb.dat_w,
-                i_err_i=wb.err, i_ack_i=wb.ack,
-        )
-
-        self.comb += [
-                wb.cyc.eq(re | wb.we),
-                wb.stb.eq(wb.cyc),
-                wb.adr.eq(adr[2:]),
-                wb.sel.eq(0b1111)
-        ]
-
-
-class Pid(Module):
+class Pid(Module, AutoCSR):
     def __init__(self):
+        self.r_version = CSRStatus(8)
+        self.r_version.status.reset = 1
+
         self.ins = [Signal((14, True)) for i in range(2)]
         self.outs = [Signal((14, True)) for i in range(2)]
-        parts = OrderedDict(
-                io_a=InOut(self.ins[0], self.outs[0]), 
-                io_b=InOut(self.ins[1], self.outs[1]), 
-                iir1_a=IIR1(), #iir1_b=IIR1(), iir1_c=IIR1(), iir1_d=IIR1(),
+        parts = OrderedDict([
+                ("io_a", InOut(self.ins[0], self.outs[0])),
+                ("io_b", InOut(self.ins[1], self.outs[1])), 
+                ("iir1_a", IIR1()),
+                #iir1_b=IIR1(), iir1_c=IIR1(), iir1_d=IIR1(),
                 #iir2_a=IIR2(), iir2_b=IIR2(), iir2_c=IIR2(), iir2_d=IIR2(),
-        )
+        ])
         self.submodules.mux = FilterMux(parts.values())
-        self.csr_map = {"mux": 31}
         for i, (k, v) in enumerate(parts.items()):
             setattr(self.submodules, k, v)
-            self.csr_map[k] = i
-
-        self.submodules.csrbanks = csrgen.BankArray(self,
-                    lambda name, mem: self.csr_map[name if mem is None
-                        else name + "_" + mem.name_override])
-        self.submodules.wb2csr = wishbone2csr.WB2CSR()
-        self.submodules.csrcon = csr.Interconnect(self.wb2csr.csr,
-                self.csrbanks.get_buses())
-        self.wishbone = self.wb2csr.wishbone
-
-
-class RedPid(Module):
-    def __init__(self):
-        clk_i = Signal()
-        rstn_i = Signal()
-        self.ios = {clk_i, rstn_i}
-
-        dat = Record([
-            ("a_i", 14),
-            ("b_i", 14),
-            ("a_o", 14),
-            ("b_o", 14),
-        ])
-        self.ios |= set(dat.flatten())
-
-        sys = Record([
-            ("rstn_i", 1),
-            ("clk_i", 1),
-            ("addr_i", 32),
-            ("wdata_i", 32),
-            ("sel_i", 4),
-            ("wen_i", 1),
-            ("ren_i", 1),
-            ("rdata_o", 32),
-            ("err_o", 1),
-            ("ack_o", 1),
-        ])
-        self.ios |= set(sys.flatten())
-
-        ###
-
-        self.clock_domains.cd_sys = ClockDomain()
-        self.comb += [
-                self.cd_sys.clk.eq(clk_i),
-                self.cd_sys.rst.eq(~rstn_i),
-        ]
-        self.submodules.pid = Pid()
-        self.comb += [
-                self.pid.ins[0].eq(dat.a_i),
-                self.pid.ins[1].eq(dat.b_i),
-                dat.a_o.eq(self.pid.outs[0]),
-                dat.b_o.eq(self.pid.outs[1]),
-        ]
-        self.submodules.pitaya = Pitaya2Wishbone(sys)
-        self.submodules.wbcon = wishbone.InterconnectPointToPoint(
-                self.pitaya.wishbone, self.pid.wishbone)
-
-
-if __name__ == "__main__":
-    from migen.fhdl import verilog
-    redpid = RedPid()
-    v = verilog.convert(redpid, name="redpid", ios=redpid.ios)
-    open("redpid.v", "w").write(v)
-    #print(v)
