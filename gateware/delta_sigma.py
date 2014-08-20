@@ -1,4 +1,5 @@
 from migen.fhdl.std import *
+from migen.bank.description import *
 from migen.sim.generic import run_simulation, StopSimulation
 
 
@@ -14,6 +15,17 @@ class DeltaSigma(Module):
         self.comb += delta.eq(Cat(sigma[-1], sigma[-1]))
         self.sync += sigma.eq((self.data + (delta << width)) + sigma)
         self.comb += self.out.eq(sigma[-1])
+
+
+class DeltaSigmaCSR(Module, AutoCSR):
+    def __init__(self, out, **kwargs):
+        for i, o in enumerate(out):
+            ds = DeltaSigma(**kwargs)
+            cs = CSRStorage(flen(ds.data), name="data%i" % i,
+                    atomic_write=True)
+            self.comb += o.eq(ds.out), ds.data.eq(cs.storage)
+            setattr(self, "data%i" % i, ds)
+            setattr(self, "r_data%i" % i, cs)
 
 
 class TB(Module):

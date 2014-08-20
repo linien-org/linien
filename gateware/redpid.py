@@ -7,7 +7,7 @@ from migen.bank import csrgen
 
 # https://github.com/RedPitaya/RedPitaya/blob/master/FPGA/release1/fpga/code/rtl/red_pitaya_daisy.v
 
-from .delta_sigma import DeltaSigma
+from .delta_sigma import DeltaSigmaCSR
 from .pid import Pid
 from .pitaya_ps import SysCDC, Sys2CSR, SysInterconnect, PitayaPS, sys_layout
 
@@ -115,12 +115,8 @@ class RedPid(Module):
         self.submodules.analog = PitayaAnalog(platform.request("adc"),
             platform.request("dac"))
 
-        pwm = []
-        for i in range(4):
-            ds = DeltaSigma(width=24)
-            self.submodules += ds
-            self.comb += platform.request("pwm", i).eq(ds.out)
-            pwm.append(ds.data)
+        pwm = Cat(platform.request("pwm", i) for i in range(4))
+        self.submodules.deltasigma = DeltaSigmaCSR(pwm, width=24)
 
         exp_q = platform.request("exp")
         n = flen(exp_q.p)
@@ -161,6 +157,7 @@ class RedPid(Module):
         )
 
         asg_trig = Signal()
+
         scope_sys = Record(sys_layout)
         self.specials.scope = Instance("red_pitaya_scope",
                 i_adc_a_i=self.analog.adc_a,
@@ -215,7 +212,7 @@ class RedPid(Module):
                 self.analog.dac_b.eq(asg[1] + self.pid.outs[1])
         ]
 
-        csr_map = {"pid": 0}
+        csr_map = {"pid": 0, "deltasigma": 1}
         self.submodules.csrbanks = csrgen.BankArray(self,
                     lambda name, mem: csr_map[name if mem is None
                         else name + "_" + mem.name_override])
