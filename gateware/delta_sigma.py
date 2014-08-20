@@ -21,11 +21,11 @@ class DeltaSigmaCSR(Module, AutoCSR):
     def __init__(self, out, **kwargs):
         for i, o in enumerate(out):
             ds = DeltaSigma(**kwargs)
+            setattr(self, "data%i" % i, ds)
             cs = CSRStorage(flen(ds.data), name="data%i" % i,
                     atomic_write=True)
-            self.comb += o.eq(ds.out), ds.data.eq(cs.storage)
-            setattr(self, "data%i" % i, ds)
             setattr(self, "r_data%i" % i, cs)
+            self.comb += ds.data.eq(cs.storage), o.eq(ds.out)
 
 
 class TB(Module):
