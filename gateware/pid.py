@@ -33,11 +33,9 @@ class InChain(Filter):
         ys = Array([self.x, self.limit.y, self.iir_a.y, self.demod.y])
         self.comb += [
                 self.r_adc.status.eq(self.adc),
-                self.x[-signal_width:].eq(self.adc),
+                self.x[-width:].eq(self.adc),
                 self.limit.x.eq(self.x),
 
-                self.iir_a.x.eq(self.limit.y),
-                self.demod.x.eq(self.iir_a.y),
                 self.limit.hold_in.eq(self.hold),
                 self.limit.clear_in.eq(self.clear),
                 self.iir_a.hold_in.eq(self.hold),
@@ -46,6 +44,8 @@ class InChain(Filter):
                 self.demod.clear_in.eq(self.clear),
         ]
         self.sync += [
+                self.iir_a.x.eq(self.limit.y),
+                self.demod.x.eq(self.iir_a.y),
                 self.y.eq(ys[self.r_tap.storage])
         ]
 
@@ -78,7 +78,6 @@ class OutChain(Filter):
         ys = Array([self.x, self.iir_a.y, self.iir_b.y,
             self.iir_c.y, self.iir_d.y])
         self.comb += [
-                self.dac.eq(self.limit.y[-width:]),
                 self.r_dac.status.eq(self.dac),
 
                 #self.clear_in.eq(self.reset.error),
@@ -88,7 +87,7 @@ class OutChain(Filter):
                 self.iir_d.clear_in.eq(self.clear),
                 #self.sweep.clear_in.eq(self.clear),
                 #self.mod.clear_in.eq(self.clear),
-                self.relock.clear_in.eq(self.clear),
+                self.relock.clear_in.eq(self.limit.error),
 
                 self.hold_in.eq(self.relock.error),
                 self.iir_a.hold_in.eq(self.hold),
@@ -104,8 +103,9 @@ class OutChain(Filter):
                 self.iir_b.x.eq(self.iir_a.y),
                 self.iir_c.x.eq(self.iir_b.y),
                 self.iir_d.x.eq(self.iir_c.y),
-                self.limit.x.eq(optree("+", y)),
                 self.y.eq(ys[self.r_tap.storage]),
+                self.limit.x.eq(optree("+", y)),
+                self.dac.eq(self.limit.y[-width:]),
         ]
 
 

@@ -20,16 +20,16 @@ class Relock(Filter):
 
         self.submodules.sweep = Sweep(width + shift)
 
-        cnt = Signal(width + shift - 1)
-        range = Signal(max=width + shift - 1)
+        cnt = Signal(width + shift + 1)
+        range = Signal(max=width + shift + 1)
         self.sync += [
                 cnt.eq(cnt + 1),
-                If(~self.sweep.run,
+                If(~self.error,
                     cnt.eq(0),
                     range.eq(0)
-                ).Elif(self.clear | (cnt == (1 << range)),
+                ).Elif(self.clear | Array(cnt)[range],
                     cnt.eq(0),
-                    If(range < width + shift - 2,
+                    If(range < width + shift,
                         range.eq(range + 1)
                     )
                 ),
