@@ -32,13 +32,20 @@ class InChain(Filter):
 
         ys = Array([self.x, self.limit.y, self.iir_a.y, self.demod.y])
         self.comb += [
-                self.x.eq(self.adc << (signal_width - width)),
+                self.r_adc.status.eq(self.adc),
+                self.x[-signal_width:].eq(self.adc),
                 self.limit.x.eq(self.x),
+
                 self.iir_a.x.eq(self.limit.y),
+                self.demod.x.eq(self.iir_a.y),
+                self.limit.hold_in.eq(self.hold),
+                self.limit.clear_in.eq(self.clear),
+                self.iir_a.hold_in.eq(self.hold),
+                self.iir_a.clear_in.eq(self.clear),
+                self.demod.hold_in.eq(self.hold),
+                self.demod.clear_in.eq(self.clear),
         ]
         self.sync += [
-                self.r_adc.status.eq(self.adc),
-                self.demod.x.eq(self.iir_a.y),
                 self.y.eq(ys[self.r_tap.storage])
         ]
 
@@ -71,15 +78,33 @@ class OutChain(Filter):
         ys = Array([self.x, self.iir_a.y, self.iir_b.y,
             self.iir_c.y, self.iir_d.y])
         self.comb += [
-                self.limit.x.eq(optree("+", y)),
-                self.dac.eq(self.limit.y[signal_width - width:]),
+                self.dac.eq(self.limit.y[-width:]),
+                self.r_dac.status.eq(self.dac),
+
+                #self.clear_in.eq(self.reset.error),
+                self.iir_a.clear_in.eq(self.clear),
+                self.iir_b.clear_in.eq(self.clear),
+                self.iir_c.clear_in.eq(self.clear),
+                self.iir_d.clear_in.eq(self.clear),
+                #self.sweep.clear_in.eq(self.clear),
+                #self.mod.clear_in.eq(self.clear),
+                self.relock.clear_in.eq(self.clear),
+
+                self.hold_in.eq(self.relock.error),
+                self.iir_a.hold_in.eq(self.hold),
+                self.iir_b.hold_in.eq(self.hold),
+                self.iir_c.hold_in.eq(self.hold),
+                self.iir_d.hold_in.eq(self.hold),
+                #self.sweep.hold_in.eq(self.hold),
+                #self.mod.hold_in.eq(self.hold),
+                #self.relock.hold_in.eq(self.hold),
         ]
         self.sync += [
-                self.r_dac.status.eq(self.dac),
                 self.iir_a.x.eq(self.x),
                 self.iir_b.x.eq(self.iir_a.y),
-                self.iir_c.x.eq(self.iir_b.x),
-                self.iir_d.x.eq(self.iir_c.x),
+                self.iir_c.x.eq(self.iir_b.y),
+                self.iir_d.x.eq(self.iir_c.y),
+                self.limit.x.eq(optree("+", y)),
                 self.y.eq(ys[self.r_tap.storage]),
         ]
 

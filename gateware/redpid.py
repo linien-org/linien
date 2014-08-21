@@ -81,9 +81,9 @@ class PitayaAnalog(Module):
         self.adc_a, self.adc_b = Signal(size), Signal(size)
         self.dac_a, self.dac_b = Signal(size), Signal(size)
 
-        adca, adcb = Signal(size), Signal(size)
-        self.sync.adc += adca.eq(adc.data_a[2:]), adcb.eq(adc.data_b[2:])
-        self.sync += self.adc_a.eq(-(sign ^ adca)), self.adc_b.eq(-(sign ^ adcb))
+        adca, adcb = Signal.like(adc.data_a), Signal.like(adc.data_b)
+        self.sync.adc += adca.eq(adc.data_a), adcb.eq(adc.data_b)
+        self.sync += self.adc_a.eq(-(sign ^ adca[2:])), self.adc_b.eq(-(sign ^ adcb[2:]))
 
         daca, dacb = Signal.like(dac.data), Signal.like(dac.data)
         self.sync += daca.eq(sign ^ -self.dac_a), dacb.eq(sign ^ -self.dac_b)

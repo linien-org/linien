@@ -36,9 +36,9 @@ class Relock(Filter):
         ]
 
         self.comb += [
-                self.error.eq(self.limit.error),
+                self.error.eq(~self.hold & (self.limit.error | self.trigger)),
                 self.limit.x.eq(self.x),
-                self.sweep.run.eq(~self.hold & (self.error | self.trigger)),
+                self.sweep.run.eq(self.error),
                 self.sweep.step.eq(self.r_step.storage),
                 self.sweep.turn.eq(cnt == 0),
                 self.y.eq(self.sweep.y[shift:])
