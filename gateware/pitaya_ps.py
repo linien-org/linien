@@ -332,12 +332,12 @@ class Sys2CSR(Module):
 
         ###
 
-        self.comb += [
+        stb = Signal()
+        self.sync += [
+                stb.eq(self.sys.wen | self.sys.ren),
                 self.csr.adr.eq(self.sys.addr[2:]),
                 self.csr.we.eq(self.sys.wen),
-                self.csr.dat_w.eq(self.sys.wdata)
-        ]
-        self.sync += [
-                self.sys.ack.eq(self.sys.wen | self.sys.ren),
+                self.csr.dat_w.eq(self.sys.wdata),
+                self.sys.ack.eq(stb),
                 self.sys.rdata.eq(self.csr.dat_r)
         ]

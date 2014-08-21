@@ -6,14 +6,14 @@ from .filter import Filter
 
 class Iir(Filter):
     def __init__(self, order=1, mode="pipelined",
-            signal_width=25, coeff_width=18,
+            width=25, coeff_width=18,
             wait=1, shift=16, intermediate_width=None):
-        Filter.__init__(self, signal_width)
+        Filter.__init__(self, width)
         assert mode in ("pipelined", "iterative")
         if intermediate_width is None:
-            intermediate_width = signal_width + coeff_width
+            intermediate_width = width + coeff_width
 
-        self.r_z0 = CSRStorage(signal_width)
+        self.r_z0 = CSRStorage(width, reset=0)
         self.r_shift = CSRStatus(8)
         self.r_shift.status.reset = shift
 
@@ -33,59 +33,53 @@ class Iir(Filter):
 
         z = Signal((intermediate_width, True), name="z0r")
         self.sync += z.eq(Cat(Replicate(0, shift), self.r_z0.storage,
-            Replicate(self.r_z0.storage[-1], intermediate_width-signal_width-shift)))
-        zr, z = z, Signal.like(z, name="z0")
-        self.sync += z.eq(zr)
+            Replicate(self.r_z0.storage[-1], intermediate_width-width-shift)))
 
         y = Signal.like(self.y)
-        x = Signal.like(self.x)
         y_next = Signal.like(z)
-        y_over = y_next[shift+signal_width-1:]
+        y_over = y_next[shift+width-1:]
         y_pat = Signal.like(y_over, reset=-1)
         railed = Signal()
         self.comb += [
                 railed.eq(~((y_over == y_pat) | (y_over == ~y_pat))),
-                self.y.eq(y)
+                self.error.eq(railed)
         ]
         self.sync += [
-                If(self.mode[2],
-                    x.eq(0)
-                ).Elif(~self.mode[0],
-                    x.eq(self.x)
-                ),
-                If(self.mode[3],
-                    y.eq(0)
-                ).Elif(~self.mode[1] & ~railed,
-                    y.eq(y_next[shift:])
+                If(self.clear,
+                    self.y.eq(0),
+                    y.eq(0),
+                ).Elif(~railed,
+                    self.y.eq(y_next[shift:]),
+                    If(~self.hold,
+                        y.eq(y_next[shift:])
+                    )
                 )
         ]
-        self.sync += self.mode_out.eq(self.mode)
 
         if mode == "pipelined":
             self.latency = (order + 1)*wait
             self.interval = 1
-            r = [("b%i" % i, x, 0, False) for i in reversed(range(order + 1))]
+            r = [("b%i" % i, self.x, 0, False) for i in reversed(range(order + 1))]
             r += [("a%i" % i, y, 1, True) for i in reversed(range(1, order + 1))]
             for coeff, signal, side, invert in r:
-                z0, z = z, Signal.like(z, name="z_" + coeff)
-                self.comb += z.eq(z0 + signal*c[coeff])
-                z_next = z
                 for i in range(wait):
                     z0, z = z, Signal.like(z, name="zr%i_%s" % (i, coeff))
                     self.sync += z.eq(z0)
-            self.comb += y_next.eq(z_next)
+                z0, z = z, Signal.like(z, name="z_" + coeff)
+                self.comb += z.eq(z0 + signal*c[coeff])
+            self.comb += y_next.eq(z)
 
         elif mode == "iterative":
             self.latency = (2*order+1)*wait
             self.interval = self.latency
-            ma = Signal((signal_width, True))
+            ma = Signal((width, True))
             mb = Signal((coeff_width, True))
             mc = Signal((intermediate_width, True))
             mp = Signal((intermediate_width, True))
             self.comb += mp.eq(ma*mb + mc)
 
-            xx = [x] + [Signal((signal_width, True)) for i in range(order)]
-            yy = [y] + [Signal((signal_width, True)) for i in range(order-1)]
+            xx = [x] + [Signal((width, True)) for i in range(order)]
+            yy = [y] + [Signal((width, True)) for i in range(order-1)]
             muls = []
             muls += [[b[i], xx[i], mp] for i in range(order+1)]
             muls += [[a[i], yy[i], mp] for i in range(order)]

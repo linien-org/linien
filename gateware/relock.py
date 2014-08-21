@@ -1,70 +1,48 @@
 from migen.fhdl.std import *
-from migen.bank.description import CSRStorage, CSRStatus, AutoCSR
+from migen.bank.description import CSRStorage, CSRStatus
+
+from .filter import Filter
+from .limit import LimitCSR
+from .sweep import Sweep
 
 
-class Relock(Module, AutoCSR):
-    def __init__(self, signal_width=16, step_width=32):
-        guard = step_width - width
+class Relock(Filter):
+    def __init__(self, shift=16, **kwargs):
+        Filter.__init__(self, **kwargs)
 
-        self.stop = Signal()
-        self.x = Signal((width, True))
-        self.y = Signal((width, True))
-        self.minval = Signal((width, True))
-        self.maxval = Signal((width, True))
-        self.step = Signal((step_width, True))
-        amplitude = Signal((step_width, True))
-        self.railed = Signal(2)
-        self.hold_in = Signal()
-        self.hold_out = Signal()
-        hi = Signal()
-        lo = Signal()
-        locked = Signal()
-        direction = Signal()
-        y = Signal((step_width, True))
+        width = flen(self.y)
+        self.submodules.limit = LimitCSR(width=width)
+
+        self.r_shift = CSRStatus(8, reset=shift)
+        self.r_step = CSRStorage(width + shift - 1, reset=1<<shift)
+
+        ###
+
+        self.submodules.sweep = Sweep(width + shift)
+
+        cnt = Signal(width + shift - 1)
+        range = Signal(max=width + shift - 1)
+        self.sync += [
+                cnt.eq(cnt + 1),
+                If(~self.sweep.run,
+                    cnt.eq(0),
+                    range.eq(0)
+                ).Elif(self.clear | (cnt == (1 << range)),
+                    cnt.eq(0),
+                    If(range < width + shift - 2,
+                        range.eq(range + 1)
+                    )
+                ),
+                self.error.eq(self.limit.error)
+        ]
 
         self.comb += [
-                locked.eq((self.x >= self.minval) & (self.x <= self.maxval)),
-                self.hold_out.eq(~self.stop & ~locked),
-                self.y.eq(y >> guard),
-                hi.eq(y >= amplitude),
-                lo.eq(y <= -amplitude),
-                ]
-        self.sync += [
-                If(~self.hold_in,
-                    If(locked, # drive to zero
-                        amplitude.eq(0),
-                        If(y < -self.step,
-                            y.eq(y + self.step),
-                        ).Elif(y > self.step,
-                            y.eq(y - self.step),
-                        ).Else(
-                            y.eq(0),
-                        ),
-                    ).Else( # triangle
-                        If(direction == 0,
-                            y.eq(y + self.step),
-                        ).Else(
-                            y.eq(y - self.step),
-                        ),
-                        If(amplitude == 0, # initialize triangle
-                            amplitude.eq(self.step << 4),
-                        ),
-                        If(self.railed[0] | hi,
-                            direction.eq(1), # turn around
-                            If((direction == 0) & ~amplitude[-1], # double amp
-                                amplitude.eq(amplitude << 1),
-                            ),
-                        ).Elif(self.railed[1] | lo,
-                            direction.eq(0), # turn around
-                        ),
-                    ),
-                ),
-                If(self.stop,
-                    y.eq(0),
-                    direction.eq(0),
-                    amplitude.eq(0),
-                )]
-
+                self.limit.x.eq(self.x),
+                self.sweep.run.eq(~self.hold & (self.error | self.trigger)),
+                self.sweep.step.eq(self.r_step.storage),
+                self.sweep.turn.eq(cnt == 0),
+                self.y.eq(self.sweep.y[shift:])
+        ]
 
 
 class TB(Module):

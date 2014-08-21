@@ -8,109 +8,104 @@ from migen.bank.description import *
 from migen.fhdl.bitcontainer import bits_for
 from migen.genlib.cordic import Cordic
 
+from .filter import Filter
 from .iir import Iir
-from .limit import Limit
+from .limit import LimitCSR
+from .sweep import SweepCSR
+from .relock import Relock
+from .modulate import Modulate, Demodulate
 
 
 signal_width = 25
 coeff_width = 18
 
-ports_layout = [
-        ("i", (signal_width, True)),
-        ("o", (signal_width, True)),
-]
+
+class SatAdd(Module):
+    def __init__(self, width, *x):
+        self.y = Signal((width, True))
+
+        guard = log2_int(len(x), need_pow2=False)
+        sum = Signal((width + guard, True))
+        lim = 1<<(width - 1)
+        self.comb += [
+                sum.eq(optree("+", x)),
+                If(sum > lim - 1,
+                    self.y.eq(lim - 1),
+                ).Elif(sum < -lim,
+                    self.y.eq(-lim),
+                ).Else(
+                    self.y.eq(sum),
+                )
+        ]
 
 
-class Sweep(Module):
-    def __init__(self):
-        self.o = Signal((signal_width, True))
+class InChain(Filter):
+    def __init__(self, width=14):
+        Filter.__init__(self, width=signal_width)
+        self.adc = Signal((width, True))
+        self.submodules.limit = LimitCSR(width=signal_width)
+        self.submodules.iir = Iir(width=signal_width,
+                coeff_width=coeff_width, order=1)
+        self.submodules.demod = Demodulate(width=signal_width)
 
-
-class InOut(Module, AutoCSR):
-    def __init__(self, i, o):
-        self.ports = Record(ports_layout)
-
-        self._in_min = CSRStorage(signal_width)
-        self._in_max = CSRStorage(signal_width)
-        self._in_shift = CSRStorage(signal_width)
-        self._in_val = CSRStatus(signal_width)
-        self._in_low = CSRStatus()
-        self._in_high = CSRStatus()
-
-        self._demod = CSRStorage()
-        self._demod_amp = CSRStorage(signal_width)
-        self._demod_phase = CSRStorage(signal_width)
-
-        self._mod = CSRStorage()
-        self._mod_amp = CSRStorage(signal_width)
-        self._mod_freq = CSRStorage(32)
-
-        self._sweep = CSRStorage()
-        self._sweep_amp = CSRStorage(signal_width)
-        self._sweep_offset = CSRStorage(signal_width)
-        self._sweep_freq = CSRStorage(signal_width)
-
-        self._out_min = CSRStorage(signal_width)
-        self._out_max = CSRStorage(signal_width)
-        self._out_shift = CSRStorage(signal_width)
-        self._out_val = CSRStatus(signal_width)
-        self._out_low = CSRStatus()
-        self._out_high = CSRStatus()
+        self.r_tap = CSRStorage(2, reset=0)
+        self.r_adc = CSRStatus(width)
 
         ###
 
-        #self.submodules.mod = Cordic(width=signal_width, guard=None)
-        #self.submodules.demod = Cordic(width=signal_width, guard=None)
-        self.submodules.sweep = Sweep()
-        self.submodules.limit = Limit()
-        mod_phase = Signal(32)
-        demod_phase = Signal(32)
-
-        self.sync += [
-                mod_phase.eq(mod_phase + self._mod_freq.storage),
-                demod_phase.eq(mod_phase + self._demod_phase.storage),
-        ]
-
+        ys = Array([self.x, self.limit.y, self.iir.y, self.demod.y])
         self.comb += [
-                #self.mod.xi.eq(self._mod_amp.storage),
-                #self.mod.zi.eq(mod_phase),
-                #self.demod.xi.eq(i),
-                #self.demod.zi.eq(demod_phase),
-                #self.ports.o.eq(Mux(self._demod.storage, self.demod.xo, i)),
-                self.ports.o.eq(i),
-                self.limit.x.eq(self.ports.i
-                    #+ Mux(self._mod.storage, self.mod.xo, 0)
-                    #+ Mux(self._sweep.storage, self.sweep.o, 0)
-                ),
-                o.eq(self.limit.y),
+                self.x.eq(self.adc << (signal_width - width)),
+                self.limit.x.eq(self.x),
+                self.iir.x.eq(self.limit.y),
+        ]
+        self.sync += [
+                self.r_adc.status.eq(self.adc),
+                self.demod.x.eq(self.iir.y),
+                self.y.eq(ys[self.r_tap.storage])
         ]
 
 
-class IIR1(Module, AutoCSR):
-    def __init__(self):
-        self.ports = Record(ports_layout)
-        self.submodules.m = Iir(signal_width=flen(self.ports.i), coeff_width=coeff_width,
-                order=1)
-        self.comb += self.ports.o.eq(self.m.y), self.m.x.eq(self.ports.i)
+class OutChain(Filter):
+    def __init__(self, width=14):
+        Filter.__init__(self, width=signal_width)
+        self.r = Signal((signal_width, True))
+        self.submodules.iir_a = Iir(width=signal_width,
+                coeff_width=coeff_width, order=1)
+        self.submodules.iir_b = Iir(width=signal_width,
+                coeff_width=coeff_width, order=1)
+        self.submodules.iir_c = Iir(width=signal_width,
+                coeff_width=coeff_width, order=2)
+        self.submodules.iir_d = Iir(width=signal_width,
+                coeff_width=coeff_width, order=2)
+        self.submodules.relock = Relock(width=signal_width)
+        self.submodules.sweep = SweepCSR(width=signal_width)
+        self.submodules.mod = Modulate(width=signal_width)
+        self.submodules.limit = LimitCSR(width=signal_width)
+        self.dac = Signal((width, True))
 
+        self.r_tap = CSRStorage(3, reset=0)
+        self.r_relock = CSRStorage(3)
+        self.r_dac = CSRStatus(width)
 
-class IIR2(Module, AutoCSR):
-    def __init__(self):
-        self.ports = Record(ports_layout)
-        self.submodules.m = Iir(signal_width=flen(self.ports.i), coeff_width=coeff_width,
-                order=2)
-        self.comb += self.ports.o.eq(self.m.y), self.m.x.eq(self.ports.i)
-
-
-class FilterMux(Module, AutoCSR):
-    def __init__(self, parts):
-        outs = Array([part.ports.o for part in parts])
-
-        for i, part in enumerate(parts):
-            m = CSRStorage(bits_for(len(parts)))
-            setattr(self, "_mux%i" % i, m)
-            mr = Signal.like(m.storage)
-            self.sync += mr.eq(m.storage), part.ports.i.eq(outs[mr])
+        ys = Array([self.x, self.iir_a.y, self.iir_b.y,
+            self.iir_c.y, self.iir_d.y])
+        self.submodules.sat = SatAdd(signal_width, 
+                self.relock.y, self.sweep.y, self.mod.y,
+                self.y)
+        self.comb += [
+                self.relock.x.eq(self.r),
+                self.limit.x.eq(self.sat.y),
+                self.dac.eq(self.limit.y >> (signal_width - width)),
+        ]
+        self.sync += [
+                self.r_dac.status.eq(self.dac),
+                self.iir_a.x.eq(self.x),
+                self.iir_b.x.eq(self.iir_a.y),
+                self.iir_c.x.eq(self.iir_b.x),
+                self.iir_d.x.eq(self.iir_c.x),
+                self.y.eq(ys[self.r_tap.storage]),
+        ]
 
 
 class Pid(Module, AutoCSR):
@@ -118,15 +113,19 @@ class Pid(Module, AutoCSR):
         self.r_version = CSRStatus(8)
         self.r_version.status.reset = 1
 
-        self.ins = [Signal((14, True)) for i in range(2)]
-        self.outs = [Signal((14, True)) for i in range(2)]
-        parts = OrderedDict([
-                ("io_a", InOut(self.ins[0], self.outs[0])),
-                ("io_b", InOut(self.ins[1], self.outs[1])), 
-                ("iir1_a", IIR1()),
-                #iir1_b=IIR1(), iir1_c=IIR1(), iir1_d=IIR1(),
-                #iir2_a=IIR2(), iir2_b=IIR2(), iir2_c=IIR2(), iir2_d=IIR2(),
-        ])
-        self.submodules.mux = FilterMux(parts.values())
-        for i, (k, v) in enumerate(parts.items()):
-            setattr(self.submodules, k, v)
+        self.submodules.in_a = InChain(14)
+        self.submodules.in_b = InChain(14)
+        self.submodules.out_a = OutChain(14)
+        self.submodules.out_b = OutChain(14)
+
+        self.r_tap_a = CSRStorage(2, reset=0b00)
+        self.r_tap_b = CSRStorage(2, reset=0b00)
+        self.comb += [
+                self.out_a.x.eq(
+                    Mux(self.r_tap_a.storage[0], self.in_a.y, 0) +
+                    Mux(self.r_tap_a.storage[1], self.in_b.y, 0)),
+                self.out_b.x.eq(
+                    Mux(self.r_tap_b.storage[0], self.in_a.y, 0) +
+                    Mux(self.r_tap_b.storage[1], self.in_b.y, 0)),
+        ]
+

@@ -1,11 +1,22 @@
 from migen.fhdl.std import *
-from migen.bank.description import CSRStorage, AutoCSR
+from migen.bank.description import CSRStorage, CSRStatus
+from migen.genlib.cordic import Cordic
 
-from cordic import Cordic
+from .filter import Filter
 
 
-class Modulate(Module, AutoCSR):
-    def __init__(self, width=16):
+class Demodulate(Filter):
+    def __init__(self, freq_width=32, **kwargs):
+        Filter.__init__(self, **kwargs)
+        return
+
+
+class Modulate(Filter):
+    def __init__(self, freq_width=32, **kwargs):
+        Filter.__init__(self, **kwargs)
+        return
+
+
         self.submodules.cordic = Cordic(width=width,
                 eval_mode="pipelined", cordic_mode="rotate",
                 func_mode="circular")

@@ -1,40 +1,74 @@
 from migen.fhdl.std import *
+from migen.bank.description import CSRStorage, CSRStatus
+
+from .filter import Filter
+from .limit import LimitCSR
 
 
 class Sweep(Module):
-    def __init__(self, width=16, step_width=32):
-        guard = step_width - width
-
-        self.stop = Signal()
-        self.step = Signal((step_width, True))
-        self.maxval = Signal((width, True))
-        self.minval = Signal((width, True))
-
+    def __init__(self, width):
+        self.run = Signal()
+        self.step = Signal(width - 1)
+        self.turn = Signal()
+        self.hold = Signal()
         self.y = Signal((width, True))
-        y = Signal((step_width, True))
-        yn = Signal((step_width, True))
-        direction = Signal()
+
+        ###
+
+        yn = Signal((width + 1, True))
+        up = Signal()
+        zero = Signal()
+
         self.comb += [
-                self.y.eq(y >> guard),
-                If(direction,
-                    yn.eq(y + self.step),
+                If(zero,
+                    yn.eq(0)
+                ).Elif(self.hold,
+                    yn.eq(self.y),
+                ).Elif(up,
+                    yn.eq(self.y + self.step),
                 ).Else(
-                    yn.eq(y - self.step),
-                )]
+                    yn.eq(self.y - self.step),
+                )
+        ]
         self.sync += [
-                If((yn >> guard) >= self.maxval,
-                    direction.eq(0),
-                    y.eq(self.maxval << guard),
-                ).Elif((yn >> guard) <= self.minval,
-                    direction.eq(1),
-                    y.eq(self.minval << guard),
+                self.y.eq(yn),
+                zero.eq(0),
+                If(self.run,
+                    If(self.turn,
+                        up.eq(~up)
+                    )
+                ).Elif(yn < 0,
+                    up.eq(1)
+                ).Elif(yn > self.step,
+                    up.eq(0),
                 ).Else(
-                    y.eq(yn),
-                ),
-                If(self.stop,
-                    y.eq(0),
-                    direction.eq(0),
-                )]
+                    zero.eq(1)
+                )
+        ]
+
+
+class SweepCSR(Filter):
+    def __init__(self, shift=16, **kwargs):
+        Filter.__init__(self, **kwargs)
+
+        self.submodules.limit = LimitCSR(**kwargs)
+
+        width = flen(self.y)
+        self.r_shift = CSRStatus(8, reset=shift)
+        self.r_step = CSRStorage(width + shift - 1, reset=1<<shift)
+
+        ###
+
+        self.submodules.sweep = Sweep(width + shift)
+        self.comb += [
+                self.sweep.run.eq(~self.clear),
+                self.sweep.step.eq(self.r_step.storage),
+                self.sweep.turn.eq(self.limit.error),
+                self.sweep.hold.eq(self.hold),
+                self.limit.x.eq(self.sweep.y[shift:]),
+                self.y.eq(self.limit.y),
+        ]
+
 
 
 class TB(Module):

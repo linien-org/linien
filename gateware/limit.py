@@ -1,31 +1,49 @@
 from migen.fhdl.std import *
-from migen.bank.description import CSRStorage, CSRStatus, AutoCSR
+from migen.bank.description import CSRStorage
+
+from .filter import Filter
 
 
-class Limit(Module, AutoCSR):
-    def __init__(self, signal_width=25):
-        self.r_minval = CSRStorage(signal_width)
-        self.r_maxval = CSRStorage(signal_width)
-        self.r_railed = CSRStatus(1)
-        minval = Signal((signal_width, True))
-        maxval = Signal((signal_width, True))
-        self.x = Signal((signal_width, True))
-        self.y = Signal((signal_width, True))
+class Limit(Module):
+    def __init__(self, width):
+        self.x = Signal((width, True))
+        self.y = Signal.like(self.x)
+        self.max = Signal.like(self.x)
+        self.min = Signal.like(self.x)
         self.railed = Signal()
+
+        ###
+
         self.comb += [
-                minval.eq(self.r_minval.storage),
-                maxval.eq(self.r_maxval.storage),
-                self.r_railed.status.eq(self.railed),
-        ]
-        self.sync += [
-                If(self.x > maxval,
-                    self.y.eq(maxval),
+                If(self.x >= self.max,
+                    self.y.eq(self.max),
                     self.railed.eq(1)
-                ).Elif(self.x < minval,
-                    self.y.eq(minval),
+                ).Elif(self.x <= self.min,
+                    self.y.eq(self.min),
                     self.railed.eq(1)
                 ).Else(
                     self.y.eq(self.x),
                     self.railed.eq(0)
                 )
         ]
+
+
+class LimitCSR(Filter):
+    def __init__(self, **kwargs):
+        Filter.__init__(self, **kwargs)
+
+        width = flen(self.y)
+        self.r_min = CSRStorage(width, reset=1<<width - 1)
+        self.r_max = CSRStorage(width, reset=(1<<width - 1) - 1)
+
+        ###
+        
+        self.submodules.limit = Limit(width)
+
+        self.comb += [
+                self.limit.x.eq(self.x),
+                self.limit.min.eq(self.r_min.storage),
+                self.limit.max.eq(self.r_max.storage),
+                self.error.eq(self.limit.railed)
+        ]
+        self.sync += self.y.eq(self.limit.y)

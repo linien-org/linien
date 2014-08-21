@@ -14,8 +14,7 @@ from gateware.iir_ import IIR
 
 def _iir2():
     iir = Iir()
-    print(verilog.convert(iir, ios={iir.x, iir.y,
-        iir.mode_in, iir.mode_out}))
+    print(verilog.convert(iir, ios={iir.x, iir.y}))
 
     n = 10000
     x = np.zeros(n)

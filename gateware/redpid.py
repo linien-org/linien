@@ -82,8 +82,8 @@ class PitayaAnalog(Module):
         self.dac_a, self.dac_b = Signal(size), Signal(size)
 
         adca, adcb = Signal(size), Signal(size)
-        self.sync.adc += adca.eq(sign ^ adc.data_a[2:]), adcb.eq(sign ^ adc.data_b[2:])
-        self.sync += self.adc_a.eq(-adca), self.adc_b.eq(-adcb)
+        self.sync.adc += adca.eq(adc.data_a[2:]), adcb.eq(adc.data_b[2:])
+        self.sync += self.adc_a.eq(-(sign ^ adca)), self.adc_b.eq(-(sign ^ adcb))
 
         daca, dacb = Signal.like(dac.data), Signal.like(dac.data)
         self.sync += daca.eq(sign ^ -self.dac_a), dacb.eq(sign ^ -self.dac_b)
@@ -206,10 +206,10 @@ class RedPid(Module):
         self.submodules.pid = Pid()
 
         self.comb += [
-                self.pid.ins[0].eq(self.analog.adc_a),
-                self.pid.ins[1].eq(self.analog.adc_b),
-                self.analog.dac_a.eq(asg[0] + self.pid.outs[0]),
-                self.analog.dac_b.eq(asg[1] + self.pid.outs[1])
+                self.pid.in_a.adc.eq(self.analog.adc_a),
+                self.pid.in_b.adc.eq(self.analog.adc_b),
+                self.analog.dac_a.eq(asg[0] + self.pid.out_a.dac),
+                self.analog.dac_b.eq(asg[1] + self.pid.out_b.dac)
         ]
 
         csr_map = {"pid": 0, "deltasigma": 1}

@@ -7,20 +7,24 @@ class Filter(Module, AutoCSR):
         self.x = Signal((width, True))
         self.y = Signal((width, True))
 
-        self.mode_in = Signal(4) # ce_in, ce_out, rst_in, rst_out
-        self.mode_out = Signal(4)
-        self.mode = Signal(4)
+        self.hold_in = Signal()
+        self.clear_in = Signal()
+        self.hold = Signal()
+        self.clear = Signal()
+        self.trigger = Signal()
+        self.error = Signal()
 
-        self.r_cmd = CSRStorage(4)
-        self.r_mask = CSRStorage(4)
-        self.r_mode = CSRStatus(4)
+        self.r_mode = CSRStorage(4)
+        self.r_status = CSRStatus(3)
+        self.r_y = CSRStatus(width)
 
         ###
 
-        self.comb += [
-                self.r_mode.status.eq(self.mode_out)
-        ]
+        mode_in = Cat(self.hold_in, self.clear_in)
+        mode = Cat(self.hold, self.clear)
         self.sync += [
-                self.mode.eq((self.mode_in & ~self.r_mask.storage) |
-                    self.r_cmd.storage),
+                mode.eq((mode_in & ~self.r_mode.storage[:2]) |
+                    self.r_mode.storage[2:]),
+                self.r_status.status.eq(Cat(mode, self.error)),
+                self.r_y.status.eq(self.y)
         ]
