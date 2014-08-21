@@ -7,7 +7,7 @@ from .sweep import Sweep
 
 
 class Relock(Filter):
-    def __init__(self, shift=16, **kwargs):
+    def __init__(self, shift=8, **kwargs):
         Filter.__init__(self, **kwargs)
 
         width = flen(self.y)

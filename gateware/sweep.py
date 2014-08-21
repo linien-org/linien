@@ -48,7 +48,7 @@ class Sweep(Module):
 
 
 class SweepCSR(Filter):
-    def __init__(self, shift=16, **kwargs):
+    def __init__(self, shift=8, **kwargs):
         Filter.__init__(self, **kwargs)
 
         self.submodules.limit = LimitCSR(**kwargs)
