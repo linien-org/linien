@@ -1,5 +1,5 @@
 from migen.fhdl.std import *
-from migen.bank.description import CSRStorage, CSRStatus
+from migen.bank.description import CSRStorage
 from migen.genlib.cordic import Cordic
 
 from .filter import Filter
@@ -8,34 +8,44 @@ from .filter import Filter
 class Demodulate(Filter):
     def __init__(self, freq_width=32, **kwargs):
         Filter.__init__(self, **kwargs)
-        return
+
+        width = flen(self.y)
+        self.r_freq = CSRStorage(freq_width)
+        self.phase = Signal(width)
+
+        z = Signal(freq_width)
+        self.sync += z.eq(z + self.r_freq.storage)
+
+        self.submodules.cordic = Cordic(width=width,
+                eval_mode="pipelined", cordic_mode="rotate",
+                func_mode="circular")
+        self.comb += [
+                self.phase.eq(z[freq_width-width:]),
+                self.cordic.xi.eq(self.x),
+                self.cordic.zi.eq(self.phase),
+                self.y.eq(self.cordic.xo),
+        ]
 
 
 class Modulate(Filter):
     def __init__(self, freq_width=32, **kwargs):
         Filter.__init__(self, **kwargs)
-        return
 
+        width = flen(self.y)
+        self.r_amp = CSRStorage(width)
+        self.r_phase = CSRStorage(width)
+        self.phase = Signal(freq_width)
 
         self.submodules.cordic = Cordic(width=width,
                 eval_mode="pipelined", cordic_mode="rotate",
                 func_mode="circular")
-        self.cordic.xi.reset = int(2**(width-1)/self.cordic.gain-1)
-        self.frequency = Signal(width)
-        self.y = Signal((width, True))
-        p = Signal(width)
-        self.sync += p.eq(p + self.frequency)
+        self.sync += [
+                self.cordic.zi.eq(self.phase + self.r_phase.storage)
+        ]
         self.comb += [
-                self.cordic.zi.eq(p),
+                self.cordic.xi.eq(self.r_amp.storage + self.x),
                 self.y.eq(self.cordic.xo),
-                ]
-
-        for reg, name in [
-                (self.frequency, "frequency"),
-                ]:
-            csr = CSRStorage(flen(reg), name=name)
-            setattr(self, "_{}".format(name), csr)
-            self.comb += reg.eq(csr.storage)
+        ]
 
 
 class TB(Module):

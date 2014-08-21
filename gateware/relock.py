@@ -33,10 +33,10 @@ class Relock(Filter):
                         range.eq(range + 1)
                     )
                 ),
-                self.error.eq(self.limit.error)
         ]
 
         self.comb += [
+                self.error.eq(self.limit.error),
                 self.limit.x.eq(self.x),
                 self.sweep.run.eq(~self.hold & (self.error | self.trigger)),
                 self.sweep.step.eq(self.r_step.storage),

@@ -62,11 +62,13 @@ class SweepCSR(Filter):
         self.submodules.sweep = Sweep(width + shift)
         self.comb += [
                 self.sweep.run.eq(~self.clear),
-                self.sweep.step.eq(self.r_step.storage),
                 self.sweep.turn.eq(self.limit.error),
                 self.sweep.hold.eq(self.hold),
                 self.limit.x.eq(self.sweep.y[shift:]),
                 self.y.eq(self.limit.y),
+        ]
+        self.sync += [
+                self.sweep.step.eq(self.r_step.storage)
         ]
 
 

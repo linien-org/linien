@@ -42,8 +42,10 @@ class LimitCSR(Filter):
 
         self.comb += [
                 self.limit.x.eq(self.x),
+        ]
+        self.sync += [
                 self.limit.min.eq(self.r_min.storage),
                 self.limit.max.eq(self.r_max.storage),
+                self.y.eq(self.limit.y),
                 self.error.eq(self.limit.railed)
         ]
-        self.sync += self.y.eq(self.limit.y)

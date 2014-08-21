@@ -116,7 +116,9 @@ class RedPid(Module):
             platform.request("dac"))
 
         pwm = Cat(platform.request("pwm", i) for i in range(4))
-        self.submodules.deltasigma = DeltaSigmaCSR(pwm, width=24)
+        pwm_o = Signal(flen(pwm))
+        self.comb += pwm.eq(pwm_o)
+        self.submodules.deltasigma = DeltaSigmaCSR(pwm_o, width=24)
 
         exp_q = platform.request("exp")
         n = flen(exp_q.p)

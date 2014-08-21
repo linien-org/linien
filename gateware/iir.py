@@ -32,7 +32,7 @@ class Iir(Filter):
         ###
 
         z = Signal((intermediate_width, True), name="z0r")
-        self.sync += z.eq(Cat(Replicate(0, shift), self.r_z0.storage,
+        self.sync += z[shift:].eq(Cat(self.r_z0.storage,
             Replicate(self.r_z0.storage[-1], intermediate_width-width-shift)))
 
         y = Signal.like(self.y)
