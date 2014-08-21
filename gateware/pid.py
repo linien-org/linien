@@ -16,25 +16,6 @@ signal_width = 25
 coeff_width = 18
 
 
-class SatAdd(Module):
-    def __init__(self, width, *x):
-        self.y = Signal((width, True))
-
-        guard = log2_int(len(x), need_pow2=False)
-        sum = Signal((width + guard, True))
-        lim = 1<<(width - 1)
-        self.comb += [
-                sum.eq(optree("+", x)),
-                If(sum > lim - 1,
-                    self.y.eq(lim - 1),
-                ).Elif(sum < -lim,
-                    self.y.eq(-lim),
-                ).Else(
-                    self.y.eq(sum),
-                )
-        ]
-
-
 class InChain(Filter):
     def __init__(self, width=14):
         Filter.__init__(self, width=signal_width)
