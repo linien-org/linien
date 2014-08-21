@@ -27,12 +27,13 @@ class CRG(Module):
         clk_fb, clk_fbb = Signal(), Signal()
         locked = Signal()
         self.specials += [
-                Instance("IBUFDS", i_I=clk_adc.p, i_IB=clk_adc.n, o_O=clk_adci),
+                Instance("IBUFGDS", i_I=clk_adc.p, i_IB=clk_adc.n, o_O=clk_adci),
                 Instance("BUFG", i_I=clk_adci, o_O=clk_adcb),
+                Instance("BUFR", i_I=clk_adci, o_O=self.cd_adc.clk),
+                Instance("FD", p_INIT=1, i_D=~locked, i_C=self.cd_adc.clk,
+                    o_Q=self.cd_adc.rst)
         ]
-        self.comb += self.cd_adc.clk.eq(clk_adcb)
-        self.specials += Instance("FD", p_INIT=1, i_D=~locked, i_C=self.cd_adc.clk,
-                o_Q=self.cd_adc.rst)
+        #self.comb += self.cd_adc.clk.eq(clk_adcb)
         self.specials += [
                 Instance("PLLE2_BASE",
                     p_BANDWIDTH="OPTIMIZED",
@@ -86,17 +87,19 @@ class PitayaAnalog(Module):
         self.sync += self.adc_a.eq(-(sign ^ adca[2:])), self.adc_b.eq(-(sign ^ adcb[2:]))
 
         daca, dacb = Signal.like(dac.data), Signal.like(dac.data)
-        self.sync += daca.eq(sign ^ -self.dac_a), dacb.eq(sign ^ -self.dac_b)
+        dacai, dacbi = Signal.like(dac.data), Signal.like(dac.data)
+        self.comb += dacai.eq(-self.dac_a), dacbi.eq(-self.dac_b)
+        self.sync += daca.eq(dacai ^ sign), dacb.eq(dacbi ^ sign)
 
-        self.comb += dac.rst.eq(ResetSignal())
+        self.comb += dac.rst.eq(ResetSignal("sys"))
         self.specials += [
-                Instance("ODDR", i_D1=0, i_D2=1, i_C=ClockSignal("sys2"),
+                Instance("ODDR", i_D1=0, i_D2=1, i_C=ClockSignal("sys2p"),
                     o_Q=dac.clk, i_CE=1, i_R=0, i_S=0),
                 Instance("ODDR", i_D1=0, i_D2=1, i_C=ClockSignal("sys2"),
                     o_Q=dac.wrt, i_CE=1, i_R=0, i_S=0),
-                Instance("ODDR", i_D1=0, i_D2=1, i_C=ClockSignal(),
+                Instance("ODDR", i_D1=0, i_D2=1, i_C=ClockSignal("sys"),
                     o_Q=dac.sel, i_CE=1, i_R=0, i_S=0),
-                [Instance("ODDR", i_D1=ai, i_D2=bi, i_C=ClockSignal(),
+                [Instance("ODDR", i_D1=ai, i_D2=bi, i_C=ClockSignal("sys"),
                     o_Q=di, i_CE=1, i_R=0, i_S=0)
                     for ai, bi, di in zip(daca, dacb, dac.data)]
         ]
