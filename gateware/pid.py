@@ -67,19 +67,19 @@ class OutChain(Filter):
 #        self.submodules.iir_d = Iir(width=signal_width,
 #                coeff_width=coeff_width, order=2)
 
-        self.submodules.relock = Relock(width=signal_width)
-        self.submodules.sweep = SweepCSR(width=signal_width)
-        self.submodules.mod = Modulate(width=signal_width)
+        self.submodules.relock = Relock(width=width)
+        self.submodules.sweep = SweepCSR(width=width)
+        self.submodules.mod = Modulate(width=width)
         self.asg = Signal((width, True))
-        self.submodules.limit = LimitCSR(width=signal_width, guard=3)
+        self.submodules.limit = LimitCSR(width=width, guard=3)
         self.dac = Signal((width, True))
 
         self.r_tap = CSRStorage(3, reset=0)
         self.r_dac = CSRStatus(width)
 
-        ya = Signal((signal_width + 1, True))
-        yb = Signal((signal_width + 1, True))
-        y1 = Signal((signal_width + 2, True))
+        ya = Signal((width + 1, True))
+        yb = Signal((width + 1, True))
+        y1 = Signal((width + 2, True))
         ys = Array([self.x, self.iir_a.y, self.iir_b.y,
             self.iir_c.y, self.iir_d.y])
         self.comb += [
@@ -108,12 +108,12 @@ class OutChain(Filter):
                 self.iir_b.x.eq(self.iir_a.y),
                 self.iir_c.x.eq(self.iir_b.y),
                 self.iir_d.x.eq(self.iir_c.y),
-                ya.eq(self.sweep.y + (self.asg<<(signal_width - width))),
+                ya.eq(self.sweep.y + self.asg),
                 yb.eq(self.relock.y + self.mod.y),
                 y1.eq(ya + yb),
                 self.y.eq(ys[self.r_tap.storage]),
-                self.limit.x.eq(self.y + y1),
-                self.dac.eq(self.limit.y[-width:]),
+                self.limit.x.eq(self.y[-width:] + y1),
+                self.dac.eq(self.limit.y),
         ]
 
 
