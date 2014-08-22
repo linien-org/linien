@@ -44,35 +44,3 @@ class Modulate(Filter):
                 self.cordic.zi.eq(self.phase),
                 self.y.eq(self.cordic.xo),
         ]
-
-
-class TB(Module):
-    def __init__(self, **kwargs):
-        self.submodules.modulate = Modulate(**kwargs)
-        self.out = []
-
-    def do_simulation(self, s):
-        if s.cycle_counter == 0:
-            s.wr(self.modulate.frequency, 345)
-        self.out.append(s.rd(self.modulate.y))
-
-
-def main():
-    from migen.fhdl import verilog
-    from migen.sim.generic import Simulator, TopLevel
-    import matplotlib.pyplot as plt
-
-    s = Modulate()
-    print(verilog.convert(s, ios=set()))
-
-    n = 2000
-    tb = TB()
-    sim = Simulator(tb, TopLevel("modulate.vcd"))
-    sim.run(n+20)
-    plt.plot(tb.out)
-    plt.show()
-
-
-
-if __name__ == "__main__":
-    main()
