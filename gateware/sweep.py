@@ -66,8 +66,6 @@ class SweepCSR(Filter):
                 self.sweep.hold.eq(self.hold),
                 self.limit.x.eq(self.sweep.y[shift:]),
                 self.y.eq(self.limit.y),
-        ]
-        self.sync += [
                 self.sweep.step.eq(self.r_step.storage)
         ]
 

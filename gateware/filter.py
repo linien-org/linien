@@ -15,7 +15,7 @@ class Filter(Module, AutoCSR):
         self.error = Signal()
 
         self.r_mode = CSRStorage(4)
-        self.r_status = CSRStatus(3)
+        self.r_state = CSRStatus(3)
         self.r_y = CSRStatus(width)
 
         ###
@@ -25,6 +25,8 @@ class Filter(Module, AutoCSR):
         self.sync += [
                 mode.eq((mode_in & ~self.r_mode.storage[:2]) |
                     self.r_mode.storage[2:]),
-                self.r_status.status.eq(Cat(mode, self.error)),
+        ]
+        self.comb += [
+                self.r_state.status.eq(Cat(mode, self.error)),
                 self.r_y.status.eq(self.y)
         ]

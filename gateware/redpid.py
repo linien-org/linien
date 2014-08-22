@@ -76,12 +76,20 @@ class PitayaAnalog(Module):
 
         adca, adcb = Signal.like(adc.data_a), Signal.like(adc.data_b)
         self.sync.adc += adca.eq(adc.data_a), adcb.eq(adc.data_b)
-        self.sync += self.adc_a.eq(-(sign ^ adca[2:])), self.adc_b.eq(-(sign ^ adcb[2:]))
+        #self.sync += self.adc_a.eq(-(sign ^ adca[2:])), self.adc_b.eq(-(sign ^ adcb[2:]))
+        self.sync += [ # this is off by one LSB but otherwise min and max fail
+                self.adc_a.eq(Cat(~adca[2:-1], adca[-1])),
+                self.adc_b.eq(Cat(~adcb[2:-1], adcb[-1]))
+        ]
 
         daca, dacb = Signal.like(dac.data), Signal.like(dac.data)
-        dacai, dacbi = Signal.like(dac.data), Signal.like(dac.data)
-        self.comb += dacai.eq(-self.dac_a), dacbi.eq(-self.dac_b)
-        self.sync += daca.eq(dacai ^ sign), dacb.eq(dacbi ^ sign)
+        #dacai, dacbi = Signal.like(dac.data), Signal.like(dac.data)
+        #self.comb += dacai.eq(-self.dac_a), dacbi.eq(-self.dac_b)
+        #self.sync += daca.eq(dacai ^ sign), dacb.eq(dacbi ^ sign)
+        self.sync += [
+                daca.eq(Cat(~self.dac_a[2:-1], self.dac_a[-1])),
+                dacb.eq(Cat(~self.dac_b[2:-1], self.dac_b[-1]))
+        ]
 
         self.comb += dac.rst.eq(ResetSignal("sys"))
         self.specials += [
@@ -97,7 +105,6 @@ class PitayaAnalog(Module):
         ]
 
 
-#     tcl.append("read_xdc ../verilog/dont_touch.xdc")
 #     tcl.append("read_xdc -ref processing_system7_v5_4_processing_system7 ../verilog/ system_processing_system7_0_0.xdc")
 
 class RedPid(Module):
