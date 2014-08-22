@@ -15,12 +15,9 @@ from .pitaya_ps import SysCDC, Sys2CSR, SysInterconnect, PitayaPS, sys_layout
 
 class CRG(Module):
     def __init__(self, clk_adc, rst):
-        self.clock_domains.cd_adc = ClockDomain()
+        self.clock_domains.cd_adc = ClockDomain(reset_less=True)
         self.clock_domains.cd_sys = ClockDomain()
-        self.clock_domains.cd_sys4 = ClockDomain()
-        self.clock_domains.cd_sys2p = ClockDomain()
-        self.clock_domains.cd_sys2 = ClockDomain()
-        self.clock_domains.cd_ser = ClockDomain()
+        self.clock_domains.cd_sys2 = ClockDomain(reset_less=True)
 
         clk_adci, clk_adcb = Signal(), Signal()
         clk, clkb = Signal(6), Signal(6)
@@ -29,11 +26,9 @@ class CRG(Module):
         self.specials += [
                 Instance("IBUFGDS", i_I=clk_adc.p, i_IB=clk_adc.n, o_O=clk_adci),
                 Instance("BUFG", i_I=clk_adci, o_O=clk_adcb),
-                Instance("BUFR", i_I=clk_adci, o_O=self.cd_adc.clk),
-                Instance("FD", p_INIT=1, i_D=~locked, i_C=self.cd_adc.clk,
-                    o_Q=self.cd_adc.rst)
+                #Instance("BUFR", i_I=clk_adci, o_O=self.cd_adc.clk), # too fast
         ]
-        #self.comb += self.cd_adc.clk.eq(clk_adcb)
+        self.comb += self.cd_adc.clk.eq(clk_adcb)
         self.specials += [
                 Instance("PLLE2_BASE",
                     p_BANDWIDTH="OPTIMIZED",
@@ -47,9 +42,9 @@ class CRG(Module):
                     i_CLKFBIN=clk_fbb, o_CLKFBOUT=clk_fb,
                     p_CLKOUT0_DIVIDE=8, p_CLKOUT0_PHASE=0.,
                     p_CLKOUT0_DUTY_CYCLE=0.5, o_CLKOUT0=clk[0],
-                    p_CLKOUT1_DIVIDE=2, p_CLKOUT1_PHASE=0.,
+                    p_CLKOUT1_DIVIDE=4, p_CLKOUT1_PHASE=0.,
                     p_CLKOUT1_DUTY_CYCLE=0.5, o_CLKOUT1=clk[1],
-                    p_CLKOUT2_DIVIDE=4, p_CLKOUT2_PHASE=-45.,
+                    p_CLKOUT2_DIVIDE=2, p_CLKOUT2_PHASE=0.,
                     p_CLKOUT2_DUTY_CYCLE=0.5, o_CLKOUT2=clk[2],
                     p_CLKOUT3_DIVIDE=4, p_CLKOUT3_PHASE=0.,
                     p_CLKOUT3_DUTY_CYCLE=0.5, o_CLKOUT3=clk[3],
@@ -61,13 +56,10 @@ class CRG(Module):
                 )
         ]
         self.specials += Instance("BUFG", i_I=clk_fb, o_O=clk_fbb)
-        for i, o, d in zip(clk, clkb,
-                [self.cd_sys, self.cd_sys4, self.cd_sys2p, self.cd_sys2,
-                    self.cd_ser]):
-            self.specials += [
-                    Instance("BUFG", i_I=i, o_O=d.clk),
-                    Instance("FD", p_INIT=1, i_D=~locked, i_C=d.clk, o_Q=d.rst)
-            ]
+        for i, o, d in zip(clk, clkb, [self.cd_sys, self.cd_sys2]):
+            self.specials += Instance("BUFG", i_I=i, o_O=d.clk)
+        self.specials += Instance("FD", p_INIT=1, i_D=~locked, i_C=self.cd_sys.clk,
+                o_Q=self.cd_sys.rst)
 
 
 
@@ -93,15 +85,15 @@ class PitayaAnalog(Module):
 
         self.comb += dac.rst.eq(ResetSignal("sys"))
         self.specials += [
-                Instance("ODDR", i_D1=0, i_D2=1, i_C=ClockSignal("sys2p"),
+                Instance("ODDR", i_D1=0, i_D2=1, i_C=ClockSignal("sys2"),
                     o_Q=dac.clk, i_CE=1, i_R=0, i_S=0),
                 Instance("ODDR", i_D1=0, i_D2=1, i_C=ClockSignal("sys2"),
                     o_Q=dac.wrt, i_CE=1, i_R=0, i_S=0),
                 Instance("ODDR", i_D1=0, i_D2=1, i_C=ClockSignal("sys"),
                     o_Q=dac.sel, i_CE=1, i_R=0, i_S=0),
-                [Instance("ODDR", i_D1=ai, i_D2=bi, i_C=ClockSignal("sys"),
-                    o_Q=di, i_CE=1, i_R=0, i_S=0)
-                    for ai, bi, di in zip(daca, dacb, dac.data)]
+                [Instance("ODDR", i_D1=a, i_D2=b, i_C=ClockSignal("sys"),
+                    o_Q=d, i_CE=1, i_R=0, i_S=0)
+                    for a, b, d in zip(daca, dacb, dac.data)]
         ]
 
 
@@ -211,10 +203,12 @@ class RedPid(Module):
         self.submodules.pid = Pid()
 
         self.comb += [
+                self.pid.out_a.asg.eq(asg[0]),
+                self.pid.out_b.asg.eq(asg[1]),
                 self.pid.in_a.adc.eq(self.analog.adc_a),
                 self.pid.in_b.adc.eq(self.analog.adc_b),
-                self.analog.dac_a.eq(asg[0] + self.pid.out_a.dac),
-                self.analog.dac_b.eq(asg[1] + self.pid.out_b.dac)
+                self.analog.dac_a.eq(self.pid.out_a.dac),
+                self.analog.dac_b.eq(self.pid.out_b.dac)
         ]
 
         csr_map = {"pid": 0, "deltasigma": 1}

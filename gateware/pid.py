@@ -67,7 +67,9 @@ class OutChain(Filter):
         self.submodules.sweep = SweepCSR(width=signal_width)
         self.submodules.mod = Modulate(width=signal_width)
 
-        y = self.y, self.relock.y, self.sweep.y, self.mod.y
+        self.asg = Signal((width, True))
+
+        y = self.y, self.relock.y, self.sweep.y, self.mod.y, self.asg
         guard = log2_int(len(y), need_pow2=False)
         self.submodules.limit = LimitCSR(width=signal_width + guard)
         self.dac = Signal((width, True))
@@ -111,6 +113,8 @@ class OutChain(Filter):
 
 class IOMux(Module, AutoCSR):
     def __init__(self, ins, outs):
+        for i, o in zip(ins, outs):
+            self.comb += i.demod.phase.eq(o.mod.phase)
         r = Array([i.y for i in ins] + [o.y for o in outs])
         for i, o in zip("abcdef", outs):
             m = CSRStorage(len(ins), reset=0, name="mux_%s" % i)
@@ -134,3 +138,4 @@ class Pid(Module, AutoCSR):
         self.submodules.out_b = OutChain(14)
         self.submodules.iomux = IOMux([self.in_a, self.in_b],
                 [self.out_a, self.out_b])
+

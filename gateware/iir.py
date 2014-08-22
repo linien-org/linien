@@ -14,8 +14,7 @@ class Iir(Filter):
             intermediate_width = width + coeff_width
 
         self.r_z0 = CSRStorage(width, reset=0)
-        self.r_shift = CSRStatus(8)
-        self.r_shift.status.reset = shift
+        self.r_shift = CSRStatus(8, reset=shift)
 
         self.c = c = {}
         for i in "ab":

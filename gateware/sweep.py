@@ -55,7 +55,7 @@ class SweepCSR(Filter):
 
         width = flen(self.y)
         self.r_shift = CSRStatus(8, reset=shift)
-        self.r_step = CSRStorage(width + shift - 1, reset=1<<shift)
+        self.r_step = CSRStorage(width + shift - 1, reset=0)
 
         ###
 
