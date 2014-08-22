@@ -75,7 +75,7 @@ class PitayaPS(Module):
                 axi.arstn.eq(self.frstn[0]),
         ]
 
-        self.specials += Instance("system_wrapper",
+        self.specials += Instance("system",
                 io_FIXED_IO_mio=cpu.FIXED_IO_mio,
                 io_FIXED_IO_ps_clk=cpu.FIXED_IO_ps_clk,
                 io_FIXED_IO_ps_porb=cpu.FIXED_IO_ps_porb,
