@@ -19,6 +19,7 @@ coeff_width = 18
 class InChain(Filter):
     def __init__(self, width=14):
         Filter.__init__(self, width=signal_width)
+
         self.adc = Signal((width, True))
         self.submodules.limit = LimitCSR(width=signal_width)
         self.submodules.iir_a = Iir(width=signal_width,
@@ -57,9 +58,9 @@ class OutChain(Filter):
         self.submodules.iir_a = Iir(width=signal_width,
                 coeff_width=coeff_width, order=1)
         self.submodules.iir_b = Iir(width=signal_width,
-                coeff_width=coeff_width, order=1)
-        self.submodules.iir_c = Iir(width=signal_width,
                 coeff_width=coeff_width, order=2)
+        self.submodules.iir_c = Iir(width=signal_width,
+                coeff_width=coeff_width, order=1)
         self.submodules.iir_d = Iir(width=signal_width,
                 coeff_width=coeff_width, order=2)
 
@@ -67,24 +68,19 @@ class OutChain(Filter):
         self.submodules.sweep = SweepCSR(width=signal_width)
         self.submodules.mod = Modulate(width=signal_width)
         self.asg = Signal((width, True))
-
-        y = [self.relock.y, self.sweep.y, self.mod.y,
-                self.asg<<(signal_width - width)]
-        guard_width = signal_width + log2_int(1 + len(y), need_pow2=False)
-        y1 = Signal((guard_width, True))
-        self.sync += y1.eq(optree("+", y))
-        self.submodules.limit = LimitCSR(width=guard_width)
+        self.submodules.limit = LimitCSR(width=signal_width, guard=3)
         self.dac = Signal((width, True))
 
         self.r_tap = CSRStorage(3, reset=0)
         self.r_dac = CSRStatus(width)
 
+        ya = Signal((signal_width + 1, True))
+        yb = Signal((signal_width + 1, True))
+        y1 = Signal((signal_width + 2, True))
         ys = Array([self.x, self.iir_a.y, self.iir_b.y,
             self.iir_c.y, self.iir_d.y])
         self.comb += [
-                self.r_dac.status.eq(self.dac),
-
-                #self.clear_in.eq(self.reset.error),
+                self.clear_in.eq(self.limit.error),
                 self.iir_a.clear_in.eq(self.clear),
                 self.iir_b.clear_in.eq(self.clear),
                 self.iir_c.clear_in.eq(self.clear),
@@ -101,12 +97,17 @@ class OutChain(Filter):
                 #self.sweep.hold_in.eq(self.hold),
                 #self.mod.hold_in.eq(self.hold),
                 #self.relock.hold_in.eq(self.hold),
+
+                self.r_dac.status.eq(self.dac),
         ]
         self.sync += [
                 self.iir_a.x.eq(self.x),
                 self.iir_b.x.eq(self.iir_a.y),
                 self.iir_c.x.eq(self.iir_b.y),
                 self.iir_d.x.eq(self.iir_c.y),
+                ya.eq(self.sweep.y + (self.asg<<(signal_width - width))),
+                yb.eq(self.relock.y + self.mod.y),
+                y1.eq(ya + yb),
                 self.y.eq(ys[self.r_tap.storage]),
                 self.limit.x.eq(self.y + y1),
                 self.dac.eq(self.limit.y[-width:]),
