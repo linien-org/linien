@@ -13,7 +13,7 @@ from gateware.iir_ import IIR
 
 
 def _iir2():
-    iir = Iir(mode="iterative")
+    iir = Iir()
     print(verilog.convert(iir, ios={iir.x, iir.y}))
 
     n = 10000
@@ -23,7 +23,7 @@ def _iir2():
 
     b, a = make_filter("PI", f=2e-2, k=1., g=1e20)
     #tb = CsrTransfer(b, a, Iir(order=len(b) - 1), x)
-    tb = CsrTransfer(b, a, Iir(mode="iterative", order=len(b) - 1), x)
+    tb = CsrTransfer(b, a, Iir(order=len(b) - 1), x)
     #print(verilog.convert(tb.tb))
     x, y = tb.tb.run(vcd_name="iir.vcd")
     plt.plot(x)
@@ -44,7 +44,7 @@ def _iir():
 
 def _pid():
 	#b, a = make_filter("LP", f=.1, k=500.)
-	b, a = make_filter("PI", f=2e-5, k=1.-1e-5, g=1e20)
+	b, a = make_filter("PI", f=2e-5, k=1-1e-5, g=1e20)
 	#b, a = make_filter("IHO", f=.05, k=.04, g=10., q=10.)
 	#b, a = make_filter("LP2", f=.002, k=20., q=1.)
 	#b, a = make_filter("P", k=30)
@@ -52,13 +52,15 @@ def _pid():
 	#b, a = make_filter("I", f=.000008, k=1.)
 	#b, a = make_filter("NOTCH", f=.02, k=10., q=.5)
 	#tb = ResetTransfer(b, a, form="tdf2", **kwargs)
-	tb = CsrTransfer(b, a, Iir(order=len(b) - 1), amplitude=.8, samples=1<<14)
+	tb = CsrTransfer(b, a, Iir(#mode="iterative",
+        #coeff_width=2*18-1, width=25, shift=32,
+        order=len(b) - 1), amplitude=.8, samples=1<<14)
 	print(tb.b, tb.a)
 	tb.analyze()
 	plt.show()
 
 
 if __name__ == "__main__":
-    _iir2()
+    #_iir2()
     #_iir()
-    #_pid()
+    _pid()

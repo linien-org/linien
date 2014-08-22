@@ -23,24 +23,35 @@ class Filter(Module):
         else:
             x = (amplitude*self.scale).astype(np.int)
         self.x = x
-        self.y = np.empty_like(self.x)
-        self.xgen = iter(self.x)
+        self.xgen = iter(x)
+        self.ygen = []
+        self.y = []
+        warmup -= warmup % self.dut.interval
         self.warmup = warmup
 
     def do_simulation(self, selfp):
         c = selfp.simulator.cycle_counter - self.warmup
         if c < 0:
             return
-        try:
-            selfp.dut.x = next(self.xgen)
-            self.y[c] = selfp.dut.y
-        except StopIteration:
+        if len(self.y) == len(self.x):
             raise StopSimulation
+        try:
+            if c % self.dut.interval == 0:
+                selfp.dut.x = next(self.xgen)
+                self.ygen.append(c + 1 + self.dut.latency)
+        except StopIteration:
+            pass
+        try:
+            if c == self.ygen[0]:
+                self.ygen.pop(0)
+                self.y.append(selfp.dut.y)
+        except IndexError:
+            pass
 
     def run(self, **kwargs):
         run_simulation(self, **kwargs)
-        x = self.x[:-self.dut.latency-1]/self.scale
-        y = self.y[self.dut.latency+1:]/self.scale
+        x = np.array(self.x)/self.scale
+        y = np.array(self.y)/self.scale
         return x, y
 
 
@@ -54,6 +65,7 @@ class CsrParams(Module):
         self.params = params
         self.x = dut.x
         self.y = dut.y
+        self.interval = dut.interval
         self.latency = dut.latency
 
     def writes(self):
@@ -76,6 +88,7 @@ class ResetParams(Module):
         self.submodules.dut = dut
         self.x = dut.x
         self.y = dut.y
+        self.interval = dut.interval
         self.latency = dut.latency
         for k, v in params.items():
             getattr(dut, k[0])[int(k[1])].reset = v
@@ -108,6 +121,7 @@ class Transfer:
         #tx, fx = plt.mlab.psd(x)
         #ty, fy = plt.mlab.psd(y)
         #ax[1].plot(fx, 10*np.log10(ty/tx))
+        n = len(x)
         w = np.hanning(n)
         x *= w
         y *= w
