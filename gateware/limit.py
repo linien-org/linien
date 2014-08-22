@@ -29,23 +29,24 @@ class Limit(Module):
 
 
 class LimitCSR(Filter):
-    def __init__(self, **kwargs):
+    def __init__(self, guard=0, **kwargs):
         Filter.__init__(self, **kwargs)
 
         width = flen(self.y)
+        self.x = Signal((width + guard, True))
         self.r_min = CSRStorage(width, reset=1<<(width - 1))
         self.r_max = CSRStorage(width, reset=(1<<(width - 1)) - 1)
 
         ###
 
-        self.submodules.limit = Limit(width)
+        self.submodules.limit = Limit(width + guard)
 
         self.comb += [
                 self.limit.x.eq(self.x),
-                self.y.eq(self.limit.y),
+                self.y.eq(self.limit.y[guard:]),
                 self.error.eq(self.limit.railed)
         ]
         self.sync += [
-                self.limit.min.eq(self.r_min.storage),
-                self.limit.max.eq(self.r_max.storage),
+                self.limit.min[guard:].eq(self.r_min.storage),
+                self.limit.max[guard:].eq(self.r_max.storage),
         ]
