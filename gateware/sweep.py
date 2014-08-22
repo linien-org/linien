@@ -2,7 +2,7 @@ from migen.fhdl.std import *
 from migen.bank.description import CSRStorage, CSRStatus
 
 from .filter import Filter
-from .limit import LimitCSR
+from .limit import Limit
 
 
 class Sweep(Module):
@@ -34,13 +34,11 @@ class Sweep(Module):
                 self.y.eq(yn),
                 zero.eq(0),
                 If(self.run,
-                    If(self.turn,
-                        up.eq(~up)
-                    )
+                    up.eq(up ^ self.turn)
                 ).Elif(yn < 0,
                     up.eq(1)
                 ).Elif(yn > self.step,
-                    up.eq(0),
+                    up.eq(0)
                 ).Else(
                     zero.eq(1)
                 )
@@ -51,22 +49,35 @@ class SweepCSR(Filter):
     def __init__(self, shift=8, **kwargs):
         Filter.__init__(self, **kwargs)
 
-        self.submodules.limit = LimitCSR(**kwargs)
-
         width = flen(self.y)
+
         self.r_shift = CSRStatus(8, reset=shift)
         self.r_step = CSRStorage(width + shift - 1, reset=0)
+        self.r_min = CSRStorage(width, reset=1<<(width - 1))
+        self.r_max = CSRStorage(width, reset=(1<<(width - 1)) - 1)
 
         ###
 
         self.submodules.sweep = Sweep(width + shift)
+        self.submodules.limit = Limit(width)
+
+        turning = Signal()
+        self.sync += [
+                self.limit.min.eq(self.r_min.storage),
+                self.limit.max.eq(self.r_max.storage),
+                If(self.sweep.turn,
+                    turning.eq(1)
+                ).Elif(~self.limit.railed,
+                    turning.eq(0)
+                ),
+                self.y.eq(self.limit.y)
+        ]
         self.comb += [
                 self.sweep.run.eq(~self.clear),
-                self.sweep.turn.eq(self.limit.error),
+                self.sweep.turn.eq(self.limit.railed & ~turning),
                 self.sweep.hold.eq(self.hold),
                 self.limit.x.eq(self.sweep.y[shift:]),
-                self.y.eq(self.limit.y),
-                self.sweep.step.eq(self.r_step.storage)
+                self.sweep.step.eq(self.r_step.storage),
         ]
 
 
