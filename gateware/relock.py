@@ -2,7 +2,7 @@ from migen.fhdl.std import *
 from migen.bank.description import CSRStorage, CSRStatus
 
 from .filter import Filter
-from .limit import LimitCSR
+from .limit import Limit
 from .sweep import Sweep
 
 
@@ -11,14 +11,16 @@ class Relock(Filter):
         Filter.__init__(self, **kwargs)
 
         width = flen(self.y)
-        self.submodules.limit = LimitCSR(width=width)
 
         self.r_shift = CSRStatus(8, reset=shift)
         self.r_step = CSRStorage(width + shift - 1, reset=1<<shift)
+        self.r_min = CSRStorage(width, reset=1<<(width - 1))
+        self.r_max = CSRStorage(width, reset=(1<<(width - 1)) - 1)
 
         ###
 
         self.submodules.sweep = Sweep(width + shift)
+        self.submodules.limit = Limit(width)
 
         cnt = Signal(width + shift + 1)
         range = Signal(max=width + shift + 1)
@@ -33,10 +35,11 @@ class Relock(Filter):
                         range.eq(range + 1)
                     )
                 ),
+                self.limit.min.eq(self.r_min.storage),
+                self.limit.max.eq(self.r_max.storage)
         ]
-
         self.comb += [
-                self.error.eq(~self.hold & (self.limit.error | self.trigger)),
+                self.error.eq(~self.hold & (self.limit.railed | self.trigger)),
                 self.limit.x.eq(self.x),
                 self.sweep.run.eq(self.error),
                 self.sweep.step.eq(self.r_step.storage),
