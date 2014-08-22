@@ -37,10 +37,10 @@ class InChain(Filter):
                 self.limit.x.eq(self.x),
 
                 self.limit.hold_in.eq(self.hold),
-                self.limit.clear_in.eq(self.clear),
                 self.iir_a.hold_in.eq(self.hold),
-                self.iir_a.clear_in.eq(self.clear),
                 self.demod.hold_in.eq(self.hold),
+                self.limit.clear_in.eq(self.clear),
+                self.iir_a.clear_in.eq(self.clear),
                 self.demod.clear_in.eq(self.clear),
         ]
         self.sync += [
@@ -66,12 +66,14 @@ class OutChain(Filter):
         self.submodules.relock = Relock(width=signal_width)
         self.submodules.sweep = SweepCSR(width=signal_width)
         self.submodules.mod = Modulate(width=signal_width)
-
         self.asg = Signal((width, True))
 
-        y = self.y, self.relock.y, self.sweep.y, self.mod.y, self.asg
-        guard = log2_int(len(y), need_pow2=False)
-        self.submodules.limit = LimitCSR(width=signal_width + guard)
+        y = [self.relock.y, self.sweep.y, self.mod.y,
+                self.asg<<(signal_width - width)]
+        guard_width = signal_width + log2_int(1 + len(y), need_pow2=False)
+        y1 = Signal((guard_width, True))
+        self.sync += y1.eq(optree("+", y))
+        self.submodules.limit = LimitCSR(width=guard_width)
         self.dac = Signal((width, True))
 
         self.r_tap = CSRStorage(3, reset=0)
@@ -106,7 +108,7 @@ class OutChain(Filter):
                 self.iir_c.x.eq(self.iir_b.y),
                 self.iir_d.x.eq(self.iir_c.y),
                 self.y.eq(ys[self.r_tap.storage]),
-                self.limit.x.eq(optree("+", y)),
+                self.limit.x.eq(self.y + y1),
                 self.dac.eq(self.limit.y[-width:]),
         ]
 

@@ -41,6 +41,7 @@ class Modulate(Filter):
         self.comb += [
                 self.phase.eq(z[freq_width-width:]),
                 self.cordic.xi.eq(self.r_amp.storage + self.x),
+                self.cordic.zi.eq(self.phase),
                 self.y.eq(self.cordic.xo),
         ]
 
