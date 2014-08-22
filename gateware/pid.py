@@ -61,6 +61,8 @@ class OutChain(Filter):
                 coeff_width=coeff_width, order=2)
         self.submodules.iir_c = Iir(width=signal_width,
                 coeff_width=coeff_width, order=1)
+#        self.submodules.iir_d = Iir(width=signal_width*2-1,
+#                coeff_width=2*coeff_width-1, order=2, mode="iterative")
         self.submodules.iir_d = Iir(width=signal_width,
                 coeff_width=coeff_width, order=2)
 
@@ -78,7 +80,7 @@ class OutChain(Filter):
         yb = Signal((signal_width + 1, True))
         y1 = Signal((signal_width + 2, True))
         ys = Array([self.x, self.iir_a.y, self.iir_b.y,
-            self.iir_c.y, self.iir_d.y])
+            self.iir_c.y, self.iir_d.y[-signal_width:]])
         self.comb += [
                 self.clear_in.eq(self.limit.error),
                 self.iir_a.clear_in.eq(self.clear),
@@ -104,7 +106,7 @@ class OutChain(Filter):
                 self.iir_a.x.eq(self.x),
                 self.iir_b.x.eq(self.iir_a.y),
                 self.iir_c.x.eq(self.iir_b.y),
-                self.iir_d.x.eq(self.iir_c.y),
+                self.iir_d.x[-signal_width:].eq(self.iir_c.y),
                 ya.eq(self.sweep.y + (self.asg<<(signal_width - width))),
                 yb.eq(self.relock.y + self.mod.y),
                 y1.eq(ya + yb),

@@ -13,7 +13,7 @@ from gateware.iir_ import IIR
 
 
 def _iir2():
-    iir = Iir()
+    iir = Iir(mode="iterative")
     print(verilog.convert(iir, ios={iir.x, iir.y}))
 
     n = 10000
@@ -22,7 +22,8 @@ def _iir2():
     x[n/2:3*n/4] = -x[n/4:n/2]
 
     b, a = make_filter("PI", f=2e-2, k=1., g=1e20)
-    tb = CsrTransfer(b, a, Iir(order=len(b) - 1), x)
+    #tb = CsrTransfer(b, a, Iir(order=len(b) - 1), x)
+    tb = CsrTransfer(b, a, Iir(mode="iterative", order=len(b) - 1), x)
     #print(verilog.convert(tb.tb))
     x, y = tb.tb.run(vcd_name="iir.vcd")
     plt.plot(x)
