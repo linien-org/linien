@@ -87,8 +87,8 @@ class PitayaAnalog(Module):
         #self.comb += dacai.eq(-self.dac_a), dacbi.eq(-self.dac_b)
         #self.sync += daca.eq(dacai ^ sign), dacb.eq(dacbi ^ sign)
         self.comb += [
-                daca.eq(Cat(~self.dac_a[2:-1], self.dac_a[-1])),
-                dacb.eq(Cat(~self.dac_b[2:-1], self.dac_b[-1]))
+                daca.eq(Cat(~self.dac_a[:-1], self.dac_a[-1])),
+                dacb.eq(Cat(~self.dac_b[:-1], self.dac_b[-1]))
         ]
 
         self.comb += dac.rst.eq(ResetSignal("sys"))
