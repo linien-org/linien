@@ -59,10 +59,9 @@ class Iir(Filter):
             r = [("b%i" % i, self.x) for i in reversed(range(order + 1))]
             r += [("a%i" % i, y) for i in reversed(range(1, order + 1))]
             for coeff, signal in r:
-                z0 = z
-                zr = Signal.like(z0)
-                z = Signal.like(z0)
-                self.sync += zr.eq(z0)
+                zr = Signal.like(z)
+                self.sync += zr.eq(z)
+                z = Signal.like(zr)
                 self.comb += z.eq(zr + signal*c[coeff])
             self.comb += y_next.eq(z)
             self.latency = order + 1
