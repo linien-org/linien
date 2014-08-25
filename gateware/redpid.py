@@ -12,7 +12,6 @@ from .pid import Pid
 from .pitaya_ps import SysCDC, Sys2CSR, SysInterconnect, PitayaPS, sys_layout
 
 
-
 class CRG(Module):
     def __init__(self, clk_adc, rst):
         self.clock_domains.cd_sys_quad = ClockDomain(reset_less=True)
