@@ -13,7 +13,7 @@ class Relock(Filter):
         width = flen(self.y)
 
         self.r_shift = CSRStatus(8, reset=shift)
-        self.r_step = CSRStorage(width + shift - 1, reset=1<<shift)
+        self.r_step = CSRStorage(width + shift - 1, reset=0)
         self.r_min = CSRStorage(width, reset=1<<(width - 1))
         self.r_max = CSRStorage(width, reset=(1<<(width - 1)) - 1)
 
