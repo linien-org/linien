@@ -22,8 +22,8 @@ class DeltaSigmaCSR(Module, AutoCSR):
         for i, o in enumerate(out):
             ds = DeltaSigma(**kwargs)
             setattr(self.submodules, "data%i" % i, ds)
-            cs = CSRStorage(flen(ds.data), name="data%i" % i,
-                    atomic_write=True)
+            cs = CSRStorage(flen(ds.data), name="data%i" % i)
+            # atomic_write=True
             setattr(self, "r_data%i" % i, cs)
             self.comb += ds.data.eq(cs.storage), o.eq(ds.out)
 
