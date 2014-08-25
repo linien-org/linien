@@ -28,6 +28,7 @@ class PitayaCSR:
         for i in range(nr):
             v = (val >> (8*(nr - i - 1))) & 0xff
             cmd = "0x{:08x} 0x{:02x}".format(addr + i*4, v)
+            print(cmd, name, value)
             self.cmd(self.mon, *cmd.split())
 
     def get(self, name):
@@ -56,17 +57,41 @@ if __name__ == "__main__":
     assert p.get("deltasigma_data0") == da
 
     new = """
-        iomux_mux_a=1
-        iomux_mux_b=0
         in_a_tap=0
-        in_b_tap=0
-        out_b_tap=0
-        out_b_mode=0
-        out_b_relock_mode=0
-        out_a_tap=1
-        out_a_mode=3
-        out_a_relock_mode=0
+        iomux_mux_a=1
+        out_a_iir_a_z0=0
+        out_a_iir_a_a1=0
+        out_a_iir_a_b0=0
+        out_a_iir_a_b1=0
+        out_a_tap=1        
+        out_a_mode=0
+        out_a_relock_mode=4
         out_a_relock_step=0
+        out_a_limit_min=-8192
+        out_a_limit_max=8191
+        out_a_sweep_mode=8
+        out_a_sweep_step=0
+        out_a_mod_amp=0
+
+        in_b_tap=0
+        iomux_mux_b=2
+        out_b_iir_a_z0=0
+        out_b_iir_a_a1=0
+        out_b_iir_a_b0=0
+        out_b_iir_a_b1=0
+        out_b_iir_a_mode=3
+        out_b_tap=1
+        out_b_mode=0
+        out_b_relock_mode=4
+        out_b_relock_step=0
+        out_b_limit_min=0
+        out_b_limit_max=8000
+        out_b_sweep_mode=0
+        out_b_sweep_step=1
+        out_b_sweep_min=4000
+        out_b_sweep_max=4000
+        out_b_mod_amp=0
+        out_b_mod_freq=10000
     """
     for l in new.splitlines():
         l = l.strip()
@@ -75,12 +100,10 @@ if __name__ == "__main__":
         k, v = l.strip().split("=")
         p.set("pid_" + k, int(v))
     
-    b, a = iir_coeffs.make_filter("PI",
-            f=2e-3, g=1e20, k=.1)
+    b, a = iir_coeffs.make_filter("P", k=-1)
+    #b, a = iir_coeffs.make_filter("I", k=.01, f=1e-2)
+    #b, a = iir_coeffs.make_filter("PI", f=2e-3, g=1e20, k=-.1)
     p.set_iir("pid_out_a_iir_a", b, a)
-    #p.set("pid_out_b_iir_a_z0", -0x000000)
-    p.set("pid_out_a_limit_max", 0x1fff)
-    p.set("pid_out_a_limit_min", -0x2000)
 
     settings = {}
     for n in sorted(p.map):
