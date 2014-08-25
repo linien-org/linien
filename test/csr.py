@@ -41,8 +41,7 @@ class PitayaCSR:
 
     def set_iir(self, prefix, b, a):
         shift = self.get(prefix + "_shift")
-        #width = self.get(prefix + "_width")
-        width = 25
+        width = self.get(prefix + "_width")
         b, a, params = iir_coeffs.get_params(b, a, shift, width)
         print(params)
         for k in sorted(params):
@@ -57,14 +56,17 @@ if __name__ == "__main__":
     assert p.get("deltasigma_data0") == da
 
     new = """
-        iomux_mux_a=0
-        iomux_mux_b=1
+        iomux_mux_a=1
+        iomux_mux_b=0
         in_a_tap=0
         in_b_tap=0
-        out_b_tap=1
+        out_b_tap=0
         out_b_mode=0
-        out_a_tap=0
-        out_a_mode=0
+        out_b_relock_mode=0
+        out_a_tap=1
+        out_a_mode=3
+        out_a_relock_mode=0
+        out_a_relock_step=0
     """
     for l in new.splitlines():
         l = l.strip()
@@ -74,8 +76,11 @@ if __name__ == "__main__":
         p.set("pid_" + k, int(v))
     
     b, a = iir_coeffs.make_filter("PI",
-            f=2e-5, g=1e20, k=-.99)
-    p.set_iir("pid_out_b_iir_a", b, a)
+            f=2e-3, g=1e20, k=.1)
+    p.set_iir("pid_out_a_iir_a", b, a)
+    #p.set("pid_out_b_iir_a_z0", -0x000000)
+    p.set("pid_out_a_limit_max", 0x1fff)
+    p.set("pid_out_a_limit_min", -0x2000)
 
     settings = {}
     for n in sorted(p.map):

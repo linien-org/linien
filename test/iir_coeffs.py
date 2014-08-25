@@ -72,12 +72,12 @@ def quantize_filter(b, a, shift=None, width=25):
             if i > 0 and int(m) == m:
                 m += 1
             shift = min(shift, int(width - 1 - m))
-    s = 2**shift
+    s = 1<<shift
     
     b = [int(i*s) for i in b]
     a = [int(i*s) for i in a]
 
-    m = 2**(width - 1)
+    m = 1<<(width - 1)
     for i in b + a:
         assert -m <= i < m, (hex(i), hex(m))
 
