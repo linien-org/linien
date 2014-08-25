@@ -210,7 +210,7 @@ class RedPid(Module):
 
         self.comb += [
                 self.pid.out_a.asg.eq(asg[0]),
-                self.pid.out_b.asg.eq(asg[1]),
+                # self.pid.out_b.asg.eq(asg[1]),
                 self.pid.in_a.adc.eq(self.analog.adc_a),
                 self.pid.in_b.adc.eq(self.analog.adc_b),
                 self.analog.dac_a.eq(self.pid.out_a.dac),
