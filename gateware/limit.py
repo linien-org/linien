@@ -43,10 +43,14 @@ class LimitCSR(Filter):
 
         self.comb += [
                 self.limit.x.eq(self.x),
-                self.y.eq(self.limit.y[guard:]),
+                self.y.eq(self.limit.y),
                 self.error.eq(self.limit.railed)
         ]
+        min, max = self.r_min.storage, self.r_max.storage
+        if guard:
+            min = Cat(min, Replicate(min[-1], guard))
+            max = Cat(max, Replicate(max[-1], guard))
         self.sync += [
-                self.limit.min[guard:].eq(self.r_min.storage),
-                self.limit.max[guard:].eq(self.r_max.storage),
+                self.limit.min.eq(min),
+                self.limit.max.eq(max),
         ]
