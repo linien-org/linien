@@ -67,7 +67,7 @@ class PitayaAnalog(Module):
     def __init__(self, adc, dac):
         self.comb += adc.cdcs.eq(1), adc.clk.eq(0b10)
 
-        sign = 1<<(flen(dac.data) - 1)
+        # sign = 1<<(flen(dac.data) - 1)
         size = flen(dac.data), True
 
         self.adc_a, self.adc_b = Signal(size), Signal(size)
