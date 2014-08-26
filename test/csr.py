@@ -1,7 +1,7 @@
 import subprocess
 
 from csrmap import csrmap
-import iir_coeffs
+from iir_coeffs import make_filter, get_params
 
 
 class PitayaCSR:
@@ -25,9 +25,9 @@ class PitayaCSR:
         return v
 
     def set_iir(self, prefix, b, a):
-        shift = self.get(prefix + "_shift")
-        width = self.get(prefix + "_width")
-        b, a, params = iir_coeffs.get_params(b, a, shift, width)
+        shift = self.get(prefix + "_shift") or 16
+        width = self.get(prefix + "_width") or 25
+        b, a, params = get_params(b, a, shift, width)
         print(params)
         for k in sorted(params):
             self.set(prefix + "_" + k, params[k])
@@ -38,6 +38,9 @@ class PitayaReal(PitayaCSR):
 
     def __init__(self, url="root@192.168.3.42"):
         self.url = url
+
+    def run(self):
+        pass
 
     def cmd(self, *cmd):
         p = subprocess.Popen(("ssh", self.url) + cmd,
@@ -58,15 +61,38 @@ class PitayaReal(PitayaCSR):
         return int(ret, 16)
 
 
+class PitayaTB(PitayaCSR):
+    def __init__(self):
+        from transfer import Filter, CsrParams
+        from gateware.pid import Pid
+        self.params = {}
+        p = Pid()
+        p.x = p.in_a.adc
+        p.y = p.out_a.dac
+        p = CsrParams(p, self.params)
+        self.tb = Filter(p, [0, 0, 0, 0])
+
+    def run(self):
+        return self.tb.run(vcd_name="pid_tb.vcd")
+
+    def set_one(self, addr, value):
+        self.params[(addr - 0x40300000)//4] = value
+
+    def get_one(self, addr):
+        return 0
+
+
 if __name__ == "__main__":
     p = PitayaReal()
-    assert p.get("pid_version") == 1
+    #p = PitayaTB()
+    #assert p.get("pid_version") == 1
     da = 0x12345
     p.set("deltasigma_data0", da)
-    assert p.get("deltasigma_data0") == da
+    #assert p.get("deltasigma_data0") == da
 
     new = """
         in_a_tap=0
+        in_a_iir_a_b0=50000
         iomux_mux_a=1
         out_a_iir_a_z0=0
         out_a_iir_a_a1=0
@@ -74,12 +100,14 @@ if __name__ == "__main__":
         out_a_iir_a_b1=0
         out_a_tap=1        
         out_a_mode=0
-        out_a_relock_mode=4
-        out_a_relock_step=0
+        iomux_mux_relock_a=3
+        out_a_relock_mode=0
+        out_a_relock_step=1
+        out_a_relock_min=1000
         out_a_limit_min=-8192
         out_a_limit_max=8191
         out_a_sweep_mode=8
-        out_a_sweep_step=0
+        out_a_sweep_step=1
         out_a_mod_amp=0
 
         in_b_tap=0
@@ -109,10 +137,15 @@ if __name__ == "__main__":
         k, v = l.strip().split("=")
         p.set("pid_" + k, int(v))
     
-    b, a = iir_coeffs.make_filter("P", k=-1)
-    #b, a = iir_coeffs.make_filter("I", k=.01, f=1e-2)
-    #b, a = iir_coeffs.make_filter("PI", f=2e-3, g=1e20, k=-.1)
-    p.set_iir("pid_out_a_iir_a", b, a)
+    # 182ns latency, 23 cycles (6 adc, 1 in, 1 comp, 1 in_a_y, 1 iir_x,
+    # 1 iir_b0, 1 iir_y, 1 out_a_y, 1 out_a_lim_x, 1 out_dac, 1 comp, 1 oddr, 1
+    # dac) = 18 + analog filter
+    #b, a = make_filter("P", k=-.1)
+    #p.set_iir("pid_out_a_iir_a", *make_filter("P", k=-1.04815, f=1))
+    p.set_iir("pid_out_a_iir_a", *make_filter("P", k=0, f=1))
+    #b, a = make_filter("PI", f=1e-3, g=1e20, k=-.02)
+
+    p.run()
 
     settings = {}
     for n in sorted(p.map):
