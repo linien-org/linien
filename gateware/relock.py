@@ -39,6 +39,10 @@ class Relock(Filter):
                 self.limit.max.eq(self.r_max.storage)
         ]
         self.comb += [
+                # relock at limit.railed or trigger if not prevented by hold
+                # stop sweep at not relock
+                # drive error on relock to hold others
+                # turn at range or clear (from final limiter)
                 self.error.eq(~self.hold & (self.limit.railed | self.trigger)),
                 self.limit.x.eq(self.x),
                 self.sweep.run.eq(self.error),

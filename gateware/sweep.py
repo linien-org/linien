@@ -18,6 +18,7 @@ class Sweep(Module):
         yn = Signal((width + 1, True))
         up = Signal()
         zero = Signal()
+        turning = Signal()
 
         self.comb += [
                 If(zero,
@@ -31,10 +32,11 @@ class Sweep(Module):
                 )
         ]
         self.sync += [
+                turning.eq(self.turn),
                 self.y.eq(yn),
                 zero.eq(0),
                 If(self.run,
-                    up.eq(up ^ self.turn)
+                    up.eq(up ^ (self.turn & ~turning))
                 ).Elif(yn < 0,
                     up.eq(1)
                 ).Elif(yn > self.step,
@@ -61,20 +63,14 @@ class SweepCSR(Filter):
         self.submodules.sweep = Sweep(width + shift)
         self.submodules.limit = Limit(width)
 
-        turning = Signal()
         self.sync += [
                 self.limit.min.eq(self.r_min.storage),
                 self.limit.max.eq(self.r_max.storage),
-                If(self.sweep.turn,
-                    turning.eq(1)
-                ).Elif(~self.limit.railed,
-                    turning.eq(0)
-                ),
                 self.y.eq(self.limit.y)
         ]
         self.comb += [
                 self.sweep.run.eq(~self.clear),
-                self.sweep.turn.eq(self.limit.railed & ~turning),
+                self.sweep.turn.eq(self.limit.railed),
                 self.sweep.hold.eq(self.hold),
                 self.limit.x.eq(self.sweep.y[shift:]),
                 self.sweep.step.eq(self.r_step.storage),
