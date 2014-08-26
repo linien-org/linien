@@ -12,7 +12,7 @@ class PitayaCSR:
         assert wr, name
         ma = 1<<nr*8
         val = value & (ma - 1)
-        assert value >= -ma/2 or value < ma, (value, val, ma)
+        assert value >= -ma/2 and value < ma, (value, val, ma)
         for i in range(nr):
             v = (val >> (8*(nr - i - 1))) & 0xff
             self.set_one(addr + i*4, v)
