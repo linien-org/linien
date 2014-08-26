@@ -3,8 +3,37 @@ import subprocess
 from csrmap import csrmap
 import iir_coeffs
 
+
 class PitayaCSR:
     map = csrmap
+
+    def set(self, name, value):
+        addr, nr, wr = self.map[name]
+        assert wr, name
+        ma = 1<<nr*8
+        val = value & (ma - 1)
+        assert value >= -ma/2 or value < ma, (value, val, ma)
+        for i in range(nr):
+            v = (val >> (8*(nr - i - 1))) & 0xff
+            self.set_one(addr + i*4, v)
+
+    def get(self, name):
+        addr, nr, wr = self.map[name]
+        v = 0
+        for i in range(nr):
+            v |= self.get_one(addr + i*4) << 8*(nr - i -1)
+        return v
+
+    def set_iir(self, prefix, b, a):
+        shift = self.get(prefix + "_shift")
+        width = self.get(prefix + "_width")
+        b, a, params = iir_coeffs.get_params(b, a, shift, width)
+        print(params)
+        for k in sorted(params):
+            self.set(prefix + "_" + k, params[k])
+
+
+class PitayaReal(PitayaCSR):
     mon = "/opt/bin/monitor"
 
     def __init__(self, url="root@192.168.3.42"):
@@ -19,38 +48,18 @@ class PitayaCSR:
             raise ValueError((cmd, o, e))
         return o
 
-    def set(self, name, value):
-        addr, nr, wr = self.map[name]
-        assert wr, name
-        ma = 1<<nr*8
-        val = value & (ma - 1)
-        assert value >= -ma/2 or value < ma, (value, val, ma)
-        for i in range(nr):
-            v = (val >> (8*(nr - i - 1))) & 0xff
-            cmd = "0x{:08x} 0x{:02x}".format(addr + i*4, v)
-            print(cmd, name, value)
-            self.cmd(self.mon, *cmd.split())
+    def set_one(self, addr, value):
+        cmd = "0x{:08x} 0x{:02x}".format(addr, value)
+        self.cmd(self.mon, *cmd.split())
 
-    def get(self, name):
-        addr, nr, wr = self.map[name]
-        v = 0
-        for i in range(nr):
-            cmd = "0x{:08x}".format(addr + i*4)
-            ret = self.cmd(self.mon, *cmd.split())
-            v |= int(ret, 16) << 8*(nr - i -1)
-        return v
-
-    def set_iir(self, prefix, b, a):
-        shift = self.get(prefix + "_shift")
-        width = self.get(prefix + "_width")
-        b, a, params = iir_coeffs.get_params(b, a, shift, width)
-        print(params)
-        for k in sorted(params):
-            self.set(prefix + "_" + k, params[k])
+    def get_one(self, addr):
+        cmd = "0x{:08x}".format(addr)
+        ret = self.cmd(self.mon, *cmd.split())
+        return int(ret, 16)
 
 
 if __name__ == "__main__":
-    p = PitayaCSR()
+    p = PitayaReal()
     assert p.get("pid_version") == 1
     da = 0x12345
     p.set("deltasigma_data0", da)
