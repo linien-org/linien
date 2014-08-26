@@ -5,7 +5,7 @@ import numpy as np
 import scipy.signal
 
 
-def make_filter(name, k=1., f=0., g=1., q=.5):
+def make_filter(name, k=1., f=0., g=1e20, q=.5):
     if name == "LP": # k/(s + 1)
         b = [f*k/(f + 2), f*k/(f + 2)]
         a = [1, (f - 2)/(f + 2)]
