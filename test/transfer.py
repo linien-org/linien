@@ -12,22 +12,17 @@ from iir_coeffs import get_params
 
 
 class Filter(Module):
-    def __init__(self, dut, amplitude, samples, warmup=200):
+    def __init__(self, dut, x, warmup=200, latency=0):
         self.submodules.dut = dut
         self.scale = 2**(flen(self.dut.x) - 1) - 1
 
-        if isinstance(amplitude, float):
-            np.random.seed(299792458)
-            x = np.random.uniform(-amplitude*self.scale, amplitude*self.scale,
-                samples).astype(np.int)
-        else:
-            x = (amplitude*self.scale).astype(np.int)
-        self.x = x
-        self.xgen = iter(x)
+        self.x = (self.scale*np.array(x)).astype(np.int)
+        self.xgen = iter(self.x)
         self.ygen = []
         self.y = []
         warmup -= warmup % self.dut.interval
         self.warmup = warmup
+        self.latency = latency
 
     def do_simulation(self, selfp):
         c = selfp.simulator.cycle_counter - self.warmup
@@ -38,7 +33,7 @@ class Filter(Module):
         try:
             if c % self.dut.interval == 0:
                 selfp.dut.x = next(self.xgen)
-                self.ygen.append(c + 1 + self.dut.latency)
+                self.ygen.append(c + 1 + self.latency)
         except StopIteration:
             pass
         try:
@@ -98,7 +93,9 @@ class Transfer:
     def __init__(self, b, a, dut, amplitude=.5, samples=1<<12):
         self.b0, self.a0 = b, a = np.array(b), np.array(a)
         dut = self.wrap_dut(b, a, dut)
-        self.tb = Filter(dut, amplitude, samples)
+        np.random.seed(299792458)
+        x = np.random.uniform(-amplitude, amplitude, samples)
+        self.tb = Filter(dut, x, latency=dut.latency)
 
     def wrap_dut(self, b, a, dut):
         raise NotImplementedError
