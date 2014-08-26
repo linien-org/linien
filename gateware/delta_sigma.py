@@ -18,14 +18,16 @@ class DeltaSigma(Module):
 
 
 class DeltaSigmaCSR(Module, AutoCSR):
-    def __init__(self, out, **kwargs):
+    def __init__(self, out, out_cd="sys", **kwargs):
         for i, o in enumerate(out):
             ds = DeltaSigma(**kwargs)
-            setattr(self.submodules, "data%i" % i, ds)
+            if out_cd != "sys":
+                ds = RenameClockDomains(ds, out_cd)
+            self.submodules += ds
             cs = CSRStorage(flen(ds.data), name="data%i" % i)
             # atomic_write=True
             setattr(self, "r_data%i" % i, cs)
-            self.comb += ds.data.eq(cs.storage), o.eq(ds.out)
+            self.sync += ds.data.eq(cs.storage), o.eq(ds.out)
 
 
 class TB(Module):

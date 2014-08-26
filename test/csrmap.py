@@ -1,8 +1,8 @@
 csrmap = {
-    'deltasigma_data0': (0x40300800, 3, True),
-    'deltasigma_data1': (0x4030080c, 3, True),
-    'deltasigma_data2': (0x40300818, 3, True),
-    'deltasigma_data3': (0x40300824, 3, True),
+    'deltasigma_data0': (0x40300800, 2, True),
+    'deltasigma_data1': (0x40300808, 2, True),
+    'deltasigma_data2': (0x40300810, 2, True),
+    'deltasigma_data3': (0x40300818, 2, True),
     'pid_version': (0x40300000, 1, False),
     'pid_in_a_mode': (0x40300004, 1, True),
     'pid_in_a_state': (0x40300008, 1, False),

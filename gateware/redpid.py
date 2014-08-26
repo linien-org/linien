@@ -30,7 +30,8 @@ class RedPid(Module):
         pwm = Cat(platform.request("pwm", i) for i in range(4))
         pwm_o = Signal(flen(pwm))
         self.comb += pwm.eq(pwm_o)
-        self.submodules.deltasigma = DeltaSigmaCSR(pwm_o, width=24)
+        self.submodules.deltasigma = DeltaSigmaCSR(pwm_o, out_cd="sys_double",
+                width=16) # rc=1e-4, 2.6 LSB max peak-peak noise
 
         self.submodules.xadc = XADC(platform.request("xadc"))
 
