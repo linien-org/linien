@@ -100,10 +100,10 @@ if __name__ == "__main__":
         out_a_iir_a_b1=0
         out_a_tap=1        
         out_a_mode=0
-        iomux_mux_relock_a=3
+        iomux_mux_relock_a=0
         out_a_relock_mode=0
-        out_a_relock_step=1
-        out_a_relock_min=1000
+        out_a_relock_step=10000
+        out_a_relock_min=-10
         out_a_limit_min=-8192
         out_a_limit_max=8191
         out_a_sweep_mode=8
@@ -141,9 +141,10 @@ if __name__ == "__main__":
     # 1 iir_b0, 1 iir_y, 1 out_a_y, 1 out_a_lim_x, 1 out_dac, 1 comp, 1 oddr, 1
     # dac) = 18 + analog filter
     #b, a = make_filter("P", k=-.1)
-    #p.set_iir("pid_out_a_iir_a", *make_filter("P", k=-1.04815, f=1))
-    p.set_iir("pid_out_a_iir_a", *make_filter("P", k=0, f=1))
-    #b, a = make_filter("PI", f=1e-3, g=1e20, k=-.02)
+    #p.set_iir("pid_out_a_iir_a", *make_filter("P", k=-1.0489, f=1))
+    #p.set_iir("pid_out_a_iir_a", *make_filter("P", k=-.5, f=1))
+    p.set_iir("pid_out_a_iir_a", *make_filter("I", k=4e-5*10, f=1))
+    #p.set_iir("pid_out_a_iir_a", *make_filter("PI", f=.2, g=1e20, k=-.2))
 
     p.run()
 
