@@ -45,7 +45,7 @@ class Relock(Filter):
                 # turn at range or clear (from final limiter)
                 self.error.eq(~self.hold & (self.limit.railed | self.trigger)),
                 self.limit.x.eq(self.x),
-                self.sweep.run.eq(self.error),
+                self.sweep.run.eq(self.error & ~self.clear),
                 self.sweep.step.eq(self.r_step.storage),
                 self.sweep.turn.eq(cnt == 0),
                 self.y.eq(self.sweep.y >> shift)

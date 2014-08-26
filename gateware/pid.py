@@ -132,7 +132,7 @@ class IOMux(Module, AutoCSR):
             m = CSRStorage(log2_int(len(r), need_pow2=False),
                     reset=0, name="mux_relock_%s" % i)
             setattr(self, "r_mux_relock_%s" %i, m)
-            self.sync += o.relock.x.eq(r[m.storage])
+            self.sync += o.relock.x.eq(r[m.storage] >> (signal_width - flen(o.relock.x)))
 
 
 class Pid(Module, AutoCSR):
