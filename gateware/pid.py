@@ -34,7 +34,7 @@ class InChain(Filter):
         ys = Array([self.x, self.limit.y, self.iir_a.y, self.demod.y])
         self.comb += [
                 self.r_adc.status.eq(self.adc),
-                self.x[-width:].eq(self.adc),
+                self.x.eq(self.adc << (signal_width - width)),
                 self.limit.x.eq(self.x),
 
                 self.limit.hold_in.eq(self.hold),
@@ -112,7 +112,7 @@ class OutChain(Filter):
                 yb.eq(self.relock.y + self.mod.y),
                 y1.eq(ya + yb),
                 self.y.eq(ys[self.r_tap.storage]),
-                self.limit.x.eq(self.y[-width:] + y1),
+                self.limit.x.eq((self.y >> (signal_width - width)) + y1),
                 self.dac.eq(self.limit.y),
         ]
 
