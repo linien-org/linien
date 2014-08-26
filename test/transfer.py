@@ -12,7 +12,7 @@ from iir_coeffs import get_params
 
 
 class Filter(Module):
-    def __init__(self, dut, x, warmup=200, latency=0):
+    def __init__(self, dut, x, warmup=200, latency=0, interval=1):
         self.submodules.dut = dut
         self.scale = 2**(flen(self.dut.x) - 1) - 1
 
@@ -20,9 +20,10 @@ class Filter(Module):
         self.xgen = iter(self.x)
         self.ygen = []
         self.y = []
-        warmup -= warmup % self.dut.interval
+        warmup -= warmup % interval
         self.warmup = warmup
         self.latency = latency
+        self.interval = interval
 
     def do_simulation(self, selfp):
         c = selfp.simulator.cycle_counter - self.warmup
@@ -31,7 +32,7 @@ class Filter(Module):
         if len(self.y) == len(self.x):
             raise StopSimulation
         try:
-            if c % self.dut.interval == 0:
+            if c % self.interval == 0:
                 selfp.dut.x = next(self.xgen)
                 self.ygen.append(c + 1 + self.latency)
         except StopIteration:
@@ -69,7 +70,11 @@ class CsrParams(Module):
                 if c.name == k:
                     n = c.size
                     break
-            a = get_offset(self.desc, k)
+            if isinstance(k, str):
+                a = get_offset(self.desc, k)
+            else:
+                a = k
+                n = 1
             v = self.params[k]
             b = (n + 8 - 1)//8
             for i in reversed(range(b)):
@@ -95,7 +100,7 @@ class Transfer:
         dut = self.wrap_dut(b, a, dut)
         np.random.seed(299792458)
         x = np.random.uniform(-amplitude, amplitude, samples)
-        self.tb = Filter(dut, x, latency=dut.latency)
+        self.tb = Filter(dut, x, latency=dut.latency, interval=dut.interval)
 
     def wrap_dut(self, b, a, dut):
         raise NotImplementedError
