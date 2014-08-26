@@ -68,7 +68,7 @@ class OutChain(Filter):
 #                coeff_width=coeff_width, order=2)
 
         self.submodules.relock = Relock(width=width)
-        self.submodules.sweep = SweepCSR(width=width)
+        self.submodules.sweep = SweepCSR(width=width, shift=32-width+1)
         self.submodules.mod = Modulate(width=width)
         self.asg = Signal((width, True))
         self.submodules.limit = LimitCSR(width=width, guard=3)
@@ -90,7 +90,9 @@ class OutChain(Filter):
                 self.iir_d.clear_in.eq(self.clear),
                 #self.sweep.clear_in.eq(self.clear),
                 #self.mod.clear_in.eq(self.clear),
-                self.relock.clear_in.eq(self.limit.error),
+                self.relock.clear_in.eq(self.clear),
+
+                # self.relock.trigger.eq(d[relock_mux]),
 
                 self.hold_in.eq(self.relock.error),
                 self.iir_a.hold_in.eq(self.hold),
