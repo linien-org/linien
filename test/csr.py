@@ -91,8 +91,8 @@ if __name__ == "__main__":
     #assert p.get("deltasigma_data0") == da
 
     new = """
-        in_a_tap=0
         in_a_iir_a_b0=50000
+        in_a_tap=0
         iomux_mux_a=1
         out_a_iir_a_z0=0
         out_a_iir_a_a1=0
@@ -103,7 +103,8 @@ if __name__ == "__main__":
         iomux_mux_relock_a=0
         out_a_relock_mode=0
         out_a_relock_step=10000
-        out_a_relock_min=-10
+        out_a_relock_min=-500
+        out_a_relock_max=-100
         out_a_limit_min=-8192
         out_a_limit_max=8191
         out_a_sweep_mode=8
@@ -112,23 +113,12 @@ if __name__ == "__main__":
 
         in_b_tap=0
         iomux_mux_b=2
-        out_b_iir_a_z0=0
-        out_b_iir_a_a1=0
-        out_b_iir_a_b0=0
-        out_b_iir_a_b1=0
-        out_b_iir_a_mode=3
         out_b_tap=1
         out_b_mode=0
-        out_b_relock_mode=4
+        out_b_relock_mode=8
         out_b_relock_step=0
-        out_b_limit_min=0
-        out_b_limit_max=8000
-        out_b_sweep_mode=0
-        out_b_sweep_step=1
-        out_b_sweep_min=4000
-        out_b_sweep_max=4000
-        out_b_mod_amp=0
-        out_b_mod_freq=10000
+        out_b_sweep_mode=8
+        out_b_sweep_step=0
     """
     for l in new.splitlines():
         l = l.strip()
@@ -142,9 +132,10 @@ if __name__ == "__main__":
     # dac) = 18 + analog filter
     #b, a = make_filter("P", k=-.1)
     #p.set_iir("pid_out_a_iir_a", *make_filter("P", k=-1.0489, f=1))
-    #p.set_iir("pid_out_a_iir_a", *make_filter("P", k=-.5, f=1))
-    p.set_iir("pid_out_a_iir_a", *make_filter("I", k=4e-5*10, f=1))
-    #p.set_iir("pid_out_a_iir_a", *make_filter("PI", f=.2, g=1e20, k=-.2))
+    p.set_iir("pid_out_a_iir_a", *make_filter("I", k=4e-4, f=1))
+    #p.set_iir("pid_out_a_iir_a", *make_filter("I", k=-.01, f=1))
+    p.set_iir("pid_out_b_iir_a", *make_filter("PI", f=.2, k=-.2))
+    #p.set_iir("pid_out_a_iir_a", *make_filter("PI", f=.2, k=-.2))
 
     p.run()
 
