@@ -94,7 +94,7 @@ class OutChain(Filter):
 
                 # self.relock.trigger.eq(d[relock_mux]),
 
-                self.hold_in.eq(self.relock.error),
+                self.hold_in.eq(self.relock.error | self.limit.error),
                 self.iir_a.hold_in.eq(self.hold),
                 self.iir_b.hold_in.eq(self.hold),
                 self.iir_c.hold_in.eq(self.hold),
