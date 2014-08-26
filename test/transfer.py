@@ -63,10 +63,10 @@ class CsrParams(Module):
         self.submodules.init = Initiator(self.writes(),
                 self.bank.bus)
         self.params = params
-        self.x = dut.x
-        self.y = dut.y
-        self.interval = dut.interval
-        self.latency = dut.latency
+        for k in dir(dut):
+            v = getattr(dut, k)
+            if isinstance(v, (Signal, int)):
+                setattr(self, k, v)
 
     def writes(self):
         for k in sorted(self.params):
@@ -86,10 +86,10 @@ class CsrParams(Module):
 class ResetParams(Module):
     def __init__(self, dut, params):
         self.submodules.dut = dut
-        self.x = dut.x
-        self.y = dut.y
-        self.interval = dut.interval
-        self.latency = dut.latency
+        for k in dir(dut):
+            v = getattr(dut, k)
+            if isinstance(v, (Signal, int)):
+                setattr(self, k, v)
         for k, v in params.items():
             getattr(dut, k[0])[int(k[1])].reset = v
 
