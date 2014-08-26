@@ -68,7 +68,7 @@ class OutChain(Filter):
 #                coeff_width=coeff_width, order=2)
 
         self.submodules.relock = Relock(width=width)
-        self.submodules.sweep = SweepCSR(width=width, shift=32-width+1)
+        self.submodules.sweep = SweepCSR(width=width, shift=19)
         self.submodules.mod = Modulate(width=width)
         self.asg = Signal((width, True))
         self.submodules.limit = LimitCSR(width=width, guard=3)

@@ -48,7 +48,7 @@ class Relock(Filter):
                 self.sweep.run.eq(self.error),
                 self.sweep.step.eq(self.r_step.storage),
                 self.sweep.turn.eq(cnt == 0),
-                self.y.eq(self.sweep.y[shift:])
+                self.y.eq(self.sweep.y >> shift)
         ]
 
 

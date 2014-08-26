@@ -72,7 +72,7 @@ class SweepCSR(Filter):
                 self.sweep.run.eq(~self.clear),
                 self.sweep.turn.eq(self.limit.railed),
                 self.sweep.hold.eq(self.hold),
-                self.limit.x.eq(self.sweep.y[shift:]),
+                self.limit.x.eq(self.sweep.y >> shift),
                 self.sweep.step.eq(self.r_step.storage),
         ]
 
