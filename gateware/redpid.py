@@ -7,101 +7,12 @@ from migen.bank import csrgen
 
 # https://github.com/RedPitaya/RedPitaya/blob/master/FPGA/release1/fpga/code/rtl/red_pitaya_daisy.v
 
-from .delta_sigma import DeltaSigmaCSR
-from .pid import Pid
 from .pitaya_ps import SysCDC, Sys2CSR, SysInterconnect, PitayaPS, sys_layout
-
-
-class CRG(Module):
-    def __init__(self, clk_adc, rst):
-        self.clock_domains.cd_sys_quad = ClockDomain(reset_less=True)
-        self.clock_domains.cd_sys_double = ClockDomain(reset_less=True)
-        self.clock_domains.cd_sys = ClockDomain()
-        self.clock_domains.cd_sys_half = ClockDomain(reset_less=True)
-
-        clk_adci, clk_adcb = Signal(), Signal()
-        clk, clkb = Signal(6), Signal(6)
-        clk_fb, clk_fbb = Signal(), Signal()
-        locked = Signal()
-        self.specials += [
-                Instance("IBUFGDS", i_I=clk_adc.p, i_IB=clk_adc.n, o_O=clk_adci),
-                Instance("BUFG", i_I=clk_adci, o_O=clk_adcb),
-        ]
-        self.specials += [
-                Instance("PLLE2_BASE",
-                    p_BANDWIDTH="OPTIMIZED",
-                    p_DIVCLK_DIVIDE=1,
-                    p_CLKFBOUT_PHASE=0.,
-                    p_CLKFBOUT_MULT=8,
-                    p_CLKIN1_PERIOD=8.,
-                    p_REF_JITTER1=0.01,
-                    p_STARTUP_WAIT="FALSE",
-                    i_CLKIN1=clk_adcb, i_PWRDWN=0, i_RST=rst,
-                    i_CLKFBIN=clk_fbb, o_CLKFBOUT=clk_fb,
-                    p_CLKOUT0_DIVIDE=2, p_CLKOUT0_PHASE=0.,
-                    p_CLKOUT0_DUTY_CYCLE=0.5, o_CLKOUT0=clk[0],
-                    p_CLKOUT1_DIVIDE=4, p_CLKOUT1_PHASE=0.,
-                    p_CLKOUT1_DUTY_CYCLE=0.5, o_CLKOUT1=clk[1],
-                    p_CLKOUT2_DIVIDE=8, p_CLKOUT2_PHASE=0.,
-                    p_CLKOUT2_DUTY_CYCLE=0.5, o_CLKOUT2=clk[2],
-                    p_CLKOUT3_DIVIDE=16, p_CLKOUT3_PHASE=0.,
-                    p_CLKOUT3_DUTY_CYCLE=0.5, o_CLKOUT3=clk[3],
-                    p_CLKOUT4_DIVIDE=4, p_CLKOUT4_PHASE=0.,
-                    p_CLKOUT4_DUTY_CYCLE=0.5, o_CLKOUT4=clk[4],
-                    p_CLKOUT5_DIVIDE=4, p_CLKOUT5_PHASE=0.,
-                    p_CLKOUT5_DUTY_CYCLE=0.5, o_CLKOUT5=clk[5],
-                    o_LOCKED=locked,
-                )
-        ]
-        self.specials += Instance("BUFG", i_I=clk_fb, o_O=clk_fbb)
-        for i, o, d in zip(clk, clkb, [self.cd_sys_quad, self.cd_sys_double,
-            self.cd_sys, self.cd_sys_half]):
-            self.specials += Instance("BUFG", i_I=i, o_O=d.clk)
-        self.specials += Instance("FD", p_INIT=1, i_D=~locked, i_C=self.cd_sys.clk,
-                o_Q=self.cd_sys.rst)
-
-
-
-
-class PitayaAnalog(Module):
-    def __init__(self, adc, dac):
-        self.comb += adc.cdcs.eq(1), adc.clk.eq(0b10)
-
-        # sign = 1<<(flen(dac.data) - 1)
-        size = flen(dac.data), True
-
-        self.adc_a, self.adc_b = Signal(size), Signal(size)
-        self.dac_a, self.dac_b = Signal(size), Signal(size)
-
-        adca, adcb = Signal.like(adc.data_a), Signal.like(adc.data_b)
-        self.sync += adca.eq(adc.data_a), adcb.eq(adc.data_b)
-        #self.sync += self.adc_a.eq(-(sign ^ adca[2:])), self.adc_b.eq(-(sign ^ adcb[2:]))
-        self.sync += [ # this is off by one LSB but otherwise min and max fail
-                self.adc_a.eq(Cat(~adca[2:-1], adca[-1])),
-                self.adc_b.eq(Cat(~adcb[2:-1], adcb[-1]))
-        ]
-
-        daca, dacb = Signal.like(dac.data), Signal.like(dac.data)
-        #dacai, dacbi = Signal.like(dac.data), Signal.like(dac.data)
-        #self.comb += dacai.eq(-self.dac_a), dacbi.eq(-self.dac_b)
-        #self.sync += daca.eq(dacai ^ sign), dacb.eq(dacbi ^ sign)
-        self.sync += [
-                daca.eq(Cat(~self.dac_a[:-1], self.dac_a[-1])),
-                dacb.eq(Cat(~self.dac_b[:-1], self.dac_b[-1]))
-        ]
-
-        self.comb += dac.rst.eq(ResetSignal("sys"))
-        self.specials += [
-                Instance("ODDR", i_D1=0, i_D2=1, i_C=ClockSignal("sys_double"),
-                    o_Q=dac.clk, i_CE=1, i_R=0, i_S=0),
-                Instance("ODDR", i_D1=0, i_D2=1, i_C=ClockSignal("sys_double"),
-                    o_Q=dac.wrt, i_CE=1, i_R=0, i_S=0),
-                Instance("ODDR", i_D1=0, i_D2=1, i_C=ClockSignal("sys"),
-                    o_Q=dac.sel, i_CE=1, i_R=0, i_S=0),
-                [Instance("ODDR", i_D1=a, i_D2=b, i_C=ClockSignal("sys"),
-                    o_Q=d, i_CE=1, i_R=0, i_S=0)
-                    for a, b, d in zip(daca, dacb, dac.data)]
-        ]
+from .crg import CRG
+from .xadc import XADC
+from .delta_sigma import DeltaSigmaCSR
+from .analog import PitayaAnalog
+from .pid import Pid
 
 
 #     tcl.append("read_xdc -ref processing_system7_v5_4_processing_system7 ../verilog/ system_processing_system7_0_0.xdc")
@@ -120,6 +31,8 @@ class RedPid(Module):
         pwm_o = Signal(flen(pwm))
         self.comb += pwm.eq(pwm_o)
         self.submodules.deltasigma = DeltaSigmaCSR(pwm_o, width=24)
+
+        self.submodules.xadc = XADC(platform.request("xadc"))
 
         exp_q = platform.request("exp")
         n = flen(exp_q.p)
@@ -217,7 +130,7 @@ class RedPid(Module):
                 self.analog.dac_b.eq(self.pid.out_b.dac)
         ]
 
-        csr_map = {"pid": 0, "deltasigma": 1}
+        csr_map = {"pid": 0, "deltasigma": 1, "xadc": 2}
         self.submodules.csrbanks = csrgen.BankArray(self,
                     lambda name, mem: csr_map[name if mem is None
                         else name + "_" + mem.name_override])
