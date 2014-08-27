@@ -19,30 +19,36 @@ class Sweep(Module):
         up = Signal()
         zero = Signal()
         turning = Signal()
+        dir = Signal()
 
         self.comb += [
-                If(zero,
-                    yn.eq(0)
-                ).Elif(self.hold,
-                    yn.eq(self.y),
-                ).Elif(up,
-                    yn.eq(self.y + self.step),
+                If(self.run,
+                    If(self.turn & ~turning,
+                        up.eq(~dir)
+                    ).Else(
+                        up.eq(dir)
+                    )
                 ).Else(
-                    yn.eq(self.y - self.step),
+                    If(self.y < -self.step,
+                        up.eq(1)
+                    ).Elif(self.y > self.step,
+                        up.eq(0)
+                    ).Else(
+                        zero.eq(1)
+                    )
                 )
         ]
         self.sync += [
                 turning.eq(self.turn),
-                self.y.eq(yn),
-                zero.eq(0),
-                If(self.run,
-                    up.eq(up ^ (self.turn & ~turning))
-                ).Elif(yn < 0,
-                    up.eq(1)
-                ).Elif(yn > self.step,
-                    up.eq(0)
-                ).Else(
-                    zero.eq(1)
+                dir.eq(up),
+                If(zero,
+                    self.y.eq(0)
+                ).Elif(~self.hold,
+                    It(up,
+                        self.y.eq(self.y + self.step),
+                    ).Else(
+                        self.y.eq(self.y - self.step),
+                    )
                 )
         ]
 
