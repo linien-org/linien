@@ -21,32 +21,39 @@ class InChain(Filter):
         Filter.__init__(self, width=signal_width)
 
         self.adc = Signal((width, True))
-        self.submodules.limit = LimitCSR(width=signal_width)
+        self.submodules.limit = LimitCSR(width=width)
         self.submodules.iir_a = Iir(width=signal_width,
                 coeff_width=coeff_width, order=1)
+        self.submodules.iir_b = Iir(width=signal_width,
+                coeff_width=2*coeff_width-1, order=2,
+                shift=2*coeff_width-3, mode="iterative")
         self.submodules.demod = Demodulate(width=signal_width)
 
-        self.r_tap = CSRStorage(2, reset=0)
-        self.r_adc = CSRStatus(width)
+        self.r_tap = CSRStorage(3)
+
+        self.errors = Signal(1)
 
         ###
 
-        ys = Array([self.x, self.limit.y, self.iir_a.y, self.demod.y])
         self.comb += [
-                self.r_adc.status.eq(self.adc),
                 self.x.eq(self.adc << (signal_width - width)),
-                self.limit.x.eq(self.x),
+                self.limit.x.eq(self.adc),
+                self.iir_a.x.eq(self.limit.y << (signal_width - width)),
+                self.iir_b.x.eq(self.iir_a.y),
+                self.demod.x.eq(Mux(self.r_tap.storage[0],
+                    self.iir_b.y, self.iir_a.y)),
 
-                self.limit.hold_in.eq(self.hold),
-                self.iir_a.hold_in.eq(self.hold),
-                self.demod.hold_in.eq(self.hold),
-                self.limit.clear_in.eq(self.clear),
-                self.iir_a.clear_in.eq(self.clear),
-                self.demod.clear_in.eq(self.clear),
+                self.iir_a.hold.eq(self.hold),
+                self.iir_b.hold.eq(self.hold),
+                self.iir_a.clear.eq(self.clear),
+                self.iir_b.clear.eq(self.clear),
+                self.errors.eq(Cat(self.limit.error))
         ]
+        ys = Array([self.x, self.limit.y << (signal_width - width),
+            self.iir_a.y, self.iir_b.y, self.demod.y, self.demod.y])
         self.sync += [
-                self.iir_a.x.eq(self.limit.y),
-                self.demod.x.eq(self.iir_a.y),
+                self.error.eq(self.limit.error | self.iir_a.error |
+                    self.iir_b.error | self.demod.error),
                 self.y.eq(ys[self.r_tap.storage])
         ]
 
@@ -60,79 +67,85 @@ class OutChain(Filter):
         self.submodules.iir_b = Iir(width=signal_width,
                 coeff_width=coeff_width, order=2)
         self.submodules.iir_c = Iir(width=signal_width,
-                coeff_width=coeff_width, order=1)
+                coeff_width=2*coeff_width-1, order=2,
+                shift=2*coeff_width-3, mode="iterative")
         self.submodules.iir_d = Iir(width=signal_width,
                 coeff_width=2*coeff_width-1, order=2,
                 shift=2*coeff_width-3, mode="iterative")
 #        self.submodules.iir_d = Iir(width=signal_width,
 #                coeff_width=coeff_width, order=2)
 
-        self.submodules.relock = Relock(width=width, shift=19)
+        self.submodules.relock = Relock(width=width + 1, shift=18)
         self.submodules.sweep = SweepCSR(width=width, shift=19)
         self.submodules.mod = Modulate(width=width)
         self.asg = Signal((width, True))
         self.submodules.limit = LimitCSR(width=width, guard=3)
         self.dac = Signal((width, True))
 
-        self.r_tap = CSRStorage(3, reset=0)
-        self.r_dac = CSRStatus(width)
+        self.r_tap = CSRStorage(3)
 
-        ya = Signal((width + 1, True))
-        yb = Signal((width + 1, True))
-        y1 = Signal((width + 2, True))
+        self.errors = Signal(2)
+        # self.relock.hold, self.clear, self.hold <= digital mux
+
+        ya = Signal((width + 2, True))
         ys = Array([self.x, self.iir_a.y, self.iir_b.y,
             self.iir_c.y, self.iir_d.y])
         self.comb += [
-                self.clear_in.eq(self.limit.error),
-                self.iir_a.clear_in.eq(self.clear),
-                self.iir_b.clear_in.eq(self.clear),
-                self.iir_c.clear_in.eq(self.clear),
-                self.iir_d.clear_in.eq(self.clear),
-                #self.sweep.clear_in.eq(self.clear),
-                #self.mod.clear_in.eq(self.clear),
-                self.relock.clear_in.eq(self.clear),
+                self.errors.eq(Cat(self.relock.error, self.limit.error)),
 
-                # self.relock.trigger.eq(d[relock_mux]),
+                self.iir_a.clear.eq(self.clear),
+                self.iir_b.clear.eq(self.clear),
+                self.iir_c.clear.eq(self.clear),
+                self.iir_d.clear.eq(self.clear),
+                #self.sweep.clear.eq(self.clear), # end sweep
+                self.relock.clear.eq(self.limit.error), # turn
 
-                self.hold_in.eq(self.relock.error | self.limit.error),
-                self.iir_a.hold_in.eq(self.hold),
-                self.iir_b.hold_in.eq(self.hold),
-                self.iir_c.hold_in.eq(self.hold),
-                self.iir_d.hold_in.eq(self.hold),
-                #self.sweep.hold_in.eq(self.hold),
-                #self.mod.hold_in.eq(self.hold),
-                #self.relock.hold_in.eq(self.hold),
-
-                self.r_dac.status.eq(self.dac),
+                self.iir_a.hold.eq(self.hold),
+                self.iir_b.hold.eq(self.hold),
+                self.iir_c.hold.eq(self.hold),
+                self.iir_d.hold.eq(self.hold),
+                #self.sweep.hold.eq(self.hold), # pause sweep
+                #self.relock.hold.eq(self.hold), # digital trigger
         ]
         self.sync += [
                 self.iir_a.x.eq(self.x),
                 self.iir_b.x.eq(self.iir_a.y),
                 self.iir_c.x.eq(self.iir_b.y),
                 self.iir_d.x.eq(self.iir_c.y),
-                ya.eq(self.sweep.y + self.asg),
-                yb.eq(self.relock.y + self.mod.y),
-                y1.eq(ya + yb),
                 self.y.eq(ys[self.r_tap.storage]),
-                self.limit.x.eq((self.y >> (signal_width - width)) + y1),
+                ya.eq((self.sweep.y + self.relock.y) + self.asg),
+                self.limit.x.eq((self.y >> (signal_width - width))
+                    + self.relock.y + ya),
                 self.dac.eq(self.limit.y),
         ]
 
 
 class IOMux(Module, AutoCSR):
     def __init__(self, ins, outs):
+        err = Cat([1] + [i.errors for i in ins] + [o.errors for o in outs])
+        for l, i, o in zip("abcdef", ins, outs):
+            ri = CSRStorage(2*flen(err), name="mux_in_state")
+            setattr(self, "r_mux_in_state_%s" % l, ri)
+            ro = CSRStorage(2*flen(err), name="mux_out_state")
+            setattr(self, "r_mux_out_state_%s" % l, ro)
+            self.sync += [
+                    i.hold.eq(err & ri.storage[:flen(err)] != 0),
+                    i.clear.eq(err & ri.storage[flen(err):] != 0),
+                    i.hold.eq(err & ro.storage[:flen(err)] != 0),
+                    i.clear.eq(err & ro.storage[flen(err):] != 0)
+            ]
         for i, o in zip(ins, outs):
             self.comb += i.demod.phase.eq(o.mod.phase)
-        r = Array([i.y for i in ins] + [o.y for o in outs])
+        y = Array([i.y for i in ins] + [o.y for o in outs])
         for i, o in zip("abcdef", outs):
             m = CSRStorage(len(ins), reset=0, name="mux_%s" % i)
             setattr(self, "r_mux_%s" % i, m)
             self.comb += o.x.eq(optree("+", [Mux(m.storage[j], ini.y, 0)
                 for j, ini in enumerate(ins)]))
-            m = CSRStorage(log2_int(len(r), need_pow2=False),
+            m = CSRStorage(log2_int(len(y), need_pow2=False),
                     reset=0, name="mux_relock_%s" % i)
             setattr(self, "r_mux_relock_%s" %i, m)
-            self.sync += o.relock.x.eq(r[m.storage] >> (signal_width - flen(o.relock.x)))
+            self.sync += o.relock.x.eq(y[m.storage] >> (signal_width - flen(o.dac)))
 
 
 class Pid(Module, AutoCSR):
