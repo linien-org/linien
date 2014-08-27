@@ -9,11 +9,9 @@ from migen.bank import csrgen
 
 from .pitaya_ps import SysCDC, Sys2CSR, SysInterconnect, PitayaPS, sys_layout
 from .crg import CRG
-from .xadc import XADC
-from .delta_sigma import DeltaSigmaCSR
 from .analog import PitayaAnalog
 from .pid import Pid
-
+from .slow import Slow
 
 #     tcl.append("read_xdc -ref processing_system7_v5_4_processing_system7 ../verilog/ system_processing_system7_0_0.xdc")
 
@@ -27,51 +25,12 @@ class RedPid(Module):
         self.submodules.analog = PitayaAnalog(platform.request("adc"),
             platform.request("dac"))
 
+        xadc = platform.request("xadc")
         pwm = Cat(platform.request("pwm", i) for i in range(4))
-        pwm_o = Signal(flen(pwm))
-        self.comb += pwm.eq(pwm_o)
-        self.submodules.deltasigma = DeltaSigmaCSR(pwm_o, out_cd="sys_double",
-                width=16) # rc=1e-4, 2.6 LSB max peak-peak noise
+        exp = platform.request("exp")
+        leds = Cat(*(platform.request("user_led", i) for i in range(8)))
 
-        self.submodules.xadc = XADC(platform.request("xadc"))
-
-        exp_q = platform.request("exp")
-        n = flen(exp_q.p)
-        exp = Record([
-            ("pi", n), ("ni", n),
-            ("po", n), ("no", n),
-            ("pt", n), ("nt", n),
-        ])
-        for i in range(n):
-            self.specials += Instance("IOBUF",
-                    o_O=exp.pi[i], io_IO=exp_q.p[i], i_I=exp.po[i], i_T=exp.pt[i])
-            self.specials += Instance("IOBUF",
-                    o_O=exp.ni[i], io_IO=exp_q.n[i], i_I=exp.no[i], i_T=exp.nt[i])
-        leds = Cat(*(platform.request("user_led", i) for i in range(n)))
-
-        hk_sys = Record(sys_layout)
-        self.specials.hk = Instance("red_pitaya_hk",
-                i_clk_i=ClockSignal(),
-                i_rstn_i=~ResetSignal(),
-                o_led_o=leds,
-                i_exp_p_dat_i=exp.pi,
-                i_exp_n_dat_i=exp.ni,
-                o_exp_p_dir_o=exp.pt,
-                o_exp_n_dir_o=exp.nt,
-                o_exp_p_dat_o=exp.po,
-                o_exp_n_dat_o=exp.no,
-
-                i_sys_clk_i=hk_sys.clk,
-                i_sys_rstn_i=hk_sys.rstn,
-                i_sys_addr_i=hk_sys.addr,
-                i_sys_wdata_i=hk_sys.wdata,
-                i_sys_sel_i=hk_sys.sel,
-                i_sys_wen_i=hk_sys.wen,
-                i_sys_ren_i=hk_sys.ren,
-                o_sys_rdata_o=hk_sys.rdata,
-                o_sys_err_o=hk_sys.err,
-                o_sys_ack_o=hk_sys.ack,
-        )
+        self.submodules.slow = Slow(exp, pwm, leds, xadc)
 
         asg_trig = Signal()
 
@@ -81,7 +40,7 @@ class RedPid(Module):
                 i_adc_b_i=self.analog.adc_b,
                 i_adc_clk_i=ClockSignal(),
                 i_adc_rstn_i=~ResetSignal(),
-                i_trig_ext_i=exp.pi[0],
+                i_trig_ext_i=self.slow.gpio_p._r_in.status[0],
                 i_trig_asg_i=asg_trig,
 
                 i_sys_clk_i=scope_sys.clk,
@@ -104,8 +63,8 @@ class RedPid(Module):
                 o_dac_b_o=asg[1],
                 i_dac_clk_i=ClockSignal(),
                 i_dac_rstn_i=~ResetSignal(),
-                i_trig_a_i=exp.pi[0],
-                i_trig_b_i=exp.pi[0],
+                i_trig_a_i=self.slow.gpio_p._r_in.status[0],
+                i_trig_b_i=self.slow.gpio_p._r_in.status[0],
                 o_trig_out_o=asg_trig,
 
                 i_sys_clk_i=asg_sys.clk,
@@ -131,7 +90,7 @@ class RedPid(Module):
                 self.analog.dac_b.eq(self.pid.out_b.dac)
         ]
 
-        csr_map = {"pid": 0, "deltasigma": 1, "xadc": 2}
+        csr_map = {"pid": 0, "slow": 1}
         self.submodules.csrbanks = csrgen.BankArray(self,
                     lambda name, mem: csr_map[name if mem is None
                         else name + "_" + mem.name_override])
@@ -141,5 +100,6 @@ class RedPid(Module):
         self.submodules.syscdc = SysCDC()
         self.comb += self.syscdc.target.connect(self.sys2csr.sys)
 
+        hk_sys = Record(sys_layout)
         self.submodules.ic = SysInterconnect(self.ps.axi.sys,
                 hk_sys, scope_sys, asg_sys, self.syscdc.source)

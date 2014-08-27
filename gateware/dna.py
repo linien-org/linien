@@ -14,7 +14,7 @@ class DNA(Module, AutoCSR):
         shift = Signal()
 
         self.specials += Instance("DNA_PORT",
-                i_DI=0, o_DO=d, i_CLK=ClockSignal(),
+                i_DIN=0, o_DOUT=d, i_CLK=ClockSignal(),
                 i_READ=rd, i_SHIFT=shift)
 
         self.sync += [
