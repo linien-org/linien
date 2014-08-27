@@ -127,11 +127,15 @@ class IOMux(Module, AutoCSR):
             setattr(self, "r_mux_in_state_%s" % l, ri)
             ro = CSRStorage(2*flen(err), name="mux_out_state")
             setattr(self, "r_mux_out_state_%s" % l, ro)
+            rr = CSRStorage(2*flen(err), name="mux_out_relock")
+            setattr(self, "r_mux_out_relock_%s" % l, rr)
             self.sync += [
                     i.hold.eq(err & ri.storage[:flen(err)] != 0),
                     i.clear.eq(err & ri.storage[flen(err):] != 0),
-                    i.hold.eq(err & ro.storage[:flen(err)] != 0),
-                    i.clear.eq(err & ro.storage[flen(err):] != 0)
+                    o.hold.eq(err & ro.storage[:flen(err)] != 0),
+                    o.clear.eq(err & ro.storage[flen(err):] != 0)
+                    o.relock.hold.eq(err & rr.storage[:flen(err)] != 0)
+                    o.sweep.clear.eq(err & rr.storage[flen(err):] != 0)
             ]
         for i, o in zip(ins, outs):
             self.comb += i.demod.phase.eq(o.mod.phase)
