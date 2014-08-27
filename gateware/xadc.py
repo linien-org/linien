@@ -1,6 +1,7 @@
 from migen.fhdl.std import *
 from migen.bank.description import *
 
+
 class XADC(Module, AutoCSR):
     def __init__(self, xadc):
         self.alarm = Signal(8)
