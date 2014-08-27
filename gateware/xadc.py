@@ -50,7 +50,7 @@ class XADC(Module, AutoCSR):
             o_ALM=self.alarm, o_OT=self.ot,
             o_BUSY=busy, o_CHANNEL=channel, o_EOC=eoc, o_EOS=eos,
             i_VAUXN=vin[:16], i_VAUXP=vip[:16], i_VN=vin[16], i_VP=vip[16],
-            i_CONVST=0, i_CONVSTCLK=0, i_RESET=ResetSignal(),
+            i_CONVST=0, i_CONVSTCLK=0, i_RESET=0,
             o_DO=datao, o_DRDY=drdy, i_DADDR=channel, i_DCLK=ClockSignal(),
             i_DEN=eoc, i_DI=0, i_DWE=0,
             # o_JTAGBUSY=, o_JTAGLOCKED=, o_JTAGMODIFIED=, o_MUXADDR=,

@@ -5,7 +5,7 @@ class CRG(Module):
     def __init__(self, clk_adc, rst):
         self.clock_domains.cd_sys_quad = ClockDomain(reset_less=True)
         self.clock_domains.cd_sys_double = ClockDomain(reset_less=True)
-        self.clock_domains.cd_sys = ClockDomain()
+        self.clock_domains.cd_sys = ClockDomain(reset_less=True)
         self.clock_domains.cd_sys_half = ClockDomain(reset_less=True)
 
         clk_adci, clk_adcb = Signal(), Signal()
@@ -46,5 +46,3 @@ class CRG(Module):
         for i, o, d in zip(clk, clkb, [self.cd_sys_quad, self.cd_sys_double,
             self.cd_sys, self.cd_sys_half]):
             self.specials += Instance("BUFG", i_I=i, o_O=d.clk)
-        self.specials += Instance("FD", p_INIT=1, i_D=~locked, i_C=self.cd_sys.clk,
-                o_Q=self.cd_sys.rst)

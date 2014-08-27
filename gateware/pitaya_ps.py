@@ -283,7 +283,7 @@ class Sys2Wishbone(Module):
                 i_sys_ren_i=sys.ren, o_sys_rdata_o=sys.rdata,
                 o_sys_err_o=sys.err, o_sys_ack_o=sys.ack,
 
-                i_clk_i=ClockSignal(), i_rstn_i=~ResetSignal(),
+                i_clk_i=ClockSignal(), i_rstn_i=1,
                 o_addr_o=sys2.addr, o_wen_o=sys2.wen, o_ren_o=sys2.ren,
                 o_wdata_o=sys2.wdata, i_rdata_i=sys2.rdata,
                 i_err_i=sys2.err, i_ack_i=sys2.ack
@@ -326,7 +326,7 @@ class SysCDC(Module):
         )
         self.comb += [
                 self.target.clk.eq(ClockSignal(cd_target)),
-                self.target.rstn.eq(~ResetSignal(cd_target))
+                self.target.rstn.eq(1),
         ]
 
 
