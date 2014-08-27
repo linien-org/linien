@@ -86,9 +86,14 @@ if __name__ == "__main__":
     p = PitayaReal()
     #p = PitayaTB()
     #assert p.get("pid_version") == 1
-    da = 0x12345
-    p.set("deltasigma_data0", da)
+    da = 0x2345
+    p.set("slow_deltasigma_data0", da)
+    p.set("slow_led", 0)
     #assert p.get("deltasigma_data0") == da
+    #print(hex(p.get("slow_dna_dna")))
+    #assert p.get("slow_dna_dna") & 0x7f == 0b1000001
+    for n in "temp int aux bram paux pint v a b c d".split():
+        print(n, p.get("slow_xadc_{}".format(n))/float(0xfff))
 
     new = """
         in_a_iir_a_b0=50000
@@ -101,10 +106,10 @@ if __name__ == "__main__":
         out_a_tap=1        
         out_a_mode=0
         iomux_mux_relock_a=0
-        out_a_relock_mode=0
+        out_a_relock_mode=8
         out_a_relock_step=10000
-        out_a_relock_min=-500
-        out_a_relock_max=-100
+        out_a_relock_min=-8192
+        out_a_relock_max=8191
         out_a_limit_min=-8192
         out_a_limit_max=8191
         out_a_sweep_mode=8
@@ -132,9 +137,9 @@ if __name__ == "__main__":
     # dac) = 18 + analog filter
     #b, a = make_filter("P", k=-.1)
     #p.set_iir("pid_out_a_iir_a", *make_filter("P", k=-1.0489, f=1))
-    p.set_iir("pid_out_a_iir_a", *make_filter("I", k=4e-4, f=1))
+    p.set_iir("pid_out_a_iir_a", *make_filter("I", k=4e-5, f=1))
     #p.set_iir("pid_out_a_iir_a", *make_filter("I", k=-.01, f=1))
-    p.set_iir("pid_out_b_iir_a", *make_filter("PI", f=.2, k=-.2))
+    #p.set_iir("pid_out_b_iir_a", *make_filter("PI", f=.2, k=-.2))
     #p.set_iir("pid_out_a_iir_a", *make_filter("PI", f=.2, k=-.2))
 
     p.run()
