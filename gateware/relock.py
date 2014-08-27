@@ -43,9 +43,9 @@ class Relock(Filter):
                 # stop sweep at not relock
                 # drive error on relock to hold others
                 # turn at range or clear (from final limiter)
-                self.error.eq(~self.hold & (self.limit.railed | self.trigger)),
+                self.error.eq(self.limit.railed | self.hold),
                 self.limit.x.eq(self.x),
-                self.sweep.run.eq(self.error & ~self.clear),
+                self.sweep.run.eq(self.error),
                 self.sweep.step.eq(self.r_step.storage),
                 self.sweep.turn.eq(cnt == 0),
                 self.y.eq(self.sweep.y >> shift)
