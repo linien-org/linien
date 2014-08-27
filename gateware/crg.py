@@ -8,9 +8,12 @@ class CRG(Module):
         self.clock_domains.cd_sys = ClockDomain()
         self.clock_domains.cd_sys_half = ClockDomain(reset_less=True)
 
-        clk_adci, clk_adcb = Signal(), Signal()
-        clk, clkb = Signal(6), Signal(6)
-        clk_fb, clk_fbb = Signal(), Signal()
+        clk_adci = Signal()
+        clk_adcb = Signal()
+        clk = Signal(6)
+        clkb = Signal(6)
+        clk_fb = Signal()
+        clk_fbb = Signal()
         locked = Signal()
         self.specials += [
                 Instance("IBUFGDS", i_I=clk_adc.p, i_IB=clk_adc.n, o_O=clk_adci),
