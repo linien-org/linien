@@ -3,32 +3,27 @@ from migen.bank.description import *
 
 
 class DNA(Module, AutoCSR):
-    def __init__(self):
-        self.r_dna = CSRStatus(57)
+    def __init__(self, version=0b1000001):
+        n = 64
+        self._r_dna = CSRStatus(n, reset=version << 57)
 
         ###
 
-        d = Signal()
-        n = flen(self.r_dna.status)
-        rd = Signal(reset=1)
-        so = Signal()
-        si = Signal()
-        cnt = Signal(max=n + 1, reset=n)
+        di = Signal()
+        do = Signal()
+        cnt = Signal(max=2*n + 1)
+        dna = Signal(n)
 
         self.specials += Instance("DNA_PORT",
-                i_DIN=d, o_DOUT=d, i_CLK=ClockSignal(),
-                i_READ=rd, i_SHIFT=so)
+                i_DIN=di, o_DOUT=do,
+                i_CLK=cnt[0], i_READ=cnt < 2, i_SHIFT=1)
 
-        self.comb += so.eq(~rd & (cnt > 0))
+        self.comb += self._r_dna.status.eq(dna)
         self.sync += [
-                If(rd,
-                    rd.eq(0)
-                ),
-                If(so,
-                    cnt.eq(cnt - 1),
-                ),
-                si.eq(so),
-                If(si,
-                    self.r_dna.status.eq(Cat(self.r_dna.status[1:], d)),
+                If(cnt < 2*n,
+                    cnt.eq(cnt + 1),
+                    If(cnt[0],
+                        Cat(dna, di).eq(Cat(do, dna))
+                    )
                 )
         ]
