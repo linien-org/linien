@@ -40,21 +40,25 @@ class Iir(Filter):
         y_next = Signal.like(z)
         y_over = y_next[shift+width-1:]
         y_pat = Signal.like(y_over, reset=-1)
+        y = Signal.like(self.y)
         railed = Signal()
         self.comb += [
                 railed.eq(~((y_over == y_pat) | (y_over == ~y_pat))),
-                self.error.eq(railed),
-                If(self.clear,
-                    y_lim.eq(0)
-                ).Elif(railed,
+                If(railed,
                     y_lim.eq(self.y)
                 ).Else(
                     y_lim.eq(y_next[shift:])
                 )
         ]
-        self.sync += self.y.eq(y_lim)
-        y = Signal.like(self.y)
-        self.sync += If(~self.hold, y.eq(y_lim))
+        self.sync += [
+                self.error.eq(railed),
+                self.y.eq(y_lim),
+                If(self.clear,
+                    y.eq(0)
+                ).Elif(~self.hold,
+                    y.eq(y_lim)
+                )
+        ]
 
         if mode == "pipelined":
             r = [("b%i" % i, self.x) for i in reversed(range(order + 1))]
