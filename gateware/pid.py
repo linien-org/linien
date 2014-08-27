@@ -113,7 +113,7 @@ class OutChain(Filter):
                 self.iir_c.x.eq(self.iir_b.y),
                 self.iir_d.x.eq(self.iir_c.y),
                 self.y.eq(ys[self.r_tap.storage]),
-                ya.eq((self.sweep.y + self.relock.y) + self.asg),
+                ya.eq((self.sweep.y + self.mod.y) + self.asg),
                 self.limit.x.eq((self.y >> (signal_width - width))
                     + self.relock.y + ya),
                 self.dac.eq(self.limit.y),
