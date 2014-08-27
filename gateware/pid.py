@@ -52,8 +52,7 @@ class InChain(Filter):
         ys = Array([self.x, self.limit.y << (signal_width - width),
             self.iir_a.y, self.iir_b.y, self.demod.y, self.demod.y])
         self.sync += [
-                self.error.eq(self.limit.error | self.iir_a.error |
-                    self.iir_b.error | self.demod.error),
+                self.error.eq(self.limit.error),
                 self.y.eq(ys[self.r_tap.storage])
         ]
 
