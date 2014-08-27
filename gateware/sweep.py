@@ -44,7 +44,7 @@ class Sweep(Module):
                 If(zero,
                     self.y.eq(0)
                 ).Elif(~self.hold,
-                    It(up,
+                    If(up,
                         self.y.eq(self.y + self.step),
                     ).Else(
                         self.y.eq(self.y - self.step),
