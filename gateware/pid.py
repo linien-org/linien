@@ -133,8 +133,8 @@ class IOMux(Module, AutoCSR):
                     i.hold.eq(err & ri.storage[:flen(err)] != 0),
                     i.clear.eq(err & ri.storage[flen(err):] != 0),
                     o.hold.eq(err & ro.storage[:flen(err)] != 0),
-                    o.clear.eq(err & ro.storage[flen(err):] != 0)
-                    o.relock.hold.eq(err & rr.storage[:flen(err)] != 0)
+                    o.clear.eq(err & ro.storage[flen(err):] != 0),
+                    o.relock.hold.eq(err & rr.storage[:flen(err)] != 0),
                     o.sweep.clear.eq(err & rr.storage[flen(err):] != 0)
             ]
         for i, o in zip(ins, outs):
