@@ -39,7 +39,7 @@ class RedPid(Module):
                 i_adc_a_i=self.analog.adc_a,
                 i_adc_b_i=self.analog.adc_b,
                 i_adc_clk_i=ClockSignal(),
-                i_adc_rstn_i=1,
+                i_adc_rstn_i=~ResetSignal(),
                 i_trig_ext_i=self.slow.gpio_p._r_in.status[0],
                 i_trig_asg_i=asg_trig,
 
@@ -62,7 +62,7 @@ class RedPid(Module):
                 o_dac_a_o=asg[0],
                 o_dac_b_o=asg[1],
                 i_dac_clk_i=ClockSignal(),
-                i_dac_rstn_i=1,
+                i_dac_rstn_i=~ResetSignal(),
                 i_trig_a_i=self.slow.gpio_p._r_in.status[0],
                 i_trig_b_i=self.slow.gpio_p._r_in.status[0],
                 o_trig_out_o=asg_trig,
