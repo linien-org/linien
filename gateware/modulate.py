@@ -17,7 +17,7 @@ class Demodulate(Filter):
                 eval_mode="pipelined", cordic_mode="rotate",
                 func_mode="circular")
         self.comb += [
-                self.cordic.xi.eq(self.x),
+                self.cordic.xi.eq(self.x >> 1),
                 self.cordic.zi.eq(self.phase + self.r_phase.storage),
                 self.y.eq(self.cordic.xo),
         ]
