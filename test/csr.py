@@ -92,55 +92,55 @@ if __name__ == "__main__":
     #assert p.get("deltasigma_data0") == da
     #print(hex(p.get("slow_dna_dna")))
     #assert p.get("slow_dna_dna") & 0x7f == 0b1000001
-    for n in "temp int aux bram paux pint v a b c d".split():
-        print(n, p.get("slow_xadc_{}".format(n))/float(0xfff))
+    print("temp", p.get("slow_xadc_temp")*503.975/0xfff-273.15)
+    for u, ns in [(3./0xfff, "pint paux bram int aux ddr"),
+            (1./0xfff*(30 + 4.99)/4.99, "a b c d"),
+            (1./0xfff*(56 + 4.99)/4.99, "v")]:
+        for n in ns.split():
+            v = p.get("slow_xadc_{}".format(n))
+            if v & 0x800 and n in "abcd":
+                v = 0 #v - 0x1000
+            print(n, u*v)
 
-    new = """
-        in_a_iir_a_b0=50000
-        in_a_tap=0
-        iomux_mux_a=1
-        out_a_iir_a_z0=0
-        out_a_iir_a_a1=0
-        out_a_iir_a_b0=0
-        out_a_iir_a_b1=0
-        out_a_tap=1        
-        out_a_mode=0
-        iomux_mux_relock_a=0
-        out_a_relock_mode=8
-        out_a_relock_step=10000
-        out_a_relock_min=-8192
-        out_a_relock_max=8191
-        out_a_limit_min=-8192
-        out_a_limit_max=8191
-        out_a_sweep_mode=8
-        out_a_sweep_step=1
-        out_a_mod_amp=0
+    new = dict(
+        in_a_iir_a_b0=0,
+        in_a_tap=0,
+        iomux_out_a_x=1,
+        out_a_iir_a_z0=0,
+        out_a_iir_a_a1=0,
+        out_a_iir_a_b0=0,
+        out_a_iir_a_b1=0,
+        out_a_tap=1,
+        iomux_out_a_relock=0, # limit
+        iomux_out_a_hold=1<<3, # relock
+        iomux_out_a_clear=1<<4, # limit
+        iomux_out_a_relock_x=0, # in a
+        out_a_relock_step=500000,
+        out_a_relock_min=-16384,
+        out_a_relock_max=16383,
+        out_a_limit_min=-8192,
+        out_a_limit_max=8191,
+        out_a_sweep_step=0,
+        out_a_mod_amp=0,
 
-        in_b_tap=0
-        iomux_mux_b=2
-        out_b_tap=1
-        out_b_mode=0
-        out_b_relock_mode=8
-        out_b_relock_step=0
-        out_b_sweep_mode=8
-        out_b_sweep_step=0
-    """
-    for l in new.splitlines():
-        l = l.strip()
-        if not l:
-            continue
-        k, v = l.strip().split("=")
+        in_b_tap=0,
+        iomux_out_b_x=2,
+        out_b_tap=1,
+        out_b_relock_step=0,
+        out_b_sweep_step=0,
+    )
+    for k, v in new.items():
         p.set("pid_" + k, int(v))
     
     # 182ns latency, 23 cycles (6 adc, 1 in, 1 comp, 1 in_a_y, 1 iir_x,
     # 1 iir_b0, 1 iir_y, 1 out_a_y, 1 out_a_lim_x, 1 out_dac, 1 comp, 1 oddr, 1
     # dac) = 18 + analog filter
     #b, a = make_filter("P", k=-.1)
-    #p.set_iir("pid_out_a_iir_a", *make_filter("P", k=-1.0489, f=1))
-    p.set_iir("pid_out_a_iir_a", *make_filter("I", k=4e-5, f=1))
+    #p.set_iir("pid_out_a_iir_a", *make_filter("P", k=-.8, f=1))
+    #p.set_iir("pid_out_a_iir_a", *make_filter("I", k=4e-5, f=1))
     #p.set_iir("pid_out_a_iir_a", *make_filter("I", k=-.01, f=1))
-    #p.set_iir("pid_out_b_iir_a", *make_filter("PI", f=.2, k=-.2))
-    #p.set_iir("pid_out_a_iir_a", *make_filter("PI", f=.2, k=-.2))
+    p.set_iir("pid_out_a_iir_a", *make_filter("PI", f=.6, k=-.05))
+    #p.set_iir("pid_out_a_iir_a", *make_filter("PI", f=.5, k=-.05))
 
     p.run()
 
