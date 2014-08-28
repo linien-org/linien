@@ -14,7 +14,7 @@ class PitayaAnalog(Module):
         adca, adcb = Signal.like(adc.data_a), Signal.like(adc.data_b)
         self.sync += adca.eq(adc.data_a), adcb.eq(adc.data_b)
         #self.sync += self.adc_a.eq(-(sign ^ adca[2:])), self.adc_b.eq(-(sign ^ adcb[2:]))
-        self.sync += [ # this is off by one LSB but otherwise min and max fail
+        self.comb += [ # this is off by one LSB but otherwise min and max fail
                 self.adc_a.eq(Cat(~adca[2:-1], adca[-1])),
                 self.adc_b.eq(Cat(~adcb[2:-1], adcb[-1]))
         ]
@@ -23,7 +23,7 @@ class PitayaAnalog(Module):
         #dacai, dacbi = Signal.like(dac.data), Signal.like(dac.data)
         #self.comb += dacai.eq(-self.dac_a), dacbi.eq(-self.dac_b)
         #self.sync += daca.eq(dacai ^ sign), dacb.eq(dacbi ^ sign)
-        self.sync += [
+        self.comb += [
                 daca.eq(Cat(~self.dac_a[:-1], self.dac_a[-1])),
                 dacb.eq(Cat(~self.dac_b[:-1], self.dac_b[-1]))
         ]
