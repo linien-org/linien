@@ -63,6 +63,7 @@ class SweepCSR(Filter):
         self.r_step = CSRStorage(width + shift - 1, reset=0)
         self.r_min = CSRStorage(width, reset=1<<(width - 1))
         self.r_max = CSRStorage(width, reset=(1<<(width - 1)) - 1)
+        self.r_run = CSRStorage(1)
 
         ###
 
@@ -75,7 +76,7 @@ class SweepCSR(Filter):
                 self.y.eq(self.limit.y)
         ]
         self.comb += [
-                self.sweep.run.eq(~self.clear),
+                self.sweep.run.eq(~self.clear & self.r_run.storage),
                 self.sweep.turn.eq(self.limit.railed),
                 self.sweep.hold.eq(self.hold),
                 self.limit.x.eq(self.sweep.y >> shift),
