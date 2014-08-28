@@ -116,10 +116,10 @@ class Platform(XilinxVivadoPlatform):
         try:
             clk125 = self.lookup_request("clk125")
             self.add_period_constraint(clk125.p, 8)
-            self.add_platform_command("set_clock_groups -asynchronous "
-                    "-group [get_clocks -include_generated_clocks {clk}] "
-                    "-group [get_clocks -include_generated_clocks clk_fpga_0]",
-                    clk=clk125.p)
+            #self.add_platform_command("set_clock_groups -asynchronous "
+            #        "-group [get_clocks -include_generated_clocks {clk}] "
+            #        "-group [get_clocks -include_generated_clocks clk_fpga_0]",
+            #        clk=clk125.p)
             for i in range(2):
                 try:
                     adc = self.lookup_request("adc", i)
