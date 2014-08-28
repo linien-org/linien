@@ -27,7 +27,7 @@ class InChain(Filter):
         self.submodules.iir_b = Iir(width=signal_width,
                 coeff_width=2*coeff_width-1, order=2,
                 shift=2*coeff_width-3, mode="iterative")
-        self.submodules.demod = Demodulate(width=signal_width)
+        self.submodules.demod = Demodulate(width=width)
 
         self.r_tap = CSRStorage(3)
 
@@ -35,13 +35,14 @@ class InChain(Filter):
 
         ###
 
+        s = signal_width - width
         self.comb += [
-                self.x.eq(self.adc << (signal_width - width)),
+                self.x.eq(self.adc << s),
                 self.limit.x.eq(self.adc),
-                self.iir_a.x.eq(self.limit.y << (signal_width - width)),
+                self.iir_a.x.eq(self.limit.y << s),
                 self.iir_b.x.eq(self.iir_a.y),
                 self.demod.x.eq(Mux(self.r_tap.storage[0],
-                    self.iir_b.y, self.iir_a.y)),
+                    self.iir_b.y, self.iir_a.y) >> s),
 
                 self.iir_a.hold.eq(self.hold),
                 self.iir_b.hold.eq(self.hold),
@@ -49,8 +50,9 @@ class InChain(Filter):
                 self.iir_b.clear.eq(self.clear),
                 self.errors.eq(Cat(self.limit.error)),
         ]
-        ys = Array([self.x, self.limit.y << (signal_width - width),
-            self.iir_a.y, self.iir_b.y, self.demod.y, self.demod.y])
+        ys = Array([self.x, self.limit.y << s,
+            self.iir_a.y, self.iir_b.y,
+            self.demod.y << s, self.demod.y << s])
         self.sync += [
                 self.y.eq(ys[self.r_tap.storage])
         ]
@@ -88,6 +90,7 @@ class OutChain(Filter):
         ya = Signal((width + 2, True))
         ys = Array([self.x, self.iir_a.y, self.iir_b.y,
             self.iir_c.y, self.iir_d.y])
+        s = signal_width - width
         self.comb += [
                 self.errors.eq(Cat(self.relock.error, self.limit.error)),
 
@@ -104,8 +107,7 @@ class OutChain(Filter):
                 self.iir_d.hold.eq(self.hold),
                 #self.sweep.hold.eq(self.hold), # pause sweep
                 #self.relock.hold.eq(self.hold), # digital trigger
-                self.limit.x.eq((self.y >> (signal_width - width))
-                    + ya + self.relock.y),
+                self.limit.x.eq((self.y >> s) + ya + self.relock.y),
                 self.dac.eq(self.limit.y),
         ]
         self.sync += [
