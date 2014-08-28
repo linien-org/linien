@@ -153,7 +153,7 @@ class IOMux(Module, AutoCSR):
                 ])) # TODO: sat, const
             r = CSRStorage(log2_int(len(y), need_pow2=False),
                     name="out_%s_relock_x" % i)
-            self.sync += o.relock.x.eq(y[r.storage] >> (signal_width - flen(o.relock.x)))
+            self.sync += o.relock.x.eq(y[r.storage] >> (signal_width - flen(o.dac)))
             csrs += m, f, r
         for csr in csrs:
             setattr(self, csr.name, csr)
