@@ -7,41 +7,46 @@ from .sweep import Sweep
 
 
 class Relock(Filter):
-    def __init__(self, shift=8, **kwargs):
+    def __init__(self, step_width=None, step_shift=0, **kwargs):
         Filter.__init__(self, **kwargs)
 
         width = flen(self.y)
+        if step_width is None:
+            step_width = width
 
-        self.r_shift = CSRStatus(8, reset=shift)
-        self.r_step = CSRStorage(width + shift - 1, reset=0)
+        self.r_shift = CSRStatus(8, reset=step_shift)
+        self.r_step = CSRStorage(step_width)
         self.r_min = CSRStorage(width, reset=1<<(width - 1))
         self.r_max = CSRStorage(width, reset=(1<<(width - 1)) - 1)
 
         ###
 
-        self.submodules.sweep = Sweep(width + shift)
+        self.submodules.sweep = Sweep(width + step_shift + 1)
         self.submodules.limit = Limit(width)
 
-        cnt = Signal(width + shift + 1)
-        range = Signal(max=width + shift + 1)
+        cnt = Signal(width + step_shift)
+        range = Signal(max=flen(cnt))
         self.sync += [
                 cnt.eq(cnt + 1),
                 If(~self.error, # stop sweep, drive to zero
                     cnt.eq(0),
                     range.eq(0)
-                ).Elif(self.clear, # max range if we hit ouput limit
+                ).Elif(self.clear | ~(self.sweep.y[-1] == self.sweep.y[-2]),
+                    # max range if we hit ouput limit
                     cnt.eq(0),
-                    range.eq((1<<flen(range)) - 1)
+                    range.eq(flen(cnt) - 1)
                 ).Elif(Array(cnt)[range], # 1<<range steps, turn, inc range
-                    cnt.eq(0),
-                    If(range < width + shift,
+                    If(range < flen(cnt) - 1,
+                        cnt.eq(0),
                         range.eq(range + 1)
                     )
                 ),
                 self.limit.min.eq(self.r_min.storage),
                 self.limit.max.eq(self.r_max.storage),
                 self.error.eq(self.limit.railed | self.hold),
-                self.sweep.turn.eq(cnt == 0)
+                If(self.sweep.y[-1] == self.sweep.y[-2],
+                    self.y.eq(self.sweep.y >> step_shift)
+                )
         ]
         self.comb += [
                 # relock at limit.railed or trigger if not prevented by hold
@@ -51,7 +56,7 @@ class Relock(Filter):
                 self.limit.x.eq(self.x),
                 self.sweep.step.eq(self.r_step.storage),
                 self.sweep.run.eq(self.error),
-                self.y.eq(self.sweep.y >> shift)
+                self.sweep.turn.eq(cnt == 0),
         ]
 
 

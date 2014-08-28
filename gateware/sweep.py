@@ -15,7 +15,6 @@ class Sweep(Module):
 
         ###
 
-        yn = Signal((width + 1, True))
         up = Signal()
         zero = Signal()
         turning = Signal()
@@ -29,7 +28,7 @@ class Sweep(Module):
                         up.eq(dir)
                     )
                 ).Else(
-                    If(self.y < -self.step,
+                    If(self.y < 0,
                         up.eq(1)
                     ).Elif(self.y > self.step,
                         up.eq(0)
@@ -54,33 +53,36 @@ class Sweep(Module):
 
 
 class SweepCSR(Filter):
-    def __init__(self, shift=8, **kwargs):
+    def __init__(self, step_width=None, step_shift=0, **kwargs):
         Filter.__init__(self, **kwargs)
 
         width = flen(self.y)
+        if step_width is None:
+            step_width = width
 
-        self.r_shift = CSRStatus(8, reset=shift)
-        self.r_step = CSRStorage(width + shift - 1, reset=0)
+        self.r_shift = CSRStatus(8, reset=step_shift)
+        self.r_step = CSRStorage(step_width)
         self.r_min = CSRStorage(width, reset=1<<(width - 1))
         self.r_max = CSRStorage(width, reset=(1<<(width - 1)) - 1)
         self.r_run = CSRStorage(1)
 
         ###
 
-        self.submodules.sweep = Sweep(width + shift)
-        self.submodules.limit = Limit(width)
+        self.submodules.sweep = Sweep(width + step_shift + 1)
+        self.submodules.limit = Limit(width + 1)
 
-        self.sync += [
-                self.limit.min.eq(self.r_min.storage),
-                self.limit.max.eq(self.r_max.storage),
+        min, max = self.r_min.storage, self.r_max.storage
+        self.comb += [
                 self.sweep.run.eq(~self.clear & self.r_run.storage),
+                self.sweep.hold.eq(self.hold),
+                self.limit.x.eq(self.sweep.y >> step_shift),
+                self.sweep.step.eq(self.r_step.storage)
+        ]
+        self.sync += [
+                self.limit.min.eq(Cat(min, min[-1])),
+                self.limit.max.eq(Cat(max, max[-1])),
                 self.sweep.turn.eq(self.limit.railed),
                 self.y.eq(self.limit.y)
-        ]
-        self.comb += [
-                self.sweep.hold.eq(self.hold),
-                self.limit.x.eq(self.sweep.y >> shift),
-                self.sweep.step.eq(self.r_step.storage)
         ]
 
 

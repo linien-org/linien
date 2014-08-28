@@ -75,8 +75,10 @@ class OutChain(Filter):
 #        self.submodules.iir_d = Iir(width=signal_width,
 #                coeff_width=coeff_width, order=2)
 
-        self.submodules.relock = Relock(width=width + 1, shift=17)
-        self.submodules.sweep = SweepCSR(width=width, shift=18)
+        self.submodules.relock = Relock(width=width + 1, step_width=24,
+                step_shift=18)
+        self.submodules.sweep = SweepCSR(width=width, step_width=24,
+                step_shift=18)
         self.submodules.mod = Modulate(width=width)
         self.asg = Signal((width, True))
         self.submodules.limit = LimitCSR(width=width, guard=3)

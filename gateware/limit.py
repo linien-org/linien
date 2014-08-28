@@ -33,7 +33,8 @@ class LimitCSR(Filter):
         Filter.__init__(self, **kwargs)
 
         width = flen(self.y)
-        self.x = Signal((width + guard, True))
+        if guard:
+            self.x = Signal((width + guard, True))
         self.r_min = CSRStorage(width, reset=1<<(width - 1))
         self.r_max = CSRStorage(width, reset=(1<<(width - 1)) - 1)
 
@@ -41,13 +42,13 @@ class LimitCSR(Filter):
 
         self.submodules.limit = Limit(width + guard)
 
-        self.comb += [
-                self.limit.x.eq(self.x)
-        ]
         min, max = self.r_min.storage, self.r_max.storage
         if guard:
             min = Cat(min, Replicate(min[-1], guard))
             max = Cat(max, Replicate(max[-1], guard))
+        self.comb += [
+                self.limit.x.eq(self.x)
+        ]
         self.sync += [
                 self.limit.min.eq(min),
                 self.limit.max.eq(max),
