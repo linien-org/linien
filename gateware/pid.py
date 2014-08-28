@@ -76,7 +76,7 @@ class OutChain(Filter):
 #                coeff_width=coeff_width, order=2)
 
         self.submodules.relock = Relock(width=width + 1, step_width=24,
-                step_shift=18)
+                step_shift=16)
         self.submodules.sweep = SweepCSR(width=width, step_width=24,
                 step_shift=18)
         self.submodules.mod = Modulate(width=width)

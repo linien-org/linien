@@ -16,6 +16,7 @@ class Relock(Filter):
 
         self.r_shift = CSRStatus(8, reset=step_shift)
         self.r_step = CSRStorage(step_width)
+        self.r_run = CSRStorage(1)
         self.r_min = CSRStorage(width, reset=1<<(width - 1))
         self.r_max = CSRStorage(width, reset=(1<<(width - 1)) - 1)
 
@@ -24,26 +25,26 @@ class Relock(Filter):
         self.submodules.sweep = Sweep(width + step_shift + 1)
         self.submodules.limit = Limit(width)
 
-        cnt = Signal(width + step_shift)
+        cnt = Signal(width + step_shift + 1)
         range = Signal(max=flen(cnt))
         self.sync += [
                 cnt.eq(cnt + 1),
                 If(~self.error, # stop sweep, drive to zero
                     cnt.eq(0),
                     range.eq(0)
-                ).Elif(self.clear | ~(self.sweep.y[-1] == self.sweep.y[-2]),
+                ).Elif(self.clear | (self.sweep.y[-1] != self.sweep.y[-2]),
                     # max range if we hit limit
                     cnt.eq(0),
                     range.eq(flen(cnt) - 1)
                 ).Elif(Array(cnt)[range], # 1<<range steps, turn, inc range
-                    If(range < flen(cnt) - 1,
-                        cnt.eq(0),
+                    cnt.eq(0),
+                    If(range != flen(cnt) - 1,
                         range.eq(range + 1)
                     )
                 ),
                 self.limit.min.eq(self.r_min.storage),
                 self.limit.max.eq(self.r_max.storage),
-                self.error.eq(self.limit.railed | self.hold),
+                self.error.eq(self.r_run.storage & (self.limit.railed | self.hold)),
                 If(self.sweep.y[-1] == self.sweep.y[-2],
                     self.y.eq(self.sweep.y >> step_shift)
                 )
@@ -56,7 +57,7 @@ class Relock(Filter):
                 self.limit.x.eq(self.x),
                 self.sweep.step.eq(self.r_step.storage),
                 self.sweep.run.eq(self.error),
-                self.sweep.turn.eq(cnt == 0),
+                self.sweep.turn.eq(cnt == 0)
         ]
 
 
