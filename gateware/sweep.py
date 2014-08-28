@@ -73,14 +73,14 @@ class SweepCSR(Filter):
         self.sync += [
                 self.limit.min.eq(self.r_min.storage),
                 self.limit.max.eq(self.r_max.storage),
+                self.sweep.run.eq(~self.clear & self.r_run.storage),
+                self.sweep.turn.eq(self.limit.railed),
                 self.y.eq(self.limit.y)
         ]
         self.comb += [
-                self.sweep.run.eq(~self.clear & self.r_run.storage),
-                self.sweep.turn.eq(self.limit.railed),
                 self.sweep.hold.eq(self.hold),
                 self.limit.x.eq(self.sweep.y >> shift),
-                self.sweep.step.eq(self.r_step.storage),
+                self.sweep.step.eq(self.r_step.storage)
         ]
 
 

@@ -42,8 +42,7 @@ class LimitCSR(Filter):
         self.submodules.limit = Limit(width + guard)
 
         self.comb += [
-                self.limit.x.eq(self.x),
-                self.error.eq(self.limit.railed)
+                self.limit.x.eq(self.x)
         ]
         min, max = self.r_min.storage, self.r_max.storage
         if guard:
@@ -53,4 +52,5 @@ class LimitCSR(Filter):
                 self.limit.min.eq(min),
                 self.limit.max.eq(max),
                 self.y.eq(self.limit.y),
+                self.error.eq(self.limit.railed)
         ]
