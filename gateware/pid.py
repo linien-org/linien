@@ -89,7 +89,7 @@ class OutChain(Filter):
         self.errors = Signal(2)
         # self.relock.hold, self.clear, self.hold <= digital mux
 
-        ya = Signal((width + 2, True))
+        ya = Signal((width + 3, True))
         ys = Array([self.x, self.iir_a.y, self.iir_b.y,
             self.iir_c.y, self.iir_d.y])
         s = signal_width - width
@@ -109,8 +109,8 @@ class OutChain(Filter):
                 self.iir_d.hold.eq(self.hold),
                 #self.sweep.hold.eq(self.hold), # pause sweep
                 #self.relock.hold.eq(self.hold), # digital trigger
-                self.limit.x.eq((self.y >> s) + ya + self.relock.y),
-                self.dac.eq(self.limit.y),
+                self.limit.x.eq((self.y >> s) + ya),
+                self.dac.eq(self.limit.y)
         ]
         self.sync += [
                 self.iir_a.x.eq(self.x),
@@ -118,7 +118,8 @@ class OutChain(Filter):
                 self.iir_c.x.eq(self.iir_b.y),
                 self.iir_d.x.eq(self.iir_c.y),
                 self.y.eq(ys[self.r_tap.storage]),
-                ya.eq(self.mod.y + self.asg + self.sweep.y),
+                ya.eq(optree("+", [self.mod.y, self.asg, self.sweep.y,
+                    self.relock.y]))
         ]
 
 

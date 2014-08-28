@@ -32,7 +32,7 @@ class Relock(Filter):
                     cnt.eq(0),
                     range.eq(0)
                 ).Elif(self.clear | ~(self.sweep.y[-1] == self.sweep.y[-2]),
-                    # max range if we hit ouput limit
+                    # max range if we hit limit
                     cnt.eq(0),
                     range.eq(flen(cnt) - 1)
                 ).Elif(Array(cnt)[range], # 1<<range steps, turn, inc range
