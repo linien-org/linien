@@ -111,17 +111,21 @@ if __name__ == "__main__":
         out_a_iir_a_b0=0,
         out_a_iir_a_b1=0,
         out_a_tap=1,
-        iomux_out_a_relock=0, # limit
+        iomux_out_a_relock=0, # just limit
         iomux_out_a_hold=1<<3, # relock
-        iomux_out_a_clear=1<<4, # limit
+        iomux_out_a_clear=0<<4, # limit
         iomux_out_a_relock_x=0, # in a
-        out_a_relock_step=500000,
-        out_a_relock_min=-16384,
-        out_a_relock_max=16383,
+        out_a_relock_step=100000,
+        out_a_relock_min=-4000,
+        out_a_relock_max=4000,
+        out_a_relock_run=1,
+        out_a_sweep_step=100000,
+        out_a_sweep_run=0,
+        out_a_sweep_min=-4000,
+        out_a_sweep_max=4000,
+        out_a_mod_amp=0,
         out_a_limit_min=-8192,
         out_a_limit_max=8191,
-        out_a_sweep_step=0,
-        out_a_mod_amp=0,
 
         in_b_tap=0,
         iomux_out_b_x=2,
@@ -138,8 +142,8 @@ if __name__ == "__main__":
     #b, a = make_filter("P", k=-.1)
     #p.set_iir("pid_out_a_iir_a", *make_filter("P", k=-.8, f=1))
     #p.set_iir("pid_out_a_iir_a", *make_filter("I", k=4e-5, f=1))
-    #p.set_iir("pid_out_a_iir_a", *make_filter("I", k=-.01, f=1))
-    p.set_iir("pid_out_a_iir_a", *make_filter("PI", f=.6, k=-.05))
+    p.set_iir("pid_out_a_iir_a", *make_filter("I", k=-.01*.1, f=1))
+    #p.set_iir("pid_out_a_iir_a", *make_filter("PI", f=.6, k=-.05))
     #p.set_iir("pid_out_a_iir_a", *make_filter("PI", f=.5, k=-.05))
 
     p.run()
