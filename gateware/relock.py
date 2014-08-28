@@ -26,10 +26,13 @@ class Relock(Filter):
         range = Signal(max=width + shift + 1)
         self.sync += [
                 cnt.eq(cnt + 1),
-                If(~self.error,
+                If(~self.error, # stop sweep, drive to zero
                     cnt.eq(0),
                     range.eq(0)
-                ).Elif(self.clear | Array(cnt)[range],
+                ).Elif(self.clear, # max range if we hit ouput limit
+                    cnt.eq(0),
+                    range.eq((1<<flen(range)) - 1)
+                ).Elif(Array(cnt)[range], # 1<<range steps, turn, inc range
                     cnt.eq(0),
                     If(range < width + shift,
                         range.eq(range + 1)
