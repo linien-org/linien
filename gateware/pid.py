@@ -6,7 +6,7 @@ from migen.bank.description import *
 
 from .filter import Filter
 from .iir import Iir
-from .limit import LimitCSR
+from .limit import LimitCSR, Limit
 from .sweep import SweepCSR
 from .relock import Relock
 from .modulate import Modulate, Demodulate
@@ -47,12 +47,11 @@ class InChain(Filter):
                 self.iir_b.hold.eq(self.hold),
                 self.iir_a.clear.eq(self.clear),
                 self.iir_b.clear.eq(self.clear),
-                self.errors.eq(Cat(self.limit.error))
+                self.errors.eq(Cat(self.limit.error)),
         ]
         ys = Array([self.x, self.limit.y << (signal_width - width),
             self.iir_a.y, self.iir_b.y, self.demod.y, self.demod.y])
         self.sync += [
-                self.error.eq(self.limit.error),
                 self.y.eq(ys[self.r_tap.storage])
         ]
 
@@ -74,8 +73,8 @@ class OutChain(Filter):
 #        self.submodules.iir_d = Iir(width=signal_width,
 #                coeff_width=coeff_width, order=2)
 
-        self.submodules.relock = Relock(width=width + 1, shift=18)
-        self.submodules.sweep = SweepCSR(width=width, shift=19)
+        self.submodules.relock = Relock(width=width + 1, shift=17)
+        self.submodules.sweep = SweepCSR(width=width, shift=18)
         self.submodules.mod = Modulate(width=width)
         self.asg = Signal((width, True))
         self.submodules.limit = LimitCSR(width=width, guard=3)
@@ -105,6 +104,9 @@ class OutChain(Filter):
                 self.iir_d.hold.eq(self.hold),
                 #self.sweep.hold.eq(self.hold), # pause sweep
                 #self.relock.hold.eq(self.hold), # digital trigger
+                self.limit.x.eq((self.y >> (signal_width - width))
+                    + ya + self.relock.y),
+                self.dac.eq(self.limit.y),
         ]
         self.sync += [
                 self.iir_a.x.eq(self.x),
@@ -112,43 +114,44 @@ class OutChain(Filter):
                 self.iir_c.x.eq(self.iir_b.y),
                 self.iir_d.x.eq(self.iir_c.y),
                 self.y.eq(ys[self.r_tap.storage]),
-                ya.eq((self.sweep.y + self.mod.y) + self.asg),
-                self.limit.x.eq((self.y >> (signal_width - width))
-                    + self.relock.y + ya),
-                self.dac.eq(self.limit.y),
+                ya.eq(self.mod.y + self.asg + self.sweep.y),
         ]
 
 
 class IOMux(Module, AutoCSR):
     def __init__(self, ins, outs):
+        csrs = []
         err = Cat([1] + [i.errors for i in ins] + [o.errors for o in outs])
+        y = Array([i.y for i in ins] + [o.y for o in outs])
         for l, i, o in zip("abcdef", ins, outs):
-            ri = CSRStorage(2*flen(err), name="mux_in_state")
-            setattr(self, "r_mux_in_state_%s" % l, ri)
-            ro = CSRStorage(2*flen(err), name="mux_out_state")
-            setattr(self, "r_mux_out_state_%s" % l, ro)
-            rr = CSRStorage(2*flen(err), name="mux_out_relock")
-            setattr(self, "r_mux_out_relock_%s" % l, rr)
+            ric = CSRStorage(flen(err), name="in_%s_clear" % l)
+            rih = CSRStorage(flen(err), name="in_%s_hold" % l)
+            roc = CSRStorage(flen(err), name="out_%s_clear" % l)
+            roh = CSRStorage(flen(err), name="out_%s_hold" % l)
+            rr = CSRStorage(flen(err), name="out_%s_relock" % l)
+            csrs += ric, rih, roc, roh, rr
             self.sync += [
-                    i.hold.eq(err & ri.storage[:flen(err)] != 0),
-                    i.clear.eq(err & ri.storage[flen(err):] != 0),
-                    o.hold.eq(err & ro.storage[:flen(err)] != 0),
-                    o.clear.eq(err & ro.storage[flen(err):] != 0),
-                    o.relock.hold.eq(err & rr.storage[:flen(err)] != 0),
-                    o.sweep.clear.eq(err & rr.storage[flen(err):] != 0)
+                    i.hold.eq(err & rih.storage != 0),
+                    i.clear.eq(err & ric.storage != 0),
+                    o.hold.eq(err & roh.storage != 0),
+                    o.clear.eq(err & roc.storage != 0),
+                    o.relock.hold.eq(err & rr.storage != 0)
             ]
         for i, o in zip(ins, outs):
             self.comb += i.demod.phase.eq(o.mod.phase)
-        y = Array([i.y for i in ins] + [o.y for o in outs])
         for i, o in zip("abcdef", outs):
-            m = CSRStorage(len(ins), reset=0, name="mux_%s" % i)
-            setattr(self, "r_mux_%s" % i, m)
-            self.comb += o.x.eq(optree("+", [Mux(m.storage[j], ini.y, 0)
-                for j, ini in enumerate(ins)]))
-            m = CSRStorage(log2_int(len(y), need_pow2=False),
-                    reset=0, name="mux_relock_%s" % i)
-            setattr(self, "r_mux_relock_%s" %i, m)
-            self.sync += o.relock.x.eq(y[m.storage] >> (signal_width - flen(o.dac)))
+            m = CSRStorage(len(ins), name="out_%s_x" % i)
+            f = CSRStorage(flen(o.x), name="out_%s_offset" % i)
+            fr = Signal.like(o.x)
+            self.comb += fr.eq(f.storage), o.x.eq(fr + optree("+", [
+                Mux(m.storage[j], ini.y, 0) for j, ini in enumerate(ins)
+                ])) # TODO: sat, const
+            r = CSRStorage(log2_int(len(y), need_pow2=False),
+                    name="out_%s_relock_x" % i)
+            self.sync += o.relock.x.eq(y[r.storage] >> (signal_width - flen(o.relock.x)))
+            csrs += m, f, r
+        for csr in csrs:
+            setattr(self, csr.name, csr)
 
 
 class Pid(Module, AutoCSR):
