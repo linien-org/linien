@@ -4,9 +4,8 @@ from migen.fhdl.std import *
 from migen.genlib.record import *
 from migen.bank.description import *
 
-from .filter import Filter
 from .iir import Iir
-from .limit import LimitCSR, Limit
+from .limit import LimitCSR
 from .sweep import SweepCSR
 from .relock import Relock
 from .modulate import Modulate, Demodulate
