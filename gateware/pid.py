@@ -65,7 +65,7 @@ class FastChain(Module, AutoCSR):
         self.submodules.sweep = SweepCSR(width=width, step_width=24,
                 step_shift=18)
         self.submodules.mod = Modulate(width=width)
-        self.submodules.y_limit = LimitCSR(width=signal_width, guard=3)
+        self.submodules.y_limit = LimitCSR(width=width, guard=3)
 
         ###
 
@@ -85,7 +85,7 @@ class FastChain(Module, AutoCSR):
                 ),
 
                 self.demod.x.eq(Mux(self.r_x_tap.storage[0],
-                    self.iir_a.y >> s, self.iir_b.y >> s)),
+                    self.iir_a.y, self.iir_b.y) >> s),
                 self.demod.phase.eq(self.mod.phase)
         ]
         xs = Array([self.iir_a.x, self.iir_a.y, self.iir_b.y,
@@ -121,18 +121,18 @@ class FastChain(Module, AutoCSR):
         self.sync += [
                 ya.eq(optree("+", [self.mod.y, dy, self.sweep.y,
                     self.relock.y])),
-                self.y_limit.x.eq(ys[self.r_y_tap.storage] + ya)
+                self.y_limit.x.eq((ys[self.r_y_tap.storage] + ya) >> s)
         ]
         self.comb += [
-                y.eq(self.y_limit.y),
+                y.eq(self.y_limit.y << s),
                 y_railed.eq(self.y_limit.error),
 
-                self.relock.x.eq(r),
+                self.relock.x.eq(r >> s),
                 self.relock.clear.eq(self.y_limit.error),
                 self.relock.hold.eq(y_relock),
                 y_unlocked.eq(self.relock.error),
 
-                self.dac.eq(self.y_limit.y >> s),
+                self.dac.eq(self.y_limit.y),
         ]
 
 
@@ -166,7 +166,7 @@ class SlowChain(Module, AutoCSR):
                 shift=2*coeff_width-3, mode="iterative")
         #self.submodules.sweep = SweepCSR(width=width, step_width=24,
         #        step_shift=18)
-        self.submodules.y_limit = LimitCSR(width=signal_width, guard=1)
+        self.submodules.y_limit = LimitCSR(width=width, guard=1)
 
         ###
 
@@ -178,10 +178,10 @@ class SlowChain(Module, AutoCSR):
                 self.iir.hold.eq(hold),
                 self.iir.clear.eq(clear),
                 sat.eq(self.iir.error),
-                self.y_limit.x.eq(self.iir.y + dy),
+                self.y_limit.x.eq((self.iir.y + dy) >> s),
                 railed.eq(self.y_limit.error),
-                y.eq(self.y_limit.y),
-                self.dac.eq(y >> s)
+                y.eq(self.y_limit.y << s),
+                self.dac.eq(y)
         ]
 
 
@@ -198,13 +198,13 @@ def cross_connect(gpio, chains):
         name = "do%i_en" % i
         csr = CSRStorage(flen(state), name=name)
         setattr(gpio, name, csr)
-        gpio.comb += s.eq((state & csr.storage) != 0)
+        gpio.sync += s.eq((state & csr.storage) != 0)
     for c in chains:
         for s in c.state_in:
             name = s.backtrace[-1][0] + "_en"
             csr = CSRStorage(flen(state), name=name)
             setattr(c, name, csr)
-            c.comb += s.eq((state & csr.storage) != 0)
+            c.sync += s.eq((state & csr.storage) != 0)
         for s in c.signal_in:
             name = s.backtrace[-1][0] + "_mux"
             csr = CSRStorage(len(signals), name=name)

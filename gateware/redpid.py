@@ -75,13 +75,13 @@ class Pid(Module):
                 self.fast_b.adc.eq(self.analog.adc_b),
                 self.analog.dac_a.eq(self.fast_a.dac),
                 self.analog.dac_b.eq(self.fast_b.dac),
-                self.slow_a.adc.eq(self.xadc.adc[10]),
+                self.slow_a.adc.eq(self.xadc.adc[10] << 4),
                 self.ds0.data.eq(self.slow_a.dac),
-                self.slow_b.adc.eq(self.xadc.adc[8]),
+                self.slow_b.adc.eq(self.xadc.adc[8] << 4),
                 self.ds1.data.eq(self.slow_b.dac),
-                self.slow_c.adc.eq(self.xadc.adc[9]),
+                self.slow_c.adc.eq(self.xadc.adc[9] << 4),
                 self.ds2.data.eq(self.slow_c.dac),
-                self.slow_d.adc.eq(self.xadc.adc[11]),
+                self.slow_d.adc.eq(self.xadc.adc[11] << 4),
                 self.ds3.data.eq(self.slow_d.dac),
         ]
 
