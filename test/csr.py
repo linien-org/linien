@@ -113,7 +113,7 @@ if __name__ == "__main__":
         out_a_tap=1,
         iomux_out_a_relock=0, # just limit
         iomux_out_a_hold=1<<3, # relock
-        iomux_out_a_clear=0<<4, # limit
+        iomux_out_a_clear=1<<4, # limit
         iomux_out_a_relock_x=0, # in a
         out_a_relock_step=100000,
         out_a_relock_min=-4000,
