@@ -119,11 +119,11 @@ class FastChain(Module, AutoCSR):
         ys = Array([self.iir_c.x, self.iir_c.y,
                     self.iir_d.y, self.iir_e.y])
         self.sync += [
-                ya.eq(optree("+", [self.mod.y, dy, self.sweep.y,
+                ya.eq(optree("+", [self.mod.y, dy >> s, self.sweep.y,
                     self.relock.y])),
-                self.y_limit.x.eq((ys[self.r_y_tap.storage] + ya) >> s)
         ]
         self.comb += [
+                self.y_limit.x.eq((ys[self.r_y_tap.storage] >> s) + ya),
                 y.eq(self.y_limit.y << s),
                 y_railed.eq(self.y_limit.error),
 

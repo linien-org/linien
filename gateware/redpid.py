@@ -52,7 +52,7 @@ class Pid(Module):
         csr_map["fast_a"] = 0
         self.submodules.fast_b = FastChain(w, s, c)
         csr_map["fast_b"] = 1
-        w, s, c = 16, 25, 18
+        w = 16
         self.submodules.slow_a = SlowChain(w, s, c)
         csr_map["slow_a"] = 2
         self.submodules.slow_b = SlowChain(w, s, c)
