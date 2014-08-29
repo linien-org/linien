@@ -109,7 +109,7 @@ if __name__ == "__main__":
         fast_a_iir_c_b0=0,
         fast_a_iir_c_b1=0,
         fast_a_y_tap=1,
-        #fast_a_r_mux=0, # in a
+        #fast_a_r_mux=1, # fast_a.x
         fast_a_y_relock_en=0, # just limit
         fast_a_y_hold_en=0, # relock
         fast_a_y_clear_en=0, # limit
