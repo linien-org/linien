@@ -113,17 +113,17 @@ if __name__ == "__main__":
         fast_a_y_relock_en=0, # just limit
         fast_a_y_hold_en=0, # relock
         fast_a_y_clear_en=0, # limit
-        fast_a_relock_step=100000,
-        fast_a_relock_min=-4000,
-        fast_a_relock_max=4000,
+        #fast_a_relock_step=100000,
+        #fast_a_relock_min=-4000,
+        #fast_a_relock_max=4000,
         fast_a_relock_run=0,
-        fast_a_sweep_step=100000,
+        #fast_a_sweep_step=100000,
         fast_a_sweep_run=0,
-        fast_a_sweep_min=-4000,
-        fast_a_sweep_max=4000,
+        #fast_a_sweep_min=-4000,
+        #fast_a_sweep_max=4000,
         fast_a_mod_amp=0,
-        fast_a_y_limit_min=-8192,
-        fast_a_y_limit_max=8191,
+        #fast_a_y_limit_min=-8192,
+        #fast_a_y_limit_max=8191,
     )
     for k, v in sorted(new.items()):
         p.set(k, int(v))
