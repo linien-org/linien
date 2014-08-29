@@ -154,7 +154,7 @@ class SlowChain(Module, AutoCSR):
 
         self.state_in = hold, clear
         self.state_out = sat, railed
-        self.signal_in = dx, dy
+        self.signal_in = dx,
         self.signal_out = x, y
 
         ###
