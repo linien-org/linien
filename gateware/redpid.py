@@ -109,8 +109,6 @@ class Pid(Module):
         leds = Cat(*(platform.request("user_led", i) for i in range(8)))
         self.comb += leds.eq(self.gpio_n.o)
 
-        self.asg = [Signal((14, True)) for i in range(2)]
-
         #self.submodules.dna = DNA()
 
         w, s, c = 14, 25, 18
@@ -141,8 +139,6 @@ class Pid(Module):
         self.comb += [
                 self.scopegen.trigger.eq(self.gpio_p.i[0]),
 
-                self.fast_a.dy.eq(self.asg[0] << (25 - 14)),
-                self.fast_b.dy.eq(self.asg[1] << (25 - 14)),
                 self.fast_a.adc.eq(self.analog.adc_a),
                 self.fast_b.adc.eq(self.analog.adc_b),
                 self.analog.dac_a.eq(self.fast_a.dac),
