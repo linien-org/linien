@@ -31,4 +31,4 @@ if __name__ == "__main__":
     redpid = RedPid(platform)
     platform.add_source_dir("verilog")
     platform.build_cmdline(redpid, build_name="redpid")
-    py_csrmap(get_csrmap(redpid.csrbanks.banks))
+    py_csrmap(get_csrmap(redpid.pid.csrbanks.banks))
