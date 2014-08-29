@@ -40,9 +40,8 @@ class FastChain(Module, AutoCSR):
         dy = Signal((signal_width, True))
         rx = Signal((signal_width, True))
 
-        self.signal_in = dx, rx
+        self.signal_in = dx, dy, rx
         self.signal_out = x, y
-        self.dy = dy
 
         ###
 
@@ -155,7 +154,7 @@ class SlowChain(Module, AutoCSR):
 
         self.state_in = hold, clear
         self.state_out = sat, railed
-        self.signal_in = dx,
+        self.signal_in = dx, dy
         self.signal_out = x, y
 
         ###
