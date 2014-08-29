@@ -135,8 +135,8 @@ if __name__ == "__main__":
     n = "fast_a_iir_c"
     #p.set_iir(n, *make_filter("P", k=-.8, f=1))
     #p.set_iir(n, *make_filter("I", k=4e-5, f=1))
-    p.set_iir(n, *make_filter("I", k=-.01*.1, f=1))
-    #p.set_iir(n, *make_filter("PI", f=.6, k=-.05))
+    #p.set_iir(n, *make_filter("I", k=-.01*.1, f=1))
+    p.set_iir(n, *make_filter("PI", f=.6, k=-.05))
     #p.set_iir(n, *make_filter("PI", f=.5, k=-.05))
 
     p.run()
