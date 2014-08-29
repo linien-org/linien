@@ -8,10 +8,13 @@ class PitayaAnalog(Module):
         # sign = 1<<(flen(dac.data) - 1)
         size = flen(dac.data), True
 
-        self.adc_a, self.adc_b = Signal(size), Signal(size)
-        self.dac_a, self.dac_b = Signal(size), Signal(size)
+        self.adc_a = Signal(size)
+        self.adc_b = Signal(size)
+        self.dac_a = Signal(size)
+        self.dac_b = Signal(size)
 
-        adca, adcb = Signal.like(adc.data_a), Signal.like(adc.data_b)
+        adca = Signal.like(adc.data_b)
+        adcb = Signal.like(adc.data_a)
         self.sync += adca.eq(adc.data_a), adcb.eq(adc.data_b)
         #self.sync += self.adc_a.eq(-(sign ^ adca[2:])), self.adc_b.eq(-(sign ^ adcb[2:]))
         self.comb += [ # this is off by one LSB but otherwise min and max fail
@@ -19,7 +22,8 @@ class PitayaAnalog(Module):
                 self.adc_b.eq(Cat(~adcb[2:-1], adcb[-1]))
         ]
 
-        daca, dacb = Signal.like(dac.data), Signal.like(dac.data)
+        daca = Signal.like(dac.data)
+        dacb = Signal.like(dac.data)
         #dacai, dacbi = Signal.like(dac.data), Signal.like(dac.data)
         #self.comb += dacai.eq(-self.dac_a), dacbi.eq(-self.dac_b)
         #self.sync += daca.eq(dacai ^ sign), dacb.eq(dacbi ^ sign)
@@ -40,5 +44,3 @@ class PitayaAnalog(Module):
                     o_Q=d, i_CE=1, i_R=0, i_S=0)
                     for a, b, d in zip(daca, dacb, dac.data)]
         ]
-
-
