@@ -9,7 +9,6 @@ from transfer import ResetTransfer, CsrTransfer
 from iir_coeffs import make_filter
 
 from gateware.iir import Iir
-from gateware.iir_ import IIR
 
 
 def _iir2():
@@ -29,17 +28,6 @@ def _iir2():
     plt.plot(x)
     plt.plot(y)
     plt.show()
-
-
-def _iir():
-	kwargs = dict(width=18, form="tdf2", saturate=True)
-	b, a = scipy.signal.iirdesign(.1, .2, 3., 23)
-	b *= 100
-	tb = ResetTransfer(b, a, IIR(**kwargs), amplitude=.01, samples=1<<12)
-	print(verilog.convert(tb.tb, ios={tb.tb.dut.x, tb.tb.dut.y}))
-	print(tb.b, tb.a)
-	ResetTransfer(b, a, IIR(**kwargs), amplitude=.01, samples=1<<12).analyze()
-	plt.show()
 
 
 def _pid():
@@ -62,5 +50,4 @@ def _pid():
 
 if __name__ == "__main__":
     #_iir2()
-    #_iir()
     _pid()
