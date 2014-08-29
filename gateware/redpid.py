@@ -4,6 +4,7 @@ from migen.fhdl.std import *
 from migen.genlib.record import *
 from migen.bus import csr
 from migen.bank import csrgen
+from migen.bank.description import AutoCSR
 
 # https://github.com/RedPitaya/RedPitaya/blob/master/FPGA/release1/fpga/code/rtl/red_pitaya_daisy.v
 
@@ -18,6 +19,71 @@ from .dna import DNA
 
 
 #     tcl.append("read_xdc -ref processing_system7_v5_4_processing_system7 ../verilog/ system_processing_system7_0_0.xdc")
+
+
+class ScopeGen(Module, AutoCSR):
+    def __init__(self, width=25):
+        self.trigger = Signal()
+        self.scope_sys = Record(sys_layout)
+        self.asg_sys = Record(sys_layout)
+
+        adc_a = Signal((width, True))
+        adc_b = Signal((width, True))
+        dac_a = Signal((width, True))
+        dac_b = Signal((width, True))
+
+        self.signal_in = adc_a, adc_b
+        self.signal_out = dac_a, dac_b
+        self.state_in = ()
+        self.state_out = ()
+
+        asg_a = Signal((14, True))
+        asg_b = Signal((14, True))
+        asg_trig = Signal()
+
+        s = width - flen(asg_a)
+        self.comb += dac_a.eq(asg_a << s), dac_b.eq(asg_b << s)
+
+        self.specials.scope = Instance("red_pitaya_scope",
+                i_adc_a_i=adc_a >> s,
+                i_adc_b_i=adc_b >> s,
+                i_adc_clk_i=ClockSignal(),
+                i_adc_rstn_i=~ResetSignal(),
+                i_trig_ext_i=self.trigger,
+                i_trig_asg_i=asg_trig,
+
+                i_sys_clk_i=self.scope_sys.clk,
+                i_sys_rstn_i=self.scope_sys.rstn,
+                i_sys_addr_i=self.scope_sys.addr,
+                i_sys_wdata_i=self.scope_sys.wdata,
+                i_sys_sel_i=self.scope_sys.sel,
+                i_sys_wen_i=self.scope_sys.wen,
+                i_sys_ren_i=self.scope_sys.ren,
+                o_sys_rdata_o=self.scope_sys.rdata,
+                o_sys_err_o=self.scope_sys.err,
+                o_sys_ack_o=self.scope_sys.ack,
+        )
+
+        self.specials.asg = Instance("red_pitaya_asg",
+                o_dac_a_o=asg_a,
+                o_dac_b_o=asg_b,
+                i_dac_clk_i=ClockSignal(),
+                i_dac_rstn_i=~ResetSignal(),
+                i_trig_a_i=self.trigger,
+                i_trig_b_i=self.trigger,
+                o_trig_out_o=asg_trig,
+
+                i_sys_clk_i=self.asg_sys.clk,
+                i_sys_rstn_i=self.asg_sys.rstn,
+                i_sys_addr_i=self.asg_sys.addr,
+                i_sys_wdata_i=self.asg_sys.wdata,
+                i_sys_sel_i=self.asg_sys.sel,
+                i_sys_wen_i=self.asg_sys.wen,
+                i_sys_ren_i=self.asg_sys.ren,
+                o_sys_rdata_o=self.asg_sys.rdata,
+                o_sys_err_o=self.asg_sys.err,
+                o_sys_ack_o=self.asg_sys.ack,
+        )
 
 
 class Pid(Module):
@@ -41,7 +107,7 @@ class Pid(Module):
         csr_map["gpio_p"] = 31
 
         leds = Cat(*(platform.request("user_led", i) for i in range(8)))
-        self.comb += leds.eq(self.gpio_p.o)
+        self.comb += leds.eq(self.gpio_n.o)
 
         self.asg = [Signal((14, True)) for i in range(2)]
 
@@ -62,13 +128,19 @@ class Pid(Module):
         self.submodules.slow_d = SlowChain(w, s, c)
         csr_map["slow_d"] = 5
 
-        cross_connect(self.gpio_p, [
+        self.submodules.scopegen = ScopeGen(s)
+        csr_map["scopegen"] = 6
+
+        cross_connect(self.gpio_n, [
             self.fast_a, self.fast_b,
             self.slow_a, self.slow_b,
             self.slow_c, self.slow_d,
+            self.scopegen
         ])
 
         self.comb += [
+                self.scopegen.trigger.eq(self.gpio_p.i[0]),
+
                 self.fast_a.dy.eq(self.asg[0] << (25 - 14)),
                 self.fast_b.dy.eq(self.asg[1] << (25 - 14)),
                 self.fast_a.adc.eq(self.analog.adc_a),
@@ -101,51 +173,8 @@ class RedPid(Module):
         self.submodules.crg = CRG(platform.request("clk125"), ~self.ps.frstn[0])
         self.submodules.pid = Pid(platform)
 
-        asg_trig = Signal()
-        scope_sys = Record(sys_layout)
-        self.specials.scope = Instance("red_pitaya_scope",
-                i_adc_a_i=self.pid.analog.adc_a,
-                i_adc_b_i=self.pid.analog.adc_b,
-                i_adc_clk_i=ClockSignal(),
-                i_adc_rstn_i=~ResetSignal(),
-                i_trig_ext_i=self.pid.gpio_p.i[0],
-                i_trig_asg_i=asg_trig,
-
-                i_sys_clk_i=scope_sys.clk,
-                i_sys_rstn_i=scope_sys.rstn,
-                i_sys_addr_i=scope_sys.addr,
-                i_sys_wdata_i=scope_sys.wdata,
-                i_sys_sel_i=scope_sys.sel,
-                i_sys_wen_i=scope_sys.wen,
-                i_sys_ren_i=scope_sys.ren,
-                o_sys_rdata_o=scope_sys.rdata,
-                o_sys_err_o=scope_sys.err,
-                o_sys_ack_o=scope_sys.ack,
-        )
-
-
-        asg_sys = Record(sys_layout)
-        self.specials.asg = Instance("red_pitaya_asg",
-                o_dac_a_o=self.pid.asg[0],
-                o_dac_b_o=self.pid.asg[1],
-                i_dac_clk_i=ClockSignal(),
-                i_dac_rstn_i=~ResetSignal(),
-                i_trig_a_i=self.pid.gpio_p.i[0],
-                i_trig_b_i=self.pid.gpio_p.i[0],
-                o_trig_out_o=asg_trig,
-
-                i_sys_clk_i=asg_sys.clk,
-                i_sys_rstn_i=asg_sys.rstn,
-                i_sys_addr_i=asg_sys.addr,
-                i_sys_wdata_i=asg_sys.wdata,
-                i_sys_sel_i=asg_sys.sel,
-                i_sys_wen_i=asg_sys.wen,
-                i_sys_ren_i=asg_sys.ren,
-                o_sys_rdata_o=asg_sys.rdata,
-                o_sys_err_o=asg_sys.err,
-                o_sys_ack_o=asg_sys.ack,
-        )
-
-        hk_sys = Record(sys_layout)
+        hk_sys = Record(sys_layout) # dummy housekeeping
         self.submodules.ic = SysInterconnect(self.ps.axi.sys,
-                hk_sys, scope_sys, asg_sys, self.pid.syscdc.source)
+                hk_sys, self.pid.scopegen.scope_sys,
+                self.pid.scopegen.asg_sys,
+                self.pid.syscdc.source)
