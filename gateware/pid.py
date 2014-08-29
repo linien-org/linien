@@ -38,9 +38,9 @@ class FastChain(Module, AutoCSR):
         dx = Signal((signal_width, True))
         y = Signal((signal_width, True))
         dy = Signal((signal_width, True))
-        r = Signal((signal_width, True))
+        rx = Signal((signal_width, True))
 
-        self.signal_in = dx, r
+        self.signal_in = dx, rx
         self.signal_out = x, y
         self.dy = dy
 
@@ -127,7 +127,7 @@ class FastChain(Module, AutoCSR):
                 y.eq(self.y_limit.y << s),
                 y_railed.eq(self.y_limit.error),
 
-                self.relock.x.eq(r >> s),
+                self.relock.x.eq(rx >> s),
                 self.relock.clear.eq(self.y_limit.error),
                 self.relock.hold.eq(y_relock),
                 y_unlocked.eq(self.relock.error),

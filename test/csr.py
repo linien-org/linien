@@ -103,27 +103,39 @@ if __name__ == "__main__":
     new = dict(
         fast_a_iir_a_b0=0,
         fast_a_x_tap=0,
-        fast_a_dx_mux=0,
-        fast_a_iir_c_z0=0,
+        fast_a_x_zero=0,
+        fast_a_dx_mux=0, # fast_b_y
+        fast_a_iir_c_z0=1,
         fast_a_iir_c_a1=0,
         fast_a_iir_c_b0=0,
         fast_a_iir_c_b1=0,
-        fast_a_y_tap=1,
-        #fast_a_r_mux=1, # fast_a.x
+        fast_a_iir_d_z0=0,
+        fast_a_iir_d_b0=0,
+        fast_a_iir_d_b1=0,
+        fast_a_iir_d_a1=0,
+        fast_a_iir_d_a2=0,
+        fast_a_iir_e_z0=0,
+        fast_a_iir_e_b0=0,
+        fast_a_iir_e_b1=0,
+        fast_a_iir_e_b2=0,
+        fast_a_iir_e_a1=0,
+        fast_a_iir_e_a2=0,
+        fast_a_y_tap=3,
+        fast_a_rx_mux=0, # fast_a.x
         fast_a_y_relock_en=0, # just limit
-        fast_a_y_hold_en=0, # relock
-        fast_a_y_clear_en=0, # limit
-        #fast_a_relock_step=100000,
-        #fast_a_relock_min=-4000,
-        #fast_a_relock_max=4000,
+        fast_a_y_hold_en=0, #1<<13, # relock
+        fast_a_y_clear_en=1<<12, # limit
+        fast_a_relock_step=100000,
+        fast_a_relock_min=-4000,
+        fast_a_relock_max=4000,
         fast_a_relock_run=0,
-        #fast_a_sweep_step=100000,
+        fast_a_sweep_step=100000,
         fast_a_sweep_run=0,
         #fast_a_sweep_min=-4000,
         #fast_a_sweep_max=4000,
         fast_a_mod_amp=0,
-        #fast_a_y_limit_min=-8192,
-        #fast_a_y_limit_max=8191,
+        fast_a_y_limit_min=-7192,
+        fast_a_y_limit_max=7191,
     )
     for k, v in sorted(new.items()):
         p.set(k, int(v))
@@ -135,8 +147,11 @@ if __name__ == "__main__":
     n = "fast_a_iir_c"
     #p.set_iir(n, *make_filter("P", k=-.8, f=1))
     #p.set_iir(n, *make_filter("I", k=4e-5, f=1))
-    #p.set_iir(n, *make_filter("I", k=-.01*.1, f=1))
-    p.set_iir(n, *make_filter("PI", f=.6, k=-.05))
+    p.set_iir("fast_a_iir_c", *make_filter("P", k=1, f=1))
+    p.set_iir("fast_a_iir_d", *make_filter("P", k=1, f=1))
+    #p.set_iir("fast_a_iir_e", *make_filter("PI", k=-.01*.1, f=.01))
+    p.set_iir("fast_a_iir_e", *make_filter("I", k=1e-6, f=1))
+    #p.set_iir(n, *make_filter("PI", f=.6, k=-.05))
     #p.set_iir(n, *make_filter("PI", f=.5, k=-.05))
 
     p.run()
