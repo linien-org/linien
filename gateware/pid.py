@@ -89,14 +89,12 @@ class FastChain(Module, AutoCSR):
         ]
         xs = Array([self.iir_a.x, self.iir_a.y, self.iir_b.y,
                     self.demod.y << s, self.demod.y << s])
-        self.sync += [
-                x.eq(xs[self.r_x_tap.storage]),
-                x_railed.eq(self.x_limit.error),
-                self.iir_c.x.eq(self.x_limit.y)
-        ]
+        self.sync += x.eq(xs[self.r_x_tap.storage])
         self.comb += [
                 self.x_limit.x.eq(Mux(self.r_x_zero.storage, 0, x) + dx),
+                x_railed.eq(self.x_limit.error),
 
+                self.iir_c.x.eq(self.x_limit.y),
                 self.iir_c.hold.eq(y_hold),
                 self.iir_c.clear.eq(y_clear),
 
@@ -117,10 +115,8 @@ class FastChain(Module, AutoCSR):
         ya = Signal((width + 3, True))
         ys = Array([self.iir_c.x, self.iir_c.y,
                     self.iir_d.y, self.iir_e.y])
-        self.sync += [
-                ya.eq(optree("+", [self.mod.y, dy >> s, self.sweep.y,
+        self.sync += ya.eq(optree("+", [self.mod.y, dy >> s, self.sweep.y,
                     self.relock.y])),
-        ]
         self.comb += [
                 self.y_limit.x.eq((ys[self.r_y_tap.storage] >> s) + ya),
                 y.eq(self.y_limit.y << s),
