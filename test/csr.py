@@ -87,64 +87,57 @@ if __name__ == "__main__":
     #p = PitayaTB()
     #assert p.get("pid_version") == 1
     da = 0x2345
-    p.set("slow_deltasigma_data0", da)
-    p.set("slow_led", 0)
     #assert p.get("deltasigma_data0") == da
     #print(hex(p.get("slow_dna_dna")))
     #assert p.get("slow_dna_dna") & 0x7f == 0b1000001
-    print("temp", p.get("slow_xadc_temp")*503.975/0xfff-273.15)
+    print("temp", p.get("xadc_temp")*503.975/0xfff-273.15)
     for u, ns in [(3./0xfff, "pint paux bram int aux ddr"),
             (1./0xfff*(30 + 4.99)/4.99, "a b c d"),
             (1./0xfff*(56 + 4.99)/4.99, "v")]:
         for n in ns.split():
-            v = p.get("slow_xadc_{}".format(n))
+            v = p.get("xadc_{}".format(n))
             if v & 0x800 and n in "abcd":
                 v = 0 #v - 0x1000
             print(n, u*v)
 
     new = dict(
-        in_a_iir_a_b0=0,
-        in_a_tap=0,
-        iomux_out_a_x=1,
-        out_a_iir_a_z0=0,
-        out_a_iir_a_a1=0,
-        out_a_iir_a_b0=0,
-        out_a_iir_a_b1=0,
-        out_a_tap=1,
-        iomux_out_a_relock=0, # just limit
-        iomux_out_a_hold=1<<3, # relock
-        iomux_out_a_clear=1<<4, # limit
-        iomux_out_a_relock_x=0, # in a
-        out_a_relock_step=100000,
-        out_a_relock_min=-4000,
-        out_a_relock_max=4000,
-        out_a_relock_run=1,
-        out_a_sweep_step=100000,
-        out_a_sweep_run=0,
-        out_a_sweep_min=-4000,
-        out_a_sweep_max=4000,
-        out_a_mod_amp=0,
-        out_a_limit_min=-8192,
-        out_a_limit_max=8191,
-
-        in_b_tap=0,
-        iomux_out_b_x=2,
-        out_b_tap=1,
-        out_b_relock_step=0,
-        out_b_sweep_step=0,
+        fast_a_iir_a_b0=0,
+        fast_a_x_tap=0,
+        fast_a_dx_mux=0,
+        fast_a_iir_c_z0=0,
+        fast_a_iir_c_a1=0,
+        fast_a_iir_c_b0=0,
+        fast_a_iir_c_b1=0,
+        fast_a_y_tap=1,
+        #fast_a_r_mux=0, # in a
+        fast_a_y_relock_en=0, # just limit
+        fast_a_y_hold_en=0, # relock
+        fast_a_y_clear_en=0, # limit
+        fast_a_relock_step=100000,
+        fast_a_relock_min=-4000,
+        fast_a_relock_max=4000,
+        fast_a_relock_run=0,
+        fast_a_sweep_step=100000,
+        fast_a_sweep_run=0,
+        fast_a_sweep_min=-4000,
+        fast_a_sweep_max=4000,
+        fast_a_mod_amp=0,
+        fast_a_y_limit_min=-8192,
+        fast_a_y_limit_max=8191,
     )
-    for k, v in new.items():
-        p.set("pid_" + k, int(v))
+    for k, v in sorted(new.items()):
+        p.set(k, int(v))
     
     # 182ns latency, 23 cycles (6 adc, 1 in, 1 comp, 1 in_a_y, 1 iir_x,
     # 1 iir_b0, 1 iir_y, 1 out_a_y, 1 out_a_lim_x, 1 out_dac, 1 comp, 1 oddr, 1
     # dac) = 18 + analog filter
     #b, a = make_filter("P", k=-.1)
-    #p.set_iir("pid_out_a_iir_a", *make_filter("P", k=-.8, f=1))
-    #p.set_iir("pid_out_a_iir_a", *make_filter("I", k=4e-5, f=1))
-    p.set_iir("pid_out_a_iir_a", *make_filter("I", k=-.01*.1, f=1))
-    #p.set_iir("pid_out_a_iir_a", *make_filter("PI", f=.6, k=-.05))
-    #p.set_iir("pid_out_a_iir_a", *make_filter("PI", f=.5, k=-.05))
+    n = "fast_a_iir_c"
+    #p.set_iir(n, *make_filter("P", k=-.8, f=1))
+    #p.set_iir(n, *make_filter("I", k=4e-5, f=1))
+    p.set_iir(n, *make_filter("I", k=-.01*.1, f=1))
+    #p.set_iir(n, *make_filter("PI", f=.6, k=-.05))
+    #p.set_iir(n, *make_filter("PI", f=.5, k=-.05))
 
     p.run()
 
