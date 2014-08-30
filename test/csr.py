@@ -173,7 +173,7 @@ if __name__ == "__main__":
     #p.set_iir("fast_a_iir_e", *make_filter("I", f=3e-7, k=-1), z=0)
     #p.set_iir(n, *make_filter("PI", f=.2, k=-.2))
     #p.set_iir(n, *make_filter("PI", f=2e-1, k=1e-4))
-    #p.set_iir(n, *make_filter("PI", f=6e-1, k=-.05))
+    p.set_iir(n, *make_filter("PI", f=2e-1, k=-1e-4))
     #p.set_iir(n, *make_filter("LP", f=1e-4, k=1.))
     #p.set_iir(n, *make_filter("I", k=4e-5, f=1))
 
