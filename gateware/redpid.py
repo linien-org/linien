@@ -1,10 +1,10 @@
 # Robert Jordens <jordens@gmail.com> 2014
 
 from migen.fhdl.std import *
-from migen.genlib.record import *
+from migen.genlib.record import Record
 from migen.bus import csr
 from migen.bank import csrgen
-from migen.bank.description import AutoCSR
+from migen.bank.description import AutoCSR, CSRStatus
 
 # https://github.com/RedPitaya/RedPitaya/blob/master/FPGA/release1/fpga/code/rtl/red_pitaya_daisy.v
 
@@ -160,14 +160,32 @@ class Pid(Module):
         self.comb += self.syscdc.target.connect(self.sys2csr.sys)
 
 
+class DummyID(Module, AutoCSR):
+    def __init__(self):
+        self.r_id = CSRStatus(1, reset=1)
+
+
+class DummyHK(Module, AutoCSR):
+    def __init__(self):
+        self.submodules.id = DummyID()
+        self.submodules.csrbanks = csrgen.BankArray(self,
+                    lambda name, mem: 0)
+        self.submodules.sys2csr = Sys2CSR()
+        self.submodules.csrcon = csr.Interconnect(self.sys2csr.csr,
+                self.csrbanks.get_buses())
+        self.sys = self.sys2csr.sys
+
+
 class RedPid(Module):
     def __init__(self, platform):
         self.submodules.ps = PitayaPS(platform.request("cpu"))
-        self.submodules.crg = CRG(platform.request("clk125"), ~self.ps.frstn[0])
+        self.submodules.crg = CRG(platform.request("clk125"),
+                self.ps.fclk[0], ~self.ps.frstn[0])
         self.submodules.pid = Pid(platform)
 
-        hk_sys = Record(sys_layout) # dummy housekeeping
+        self.submodules.hk = RenameClockDomains(DummyHK(), "sys_ps")
+
         self.submodules.ic = SysInterconnect(self.ps.axi.sys,
-                hk_sys, self.pid.scopegen.scope_sys,
+                self.hk.sys, self.pid.scopegen.scope_sys,
                 self.pid.scopegen.asg_sys,
                 self.pid.syscdc.source)

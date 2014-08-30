@@ -2,11 +2,16 @@ from migen.fhdl.std import *
 
 
 class CRG(Module):
-    def __init__(self, clk_adc, rst):
+    def __init__(self, clk_adc, clk_ps, rst):
         self.clock_domains.cd_sys_quad = ClockDomain(reset_less=True)
         self.clock_domains.cd_sys_double = ClockDomain(reset_less=True)
         self.clock_domains.cd_sys = ClockDomain()
         self.clock_domains.cd_sys_half = ClockDomain(reset_less=True)
+        self.clock_domains.cd_sys_ps = ClockDomain()
+        self.comb += [
+                self.cd_sys_ps.clk.eq(clk_ps),
+                self.cd_sys_ps.rst.eq(rst)
+        ]
 
         clk_adci = Signal()
         clk_adcb = Signal()
