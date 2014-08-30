@@ -6,7 +6,7 @@ from .filter import Filter
 
 
 class Demodulate(Filter):
-    def __init__(self, freq_width=32, **kwargs):
+    def __init__(self, **kwargs):
         Filter.__init__(self, **kwargs)
 
         width = flen(self.y)
@@ -30,7 +30,7 @@ class Modulate(Filter):
         width = flen(self.y)
         self.r_freq = CSRStorage(freq_width)
         self.r_amp = CSRStorage(width)
-        self.phase = Signal(freq_width)
+        self.phase = Signal(width)
 
         z = Signal(freq_width)
         self.sync += z.eq(z + self.r_freq.storage)
@@ -39,7 +39,7 @@ class Modulate(Filter):
                 eval_mode="pipelined", cordic_mode="rotate",
                 func_mode="circular")
         self.comb += [
-                self.phase.eq(z[freq_width-width:]),
+                self.phase.eq(z[-width:]),
                 self.cordic.xi.eq(self.r_amp.storage + self.x),
                 self.cordic.zi.eq(self.phase),
                 self.y.eq(self.cordic.xo),
