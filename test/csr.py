@@ -117,37 +117,40 @@ if __name__ == "__main__":
     new = dict(
         fast_a_x_tap=0,
         fast_a_x_zero=0,
-        #fast_a_dx_sel=p.signal("zero"),
-        fast_a_dx_sel=p.signal("noise_y"),
+        fast_a_dx_sel=p.signal("zero"),
         fast_a_y_tap=1,
         fast_a_rx_sel=p.signal("fast_a_x"),
-        fast_a_y_relock_en=0, # just limit
-        fast_a_y_hold_en=p.states("fast_a_y_unlocked"),
-        fast_a_y_clear_en=p.states("fast_a_y_railed"),
-        fast_a_relock_step=100000,
+        fast_a_y_hold_en=p.states("fast_a_unlocked"),
+        fast_a_y_clear_en=p.states(), #"fast_a_y_railed"),
+        fast_a_relock_run=1,
+        fast_a_relock_en=p.states(),
+        fast_a_relock_step=200000,
         fast_a_relock_min=-4000,
         fast_a_relock_max=4000,
-        fast_a_relock_run=0,
-        fast_a_sweep_step=100000,
         fast_a_sweep_run=0,
-        #fast_a_sweep_min=-4000,
-        #fast_a_sweep_max=4000,
+        fast_a_sweep_step=100000,
+        fast_a_sweep_min=-4000,
+        fast_a_sweep_max=4000,
         fast_a_mod_amp=0,
         fast_a_mod_freq=10000,
         fast_a_dy_sel=p.signal("scopegen_dac_a"),
-        noise_bits=25,
+        noise_bits=23,
         fast_a_y_limit_min=-8192,
         fast_a_y_limit_max=8191,
 
         scopegen_adc_a_sel=p.signal("fast_a_x"),
         scopegen_adc_b_sel=p.signal("fast_a_y"),
 
+        gpio_p_oe=0,
         gpio_n_oe=0xff,
         gpio_n_do0_en=p.states("fast_a_x_sat"),
-        gpio_n_do1_en=p.states("fast_a_x_railed"),
-        gpio_n_do2_en=p.states("fast_a_y_sat"),
-        gpio_n_do3_en=p.states("fast_a_y_railed"),
-        gpio_n_do4_en=p.states("fast_a_y_unlocked"),
+        gpio_n_do1_en=p.states("fast_a_y_sat"),
+        gpio_n_do2_en=p.states("fast_a_y_railed"),
+        gpio_n_do3_en=p.states("fast_a_unlocked"),
+        gpio_n_do4_en=p.states("fast_b_x_sat"),
+        gpio_n_do5_en=p.states("fast_b_y_sat"),
+        gpio_n_do6_en=p.states("fast_b_y_railed"),
+        gpio_n_do7_en=p.states("fast_b_unlocked"),
     )
     for k, v in sorted(new.items()):
         p.set(k, int(v))
@@ -165,7 +168,7 @@ if __name__ == "__main__":
     #p.set_iir("fast_a_iir_e", *make_filter("PI", k=-.01*.1, f=.01))
     p.set_iir("fast_a_iir_e", *make_filter("I", k=1e-6, f=1))
     #p.set_iir(n, *make_filter("PI", f=.2, k=-.2))
-    p.set_iir(n, *make_filter("I", k=-5e-5, f=1))
+    p.set_iir(n, *make_filter("I", k=-1e-3, f=1))
 
     p.run()
 

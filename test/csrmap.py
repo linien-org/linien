@@ -59,7 +59,7 @@ csr = {
     'fast_a_x_clear_en': (0x403002b0, 27, True),
     'fast_a_y_hold_en': (0x403002c0, 27, True),
     'fast_a_y_clear_en': (0x403002d0, 27, True),
-    'fast_a_y_relock_en': (0x403002e0, 27, True),
+    'fast_a_relock_en': (0x403002e0, 27, True),
     'fast_a_dx_sel': (0x403002f0, 5, True),
     'fast_a_dy_sel': (0x403002f4, 5, True),
     'fast_a_rx_sel': (0x403002f8, 5, True),
@@ -123,7 +123,7 @@ csr = {
     'fast_b_x_clear_en': (0x40300ab0, 27, True),
     'fast_b_y_hold_en': (0x40300ac0, 27, True),
     'fast_b_y_clear_en': (0x40300ad0, 27, True),
-    'fast_b_y_relock_en': (0x40300ae0, 27, True),
+    'fast_b_relock_en': (0x40300ae0, 27, True),
     'fast_b_dx_sel': (0x40300af0, 5, True),
     'fast_b_dy_sel': (0x40300af4, 5, True),
     'fast_b_rx_sel': (0x40300af8, 5, True),
@@ -221,5 +221,5 @@ csr = {
     'xadc_c': (0x4030e850, 12, False),
     'xadc_d': (0x4030e858, 12, False),
 }
-states = ['force', 'di0', 'di1', 'di2', 'di3', 'di4', 'di5', 'di6', 'di7', 'fast_a_x_sat', 'fast_a_x_railed', 'fast_a_y_sat', 'fast_a_y_railed', 'fast_a_y_unlocked', 'fast_b_x_sat', 'fast_b_x_railed', 'fast_b_y_sat', 'fast_b_y_railed', 'fast_b_y_unlocked', 'slow_a_sat', 'slow_a_railed', 'slow_b_sat', 'slow_b_railed', 'slow_c_sat', 'slow_c_railed', 'slow_d_sat', 'slow_d_railed']
+states = ['force', 'di0', 'di1', 'di2', 'di3', 'di4', 'di5', 'di6', 'di7', 'fast_a_x_sat', 'fast_a_x_railed', 'fast_a_y_sat', 'fast_a_y_railed', 'fast_a_unlocked', 'fast_b_x_sat', 'fast_b_x_railed', 'fast_b_y_sat', 'fast_b_y_railed', 'fast_b_unlocked', 'slow_a_sat', 'slow_a_railed', 'slow_b_sat', 'slow_b_railed', 'slow_c_sat', 'slow_c_railed', 'slow_d_sat', 'slow_d_railed']
 signals = ['zero', 'fast_a_x', 'fast_a_y', 'fast_b_x', 'fast_b_y', 'slow_a_x', 'slow_a_y', 'slow_b_x', 'slow_b_y', 'slow_c_x', 'slow_c_y', 'slow_d_x', 'slow_d_y', 'scopegen_dac_a', 'scopegen_dac_b', 'noise_y']

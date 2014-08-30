@@ -29,11 +29,11 @@ class FastChain(Module, AutoCSR):
         y_clear = Signal()
         y_sat = Signal()
         y_railed = Signal()
-        y_relock = Signal()
-        y_unlocked = Signal()
+        relock = Signal()
+        unlocked = Signal()
 
-        self.state_in = x_hold, x_clear, y_hold, y_clear, y_relock
-        self.state_out = x_sat, x_railed, y_sat, y_railed, y_unlocked
+        self.state_in = x_hold, x_clear, y_hold, y_clear, relock
+        self.state_out = x_sat, x_railed, y_sat, y_railed, unlocked
 
         x = Signal((signal_width, True))
         dx = Signal((signal_width, True))
@@ -114,7 +114,12 @@ class FastChain(Module, AutoCSR):
                 ),
 
                 self.sweep.clear.eq(0),
-                self.sweep.hold.eq(0)
+                self.sweep.hold.eq(0),
+
+                self.relock.x.eq(rx >> s),
+                self.relock.clear.eq(self.y_limit.error),
+                self.relock.hold.eq(relock),
+                unlocked.eq(self.relock.error)
         ]
         ya = Signal((width + 3, True))
         ys = Array([self.iir_c.x, self.iir_c.y,
@@ -126,12 +131,7 @@ class FastChain(Module, AutoCSR):
                 y.eq(self.y_limit.y << s),
                 y_railed.eq(self.y_limit.error),
 
-                self.relock.x.eq(rx >> s),
-                self.relock.clear.eq(self.y_limit.error),
-                self.relock.hold.eq(y_relock),
-                y_unlocked.eq(self.relock.error),
-
-                self.dac.eq(self.y_limit.y),
+                self.dac.eq(self.y_limit.y)
         ]
 
 
