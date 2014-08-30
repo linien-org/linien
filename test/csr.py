@@ -1,36 +1,50 @@
 import subprocess
 
-from csrmap import csrmap
+import csrmap
 from iir_coeffs import make_filter, get_params
 
 
 class PitayaCSR:
-    map = csrmap
+    map = csrmap.csr
 
     def set(self, name, value):
         addr, nr, wr = self.map[name]
         assert wr, name
-        ma = 1<<nr*8
+        ma = 1<<nr
         val = value & (ma - 1)
         assert value >= -ma/2 and value < ma, (value, val, ma)
-        for i in range(nr):
-            v = (val >> (8*(nr - i - 1))) & 0xff
+        b = (nr + 8 - 1)//8
+        for i in range(b):
+            v = (val >> (8*(b - i - 1))) & 0xff
             self.set_one(addr + i*4, v)
 
     def get(self, name):
         addr, nr, wr = self.map[name]
         v = 0
-        for i in range(nr):
-            v |= self.get_one(addr + i*4) << 8*(nr - i -1)
+        b = (nr + 8 - 1)//8
+        for i in range(b):
+            v |= self.get_one(addr + i*4) << 8*(b - i - 1)
         return v
 
-    def set_iir(self, prefix, b, a):
+    def set_iir(self, prefix, b, a, z=0):
         shift = self.get(prefix + "_shift") or 16
         width = self.get(prefix + "_width") or 25
         b, a, params = get_params(b, a, shift, width)
         print(params)
         for k in sorted(params):
             self.set(prefix + "_" + k, params[k])
+        self.set(prefix + "_z0", z)
+        for i in range(len(b), 3):
+            n = prefix + "_b%i" % i
+            if n in self.map:
+                self.set(n, 0)
+                self.set(prefix + "_a%i" % i, 0)
+
+    def signal(self, name):
+        return csrmap.signals.index(name)
+
+    def states(self, *names):
+        return sum(1<<csrmap.states.index(name) for name in names)
 
 
 class PitayaReal(PitayaCSR):
@@ -101,30 +115,15 @@ if __name__ == "__main__":
             print(n, u*v)
 
     new = dict(
-        fast_a_iir_a_b0=0,
         fast_a_x_tap=0,
         fast_a_x_zero=0,
-        fast_a_dx_mux=0, # fast_b_y
-        fast_a_iir_c_z0=1,
-        fast_a_iir_c_a1=0,
-        fast_a_iir_c_b0=0,
-        fast_a_iir_c_b1=0,
-        fast_a_iir_d_z0=0,
-        fast_a_iir_d_b0=0,
-        fast_a_iir_d_b1=0,
-        fast_a_iir_d_a1=0,
-        fast_a_iir_d_a2=0,
-        fast_a_iir_e_z0=0,
-        fast_a_iir_e_b0=0,
-        fast_a_iir_e_b1=0,
-        fast_a_iir_e_b2=0,
-        fast_a_iir_e_a1=0,
-        fast_a_iir_e_a2=0,
-        fast_a_y_tap=3,
-        fast_a_rx_mux=0, # fast_a.x
+        #fast_a_dx_sel=p.signal("zero"),
+        fast_a_dx_sel=p.signal("noise_y"),
+        fast_a_y_tap=1,
+        fast_a_rx_sel=p.signal("fast_a_x"),
         fast_a_y_relock_en=0, # just limit
-        fast_a_y_hold_en=0, #1<<13, # relock
-        fast_a_y_clear_en=1<<12, # limit
+        fast_a_y_hold_en=p.states("fast_a_y_unlocked"),
+        fast_a_y_clear_en=p.states("fast_a_y_railed"),
         fast_a_relock_step=100000,
         fast_a_relock_min=-4000,
         fast_a_relock_max=4000,
@@ -134,8 +133,21 @@ if __name__ == "__main__":
         #fast_a_sweep_min=-4000,
         #fast_a_sweep_max=4000,
         fast_a_mod_amp=0,
-        fast_a_y_limit_min=-7192,
-        fast_a_y_limit_max=7191,
+        fast_a_mod_freq=10000,
+        fast_a_dy_sel=p.signal("scopegen_dac_a"),
+        noise_bits=25,
+        fast_a_y_limit_min=-8192,
+        fast_a_y_limit_max=8191,
+
+        scopegen_adc_a_sel=p.signal("fast_a_x"),
+        scopegen_adc_b_sel=p.signal("fast_a_y"),
+
+        gpio_n_oe=0xff,
+        gpio_n_do0_en=p.states("fast_a_x_sat"),
+        gpio_n_do1_en=p.states("fast_a_x_railed"),
+        gpio_n_do2_en=p.states("fast_a_y_sat"),
+        gpio_n_do3_en=p.states("fast_a_y_railed"),
+        gpio_n_do4_en=p.states("fast_a_y_unlocked"),
     )
     for k, v in sorted(new.items()):
         p.set(k, int(v))
@@ -147,12 +159,13 @@ if __name__ == "__main__":
     n = "fast_a_iir_c"
     #p.set_iir(n, *make_filter("P", k=-.8, f=1))
     #p.set_iir(n, *make_filter("I", k=4e-5, f=1))
-    p.set_iir("fast_a_iir_c", *make_filter("P", k=1, f=1))
+    #p.set_iir("fast_a_iir_c", *make_filter("P", k=-.5, f=1))
+    #p.set_iir("fast_a_iir_c", *make_filter("P", k=1, f=1))
     p.set_iir("fast_a_iir_d", *make_filter("P", k=1, f=1))
     #p.set_iir("fast_a_iir_e", *make_filter("PI", k=-.01*.1, f=.01))
     p.set_iir("fast_a_iir_e", *make_filter("I", k=1e-6, f=1))
-    #p.set_iir(n, *make_filter("PI", f=.6, k=-.05))
-    #p.set_iir(n, *make_filter("PI", f=.5, k=-.05))
+    #p.set_iir(n, *make_filter("PI", f=.2, k=-.2))
+    p.set_iir(n, *make_filter("I", k=-5e-5, f=1))
 
     p.run()
 

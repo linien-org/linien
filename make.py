@@ -11,19 +11,16 @@ def get_csrmap(banks):
     csr_base = 0x40300000
     for name, csrs, mapaddr, rmap in banks:
         reg_addr = csr_base + 0x800*mapaddr
-        busword = flen(rmap.bus.dat_w)
         for csr in csrs:
-            nr = (csr.size + busword - 1)//busword
-            yield [name, csr.name, reg_addr, nr, not hasattr(csr, "status")]
-            reg_addr += 4*nr
+            yield [name, csr.name, reg_addr, csr.size, not hasattr(csr, "status")]
+            reg_addr += 4*((csr.size + 8 - 1)//8)
 
 
-def py_csrmap(it, fil="test/csrmap.py"):
-    csrmap = open(fil, "w")
-    csrmap.write("csrmap = {\n")
+def py_csrmap(it, fil):
+    fil.write("csr = {\n")
     for reg in it:
-        csrmap.write("    '{}_{}': (0x{:08x}, {}, {}),\n".format(*reg))
-    csrmap.write("}\n")
+        fil.write("    '{}_{}': (0x{:08x}, {}, {}),\n".format(*reg))
+    fil.write("}\n")
 
 
 if __name__ == "__main__":
@@ -31,4 +28,10 @@ if __name__ == "__main__":
     redpid = RedPid(platform)
     platform.add_source_dir("verilog")
     platform.build_cmdline(redpid, build_name="redpid")
-    py_csrmap(get_csrmap(redpid.pid.csrbanks.banks))
+
+    fil = open("test/csrmap.py", "w")
+    csr = get_csrmap(redpid.pid.csrbanks.banks)
+    py_csrmap(csr, fil)
+    fil.write("states = {}\n".format(repr(redpid.pid.state_names)))
+    fil.write("signals = {}\n".format(repr(redpid.pid.signal_names)))
+    fil.close()
