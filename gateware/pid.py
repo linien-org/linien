@@ -3,7 +3,6 @@
 from migen.fhdl.std import *
 from migen.genlib.misc import optree
 from migen.bank.description import AutoCSR, CSRStorage
-from migen.fhdl.tracer import get_obj_var_name
 
 from .iir import Iir
 from .limit import LimitCSR
@@ -19,7 +18,7 @@ class FastChain(Module, AutoCSR):
 
         self.r_x_tap = CSRStorage(3)
         self.r_x_zero = CSRStorage(1)
-        self.r_y_tap = CSRStorage(2)
+        self.r_y_tap = CSRStorage(3)
 
         x_hold = Signal()
         x_clear = Signal()
@@ -47,16 +46,19 @@ class FastChain(Module, AutoCSR):
         ###
 
         self.submodules.iir_a = Iir(width=signal_width,
-                coeff_width=coeff_width, order=1)
+                coeff_width=coeff_width, shift=coeff_width-2,
+                order=1)
         self.submodules.iir_b = Iir(width=signal_width,
                 coeff_width=2*coeff_width-1, order=2,
                 shift=2*coeff_width-3, mode="iterative")
         self.submodules.demod = Demodulate(width=width)
         self.submodules.x_limit = LimitCSR(width=signal_width, guard=1)
         self.submodules.iir_c = Iir(width=signal_width,
-                coeff_width=coeff_width, order=1)
+                coeff_width=coeff_width, shift=coeff_width-2,
+                order=1)
         self.submodules.iir_d = Iir(width=signal_width,
-                coeff_width=coeff_width, order=2)
+                coeff_width=coeff_width, shift=coeff_width-2,
+                order=2)
         self.submodules.iir_e = Iir(width=signal_width,
                 coeff_width=2*coeff_width-1, order=2,
                 shift=2*coeff_width-3, mode="iterative")
@@ -85,11 +87,11 @@ class FastChain(Module, AutoCSR):
                 ),
 
                 self.demod.x.eq(Mux(self.r_x_tap.storage[0],
-                    self.iir_a.y, self.iir_b.y) >> s),
+                    self.iir_a.y >> s, self.iir_b.y >> s)),
                 self.demod.phase.eq(self.mod.phase)
         ]
         xs = Array([self.iir_a.x, self.iir_a.y, self.iir_b.y,
-                    self.demod.y << s, self.demod.y << s])
+                self.demod.y << s, self.demod.y << s])
         self.sync += x.eq(xs[self.r_x_tap.storage])
         self.comb += [
                 self.x_limit.x.eq(Mux(self.r_x_zero.storage, 0, x) + dx),
@@ -108,9 +110,9 @@ class FastChain(Module, AutoCSR):
                 self.iir_e.clear.eq(y_clear),
 
                 y_sat.eq(
-                    (self.iir_c.error & self.r_y_tap.storage > 0) |
-                    (self.iir_d.error & self.r_y_tap.storage > 1) |
-                    (self.iir_e.error & self.r_y_tap.storage > 2)
+                    (self.iir_c.error & self.r_y_tap.storage > 1) |
+                    (self.iir_d.error & self.r_y_tap.storage > 2) |
+                    (self.iir_e.error & self.r_y_tap.storage > 3)
                 ),
 
                 self.sweep.clear.eq(0),
@@ -122,7 +124,7 @@ class FastChain(Module, AutoCSR):
                 unlocked.eq(self.relock.error)
         ]
         ya = Signal((width + 3, True))
-        ys = Array([self.iir_c.x, self.iir_c.y,
+        ys = Array([0, self.iir_c.x, self.iir_c.y,
                     self.iir_d.y, self.iir_e.y])
         self.sync += ya.eq(optree("+", [self.mod.y, dy >> s, self.sweep.y,
                     self.relock.y])),
@@ -177,7 +179,7 @@ class SlowChain(Module, AutoCSR):
                 self.iir.hold.eq(hold),
                 self.iir.clear.eq(clear),
                 sat.eq(self.iir.error),
-                self.y_limit.x.eq((self.iir.y + dy) >> s),
+                self.y_limit.x.eq((self.iir.y >> s) + (dy >> s)),
                 railed.eq(self.y_limit.error),
                 y.eq(self.y_limit.y << s),
                 self.dac.eq(y)

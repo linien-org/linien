@@ -89,49 +89,42 @@ class ScopeGen(Module, AutoCSR):
 
 class Pid(Module):
     def __init__(self, platform):
-        csr_map = {}
+        csr_map = {
+                "dna": 28, "xadc": 29, "gpio_n": 30, "gpio_p": 31,
+                "fast_a": 0, "fast_b": 1,
+                "slow_a": 2, "slow_b": 3, "slow_c": 4, "slow_d": 5,
+                "scopegen": 6, "noise": 7,
+        }
 
         self.submodules.analog = PitayaAnalog(
-                platform.request("adc"),
-                platform.request("dac"))
+                platform.request("adc"), platform.request("dac"))
+
         self.submodules.xadc = XADC(platform.request("xadc"))
-        csr_map["xadc"] = 29
+
         for i in range(4):
             pwm = platform.request("pwm", i)
             ds = RenameClockDomains(DeltaSigma(width=16), "sys_double")
             self.comb += pwm.eq(ds.out)
             setattr(self.submodules, "ds%i" % i, ds)
+
         exp = platform.request("exp")
         self.submodules.gpio_n = Gpio(exp.n)
-        csr_map["gpio_n"] = 30
         self.submodules.gpio_p = Gpio(exp.p)
-        csr_map["gpio_p"] = 31
 
         leds = Cat(*(platform.request("user_led", i) for i in range(8)))
         self.comb += leds.eq(self.gpio_n.o)
 
-        #self.submodules.dna = DNA()
+        self.submodules.dna = DNA(version=2)
 
-        w, s, c = 14, 25, 18
-        self.submodules.fast_a = FastChain(w, s, c)
-        csr_map["fast_a"] = 0
-        self.submodules.fast_b = FastChain(w, s, c)
-        csr_map["fast_b"] = 1
-        w = 16
-        self.submodules.slow_a = SlowChain(w, s, c)
-        csr_map["slow_a"] = 2
-        self.submodules.slow_b = SlowChain(w, s, c)
-        csr_map["slow_b"] = 3
-        self.submodules.slow_c = SlowChain(w, s, c)
-        csr_map["slow_c"] = 4
-        self.submodules.slow_d = SlowChain(w, s, c)
-        csr_map["slow_d"] = 5
-
+        s, c = 25, 18
+        self.submodules.fast_a = FastChain(14, s, c)
+        self.submodules.fast_b = FastChain(14, s, c)
+        self.submodules.slow_a = SlowChain(17, s, c)
+        self.submodules.slow_b = SlowChain(17, s, c)
+        self.submodules.slow_c = SlowChain(17, s, c)
+        self.submodules.slow_d = SlowChain(17, s, c)
         self.submodules.scopegen = ScopeGen(s)
-        csr_map["scopegen"] = 6
-
         self.submodules.noise = LFSRGen(s)
-        csr_map["noise"] = 7
 
         self.state_names, self.signal_names = cross_connect(self.gpio_n, [
             ("fast_a", self.fast_a), ("fast_b", self.fast_b),
@@ -147,7 +140,7 @@ class Pid(Module):
                 self.fast_b.adc.eq(self.analog.adc_b),
                 self.analog.dac_a.eq(self.fast_a.dac),
                 self.analog.dac_b.eq(self.fast_b.dac),
-                self.slow_a.adc.eq(self.xadc.adc[10] << 4),
+                self.slow_a.adc.eq(self.xadc.adc[10] << 4), # sign
                 self.ds0.data.eq(self.slow_a.dac),
                 self.slow_b.adc.eq(self.xadc.adc[8] << 4),
                 self.ds1.data.eq(self.slow_b.dac),
