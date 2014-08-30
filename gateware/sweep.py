@@ -60,7 +60,7 @@ class SweepCSR(Filter):
         if step_width is None:
             step_width = width
 
-        self.r_shift = CSRStatus(8, reset=step_shift)
+        self.r_shift = CSRStatus(bits_for(step_shift), reset=step_shift)
         self.r_step = CSRStorage(step_width)
         self.r_min = CSRStorage(width, reset=1<<(width - 1))
         self.r_max = CSRStorage(width, reset=(1<<(width - 1)) - 1)
