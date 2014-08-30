@@ -8,26 +8,18 @@ class LFSR(Module):
     xnor (exclude all-ones)
     no extended sequence
     """
-    def __init__(self, n=31, taps=None):
+    def __init__(self, n=31, taps=[27, 30]):
         self.o = Signal()
-        self.state = Signal(n)
 
         ###
 
-        if taps is None:
-            taps = {
-                    7: (6, 5),
-                    15: (14, 13),
-                    31: (30, 27),
-                    63: (62, 61),
-            }[n]
-
-        self.comb += self.o.eq(~optree("^", [self.state[i] for i in taps]))
-        self.sync += Cat(self.state).eq(Cat(self.o, self.state))
+        state = Signal(n)
+        self.comb += self.o.eq(~optree("^", [state[i] for i in taps]))
+        self.sync += Cat(state).eq(Cat(self.o, state))
 
 
 class LFSRGen(Module, AutoCSR):
-    def __init__(self, width, n=31, mul=4, cd="sys_quad"):
+    def __init__(self, width, n=31):
         y = Signal((width, True))
         self.signal_out = y,
         self.signal_in = ()
@@ -36,18 +28,23 @@ class LFSRGen(Module, AutoCSR):
 
         self.r_bits = CSRStorage(bits_for(width))
 
-        self.submodules.gen = RenameClockDomains(LFSR(n), cd)
+        taps = {
+                7: (6, 5),
+                15: (14, 13),
+                31: (30, 27),
+                63: (62, 61),
+        }[n]
+
+        self.submodules.gen = LFSR(n, taps)
         cnt = Signal(max=width + 1)
         store = Signal(width)
-        o = Signal(mul)
         self.sync += [
-                o.eq(self.gen.state),
-                store.eq(Cat(o, store)),
-                cnt.eq(cnt + mul),
+                store.eq(Cat(self.gen.o, store)),
+                cnt.eq(cnt + 1),
                 If(cnt == self.r_bits.storage,
-                    cnt.eq(mul),
+                    cnt.eq(1),
                     y.eq(store),
-                    store[mul:].eq(Replicate(o[-1], flen(store) - mul))
+                    store.eq(Replicate(self.gen.o, flen(store)))
                 )
         ]
 
@@ -75,11 +72,11 @@ if __name__ == "__main__":
     tb = _TB(LFSR(4, [3, 0]))
     run_simulation(tb, ncycles=20)
     print(tb.o)
-
+   
     raise
     import matplotlib.pyplot as plt
     import numpy as np
-
+    
     o = np.array(tb.o)
     #o = o/2.**flen(tb.dut.o) - .5
     #plt.psd(o)
