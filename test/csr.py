@@ -116,13 +116,13 @@ if __name__ == "__main__":
 
     new = dict(
         fast_a_x_tap=0,
-        fast_a_x_zero=0,
-        fast_a_dx_sel=p.signal("zero"),
+        fast_a_x_zero=1,
+        fast_a_dx_sel=p.signal("noise_y"), #scopegen_dac_a"),
         fast_a_y_tap=2,
         fast_a_rx_sel=p.signal("fast_a_x"),
         fast_a_y_hold_en=p.states("fast_a_unlocked"),
         fast_a_y_clear_en=p.states("fast_a_y_railed"),
-        fast_a_relock_run=1,
+        fast_a_relock_run=0,
         fast_a_relock_en=p.states("fast_a_y_sat"),
         fast_a_relock_step=20000,
         fast_a_relock_min=-8000,
@@ -133,12 +133,12 @@ if __name__ == "__main__":
         fast_a_sweep_max=4000,
         fast_a_mod_amp=0,
         fast_a_mod_freq=10000,
-        fast_a_dy_sel=p.signal("scopegen_dac_a"),
-        noise_bits=20,
+        fast_a_dy_sel=p.signal("zero"), #p.signal("scopegen_dac_b"),
+        noise_bits=24,
         fast_a_y_limit_min=-8192,
         fast_a_y_limit_max=8191,
 
-        scopegen_adc_a_sel=p.signal("fast_a_x"),
+        scopegen_adc_a_sel=p.signal("noise_y"),
         scopegen_adc_b_sel=p.signal("fast_a_y"),
 
         gpio_p_oe=0,
@@ -171,8 +171,10 @@ if __name__ == "__main__":
     #p.set_iir("fast_a_iir_e", *make_filter("PI", f=1e-3, k=.00001), z=1<<31)
     #p.set_iir("fast_a_iir_e", *make_filter("PI", f=5e-6, k=-1e-2), z=0)
     #p.set_iir("fast_a_iir_e", *make_filter("I", f=3e-7, k=-1), z=0)
-    #p.set_iir(n, *make_filter("PI", f=.2, k=.2))
-    p.set_iir(n, *make_filter("PI", f=2e-1, k=1e-4))
+    #p.set_iir(n, *make_filter("PI", f=.2, k=-.2))
+    #p.set_iir(n, *make_filter("PI", f=2e-1, k=1e-4))
+    #p.set_iir(n, *make_filter("PI", f=2e-1, k=1e-4))
+    p.set_iir(n, *make_filter("LP", f=4e-5, k=1.))
     #p.set_iir(n, *make_filter("I", k=4e-5, f=1))
 
     p.run()
