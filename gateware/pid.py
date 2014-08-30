@@ -1,8 +1,9 @@
 # Robert Jordens <jordens@gmail.com> 2014
 
 from migen.fhdl.std import *
-from migen.genlib.record import *
-from migen.bank.description import *
+from migen.genlib.misc import optree
+from migen.bank.description import AutoCSR, CSRStorage
+from migen.fhdl.tracer import get_obj_var_name
 
 from .iir import Iir
 from .limit import LimitCSR
@@ -110,7 +111,10 @@ class FastChain(Module, AutoCSR):
                     (self.iir_c.error & self.r_y_tap.storage > 0) |
                     (self.iir_d.error & self.r_y_tap.storage > 1) |
                     (self.iir_e.error & self.r_y_tap.storage > 2)
-                )
+                ),
+
+                self.sweep.clear.eq(0),
+                self.sweep.hold.eq(0)
         ]
         ya = Signal((width + 3, True))
         ys = Array([self.iir_c.x, self.iir_c.y,
@@ -181,11 +185,17 @@ class SlowChain(Module, AutoCSR):
 
 
 def cross_connect(gpio, chains):
+    state_names = ["force"] + ["di%i" % i for i in range(flen(gpio.i))]
     states = [1, gpio.i]
+    signal_names = ["zero"]
     signals = Array([0])
-    for c in chains:
+    for n, c in chains:
         states.extend(c.state_out)
+        state_names += ["%s_%s" % (n, s.backtrace[-1][0])
+                for s in c.state_out]
         signals.extend(c.signal_out)
+        signal_names += ["%s_%s" % (n, s.backtrace[-1][0])
+                for s in c.signal_out]
     states = Cat(states)
     state = Signal(flen(states))
     gpio.comb += state.eq(states)
@@ -194,14 +204,15 @@ def cross_connect(gpio, chains):
         csr = CSRStorage(flen(state), name=name)
         setattr(gpio, name, csr)
         gpio.sync += s.eq((state & csr.storage) != 0)
-    for c in chains:
+    for n, c in chains:
         for s in c.state_in:
             name = s.backtrace[-1][0] + "_en"
             csr = CSRStorage(flen(state), name=name)
             setattr(c, name, csr)
             c.sync += s.eq((state & csr.storage) != 0)
         for s in c.signal_in:
-            name = s.backtrace[-1][0] + "_mux"
-            csr = CSRStorage(len(signals), name=name)
+            name = s.backtrace[-1][0] + "_sel"
+            csr = CSRStorage(bits_for(len(signals)), name=name)
             setattr(c, name, csr)
             c.sync += s.eq(signals[csr.storage])
+    return state_names, signal_names

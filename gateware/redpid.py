@@ -16,6 +16,7 @@ from .slow import Gpio
 from .xadc import XADC
 from .delta_sigma import DeltaSigma
 from .dna import DNA
+from .lsfr import LFSRGen
 
 
 #     tcl.append("read_xdc -ref processing_system7_v5_4_processing_system7 ../verilog/ system_processing_system7_0_0.xdc")
@@ -129,11 +130,14 @@ class Pid(Module):
         self.submodules.scopegen = ScopeGen(s)
         csr_map["scopegen"] = 6
 
-        cross_connect(self.gpio_n, [
-            self.fast_a, self.fast_b,
-            self.slow_a, self.slow_b,
-            self.slow_c, self.slow_d,
-            self.scopegen
+        self.submodules.noise = LFSRGen(s)
+        csr_map["noise"] = 7
+
+        self.state_names, self.signal_names = cross_connect(self.gpio_n, [
+            ("fast_a", self.fast_a), ("fast_b", self.fast_b),
+            ("slow_a", self.slow_a), ("slow_b", self.slow_b),
+            ("slow_c", self.slow_c), ("slow_d", self.slow_d),
+            ("scopegen", self.scopegen), ("noise", self.noise),
         ])
 
         self.comb += [
