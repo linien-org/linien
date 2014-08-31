@@ -49,6 +49,43 @@ class LFSRGen(Module, AutoCSR):
         ]
 
 
+class XORSHIFT(Module):
+    def __init__(self, n=32, shifts=[13, -17, 5], init=2463534242):
+        self.state = Signal(n, reset=2463534242)
+
+        ###
+
+        i = self.state
+        for s in shifts:
+            i0 = i
+            i = Signal.like(i0)
+            if s > 0:
+                self.comb += i.eq(i0 ^ (i0 << s))
+            else:
+                self.comb += i.eq(i0 ^ (i0 >> -s))
+        self.sync += self.state.eq(i)
+
+
+class XORSHIFTGen(Module, AutoCSR):
+    def __init__(self, width, **kwargs):
+        y = Signal((width, True))
+        self.signal_out = y,
+        self.signal_in = ()
+        self.state_in = ()
+        self.state_out = ()
+
+        self.r_bits = CSRStorage(bits_for(width))
+
+        self.submodules.gen = XORSHIFT(**kwargs)
+        q = Signal.like(self.gen.state)
+        mask = Signal(width)
+        self.sync += [
+                q.eq(self.gen.state),
+                mask.eq(-1 << self.r_bits.storage),
+                y.eq((Replicate(q[width - 1], width) & mask) |
+                    q & ~mask)
+        ]
+
 
 class _TB(Module):
     def __init__(self, dut):

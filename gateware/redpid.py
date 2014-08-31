@@ -16,7 +16,7 @@ from .slow import Gpio
 from .xadc import XADC
 from .delta_sigma import DeltaSigma
 from .dna import DNA
-from .lsfr import LFSRGen
+from .lsfr import LFSRGen, XORSHIFTGen
 
 
 #     tcl.append("read_xdc -ref processing_system7_v5_4_processing_system7 ../verilog/ system_processing_system7_0_0.xdc")
@@ -124,7 +124,8 @@ class Pid(Module):
         self.submodules.slow_c = SlowChain(17, s, c)
         self.submodules.slow_d = SlowChain(17, s, c)
         self.submodules.scopegen = ScopeGen(s)
-        self.submodules.noise = LFSRGen(s)
+        #self.submodules.noise = LFSRGen(s)
+        self.submodules.noise = XORSHIFTGen(s)
 
         self.state_names, self.signal_names = cross_connect(self.gpio_n, [
             ("fast_a", self.fast_a), ("fast_b", self.fast_b),
