@@ -33,7 +33,15 @@ class Modulate(Filter):
         self.phase = Signal(width)
 
         z = Signal(freq_width)
-        self.sync += z.eq(z + self.r_freq.storage)
+        stop = Signal()
+        self.sync += [
+                stop.eq(self.r_freq.storage == 0),
+                If(stop,
+                    z.eq(0)
+                ).Else(
+                    z.eq(z + self.r_freq.storage)
+                )
+        ]
 
         self.submodules.cordic = Cordic(width=width,
                 eval_mode="pipelined", cordic_mode="rotate",
