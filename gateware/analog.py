@@ -32,7 +32,7 @@ class PitayaAnalog(Module):
                 dacb.eq(Cat(~self.dac_b[:-1], self.dac_b[-1]))
         ]
 
-        self.comb += dac.rst.eq(ResetSignal("sys"))
+        self.comb += dac.rst.eq(0)
         self.specials += [
                 Instance("ODDR", i_D1=0, i_D2=1, i_C=ClockSignal("sys_double"),
                     o_Q=dac.clk, i_CE=1, i_R=0, i_S=0),

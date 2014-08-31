@@ -49,7 +49,7 @@ class ScopeGen(Module, AutoCSR):
                 i_adc_a_i=adc_a >> s,
                 i_adc_b_i=adc_b >> s,
                 i_adc_clk_i=ClockSignal(),
-                i_adc_rstn_i=~ResetSignal(),
+                i_adc_rstn_i=1,
                 i_trig_ext_i=self.trigger,
                 i_trig_asg_i=asg_trig,
 
@@ -69,7 +69,7 @@ class ScopeGen(Module, AutoCSR):
                 o_dac_a_o=asg_a,
                 o_dac_b_o=asg_b,
                 i_dac_clk_i=ClockSignal(),
-                i_dac_rstn_i=~ResetSignal(),
+                i_dac_rstn_i=1,
                 i_trig_a_i=self.trigger,
                 i_trig_b_i=self.trigger,
                 o_trig_out_o=asg_trig,
