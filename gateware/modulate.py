@@ -13,7 +13,7 @@ class Demodulate(Filter):
         self.r_phase = CSRStorage(width)
         self.phase = Signal(width)
 
-        self.submodules.cordic = Cordic(width=width,
+        self.submodules.cordic = Cordic(width=width, stages=width,
                 eval_mode="pipelined", cordic_mode="rotate",
                 func_mode="circular")
         self.comb += [
@@ -43,7 +43,7 @@ class Modulate(Filter):
                 )
         ]
 
-        self.submodules.cordic = Cordic(width=width,
+        self.submodules.cordic = Cordic(width=width, stages=width,
                 eval_mode="pipelined", cordic_mode="rotate",
                 func_mode="circular")
         self.comb += [

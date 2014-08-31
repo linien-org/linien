@@ -82,7 +82,7 @@ class XORSHIFTGen(Module, AutoCSR):
         self.sync += [
                 mask.eq(-1 << self.r_bits.storage),
                 q.eq(self.gen.state & ~mask),
-                y.eq((Replicate(q[0], width) & mask) | (q >> 1))
+                y.eq(q[1:] | (Replicate(q[0], width) & mask))
         ]
 
 
