@@ -80,10 +80,9 @@ class XORSHIFTGen(Module, AutoCSR):
         q = Signal.like(self.gen.state)
         mask = Signal(width)
         self.sync += [
-                q.eq(self.gen.state),
                 mask.eq(-1 << self.r_bits.storage),
-                y.eq((Replicate(q[width - 1], width) & mask) |
-                    q & ~mask)
+                q.eq(self.gen.state & ~mask),
+                y.eq((Replicate(q[0], width) & mask) | (q >> 1))
         ]
 
 
