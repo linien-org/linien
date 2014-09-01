@@ -140,10 +140,11 @@ if __name__ == "__main__":
         fast_a_y_limit_max=8191,
 
         fast_b_break=1,
-        fast_b_dx_sel=p.signal("noise_y"),
-        fast_b_y_tap=3,
+        fast_b_dx_sel=p.signal("zero"),
+        fast_b_y_tap=0,
         fast_b_y_clear_en=p.states("fast_b_y_railed"),
-        fast_b_mod_amp=0,
+        fast_b_mod_amp=2000,
+        fast_b_mod_freq=0x12345678,
         fast_b_dy_sel=p.signal("zero"),
 
         noise_bits=23,
