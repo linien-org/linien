@@ -50,8 +50,8 @@ class LFSRGen(Module, AutoCSR):
 
 
 class XORSHIFT(Module):
-    def __init__(self, n=32, shifts=[13, -17, 5], init=2463534242):
-        self.state = Signal(n, reset=2463534242)
+    def __init__(self, n=32, shifts=[13, -17, 5], reset=2463534242):
+        self.state = Signal(n, reset=reset)
 
         ###
 
