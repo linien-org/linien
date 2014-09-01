@@ -16,7 +16,7 @@ from .slow import Gpio
 from .xadc import XADC
 from .delta_sigma import DeltaSigma
 from .dna import DNA
-from .lfsr import LFSRGen, XORSHIFTGen
+from .lfsr import XORSHIFTGen
 
 
 #     tcl.append("read_xdc -ref processing_system7_v5_4_processing_system7 ../verilog/ system_processing_system7_0_0.xdc")
