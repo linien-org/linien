@@ -77,12 +77,10 @@ class XORSHIFTGen(Module, AutoCSR):
         self.r_bits = CSRStorage(bits_for(width))
 
         self.submodules.gen = XORSHIFT(**kwargs)
-        q = Signal.like(self.gen.state)
-        mask = Signal(width)
+        q = Signal(width)
         self.sync += [
-                mask.eq(-1 << self.r_bits.storage),
-                q.eq(self.gen.state & ~mask),
-                y.eq(q[1:] | (Replicate(q[0], width) & mask))
+                q.eq(self.gen.state[:width] >> (width - self.r_bits.storage)),
+                y.eq(q[1:] ^ (Replicate(q[0], width)))
         ]
 
 
