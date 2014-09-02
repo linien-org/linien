@@ -103,7 +103,7 @@ class Pid(Module):
 
         for i in range(4):
             pwm = platform.request("pwm", i)
-            ds = RenameClockDomains(DeltaSigma(width=16), "sys_double")
+            ds = RenameClockDomains(DeltaSigma(width=15), "sys_double")
             self.comb += pwm.eq(ds.out)
             setattr(self.submodules, "ds%i" % i, ds)
 
@@ -119,10 +119,14 @@ class Pid(Module):
         s, c = 25, 18
         self.submodules.fast_a = FastChain(14, s, c)
         self.submodules.fast_b = FastChain(14, s, c)
-        self.submodules.slow_a = SlowChain(17, s, c)
-        self.submodules.slow_b = SlowChain(17, s, c)
-        self.submodules.slow_c = SlowChain(17, s, c)
-        self.submodules.slow_d = SlowChain(17, s, c)
+        self.submodules.slow_a = RenameClockDomains(SlowChain(16, s, c),
+                "sys_slow")
+        self.submodules.slow_b = RenameClockDomains(SlowChain(16, s, c),
+                "sys_slow")
+        self.submodules.slow_c = RenameClockDomains(SlowChain(16, s, c),
+                "sys_slow")
+        self.submodules.slow_d = RenameClockDomains(SlowChain(16, s, c),
+                "sys_slow")
         self.submodules.scopegen = ScopeGen(s)
         #self.submodules.noise = LFSRGen(s)
         self.submodules.noise = XORSHIFTGen(s)
@@ -141,13 +145,13 @@ class Pid(Module):
                 self.fast_b.adc.eq(self.analog.adc_b),
                 self.analog.dac_a.eq(self.fast_a.dac),
                 self.analog.dac_b.eq(self.fast_b.dac),
-                self.slow_a.adc.eq(self.xadc.adc[10] << 4), # sign
+                self.slow_a.adc.eq(self.xadc.adc[0] << 4),
                 self.ds0.data.eq(self.slow_a.dac),
-                self.slow_b.adc.eq(self.xadc.adc[8] << 4),
+                self.slow_b.adc.eq(self.xadc.adc[1] << 4),
                 self.ds1.data.eq(self.slow_b.dac),
-                self.slow_c.adc.eq(self.xadc.adc[9] << 4),
+                self.slow_c.adc.eq(self.xadc.adc[2] << 4),
                 self.ds2.data.eq(self.slow_c.dac),
-                self.slow_d.adc.eq(self.xadc.adc[11] << 4),
+                self.slow_d.adc.eq(self.xadc.adc[3] << 4),
                 self.ds3.data.eq(self.slow_d.dac),
         ]
 
