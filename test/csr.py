@@ -116,7 +116,6 @@ if __name__ == "__main__":
             print(n, u*v)
 
     new = dict(
-        #fast_a_x_tap=3,
         fast_a_x_tap=0,
         fast_a_demod_phase=0x0300,
         fast_a_x_clear_en=0, #p.states("fast_a_x_sat"),
@@ -135,8 +134,8 @@ if __name__ == "__main__":
         fast_a_sweep_step=100000,
         fast_a_sweep_min=-4000,
         fast_a_sweep_max=4000,
-        fast_a_mod_amp=9,
-        fast_a_mod_freq=0x000300,
+        fast_a_mod_amp=0x0200,
+        fast_a_mod_freq=0x00006789,
         fast_a_dy_sel=p.signal("zero"),
         fast_a_y_limit_min=-8192,
         fast_a_y_limit_max=8191,
@@ -155,8 +154,8 @@ if __name__ == "__main__":
         slow_a_y_limit_min=0,
 
         noise_bits=20,
-        scopegen_adc_a_sel=p.signal("slow_a_x"),
-        scopegen_adc_b_sel=p.signal("scopegen_dac_a"),
+        scopegen_adc_a_sel=p.signal("fast_a_x"),
+        scopegen_adc_b_sel=p.signal("fast_a_y"),
 
         gpio_p_oe=0,
         gpio_n_oe=0xff,
