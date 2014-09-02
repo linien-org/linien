@@ -182,7 +182,7 @@ class SlowChain(Module, AutoCSR):
                 self.y_limit.x.eq((self.iir.y >> s) + (dy >> s)),
                 railed.eq(self.y_limit.error),
                 y.eq(self.y_limit.y << s),
-                self.dac.eq(y)
+                self.dac.eq(y >> s)
         ]
 
 
