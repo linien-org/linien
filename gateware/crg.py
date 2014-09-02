@@ -6,7 +6,7 @@ class CRG(Module):
         self.clock_domains.cd_sys_quad = ClockDomain(reset_less=True)
         self.clock_domains.cd_sys_double = ClockDomain(reset_less=True)
         self.clock_domains.cd_sys = ClockDomain()
-        self.clock_domains.cd_sys_half = ClockDomain(reset_less=True)
+        self.clock_domains.cd_sys_slow = ClockDomain(reset_less=True)
         self.clock_domains.cd_sys_ps = ClockDomain()
         self.comb += [
                 self.cd_sys_ps.clk.eq(clk_ps),
@@ -41,7 +41,7 @@ class CRG(Module):
                     p_CLKOUT1_DUTY_CYCLE=0.5, o_CLKOUT1=clk[1],
                     p_CLKOUT2_DIVIDE=8, p_CLKOUT2_PHASE=0.,
                     p_CLKOUT2_DUTY_CYCLE=0.5, o_CLKOUT2=clk[2],
-                    p_CLKOUT3_DIVIDE=16, p_CLKOUT3_PHASE=0.,
+                    p_CLKOUT3_DIVIDE=80, p_CLKOUT3_PHASE=0.,
                     p_CLKOUT3_DUTY_CYCLE=0.5, o_CLKOUT3=clk[3],
                     p_CLKOUT4_DIVIDE=4, p_CLKOUT4_PHASE=0.,
                     p_CLKOUT4_DUTY_CYCLE=0.5, o_CLKOUT4=clk[4],
@@ -52,7 +52,7 @@ class CRG(Module):
         ]
         self.specials += Instance("BUFG", i_I=clk_fb, o_O=clk_fbb)
         for i, o, d in zip(clk, clkb, [self.cd_sys_quad, self.cd_sys_double,
-            self.cd_sys, self.cd_sys_half]):
+            self.cd_sys, self.cd_sys_slow]):
             self.specials += Instance("BUFG", i_I=i, o_O=d.clk)
         self.specials += Instance("FD", p_INIT=1, i_D=~locked, i_C=self.cd_sys.clk,
                 o_Q=self.cd_sys.rst)
