@@ -115,7 +115,8 @@ if __name__ == "__main__":
             print(n, u*v)
 
     new = dict(
-        fast_a_x_tap=3,
+        #fast_a_x_tap=3,
+        fast_a_x_tap=0,
         fast_a_demod_phase=0x0300,
         fast_a_x_clear_en=0, #p.states("fast_a_x_sat"),
         fast_a_break=1,
@@ -144,12 +145,20 @@ if __name__ == "__main__":
         fast_b_y_tap=0,
         fast_b_y_clear_en=p.states("fast_b_y_railed"),
         fast_b_mod_amp=2000,
-        fast_b_mod_freq=0x12345678,
+        fast_b_mod_freq=0x00000100,
         fast_b_dy_sel=p.signal("zero"),
 
-        noise_bits=23,
-        scopegen_adc_a_sel=p.signal("fast_a_x"),
-        scopegen_adc_b_sel=p.signal("fast_a_y"),
+        slow_a_break=1,
+        slow_a_dx_sel=p.signal("fast_b_y"),
+        slow_a_clear_en=p.states(), #"slow_a_sat"),
+        #slow_a_x_limit_min=,
+        #slow_a_x_limit_max=0x0ffffff,
+        #slow_a_y_limit_min=0,
+        #slow_a_y_limit_max=0x7fff,
+
+        noise_bits=20,
+        scopegen_adc_a_sel=p.signal("slow_a_x"),
+        scopegen_adc_b_sel=p.signal("slow_a_y"),
 
         gpio_p_oe=0,
         gpio_n_oe=0xff,
@@ -157,10 +166,8 @@ if __name__ == "__main__":
         gpio_n_do1_en=p.states("fast_a_y_sat"),
         gpio_n_do2_en=p.states("fast_a_y_railed"),
         gpio_n_do3_en=p.states("fast_a_unlocked"),
-        gpio_n_do4_en=p.states("fast_b_x_sat"),
-        gpio_n_do5_en=p.states("fast_b_y_sat"),
-        gpio_n_do6_en=p.states("fast_b_y_railed"),
-        gpio_n_do7_en=p.states("fast_b_unlocked"),
+        gpio_n_do4_en=p.states("slow_a_sat"),
+        gpio_n_do5_en=p.states("slow_a_railed"),
     )
     for k, v in sorted(new.items()):
         p.set(k, int(v))
@@ -195,6 +202,8 @@ if __name__ == "__main__":
     #p.set_iir("fast_b_iir_e", *make_filter("LP", k=.1, f=1e-3, q=.5))
     p.set_iir("fast_b_iir_e", *make_filter("LP2", k=10, f=2e-4, q=1.5))
     #p.set_iir("fast_b_iir_e", *make_filter("LP2", k=10, f=1.5e-4, q=1.5))
+    #p.set_iir("slow_a_iir", *make_filter("PI", k=-1e-3, f=1e-5), z=-0x10000)
+    p.set_iir("slow_a_iir", *make_filter("P", k=1), z=0x0800000)
 
     p.run()
 
