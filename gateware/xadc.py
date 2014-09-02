@@ -6,7 +6,7 @@ class XADC(Module, AutoCSR):
     def __init__(self, xadc):
         self.alarm = Signal(8)
         self.ot = Signal()
-        self.adc = [Signal(12) for i in range(13)]
+        self.adc = [Signal((12, True)) for i in range(5)]
 
         self.r_temp = CSRStatus(12)
         self.r_pint = CSRStatus(12)
@@ -23,19 +23,26 @@ class XADC(Module, AutoCSR):
 
         ###
 
+        self.comb += [
+                self.adc[0].eq(self.r_a.status),
+                self.adc[1].eq(self.r_b.status),
+                self.adc[2].eq(self.r_c.status),
+                self.adc[3].eq(self.r_d.status),
+                self.adc[4].eq(self.r_v.status)
+        ]
+
         busy = Signal()
         channel = Signal(5)
         eoc = Signal()
         eos = Signal()
-        datao = Signal(16)
+        data = Signal(16)
         drdy = Signal()
-        datai = Signal(16)
 
         vin = Cat(xadc.n[:2], Replicate(0, 6), xadc.n[2:4], Replicate(0, 6), xadc.n[4])
         vip = Cat(xadc.p[:2], Replicate(0, 6), xadc.p[2:4], Replicate(0, 6), xadc.p[4])
         self.specials += Instance("XADC",
             p_INIT_40=0x0000, p_INIT_41=0x2f0f, p_INIT_42=0x0400, # config
-            p_INIT_48=0x4fe0, p_INIT_49=0x0303, # channels VpVn, Temp
+            p_INIT_48=0x0900, p_INIT_49=0x0303, # channels VpVn, Temp
             p_INIT_4A=0x47e0, p_INIT_4B=0x0000, # avg VpVn, temp
             p_INIT_4C=0x0800, p_INIT_4D=0x0303, # bipolar
             p_INIT_4E=0x0000, p_INIT_4F=0x0000, # acq time
@@ -51,33 +58,30 @@ class XADC(Module, AutoCSR):
             o_BUSY=busy, o_CHANNEL=channel, o_EOC=eoc, o_EOS=eos,
             i_VAUXN=vin[:16], i_VAUXP=vip[:16], i_VN=vin[16], i_VP=vip[16],
             i_CONVST=0, i_CONVSTCLK=0, i_RESET=ResetSignal(),
-            o_DO=datao, o_DRDY=drdy, i_DADDR=channel, i_DCLK=ClockSignal(),
+            o_DO=data, o_DRDY=drdy, i_DADDR=channel, i_DCLK=ClockSignal(),
             i_DEN=eoc, i_DI=0, i_DWE=0,
             # o_JTAGBUSY=, o_JTAGLOCKED=, o_JTAGMODIFIED=, o_MUXADDR=,
         )
 
-        sel = Signal(4)
-        self.comb += Case(channel, {
-                    0: sel.eq(0),
-                    1: sel.eq(1),
-                    2: sel.eq(2),
-                    3: sel.eq(3),
-                    6: sel.eq(4),
-                    13: sel.eq(5),
-                    14: sel.eq(6),
-                    15: sel.eq(7),
-                    16: sel.eq(8),
-                    17: sel.eq(9),
-                    24: sel.eq(10),
-                    25: sel.eq(11),
-                    "default": sel.eq(12),
-                })
-        self.sync += Array(self.adc)[sel].eq(datao[4:])
+        channels = {
+                0: self.r_temp,
+                1: self.r_int,
+                2: self.r_aux,
+                3: self.r_v,
+                6: self.r_bram,
+                13: self.r_pint,
+                14: self.r_paux,
+                15: self.r_ddr,
+                16: self.r_b,
+                17: self.r_c,
+                24: self.r_a,
+                25: self.r_d,
+        }
 
-        self.comb += Cat(
-                self.r_temp.status, self.r_int.status, self.r_aux.status,
-                self.r_bram.status, self.r_pint.status, self.r_paux.status,
-                self.r_ddr.status, self.r_v.status,
-                self.r_b.status, self.r_c.status,
-                self.r_a.status, self.r_d.status
-            ).eq(Cat(self.adc))
+        self.sync += [
+                If(drdy,
+                    Case(channel, dict(
+                        (k, v.status.eq(data >> 4))
+                    for k, v in channels.items()))
+                )
+        ]
