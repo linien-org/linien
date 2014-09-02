@@ -18,11 +18,9 @@ class DeltaSigma(Module):
 
 
 class DeltaSigmaCSR(Module, AutoCSR):
-    def __init__(self, out, out_cd="sys", **kwargs):
+    def __init__(self, out, **kwargs):
         for i, o in enumerate(out):
             ds = DeltaSigma(**kwargs)
-            if out_cd != "sys":
-                ds = RenameClockDomains(ds, out_cd)
             self.submodules += ds
             cs = CSRStorage(flen(ds.data), name="data%i" % i)
             # atomic_write=True
@@ -53,9 +51,9 @@ if __name__ == "__main__":
     import matplotlib.pyplot as plt
     tb = TB(width=8)
     run_simulation(tb)
-    x, y = np.array(tb.x), np.array(tb.y)
     n = 1<<flen(tb.dut.data)
-    plt.plot(x.reshape(-1, n).mean(1))
-    plt.plot(y.reshape(-1, n).mean(1)*n)
-    #plt.plot(np.repeat(n
+    x = np.array(tb.x).reshape(-1, n)
+    y = np.array(tb.y).reshape(-1, n)
+    #plt.plot(x[:, 0], x[:, 0] - y.sum(1))
+    plt.plot(y.ravel())
     plt.show()
