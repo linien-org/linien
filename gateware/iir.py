@@ -17,6 +17,7 @@ class Iir(Filter):
         self.r_z0 = CSRStorage(intermediate_width - shift, reset=0)
         self.r_shift = CSRStatus(bits_for(shift), reset=shift)
         self.r_width = CSRStatus(bits_for(shift), reset=coeff_width)
+        self.r_interval = CSRStatus(8)
 
         self.c = c = {}
         for i in "ab":
@@ -97,3 +98,5 @@ class Iir(Filter):
 
         else:
             raise ValueError
+
+        self.r_interval.status.reset = self.interval

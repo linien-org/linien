@@ -6,7 +6,7 @@ class CRG(Module):
         self.clock_domains.cd_sys_quad = ClockDomain(reset_less=True)
         self.clock_domains.cd_sys_double = ClockDomain(reset_less=True)
         self.clock_domains.cd_sys = ClockDomain()
-        self.clock_domains.cd_sys_slow = ClockDomain(reset_less=True)
+        self.clock_domains.cd_sys_tenth = ClockDomain(reset_less=True)
         self.clock_domains.cd_sys_ps = ClockDomain()
         self.comb += [
                 self.cd_sys_ps.clk.eq(clk_ps),
@@ -52,7 +52,7 @@ class CRG(Module):
         ]
         self.specials += Instance("BUFG", i_I=clk_fb, o_O=clk_fbb)
         for i, o, d in zip(clk, clkb, [self.cd_sys_quad, self.cd_sys_double,
-            self.cd_sys, self.cd_sys_slow]):
+            self.cd_sys, self.cd_sys_tenth]):
             self.specials += Instance("BUFG", i_I=i, o_O=d.clk)
         self.specials += Instance("FD", p_INIT=1, i_D=~locked, i_C=self.cd_sys.clk,
                 o_Q=self.cd_sys.rst)
