@@ -209,15 +209,12 @@ def cross_connect(gpio, chains):
     for n, c in chains:
         for s in c.state_in:
             name = s.backtrace[-1][0] + "_en"
-            en = CSRStorage(flen(state), name=name)
-            setattr(c, name, en)
-            name = s.backtrace[-1][0] + "_inv"
-            inv = CSRStorage(flen(state), name=name)
-            setattr(c, name, inv)
-            c.sync += s.eq(((state ^ inv.storage) & en.storage) != 0)
+            csr = CSRStorage(flen(state), name=name)
+            setattr(c, name, csr)
+            c.sync += s.eq((state & csr.storage) != 0)
         for s in c.signal_in:
             name = s.backtrace[-1][0] + "_sel"
-            sel = CSRStorage(bits_for(len(signals)), name=name)
-            setattr(c, name, sel)
-            c.sync += s.eq(signals[sel.storage])
+            csr = CSRStorage(bits_for(len(signals)), name=name)
+            setattr(c, name, csr)
+            c.sync += s.eq(signals[csr.storage])
     return state_names, signal_names
