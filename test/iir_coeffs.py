@@ -89,7 +89,7 @@ def quantize_filter(b, a, shift=None, width=25):
     return b, a, shift
 
 
-def get_params(b, a, shift=None, width=25):
+def get_params(b, a, shift=None, width=25, interval=1):
     b, a, shift = quantize_filter(b, a, shift, width)
     params = {}
     for i, (ai, bi) in enumerate(zip(a, b)):

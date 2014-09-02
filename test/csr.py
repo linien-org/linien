@@ -28,9 +28,10 @@ class PitayaCSR:
 
     def set_iir(self, prefix, b, a, z=0):
         shift = self.get(prefix + "_shift") or 16
-        width = self.get(prefix + "_width") or 25
-        b, a, params = get_params(b, a, shift, width)
-        print(params)
+        width = self.get(prefix + "_width") or 18
+        interval = self.get(prefix + "_interval") or 1
+        b, a, params = get_params(b, a, shift, width, interval)
+        print(params, interval)
         for k in sorted(params):
             self.set(prefix + "_" + k, params[k])
         self.set(prefix + "_z0", z)
@@ -148,17 +149,14 @@ if __name__ == "__main__":
         fast_b_mod_freq=0x00000100,
         fast_b_dy_sel=p.signal("zero"),
 
-        slow_a_break=1,
-        slow_a_dx_sel=p.signal("fast_b_y"),
-        slow_a_clear_en=p.states(), #"slow_a_sat"),
-        #slow_a_x_limit_min=,
-        #slow_a_x_limit_max=0x0ffffff,
-        #slow_a_y_limit_min=0,
-        #slow_a_y_limit_max=0x7fff,
+        slow_a_break=0,
+        slow_a_dx_sel=p.signal("scopegen_dac_a"),
+        slow_a_clear_en=p.states("slow_a_sat"),
+        slow_a_y_limit_min=0,
 
         noise_bits=20,
         scopegen_adc_a_sel=p.signal("slow_a_x"),
-        scopegen_adc_b_sel=p.signal("slow_a_y"),
+        scopegen_adc_b_sel=p.signal("scopegen_dac_a"),
 
         gpio_p_oe=0,
         gpio_n_oe=0xff,
@@ -203,7 +201,8 @@ if __name__ == "__main__":
     p.set_iir("fast_b_iir_e", *make_filter("LP2", k=10, f=2e-4, q=1.5))
     #p.set_iir("fast_b_iir_e", *make_filter("LP2", k=10, f=1.5e-4, q=1.5))
     #p.set_iir("slow_a_iir", *make_filter("PI", k=-1e-3, f=1e-5), z=-0x10000)
-    p.set_iir("slow_a_iir", *make_filter("P", k=1), z=0x0800000)
+    p.set_iir("slow_a_iir", *make_filter("PI", k=-.001, f=1e-3), z=0)
+    #p.set_iir("slow_a_iir", *make_filter("P", k=1, f=1.), z=0)
 
     p.run()
 
