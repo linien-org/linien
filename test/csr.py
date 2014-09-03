@@ -79,11 +79,11 @@ class PitayaReal(PitayaCSR):
 class PitayaTB(PitayaCSR):
     def __init__(self):
         from transfer import Filter, CsrParams
-        from gateware.pid import Pid
+        from gateware.pid import FastChain
         self.params = {}
-        p = Pid()
-        p.x = p.in_a.adc
-        p.y = p.out_a.dac
+        p = FastChain()
+        p.x = p.adc
+        p.y = p.dac
         p = CsrParams(p, self.params)
         self.tb = Filter(p, [0, 0, 0, 0])
 
@@ -98,7 +98,7 @@ class PitayaTB(PitayaCSR):
 
 
 if __name__ == "__main__":
-    p = PitayaReal()
+    p = PitayaTB()
     #p = PitayaTB()
     #assert p.get("pid_version") == 1
     da = 0x2345
