@@ -74,8 +74,8 @@ def quantize_filter(b, a, shift=None, width=25):
             shift = min(shift, int(width - 1 - m))
     s = 1<<shift
     
-    b = [int(i*s) for i in b]
-    a = [int(i*s) for i in a]
+    b = [int(round(i*s)) for i in b]
+    a = [int(round(i*s)) for i in a]
 
     m = 1<<(width - 1)
     for i in b + a:
