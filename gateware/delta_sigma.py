@@ -4,7 +4,7 @@ from migen.sim.generic import run_simulation, StopSimulation
 
 
 class DeltaSigma(Module):
-    def __init__(self, width=24):
+    def __init__(self, width=12):
         self.data = Signal(width)
         self.out = Signal()
 
@@ -18,17 +18,17 @@ class DeltaSigma(Module):
 
 
 class DeltaSigma2(Module):
-    def __init__(self, width=24):
+    def __init__(self, width=12):
         self.data = Signal(width)
         self.out = Signal()
 
         ###
 
         delta = Signal(width + 1)
-        i1 = Signal(width + 2)
-        i2 = Signal(width + 2)
-        sigma1 = Signal(width + 2)
-        sigma2 = Signal(width + 2)
+        i1 = Signal(width + 3)
+        i2 = Signal(width + 3)
+        sigma1 = Signal(width + 3)
+        sigma2 = Signal(width + 3)
         self.comb += [
                 delta.eq(self.out << width),
                 i1.eq(self.data - delta + sigma1),
@@ -53,10 +53,10 @@ class DeltaSigmaCSR(Module, AutoCSR):
 
 
 class TB(Module):
-    def __init__(self, dut):
+    def __init__(self, dut, x):
         self.submodules.dut = dut
         n = 1<<flen(self.dut.data)
-        self.x = [j for j in range(n) for i in range(n)]
+        self.x = x
         self.y = []
         self.gen = iter(self.x)
 
@@ -74,12 +74,16 @@ class TB(Module):
 if __name__ == "__main__":
     import numpy as np
     import matplotlib.pyplot as plt
-    dut = DeltaSigma(8)
-    tb = TB(dut)
-    run_simulation(tb)
-    n = 1<<flen(tb.dut.data)
-    x = np.array(tb.x).reshape(-1, n)
-    y = np.array(tb.y).reshape(-1, n)
-    plt.plot(x[:, 0], x[:, 0] - y.sum(1))
-    #plt.plot(y.ravel())
+    for dut in DeltaSigma2(15), DeltaSigma(15):
+        n = 1<<flen(dut.data)
+        #x = [j for j in range(n) for i in range(n)]
+        x = (.5+.4*np.cos(.001*2*np.pi*np.arange(1<<14)))*(n-1)
+        tb = TB(dut, x)
+        run_simulation(tb)
+        #x = np.array(tb.x).reshape(-1, n)
+        #y = np.array(tb.y).reshape(-1, n)
+        #plt.plot(x[:, 0], x[:, 0] - y.sum(1))
+        #plt.plot(y.ravel())
+        plt.psd(np.array(tb.y), detrend=plt.mlab.detrend_mean, NFFT=4096*2)
+        plt.xscale("log")
     plt.show()
