@@ -49,9 +49,9 @@ class FastChain(Module, AutoCSR):
                 coeff_width=coeff_width, shift=coeff_width-2,
                 order=1)
         self.submodules.demod = Demodulate(width=width)
-        self.submodules.iir_b = Iir(width=signal_width,
-                coeff_width=2*coeff_width-1, order=2,
-                shift=2*coeff_width-3, mode="iterative")
+        self.submodules.iir_b = Iir(width=2*coeff_width,
+                coeff_width=signal_width, order=2,
+                shift=signal_width-2, mode="iterative")
         self.submodules.x_limit = LimitCSR(width=signal_width, guard=1)
         self.submodules.iir_c = Iir(width=signal_width,
                 coeff_width=coeff_width, shift=coeff_width-2,
@@ -59,9 +59,9 @@ class FastChain(Module, AutoCSR):
         self.submodules.iir_d = Iir(width=signal_width,
                 coeff_width=coeff_width, shift=coeff_width-2,
                 order=2)
-        self.submodules.iir_e = Iir(width=signal_width,
-                coeff_width=2*coeff_width-1, order=2,
-                shift=2*coeff_width-3, mode="iterative")
+        self.submodules.iir_e = Iir(width=2*coeff_width,
+                coeff_width=signal_width, order=2,
+                shift=signal_width-2, mode="iterative")
         self.submodules.relock = Relock(width=width + 1, step_width=24,
                 step_shift=16)
         self.submodules.sweep = SweepCSR(width=width, step_width=24,
@@ -72,6 +72,8 @@ class FastChain(Module, AutoCSR):
         ###
 
         s = signal_width - width
+        s1 = 2*coeff_width - width
+        s2 = 2*coeff_width - signal_width
         self.comb += [
                 self.iir_a.x.eq(self.adc << s),
                 self.iir_a.hold.eq(x_hold),
@@ -80,7 +82,7 @@ class FastChain(Module, AutoCSR):
                 self.demod.x.eq(self.iir_a.y >> s),
                 self.demod.phase.eq(self.mod.phase),
 
-                self.iir_b.x.eq(self.demod.y << s),
+                self.iir_b.x.eq(self.demod.y << s1),
                 self.iir_b.hold.eq(x_hold),
                 self.iir_b.clear.eq(x_clear),
 
@@ -91,7 +93,7 @@ class FastChain(Module, AutoCSR):
 
         ]
         xs = Array([self.iir_a.x, self.iir_a.y,
-                self.iir_b.x, self.iir_b.y])
+                self.iir_b.x >> s2, self.iir_b.y >> s2])
         self.sync += x.eq(xs[self.r_x_tap.storage])
         self.comb += [
                 self.x_limit.x.eq(Mux(self.r_break.storage, 0, x) + dx),
@@ -105,7 +107,7 @@ class FastChain(Module, AutoCSR):
                 self.iir_d.hold.eq(y_hold),
                 self.iir_d.clear.eq(y_clear),
 
-                self.iir_e.x.eq(self.iir_d.y),
+                self.iir_e.x.eq(self.iir_d.y << s2),
                 self.iir_e.hold.eq(y_hold),
                 self.iir_e.clear.eq(y_clear),
 
@@ -125,7 +127,7 @@ class FastChain(Module, AutoCSR):
         ]
         ya = Signal((width + 3, True))
         ys = Array([self.iir_c.x, self.iir_c.y,
-                    self.iir_d.y, self.iir_e.y])
+                    self.iir_d.y, self.iir_e.y >> s2])
         self.sync += ya.eq(optree("+", [self.mod.y, dy >> s, self.sweep.y,
                     self.relock.y])),
         self.comb += [
@@ -162,9 +164,9 @@ class SlowChain(Module, AutoCSR):
         ###
 
         self.submodules.x_limit = LimitCSR(width=signal_width, guard=1)
-        self.submodules.iir = Iir(width=signal_width,
-                coeff_width=2*coeff_width-1, order=2,
-                shift=2*coeff_width-3, mode="iterative")
+        self.submodules.iir = Iir(width=2*coeff_width,
+                coeff_width=signal_width, order=2,
+                shift=signal_width-2, mode="iterative")
         #self.submodules.sweep = SweepCSR(width=width, step_width=24,
         #        step_shift=18)
         self.submodules.y_limit = LimitCSR(width=width, guard=1)
@@ -172,14 +174,16 @@ class SlowChain(Module, AutoCSR):
         ###
 
         s = signal_width - width
+        s1 = 2*coeff_width - signal_width
+        s2 = 2*coeff_width - width
         self.comb += [
                 x.eq(self.adc << s),
                 self.x_limit.x.eq(Mux(self.r_break.storage, 0, x) + dx),
-                self.iir.x.eq(self.x_limit.y),
+                self.iir.x.eq(self.x_limit.y << s1),
                 self.iir.hold.eq(hold),
                 self.iir.clear.eq(clear),
                 sat.eq(self.iir.error),
-                self.y_limit.x.eq((self.iir.y >> s) + (dy >> s)),
+                self.y_limit.x.eq((self.iir.y >> s2) + (dy >> s)),
                 railed.eq(self.y_limit.error),
                 y.eq(self.y_limit.y << s),
                 self.dac.eq(y >> s)
