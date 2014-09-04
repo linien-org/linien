@@ -24,20 +24,16 @@ class DeltaSigma2(Module):
 
         ###
 
-        delta = Signal(width + 1)
-        i1 = Signal(width + 3)
-        i2 = Signal(width + 3)
         sigma1 = Signal(width + 3)
         sigma2 = Signal(width + 3)
+        o = Signal(width + 3)
         self.comb += [
-                delta.eq(self.out << width),
-                i1.eq(self.data - delta + sigma1),
-                i2.eq(i1 - delta + sigma2),
-                self.out.eq(sigma2[-1])
+                o.eq(self.data - sigma1 + (sigma2 << 1)),
+                self.out.eq(o[-1])
         ]
         self.sync += [
-                sigma1.eq(i1),
-                sigma2.eq(i2)
+                sigma1.eq(sigma2),
+                sigma2.eq(o - (self.out << width))
         ]
 
 
@@ -77,7 +73,7 @@ if __name__ == "__main__":
     for dut in DeltaSigma2(15), DeltaSigma(15):
         n = 1<<flen(dut.data)
         #x = [j for j in range(n) for i in range(n)]
-        x = (.5+.4*np.cos(.001*2*np.pi*np.arange(1<<14)))*(n-1)
+        x = (.5+.2*np.cos(.001*2*np.pi*np.arange(1<<17)))*(n-1)
         tb = TB(dut, x)
         run_simulation(tb)
         #x = np.array(tb.x).reshape(-1, n)
