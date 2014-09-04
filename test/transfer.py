@@ -1,12 +1,13 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.signal
+import threading
 
 from migen.fhdl.std import *
 from migen.sim.generic import run_simulation, StopSimulation
 from migen.bus.csr import Initiator
 from migen.bank.csrgen import get_offset, Bank
-from migen.bus.transactions import TWrite
+from migen.bus.transactions import TWrite, TRead
 
 from iir_coeffs import get_params
 
@@ -81,6 +82,49 @@ class CsrParams(Module):
                 vi = (v >> (i*8)) & 0xff
                 yield TWrite(a, vi)
                 a += 1
+
+
+class CsrThread(Module):
+    def __init__(self, dut, csrs=None):
+        self.queue = []
+        if csrs is None:
+            csrs = dut.get_csrs()
+        self.csrs = csrs
+        self.submodules.dut = dut
+        self.submodules.bank = Bank(csrs)
+        self.submodules.init = Initiator(self.gen(), self.bank.bus)
+        self.sim = threading.Thread(target=run_simulation,
+                args=(self,), kwargs=dict(vcd_name="pid_tb.vcd"))
+
+    def gen(self):
+        while True:
+            try:
+                q = self.queue.pop(0)
+                if isinstance(q, threading.Event):
+                    q.set()
+                elif q is None:
+                    break
+                elif isinstance(q, int):
+                    for i in range(q):
+                        yield
+                else:
+                    yield q
+            except IndexError:
+                yield None
+
+    def write(self, addr, value):
+        self.queue.append(TWrite(addr, value))
+        ev = threading.Event()
+        self.queue.append(ev)
+        ev.wait()
+
+    def read(self, addr):
+        t = TRead(addr)
+        self.queue.append(t)
+        ev = threading.Event()
+        self.queue.append(ev)
+        ev.wait()
+        return t.data
 
 
 class ResetParams(Module):
