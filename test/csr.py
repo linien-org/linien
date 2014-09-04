@@ -54,7 +54,10 @@ class PitayaReal(PitayaCSR):
     def __init__(self, url="root@192.168.3.42"):
         self.url = url
 
-    def run(self):
+    def start(self):
+        pass
+
+    def stop(self, n=None):
         pass
 
     def cmd(self, *cmd):
@@ -77,29 +80,40 @@ class PitayaReal(PitayaCSR):
 
 
 class PitayaTB(PitayaCSR):
-    def __init__(self):
-        from transfer import Filter, CsrParams
+    def __init__(self, x=None):
+        from transfer import Filter, CsrThread
         from gateware.pid import FastChain
-        self.params = {}
-        p = FastChain()
+        import numpy as np
+        p = FastChain(14, 25, 18)
         p.x = p.adc
         p.y = p.dac
-        p = CsrParams(p, self.params)
-        self.tb = Filter(p, [0, 0, 0, 0])
+        if x is None:
+            x = np.random.uniform(-.8, .8, 1<<12)
+        self.io = Filter(p, x)
+        self.csr = CsrThread(self.io, p.get_csrs())
+        self.offset = 0x40300000
 
-    def run(self):
-        return self.tb.run(vcd_name="pid_tb.vcd")
+    def start(self):
+        self.csr.sim.start()
+
+    def stop(self, n=0):
+        self.csr.queue.append(n)
+        self.csr.queue.append(None)
+        self.csr.sim.join()
 
     def set_one(self, addr, value):
-        self.params[(addr - 0x40300000)//4] = value
+        addr -= self.offset
+        return self.csr.write(addr//4, value)
 
     def get_one(self, addr):
-        return 0
+        addr -= self.offset
+        return self.csr.read(addr//4)
 
 
 if __name__ == "__main__":
+    #p = PitayaReal()
     p = PitayaTB()
-    #p = PitayaTB()
+    p.start()
     #assert p.get("pid_version") == 1
     da = 0x2345
     #assert p.get("deltasigma_data0") == da
@@ -116,7 +130,7 @@ if __name__ == "__main__":
             print(n, u*v)
 
     new = dict(
-        fast_a_x_tap=3,
+        fast_a_x_tap=0,
         fast_a_demod_phase=0x0400,
         fast_a_x_clear_en=0, #p.states("fast_a_x_sat"),
         fast_a_break=0,
@@ -180,7 +194,7 @@ if __name__ == "__main__":
     n = "fast_a_iir_c"
     p.set_iir("fast_a_iir_c", *make_filter("P", k=1., f=1))
     p.set_iir("fast_a_iir_d", *make_filter("P", k=1., f=1))
-    p.set_iir("fast_a_iir_e", *make_filter("I", k=0, f=4e-7))
+    p.set_iir("fast_a_iir_e", *make_filter("I", k=1, f=4e-7))
     #p.set_iir("fast_a_iir_e", *make_filter("IHO", k=-1e-3, f=1e-4, g=10, q=2.5))
     #p.set_iir(n, *make_filter("P", k=-1.047, f=1))
     #p.set_iir(n, *make_filter("I", k=4e-5, f=1))
@@ -209,11 +223,13 @@ if __name__ == "__main__":
     p.set_iir("slow_a_iir", *make_filter("PI", k=-.01, f=1e-4), z=0)
     #p.set_iir("slow_a_iir", *make_filter("P", k=1, f=1.), z=0)
 
-    p.run()
-
     settings = {}
     for n in sorted(p.map):
         settings[n] = v = p.get(n)
         print(n, hex(v))
 
+    p.stop(5000)
 
+    import matplotlib.pyplot as plt
+    plt.plot(p.io.y)
+    plt.show()
