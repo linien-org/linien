@@ -52,7 +52,9 @@ class PitayaReal(PitayaCSR):
     mon = "/opt/bin/monitor"
 
     def __init__(self, url="root@192.168.3.42"):
-        self.url = url
+        self.p = subprocess.Popen(("ssh", url, self.mon, "-"),
+                stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE)
 
     def start(self):
         pass
@@ -60,22 +62,16 @@ class PitayaReal(PitayaCSR):
     def stop(self, n=None):
         pass
 
-    def cmd(self, *cmd):
-        p = subprocess.Popen(("ssh", self.url) + cmd,
-                stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE)
-        o, e = p.communicate()
-        if e:
-            raise ValueError((cmd, o, e))
-        return o
-
     def set_one(self, addr, value):
-        cmd = "0x{:08x} 0x{:02x}".format(addr, value)
-        self.cmd(self.mon, *cmd.split())
+        cmd = "0x{:08x} w 0x{:02x}\n\n".format(addr, value)
+        self.p.stdin.write(cmd.encode("ascii"))
+        self.p.stdin.flush()
 
     def get_one(self, addr):
-        cmd = "0x{:08x}".format(addr)
-        ret = self.cmd(self.mon, *cmd.split())
+        cmd = "0x{:08x} w\n\n".format(addr)
+        self.p.stdin.write(cmd.encode("ascii"))
+        self.p.stdin.flush()
+        ret = self.p.stdout.readline().decode("ascii")
         return int(ret, 16)
 
 
@@ -111,8 +107,8 @@ class PitayaTB(PitayaCSR):
 
 
 if __name__ == "__main__":
-    #p = PitayaReal()
-    p = PitayaTB()
+    p = PitayaReal()
+    #p = PitayaTB()
     p.start()
     #assert p.get("pid_version") == 1
     da = 0x2345
@@ -231,5 +227,5 @@ if __name__ == "__main__":
     p.stop(5000)
 
     import matplotlib.pyplot as plt
-    plt.plot(p.io.y)
-    plt.show()
+    #plt.plot(p.io.y)
+    #plt.show()
