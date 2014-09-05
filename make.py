@@ -8,18 +8,18 @@ from gateware.redpid import RedPid
 from bit2bin import bit2bin
 
 def get_csrmap(banks):
-    csr_base = 0x40300000
-    for name, csrs, mapaddr, rmap in banks:
-        reg_addr = csr_base + 0x800*mapaddr
+    for name, csrs, map_addr, rmap in banks:
+        reg_addr = 0
         for csr in csrs:
-            yield [name, csr.name, reg_addr, csr.size, not hasattr(csr, "status")]
-            reg_addr += 4*((csr.size + 8 - 1)//8)
+            yield [name, csr.name, map_addr, reg_addr, csr.size,
+                    not hasattr(csr, "status")]
+            reg_addr += (csr.size + 8 - 1)//8
 
 
 def py_csrmap(it, fil):
     fil.write("csr = {\n")
     for reg in it:
-        fil.write("    '{}_{}': (0x{:08x}, {}, {}),\n".format(*reg))
+        fil.write("    '{}_{}': ({}, 0x{:03x}, {}, {}),\n".format(*reg))
     fil.write("}\n")
 
 
