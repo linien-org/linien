@@ -13,13 +13,13 @@ class Demodulate(Filter):
         self.r_phase = CSRStorage(width)
         self.phase = Signal(width)
 
-        self.submodules.cordic = Cordic(width=width, stages=width,
+        self.submodules.cordic = Cordic(width=width + 1, stages=width + 1,
                 guard=2,
                 eval_mode="pipelined", cordic_mode="rotate",
                 func_mode="circular")
         self.comb += [
                 self.cordic.xi.eq(self.x),
-                self.cordic.zi.eq(self.phase + self.r_phase.storage),
+                self.cordic.zi.eq((self.phase + self.r_phase.storage) << 1),
                 self.y.eq(self.cordic.xo >> 1)
         ]
 
@@ -29,8 +29,8 @@ class Modulate(Filter):
         Filter.__init__(self, **kwargs)
 
         width = flen(self.y)
+        self.r_amp = CSRStorage(width)
         self.r_freq = CSRStorage(freq_width)
-        self.r_amp = CSRStorage(width + 1)
         self.phase = Signal(width)
 
         z = Signal(freq_width)
@@ -49,8 +49,8 @@ class Modulate(Filter):
                 eval_mode="pipelined", cordic_mode="rotate",
                 func_mode="circular")
         self.comb += [
-                self.phase.eq(z[-width:]),
+                self.phase.eq(z[-flen(self.phase):]),
                 self.cordic.xi.eq(self.r_amp.storage + self.x),
-                self.cordic.zi.eq(self.phase),
+                self.cordic.zi.eq(self.phase << 1),
                 self.y.eq(self.cordic.xo >> 1)
         ]
