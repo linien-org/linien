@@ -132,7 +132,7 @@ if __name__ == "__main__":
         fast_a_demod_phase=0x0000,
         fast_a_x_clear_en=0, #p.states("fast_a_x_sat"),
         fast_a_break=0,
-        fast_a_dx_sel=p.signal("noise_y"),
+        fast_a_dx_sel=p.signal("zero"),
         fast_a_y_tap=3,
         fast_a_rx_sel=p.signal("fast_a_x"),
         fast_a_y_hold_en=p.states("fast_a_unlocked"),
@@ -146,12 +146,13 @@ if __name__ == "__main__":
         fast_a_sweep_step=100000,
         fast_a_sweep_min=-4000,
         fast_a_sweep_max=4000,
-        fast_a_mod_amp=0x0000,
-        fast_a_mod_freq=0x00004000,
+        fast_a_mod_amp=0x0004,
+        fast_a_mod_freq=0x000023450,
         fast_a_dy_sel=p.signal("scopegen_dac_a"),
         fast_a_y_limit_min=-8192,
         fast_a_y_limit_max=8191,
 
+        fast_b_x_tap=0,
         fast_b_break=1,
         fast_b_dx_sel=p.signal("noise_y"),
         fast_b_y_tap=3,
@@ -165,9 +166,9 @@ if __name__ == "__main__":
         slow_a_clear_en=p.states("slow_a_sat"),
         slow_a_y_limit_min=0,
 
-        noise_bits=22,
-        scopegen_adc_a_sel=p.signal("fast_a_x"),
-        scopegen_adc_b_sel=p.signal("fast_a_y"),
+        noise_bits=25,
+        scopegen_adc_a_sel=p.signal("fast_b_x"),
+        scopegen_adc_b_sel=p.signal("fast_b_y"),
 
         gpio_p_oe=0,
         gpio_n_oe=0xff,
@@ -188,12 +189,12 @@ if __name__ == "__main__":
     p.set_iir("fast_a_iir_a", *make_filter("HP", k=2, f=1e-5))
     #p.set_iir("fast_a_iir_b", *make_filter("LP", k=2000, f=5e-8))
     #p.set_iir("fast_a_iir_b", *make_filter("LP2", k=1000, f=5e-4, g=1e6, q=.5))
-    p.set_iir("fast_a_iir_b", *make_filter("LP", k=8000, f=1e-7))
+    p.set_iir("fast_a_iir_b", *make_filter("LP", k=5000, f=1e-7))
     n = "fast_a_iir_c"
     p.set_iir("fast_a_iir_c", *make_filter("P", k=1., f=1))
     p.set_iir("fast_a_iir_d", *make_filter("P", k=1., f=1))
     #p.set_iir("fast_a_iir_e", *make_filter("I", k=1, f=2e-7))
-    p.set_iir("fast_a_iir_e", *make_filter("LP", k=1, f=2e-7))
+    p.set_iir("fast_a_iir_e", *make_filter("LP", k=1, f=1e-7))
     #p.set_iir("fast_a_iir_e", *make_filter("IHO", k=-1e-3, f=1e-4, g=10, q=2.5))
     #p.set_iir(n, *make_filter("P", k=-1.047, f=1))
     #p.set_iir(n, *make_filter("I", k=4e-5, f=1))
@@ -209,14 +210,15 @@ if __name__ == "__main__":
     #p.set_iir(n, *make_filter("PI", f=2e-1, k=-1e-3))
     #p.set_iir(n, *make_filter("LP", f=1e-4, k=1.))
     #p.set_iir(n, *make_filter("I", k=4e-5, f=1))
-    p.set_iir("fast_b_iir_c", *make_filter("P", k=1, f=1))
+    p.set_iir("fast_b_iir_c", *make_filter("P", k=1, f=1e-5))
     #p.set_iir("fast_b_iir_d", *make_filter("P", k=.1, f=1))
-    p.set_iir("fast_b_iir_d", *make_filter("LP", k=2, f=.01))
+    p.set_iir("fast_b_iir_d", *make_filter("P", k=1, f=1e-5))
+    p.set_iir("fast_b_iir_e", *make_filter("LP", k=500, f=1e-7), z=-3000)
     #p.set_iir("fast_b_iir_e", *make_filter("LP", k=.1, f=1e-3, q=.5))
     #p.set_iir("fast_b_iir_e", *make_filter("LP", k=1000, f=1e-7, q=1.5))
     #p.set_iir("fast_b_iir_e", *make_filter("LP2", k=1, f=5e-4, q=3))
     #p.set_iir("fast_b_iir_e", *make_filter("IHO", k=.01, f=2e-3, q=10, g=10))
-    p.set_iir("fast_b_iir_e", *make_filter("NOTCH", k=1., f=5e-4, q=2))
+    #p.set_iir("fast_b_iir_e", *make_filter("NOTCH", k=1., f=5e-4, q=2))
     #p.set_iir("fast_b_iir_e", *make_filter("LP2", k=10, f=1.5e-4, q=1.5))
     #p.set_iir("slow_a_iir", *make_filter("PI", k=-1e-3, f=1e-5), z=-0x10000)
     p.set_iir("slow_a_iir", *make_filter("PI", k=-.01, f=1e-4), z=0)
