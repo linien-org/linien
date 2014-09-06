@@ -1,11 +1,12 @@
-from math import log2, ceil
+from math import log2, ceil, pi
 import warnings
 
-import numpy as np
 import scipy.signal
 
 
 def make_filter(name, k=1., f=0., g=1e20, q=.5):
+    f *= pi
+
     if name == "LP": # k/(s + 1)
         b = [f*k/(f + 2), f*k/(f + 2)]
         a = [1, (f - 2)/(f + 2)]
@@ -82,7 +83,7 @@ def quantize_filter(b, a, shift=None, width=25):
         assert -m <= i < m, (hex(i), hex(m))
 
     z, p, k = scipy.signal.tf2zpk(b, a)
-    if np.any(np.absolute(p) > 1):
+    if any(abs(_) > 1 for _ in p):
         warnings.warn("unstable filter: z={}, p={}, k={}".format(
             z, p, k), RuntimeWarning)
 

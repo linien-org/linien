@@ -155,7 +155,7 @@ if __name__ == "__main__":
         fast_b_x_tap=0,
         fast_b_break=1,
         fast_b_dx_sel=p.signal("noise_y"),
-        fast_b_y_tap=1,
+        fast_b_y_tap=3,
         fast_b_y_clear_en=p.states("fast_b_y_railed"),
         fast_b_mod_amp=0*0x2000,
         fast_b_mod_freq=0*0x00000100,
@@ -166,7 +166,7 @@ if __name__ == "__main__":
         slow_a_clear_en=p.states("slow_a_sat"),
         slow_a_y_limit_min=0,
 
-        noise_bits=24,
+        noise_bits=25,
         scopegen_adc_a_sel=p.signal("fast_b_x"),
         scopegen_adc_b_sel=p.signal("fast_b_y"),
 
@@ -210,11 +210,12 @@ if __name__ == "__main__":
     #p.set_iir(n, *make_filter("PI", f=2e-1, k=-1e-3))
     #p.set_iir(n, *make_filter("LP", f=1e-4, k=1.))
     #p.set_iir(n, *make_filter("I", k=4e-5, f=1))
-    p.set_iir("fast_b_iir_c", *make_filter("PD", k=.00001, f=1e-1))
+    p.set_iir("fast_b_iir_c", *make_filter("LP", k=5, f=2e-4))
     #p.set_iir("fast_b_iir_d", *make_filter("P", k=.1, f=1))
-    p.set_iir("fast_b_iir_d", *make_filter("LP", k=1, f=1e-2))
+    p.set_iir("fast_b_iir_d", *make_filter("LP", k=5, f=2e-4))
     #p.set_iir("fast_b_iir_e", *make_filter("LP", k=500, f=1e-7), z=-3000)
-    p.set_iir("fast_b_iir_e", *make_filter("HP", k=1, f=1e-5))
+    #p.set_iir("fast_b_iir_e", *make_filter("NOTCH", k=1, f=2e-4, q=.707))
+    p.set_iir("fast_b_iir_e", *make_filter("NOTCH", k=.9, f=2.2e-4, g=10., q=3.))
     #p.set_iir("fast_b_iir_e", *make_filter("LP", k=.1, f=1e-3, q=.5))
     #p.set_iir("fast_b_iir_e", *make_filter("LP", k=1000, f=1e-7, q=1.5))
     #p.set_iir("fast_b_iir_e", *make_filter("LP2", k=1, f=5e-4, q=3))
