@@ -118,13 +118,13 @@ if __name__ == "__main__":
     #print(hex(p.get("slow_dna_dna")))
     #assert p.get("slow_dna_dna") & 0x7f == 0b1000001
     print("temp", p.get("xadc_temp")*503.975/0xfff-273.15)
-    for u, ns in [(3./0xfff, "pint paux bram int aux ddr"),
+    for u, ns in [
             (1./0xfff*(30 + 4.99)/4.99, "a b c d"),
             (1./0xfff*(56 + 4.99)/4.99, "v")]:
         for n in ns.split():
             v = p.get("xadc_{}".format(n))
             if v & 0x800 and n in "abcd":
-                v = 0 #v - 0x1000
+                v = v - 0x1000
             print(n, u*v)
 
     new = dict(

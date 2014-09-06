@@ -271,17 +271,11 @@ csr = {
     'slow_d_clear_en': (5, 0x03f, 27, True),
     'slow_d_dx_sel': (5, 0x043, 4, True),
     'xadc_temp': (29, 0x000, 12, False),
-    'xadc_pint': (29, 0x002, 12, False),
-    'xadc_paux': (29, 0x004, 12, False),
-    'xadc_bram': (29, 0x006, 12, False),
-    'xadc_int': (29, 0x008, 12, False),
-    'xadc_aux': (29, 0x00a, 12, False),
-    'xadc_ddr': (29, 0x00c, 12, False),
-    'xadc_v': (29, 0x00e, 12, False),
-    'xadc_a': (29, 0x010, 12, False),
-    'xadc_b': (29, 0x012, 12, False),
-    'xadc_c': (29, 0x014, 12, False),
-    'xadc_d': (29, 0x016, 12, False),
+    'xadc_v': (29, 0x002, 12, False),
+    'xadc_a': (29, 0x004, 12, False),
+    'xadc_b': (29, 0x006, 12, False),
+    'xadc_c': (29, 0x008, 12, False),
+    'xadc_d': (29, 0x00a, 12, False),
 }
 states = ['force', 'di0', 'di1', 'di2', 'di3', 'di4', 'di5', 'di6', 'di7', 'fast_a_x_sat', 'fast_a_x_railed', 'fast_a_y_sat', 'fast_a_y_railed', 'fast_a_unlocked', 'fast_b_x_sat', 'fast_b_x_railed', 'fast_b_y_sat', 'fast_b_y_railed', 'fast_b_unlocked', 'slow_a_sat', 'slow_a_railed', 'slow_b_sat', 'slow_b_railed', 'slow_c_sat', 'slow_c_railed', 'slow_d_sat', 'slow_d_railed']
 signals = ['zero', 'fast_a_x', 'fast_a_y', 'fast_b_x', 'fast_b_y', 'slow_a_x', 'slow_a_y', 'slow_b_x', 'slow_b_y', 'slow_c_x', 'slow_c_y', 'slow_d_x', 'slow_d_y', 'scopegen_dac_a', 'scopegen_dac_b', 'noise_y']
