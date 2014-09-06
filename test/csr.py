@@ -107,8 +107,8 @@ class PitayaTB(PitayaCSR):
 
 
 if __name__ == "__main__":
-    p = PitayaReal("ssh -p 2201 root@localhost /opt/bin/monitor -")
-    #p = PitayaReal()
+    #p = PitayaReal("ssh -p 2201 root@localhost /opt/bin/monitor -")
+    p = PitayaReal()
     #p = PitayaTB()
     p.start()
     #assert p.get("pid_version") == 1
@@ -181,7 +181,7 @@ if __name__ == "__main__":
     )
     for k, v in sorted(new.items()):
         p.set(k, int(v))
-    
+
     # 182ns latency, 23 cycles (6 adc, 1 in, 1 comp, 1 in_a_y, 1 iir_x,
     # 1 iir_b0, 1 iir_y, 1 out_a_y, 1 out_a_lim_x, 1 out_dac, 1 comp, 1 oddr, 1
     # dac) = 18 + analog filter
