@@ -6,15 +6,9 @@ class XADC(Module, AutoCSR):
     def __init__(self, xadc):
         self.alarm = Signal(8)
         self.ot = Signal()
-        self.adc = [Signal((12, True)) for i in range(5)]
+        self.adc = [Signal((12, True)) for i in range(4)]
 
         self.r_temp = CSRStatus(12)
-        self.r_pint = CSRStatus(12)
-        self.r_paux = CSRStatus(12)
-        self.r_bram = CSRStatus(12)
-        self.r_int = CSRStatus(12)
-        self.r_aux = CSRStatus(12)
-        self.r_ddr = CSRStatus(12)
         self.r_v = CSRStatus(12)
         self.r_a = CSRStatus(12)
         self.r_b = CSRStatus(12)
@@ -28,7 +22,6 @@ class XADC(Module, AutoCSR):
                 self.adc[1].eq(self.r_b.status),
                 self.adc[2].eq(self.r_c.status),
                 self.adc[3].eq(self.r_d.status),
-                self.adc[4].eq(self.r_v.status)
         ]
 
         busy = Signal()
@@ -65,13 +58,7 @@ class XADC(Module, AutoCSR):
 
         channels = {
                 0: self.r_temp,
-                1: self.r_int,
-                2: self.r_aux,
                 3: self.r_v,
-                6: self.r_bram,
-                13: self.r_pint,
-                14: self.r_paux,
-                15: self.r_ddr,
                 16: self.r_b,
                 17: self.r_c,
                 24: self.r_a,
