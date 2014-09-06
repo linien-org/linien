@@ -2,7 +2,7 @@
 
 from migen.fhdl.std import *
 from migen.genlib.misc import optree
-from migen.bank.description import AutoCSR, CSRStorage
+from migen.bank.description import AutoCSR, CSRStorage, CSRStatus, CSR
 
 from .iir import Iir
 from .limit import LimitCSR
@@ -196,29 +196,48 @@ def cross_connect(gpio, chains):
     signal_names = ["zero"]
     signals = Array([0])
     for n, c in chains:
-        states.extend(c.state_out)
-        state_names += ["%s_%s" % (n, s.backtrace[-1][0])
-                for s in c.state_out]
-        signals.extend(c.signal_out)
-        signal_names += ["%s_%s" % (n, s.backtrace[-1][0])
-                for s in c.signal_out]
+        for s in c.state_out:
+            states.append(s)
+            state_names.append("%s_%s" % (n, s.backtrace[-1][0]))
+        for s in c.signal_out:
+            signals.append(s)
+            name = s.backtrace[-1][0]
+            signal_names.append("%s_%s" % (n, name))
+            sig = CSRStatus(flen(s), name=name)
+            clr = CSR(name="%s_clr" % name)
+            max = CSRStatus(flen(s), name="%s_max" % name)
+            min = CSRStatus(flen(s), name="%s_min" % name)
+            # setattr(c, sig.name, sig)
+            setattr(c, clr.name, clr)
+            setattr(c, max.name, max)
+            setattr(c, min.name, min)
+            c.comb += sig.status.eq(s)
+            c.sync += If(clr.re | (max.status < s), max.status.eq(s))
+            c.sync += If(clr.re | (min.status > s), min.status.eq(s))
     states = Cat(states)
     state = Signal(flen(states))
     gpio.comb += state.eq(states)
+    gpio.r_state = CSRStatus(flen(state))
+    gpio.r_state_clr = CSR()
+    gpio.sync += [
+            If(gpio.r_state_clr.re,
+                gpio.r_state.status.eq(0),
+            ).Else(
+                gpio.r_state.status.eq(gpio.r_state.status | state),
+            )
+    ]
     for i, s in enumerate(gpio.o):
-        name = "do%i_en" % i
-        csr = CSRStorage(flen(state), name=name)
-        setattr(gpio, name, csr)
+        csr = CSRStorage(flen(state), name="do%i_en" % i)
+        setattr(gpio, csr.name, csr)
         gpio.sync += s.eq((state & csr.storage) != 0)
     for n, c in chains:
         for s in c.state_in:
-            name = s.backtrace[-1][0] + "_en"
-            csr = CSRStorage(flen(state), name=name)
-            setattr(c, name, csr)
+            csr = CSRStorage(flen(state), name="%s_en" % s.backtrace[-1][0])
+            setattr(c, csr.name, csr)
             c.sync += s.eq((state & csr.storage) != 0)
         for s in c.signal_in:
-            name = s.backtrace[-1][0] + "_sel"
-            csr = CSRStorage(bits_for(len(signals) - 1), name=name)
-            setattr(c, name, csr)
+            csr = CSRStorage(bits_for(len(signals) - 1),
+                    name="%s_sel" % s.backtrace[-1][0])
+            setattr(c, csr.name, csr)
             c.sync += s.eq(signals[csr.storage])
     return state_names, signal_names
