@@ -12,9 +12,9 @@ class Iir(Filter):
         Filter.__init__(self, width)
         assert mode in ("pipelined", "iterative")
         if intermediate_width is None:
-            intermediate_width = width + coeff_width + bits_for(2*(order + 1))
+            intermediate_width = width + coeff_width # + bits_for(2*(order + 1))
 
-        self.r_z0 = CSRStorage(width, reset=0)
+        self.r_z0 = CSRStorage(intermediate_width - shift, reset=0)
         self.r_shift = CSRStatus(bits_for(shift), reset=shift)
         self.r_width = CSRStatus(bits_for(shift), reset=coeff_width)
         self.r_interval = CSRStatus(8)
@@ -34,9 +34,7 @@ class Iir(Filter):
         ###
 
         z = Signal((intermediate_width, True), name="z0r")
-        z0 = Signal((width, True))
-        self.comb += z0.eq(self.r_z0.storage)
-        self.sync += z.eq(z0 << shift)
+        self.sync += z.eq(self.r_z0.storage << shift)
 
         y_lim = Signal.like(self.y)
         y_next = Signal.like(z)
