@@ -26,9 +26,6 @@ def py_csrmap(it, fil):
 if __name__ == "__main__":
     platform = Platform()
     redpid = RedPid(platform)
-    platform.add_source_dir("verilog")
-    platform.build_cmdline(redpid, build_name="redpid")
-    bit2bin("build/redpid.bit", "build/redpid.bin", flip=True)
 
     fil = open("test/csrmap.py", "w")
     csr = get_csrmap(redpid.pid.csrbanks.banks)
@@ -36,3 +33,7 @@ if __name__ == "__main__":
     fil.write("states = {}\n".format(repr(redpid.pid.state_names)))
     fil.write("signals = {}\n".format(repr(redpid.pid.signal_names)))
     fil.close()
+
+    platform.add_source_dir("verilog")
+    platform.build_cmdline(redpid, build_name="redpid")
+    bit2bin("build/redpid.bit", "build/redpid.bin", flip=True)

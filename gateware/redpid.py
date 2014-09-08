@@ -11,8 +11,8 @@ from migen.bank.description import AutoCSR, CSRStatus
 from .pitaya_ps import SysCDC, Sys2CSR, SysInterconnect, PitayaPS, sys_layout
 from .crg import CRG
 from .analog import PitayaAnalog
-from .pid import FastChain, SlowChain, cross_connect
-from .slow import Gpio
+from .chains import FastChain, SlowChain, cross_connect
+from .gpio import Gpio
 from .xadc import XADC
 from .delta_sigma import DeltaSigma
 from .dna import DNA

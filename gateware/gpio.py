@@ -2,10 +2,6 @@ from migen.fhdl.std import *
 from migen.bank.description import *
 from migen.genlib.cdc import MultiReg
 
-from .xadc import XADC
-from .delta_sigma import DeltaSigmaCSR
-from .dna import DNA
-
 
 class Gpio(Module, AutoCSR):
     def __init__(self, pins):
@@ -26,19 +22,3 @@ class Gpio(Module, AutoCSR):
                 Cat([ti.oe for ti in t]).eq(self._r_oe.storage),
                 self._r_in.status.eq(self.i),
         ]
-
-
-class Slow(Module, AutoCSR):
-    def __init__(self, exp, pwm, leds, xadc):
-        self.submodules.gpio_n = Gpio(exp.n)
-        self.submodules.gpio_p = Gpio(exp.p)
-
-        self.submodules.deltasigma = DeltaSigmaCSR(pwm, out_cd="sys_double",
-                width=16) # rc=1e-4, 2.6 LSB max peak-peak noise
-
-        self.submodules.xadc = XADC(xadc)
-
-        self.r_led = CSRStorage(flen(leds))
-        self.comb += leds.eq(self.r_led.storage)
-
-        self.submodules.dna = DNA()
