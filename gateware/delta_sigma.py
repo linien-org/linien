@@ -1,3 +1,5 @@
+# (C) Roberr Jordens <jordens@gmail.com> 2014, 2015
+
 from migen.fhdl.std import *
 from migen.bank.description import *
 from migen.sim.generic import run_simulation, StopSimulation

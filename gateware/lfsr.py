@@ -1,3 +1,5 @@
+# (C) Roberr Jordens <jordens@gmail.com> 2014, 2015
+
 from migen.fhdl.std import *
 from migen.genlib.record import *
 from migen.bank.description import AutoCSR, CSRStorage

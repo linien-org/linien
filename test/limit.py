@@ -1,4 +1,4 @@
-
+# (C) Roberr Jordens <jordens@gmail.com> 2014, 2015
 
 class TB(Module):
     def __init__(self, **kwargs):

@@ -1,3 +1,5 @@
+# (C) Roberr Jordens <jordens@gmail.com> 2014, 2015
+
 from math import log2, ceil, pi
 import warnings
 

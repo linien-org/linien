@@ -1,3 +1,5 @@
+# (C) Roberr Jordens <jordens@gmail.com> 2014, 2015
+
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.signal
