@@ -1,9 +1,7 @@
-# Robert Jordens <jordens@gmail.com> 2014
+# (C) Roberr Jordens <jordens@gmail.com> 2014, 2015
 
 from mibuild.generic_platform import *
-from mibuild.crg import SimpleCRG
-from mibuild.xilinx_common import CRG_DS
-from mibuild.xilinx_vivado import XilinxVivadoPlatform
+from mibuild.xilinx.vivado import XilinxVivadoPlatform
 
 # https://github.com/RedPitaya/RedPitaya/blob/master/FPGA/release1/fpga/code/red_pitaya.xdc
 
@@ -110,7 +108,6 @@ _io += [
 class Platform(XilinxVivadoPlatform):
     def __init__(self):
         XilinxVivadoPlatform.__init__(self, "xc7z010-clg400-1", _io)
-                #lambda p: CRG_DS(p, "clk125", None))
 
     def do_finalize(self, fragment):
         try:
