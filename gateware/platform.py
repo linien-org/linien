@@ -6,20 +6,17 @@ from mibuild.xilinx.vivado import XilinxVivadoPlatform
 # https://github.com/RedPitaya/RedPitaya/blob/master/FPGA/release1/fpga/code/red_pitaya.xdc
 
 _io = [
-    ("clk125", 0,
-        Subsignal("p", Pins("U18")),
-        Subsignal("n", Pins("U19")),
-        IOStandard("DIFF_HSTL_I_18")
-    )
-]
-
-_io += [
     ("user_led", i, Pins(p), IOStandard("LVCMOS33"),
             Drive(4), Misc("SLEW SLOW")) for i, p in enumerate(
                 "F16 F17 G15 H15 K14 G14 J15 J14".split())
 ]
 
 _io += [
+    ("clk125", 0,
+        Subsignal("p", Pins("U18")),
+        Subsignal("n", Pins("U19")),
+        IOStandard("DIFF_HSTL_I_18")
+    ),
     ("adc", 0,
         Subsignal("clk", Pins("N20 P20")),
         Subsignal("cdcs", Pins("V18")),
