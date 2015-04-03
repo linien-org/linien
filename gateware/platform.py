@@ -1,7 +1,7 @@
 # (C) Roberr Jordens <jordens@gmail.com> 2014, 2015
 
 from mibuild.generic_platform import *
-from mibuild.xilinx.vivado import XilinxVivadoPlatform
+from mibuild.xilinx import XilinxPlatform
 
 # https://github.com/RedPitaya/RedPitaya/blob/master/FPGA/release1/fpga/code/red_pitaya.xdc
 
@@ -102,9 +102,10 @@ _io += [
 ]
 
 
-class Platform(XilinxVivadoPlatform):
+class Platform(XilinxPlatform):
     def __init__(self):
-        XilinxVivadoPlatform.__init__(self, "xc7z010-clg400-1", _io)
+        XilinxPlatform.__init__(self, "xc7z010-clg400-1", _io,
+                                toolchain="vivado")
 
     def do_finalize(self, fragment):
         try:
