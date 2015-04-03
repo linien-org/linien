@@ -217,13 +217,13 @@ def cross_connect(gpio, chains):
     states = Cat(states)
     state = Signal(flen(states))
     gpio.comb += state.eq(states)
-    gpio.r_state = CSRStatus(flen(state))
-    gpio.r_state_clr = CSR()
+    gpio.state = CSRStatus(flen(state))
+    gpio.state_clr = CSR()
     gpio.sync += [
-            If(gpio.r_state_clr.re,
-                gpio.r_state.status.eq(0),
+            If(gpio.state_clr.re,
+                gpio.state.status.eq(0),
             ).Else(
-                gpio.r_state.status.eq(gpio.r_state.status | state),
+                gpio.state.status.eq(gpio.state.status | state),
             )
     ]
     for i, s in enumerate(gpio.o):

@@ -121,16 +121,16 @@ class Pid(Module):
         self.submodules.fast_b = FastChain(14, s, c)
         self.submodules.slow_a = RenameClockDomains(SlowChain(16, s, c),
                 "sys_slow")
-        self.slow_a.iir.r_interval.status.reset *= 15
+        self.slow_a.iir._interval.status.reset *= 15
         self.submodules.slow_b = RenameClockDomains(SlowChain(16, s, c),
                 "sys_slow")
-        self.slow_b.iir.r_interval.status.reset *= 15
+        self.slow_b.iir._interval.status.reset *= 15
         self.submodules.slow_c = RenameClockDomains(SlowChain(16, s, c),
                 "sys_slow")
-        self.slow_c.iir.r_interval.status.reset *= 15
+        self.slow_c.iir._interval.status.reset *= 15
         self.submodules.slow_d = RenameClockDomains(SlowChain(16, s, c),
                 "sys_slow")
-        self.slow_d.iir.r_interval.status.reset *= 15
+        self.slow_d.iir._interval.status.reset *= 15
         self.submodules.scopegen = ScopeGen(s)
         #self.submodules.noise = LFSRGen(s)
         self.submodules.noise = XORSHIFTGen(s)
