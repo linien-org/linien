@@ -19,8 +19,6 @@ from .dna import DNA
 from .lfsr import XORSHIFTGen
 
 
-#     tcl.append("read_xdc -ref processing_system7_v5_4_processing_system7 ../verilog/ system_processing_system7_0_0.xdc")
-
 
 class ScopeGen(Module, AutoCSR):
     def __init__(self, width=25):
