@@ -62,23 +62,23 @@ class SweepCSR(Filter):
         if step_width is None:
             step_width = width
 
-        self.r_shift = CSRStatus(bits_for(step_shift), reset=step_shift)
-        self.r_step = CSRStorage(step_width)
-        self.r_min = CSRStorage(width, reset=1<<(width - 1))
-        self.r_max = CSRStorage(width, reset=(1<<(width - 1)) - 1)
-        self.r_run = CSRStorage(1)
+        self._shift = CSRStatus(bits_for(step_shift), reset=step_shift)
+        self._step = CSRStorage(step_width)
+        self._min = CSRStorage(width, reset=1<<(width - 1))
+        self._max = CSRStorage(width, reset=(1<<(width - 1)) - 1)
+        self._run = CSRStorage(1)
 
         ###
 
         self.submodules.sweep = Sweep(width + step_shift + 1)
         self.submodules.limit = Limit(width + 1)
 
-        min, max = self.r_min.storage, self.r_max.storage
+        min, max = self._min.storage, self._max.storage
         self.comb += [
-                self.sweep.run.eq(~self.clear & self.r_run.storage),
+                self.sweep.run.eq(~self.clear & self._run.storage),
                 self.sweep.hold.eq(self.hold),
                 self.limit.x.eq(self.sweep.y >> step_shift),
-                self.sweep.step.eq(self.r_step.storage)
+                self.sweep.step.eq(self._step.storage)
         ]
         self.sync += [
                 self.limit.min.eq(Cat(min, min[-1])),

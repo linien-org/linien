@@ -10,20 +10,20 @@ class XADC(Module, AutoCSR):
         self.ot = Signal()
         self.adc = [Signal((12, True)) for i in range(4)]
 
-        self.r_temp = CSRStatus(12)
-        self.r_v = CSRStatus(12)
-        self.r_a = CSRStatus(12)
-        self.r_b = CSRStatus(12)
-        self.r_c = CSRStatus(12)
-        self.r_d = CSRStatus(12)
+        self._temp = CSRStatus(12)
+        self._v = CSRStatus(12)
+        self._a = CSRStatus(12)
+        self._b = CSRStatus(12)
+        self._c = CSRStatus(12)
+        self._d = CSRStatus(12)
 
         ###
 
         self.comb += [
-                self.adc[0].eq(self.r_a.status),
-                self.adc[1].eq(self.r_b.status),
-                self.adc[2].eq(self.r_c.status),
-                self.adc[3].eq(self.r_d.status),
+                self.adc[0].eq(self._a.status),
+                self.adc[1].eq(self._b.status),
+                self.adc[2].eq(self._c.status),
+                self.adc[3].eq(self._d.status),
         ]
 
         busy = Signal()
@@ -59,12 +59,12 @@ class XADC(Module, AutoCSR):
         )
 
         channels = {
-                0: self.r_temp,
-                3: self.r_v,
-                16: self.r_b,
-                17: self.r_c,
-                24: self.r_a,
-                25: self.r_d,
+                0: self._temp,
+                3: self._v,
+                16: self._b,
+                17: self._c,
+                24: self._a,
+                25: self._d,
         }
 
         self.sync += [

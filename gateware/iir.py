@@ -16,10 +16,10 @@ class Iir(Filter):
         if intermediate_width is None:
             intermediate_width = width + coeff_width # + bits_for(2*(order + 1))
 
-        self.r_z0 = CSRStorage(intermediate_width - shift, reset=0)
-        self.r_shift = CSRStatus(bits_for(shift), reset=shift)
-        self.r_width = CSRStatus(bits_for(shift), reset=coeff_width)
-        self.r_interval = CSRStatus(8)
+        self._z0 = CSRStorage(intermediate_width - shift, reset=0)
+        self._shift = CSRStatus(bits_for(shift), reset=shift)
+        self._width = CSRStatus(bits_for(shift), reset=coeff_width)
+        self._interval = CSRStatus(8)
 
         self.c = c = {}
         for i in "ab":
@@ -36,7 +36,7 @@ class Iir(Filter):
         ###
 
         z = Signal((intermediate_width, True), name="z0r")
-        self.sync += z.eq(self.r_z0.storage << shift)
+        self.sync += z.eq(self._z0.storage << shift)
 
         y_lim = Signal.like(self.y)
         y_next = Signal.like(z)
@@ -101,4 +101,4 @@ class Iir(Filter):
         else:
             raise ValueError
 
-        self.r_interval.status.reset = self.interval
+        self._interval.status.reset = self.interval

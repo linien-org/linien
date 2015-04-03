@@ -28,7 +28,7 @@ class LFSRGen(Module, AutoCSR):
         self.state_in = ()
         self.state_out = ()
 
-        self.r_bits = CSRStorage(bits_for(width))
+        self._bits = CSRStorage(bits_for(width))
 
         taps = {
                 7: (6, 5),
@@ -43,7 +43,7 @@ class LFSRGen(Module, AutoCSR):
         self.sync += [
                 store.eq(Cat(self.gen.o, store)),
                 cnt.eq(cnt + 1),
-                If(cnt == self.r_bits.storage,
+                If(cnt == self._bits.storage,
                     cnt.eq(1),
                     y.eq(store),
                     store.eq(Replicate(self.gen.o, flen(store)))
@@ -76,12 +76,12 @@ class XORSHIFTGen(Module, AutoCSR):
         self.state_in = ()
         self.state_out = ()
 
-        self.r_bits = CSRStorage(bits_for(width))
+        self._bits = CSRStorage(bits_for(width))
 
         self.submodules.gen = XORSHIFT(**kwargs)
         q = Signal(width)
         self.sync += [
-                q.eq(self.gen.state[:width] >> (width - self.r_bits.storage)),
+                q.eq(self.gen.state[:width] >> (width - self._bits.storage)),
                 y.eq(q[1:] ^ (Replicate(q[0], width)))
         ]
 
@@ -108,11 +108,11 @@ if __name__ == "__main__":
     tb = _TB(LFSR(4, [3, 0]))
     run_simulation(tb, ncycles=20)
     print(tb.o)
-   
+
     raise
     import matplotlib.pyplot as plt
     import numpy as np
-    
+
     o = np.array(tb.o)
     #o = o/2.**flen(tb.dut.o) - .5
     #plt.psd(o)

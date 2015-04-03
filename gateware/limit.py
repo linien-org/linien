@@ -37,14 +37,14 @@ class LimitCSR(Filter):
         width = flen(self.y)
         if guard:
             self.x = Signal((width + guard, True))
-        self.r_min = CSRStorage(width, reset=1<<(width - 1))
-        self.r_max = CSRStorage(width, reset=(1<<(width - 1)) - 1)
+        self._min = CSRStorage(width, reset=1<<(width - 1))
+        self._max = CSRStorage(width, reset=(1<<(width - 1)) - 1)
 
         ###
 
         self.submodules.limit = Limit(width + guard)
 
-        min, max = self.r_min.storage, self.r_max.storage
+        min, max = self._min.storage, self._max.storage
         if guard:
             min = Cat(min, Replicate(min[-1], guard))
             max = Cat(max, Replicate(max[-1], guard))

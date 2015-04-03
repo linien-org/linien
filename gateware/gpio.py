@@ -10,9 +10,9 @@ class Gpio(Module, AutoCSR):
         n = flen(pins)
         self.i = Signal(n)
         self.o = Signal(n)
-        self._r_in = CSRStatus(n)
-        self._r_out = CSRStorage(n)
-        self._r_oe = CSRStorage(n)
+        self._in = CSRStatus(n)
+        self._out = CSRStorage(n)
+        self._oe = CSRStorage(n)
 
         ###
 
@@ -20,7 +20,7 @@ class Gpio(Module, AutoCSR):
         self.specials += [ti.get_tristate(pins[i]) for i, ti in enumerate(t)]
         self.specials += MultiReg(Cat([ti.i for ti in t]), self.i)
         self.comb += [
-                Cat([ti.o for ti in t]).eq(self._r_out.storage | self.o),
-                Cat([ti.oe for ti in t]).eq(self._r_oe.storage),
-                self._r_in.status.eq(self.i),
+                Cat([ti.o for ti in t]).eq(self._out.storage | self.o),
+                Cat([ti.oe for ti in t]).eq(self._oe.storage),
+                self._in.status.eq(self.i),
         ]

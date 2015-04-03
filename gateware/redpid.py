@@ -171,7 +171,7 @@ class Pid(Module):
 
 class DummyID(Module, AutoCSR):
     def __init__(self):
-        self.r_id = CSRStatus(1, reset=1)
+        self._id = CSRStatus(1, reset=1)
 
 
 class DummyHK(Module, AutoCSR):

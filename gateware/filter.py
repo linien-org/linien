@@ -14,5 +14,5 @@ class Filter(Module, AutoCSR):
         self.error = Signal()
 
         if False:
-            self.r_y = CSRStatus(width)
-            self.comb += self.r_y.status.eq(self.y)
+            self._y = CSRStatus(width)
+            self.comb += self._y.status.eq(self.y)

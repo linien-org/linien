@@ -16,9 +16,9 @@ class FastChain(Module, AutoCSR):
         self.adc = Signal((width, True))
         self.dac = Signal((width, True))
 
-        self.r_x_tap = CSRStorage(2)
-        self.r_break = CSRStorage(1)
-        self.r_y_tap = CSRStorage(2)
+        self._x_tap = CSRStorage(2)
+        self._break = CSRStorage(1)
+        self._y_tap = CSRStorage(2)
 
         x_hold = Signal()
         x_clear = Signal()
@@ -87,16 +87,16 @@ class FastChain(Module, AutoCSR):
                 self.iir_b.clear.eq(x_clear),
 
                 x_sat.eq(
-                    (self.iir_a.error & (self.r_x_tap.storage > 0)) |
-                    (self.iir_b.error & (self.r_x_tap.storage > 2))
+                    (self.iir_a.error & (self._x_tap.storage > 0)) |
+                    (self.iir_b.error & (self._x_tap.storage > 2))
                 ),
 
         ]
         xs = Array([self.iir_a.x, self.iir_a.y,
                 self.iir_b.x >> s2, self.iir_b.y >> s2])
-        self.sync += x.eq(xs[self.r_x_tap.storage])
+        self.sync += x.eq(xs[self._x_tap.storage])
         self.comb += [
-                self.x_limit.x.eq(Mux(self.r_break.storage, 0, x) + dx),
+                self.x_limit.x.eq(Mux(self._break.storage, 0, x) + dx),
                 x_railed.eq(self.x_limit.error),
 
                 self.iir_c.x.eq(self.x_limit.y),
@@ -112,9 +112,9 @@ class FastChain(Module, AutoCSR):
                 self.iir_e.clear.eq(y_clear),
 
                 y_sat.eq(
-                    (self.iir_c.error & (self.r_y_tap.storage > 1)) |
-                    (self.iir_d.error & (self.r_y_tap.storage > 2)) |
-                    (self.iir_e.error & (self.r_y_tap.storage > 3))
+                    (self.iir_c.error & (self._y_tap.storage > 1)) |
+                    (self.iir_d.error & (self._y_tap.storage > 2)) |
+                    (self.iir_e.error & (self._y_tap.storage > 3))
                 ),
 
                 self.sweep.clear.eq(0),
@@ -131,7 +131,7 @@ class FastChain(Module, AutoCSR):
         self.sync += ya.eq(optree("+", [self.mod.y, dy >> s, self.sweep.y,
                     self.relock.y])),
         self.comb += [
-                self.y_limit.x.eq((ys[self.r_y_tap.storage] >> s) + ya),
+                self.y_limit.x.eq((ys[self._y_tap.storage] >> s) + ya),
                 y.eq(self.y_limit.y << s),
                 y_railed.eq(self.y_limit.error),
 
@@ -149,7 +149,7 @@ class SlowChain(Module, AutoCSR):
         sat = Signal()
         railed = Signal()
 
-        self.r_break = CSRStorage(1)
+        self._break = CSRStorage(1)
 
         x = Signal((signal_width, True))
         dx = Signal((signal_width, True))
@@ -178,7 +178,7 @@ class SlowChain(Module, AutoCSR):
         s2 = 2*coeff_width - width
         self.comb += [
                 x.eq(self.adc << s),
-                self.x_limit.x.eq(Mux(self.r_break.storage, 0, x) + dx),
+                self.x_limit.x.eq(Mux(self._break.storage, 0, x) + dx),
                 self.iir.x.eq(self.x_limit.y << s1),
                 self.iir.hold.eq(hold),
                 self.iir.clear.eq(clear),
