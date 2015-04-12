@@ -2,8 +2,8 @@
 
 from migen.fhdl.std import *
 from migen.bank.description import CSRStorage
-from migen.genlib.cordic import Cordic
 
+from .cordic import Cordic
 from .filter import Filter
 
 
