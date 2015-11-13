@@ -1,0 +1,17 @@
+*~
+*-
+\#*#
+*.bak?
+*.bak??
+*.bak
+*.backup
+*.gbr
+*.png
+*.pd
+*.cnc
+*.ps
+*.eps
+*.pdf
+*.gerber-stamp
+*.bom
+gerber
