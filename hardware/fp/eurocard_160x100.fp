@@ -1,10 +1,10 @@
 
 Element["" "" "" "" 30.0000mm 30.0000mm 0.0000 0.0000 0 100 ""]
 (
-	Pad[8.0000mm 98.2500mm 6250.00mil 98.2500mm 1.5000mm 20.00mil 2.0080mm "1" "1" "square,edge2"]
-	Pad[8.0000mm 1.7500mm 6250.00mil 1.7500mm 1.5000mm 20.00mil 2.0080mm "1" "1" "square,edge2"]
-	Pad[8.0000mm 1.7500mm 6250.00mil 1.7500mm 1.5000mm 20.00mil 2.0080mm "1" "1" "onsolder,square,edge2"]
-	Pad[8.0000mm 98.2500mm 6250.00mil 98.2500mm 1.5000mm 20.00mil 2.0080mm "1" "1" "onsolder,square,edge2"]
+	Pad[8.0000mm 98.2500mm 6250.00mil 98.2500mm 1.5000mm 20.00mil 2.0080mm "1" "1" "square,edge2,nopaste"]
+	Pad[8.0000mm 1.7500mm 6250.00mil 1.7500mm 1.5000mm 20.00mil 2.0080mm "1" "1" "square,edge2,nopaste"]
+	Pad[8.0000mm 1.7500mm 6250.00mil 1.7500mm 1.5000mm 20.00mil 2.0080mm "1" "1" "onsolder,square,edge2,nopaste"]
+	Pad[8.0000mm 98.2500mm 6250.00mil 98.2500mm 1.5000mm 20.00mil 2.0080mm "1" "1" "onsolder,square,edge2,nopaste"]
 	ElementLine [0.0000 0.0000 160.0000mm 0.0000 10.00mil]
 	ElementLine [0.0000 100.0000mm 0.0000 0.0000 10.00mil]
 	ElementLine [160.0000mm 0.0000 160.0000mm 100.0000mm 10.00mil]
