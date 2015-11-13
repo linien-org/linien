@@ -48,3 +48,12 @@ T 67100 39900 5 10 1 1 0 0 1
 footprint=din41612_abc_male_angle
 }
 N 60400 37600 65900 37600 4
+C 57500 43300 1 0 0 hole-1.sym
+{
+T 57500 43300 5 10 0 1 0 0 1
+device=HOLE
+T 57700 43900 5 10 1 1 0 4 1
+refdes=U1
+T 57000 43100 5 10 1 1 0 0 1
+footprint=redpitaya
+}
