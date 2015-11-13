@@ -1,6 +1,6 @@
 TARGET ?= redpid
 
-PCB_PNG_FLAGS ?= --dpi 1200 --only-visible --use-alpha --format PNG \
+PCB_PNG_FLAGS ?= --dpi 300 --only-visible --use-alpha --format PNG \
 	--photo-mode --photo-mask-colour purple --photo-plating gold \
 	--photo-silk-colour white
 PCB_PRINT_PS_FLAGS ?= --drill-helper --align-marks --media Letter --scale 1 \
@@ -11,7 +11,7 @@ PCB_EPS_FLAGS ?= --only-visible
 PCB_GERBER_FLAGS ?= --name-style fixed
 PCB_BOM_FLAGS ?= --xy-unit mil
 GAF_PDF_FLAGS ?= --paper Letter --color
-GERBV_EXPORT_FLAGS ?= --border=5 --dpi=1200 --antialias
+GERBV_EXPORT_FLAGS ?= --border=5 --dpi=300 --antialias
 MERGE_DRILL ?= 1
 
 TSYMS := $(wildcard sym/*.tsym)
