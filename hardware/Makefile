@@ -87,7 +87,7 @@ pcb: $(TARGET).pcb
 
 %.sch.pdf: %.sch
 	# geda >= 1.9
-	strace -o d gaf export $(GAF_PDF_FLAGS) --output $@ $<
+	gaf export $(GAF_PDF_FLAGS) --output $@ $<
 	# gschem -p -s /usr/share/gEDA/scheme/print.scm -o $@ $<
 
 %.merged-sch.pdf: $(SCHEMATICS:.sch=.sch.pdf)
