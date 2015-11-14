@@ -1,0 +1,26 @@
+v 20150930 2
+C 70700 30800 1 0 0 DIN41612C96-1.sym
+{
+T 71000 44000 5 10 0 0 0 0 1
+device=DIN41612C96
+T 74000 43800 5 10 1 1 0 6 1
+refdes=J1
+T 71000 44250 5 10 0 0 0 0 1
+symversion=0.1
+T 71300 30900 5 10 1 1 0 0 1
+footprint=din41612_abc_male_angle
+}
+C 68500 43400 1 0 0 in-1.sym
+{
+T 68500 43700 5 10 0 0 0 0 1
+device=INPUT
+T 68500 43700 5 10 1 1 0 0 1
+refdes=pinlabel1
+}
+C 68600 42900 1 0 0 out-1.sym
+{
+T 68600 43200 5 10 0 0 0 0 1
+device=OUTPUT
+T 68600 43200 5 10 1 1 0 0 1
+refdes=pinlabel2
+}

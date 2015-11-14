@@ -1,4 +1,6 @@
 (component-library "./sym")
 (component-library ".")
+; (component-library-search "/path/to/mysymbollibs/")
+
 (source-library "./sch")
 (source-library ".")

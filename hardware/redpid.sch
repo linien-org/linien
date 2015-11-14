@@ -36,17 +36,6 @@ refdes=H4
 T 62800 37400 5 10 1 1 0 0 1
 footprint=europanel_bracket_top
 }
-C 66500 39800 1 0 0 DIN41612C96-1.sym
-{
-T 66800 53000 5 10 0 0 0 0 1
-device=DIN41612C96
-T 69800 52800 5 10 1 1 0 6 1
-refdes=J1
-T 66800 53250 5 10 0 0 0 0 1
-symversion=0.1
-T 67100 39900 5 10 1 1 0 0 1
-footprint=din41612_abc_male_angle
-}
 N 60400 37600 65900 37600 4
 C 57500 43300 1 0 0 hole-1.sym
 {
@@ -56,4 +45,11 @@ T 57700 43900 5 10 1 1 0 4 1
 refdes=U1
 T 57000 43100 5 10 1 1 0 0 1
 footprint=redpitaya
+}
+C 60200 43000 1 0 0 redpid_pwr.sym
+{
+T 60595 43100 5 10 1 1 0 0 1
+refdes=A1
+T 60895 43100 5 10 1 1 0 0 1
+source=redpid_pwr.sch
 }
