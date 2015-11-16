@@ -24,12 +24,13 @@ from .filter import Filter
 
 class Iir(Filter):
     def __init__(self, order=1, mode="pipelined",
-            width=25, coeff_width=18,
-            shift=16, intermediate_width=None):
+                 width=25, coeff_width=18,
+                 shift=16, intermediate_width=None):
         Filter.__init__(self, width)
         assert mode in ("pipelined", "iterative")
         if intermediate_width is None:
-            intermediate_width = width + coeff_width # + bits_for(2*(order + 1))
+            intermediate_width = width + coeff_width
+            # + bits_for(2*(order + 1))
 
         self._z0 = CSRStorage(intermediate_width - shift, reset=0)
         self._shift = CSRStatus(bits_for(shift), reset=shift)
@@ -60,21 +61,21 @@ class Iir(Filter):
         y = Signal.like(self.y)
         railed = Signal()
         self.comb += [
-                railed.eq(~((y_over == y_pat) | (y_over == ~y_pat))),
-                If(railed,
-                    y_lim.eq(self.y)
-                ).Else(
-                    y_lim.eq(y_next[shift:])
-                )
+            railed.eq(~((y_over == y_pat) | (y_over == ~y_pat))),
+            If(railed,
+                y_lim.eq(self.y)
+            ).Else(
+                y_lim.eq(y_next[shift:])
+            )
         ]
         self.sync += [
-                self.error.eq(railed),
-                self.y.eq(y_lim),
-                If(self.clear,
-                    y.eq(0)
-                ).Elif(~self.hold,
-                    y.eq(y_lim)
-                )
+            self.error.eq(railed),
+            self.y.eq(y_lim),
+            If(self.clear,
+                y.eq(0)
+            ).Elif(~self.hold,
+                y.eq(y_lim)
+            )
         ]
 
         if mode == "pipelined":
@@ -100,10 +101,14 @@ class Iir(Filter):
             steps = []
             x = [self.x] + [Signal.like(self.x) for i in range(order + 1)]
             for i in reversed(range(order + 1)):
-                steps.append([x[i + 1].eq(x[i]), ma.eq(x[i]), mb.eq(c["b%i" % i])])
+                steps.append([
+                    x[i + 1].eq(x[i]), ma.eq(x[i]), mb.eq(c["b%i" % i])
+                ])
             y = [None, y] + [Signal.like(y) for i in range(1, order + 1)]
             for i in reversed(range(1, order + 1)):
-                steps.append([y[i + 1].eq(y[i]), ma.eq(y[i]), mb.eq(c["a%i" % i])])
+                steps.append([
+                    y[i + 1].eq(y[i]), ma.eq(y[i]), mb.eq(c["a%i" % i])
+                ])
             steps[1].append(mc.eq(z))
             self.latency = order + 4
             if order == 1:

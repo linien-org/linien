@@ -15,6 +15,9 @@
 # You should have received a copy of the GNU General Public License
 # along with redpid.  If not, see <http://www.gnu.org/licenses/>.
 
+from functools import reduce
+from operator import xor
+
 from migen import *
 from misoc.interconnect.csr import AutoCSR, CSRStorage
 
@@ -30,7 +33,7 @@ class LFSR(Module):
         ###
 
         state = Signal(n)
-        self.comb += self.o.eq(~optree("^", [state[i] for i in taps]))
+        self.comb += self.o.eq(~reduce(xor, [state[i] for i in taps]))
         self.sync += Cat(state).eq(Cat(self.o, state))
 
 
@@ -100,28 +103,25 @@ class XORSHIFTGen(Module, AutoCSR):
         ]
 
 
-class _TB(Module):
-    def __init__(self, dut):
-        self.submodules.dut = dut
-        self.o = []
-
-    def do_simulation(self, selfp):
-        # print("{0:08x}".format(selfp.dut.o))
-        #self.o.append(selfp.dut.o)
-        print(selfp.simulator.cycle_counter, selfp.dut.o)
-    do_simulation.passive = True
+def tb(dut, o, n):
+    for i in range(n):
+        oi = yield dut.o
+        yield
+        #print("{0:08x}".format(oi))
+        o.append(oi)
+        print(i, oi)
 
 
 if __name__ == "__main__":
     from migen.fhdl import verilog
-    from migen.sim.generic import run_simulation
 
     lfsr = LFSR(4, [3, 2])
     print(verilog.convert(lfsr, ios={lfsr.o}))
 
-    tb = _TB(LFSR(4, [3, 0]))
-    run_simulation(tb, ncycles=20)
-    print(tb.o)
+    dut = LFSR(4, [3, 0])
+    o = []
+    run_simulation(dut, tb(dut, o, 20))
+    print(o)
 
     raise
     import matplotlib.pyplot as plt

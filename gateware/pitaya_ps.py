@@ -17,8 +17,9 @@
 
 from functools import reduce
 from operator import or_
+
 from migen import *
-from misoc.interconnect import csr, csr_bus, wishbone
+from misoc.interconnect import csr_bus, wishbone
 
 
 sys_layout = [

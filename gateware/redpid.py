@@ -16,7 +16,7 @@
 # along with redpid.  If not, see <http://www.gnu.org/licenses/>.
 
 from migen import *
-from misoc.interconnect import csr, csr_bus
+from misoc.interconnect import csr_bus
 from misoc.interconnect.csr import AutoCSR, CSRStatus
 
 # https://github.com/RedPitaya/RedPitaya/blob/master/FPGA/release1/fpga/code/rtl/red_pitaya_daisy.v
@@ -30,7 +30,6 @@ from .xadc import XADC
 from .delta_sigma import DeltaSigma
 from .dna import DNA
 from .lfsr import XORSHIFTGen
-
 
 
 class ScopeGen(Module, AutoCSR):

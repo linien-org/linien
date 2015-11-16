@@ -17,13 +17,12 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-import scipy.signal
 
 from migen.fhdl import verilog
-from migen.fhdl.std import *
+from migen import *
 
-from transfer import ResetTransfer, CsrTransfer
-from iir_coeffs import make_filter
+from .transfer import ResetTransfer, CsrTransfer
+from .iir_coeffs import make_filter
 
 from gateware.iir import Iir
 

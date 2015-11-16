@@ -38,34 +38,34 @@ class Sweep(Module):
         dir = Signal()
 
         self.comb += [
-                If(self.run,
-                    If(self.turn & ~turning,
-                        up.eq(~dir)
-                    ).Else(
-                        up.eq(dir)
-                    )
+            If(self.run,
+                If(self.turn & ~turning,
+                    up.eq(~dir)
                 ).Else(
-                    If(self.y < 0,
-                        up.eq(1)
-                    ).Elif(self.y > self.step,
-                        up.eq(0)
-                    ).Else(
-                        zero.eq(1)
-                    )
+                    up.eq(dir)
                 )
+            ).Else(
+                If(self.y < 0,
+                    up.eq(1)
+                ).Elif(self.y > self.step,
+                    up.eq(0)
+                ).Else(
+                    zero.eq(1)
+                )
+            )
         ]
         self.sync += [
-                turning.eq(self.turn),
-                dir.eq(up),
-                If(zero,
-                    self.y.eq(0)
-                ).Elif(~self.hold,
-                    If(up,
-                        self.y.eq(self.y + self.step),
-                    ).Else(
-                        self.y.eq(self.y - self.step),
-                    )
+            turning.eq(self.turn),
+            dir.eq(up),
+            If(zero,
+                self.y.eq(0)
+            ).Elif(~self.hold,
+                If(up,
+                    self.y.eq(self.y + self.step),
+                ).Else(
+                    self.y.eq(self.y - self.step),
                 )
+            )
         ]
 
 
@@ -79,8 +79,8 @@ class SweepCSR(Filter):
 
         self._shift = CSRStatus(bits_for(step_shift), reset=step_shift)
         self._step = CSRStorage(step_width)
-        self._min = CSRStorage(width, reset=1<<(width - 1))
-        self._max = CSRStorage(width, reset=(1<<(width - 1)) - 1)
+        self._min = CSRStorage(width, reset=1 << (width - 1))
+        self._max = CSRStorage(width, reset=(1 << (width - 1)) - 1)
         self._run = CSRStorage(1)
 
         ###
@@ -90,48 +90,40 @@ class SweepCSR(Filter):
 
         min, max = self._min.storage, self._max.storage
         self.comb += [
-                self.sweep.run.eq(~self.clear & self._run.storage),
-                self.sweep.hold.eq(self.hold),
-                self.limit.x.eq(self.sweep.y >> step_shift),
-                self.sweep.step.eq(self._step.storage)
+            self.sweep.run.eq(~self.clear & self._run.storage),
+            self.sweep.hold.eq(self.hold),
+            self.limit.x.eq(self.sweep.y >> step_shift),
+            self.sweep.step.eq(self._step.storage)
         ]
         self.sync += [
-                self.limit.min.eq(Cat(min, min[-1])),
-                self.limit.max.eq(Cat(max, max[-1])),
-                self.sweep.turn.eq(self.limit.railed),
-                self.y.eq(self.limit.y)
+            self.limit.min.eq(Cat(min, min[-1])),
+            self.limit.max.eq(Cat(max, max[-1])),
+            self.sweep.turn.eq(self.limit.railed),
+            self.y.eq(self.limit.y)
         ]
-
-
-
-class TB(Module):
-    def __init__(self, **kwargs):
-        self.submodules.sweep = Sweep(**kwargs)
-        self.out = []
-
-    def do_simulation(self, s):
-        if s.cycle_counter == 0:
-            s.wr(self.sweep.step, 1<<20)
-            s.wr(self.sweep.maxval, 1<<10)
-            s.wr(self.sweep.minval, 0xffff&(-(1<<10)))
-        self.out.append(s.rd(self.sweep.y))
 
 
 def main():
     from migen.fhdl import verilog
-    from migen.sim.generic import Simulator, TopLevel
     import matplotlib.pyplot as plt
 
-    s = Sweep()
+    def tb(sweep, out, n):
+        yield sweep.step.eq(1 << 20)
+        yield sweep.maxval.eq(1 << 10)
+        yield sweep.minval.eq(0xffff & (-(1 << 10)))
+        for i in range(n):
+            yield
+            out.append((yield sweep.y))
+
+    s = Sweep(16)
     print(verilog.convert(s, ios=set()))
 
     n = 200
-    tb = TB()
-    sim = Simulator(tb, TopLevel("sweep.vcd"))
-    sim.run(n)
-    plt.plot(tb.out)
+    out = []
+    dut = Sweep(16)
+    run_simulation(dut, tb(dut, out, n), vcd_name="sweep.vcd")
+    plt.plot(out)
     plt.show()
-
 
 
 if __name__ == "__main__":

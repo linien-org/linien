@@ -22,8 +22,8 @@ from migen.build.xilinx import XilinxPlatform
 
 _io = [
     ("user_led", i, Pins(p), IOStandard("LVCMOS33"),
-            Drive(4), Misc("SLEW SLOW")) for i, p in enumerate(
-                "F16 F17 G15 H15 K14 G14 J15 J14".split())
+     Drive(4), Misc("SLEW SLOW")) for i, p in enumerate(
+        "F16 F17 G15 H15 K14 G14 J15 J14".split())
 ]
 
 _io += [
@@ -36,15 +36,18 @@ _io += [
         Subsignal("clk", Pins("N20 P20")),
         Subsignal("cdcs", Pins("V18")),
         Subsignal("data_a", Pins("V17 U17 Y17 W16 Y16 W15 W14 Y14 "
-            "W13 V12 V13 T14 T15 V15 T16 V16"), Misc("IOB TRUE")),
+                                 "W13 V12 V13 T14 T15 V15 T16 V16"),
+                  Misc("IOB TRUE")),
         Subsignal("data_b", Pins("T17 R16 R18 P16 P18 N17 R19 T20 "
-            "T19 U20 V20 W20 W19 Y19 W18 Y18"), Misc("IOB TRUE")),
+                                 "T19 U20 V20 W20 W19 Y19 W18 Y18"),
+                  Misc("IOB TRUE")),
         IOStandard("LVCMOS18"), Drive(4)
     ),
 
-    ("dac", 0, 
+    ("dac", 0,
         Subsignal("data", Pins("M19 M20 L19 L20 K19 J19 J20 H20 "
-            "G19 G20 F19 F20 D20 D19"), Misc("SLEW SLOW"), Drive(4)),
+                               "G19 G20 F19 F20 D20 D19"),
+                  Misc("SLEW SLOW"), Drive(4)),
         # Misc("IOB TRUE")
         Subsignal("wrt", Pins("M17"), Drive(8), Misc("SLEW FAST")),
         Subsignal("sel", Pins("N16"), Drive(8), Misc("SLEW FAST")),
@@ -60,7 +63,7 @@ _io += [
     ("pwm", 2, Pins("P15"), IOStandard("LVCMOS18"),
         Misc("DRIVE=12"), Misc("SLEW FAST")),
     ("pwm", 3, Pins("U13"), IOStandard("LVCMOS18"),
-        Misc("DRIVE=12"), Misc("SLEW FAST")), # all IOB
+        Misc("DRIVE=12"), Misc("SLEW FAST")),  # all IOB
 
     ("xadc", 0,
         Subsignal("p", Pins("C20 E17 B19 E18 K9")),
@@ -91,27 +94,27 @@ _io += [
     ),
 
     ("cpu", 0,
-            Subsignal("mio", Pins("_ "*54)),
-            Subsignal("ps_clk", Pins("_ "*1)),
-            Subsignal("ps_porb", Pins("_ "*1)),
-            Subsignal("ps_srstb", Pins("_ "*1)),
-            Subsignal("ddr_vrn", Pins("_ "*1)),
-            Subsignal("ddr_vrp", Pins("_ "*1)),
-            Subsignal("DDR_addr", Pins("_ "*15)),
-            Subsignal("DDR_ba", Pins("_ "* 3)),
-            Subsignal("DDR_cas_n", Pins("_ "*1)),
-            Subsignal("DDR_ck_n", Pins("_ "*1)),
-            Subsignal("DDR_ck_p", Pins("_ "*1)),
-            Subsignal("DDR_cke", Pins("_ "*1)),
-            Subsignal("DDR_cs_n", Pins("_ "*1)),
-            Subsignal("DDR_dm", Pins("_ "* 4)),
-            Subsignal("DDR_dq", Pins("_ "*32)),
-            Subsignal("DDR_dqs_n", Pins("_ "* 4)),
-            Subsignal("DDR_dqs_p", Pins("_ "* 4)),
-            Subsignal("DDR_odt", Pins("_ "*1)),
-            Subsignal("DDR_ras_n", Pins("_ "*1)),
-            Subsignal("DDR_reset_n", Pins("_ "*1)),
-            Subsignal("DDR_we_n", Pins("_ "*1)),
+     Subsignal("mio", Pins("_ "*54)),
+     Subsignal("ps_clk", Pins("_ "*1)),
+     Subsignal("ps_porb", Pins("_ "*1)),
+     Subsignal("ps_srstb", Pins("_ "*1)),
+     Subsignal("ddr_vrn", Pins("_ "*1)),
+     Subsignal("ddr_vrp", Pins("_ "*1)),
+     Subsignal("DDR_addr", Pins("_ "*15)),
+     Subsignal("DDR_ba", Pins("_ "*3)),
+     Subsignal("DDR_cas_n", Pins("_ "*1)),
+     Subsignal("DDR_ck_n", Pins("_ "*1)),
+     Subsignal("DDR_ck_p", Pins("_ "*1)),
+     Subsignal("DDR_cke", Pins("_ "*1)),
+     Subsignal("DDR_cs_n", Pins("_ "*1)),
+     Subsignal("DDR_dm", Pins("_ "*4)),
+     Subsignal("DDR_dq", Pins("_ "*32)),
+     Subsignal("DDR_dqs_n", Pins("_ "*4)),
+     Subsignal("DDR_dqs_p", Pins("_ "*4)),
+     Subsignal("DDR_odt", Pins("_ "*1)),
+     Subsignal("DDR_ras_n", Pins("_ "*1)),
+     Subsignal("DDR_reset_n", Pins("_ "*1)),
+     Subsignal("DDR_we_n", Pins("_ "*1)),
     ),
 
 ]
@@ -131,10 +134,11 @@ class Platform(XilinxPlatform):
         try:
             clk125 = self.lookup_request("clk125")
             self.add_period_constraint(clk125.p, 8)
-            self.add_platform_command("set_clock_groups -asynchronous "
-                    "-group [get_clocks -include_generated_clocks {clk}] "
-                    "-group [get_clocks -include_generated_clocks clk_fpga_0]",
-                    clk=clk125.p)
+            self.add_platform_command(
+                "set_clock_groups -asynchronous "
+                "-group [get_clocks -include_generated_clocks {clk}] "
+                "-group [get_clocks -include_generated_clocks clk_fpga_0]",
+                clk=clk125.p)
             for i in range(2):
                 try:
                     adc = self.lookup_request("adc", i)

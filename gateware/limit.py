@@ -32,16 +32,16 @@ class Limit(Module):
         ###
 
         self.comb += [
-                If(self.x >= self.max,
-                    self.y.eq(self.max),
-                    self.railed.eq(1)
-                ).Elif(self.x <= self.min,
-                    self.y.eq(self.min),
-                    self.railed.eq(1)
-                ).Else(
-                    self.y.eq(self.x),
-                    self.railed.eq(0)
-                )
+            If(self.x >= self.max,
+                self.y.eq(self.max),
+                self.railed.eq(1)
+            ).Elif(self.x <= self.min,
+                self.y.eq(self.min),
+                self.railed.eq(1)
+            ).Else(
+                self.y.eq(self.x),
+                self.railed.eq(0)
+            )
         ]
 
 
@@ -52,8 +52,8 @@ class LimitCSR(Filter):
         width = len(self.y)
         if guard:
             self.x = Signal((width + guard, True))
-        self._min = CSRStorage(width, reset=1<<(width - 1))
-        self._max = CSRStorage(width, reset=(1<<(width - 1)) - 1)
+        self._min = CSRStorage(width, reset=1 << (width - 1))
+        self._max = CSRStorage(width, reset=(1 << (width - 1)) - 1)
 
         ###
 
@@ -64,11 +64,40 @@ class LimitCSR(Filter):
             min = Cat(min, Replicate(min[-1], guard))
             max = Cat(max, Replicate(max[-1], guard))
         self.comb += [
-                self.limit.x.eq(self.x)
+            self.limit.x.eq(self.x)
         ]
         self.sync += [
-                self.limit.min.eq(min),
-                self.limit.max.eq(max),
-                self.y.eq(self.limit.y),
-                self.error.eq(self.limit.railed)
+            self.limit.min.eq(min),
+            self.limit.max.eq(max),
+            self.y.eq(self.limit.y),
+            self.error.eq(self.limit.railed)
         ]
+
+
+def main():
+    from migen.fhdl import verilog
+    import matplotlib.pyplot as plt
+
+    s = Limit(16)
+    print(verilog.convert(s, ios=set()))
+
+    def tb(limit, x, y, n):
+        yield limit.maxval.eq(1 << 10)
+        yield limit.minval(-(1 << 10))
+        for i in range(n):
+            yield
+            yield limit.x.eq(-2*(yield limit.maxval) + (c << 6))
+            x.append((yield limit.x))
+            y.append((yield limit.y))
+
+    dut = Limit(16)
+    n = 1 << 6
+    x, y = [], []
+    run_simulation(dut, tb(dut, x, y, n), vcd_name="limit.vcd")
+    plt.plot(x)
+    plt.plot(y)
+    plt.show()
+
+
+if __name__ == "__main__":
+    main()

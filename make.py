@@ -28,7 +28,7 @@ def get_csrmap(banks):
         reg_addr = 0
         for csr in csrs:
             yield [name, csr.name, map_addr, reg_addr, csr.size,
-                    not hasattr(csr, "status")]
+                   not hasattr(csr, "status")]
             reg_addr += (csr.size + 8 - 1)//8
 
 

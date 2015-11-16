@@ -34,8 +34,8 @@ class Relock(Filter):
         self._shift = CSRStatus(bits_for(step_shift), reset=step_shift)
         self._step = CSRStorage(step_width)
         self._run = CSRStorage(1)
-        self._min = CSRStorage(width, reset=1<<(width - 1))
-        self._max = CSRStorage(width, reset=(1<<(width - 1)) - 1)
+        self._min = CSRStorage(width, reset=1 << (width - 1))
+        self._max = CSRStorage(width, reset=(1 << (width - 1)) - 1)
 
         ###
 
@@ -45,80 +45,74 @@ class Relock(Filter):
         cnt = Signal(width + step_shift + 1)
         range = Signal(max=len(cnt))
         self.sync += [
-                cnt.eq(cnt + 1),
-                If(~self.error, # stop sweep, drive to zero
-                    cnt.eq(0),
-                    range.eq(0)
-                ).Elif(self.clear | (self.sweep.y[-1] != self.sweep.y[-2]),
-                    # max range if we hit limit
-                    cnt.eq(0),
-                    range.eq(len(cnt) - 1)
-                ).Elif(Array(cnt)[range], # 1<<range steps, turn, inc range
-                    cnt.eq(0),
-                    If(range != len(cnt) - 1,
-                        range.eq(range + 1)
-                    )
-                ),
-                self.limit.min.eq(self._min.storage),
-                self.limit.max.eq(self._max.storage),
-                self.error.eq(self._run.storage & (self.limit.railed | self.hold)),
-                If(self.sweep.y[-1] == self.sweep.y[-2],
-                    self.y.eq(self.sweep.y >> step_shift)
+            cnt.eq(cnt + 1),
+            If(~self.error,  # stop sweep, drive to zero
+                cnt.eq(0),
+                range.eq(0)
+            ).Elif(self.clear | (self.sweep.y[-1] != self.sweep.y[-2]),
+                # max range if we hit limit
+                cnt.eq(0),
+                range.eq(len(cnt) - 1)
+            ).Elif(Array(cnt)[range],  # 1<<range steps, turn, inc range
+                cnt.eq(0),
+                If(range != len(cnt) - 1,
+                    range.eq(range + 1)
                 )
+            ),
+            self.limit.min.eq(self._min.storage),
+            self.limit.max.eq(self._max.storage),
+            self.error.eq(self._run.storage & (self.limit.railed | self.hold)),
+            If(self.sweep.y[-1] == self.sweep.y[-2],
+                self.y.eq(self.sweep.y >> step_shift)
+            )
         ]
         self.comb += [
-                # relock at limit.railed or trigger if not prevented by hold
-                # stop sweep at not relock
-                # drive error on relock to hold others
-                # turn at range or clear (from final limiter)
-                self.limit.x.eq(self.x),
-                self.sweep.step.eq(self._step.storage),
-                self.sweep.run.eq(self.error),
-                self.sweep.turn.eq(cnt == 0)
+            # relock at limit.railed or trigger if not prevented by hold
+            # stop sweep at not relock
+            # drive error on relock to hold others
+            # turn at range or clear (from final limiter)
+            self.limit.x.eq(self.x),
+            self.sweep.step.eq(self._step.storage),
+            self.sweep.run.eq(self.error),
+            self.sweep.turn.eq(cnt == 0)
         ]
 
 
-class TB(Module):
-    def __init__(self, **kwargs):
-        self.submodules.relock = Relock(**kwargs)
-        self.x = []
-        self.y = []
+def tb(relock, x, y):
+    yield relock._step.storage.eq(1 << 21)
+    yield relock._max.storage.eq(1024)
+    yield relock._min.storage.eq(0xffff & -1024)
 
-    def do_simulation(self, s):
-        if s.cycle_counter == 0:
-            s.wr(self.relock.step, 1<<21)
-            s.wr(self.relock.maxval, 1024)
-            s.wr(self.relock.minval, 0xffff&-1024)
-        elif s.cycle_counter < 200:
-            s.wr(self.relock.x, 0xffff&-2000)
-        elif s.cycle_counter < 400:
-            s.wr(self.relock.x, 2000)
-        elif s.cycle_counter > 900:
-            s.wr(self.relock.x, 0)
-        if s.rd(self.relock.y) > 3000:
-            s.wr(self.relock.railed, 1)
-        elif s.rd(self.relock.y) < -3000:
-            s.wr(self.relock.railed, 2)
+    for i in range(2000):
+        yield
+        if i < 200:
+            yield relock.x.eq(0xffff & -2000)
+        elif i < 400:
+            yield relock.x.eq(2000)
+        elif i < 900:
+            yield relock.x.eq(0)
+        if (yield relock.y) > 3000:
+            yield relock.limit.railed.eq(1)
+        elif (yield relock.y) < -3000:
+            yield relock.limit.railed.eq(2)
         else:
-            s.wr(self.relock.railed, 0)
-        self.x.append(s.rd(self.relock.x))
-        self.y.append(s.rd(self.relock.y))
+            yield relock.limit.railed.eq(0)
+        x.append((yield relock.x))
+        y.append((yield relock.y))
 
 
 def main():
     from migen.fhdl import verilog
-    from migen.sim.generic import Simulator, TopLevel
     import matplotlib.pyplot as plt
 
-    s = Relock()
+    s = Relock(width=16)
     print(verilog.convert(s, ios=set()))
 
-    n = 2000
-    tb = TB()
-    sim = Simulator(tb, TopLevel("relock.vcd"))
-    sim.run(n)
-    plt.plot(tb.x)
-    plt.plot(tb.y)
+    x, y = [], []
+    dut = Relock(width=16)
+    run_simulation(dut, tb(dut, x, y), vcd_name="relock.vcd")
+    plt.plot(x)
+    plt.plot(y)
     plt.show()
 
 
