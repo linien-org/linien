@@ -6,12 +6,17 @@ Overview
 
 Digital Servo.
 
-Hardware: RedPitaya: http://redpitaya.com/
+Hardware: `RedPitaya <http://redpitaya.com/>`_
+Gateware: using `Migen <https://github.com/m-labs/migen>`_,
+`Misoc <https://github.com/m-labs/misoc>`_, and some snippets from the
+`RedPitaya Verilog <https://github.com/RedPitaya/RedPitaya>`_.
+Software: basic CSR-over-SSH `CLI interface <test/csr.py>`_.
+Test benches: see e.g. `IIR transfer function <test/iir_transfer.py>`_.
 
 Features
 ########
 
-See `gateware/chains.py <gateware/chains.py>`_ for the full flowgraph. In general there are two "fast" signal chains, roughly from each of the fast analog input to the corresponding analog output, and four "slow" chains from each of the XADC inputs to the DeltaSigma outputs::
+See `gateware/chains.py <gateware/chains.py>`_ for the full flow graph. In general there are two "fast" signal chains, roughly from each of the fast analog input to the corresponding analog output, and four "slow" chains from each of the XADC inputs to the DeltaSigma outputs::
 
   * fast chain
     input: adc -> iir1_a (first order pipelined) -> demod -> iir2i_b (second order iterative)
