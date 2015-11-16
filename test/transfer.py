@@ -20,8 +20,7 @@ import matplotlib.pyplot as plt
 import scipy.signal
 import threading
 
-from migen.fhdl.std import *
-from migen.sim.generic import run_simulation, StopSimulation
+from migen import *
 from migen.bus.csr import Initiator
 from migen.bank.csrgen import get_offset, Bank
 from migen.bus.transactions import TWrite, TRead
