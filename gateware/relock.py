@@ -31,11 +31,11 @@ class Relock(Filter):
         if step_width is None:
             step_width = width
 
-        self._shift = CSRStatus(bits_for(step_shift), reset=step_shift)
-        self._step = CSRStorage(step_width)
-        self._run = CSRStorage(1)
-        self._min = CSRStorage(width, reset=1 << (width - 1))
-        self._max = CSRStorage(width, reset=(1 << (width - 1)) - 1)
+        self.shift = CSRStatus(bits_for(step_shift), reset=step_shift)
+        self.step = CSRStorage(step_width)
+        self.run = CSRStorage(1)
+        self.min = CSRStorage(width, reset=1 << (width - 1))
+        self.max = CSRStorage(width, reset=(1 << (width - 1)) - 1)
 
         ###
 
@@ -59,9 +59,9 @@ class Relock(Filter):
                     range.eq(range + 1)
                 )
             ),
-            self.limit.min.eq(self._min.storage),
-            self.limit.max.eq(self._max.storage),
-            self.error.eq(self._run.storage & (self.limit.railed | self.hold)),
+            self.limit.min.eq(self.min.storage),
+            self.limit.max.eq(self.max.storage),
+            self.error.eq(self.run.storage & (self.limit.railed | self.hold)),
             If(self.sweep.y[-1] == self.sweep.y[-2],
                 self.y.eq(self.sweep.y >> step_shift)
             )
@@ -72,16 +72,17 @@ class Relock(Filter):
             # drive error on relock to hold others
             # turn at range or clear (from final limiter)
             self.limit.x.eq(self.x),
-            self.sweep.step.eq(self._step.storage),
+            self.sweep.step.eq(self.step.storage),
             self.sweep.run.eq(self.error),
             self.sweep.turn.eq(cnt == 0)
         ]
 
 
 def tb(relock, x, y):
-    yield relock._step.storage.eq(1 << 21)
-    yield relock._max.storage.eq(1024)
-    yield relock._min.storage.eq(0xffff & -1024)
+    yield relock.run.storage.eq(1)
+    yield relock.step.storage.eq(1 << 8)
+    yield relock.max.storage.eq(1024)
+    yield relock.min.storage.eq(0xffff & -1024)
 
     for i in range(2000):
         yield
@@ -108,8 +109,8 @@ def main():
     s = Relock(width=16)
     print(verilog.convert(s, ios=set()))
 
-    x, y = [], []
     dut = Relock(width=16)
+    x, y = [], []
     run_simulation(dut, tb(dut, x, y), vcd_name="relock.vcd")
     plt.plot(x)
     plt.plot(y)

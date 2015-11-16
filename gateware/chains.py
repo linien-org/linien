@@ -15,9 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with redpid.  If not, see <http://www.gnu.org/licenses/>.
 
-from functools import reduce
-from operator import add
-
 from migen import *
 from misoc.interconnect.csr import AutoCSR, CSRStorage, CSRStatus, CSR
 
@@ -33,9 +30,9 @@ class FastChain(Module, AutoCSR):
         self.adc = Signal((width, True))
         self.dac = Signal((width, True))
 
-        self._x_tap = CSRStorage(2)
-        self._break = CSRStorage(1)
-        self._y_tap = CSRStorage(2)
+        self.x_tap = CSRStorage(2)
+        self.brk = CSRStorage(1)
+        self.y_tap = CSRStorage(2)
 
         x_hold = Signal()
         x_clear = Signal()
@@ -62,27 +59,27 @@ class FastChain(Module, AutoCSR):
 
         ###
 
-        self.submodules.iir_a = Iir(width=signal_width,
-                coeff_width=coeff_width, shift=coeff_width-2,
-                order=1)
+        self.submodules.iir_a = Iir(
+            width=signal_width, coeff_width=coeff_width, shift=coeff_width-2,
+            order=1)
         self.submodules.demod = Demodulate(width=width)
-        self.submodules.iir_b = Iir(width=2*coeff_width,
-                coeff_width=signal_width, order=2,
-                shift=signal_width-2, mode="iterative")
+        self.submodules.iir_b = Iir(
+            width=2*coeff_width, coeff_width=signal_width,
+            shift=signal_width-2, order=2, mode="iterative")
         self.submodules.x_limit = LimitCSR(width=signal_width, guard=1)
-        self.submodules.iir_c = Iir(width=signal_width,
-                coeff_width=coeff_width, shift=coeff_width-2,
-                order=1)
-        self.submodules.iir_d = Iir(width=signal_width,
-                coeff_width=coeff_width, shift=coeff_width-2,
-                order=2)
-        self.submodules.iir_e = Iir(width=2*coeff_width,
-                coeff_width=signal_width, order=2,
-                shift=signal_width-2, mode="iterative")
-        self.submodules.relock = Relock(width=width + 1, step_width=24,
-                step_shift=16)
-        self.submodules.sweep = SweepCSR(width=width, step_width=24,
-                step_shift=18)
+        self.submodules.iir_c = Iir(
+            width=signal_width, coeff_width=coeff_width, shift=coeff_width-2,
+            order=1)
+        self.submodules.iir_d = Iir(
+            width=signal_width, coeff_width=coeff_width, shift=coeff_width-2,
+            order=2)
+        self.submodules.iir_e = Iir(
+            width=2*coeff_width, coeff_width=signal_width,
+            shift=signal_width-2, order=2, mode="iterative")
+        self.submodules.relock = Relock(
+            width=width + 1, step_width=24, step_shift=16)
+        self.submodules.sweep = SweepCSR(
+            width=width, step_width=24, step_shift=18)
         self.submodules.mod = Modulate(width=width)
         self.submodules.y_limit = LimitCSR(width=width, guard=3)
 
@@ -92,67 +89,67 @@ class FastChain(Module, AutoCSR):
         s1 = 2*coeff_width - width
         s2 = 2*coeff_width - signal_width
         self.comb += [
-                self.iir_a.x.eq(self.adc << s),
-                self.iir_a.hold.eq(x_hold),
-                self.iir_a.clear.eq(x_clear),
+            self.iir_a.x.eq(self.adc << s),
+            self.iir_a.hold.eq(x_hold),
+            self.iir_a.clear.eq(x_clear),
 
-                self.demod.x.eq(self.iir_a.y >> s),
-                self.demod.phase.eq(self.mod.phase),
+            self.demod.x.eq(self.iir_a.y >> s),
+            self.demod.phase.eq(self.mod.phase),
 
-                self.iir_b.x.eq(self.demod.y << s1),
-                self.iir_b.hold.eq(x_hold),
-                self.iir_b.clear.eq(x_clear),
+            self.iir_b.x.eq(self.demod.y << s1),
+            self.iir_b.hold.eq(x_hold),
+            self.iir_b.clear.eq(x_clear),
 
-                x_sat.eq(
-                    (self.iir_a.error & (self._x_tap.storage > 0)) |
-                    (self.iir_b.error & (self._x_tap.storage > 2))
-                ),
-
+            x_sat.eq(
+                (self.iir_a.error & (self.x_tap.storage > 0)) |
+                (self.iir_b.error & (self.x_tap.storage > 2))
+            ),
         ]
         xs = Array([self.iir_a.x, self.iir_a.y,
-                self.iir_b.x >> s2, self.iir_b.y >> s2])
-        self.sync += x.eq(xs[self._x_tap.storage])
+                    self.iir_b.x >> s2, self.iir_b.y >> s2])
+        self.sync += x.eq(xs[self.x_tap.storage])
         self.comb += [
-                self.x_limit.x.eq(Mux(self._break.storage, 0, x) + dx),
-                x_railed.eq(self.x_limit.error),
+            self.x_limit.x.eq(Mux(self.brk.storage, 0, x) + dx),
+            x_railed.eq(self.x_limit.error),
 
-                self.iir_c.x.eq(self.x_limit.y),
-                self.iir_c.hold.eq(y_hold),
-                self.iir_c.clear.eq(y_clear),
+            self.iir_c.x.eq(self.x_limit.y),
+            self.iir_c.hold.eq(y_hold),
+            self.iir_c.clear.eq(y_clear),
 
-                self.iir_d.x.eq(self.iir_c.y),
-                self.iir_d.hold.eq(y_hold),
-                self.iir_d.clear.eq(y_clear),
+            self.iir_d.x.eq(self.iir_c.y),
+            self.iir_d.hold.eq(y_hold),
+            self.iir_d.clear.eq(y_clear),
 
-                self.iir_e.x.eq(self.iir_d.y << s2),
-                self.iir_e.hold.eq(y_hold),
-                self.iir_e.clear.eq(y_clear),
+            self.iir_e.x.eq(self.iir_d.y << s2),
+            self.iir_e.hold.eq(y_hold),
+            self.iir_e.clear.eq(y_clear),
 
-                y_sat.eq(
-                    (self.iir_c.error & (self._y_tap.storage > 1)) |
-                    (self.iir_d.error & (self._y_tap.storage > 2)) |
-                    (self.iir_e.error & (self._y_tap.storage > 3))
-                ),
+            y_sat.eq(
+                (self.iir_c.error & (self.y_tap.storage > 1)) |
+                (self.iir_d.error & (self.y_tap.storage > 2)) |
+                (self.iir_e.error & (self.y_tap.storage > 3))
+            ),
 
-                self.sweep.clear.eq(0),
-                self.sweep.hold.eq(0),
+            self.sweep.clear.eq(0),
+            self.sweep.hold.eq(0),
 
-                self.relock.x.eq(rx >> s),
-                self.relock.clear.eq(self.y_limit.error),
-                self.relock.hold.eq(relock),
-                unlocked.eq(self.relock.error)
+            self.relock.x.eq(rx >> s),
+            self.relock.clear.eq(self.y_limit.error),
+            self.relock.hold.eq(relock),
+            unlocked.eq(self.relock.error)
         ]
         ya = Signal((width + 3, True))
         ys = Array([self.iir_c.x, self.iir_c.y,
                     self.iir_d.y, self.iir_e.y >> s2])
-        self.sync += ya.eq(reduce(add, [self.mod.y, dy >> s, self.sweep.y,
-                    self.relock.y])),
+        self.sync += ya.eq(
+            (self.mod.y + (dy >> s)) +
+            (self.sweep.y + self.relock.y)),
         self.comb += [
-                self.y_limit.x.eq((ys[self._y_tap.storage] >> s) + ya),
-                y.eq(self.y_limit.y << s),
-                y_railed.eq(self.y_limit.error),
+            self.y_limit.x.eq((ys[self.y_tap.storage] >> s) + ya),
+            y.eq(self.y_limit.y << s),
+            y_railed.eq(self.y_limit.error),
 
-                self.dac.eq(self.y_limit.y)
+            self.dac.eq(self.y_limit.y)
         ]
 
 
@@ -166,7 +163,7 @@ class SlowChain(Module, AutoCSR):
         sat = Signal()
         railed = Signal()
 
-        self._break = CSRStorage(1)
+        self.brk = CSRStorage(1)
 
         x = Signal((signal_width, True))
         dx = Signal((signal_width, True))
@@ -181,9 +178,9 @@ class SlowChain(Module, AutoCSR):
         ###
 
         self.submodules.x_limit = LimitCSR(width=signal_width, guard=1)
-        self.submodules.iir = Iir(width=2*coeff_width,
-                coeff_width=signal_width, order=2,
-                shift=signal_width-2, mode="iterative")
+        self.submodules.iir = Iir(
+            width=2*coeff_width, coeff_width=signal_width, order=2,
+            shift=signal_width-2, mode="iterative")
         #self.submodules.sweep = SweepCSR(width=width, step_width=24,
         #        step_shift=18)
         self.submodules.y_limit = LimitCSR(width=width, guard=1)
@@ -194,16 +191,16 @@ class SlowChain(Module, AutoCSR):
         s1 = 2*coeff_width - signal_width
         s2 = 2*coeff_width - width
         self.comb += [
-                x.eq(self.adc << s),
-                self.x_limit.x.eq(Mux(self._break.storage, 0, x) + dx),
-                self.iir.x.eq(self.x_limit.y << s1),
-                self.iir.hold.eq(hold),
-                self.iir.clear.eq(clear),
-                sat.eq(self.iir.error),
-                self.y_limit.x.eq((self.iir.y >> s2) + (dy >> s)),
-                railed.eq(self.y_limit.error),
-                y.eq(self.y_limit.y << s),
-                self.dac.eq(y >> s)
+            x.eq(self.adc << s),
+            self.x_limit.x.eq(Mux(self.brk.storage, 0, x) + dx),
+            self.iir.x.eq(self.x_limit.y << s1),
+            self.iir.hold.eq(hold),
+            self.iir.clear.eq(clear),
+            sat.eq(self.iir.error),
+            self.y_limit.x.eq((self.iir.y >> s2) + (dy >> s)),
+            railed.eq(self.y_limit.error),
+            y.eq(self.y_limit.y << s),
+            self.dac.eq(y >> s)
         ]
 
 
@@ -237,11 +234,11 @@ def cross_connect(gpio, chains):
     gpio.state = CSRStatus(len(state))
     gpio.state_clr = CSR()
     gpio.sync += [
-            If(gpio.state_clr.re,
-                gpio.state.status.eq(0),
-            ).Else(
-                gpio.state.status.eq(gpio.state.status | state),
-            )
+        If(gpio.state_clr.re,
+            gpio.state.status.eq(0),
+        ).Else(
+            gpio.state.status.eq(gpio.state.status | state),
+        )
     ]
     for i, s in enumerate(gpio.o):
         csr = CSRStorage(len(state), name="do%i_en" % i)
@@ -254,7 +251,7 @@ def cross_connect(gpio, chains):
             c.sync += s.eq((state & csr.storage) != 0)
         for s in c.signal_in:
             csr = CSRStorage(bits_for(len(signals) - 1),
-                    name="%s_sel" % s.backtrace[-1][0])
+                             name="%s_sel" % s.backtrace[-1][0])
             setattr(c, csr.name, csr)
             c.sync += s.eq(signals[csr.storage])
     return state_names, signal_names

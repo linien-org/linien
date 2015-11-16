@@ -133,13 +133,13 @@ class Pid(Module):
         self.submodules.fast_b = FastChain(14, s, c)
         sys_slow = ClockDomainsRenamer("sys_slow")
         self.submodules.slow_a = sys_slow(SlowChain(16, s, c))
-        self.slow_a.iir._interval.status.reset *= 15
+        self.slow_a.iir.interval.status.reset *= 15
         self.submodules.slow_b = sys_slow(SlowChain(16, s, c))
-        self.slow_b.iir._interval.status.reset *= 15
+        self.slow_b.iir.interval.status.reset *= 15
         self.submodules.slow_c = sys_slow(SlowChain(16, s, c))
-        self.slow_c.iir._interval.status.reset *= 15
+        self.slow_c.iir.interval.status.reset *= 15
         self.submodules.slow_d = sys_slow(SlowChain(16, s, c))
-        self.slow_d.iir._interval.status.reset *= 15
+        self.slow_d.iir.interval.status.reset *= 15
         self.submodules.scopegen = ScopeGen(s)
         #self.submodules.noise = LFSRGen(s)
         self.submodules.noise = XORSHIFTGen(s)
@@ -180,7 +180,7 @@ class Pid(Module):
 
 class DummyID(Module, AutoCSR):
     def __init__(self):
-        self._id = CSRStatus(1, reset=1)
+        self.id = CSRStatus(1, reset=1)
 
 
 class DummyHK(Module, AutoCSR):

@@ -32,10 +32,10 @@ class Iir(Filter):
             intermediate_width = width + coeff_width
             # + bits_for(2*(order + 1))
 
-        self._z0 = CSRStorage(intermediate_width - shift, reset=0)
-        self._shift = CSRStatus(bits_for(shift), reset=shift)
-        self._width = CSRStatus(bits_for(shift), reset=coeff_width)
-        self._interval = CSRStatus(8)
+        self.z0 = CSRStorage(intermediate_width - shift, reset=0)
+        self.shift = CSRStatus(bits_for(shift), reset=shift)
+        self.width = CSRStatus(bits_for(shift), reset=coeff_width)
+        self.interval = CSRStatus(8)
 
         self.c = c = {}
         for i in "ab":
@@ -52,7 +52,7 @@ class Iir(Filter):
         ###
 
         z = Signal((intermediate_width, True), name="z0r")
-        self.sync += z.eq(self._z0.storage << shift)
+        self.sync += z.eq(self.z0.storage << shift)
 
         y_lim = Signal.like(self.y)
         y_next = Signal.like(z)
@@ -88,7 +88,7 @@ class Iir(Filter):
                 self.comb += z.eq(zr + signal*c[coeff])
             self.comb += y_next.eq(z)
             self.latency = order + 1
-            self.interval = 1
+            self._interval = 1
 
         elif mode == "iterative":
             ma = Signal.like(self.y)
@@ -116,9 +116,9 @@ class Iir(Filter):
                 self.latency += 1
             steps[int(order > 1)].append(y_next.eq(mp))
             self.sync += timeline(1, list(enumerate(steps)))
-            self.interval = len(steps)
+            self._interval = len(steps)
 
         else:
             raise ValueError
 
-        self._interval.status.reset = self.interval
+        self.interval.status.reset = self._interval
