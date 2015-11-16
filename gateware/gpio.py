@@ -15,14 +15,14 @@
 # You should have received a copy of the GNU General Public License
 # along with redpid.  If not, see <http://www.gnu.org/licenses/>.
 
-from migen.fhdl.std import *
-from migen.bank.description import *
+from migen import *
 from migen.genlib.cdc import MultiReg
+from misoc.interconnect.csr import CSRStorage, CSRStatus, AutoCSR
 
 
 class Gpio(Module, AutoCSR):
     def __init__(self, pins):
-        n = flen(pins)
+        n = len(pins)
         self.i = Signal(n)
         self.o = Signal(n)
         self._in = CSRStatus(n)

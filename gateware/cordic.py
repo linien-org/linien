@@ -17,7 +17,8 @@
 
 from math import atan, atanh, log, sqrt, pi
 
-from migen.fhdl.std import *
+from migen import *
+
 
 class TwoQuadrantCordic(Module):
 	"""Coordinate rotation digital computer
@@ -164,8 +165,8 @@ class TwoQuadrantCordic(Module):
 		  \\tan^{-1}(\\sqrt{m} s_{m,i})/\\sqrt{m}`.
 	"""
 	def __init__(self, width=16, widthz=None, stages=None, guard=0,
-			eval_mode="iterative", cordic_mode="rotate",
-			func_mode="circular"):
+				 eval_mode="iterative", cordic_mode="rotate",
+				 func_mode="circular"):
 		# validate parameters
 		assert eval_mode in ("combinatorial", "pipelined", "iterative")
 		assert cordic_mode in ("rotate", "vector")
@@ -178,7 +179,7 @@ class TwoQuadrantCordic(Module):
 		if widthz is None:
 			widthz = width
 		if stages is None:
-			stages = width + min(1, guard) # cuts error below LSB
+			stages = width + min(1, guard)  # cuts error below LSB
 
 		# input output interface
 		self.xi = Signal((width, True))
@@ -193,7 +194,7 @@ class TwoQuadrantCordic(Module):
 		###
 
 		a, s, self.zmax, self.gain = self._constants(stages, widthz + guard)
-		stages = len(a) # may have increased due to repetitions
+		stages = len(a)  # may have increased due to repetitions
 
 		if eval_mode == "iterative":
 			num_sig = 3
@@ -204,7 +205,7 @@ class TwoQuadrantCordic(Module):
 			self.interval = 1
 			if eval_mode == "pipelined":
 				self.latency = stages
-			else: # combinatorial
+			else:  # combinatorial
 				self.latency = 0
 
 		# inter-stage signals
@@ -215,54 +216,52 @@ class TwoQuadrantCordic(Module):
 		# hook up inputs and outputs to the first and last inter-stage
 		# signals
 		self.comb += [
-			x[0].eq(self.xi<<guard),
-			y[0].eq(self.yi<<guard),
-			z[0].eq(self.zi<<guard),
-			self.xo.eq(x[-1]>>guard),
-			self.yo.eq(y[-1]>>guard),
-			self.zo.eq(z[-1]>>guard),
+			x[0].eq(self.xi << guard),
+			y[0].eq(self.yi << guard),
+			z[0].eq(self.zi << guard),
+			self.xo.eq(x[-1] >> guard),
+			self.yo.eq(y[-1] >> guard),
+			self.zo.eq(z[-1] >> guard),
 			]
 
 		if eval_mode == "iterative":
 			# We afford one additional iteration for in/out.
 			i = Signal(max=stages + 1)
 			self.comb += [
-					self.new_in.eq(i == stages),
-					self.new_out.eq(i == 1),
-					]
+				self.new_in.eq(i == stages),
+				self.new_out.eq(i == 1),
+			]
 			ai = Signal((widthz + guard, True))
 			self.sync += ai.eq(Array(a)[i])
 			if range(stages) == s:
-				si = i - 1 # shortcut if no stage repetitions
+				si = i - 1  # shortcut if no stage repetitions
 			else:
 				si = Signal(max=stages + 1)
 				self.sync += si.eq(Array(s)[i])
 			xi, yi, zi = x[1], y[1], z[1]
 			self.sync += [
-					self._stage(xi, yi, zi, xi, yi, zi, si, ai),
-					i.eq(i + 1),
-					If(i == stages,
-						i.eq(0),
-					),
-					If(i == 0,
-						x[2].eq(xi),
-						y[2].eq(yi),
-						z[2].eq(zi),
-						xi.eq(x[0]),
-						yi.eq(y[0]),
-						zi.eq(z[0]),
-					)]
+				self._stage(xi, yi, zi, xi, yi, zi, si, ai),
+				i.eq(i + 1),
+				If(i == stages,
+				   i.eq(0),
+				),
+				If(i == 0,
+				   x[2].eq(xi), y[2].eq(yi), z[2].eq(zi),
+				   xi.eq(x[0]), yi.eq(y[0]), zi.eq(z[0]),
+				)
+			]
 		else:
 			self.comb += [
-					self.new_out.eq(1),
-					self.new_in.eq(1),
-					]
+				self.new_out.eq(1),
+				self.new_in.eq(1),
+			]
 			for i, si in enumerate(s):
 				stmt = self._stage(x[i], y[i], z[i],
-						x[i + 1], y[i + 1], z[i + 1], si, a[i])
+								   x[i + 1], y[i + 1], z[i + 1],
+								   si, a[i])
 				if eval_mode == "pipelined":
 					self.sync += stmt
-				else: # combinatorial
+				else:  # combinatorial
 					self.comb += stmt
 
 	def _constants(self, stages, bits):
@@ -281,7 +280,7 @@ class TwoQuadrantCordic(Module):
 			#zmax = sum(a)
 			# use 2 anyway as this simplifies a and scaling
 			zmax = 2.
-		else: # hyperbolic
+		else:  # hyperbolic
 			s = []
 			# need to repeat some stages:
 			j = 4
@@ -308,21 +307,22 @@ class TwoQuadrantCordic(Module):
 		dir = Signal()
 		if self.cordic_mode == "rotate":
 			self.comb += dir.eq(zi < 0)
-		else: # vector
+		else:  # vector
 			self.comb += dir.eq(yi >= 0)
-		dx = yi>>i
-		dy = xi>>i
+		dx = yi >> i
+		dy = xi >> i
 		dz = ai
 		if self.func_mode == "linear":
 			dx = 0
 		elif self.func_mode == "hyperbolic":
 			dx = -dx
 		stmt = [
-				xo.eq(xi + Mux(dir, dx, -dx)),
-				yo.eq(yi + Mux(dir, -dy, dy)),
-				zo.eq(zi + Mux(dir, dz, -dz))
+			xo.eq(xi + Mux(dir, dx, -dx)),
+			yo.eq(yi + Mux(dir, -dy, dy)),
+			zo.eq(zi + Mux(dir, dz, -dz))
 		]
 		return stmt
+
 
 class Cordic(TwoQuadrantCordic):
 	"""Four-quadrant CORDIC
@@ -334,7 +334,7 @@ class Cordic(TwoQuadrantCordic):
 	def __init__(self, **kwargs):
 		TwoQuadrantCordic.__init__(self, **kwargs)
 		if self.func_mode != "circular":
-			return # no need to remap quadrants
+			return  # no need to remap quadrants
 
 		cxi, cyi, czi = self.xi, self.yi, self.zi
 		self.xi = xi = Signal.like(cxi)
@@ -346,13 +346,13 @@ class Cordic(TwoQuadrantCordic):
 		q = Signal()
 		if self.cordic_mode == "rotate":
 			self.comb += q.eq(zi[-2] ^ zi[-1])
-		else: # vector
+		else:  # vector
 			self.comb += q.eq(xi < 0)
 		self.comb += [
-				If(q,
-					Cat(cxi, cyi, czi).eq(Cat(-xi, -yi,
-						zi + (1 << flen(zi) - 1)))
-				).Else(
-					Cat(cxi, cyi, czi).eq(Cat(xi, yi, zi))
-				)
+			If(q,
+				Cat(cxi, cyi, czi).eq(
+					Cat(-xi, -yi, zi + (1 << len(zi) - 1)))
+			).Else(
+				Cat(cxi, cyi, czi).eq(Cat(xi, yi, zi))
+			)
 		]

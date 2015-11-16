@@ -15,8 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with redpid.  If not, see <http://www.gnu.org/licenses/>.
 
-from migen.fhdl.std import *
-from migen.bank.description import CSRStorage, CSRStatus, AutoCSR
+from migen import *
+from misoc.interconnect.csr import CSRStatus, AutoCSR
 
 
 class Filter(Module, AutoCSR):

@@ -15,11 +15,9 @@
 # You should have received a copy of the GNU General Public License
 # along with redpid.  If not, see <http://www.gnu.org/licenses/>.
 
-from migen.fhdl.std import *
-from migen.genlib.record import Record
-from migen.bus import csr
-from migen.bank import csrgen
-from migen.bank.description import AutoCSR, CSRStatus
+from migen import *
+from misoc.interconnect import csr, csr_bus
+from misoc.interconnect.csr import AutoCSR, CSRStatus
 
 # https://github.com/RedPitaya/RedPitaya/blob/master/FPGA/release1/fpga/code/rtl/red_pitaya_daisy.v
 
@@ -55,7 +53,7 @@ class ScopeGen(Module, AutoCSR):
         asg_b = Signal((14, True))
         asg_trig = Signal()
 
-        s = width - flen(asg_a)
+        s = width - len(asg_a)
         self.comb += dac_a.eq(asg_a << s), dac_b.eq(asg_b << s)
 
         self.specials.scope = Instance("red_pitaya_scope",
@@ -114,9 +112,11 @@ class Pid(Module):
 
         self.submodules.xadc = XADC(platform.request("xadc"))
 
+        sys_double = ClockDomainsRenamer("sys_double")
+
         for i in range(4):
             pwm = platform.request("pwm", i)
-            ds = RenameClockDomains(DeltaSigma(width=15), "sys_double")
+            ds = sys_double(DeltaSigma(width=15))
             self.comb += pwm.eq(ds.out)
             setattr(self.submodules, "ds%i" % i, ds)
 
@@ -132,17 +132,14 @@ class Pid(Module):
         s, c = 25, 18
         self.submodules.fast_a = FastChain(14, s, c)
         self.submodules.fast_b = FastChain(14, s, c)
-        self.submodules.slow_a = RenameClockDomains(SlowChain(16, s, c),
-                "sys_slow")
+        sys_slow = ClockDomainsRenamer("sys_slow")
+        self.submodules.slow_a = sys_slow(SlowChain(16, s, c))
         self.slow_a.iir._interval.status.reset *= 15
-        self.submodules.slow_b = RenameClockDomains(SlowChain(16, s, c),
-                "sys_slow")
+        self.submodules.slow_b = sys_slow(SlowChain(16, s, c))
         self.slow_b.iir._interval.status.reset *= 15
-        self.submodules.slow_c = RenameClockDomains(SlowChain(16, s, c),
-                "sys_slow")
+        self.submodules.slow_c = sys_slow(SlowChain(16, s, c))
         self.slow_c.iir._interval.status.reset *= 15
-        self.submodules.slow_d = RenameClockDomains(SlowChain(16, s, c),
-                "sys_slow")
+        self.submodules.slow_d = sys_slow(SlowChain(16, s, c))
         self.slow_d.iir._interval.status.reset *= 15
         self.submodules.scopegen = ScopeGen(s)
         #self.submodules.noise = LFSRGen(s)
@@ -172,11 +169,11 @@ class Pid(Module):
                 self.ds3.data.eq(self.slow_d.dac),
         ]
 
-        self.submodules.csrbanks = csrgen.BankArray(self,
+        self.submodules.csrbanks = csr_bus.CSRBankArray(self,
                     lambda name, mem: csr_map[name if mem is None
                         else name + "_" + mem.name_override])
         self.submodules.sys2csr = Sys2CSR()
-        self.submodules.csrcon = csr.Interconnect(self.sys2csr.csr,
+        self.submodules.csrcon = csr_bus.Interconnect(self.sys2csr.csr,
                 self.csrbanks.get_buses())
         self.submodules.syscdc = SysCDC()
         self.comb += self.syscdc.target.connect(self.sys2csr.sys)
@@ -190,10 +187,10 @@ class DummyID(Module, AutoCSR):
 class DummyHK(Module, AutoCSR):
     def __init__(self):
         self.submodules.id = DummyID()
-        self.submodules.csrbanks = csrgen.BankArray(self,
+        self.submodules.csrbanks = csr_bus.CSRBankArray(self,
                     lambda name, mem: 0)
         self.submodules.sys2csr = Sys2CSR()
-        self.submodules.csrcon = csr.Interconnect(self.sys2csr.csr,
+        self.submodules.csrcon = csr_bus.Interconnect(self.sys2csr.csr,
                 self.csrbanks.get_buses())
         self.sys = self.sys2csr.sys
 
@@ -205,7 +202,7 @@ class RedPid(Module):
                 self.ps.fclk[0], ~self.ps.frstn[0])
         self.submodules.pid = Pid(platform)
 
-        self.submodules.hk = RenameClockDomains(DummyHK(), "sys_ps")
+        self.submodules.hk = ClockDomainsRenamer("sys_ps")(DummyHK())
 
         self.submodules.ic = SysInterconnect(self.ps.axi.sys,
                 self.hk.sys, self.pid.scopegen.scope_sys,

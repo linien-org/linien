@@ -15,8 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with redpid.  If not, see <http://www.gnu.org/licenses/>.
 
-from migen.fhdl.std import *
-from migen.bank.description import CSRStorage, CSRStatus
+from migen import *
+from misoc.interconnect.csr import CSRStorage, CSRStatus
 
 from .filter import Filter
 from .limit import Limit
@@ -27,7 +27,7 @@ class Relock(Filter):
     def __init__(self, step_width=None, step_shift=0, **kwargs):
         Filter.__init__(self, **kwargs)
 
-        width = flen(self.y)
+        width = len(self.y)
         if step_width is None:
             step_width = width
 
@@ -43,7 +43,7 @@ class Relock(Filter):
         self.submodules.limit = Limit(width)
 
         cnt = Signal(width + step_shift + 1)
-        range = Signal(max=flen(cnt))
+        range = Signal(max=len(cnt))
         self.sync += [
                 cnt.eq(cnt + 1),
                 If(~self.error, # stop sweep, drive to zero
@@ -52,10 +52,10 @@ class Relock(Filter):
                 ).Elif(self.clear | (self.sweep.y[-1] != self.sweep.y[-2]),
                     # max range if we hit limit
                     cnt.eq(0),
-                    range.eq(flen(cnt) - 1)
+                    range.eq(len(cnt) - 1)
                 ).Elif(Array(cnt)[range], # 1<<range steps, turn, inc range
                     cnt.eq(0),
-                    If(range != flen(cnt) - 1,
+                    If(range != len(cnt) - 1,
                         range.eq(range + 1)
                     )
                 ),

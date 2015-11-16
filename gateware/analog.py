@@ -15,15 +15,15 @@
 # You should have received a copy of the GNU General Public License
 # along with redpid.  If not, see <http://www.gnu.org/licenses/>.
 
-from migen.fhdl.std import *
+from migen import *
 
 
 class PitayaAnalog(Module):
     def __init__(self, adc, dac):
         self.comb += adc.cdcs.eq(1), adc.clk.eq(0b10)
 
-        # sign = 1<<(flen(dac.data) - 1)
-        size = flen(dac.data), True
+        # sign = 1<<(len(dac.data) - 1)
+        size = len(dac.data), True
 
         self.adc_a = Signal(size)
         self.adc_b = Signal(size)

@@ -15,9 +15,10 @@
 # You should have received a copy of the GNU General Public License
 # along with redpid.  If not, see <http://www.gnu.org/licenses/>.
 
-from migen.fhdl.std import *
-from migen.genlib.record import *
-from migen.bus import wishbone, csr
+from functools import reduce
+from operator import or_
+from migen import *
+from misoc.interconnect import csr, csr_bus, wishbone
 
 
 sys_layout = [
@@ -279,9 +280,9 @@ class SysInterconnect(Module):
                     s.ren.eq(sel & master.ren),
             ]
             ret = Cat(s.err, s.ack, s.rdata)
-            rets.append(Replicate(sel, flen(ret)) & ret)
+            rets.append(Replicate(sel, len(ret)) & ret)
         self.comb += Cat(master.err, master.ack, master.rdata).eq(
-                optree("|", rets))
+                reduce(or_, rets))
 
 
 class Sys2Wishbone(Module):
@@ -349,7 +350,7 @@ class SysCDC(Module):
 
 class Sys2CSR(Module):
     def __init__(self):
-        self.csr = csr.Interface()
+        self.csr = csr_bus.Interface()
         self.sys = Record(sys_layout)
 
         ###

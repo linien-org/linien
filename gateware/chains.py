@@ -15,9 +15,11 @@
 # You should have received a copy of the GNU General Public License
 # along with redpid.  If not, see <http://www.gnu.org/licenses/>.
 
-from migen.fhdl.std import *
-from migen.genlib.misc import optree
-from migen.bank.description import AutoCSR, CSRStorage, CSRStatus, CSR
+from functools import reduce
+from operator import add
+
+from migen import *
+from misoc.interconnect.csr import AutoCSR, CSRStorage, CSRStatus, CSR
 
 from .iir import Iir
 from .limit import LimitCSR
@@ -143,7 +145,7 @@ class FastChain(Module, AutoCSR):
         ya = Signal((width + 3, True))
         ys = Array([self.iir_c.x, self.iir_c.y,
                     self.iir_d.y, self.iir_e.y >> s2])
-        self.sync += ya.eq(optree("+", [self.mod.y, dy >> s, self.sweep.y,
+        self.sync += ya.eq(reduce(add, [self.mod.y, dy >> s, self.sweep.y,
                     self.relock.y])),
         self.comb += [
                 self.y_limit.x.eq((ys[self._y_tap.storage] >> s) + ya),
@@ -206,7 +208,7 @@ class SlowChain(Module, AutoCSR):
 
 
 def cross_connect(gpio, chains):
-    state_names = ["force"] + ["di%i" % i for i in range(flen(gpio.i))]
+    state_names = ["force"] + ["di%i" % i for i in range(len(gpio.i))]
     states = [1, gpio.i]
     signal_names = ["zero"]
     signals = Array([0])
@@ -218,10 +220,10 @@ def cross_connect(gpio, chains):
             signals.append(s)
             name = s.backtrace[-1][0]
             signal_names.append("%s_%s" % (n, name))
-            sig = CSRStatus(flen(s), name=name)
+            sig = CSRStatus(len(s), name=name)
             clr = CSR(name="%s_clr" % name)
-            max = CSRStatus(flen(s), name="%s_max" % name)
-            min = CSRStatus(flen(s), name="%s_min" % name)
+            max = CSRStatus(len(s), name="%s_max" % name)
+            min = CSRStatus(len(s), name="%s_min" % name)
             # setattr(c, sig.name, sig)
             setattr(c, clr.name, clr)
             setattr(c, max.name, max)
@@ -230,9 +232,9 @@ def cross_connect(gpio, chains):
             c.sync += If(clr.re | (max.status < s), max.status.eq(s))
             c.sync += If(clr.re | (min.status > s), min.status.eq(s))
     states = Cat(states)
-    state = Signal(flen(states))
+    state = Signal(len(states))
     gpio.comb += state.eq(states)
-    gpio.state = CSRStatus(flen(state))
+    gpio.state = CSRStatus(len(state))
     gpio.state_clr = CSR()
     gpio.sync += [
             If(gpio.state_clr.re,
@@ -242,12 +244,12 @@ def cross_connect(gpio, chains):
             )
     ]
     for i, s in enumerate(gpio.o):
-        csr = CSRStorage(flen(state), name="do%i_en" % i)
+        csr = CSRStorage(len(state), name="do%i_en" % i)
         setattr(gpio, csr.name, csr)
         gpio.sync += s.eq((state & csr.storage) != 0)
     for n, c in chains:
         for s in c.state_in:
-            csr = CSRStorage(flen(state), name="%s_en" % s.backtrace[-1][0])
+            csr = CSRStorage(len(state), name="%s_en" % s.backtrace[-1][0])
             setattr(c, csr.name, csr)
             c.sync += s.eq((state & csr.storage) != 0)
         for s in c.signal_in:

@@ -16,11 +16,12 @@
 # You should have received a copy of the GNU General Public License
 # along with redpid.  If not, see <http://www.gnu.org/licenses/>.
 
-from migen.fhdl.std import *
+from migen import *
 
 from gateware.platform import Platform
 from gateware.redpid import RedPid
 from bit2bin import bit2bin
+
 
 def get_csrmap(banks):
     for name, csrs, map_addr, rmap in banks:
@@ -50,5 +51,5 @@ if __name__ == "__main__":
     fil.close()
 
     platform.add_source_dir("verilog")
-    platform.build_cmdline(redpid, build_name="redpid")
+    platform.build(redpid, build_name="redpid")
     bit2bin("build/redpid.bit", "build/redpid.bin", flip=True)

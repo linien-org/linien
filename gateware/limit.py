@@ -15,8 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with redpid.  If not, see <http://www.gnu.org/licenses/>.
 
-from migen.fhdl.std import *
-from migen.bank.description import CSRStorage
+from migen import *
+from misoc.interconnect.csr import CSRStorage
 
 from .filter import Filter
 
@@ -49,7 +49,7 @@ class LimitCSR(Filter):
     def __init__(self, guard=0, **kwargs):
         Filter.__init__(self, **kwargs)
 
-        width = flen(self.y)
+        width = len(self.y)
         if guard:
             self.x = Signal((width + guard, True))
         self._min = CSRStorage(width, reset=1<<(width - 1))

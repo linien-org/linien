@@ -15,8 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with redpid.  If not, see <http://www.gnu.org/licenses/>.
 
-from migen.fhdl.std import *
-from migen.bank.description import CSRStorage, CSRStatus
+from migen import *
+from misoc.interconnect.csr import CSRStorage, CSRStatus
 
 from .filter import Filter
 from .limit import Limit
@@ -73,7 +73,7 @@ class SweepCSR(Filter):
     def __init__(self, step_width=None, step_shift=0, **kwargs):
         Filter.__init__(self, **kwargs)
 
-        width = flen(self.y)
+        width = len(self.y)
         if step_width is None:
             step_width = width
 

@@ -18,8 +18,7 @@
 
 from math import log, ceil
 
-from migen.fhdl.std import *
-from migen.genlib.misc import optree
+from migen import *
 
 
 class CIC(Module):
@@ -33,7 +32,7 @@ class CIC(Module):
 		self.x = Signal((width, True))
 		self.y = Signal((width, True))
 		self.stb = stb = Signal()
-		
+
 		##
 
 		bitgain = order*ceil(log(abs(rate))/log(2))
@@ -49,7 +48,7 @@ class CIC(Module):
 			x = self._pipe(self._integrators(x))
 			y = self._decimate(x)
 			y = self._pipe(self._combs(y))
-		self.comb += self.y.eq(y>>bitgain)
+		self.comb += self.y.eq(y >> bitgain)
 
 	def _delay(self, x, stb=None):
 		y = Signal((flen(x), True))

@@ -15,8 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with redpid.  If not, see <http://www.gnu.org/licenses/>.
 
-from migen.fhdl.std import *
-from migen.bank.description import CSRStorage
+from migen import *
+from misoc.interconnect.csr import CSRStorage
 
 from .cordic import Cordic
 from .filter import Filter
@@ -26,7 +26,7 @@ class Demodulate(Filter):
     def __init__(self, **kwargs):
         Filter.__init__(self, **kwargs)
 
-        width = flen(self.y)
+        width = len(self.y)
         self._phase = CSRStorage(width)
         self.phase = Signal(width)
 
@@ -45,7 +45,7 @@ class Modulate(Filter):
     def __init__(self, freq_width=32, **kwargs):
         Filter.__init__(self, **kwargs)
 
-        width = flen(self.y)
+        width = len(self.y)
         self._amp = CSRStorage(width)
         self._freq = CSRStorage(freq_width)
         self.phase = Signal(width)
@@ -66,7 +66,7 @@ class Modulate(Filter):
                 eval_mode="pipelined", cordic_mode="rotate",
                 func_mode="circular")
         self.comb += [
-                self.phase.eq(z[-flen(self.phase):]),
+                self.phase.eq(z[-len(self.phase):]),
                 self.cordic.xi.eq(self._amp.storage + self.x),
                 self.cordic.zi.eq(self.phase << 1),
                 self.y.eq(self.cordic.xo >> 1)

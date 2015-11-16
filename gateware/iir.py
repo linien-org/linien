@@ -15,9 +15,9 @@
 # You should have received a copy of the GNU General Public License
 # along with redpid.  If not, see <http://www.gnu.org/licenses/>.
 
-from migen.fhdl.std import *
+from migen import *
 from migen.genlib.misc import timeline
-from migen.bank.description import CSRStorage, CSRStatus
+from misoc.interconnect.csr import CSRStorage, CSRStatus
 
 from .filter import Filter
 
@@ -43,7 +43,7 @@ class Iir(Filter):
                 if name == "a0":
                     continue
                 ci = Signal((coeff_width, True), name=name)
-                rci = CSRStorage(flen(ci), name=name)
+                rci = CSRStorage(len(ci), name=name)
                 self.sync += ci.eq(rci.storage)
                 c[name] = ci
                 setattr(self, "r_" + name, rci)
