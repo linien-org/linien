@@ -6,12 +6,13 @@ Overview
 
 Digital Servo.
 
-Hardware: `RedPitaya <http://redpitaya.com/>`_
-Gateware: using `Migen <https://github.com/m-labs/migen>`_,
-`Misoc <https://github.com/m-labs/misoc>`_, and some snippets from the
-`RedPitaya Verilog <https://github.com/RedPitaya/RedPitaya>`_.
-Software: basic CSR-over-SSH `CLI interface <test/csr.py>`_.
-Test benches: see e.g. `IIR transfer function <test/iir_transfer.py>`_.
+* Hardware: `RedPitaya <http://redpitaya.com/>`_
+* Gateware: using `Migen <https://github.com/m-labs/migen>`_,
+  `Misoc <https://github.com/m-labs/misoc>`_, and some snippets from the
+  `RedPitaya Verilog <https://github.com/RedPitaya/RedPitaya>`_.
+* Software: basic CSR-over-SSH `CLI interface <test/csr.py>`_.
+* Test benches: see e.g. `IIR transfer function <test/iir_transfer.py>`_.
+
 
 Features
 ########
