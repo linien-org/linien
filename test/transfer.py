@@ -21,60 +21,66 @@ import scipy.signal
 import threading
 
 from migen import *
-from migen.bus.csr import Initiator
-from migen.bank.csrgen import get_offset, Bank
-from migen.bus.transactions import TWrite, TRead
+from misoc.interconnect import csr_bus
 
-from iir_coeffs import get_params
+from .iir_coeffs import get_params
 
 
 class Filter(Module):
     def __init__(self, dut, x, warmup=200, latency=0, interval=1):
         self.submodules.dut = dut
-        self.scale = 2**(flen(self.dut.x) - 1) - 1
+        self.scale = 2**(len(self.dut.x) - 1) - 1
 
         self.x = (self.scale*np.array(x)).astype(np.int)
-        self.xgen = iter(self.x)
-        self.ygen = []
         self.y = []
         warmup -= warmup % interval
         self.warmup = warmup
         self.latency = latency
         self.interval = interval
 
-    def do_simulation(self, selfp):
-        c = selfp.simulator.cycle_counter - self.warmup
-        if c < 0:
-            return
-        if len(self.y) == len(self.x):
-            raise StopSimulation
-        try:
-            if c % self.interval == 0:
-                selfp.dut.x = next(self.xgen)
-                self.ygen.append(c + 1 + self.latency)
-        except StopIteration:
-            pass
-        try:
-            if c == self.ygen[0]:
-                self.ygen.pop(0)
-                self.y.append(selfp.dut.y)
-        except IndexError:
-            pass
+    def tb(self):
+        yield from self.dut.writes()
+        for i in range(self.warmup):
+            yield
+        i = 0
+        q = []
+        for xi in self.x:
+            yield self.dut.x.eq(int(xi))
+            q.append(i + self.latency)
+            for j in range(self.interval):
+                if q[0] == i:
+                    self.y.append((yield self.dut.y))
+                    q.pop(0)
+                yield
+                i += 1
+        while q:
+            if q[0] == i:
+                self.y.append((yield self.dut.y))
+                q.pop(0)
+            yield
+            i += 1
 
     def run(self, **kwargs):
-        run_simulation(self, **kwargs)
+        run_simulation(self.dut, self.tb(), **kwargs)
         x = np.array(self.x)/self.scale
         y = np.array(self.y)/self.scale
         return x, y
 
 
+def get_offset(description, name, busword=8):
+    offset = 0
+    for c in description:
+        if c.name == name:
+            return offset
+        offset += (c.size + busword - 1)//busword
+    raise KeyError("CSR not found: "+name)
+
+
 class CsrParams(Module):
     def __init__(self, dut, params):
         self.submodules.dut = dut
-        self.desc = dut.get_csrs()
-        self.submodules.bank = Bank(self.desc)
-        self.submodules.init = Initiator(self.writes(),
-                self.bank.bus)
+        self.csrs = dut.get_csrs()
+        self.submodules.bank = csr_bus.CSRBank(self.csrs)
         self.params = params
         for k in dir(dut):
             v = getattr(dut, k)
@@ -83,12 +89,12 @@ class CsrParams(Module):
 
     def writes(self):
         for k in sorted(self.params):
-            for c in self.desc:
+            for c in self.csrs:
                 if c.name == k:
                     n = c.size
                     break
             if isinstance(k, str):
-                a = get_offset(self.desc, k)
+                a = get_offset(self.csrs, k)
             else:
                 a = k
                 n = 1
@@ -96,7 +102,7 @@ class CsrParams(Module):
             b = (n + 8 - 1)//8
             for i in reversed(range(b)):
                 vi = (v >> (i*8)) & 0xff
-                yield TWrite(a, vi)
+                yield from self.bank.bus.write(a, vi)
                 a += 1
 
 
@@ -107,10 +113,9 @@ class CsrThread(Module):
             csrs = dut.get_csrs()
         self.csrs = csrs
         self.submodules.dut = dut
-        self.submodules.bank = Bank(csrs)
-        self.submodules.init = Initiator(self.gen(), self.bank.bus)
+        self.submodules.bank = csr_bus.CSRBank(csrs)
         self.sim = threading.Thread(target=run_simulation,
-                args=(self,), kwargs=dict(vcd_name="pid_tb.vcd"))
+                args=(self, self.gen()), kwargs=dict(vcd_name="pid_tb.vcd"))
 
     def gen(self):
         while True:
@@ -120,22 +125,19 @@ class CsrThread(Module):
                     q.set()
                 elif q is None:
                     break
-                elif isinstance(q, int):
-                    for i in range(q):
-                        yield
                 else:
-                    yield q
+                    q.data = (yield from q)
             except IndexError:
-                yield None
+                yield
 
     def write(self, addr, value):
-        self.queue.append(TWrite(addr, value))
+        self.queue.append(self.bank.bus.write(addr, value))
         ev = threading.Event()
         self.queue.append(ev)
         ev.wait()
 
     def read(self, addr):
-        t = TRead(addr)
+        t = self.bank.bus.read(addr)
         self.queue.append(t)
         ev = threading.Event()
         self.queue.append(ev)
@@ -225,15 +227,15 @@ class Transfer:
 
 class ResetTransfer(Transfer):
     def wrap_dut(self, b, a, dut):
-        self.b, self.a, params = get_params(b, a, shift=dut.shift.reset,
-                width=flen(dut.a[1]))
+        self.b, self.a, params = get_params(b, a, shift=dut.shift.reset.value,
+                width=len(dut.a[1]))
         dut = ResetParams(dut, params)
         return dut
 
 
 class CsrTransfer(Transfer):
     def wrap_dut(self, b, a, dut):
-        self.b, self.a, params = get_params(b, a, shift=dut.r_shift.status.reset,
-                width=flen(dut.c["a1"]))
+        self.b, self.a, params = get_params(b, a, shift=dut._shift.status.reset.value,
+                width=len(dut.c["a1"]))
         dut = CsrParams(dut, params)
         return dut
