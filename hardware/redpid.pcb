@@ -1234,63 +1234,63 @@ Element["" "0603" "R201" "100k" 37.0000mm 97.0000mm -31.50mil -31.50mil 0 100 ""
 
 	)
 
-Element["" "sma_vert" "J205" "rp_out2" 145.0000mm 106.0000mm -230.00mil 22.00mil 1 100 ""]
+Element["" "sma_vert" "J205" "rp_out2" 145.0000mm 106.0000mm -22.00mil -230.00mil 0 100 ""]
 (
-	Pin[-100.00mil -100.00mil 100.00mil 30.00mil 130.00mil 60.00mil "" "5" ""]
-	Pin[100.00mil -100.00mil 100.00mil 30.00mil 130.00mil 60.00mil "" "4" ""]
-	Pin[100.00mil 100.00mil 100.00mil 30.00mil 130.00mil 60.00mil "" "3" ""]
-	Pin[-100.00mil 100.00mil 100.00mil 30.00mil 130.00mil 60.00mil "2" "2" ""]
+	Pin[100.00mil -100.00mil 100.00mil 30.00mil 130.00mil 60.00mil "" "5" ""]
+	Pin[100.00mil 100.00mil 100.00mil 30.00mil 130.00mil 60.00mil "" "4" ""]
+	Pin[-100.00mil 100.00mil 100.00mil 30.00mil 130.00mil 60.00mil "" "3" ""]
+	Pin[-100.00mil -100.00mil 100.00mil 30.00mil 130.00mil 60.00mil "2" "2" ""]
 	Pin[0.0000 0.0000 100.00mil 30.00mil 130.00mil 60.00mil "1" "1" ""]
-	ElementLine [-150.00mil -150.00mil 150.00mil -150.00mil 10.00mil]
-	ElementLine [-150.00mil 150.00mil -150.00mil -150.00mil 10.00mil]
 	ElementLine [150.00mil -150.00mil 150.00mil 150.00mil 10.00mil]
-	ElementLine [150.00mil 150.00mil -150.00mil 150.00mil 10.00mil]
+	ElementLine [-150.00mil -150.00mil 150.00mil -150.00mil 10.00mil]
+	ElementLine [-150.00mil 150.00mil 150.00mil 150.00mil 10.00mil]
+	ElementLine [-150.00mil -150.00mil -150.00mil 150.00mil 10.00mil]
 
 	)
 
-Element["" "sma_vert" "J207" "rp_in2" 145.0000mm 76.0000mm -230.00mil 22.00mil 1 100 ""]
+Element["" "sma_vert" "J207" "rp_in2" 145.0000mm 76.0000mm -22.00mil -230.00mil 0 100 ""]
 (
-	Pin[-100.00mil -100.00mil 100.00mil 30.00mil 130.00mil 60.00mil "" "5" ""]
-	Pin[100.00mil -100.00mil 100.00mil 30.00mil 130.00mil 60.00mil "" "4" ""]
-	Pin[100.00mil 100.00mil 100.00mil 30.00mil 130.00mil 60.00mil "" "3" ""]
-	Pin[-100.00mil 100.00mil 100.00mil 30.00mil 130.00mil 60.00mil "2" "2" ""]
+	Pin[100.00mil -100.00mil 100.00mil 30.00mil 130.00mil 60.00mil "" "5" ""]
+	Pin[100.00mil 100.00mil 100.00mil 30.00mil 130.00mil 60.00mil "" "4" ""]
+	Pin[-100.00mil 100.00mil 100.00mil 30.00mil 130.00mil 60.00mil "" "3" ""]
+	Pin[-100.00mil -100.00mil 100.00mil 30.00mil 130.00mil 60.00mil "2" "2" ""]
 	Pin[0.0000 0.0000 100.00mil 30.00mil 130.00mil 60.00mil "1" "1" ""]
-	ElementLine [-150.00mil -150.00mil 150.00mil -150.00mil 10.00mil]
-	ElementLine [-150.00mil 150.00mil -150.00mil -150.00mil 10.00mil]
 	ElementLine [150.00mil -150.00mil 150.00mil 150.00mil 10.00mil]
-	ElementLine [150.00mil 150.00mil -150.00mil 150.00mil 10.00mil]
+	ElementLine [-150.00mil -150.00mil 150.00mil -150.00mil 10.00mil]
+	ElementLine [-150.00mil 150.00mil 150.00mil 150.00mil 10.00mil]
+	ElementLine [-150.00mil -150.00mil -150.00mil 150.00mil 10.00mil]
 
 	)
 
-Element["" "sma_vert" "J204" "rp_out1" 145.0000mm 62.0000mm -230.00mil 22.00mil 1 100 ""]
+Element["" "sma_vert" "J204" "rp_out1" 145.0000mm 62.0000mm -22.00mil -230.00mil 0 100 ""]
 (
-	Pin[-100.00mil -100.00mil 100.00mil 30.00mil 130.00mil 60.00mil "" "5" ""]
-	Pin[100.00mil -100.00mil 100.00mil 30.00mil 130.00mil 60.00mil "" "4" ""]
-	Pin[100.00mil 100.00mil 100.00mil 30.00mil 130.00mil 60.00mil "" "3" ""]
-	Pin[-100.00mil 100.00mil 100.00mil 30.00mil 130.00mil 60.00mil "2" "2" ""]
+	Pin[100.00mil -100.00mil 100.00mil 30.00mil 130.00mil 60.00mil "" "5" ""]
+	Pin[100.00mil 100.00mil 100.00mil 30.00mil 130.00mil 60.00mil "" "4" ""]
+	Pin[-100.00mil 100.00mil 100.00mil 30.00mil 130.00mil 60.00mil "" "3" ""]
+	Pin[-100.00mil -100.00mil 100.00mil 30.00mil 130.00mil 60.00mil "2" "2" ""]
 	Pin[0.0000 0.0000 100.00mil 30.00mil 130.00mil 60.00mil "1" "1" ""]
-	ElementLine [-150.00mil -150.00mil 150.00mil -150.00mil 10.00mil]
-	ElementLine [-150.00mil 150.00mil -150.00mil -150.00mil 10.00mil]
 	ElementLine [150.00mil -150.00mil 150.00mil 150.00mil 10.00mil]
-	ElementLine [150.00mil 150.00mil -150.00mil 150.00mil 10.00mil]
+	ElementLine [-150.00mil -150.00mil 150.00mil -150.00mil 10.00mil]
+	ElementLine [-150.00mil 150.00mil 150.00mil 150.00mil 10.00mil]
+	ElementLine [-150.00mil -150.00mil -150.00mil 150.00mil 10.00mil]
 
 	)
 
-Element["" "sma_vert" "J206" "rp_in1" 145.0000mm 92.0000mm -230.00mil 22.00mil 1 100 ""]
+Element["" "sma_vert" "J206" "rp_in1" 145.0000mm 92.0000mm -22.00mil -230.00mil 0 100 ""]
 (
-	Pin[-100.00mil -100.00mil 100.00mil 30.00mil 130.00mil 60.00mil "" "5" ""]
-	Pin[100.00mil -100.00mil 100.00mil 30.00mil 130.00mil 60.00mil "" "4" ""]
-	Pin[100.00mil 100.00mil 100.00mil 30.00mil 130.00mil 60.00mil "" "3" ""]
-	Pin[-100.00mil 100.00mil 100.00mil 30.00mil 130.00mil 60.00mil "2" "2" ""]
+	Pin[100.00mil -100.00mil 100.00mil 30.00mil 130.00mil 60.00mil "" "5" ""]
+	Pin[100.00mil 100.00mil 100.00mil 30.00mil 130.00mil 60.00mil "" "4" ""]
+	Pin[-100.00mil 100.00mil 100.00mil 30.00mil 130.00mil 60.00mil "" "3" ""]
+	Pin[-100.00mil -100.00mil 100.00mil 30.00mil 130.00mil 60.00mil "2" "2" ""]
 	Pin[0.0000 0.0000 100.00mil 30.00mil 130.00mil 60.00mil "1" "1" ""]
-	ElementLine [-150.00mil -150.00mil 150.00mil -150.00mil 10.00mil]
-	ElementLine [-150.00mil 150.00mil -150.00mil -150.00mil 10.00mil]
 	ElementLine [150.00mil -150.00mil 150.00mil 150.00mil 10.00mil]
-	ElementLine [150.00mil 150.00mil -150.00mil 150.00mil 10.00mil]
+	ElementLine [-150.00mil -150.00mil 150.00mil -150.00mil 10.00mil]
+	ElementLine [-150.00mil 150.00mil 150.00mil 150.00mil 10.00mil]
+	ElementLine [-150.00mil -150.00mil -150.00mil 150.00mil 10.00mil]
 
 	)
 
-Element["" "DIN41651_26S" "J300" "unknown" 80.0000mm 120.0000mm -400.00mil 150.00mil 0 200 ""]
+Element["" "DIN41651_26S" "J300" "unknown" 80.0000mm 120.0000mm -3.0000mm 3.0000mm 0 128 ""]
 (
 	Pin[0.0000 0.0000 60.00mil 30.00mil 66.00mil 40.00mil "1" "1" "square,edge2"]
 	Pin[0.0000 -100.00mil 60.00mil 30.00mil 66.00mil 40.00mil "2" "2" "edge2"]
@@ -1337,7 +1337,7 @@ Element["" "DIN41651_26S" "J300" "unknown" 80.0000mm 120.0000mm -400.00mil 150.0
 
 	)
 
-Element["" "DIN41651_26S" "J400" "unknown" 80.0000mm 51.0000mm -400.00mil 150.00mil 0 200 ""]
+Element["" "DIN41651_26S" "J400" "unknown" 80.0000mm 51.0000mm -3.0000mm -8.0000mm 0 127 ""]
 (
 	Pin[0.0000 0.0000 60.00mil 30.00mil 66.00mil 40.00mil "1" "1" "square,edge2"]
 	Pin[0.0000 -100.00mil 60.00mil 30.00mil 66.00mil 40.00mil "2" "2" "edge2"]
