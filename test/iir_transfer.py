@@ -59,7 +59,7 @@ def _pid():
     #tb = ResetTransfer(b, a, form="tdf2", **kwargs)
     tb = CsrTransfer(b, a, Iir(#mode="iterative",
         coeff_width=2*18-1, width=25, shift=2*18-3,
-        order=len(b) - 1), amplitude=.2, samples=1 << 10)
+        order=len(b) - 1), amplitude=.2, samples=1 << 12)
     print(tb.b, tb.a)
     tb.analyze(vcd_name="pid.vcd")
     plt.show()

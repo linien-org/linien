@@ -102,7 +102,6 @@ class CsrParams(Module):
             b = (n + 8 - 1)//8
             for i in reversed(range(b)):
                 vi = (v >> (i*8)) & 0xff
-                print(k, a, vi)
                 yield from self.bank.bus.write(a, vi)
                 #vir = (yield from self.bank.bus.read(a))
                 #assert vir == vi, (a, vi, vir)
