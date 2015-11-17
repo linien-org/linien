@@ -16,7 +16,7 @@
 # along with redpid.  If not, see <http://www.gnu.org/licenses/>.
 
 from migen import *
-from misoc.interconnect.csr import CSRStorage, CSRStatus
+from misoc.interconnect.csr import CSRStorage, CSRConstant
 
 from .filter import Filter
 from .limit import Limit
@@ -31,7 +31,7 @@ class Relock(Filter):
         if step_width is None:
             step_width = width
 
-        self.shift = CSRStatus(bits_for(step_shift), reset=step_shift)
+        self.shift = CSRConstant(step_shift, bits_for(step_shift))
         self.step = CSRStorage(step_width)
         self.run = CSRStorage(1)
         self.min = CSRStorage(width, reset=1 << (width - 1))

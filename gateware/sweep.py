@@ -16,7 +16,7 @@
 # along with redpid.  If not, see <http://www.gnu.org/licenses/>.
 
 from migen import *
-from misoc.interconnect.csr import CSRStorage, CSRStatus
+from misoc.interconnect.csr import CSRStorage, CSRConstant
 
 from .filter import Filter
 from .limit import Limit
@@ -77,7 +77,7 @@ class SweepCSR(Filter):
         if step_width is None:
             step_width = width
 
-        self.shift = CSRStatus(bits_for(step_shift), reset=step_shift)
+        self.shift = CSRConstant(step_shift, bits_for(step_shift))
         self.step = CSRStorage(step_width)
         self.min = CSRStorage(width, reset=1 << (width - 1))
         self.max = CSRStorage(width, reset=(1 << (width - 1)) - 1)
@@ -107,6 +107,9 @@ def main():
     from migen.fhdl import verilog
     import matplotlib.pyplot as plt
 
+    s = Sweep(16)
+    print(verilog.convert(s, ios=set()))
+
     def tb(sweep, out, n):
         yield sweep.step.storage.eq(1 << 4)
         yield sweep.max.storage.eq(1 << 10)
@@ -115,9 +118,6 @@ def main():
         for i in range(n):
             yield
             out.append((yield sweep.y))
-
-    s = Sweep(16)
-    print(verilog.convert(s, ios=set()))
 
     n = 200
     out = []

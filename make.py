@@ -23,6 +23,13 @@ from gateware.redpid import RedPid
 from bit2bin import bit2bin
 
 
+def py_csrconstants(map, fil):
+    fil.write("csr_constants = {\n")
+    for k, v in redpid.pid.csrbanks.constants:
+        fil.write("    '{}_{}': {},\n".format(k, v.name, v.value))
+    fil.write("}\n\n")
+
+
 def get_csrmap(banks):
     for name, csrs, map_addr, rmap in banks:
         reg_addr = 0
@@ -44,6 +51,7 @@ if __name__ == "__main__":
     redpid = RedPid(platform)
 
     fil = open("test/csrmap.py", "w")
+    py_csrconstants(redpid.pid.csrbanks.constants, fil)
     csr = get_csrmap(redpid.pid.csrbanks.banks)
     py_csrmap(csr, fil)
     fil.write("states = {}\n".format(repr(redpid.pid.state_names)))
