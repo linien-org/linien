@@ -34,7 +34,8 @@ MERGE_DRILL ?= 1
 TSYMS := $(wildcard sym/*.tsym)
 TSYMBOLS := $(TSYMS:.tsym=.sym)
 SYMBOLS := $(sort $(TSYMBOLS) $(wildcard sym/*.sym))
-SCHEMATICS := $(TARGET).sch $(wildcard *.sch) $(wildcard sym/*.sch)
+SCHEMATICS := $(TARGET).sch $(wildcard ./*.sch)
+# $(wildcard sym/*.sch)
 
 TARGETS := $(TARGET).sch.pdf $(TARGET).sch-merged.pdf \
 	$(TARGET).bom \
@@ -99,6 +100,12 @@ pcb: $(TARGET).pcb
 
 %.bom: %.sch
 	gnetlist -g partslist3 -o $@ $<
+
+%.merged.bom: $(SCHEMATICS)
+	gnetlist -g partslist3 -o $@ $^
+
+%.drc: %.sch
+	gnetlist -g drc2 -o $@ $<
 
 %.pdf: %.ps
 	ps2pdf $< $@
