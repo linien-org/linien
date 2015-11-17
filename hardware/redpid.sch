@@ -46,10 +46,3 @@ refdes=U1
 T 57000 43100 5 10 1 1 0 0 1
 footprint=redpitaya
 }
-C 60200 43000 1 0 0 redpid_pwr.sym
-{
-T 60595 43100 5 10 1 1 0 0 1
-refdes=A1
-T 60895 43100 5 10 1 1 0 0 1
-source=redpid_pwr.sch
-}

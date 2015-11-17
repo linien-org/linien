@@ -5,7 +5,7 @@ FileVersion[20091103]
 
 PCB["redpid" 220.0000mm 160.0000mm]
 
-Grid[1.0000mm 0.0000 0.0000 0]
+Grid[0.5000mm 0.0000 0.0000 0]
 PolyArea[3100.006200]
 Thermal[0.500000]
 DRC[10.00mil 10.00mil 10.00mil 10.00mil 15.00mil 10.00mil]
@@ -786,7 +786,7 @@ Symbol['~' 12.00mil]
 	SymbolLine[20.00mil 35.00mil 25.00mil 30.00mil 8.00mil]
 )
 Attribute("PCB::grid::unit" "mm")
-Attribute("PCB::grid::size" "1.0000mm")
+Attribute("PCB::grid::size" "0.5000mm")
 
 Element["" "europanel_100" "H2" "unknown" 30.0000mm 30.0000mm -2.0000mm -8.0000mm 0 100 ""]
 (
@@ -861,7 +861,7 @@ Element["" "eurocard_160x100" "H1" "unknown" 30.0000mm 30.0000mm 4.0000mm -2.000
 
 	)
 
-Element["" "redpitaya" "U1" "unknown" 30.0000mm 91.0000mm -1.0000mm 3.5000mm 2 100 ""]
+Element["" "redpitaya" "U1" "unknown" 30.0000mm 91.0000mm -1.5000mm 1.5000mm 0 100 ""]
 (
 	Pin[3.0000mm 27.0000mm 6.0000mm 20.00mil 6.1524mm 3.0000mm "1" "1" "edge2"]
 	Pin[87.0000mm 27.0000mm 6.0000mm 20.00mil 6.1524mm 3.0000mm "1" "1" "edge2"]
@@ -984,7 +984,7 @@ Element["" "redpitaya" "U1" "unknown" 30.0000mm 91.0000mm -1.0000mm 3.5000mm 2 1
 
 	)
 
-Element["" "din41612_abc_male_angle" "J1:A1" "unknown" 184.7000mm 40.6300mm -2.7000mm -2.6300mm 1 131 ""]
+Element["" "din41612_abc_male_angle" "J1" "unknown" 184.7000mm 40.6300mm -3.2000mm -4.1300mm 0 110 ""]
 (
 	Pin[0.0000 0.0000 60.00mil 30.00mil 66.00mil 30.00mil "a1" "1" "square"]
 	Pin[0.0000 100.00mil 60.00mil 30.00mil 66.00mil 30.00mil "a2" "2" ""]
