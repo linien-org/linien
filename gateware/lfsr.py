@@ -45,26 +45,26 @@ class LFSRGen(Module, AutoCSR):
         self.state_in = ()
         self.state_out = ()
 
-        self._bits = CSRStorage(bits_for(width))
+        self.bits = CSRStorage(bits_for(width))
 
         taps = {
-                7: (6, 5),
-                15: (14, 13),
-                31: (30, 27),
-                63: (62, 61),
+            7: (6, 5),
+            15: (14, 13),
+            31: (30, 27),
+            63: (62, 61),
         }[n]
 
         self.submodules.gen = LFSR(n, taps)
         cnt = Signal(max=width + 1)
         store = Signal(width)
         self.sync += [
-                store.eq(Cat(self.gen.o, store)),
-                cnt.eq(cnt + 1),
-                If(cnt == self._bits.storage,
-                    cnt.eq(1),
-                    y.eq(store),
-                    store.eq(Replicate(self.gen.o, flen(store)))
-                )
+            store.eq(Cat(self.gen.o, store)),
+            cnt.eq(cnt + 1),
+            If(cnt == self.bits.storage,
+                cnt.eq(1),
+                y.eq(store),
+                store.eq(Replicate(self.gen.o, flen(store)))
+            )
         ]
 
 
@@ -93,23 +93,14 @@ class XORSHIFTGen(Module, AutoCSR):
         self.state_in = ()
         self.state_out = ()
 
-        self._bits = CSRStorage(bits_for(width))
+        self.bits = CSRStorage(bits_for(width))
 
         self.submodules.gen = XORSHIFT(**kwargs)
         q = Signal(width)
         self.sync += [
-                q.eq(self.gen.state[:width] >> (width - self._bits.storage)),
-                y.eq(q[1:] ^ (Replicate(q[0], width)))
+            q.eq(self.gen.state[:width] >> (width - self.bits.storage)),
+            y.eq(q[1:] ^ (Replicate(q[0], width)))
         ]
-
-
-def tb(dut, o, n):
-    for i in range(n):
-        oi = yield dut.o
-        yield
-        #print("{0:08x}".format(oi))
-        o.append(oi)
-        print(i, oi)
 
 
 if __name__ == "__main__":
@@ -118,17 +109,29 @@ if __name__ == "__main__":
     lfsr = LFSR(4, [3, 2])
     print(verilog.convert(lfsr, ios={lfsr.o}))
 
+    def tb(dut, o, n):
+        for i in range(n):
+            yield
+            o.append((yield dut.o))
+
     dut = LFSR(4, [3, 0])
     o = []
     run_simulation(dut, tb(dut, o, 20))
     print(o)
 
-    raise
     import matplotlib.pyplot as plt
     import numpy as np
 
-    o = np.array(tb.o)
-    #o = o/2.**flen(tb.dut.o) - .5
-    #plt.psd(o)
-    plt.hist(o)
+    def tb(dut, o, n):
+        for i in range(n):
+            yield
+            o.append((yield dut.state))
+
+    dut = XORSHIFT()
+    o = []
+    run_simulation(dut, tb(dut, o, 1 << 12))
+    o = np.array(o)
+    o = o/2.**len(dut.state) - .5
+    plt.psd(o)
+    #plt.hist(o)
     plt.show()

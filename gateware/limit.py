@@ -52,14 +52,14 @@ class LimitCSR(Filter):
         width = len(self.y)
         if guard:
             self.x = Signal((width + guard, True))
-        self._min = CSRStorage(width, reset=1 << (width - 1))
-        self._max = CSRStorage(width, reset=(1 << (width - 1)) - 1)
+        self.min = CSRStorage(width, reset=1 << (width - 1))
+        self.max = CSRStorage(width, reset=(1 << (width - 1)) - 1)
 
         ###
 
         self.submodules.limit = Limit(width + guard)
 
-        min, max = self._min.storage, self._max.storage
+        min, max = self.min.storage, self.max.storage
         if guard:
             min = Cat(min, Replicate(min[-1], guard))
             max = Cat(max, Replicate(max[-1], guard))
@@ -82,11 +82,12 @@ def main():
     print(verilog.convert(s, ios=set()))
 
     def tb(limit, x, y, n):
-        yield limit.maxval.eq(1 << 10)
-        yield limit.minval(-(1 << 10))
+        m = 1 << 10
+        yield limit.max.eq(m)
+        yield limit.min.eq(-m)
         for i in range(n):
             yield
-            yield limit.x.eq(-2*(yield limit.maxval) + (c << 6))
+            yield limit.x.eq(-2*m + (i << 6))
             x.append((yield limit.x))
             y.append((yield limit.y))
 
@@ -94,8 +95,7 @@ def main():
     n = 1 << 6
     x, y = [], []
     run_simulation(dut, tb(dut, x, y, n), vcd_name="limit.vcd")
-    plt.plot(x)
-    plt.plot(y)
+    plt.plot(x, y)
     plt.show()
 
 

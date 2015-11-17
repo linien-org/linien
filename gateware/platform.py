@@ -33,15 +33,15 @@ _io += [
         IOStandard("DIFF_HSTL_I_18")
     ),
     ("adc", 0,
-        Subsignal("clk", Pins("N20 P20")),
-        Subsignal("cdcs", Pins("V18")),
+        Subsignal("clk", Pins("N20 P20"), Misc("SLEW FAST"), Misc("DRIVE 8")),
+        Subsignal("cdcs", Pins("V18"), Misc("SLEW FAST"), Misc("DRIVE 8")),
         Subsignal("data_a", Pins("V17 U17 Y17 W16 Y16 W15 W14 Y14 "
                                  "W13 V12 V13 T14 T15 V15 T16 V16"),
-                  Misc("IOB TRUE")),
+                  ),  # Misc("IOB TRUE")),
         Subsignal("data_b", Pins("T17 R16 R18 P16 P18 N17 R19 T20 "
                                  "T19 U20 V20 W20 W19 Y19 W18 Y18"),
-                  Misc("IOB TRUE")),
-        IOStandard("LVCMOS18"), Drive(4)
+                  ),  # Misc("IOB TRUE")),
+        IOStandard("LVCMOS18")  #, Drive(4)
     ),
 
     ("dac", 0,
@@ -74,7 +74,7 @@ _io += [
     ("exp", 0,
         Subsignal("p", Pins("G17 H16 J18 K17 L14 L16 K16 M14")),
         Subsignal("n", Pins("G18 H17 H18 K18 L15 L17 J16 M15")),
-        IOStandard("LVCMOS33"), Drive(4), Misc("SLEW SLOW")
+        IOStandard("LVCMOS33"),
     ),
 
     ("sata", 0,

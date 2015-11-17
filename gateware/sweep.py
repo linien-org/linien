@@ -16,7 +16,7 @@
 # along with redpid.  If not, see <http://www.gnu.org/licenses/>.
 
 from migen import *
-from misoc.interconnect.csr import CSRStorage, CSRStatus
+from misoc.interconnect.csr import CSRStorage, CSRConstant
 
 from .filter import Filter
 from .limit import Limit
@@ -77,23 +77,23 @@ class SweepCSR(Filter):
         if step_width is None:
             step_width = width
 
-        self._shift = CSRStatus(bits_for(step_shift), reset=step_shift)
-        self._step = CSRStorage(step_width)
-        self._min = CSRStorage(width, reset=1 << (width - 1))
-        self._max = CSRStorage(width, reset=(1 << (width - 1)) - 1)
-        self._run = CSRStorage(1)
+        self.shift = CSRConstant(step_shift, bits_for(step_shift))
+        self.step = CSRStorage(step_width)
+        self.min = CSRStorage(width, reset=1 << (width - 1))
+        self.max = CSRStorage(width, reset=(1 << (width - 1)) - 1)
+        self.run = CSRStorage(1)
 
         ###
 
         self.submodules.sweep = Sweep(width + step_shift + 1)
         self.submodules.limit = Limit(width + 1)
 
-        min, max = self._min.storage, self._max.storage
+        min, max = self.min.storage, self.max.storage
         self.comb += [
-            self.sweep.run.eq(~self.clear & self._run.storage),
+            self.sweep.run.eq(~self.clear & self.run.storage),
             self.sweep.hold.eq(self.hold),
             self.limit.x.eq(self.sweep.y >> step_shift),
-            self.sweep.step.eq(self._step.storage)
+            self.sweep.step.eq(self.step.storage)
         ]
         self.sync += [
             self.limit.min.eq(Cat(min, min[-1])),
@@ -107,20 +107,21 @@ def main():
     from migen.fhdl import verilog
     import matplotlib.pyplot as plt
 
+    s = Sweep(16)
+    print(verilog.convert(s, ios=set()))
+
     def tb(sweep, out, n):
-        yield sweep.step.eq(1 << 20)
-        yield sweep.maxval.eq(1 << 10)
-        yield sweep.minval.eq(0xffff & (-(1 << 10)))
+        yield sweep.step.storage.eq(1 << 4)
+        yield sweep.max.storage.eq(1 << 10)
+        yield sweep.min.storage.eq(0xffff & (-(1 << 10)))
+        yield sweep.run.storage.eq(1)
         for i in range(n):
             yield
             out.append((yield sweep.y))
 
-    s = Sweep(16)
-    print(verilog.convert(s, ios=set()))
-
     n = 200
     out = []
-    dut = Sweep(16)
+    dut = SweepCSR(width=16)
     run_simulation(dut, tb(dut, out, n), vcd_name="sweep.vcd")
     plt.plot(out)
     plt.show()

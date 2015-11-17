@@ -17,7 +17,7 @@
 
 from migen import *
 from migen.genlib.misc import timeline
-from misoc.interconnect.csr import CSRStorage, CSRStatus
+from misoc.interconnect.csr import CSRStorage, CSRConstant
 
 from .filter import Filter
 
@@ -32,10 +32,11 @@ class Iir(Filter):
             intermediate_width = width + coeff_width
             # + bits_for(2*(order + 1))
 
-        self._z0 = CSRStorage(intermediate_width - shift, reset=0)
-        self._shift = CSRStatus(bits_for(shift), reset=shift)
-        self._width = CSRStatus(bits_for(shift), reset=coeff_width)
-        self._interval = CSRStatus(8)
+        self.z0 = CSRStorage(intermediate_width - shift, reset=0)
+        self.shift = CSRConstant(shift, bits_for(shift))
+        self.width = CSRConstant(coeff_width, bits_for(shift))
+        self.interval = CSRConstant(0, 8)
+        self.latency = CSRConstant(0, 8)
 
         self.c = c = {}
         for i in "ab":
@@ -52,7 +53,7 @@ class Iir(Filter):
         ###
 
         z = Signal((intermediate_width, True), name="z0r")
-        self.sync += z.eq(self._z0.storage << shift)
+        self.sync += z.eq(self.z0.storage << shift)
 
         y_lim = Signal.like(self.y)
         y_next = Signal.like(z)
@@ -87,8 +88,8 @@ class Iir(Filter):
                 z = Signal.like(zr)
                 self.comb += z.eq(zr + signal*c[coeff])
             self.comb += y_next.eq(z)
-            self.latency = order + 1
-            self.interval = 1
+            self.latency.value = order + 1
+            self.interval.value = 1
 
         elif mode == "iterative":
             ma = Signal.like(self.y)
@@ -110,15 +111,13 @@ class Iir(Filter):
                     y[i + 1].eq(y[i]), ma.eq(y[i]), mb.eq(c["a%i" % i])
                 ])
             steps[1].append(mc.eq(z))
-            self.latency = order + 4
+            self.latency.value = order + 4
             if order == 1:
                 steps.append([])
-                self.latency += 1
+                self.latency.value += 1
             steps[int(order > 1)].append(y_next.eq(mp))
             self.sync += timeline(1, list(enumerate(steps)))
-            self.interval = len(steps)
+            self.interval.value = len(steps)
 
         else:
             raise ValueError
-
-        self._interval.status.reset = self.interval

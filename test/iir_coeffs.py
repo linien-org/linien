@@ -90,7 +90,7 @@ def quantize_filter(b, a, shift=None, width=25):
             if i > 0 and int(m) == m:
                 m += 1
             shift = min(shift, int(width - 1 - m))
-    s = 1<<shift
+    s = 1 << shift
     
     b = [int(round(i*s)) for i in b]
     a = [int(round(i*s)) for i in a]
@@ -111,8 +111,8 @@ def get_params(b, a, shift=None, width=25, interval=1):
     b, a, shift = quantize_filter(b, a, shift, width)
     params = {}
     for i, (ai, bi) in enumerate(zip(a, b)):
-        params["a%i" % i] = -ai
-        params["b%i" % i] = bi
+        params["a%i" % i] = int(-ai)
+        params["b%i" % i] = int(bi)
     del params["a0"]
     #params["shift"] = shift
     return b, a, params
