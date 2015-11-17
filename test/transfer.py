@@ -46,7 +46,7 @@ class Filter(Module):
         q = []
         for xi in self.x:
             yield self.dut.x.eq(int(xi))
-            q.append(i + self.latency)
+            q.append(i + self.latency + 1)
             for j in range(self.interval):
                 if q[0] == i:
                     self.y.append((yield self.dut.y))
@@ -102,7 +102,10 @@ class CsrParams(Module):
             b = (n + 8 - 1)//8
             for i in reversed(range(b)):
                 vi = (v >> (i*8)) & 0xff
+                print(k, a, vi)
                 yield from self.bank.bus.write(a, vi)
+                #vir = (yield from self.bank.bus.read(a))
+                #assert vir == vi, (a, vi, vir)
                 a += 1
 
 
@@ -162,14 +165,14 @@ class Transfer:
         dut = self.wrap_dut(b, a, dut)
         np.random.seed(299792458)
         x = np.random.uniform(-amplitude, amplitude, samples)
-        self.tb = Filter(dut, x, latency=dut.latency, interval=dut.interval)
+        self.tb = Filter(dut, x, latency=dut.dut.latency.value, interval=dut.dut.interval.value)
 
     def wrap_dut(self, b, a, dut):
         raise NotImplementedError
 
-    def analyze(self):
+    def analyze(self, **kwargs):
         fig, ax = plt.subplots(3, 1, figsize=(15, 20))
-        x, y = self.tb.run()
+        x, y = self.tb.run(**kwargs)
         y0 = scipy.signal.lfilter(self.b, self.a, x)
         np.clip(y0, -10, 10, y0)
         yd = plt.mlab.detrend_linear(y - y0)
@@ -227,7 +230,7 @@ class Transfer:
 
 class ResetTransfer(Transfer):
     def wrap_dut(self, b, a, dut):
-        self.b, self.a, params = get_params(b, a, shift=dut.shift.reset.value,
+        self.b, self.a, params = get_params(b, a, shift=dut.shift.value,
                 width=len(dut.a[1]))
         dut = ResetParams(dut, params)
         return dut
@@ -235,7 +238,7 @@ class ResetTransfer(Transfer):
 
 class CsrTransfer(Transfer):
     def wrap_dut(self, b, a, dut):
-        self.b, self.a, params = get_params(b, a, shift=dut._shift.status.reset.value,
+        self.b, self.a, params = get_params(b, a, shift=dut.shift.value,
                 width=len(dut.c["a1"]))
         dut = CsrParams(dut, params)
         return dut
