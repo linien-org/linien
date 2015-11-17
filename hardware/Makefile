@@ -34,9 +34,10 @@ MERGE_DRILL ?= 1
 TSYMS := $(wildcard sym/*.tsym)
 TSYMBOLS := $(TSYMS:.tsym=.sym)
 SYMBOLS := $(sort $(TSYMBOLS) $(wildcard sym/*.sym))
-SCHEMATICS := $(name).sch $(wildcard sym/*.sch)
+SCHEMATICS := $(TARGET).sch $(wildcard *.sch) $(wildcard sym/*.sch)
 
-TARGETS := $(TARGET).sch.pdf $(TARGET).bom \
+TARGETS := $(TARGET).sch.pdf $(TARGET).sch-merged.pdf \
+	$(TARGET).bom \
 	$(TARGET).top.png $(TARGET).bottom.png \
 	$(TARGET).print.pdf $(TARGET).view.pdf \
 	$(TARGET).gerber.zip \
@@ -107,7 +108,7 @@ pcb: $(TARGET).pcb
 	gaf export $(GAF_PDF_FLAGS) --output $@ $<
 	# gschem -p -s /usr/share/gEDA/scheme/print.scm -o $@ $<
 
-%.merged-sch.pdf: $(SCHEMATICS:.sch=.sch.pdf)
+%.sch-merged.pdf: $(SCHEMATICS:.sch=.sch.pdf)
 	pdfjoin -o $@ $^
 
 gerber:
