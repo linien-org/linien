@@ -784,3 +784,111 @@ refdes=B203
 }
 N 42900 37200 42900 37600 4
 N 39900 37200 42900 37200 4
+C 28800 43700 1 90 0 tvs.sym
+{
+T 28200 44100 5 10 0 0 90 0 1
+device=ZENER_DIODE
+T 28200 44300 5 10 1 1 0 0 1
+refdes=Z200
+T 27400 44000 5 10 1 1 0 0 1
+value=SMCJ15CA
+T 28800 43700 5 10 0 1 0 0 1
+footprint=DO214AB
+T 28800 43700 5 10 0 1 0 0 1
+documentation=http://www.littelfuse.com/products/tvs-diodes/surface-mount/~/media/electronics/datasheets/tvs_diodes/littelfuse_tvs_diode_smcj_datasheet.pdf.pdf
+}
+C 42900 43300 1 90 0 tvs.sym
+{
+T 42300 43700 5 10 0 0 90 0 1
+device=ZENER_DIODE
+T 42300 43900 5 10 1 1 0 0 1
+refdes=Z202
+T 41500 43600 5 10 1 1 0 0 1
+value=SMCJ15CA
+T 42900 43300 5 10 0 1 0 0 1
+footprint=DO214AB
+T 42900 43300 5 10 0 1 0 0 1
+documentation=http://www.littelfuse.com/products/tvs-diodes/surface-mount/~/media/electronics/datasheets/tvs_diodes/littelfuse_tvs_diode_smcj_datasheet.pdf.pdf
+}
+C 42700 37200 1 90 0 tvs.sym
+{
+T 42100 37600 5 10 0 0 90 0 1
+device=ZENER_DIODE
+T 42100 37800 5 10 1 1 0 0 1
+refdes=Z203
+T 41300 37500 5 10 1 1 0 0 1
+value=SMCJ15CA
+T 42700 37200 5 10 0 1 0 0 1
+footprint=DO214AB
+T 42700 37200 5 10 0 1 0 0 1
+documentation=http://www.littelfuse.com/products/tvs-diodes/surface-mount/~/media/electronics/datasheets/tvs_diodes/littelfuse_tvs_diode_smcj_datasheet.pdf.pdf
+}
+C 28600 37600 1 90 0 tvs.sym
+{
+T 28000 38000 5 10 0 0 90 0 1
+device=ZENER_DIODE
+T 28000 38200 5 10 1 1 0 0 1
+refdes=Z201
+T 27200 37900 5 10 1 1 0 0 1
+value=SMCJ15CA
+T 28600 37600 5 10 0 1 0 0 1
+footprint=DO214AB
+T 28600 37600 5 10 0 1 0 0 1
+documentation=http://www.littelfuse.com/products/tvs-diodes/surface-mount/~/media/electronics/datasheets/tvs_diodes/littelfuse_tvs_diode_smcj_datasheet.pdf.pdf
+}
+C 28800 42800 1 90 0 tvs.sym
+{
+T 28200 43200 5 10 0 0 90 0 1
+device=ZENER_DIODE
+T 28200 43400 5 10 1 1 0 0 1
+refdes=Z204
+T 27400 43100 5 10 1 1 0 0 1
+value=SMCJ15CA
+T 28800 42800 5 10 0 1 0 0 1
+footprint=DO214AB
+T 28800 42800 5 10 0 1 0 0 1
+documentation=http://www.littelfuse.com/products/tvs-diodes/surface-mount/~/media/electronics/datasheets/tvs_diodes/littelfuse_tvs_diode_smcj_datasheet.pdf.pdf
+}
+N 28600 42800 28900 42800 4
+N 28400 36700 28700 36700 4
+C 28600 36700 1 90 0 tvs.sym
+{
+T 28000 37100 5 10 0 0 90 0 1
+device=ZENER_DIODE
+T 28000 37300 5 10 1 1 0 0 1
+refdes=Z205
+T 27200 37000 5 10 1 1 0 0 1
+value=SMCJ15CA
+T 28600 36700 5 10 0 1 0 0 1
+footprint=DO214AB
+T 28600 36700 5 10 0 1 0 0 1
+documentation=http://www.littelfuse.com/products/tvs-diodes/surface-mount/~/media/electronics/datasheets/tvs_diodes/littelfuse_tvs_diode_smcj_datasheet.pdf.pdf
+}
+C 42700 36300 1 90 0 tvs.sym
+{
+T 42100 36700 5 10 0 0 90 0 1
+device=ZENER_DIODE
+T 42100 36900 5 10 1 1 0 0 1
+refdes=Z207
+T 41300 36600 5 10 1 1 0 0 1
+value=SMCJ15CA
+T 42700 36300 5 10 0 1 0 0 1
+footprint=DO214AB
+T 42700 36300 5 10 0 1 0 0 1
+documentation=http://www.littelfuse.com/products/tvs-diodes/surface-mount/~/media/electronics/datasheets/tvs_diodes/littelfuse_tvs_diode_smcj_datasheet.pdf.pdf
+}
+N 42500 36300 42900 36300 4
+C 42900 42400 1 90 0 tvs.sym
+{
+T 42300 42800 5 10 0 0 90 0 1
+device=ZENER_DIODE
+T 42300 43000 5 10 1 1 0 0 1
+refdes=Z206
+T 41500 42700 5 10 1 1 0 0 1
+value=SMCJ15CA
+T 42900 42400 5 10 0 1 0 0 1
+footprint=DO214AB
+T 42900 42400 5 10 0 1 0 0 1
+documentation=http://www.littelfuse.com/products/tvs-diodes/surface-mount/~/media/electronics/datasheets/tvs_diodes/littelfuse_tvs_diode_smcj_datasheet.pdf.pdf
+}
+N 42700 42400 43100 42400 4
