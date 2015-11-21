@@ -892,3 +892,7 @@ T 42900 42400 5 10 0 1 0 0 1
 documentation=http://www.littelfuse.com/products/tvs-diodes/surface-mount/~/media/electronics/datasheets/tvs_diodes/littelfuse_tvs_diode_smcj_datasheet.pdf.pdf
 }
 N 42700 42400 43100 42400 4
+T 32300 46700 9 12 1 0 0 0 3
+set redpitaya to LV input range
+1V amplitude
+allows large common mode voltage range

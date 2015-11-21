@@ -1,3 +1,5 @@
+GND	U1-10 
+Vcc	U1-20 
 INA_WR_FBO	U203-6 
 unnamed_net21	R213-2 U203-7 
 INA_WR_FBI	U201-6 

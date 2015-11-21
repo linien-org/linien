@@ -61,3 +61,72 @@ T 44400 41600 9 12 1 0 0 0 1
 GND
 T 44400 41300 9 12 1 0 0 0 1
 GND
+C 48500 47100 1 0 0 74273-1.sym
+{
+T 48800 50750 5 10 0 0 0 0 1
+device=74273
+T 50200 50600 5 10 1 1 0 6 1
+refdes=U1
+T 48800 50950 5 10 0 0 0 0 1
+footprint=DIP20
+}
+C 51900 43900 1 0 0 led_dual_separate.sym
+{
+T 52700 44500 5 10 0 0 0 0 1
+device=LED
+T 52700 44700 5 10 0 0 0 0 1
+symversion=0.1
+T 53700 45400 5 10 1 1 0 0 1
+refdes=D400
+T 53700 44600 5 10 1 1 0 0 1
+value=5530112F
+T 51900 43900 5 10 0 1 0 0 1
+documentation=http://www.dialight.com/Assets/Drawings/2D_Drawings_DrawingDetailedSpec/C17277.pdf
+T 51900 43900 5 10 0 1 0 0 1
+footprint=C17277
+}
+C 52000 42500 1 0 0 led_dual_separate.sym
+{
+T 52800 43100 5 10 0 0 0 0 1
+device=LED
+T 52800 43300 5 10 0 0 0 0 1
+symversion=0.1
+T 53800 44000 5 10 1 1 0 0 1
+refdes=D401
+T 53700 43100 5 10 1 1 0 0 1
+value=5530112F
+T 52000 42500 5 10 0 1 0 0 1
+documentation=http://www.dialight.com/Assets/Drawings/2D_Drawings_DrawingDetailedSpec/C17277.pdf
+T 52000 42500 5 10 0 1 0 0 1
+footprint=C17277
+}
+C 52000 41300 1 0 0 led_dual_separate.sym
+{
+T 52800 41900 5 10 0 0 0 0 1
+device=LED
+T 52800 42100 5 10 0 0 0 0 1
+symversion=0.1
+T 53800 42800 5 10 1 1 0 0 1
+refdes=D402
+T 53700 41900 5 10 1 1 0 0 1
+value=5530112F
+T 52000 41300 5 10 0 1 0 0 1
+documentation=http://www.dialight.com/Assets/Drawings/2D_Drawings_DrawingDetailedSpec/C17277.pdf
+T 52000 41300 5 10 0 1 0 0 1
+footprint=C17277
+}
+C 52000 40000 1 0 0 led_dual_separate.sym
+{
+T 52800 40600 5 10 0 0 0 0 1
+device=LED
+T 52800 40800 5 10 0 0 0 0 1
+symversion=0.1
+T 53800 41500 5 10 1 1 0 0 1
+refdes=D403
+T 53700 40600 5 10 1 1 0 0 1
+value=5530112F
+T 52000 40000 5 10 0 1 0 0 1
+documentation=http://www.dialight.com/Assets/Drawings/2D_Drawings_DrawingDetailedSpec/C17277.pdf
+T 52000 40000 5 10 0 1 0 0 1
+footprint=C17277
+}
