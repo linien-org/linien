@@ -33,10 +33,12 @@ class Iir(Filter):
             # + bits_for(2*(order + 1))
 
         self.z0 = CSRStorage(intermediate_width - shift, reset=0)
-        self.shift = CSRConstant(shift, bits_for(shift))
-        self.width = CSRConstant(coeff_width, bits_for(shift))
+        self.shift = CSRConstant(shift)
+        self.width = CSRConstant(coeff_width)
         self.interval = CSRConstant(0, 8)
         self.latency = CSRConstant(0, 8)
+        self.order = CSRConstant(order, 8)
+        self.iterative = CSRConstant(mode == "iterative", 1)
 
         self.c = c = {}
         for i in "ab":
@@ -88,8 +90,8 @@ class Iir(Filter):
                 z = Signal.like(zr)
                 self.comb += z.eq(zr + signal*c[coeff])
             self.comb += y_next.eq(z)
-            self.latency.value = order + 1
-            self.interval.value = 1
+            self.latency.value = Constant(order + 1)
+            self.interval.value = Constant(1)
 
         elif mode == "iterative":
             ma = Signal.like(self.y)
@@ -111,13 +113,14 @@ class Iir(Filter):
                     y[i + 1].eq(y[i]), ma.eq(y[i]), mb.eq(c["a%i" % i])
                 ])
             steps[1].append(mc.eq(z))
-            self.latency.value = order + 4
+            latency = order + 4
             if order == 1:
                 steps.append([])
-                self.latency.value += 1
+                latency += 1
+            self.latency.value = Constant(latency)
             steps[int(order > 1)].append(y_next.eq(mp))
             self.sync += timeline(1, list(enumerate(steps)))
-            self.interval.value = len(steps)
+            self.interval.value = Constant(len(steps))
 
         else:
             raise ValueError
