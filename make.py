@@ -26,7 +26,7 @@ from bit2bin import bit2bin
 def py_csrconstants(map, fil):
     fil.write("csr_constants = {\n")
     for k, v in redpid.pid.csrbanks.constants:
-        fil.write("    '{}_{}': {},\n".format(k, v.name, v.value))
+        fil.write("    '{}_{}': {},\n".format(k, v.name, v.value.value))
     fil.write("}\n\n")
 
 
