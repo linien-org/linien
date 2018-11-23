@@ -59,8 +59,9 @@ class Iir(Filter):
 
         y_lim = Signal.like(self.y)
         y_next = Signal.like(z)
-        y_over = y_next[shift+width-1:]
-        y_pat = Signal.like(y_over, reset=-1)
+        skip = shift+width-1
+        y_over = y_next[skip:]
+        y_pat = Signal.like(y_over, reset=2**(intermediate_width - skip) - 1)
         y = Signal.like(self.y)
         railed = Signal()
         self.comb += [
