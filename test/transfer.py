@@ -23,7 +23,7 @@ import threading
 from migen import *
 from misoc.interconnect import csr_bus
 
-from .iir_coeffs import get_params
+from iir_coeffs import get_params
 
 
 class Filter(Module):
@@ -127,8 +127,15 @@ class CsrThread(Module):
                     q.set()
                 elif q is None:
                     break
+                elif isinstance(q, int):
+                    for i in range(q):
+                        print()
+                        print('simulation cycle %d of %d' % (i, q),
+                              end='\r', flush=True)
+                        print()
+                        yield
                 else:
-                    q.data = (yield from q)
+                    yield from q
             except IndexError:
                 yield
 
@@ -144,6 +151,7 @@ class CsrThread(Module):
         ev = threading.Event()
         self.queue.append(ev)
         ev.wait()
+
         return t.data
 
 
