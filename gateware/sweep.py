@@ -29,6 +29,7 @@ class Sweep(Module):
         self.turn = Signal()
         self.hold = Signal()
         self.y = Signal((width, True))
+        self.trigger = Signal()
 
         ###
 
@@ -55,6 +56,7 @@ class Sweep(Module):
             )
         ]
         self.sync += [
+            self.trigger.eq(self.turn & up),
             turning.eq(self.turn),
             dir.eq(up),
             If(zero,

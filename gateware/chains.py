@@ -44,6 +44,7 @@ class FastChain(Module, AutoCSR):
         y_railed = Signal()
         relock = Signal()
         unlocked = Signal()
+        sweep_trigger = Signal()
 
         self.state_in = x_hold, x_clear, y_hold, y_clear, relock
         self.state_out = x_sat, x_railed, y_sat, y_railed, unlocked
@@ -55,7 +56,7 @@ class FastChain(Module, AutoCSR):
         rx = Signal((signal_width, True))
 
         self.signal_in = dx, dy, rx
-        self.signal_out = x, y
+        self.signal_out = x, y, sweep_trigger
 
         ###
 
@@ -132,6 +133,7 @@ class FastChain(Module, AutoCSR):
 
             self.sweep.clear.eq(0),
             self.sweep.hold.eq(0),
+            sweep_trigger.eq(self.sweep.sweep.trigger),
 
             self.relock.x.eq(rx >> s),
             self.relock.clear.eq(self.y_limit.error),
@@ -209,6 +211,7 @@ def cross_connect(gpio, chains):
     states = [1, gpio.i]
     signal_names = ["zero"]
     signals = Array([0])
+
     for n, c in chains:
         for s in c.state_out:
             states.append(s)
@@ -228,6 +231,8 @@ def cross_connect(gpio, chains):
             c.comb += sig.status.eq(s)
             c.sync += If(clr.re | (max.status < s), max.status.eq(s))
             c.sync += If(clr.re | (min.status > s), min.status.eq(s))
+
+
     states = Cat(states)
     state = Signal(len(states))
     gpio.comb += state.eq(states)
@@ -240,18 +245,24 @@ def cross_connect(gpio, chains):
             gpio.state.status.eq(gpio.state.status | state),
         )
     ]
+
+    # connect gpio output to "doi%i_en"
     for i, s in enumerate(gpio.o):
         csr = CSRStorage(len(state), name="do%i_en" % i)
         setattr(gpio, csr.name, csr)
         gpio.sync += s.eq((state & csr.storage) != 0)
+
+    # connect state ins to "%s_en" and signal ins to "%s_sel"
     for n, c in chains:
         for s in c.state_in:
             csr = CSRStorage(len(state), name="%s_en" % s.backtrace[-1][0])
             setattr(c, csr.name, csr)
             c.sync += s.eq((state & csr.storage) != 0)
+
         for s in c.signal_in:
             csr = CSRStorage(bits_for(len(signals) - 1),
                              name="%s_sel" % s.backtrace[-1][0])
             setattr(c, csr.name, csr)
             c.sync += s.eq(signals[csr.storage])
+
     return state_names, signal_names

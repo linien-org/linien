@@ -59,6 +59,5 @@ if __name__ == "__main__":
     fil.close()
 
     platform.add_source_dir("verilog")
-    platform.add_verilog_include_path('include')
     platform.build(redpid, build_name="top")
     bit2bin("build/top.bit", "build/redpid.bin", flip=True)
