@@ -43,7 +43,8 @@ class ScopeGen(Module, AutoCSR):
         dac_a = Signal((width, True))
         dac_b = Signal((width, True))
 
-        self.signal_in = adc_a, adc_b
+        scope_trigger = Signal()
+        self.signal_in = adc_a, adc_b, scope_trigger
         self.signal_out = dac_a, dac_b
         self.state_in = ()
         self.state_out = ()
@@ -60,19 +61,19 @@ class ScopeGen(Module, AutoCSR):
                 i_adc_b_i=adc_b >> s,
                 i_adc_clk_i=ClockSignal(),
                 i_adc_rstn_i=~ResetSignal(),
-                i_trig_ext_i=self.trigger,
+                i_trig_ext_i=scope_trigger,
                 i_trig_asg_i=asg_trig,
 
-                i_sys_clk_i=self.scope_sys.clk,
-                i_sys_rstn_i=self.scope_sys.rstn,
-                i_sys_addr_i=self.scope_sys.addr,
-                i_sys_wdata_i=self.scope_sys.wdata,
-                i_sys_sel_i=self.scope_sys.sel,
-                i_sys_wen_i=self.scope_sys.wen,
-                i_sys_ren_i=self.scope_sys.ren,
-                o_sys_rdata_o=self.scope_sys.rdata,
-                o_sys_err_o=self.scope_sys.err,
-                o_sys_ack_o=self.scope_sys.ack,
+                #i_sys_clk_i=self.scope_sys.clk,
+                #i_sys_rstn_i=self.scope_sys.rstn,
+                i_sys_addr=self.scope_sys.addr,
+                i_sys_wdata=self.scope_sys.wdata,
+                #i_sys_sel_i=self.scope_sys.sel,
+                i_sys_wen=self.scope_sys.wen,
+                i_sys_ren=self.scope_sys.ren,
+                o_sys_rdata=self.scope_sys.rdata,
+                o_sys_err=self.scope_sys.err,
+                o_sys_ack=self.scope_sys.ack,
         )
 
         self.specials.asg = Instance("red_pitaya_asg",
@@ -152,7 +153,7 @@ class Pid(Module):
         ])
 
         self.comb += [
-                self.scopegen.trigger.eq(self.gpio_p.i[0]),
+                #self.scopegen.trigger.eq(self.gpio_p.i[0]),
 
                 self.fast_a.adc.eq(self.analog.adc_a),
                 self.fast_b.adc.eq(self.analog.adc_b),
