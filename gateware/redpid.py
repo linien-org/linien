@@ -17,7 +17,7 @@
 
 from migen import *
 from misoc.interconnect import csr_bus
-from misoc.interconnect.csr import AutoCSR, CSRStatus
+from misoc.interconnect.csr import AutoCSR, CSRStatus, CSRStorage
 
 # https://github.com/RedPitaya/RedPitaya/blob/master/FPGA/release1/fpga/code/rtl/red_pitaya_daisy.v
 
@@ -34,7 +34,17 @@ from .lfsr import XORSHIFTGen
 
 class ScopeGen(Module, AutoCSR):
     def __init__(self, width=25):
-        self.trigger = Signal()
+        self.gpio_trigger = Signal()
+        self.sweep_trigger_a = Signal()
+        self.sweep_trigger_b = Signal()
+
+        self.external_trigger = CSRStorage(2)
+        ext_scope_trigger = Array([
+            self.gpio_trigger,
+            self.sweep_trigger_a,
+            self.sweep_trigger_b
+        ])[self.external_trigger.storage]
+
         self.scope_sys = Record(sys_layout)
         self.asg_sys = Record(sys_layout)
 
@@ -61,19 +71,20 @@ class ScopeGen(Module, AutoCSR):
                 i_adc_b_i=adc_b >> s,
                 i_adc_clk_i=ClockSignal(),
                 i_adc_rstn_i=~ResetSignal(),
-                i_trig_ext_i=scope_trigger,
+
+                i_trig_ext_i=ext_scope_trigger,
                 i_trig_asg_i=asg_trig,
 
-                #i_sys_clk_i=self.scope_sys.clk,
-                #i_sys_rstn_i=self.scope_sys.rstn,
-                i_sys_addr=self.scope_sys.addr,
-                i_sys_wdata=self.scope_sys.wdata,
-                #i_sys_sel_i=self.scope_sys.sel,
-                i_sys_wen=self.scope_sys.wen,
-                i_sys_ren=self.scope_sys.ren,
-                o_sys_rdata=self.scope_sys.rdata,
-                o_sys_err=self.scope_sys.err,
-                o_sys_ack=self.scope_sys.ack,
+                i_sys_clk_i=self.scope_sys.clk,
+                i_sys_rstn_i=self.scope_sys.rstn,
+                i_sys_addr_i=self.scope_sys.addr,
+                i_sys_wdata_i=self.scope_sys.wdata,
+                i_sys_sel_i=self.scope_sys.sel,
+                i_sys_wen_i=self.scope_sys.wen,
+                i_sys_ren_i=self.scope_sys.ren,
+                o_sys_rdata_o=self.scope_sys.rdata,
+                o_sys_err_o=self.scope_sys.err,
+                o_sys_ack_o=self.scope_sys.ack,
         )
 
         self.specials.asg = Instance("red_pitaya_asg",
@@ -81,8 +92,8 @@ class ScopeGen(Module, AutoCSR):
                 o_dac_b_o=asg_b,
                 i_dac_clk_i=ClockSignal(),
                 i_dac_rstn_i=~ResetSignal(),
-                i_trig_a_i=self.trigger,
-                i_trig_b_i=self.trigger,
+                i_trig_a_i=self.gpio_trigger,
+                i_trig_b_i=self.gpio_trigger,
                 o_trig_out_o=asg_trig,
 
                 i_sys_clk_i=self.asg_sys.clk,
@@ -153,7 +164,9 @@ class Pid(Module):
         ])
 
         self.comb += [
-                #self.scopegen.trigger.eq(self.gpio_p.i[0]),
+                self.scopegen.gpio_trigger.eq(self.gpio_p.i[0]),
+                self.scopegen.sweep_trigger_a.eq(self.fast_a.sweep.sweep.trigger),
+                self.scopegen.sweep_trigger_b.eq(self.fast_b.sweep.sweep.trigger),
 
                 self.fast_a.adc.eq(self.analog.adc_a),
                 self.fast_b.adc.eq(self.analog.adc_b),

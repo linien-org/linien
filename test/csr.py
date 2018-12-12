@@ -78,8 +78,8 @@ class PitayaCSR:
 
 
 class PitayaSSH(PitayaCSR):
-    def __init__(self, cmd="ssh root@rp-f0685a.local /usr/bin/monitoradvanced -"):
-        self.p = subprocess.Popen(cmd.split(),
+    def __init__(self, ssh_cmd='ssh root@rp-f0685a.local', monitor_cmd="/usr/bin/monitoradvanced"):
+        self.p = subprocess.Popen(' '.join([ssh_cmd, monitor_cmd, '-']).split(),
                 stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE)
 
@@ -130,9 +130,9 @@ class PitayaTB(PitayaCSR):
 
 if __name__ == "__main__":
     #p = PitayaReal("ssh -p 2201 root@localhost /opt/bin/monitor -")
-    #p = PitayaReal()
-    p = PitayaTB()
-    p.start()
+    p = PitayaSSH()
+    #p = PitayaTB()
+    #p.start()
     #assert p.get("pid_version") == 1
     da = 0x2345
     #assert p.get("deltasigma_data0") == da
@@ -152,29 +152,29 @@ if __name__ == "__main__":
         fast_a_x_tap=2,
         fast_a_demod_delay=0xc00,
         fast_a_x_clear_en=0, #p.states("fast_a_x_sat"),
-        fast_a_brk=0,
+        fast_a_brk=1,
         fast_a_dx_sel=p.signal("scopegen_dac_a"),#p.signal("zero"),
         fast_a_y_tap=1,
         fast_a_rx_sel=p.signal('zero'),#p.signal("fast_b_x"),
-        fast_a_y_hold_en=p.signal('zero'),#p.states("fast_a_unlocked"),
-        fast_a_y_clear_en=p.signal('zero'),#p.states("fast_a_y_railed"),
+        fast_a_y_hold_en=p.states("fast_a_unlocked"),
+        fast_a_y_clear_en=p.states("fast_a_y_railed"),
         fast_a_relock_run=0,
         fast_a_relock_en=p.states(),
         fast_a_relock_step=200,
         fast_a_relock_min=4000,
         fast_a_relock_max=8191,
-        fast_a_sweep_run=1,
+        fast_a_sweep_run=0,
         #fast_a_sweep_step=1000,
-        fast_a_sweep_step=0xffffff,
+        fast_a_sweep_step=0x00ffff,
         fast_a_sweep_min=-8192/2,
         fast_a_sweep_max=8191/2,
 
-        fast_a_mod_amp=0x0400,
+        fast_a_mod_amp=0x0e00,
+        fast_a_mod_freq=0x10000000,
         #fast_a_mod_amp=0x0,
         # 0x10000000 ~= 8 MHz
-        fast_a_mod_freq=0x10000000,
-        #fast_a_mod_freq=0x00100000,
-        fast_a_dy_sel=p.signal("scopegen_dac_a"),
+        #fast_a_mod_freq=0x00000000,
+        fast_a_dy_sel=p.signal('zero'),#p.signal("scopegen_dac_a"),
         fast_a_y_limit_min=-8192,
         fast_a_y_limit_max=8191,
         # 50uV rms / sqrt(Hz), 550mV rms/sqrt(125MHz)
@@ -182,11 +182,19 @@ if __name__ == "__main__":
         fast_b_x_tap=1,
         fast_b_brk=1,
         fast_b_dx_sel=p.signal("zero"),
-        fast_b_y_tap=0,
+        fast_b_y_tap=1,
         fast_b_y_clear_en=p.states("fast_b_y_railed"),
-        fast_b_mod_amp=0x2000,
-        fast_b_mod_freq=0x00001234,
+        #fast_b_mod_amp=0x0000,
+        #fast_b_mod_freq=0x00001234,
+        fast_b_mod_amp=0x0400,
+        fast_b_mod_freq=0x10000000,
         fast_b_dy_sel=p.signal("zero"),
+
+        fast_b_sweep_run=0,
+        #fast_a_sweep_step=1000,
+        fast_b_sweep_step=0x00ffff,
+        fast_b_sweep_min=-8192/2,
+        fast_b_sweep_max=8191/2,
 
         slow_a_brk=1,
         slow_a_dx_sel=p.signal("scopegen_dac_a"),
@@ -227,7 +235,7 @@ if __name__ == "__main__":
     n = "fast_a_iir_c"
     #p.set_iir("fast_a_iir_c", *make_filter("I", k=1, f=5e-5))
     #p.set_iir("fast_a_iir_c", *make_filter("P", k=1, f=5e-5))
-    p.set_iir("fast_a_iir_c", *make_filter("P", k=0))
+    p.set_iir("fast_a_iir_c", *make_filter("PI", k=.91, f=5e-5))
     ##p.set_iir("fast_a_iir_d", *make_filter("P", k=1., f=1))
     p.set_iir("fast_a_iir_d", b, a)
     #p.set_iir("fast_a_iir_e", *make_filter("I", k=1, f=2e-7))
@@ -270,7 +278,7 @@ if __name__ == "__main__":
         settings[n] = v = p.get(n)
         print(n, hex(v))"""
 
-    p.stop(10)
+    #p.stop(10)
 
     import matplotlib.pyplot as plt
     #plt.plot(p.io.y)
