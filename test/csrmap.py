@@ -233,6 +233,7 @@ csr = {
     'noise_y_clr': (7, 0x001, 1, True),
     'noise_y_max': (7, 0x002, 25, False),
     'noise_y_min': (7, 0x006, 25, False),
+    'root_sync_phase_en': (8, 0x000, 27, True),
     'scopegen_external_trigger': (6, 0x000, 2, True),
     'scopegen_dac_a_clr': (6, 0x001, 1, True),
     'scopegen_dac_a_max': (6, 0x002, 25, False),

@@ -109,14 +109,25 @@ class ScopeGen(Module, AutoCSR):
         )
 
 
-class Pid(Module):
+class PIDCSR(Module, AutoCSR):
+    def __init__(self):
+        self.sync_phase = Signal()
+        self.state_in = [self.sync_phase]
+        self.signal_in = []
+        self.state_out = []
+        self.signal_out = []
+
+
+class Pid(Module, AutoCSR):
     def __init__(self, platform):
         csr_map = {
                 "dna": 28, "xadc": 29, "gpio_n": 30, "gpio_p": 31,
                 "fast_a": 0, "fast_b": 1,
                 "slow_a": 2, "slow_b": 3, "slow_c": 4, "slow_d": 5,
-                "scopegen": 6, "noise": 7,
+                "scopegen": 6, "noise": 7, 'root': 8
         }
+
+        self.submodules.root = PIDCSR()
 
         self.submodules.analog = PitayaAnalog(
                 platform.request("adc"), platform.request("dac"))
@@ -143,6 +154,10 @@ class Pid(Module):
         s, c = 25, 18
         self.submodules.fast_a = FastChain(14, s, c)
         self.submodules.fast_b = FastChain(14, s, c)
+        self.comb += [
+            self.fast_a.mod.sync_phase.eq(self.root.sync_phase),
+            self.fast_b.mod.sync_phase.eq(self.root.sync_phase)
+        ]
         sys_slow = ClockDomainsRenamer("sys_slow")
         self.submodules.slow_a = sys_slow(SlowChain(16, s, c))
         self.slow_a.iir.interval.value.value *= 15
@@ -161,6 +176,7 @@ class Pid(Module):
             ("slow_a", self.slow_a), ("slow_b", self.slow_b),
             ("slow_c", self.slow_c), ("slow_d", self.slow_d),
             ("scopegen", self.scopegen), ("noise", self.noise),
+            ("root", self.root)
         ])
 
         self.comb += [

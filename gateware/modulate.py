@@ -50,11 +50,13 @@ class Modulate(Filter):
         self.freq = CSRStorage(freq_width)
         self.phase = Signal(width)
 
+        self.sync_phase = Signal()
+
         z = Signal(freq_width)
         stop = Signal()
         self.sync += [
             stop.eq(self.freq.storage == 0),
-            If(stop,
+            If(stop | self.sync_phase,
                 z.eq(0)
             ).Else(
                 z.eq(z + self.freq.storage)

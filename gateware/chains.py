@@ -108,9 +108,11 @@ class FastChain(Module, AutoCSR):
         ]
         xs = Array([self.iir_a.x, self.iir_a.y,
                     self.iir_b.x >> s2, self.iir_b.y >> s2])
-        self.sync += x.eq(xs[self.x_tap.storage])
+        self.sync += x.eq(
+            Mux(self.brk.storage, 0, xs[self.x_tap.storage]) + dx
+        )
         self.comb += [
-            self.x_limit.x.eq(Mux(self.brk.storage, 0, x) + dx),
+            self.x_limit.x.eq(x),
             x_railed.eq(self.x_limit.error),
 
             self.iir_c.x.eq(self.x_limit.y),
