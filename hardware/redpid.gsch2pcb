@@ -1,0 +1,3 @@
+schematics redpid.sch redpid_pwr.sch redpid_fast.sch redpid_slow.sch redpid_digital.sch
+output-name redpid
+elements-dir ./fp

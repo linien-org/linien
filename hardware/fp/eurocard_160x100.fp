@@ -1,0 +1,25 @@
+
+Element["" "" "" "" 30.0000mm 30.0000mm 0.0000 0.0000 0 100 ""]
+(
+	Pad[8.0000mm 98.2500mm 6250.00mil 98.2500mm 1.5000mm 20.00mil 2.0080mm "1" "1" "square,edge2,nopaste"]
+	Pad[8.0000mm 1.7500mm 6250.00mil 1.7500mm 1.5000mm 20.00mil 2.0080mm "1" "1" "square,edge2,nopaste"]
+	Pad[8.0000mm 1.7500mm 6250.00mil 1.7500mm 1.5000mm 20.00mil 2.0080mm "1" "1" "onsolder,square,edge2,nopaste"]
+	Pad[8.0000mm 98.2500mm 6250.00mil 98.2500mm 1.5000mm 20.00mil 2.0080mm "1" "1" "onsolder,square,edge2,nopaste"]
+	ElementLine [0.0000 0.0000 160.0000mm 0.0000 10.00mil]
+	ElementLine [0.0000 100.0000mm 0.0000 0.0000 10.00mil]
+	ElementLine [160.0000mm 0.0000 160.0000mm 100.0000mm 10.00mil]
+	ElementLine [160.0000mm 100.0000mm 0.0000 100.0000mm 10.00mil]
+	ElementLine [0.0000 2.5000mm 160.0000mm 2.5000mm 10.00mil]
+	ElementLine [0.0000 97.5000mm 160.0000mm 97.5000mm 10.00mil]
+	ElementLine [3.5700mm 94.4500mm 3.5700mm 99.9700mm 10.00mil]
+	ElementLine [3.5700mm 94.4500mm 0.0500mm 94.4500mm 10.00mil]
+	ElementLine [3.5700mm 5.5500mm 3.5700mm 0.0300mm 10.00mil]
+	ElementLine [3.5700mm 5.5500mm 0.0500mm 5.5500mm 10.00mil]
+	ElementLine [157.2400mm 94.4500mm 157.2400mm 99.9400mm 10.00mil]
+	ElementLine [157.2400mm 94.4500mm 159.9500mm 94.4500mm 10.00mil]
+	ElementLine [157.2400mm 5.5500mm 157.2400mm 0.0600mm 10.00mil]
+	ElementLine [157.2400mm 5.5500mm 159.9500mm 5.5500mm 10.00mil]
+	ElementLine [154.7000mm 10.6300mm 159.9300mm 10.6300mm 10.00mil]
+	ElementLine [154.7000mm 10.6300mm 154.7000mm 0.0000 10.00mil]
+
+	)
