@@ -16,6 +16,27 @@ SHUTDOWN = 0
 SET_ASG_OFFSET = 1
 
 
+class FakeRedPitayaControl:
+    def __init__(self, ip, user, password, parameters):
+        self.parameters = parameters
+
+    def connect(self):
+        pass
+
+    def write_data(self):
+        pass
+
+    def run_acquiry_loop(self):
+        from random import randint
+        self.parameters.to_plot.value = (
+            [randint(-8192, 8192) for _ in range(16384)],
+            list(_ - 8192 for _ in range(16384))
+        )
+
+    def set_asg_offset(self, idx, offset):
+        pass
+
+
 class RedPitayaControl:
     def __init__(self, ip, user, password, parameters):
         self.ip = ip
@@ -23,6 +44,7 @@ class RedPitayaControl:
         self.password = password
         self.parameters = parameters
         self._cached_data = {}
+        self._is_locked = None
 
     def connect(self):
         # TODO: Escape
@@ -84,7 +106,7 @@ class RedPitayaControl:
             fast_b_mod_amp=0x0,
             #fast_b_mod_freq=0,
 
-            fast_a_brk=0,
+            fast_a_brk=1,
             fast_a_mod_amp=params['modulation_amplitude'],
             fast_a_mod_freq=params['modulation_frequency'],
             fast_a_x_tap=2,
@@ -99,7 +121,7 @@ class RedPitayaControl:
             fast_b_rx_sel=self.ssh.signal('zero'),
 
             scopegen_adc_a_sel=self.ssh.signal("fast_b_x"),
-            scopegen_adc_b_sel=self.ssh.signal("fast_a_x"),
+            scopegen_adc_b_sel=self.ssh.signal("fast_b_y"),
 
             gpio_p_oes=0,
             gpio_n_oes=0,
@@ -113,11 +135,15 @@ class RedPitayaControl:
             gpio_n_do1_en=self.ssh.signal('zero'),
 
             # asg offset (is not set via ssh but via rpyc)
-            asga_offset=0,
+            asga_offset=int(params['offset']),
             asgb_offset=int(params['center'] * 8191),
         )
 
-        if params['lock']:
+        lock_changed = params['lock'] != self._is_locked
+        lock = params['lock']
+        self._is_locked = lock
+
+        if lock_changed and lock:
             new['fast_b_sweep_run'] = 0
             #new['scopegen_adc_a_sel'] = self.ssh.signal("fast_b_x")
 
@@ -143,32 +169,35 @@ class RedPitayaControl:
         for k, v in new.items():
             self.ssh.set(k, int(v))
 
-        if params['lock']:
-            from time import sleep
-            self.ssh.set('fast_b_x_clr', 1)
-            self.ssh.set('fast_b_y_clr', 1)
-            # sync modulation phases
-            self.ssh.set('root_sync_phase_en', self.ssh.states('force'))
-            self.ssh.set('root_sync_phase_en', self.ssh.states())
-            sleep(1)
-            print('lock')
-            self.ssh.set('fast_b_x_clr', 0)
-            self.ssh.set('fast_b_y_clr', 0)
-            #self.ssh.set_iir("fast_b_iir_c", *make_filter("P", k=1))
-            k = params['k']
-            f = params['f']
-            self.ssh.set_iir("fast_b_iir_c", *make_filter("PI", k=k, f=f))
-        else:
-            self.ssh.set_iir("fast_a_iir_a", *make_filter('P', k=1))
-            self.ssh.set_iir("fast_a_iir_c", *make_filter("P", k=0))
-            self.ssh.set_iir("fast_b_iir_a", *make_filter('P', k=1))
-            self.ssh.set_iir("fast_b_iir_c", *make_filter("P", k=0))
+        k = params['k']
+        f = params['f']
 
-        #from time import sleep
-        #self.ssh.set('fast_a_mod_freq', int(params['modulation_frequency']/3))
-        #sleep(2)
-        #self.ssh.set('fast_a_mod_freq', int(params['modulation_frequency']))
-        #input('sync?')
+        if lock_changed:
+            if lock:
+                self.ssh.set('fast_b_x_clear_en', self.ssh.states('force'))
+                self.ssh.set('fast_b_y_clear_en', self.ssh.states('force'))
+
+                # sync modulation phases
+                self.ssh.set('root_sync_phase_en', self.ssh.states('force'))
+                self.ssh.set('root_sync_phase_en', self.ssh.states())
+
+                self.ssh.set_iir("fast_b_iir_c", *make_filter("PI", k=0, f=f))
+
+                self.ssh.set_iir("fast_b_iir_c", *make_filter("PI", k=k, f=f))
+
+                self.ssh.set('fast_b_y_clear_en', self.ssh.states())
+                self.ssh.set('fast_b_x_clear_en', self.ssh.states())
+            else:
+                self.ssh.set_iir("fast_a_iir_a", *make_filter('P', k=1))
+                self.ssh.set_iir("fast_a_iir_c", *make_filter("P", k=0))
+                self.ssh.set_iir("fast_b_iir_a", *make_filter('P', k=1))
+                self.ssh.set_iir("fast_b_iir_c", *make_filter("P", k=0))
+        else:
+            self.ssh.set('fast_b_y_hold_en', self.ssh.states('force'))
+            if lock:
+                self.ssh.set_iir("fast_b_iir_c", *make_filter("PI", k=k, f=f))
+            self.ssh.set('fast_b_y_hold_en', self.ssh.states())
+
         # sync modulation phases
         self.ssh.set('root_sync_phase_en', self.ssh.states('force'))
         self.ssh.set('root_sync_phase_en', self.ssh.states())
@@ -217,7 +246,10 @@ class RedPitayaControl:
                 if data is None:
                     continue
 
-                conn.send([float(i) for i in data])
+                conn.send([
+                    [float(i) for i in dataset]
+                    for dataset in data
+                ])
 
             deployed_server.close()
 

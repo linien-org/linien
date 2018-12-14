@@ -23,7 +23,11 @@ class DataAcquisition:
                 #    if not r.scope.trigger_bit:
                 #        break
                 sleep(.4 / 1024 * decimation)
-                data = [float(i) for i in self.r.scope.data_ch1[:]]
+                data = [
+                    [float(i) for i in channel[:]]
+                    for channel in
+                    (self.r.scope.data_ch1, self.r.scope.data_ch2)
+                ]
                 self.r.scope.rearm(trigger_source=6)
                 self.data = pickle.dumps(data)
 

@@ -172,7 +172,8 @@ class Transfer:
         dut = self.wrap_dut(b, a, dut)
         np.random.seed(299792458)
         x = np.random.uniform(-amplitude, amplitude, samples)
-        self.tb = Filter(dut, x, latency=dut.dut.latency.value, interval=dut.dut.interval.value)
+        self.tb = Filter(dut, x, latency=dut.dut.latency.value.value,
+                         interval=dut.dut.interval.value.value)
 
     def wrap_dut(self, b, a, dut):
         raise NotImplementedError
@@ -237,7 +238,7 @@ class Transfer:
 
 class ResetTransfer(Transfer):
     def wrap_dut(self, b, a, dut):
-        self.b, self.a, params = get_params(b, a, shift=dut.shift.value,
+        self.b, self.a, params = get_params(b, a, shift=dut.shift.value.value,
                 width=len(dut.a[1]))
         dut = ResetParams(dut, params)
         return dut
@@ -245,7 +246,7 @@ class ResetTransfer(Transfer):
 
 class CsrTransfer(Transfer):
     def wrap_dut(self, b, a, dut):
-        self.b, self.a, params = get_params(b, a, shift=dut.shift.value,
+        self.b, self.a, params = get_params(b, a, shift=dut.shift.value.value,
                 width=len(dut.c["a1"]))
         dut = CsrParams(dut, params)
         return dut

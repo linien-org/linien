@@ -21,8 +21,8 @@ import matplotlib.pyplot as plt
 from migen.fhdl import verilog
 from migen import *
 
-from .transfer import ResetTransfer, CsrTransfer
-from .iir_coeffs import make_filter
+from transfer import ResetTransfer, CsrTransfer
+from iir_coeffs import make_filter
 
 from gateware.iir import Iir
 

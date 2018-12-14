@@ -4,6 +4,7 @@ class Parameter:
         self.max = max_
         self.wrap = wrap
         self._value = start
+        self._start = start
         self._listeners = []
 
     @property
@@ -29,6 +30,9 @@ class Parameter:
         if self._value is not None:
             function(self._value)
 
+    def reset(self):
+        self.value = self._start
+
 
 class Parameters:
     def __init__(self):
@@ -41,11 +45,16 @@ class Parameters:
             min_=0,
             max_=0xffffffff,
             # 0x10000000 ~= 8 MHzs
-            start=0x10000000/8
+            start=0x10000000/8*15
         )
         self.center = Parameter(
             min_=-1,
             max_=1,
+            start=0
+        )
+        self.offset = Parameter(
+            min_=-8191,
+            max_=8191,
             start=0
         )
         self.ramp_amplitude = Parameter(
@@ -62,8 +71,8 @@ class Parameters:
         self.lock = Parameter(start=False)
         self.decimation = Parameter(start=1024)
         self.to_plot = Parameter()
-        self.k = Parameter(start=1)
-        self.f = Parameter(start=1e-6)
+        self.k = Parameter(start=0.1)
+        self.f = Parameter(start=1e-4)
 
     def __iter__(self):
         for name, element in self.__dict__.items():
