@@ -143,6 +143,7 @@ class PIDApp(App):
         def reset_range(e):
             self.parameters.ramp_amplitude.reset()
             self.parameters.center.reset()
+            self.control.write_data()
 
         scan_range_buttons[0].bind(on_press=lambda e: change_range(False))
         scan_range_buttons[1].bind(on_press=lambda e: change_range(True))
@@ -199,8 +200,8 @@ class PIDApp(App):
                 delta_center *= -1
             new_center = self.parameters.center.value + delta_center
 
-            if np.abs(new_center + ramp_amplitude) > 1:
-                new_center = np.sign(new_center) * (1 - ramp_amplitude)
+            if np.abs(new_center) + self.parameters.ramp_amplitude.value > 1:
+                new_center = np.sign(new_center) * (1 - self.parameters.ramp_amplitude.value)
 
             self.parameters.center.value = new_center
             self.control.write_data()
@@ -240,7 +241,7 @@ class PIDApp(App):
 
     def create_graph(self):
         self.graph = Graph(x_ticks_minor=5,
-            x_ticks_major=8192, y_ticks_major=500,
+            x_ticks_major=8192, y_ticks_major=1000,
             y_grid_label=True, x_grid_label=False, padding=5,
             x_grid=True, y_grid=True, xmin=-0, xmax=100, ymin=-1, ymax=1)
 
@@ -262,8 +263,11 @@ class PIDApp(App):
 
             center = np.mean([x, x0])
             amplitude = np.abs(center - x) * 2
-
             center = (center - 0.5) * 2
+
+            amplitude *= self.parameters.ramp_amplitude.value
+            center = self.parameters.center.value + \
+                (center * self.parameters.ramp_amplitude.value)
 
             print('new zoom', center, amplitude)
 
@@ -285,6 +289,8 @@ class PIDApp(App):
                 self.touch_start = None
 
         def mouse_move(widget, event):
+            if self.touch_start is None:
+                return
             _, _2, x0, _3 = self.touch_start
             set_selection_overlay(x0, event.x - x0)
 
@@ -351,6 +357,7 @@ class PIDApp(App):
                 self.graph.xmax = len(error_signal)
                 self.graph.ymin = math.floor(self.plot_min)
                 self.graph.ymax = math.ceil(self.plot_max)
+                self.graph.y_ticks_major = int(self.plot_max * 2 / 5)
 
                 if self.graph.ymin == self.graph.ymax:
                     self.graph.ymax += 1

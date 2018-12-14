@@ -39,7 +39,7 @@ class Parameters:
         self.modulation_amplitude = Parameter(
             min_=0,
             max_=0xffff,
-            start=0x0e00*2
+            start=4046
         )
         self.modulation_frequency = Parameter(
             min_=0,
@@ -71,7 +71,7 @@ class Parameters:
         self.lock = Parameter(start=False)
         self.decimation = Parameter(start=1024)
         self.to_plot = Parameter()
-        self.k = Parameter(start=0.1)
+        self.k = Parameter(start=-0.05)
         self.f = Parameter(start=1e-4)
 
     def __iter__(self):
