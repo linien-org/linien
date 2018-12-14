@@ -71,8 +71,8 @@ class Parameters:
         self.lock = Parameter(start=False)
         self.decimation = Parameter(start=1024)
         self.to_plot = Parameter()
-        self.k = Parameter(start=-0.05)
-        self.f = Parameter(start=1e-4)
+        self.k = Parameter(start=-0.1)
+        self.f = Parameter(start=1e-5)
 
     def __iter__(self):
         for name, element in self.__dict__.items():
