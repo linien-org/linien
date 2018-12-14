@@ -1,0 +1,117 @@
+<RootElement>:
+    BoxLayout:
+        Button:
+            text: '<'
+            size_hint: (.1, None)
+            pos_hint: {'center_y': 0.5}
+            on_press: root.change_center(False)
+
+        Graph:
+            id: graph
+            x_ticks_minor: 5
+            x_ticks_major: 8192
+            y_ticks_major: 1000
+            y_grid_label: True
+            x_grid_label: False
+            padding: 5
+            x_grid: True
+            y_grid: True
+            xmin: -0
+            xmax: 100
+            ymin: -1
+            ymax: 1
+
+            on_touch_down: root.graph_mouse_down(*args)
+            on_touch_up: root.graph_mouse_up(*args)
+            on_touch_move: root.graph_mouse_move(*args)
+
+        Button:
+            text: '>'
+            size_hint: (.1, None)
+            pos_hint: {'center_y': 0.5}
+            on_press: root.change_center(False)
+
+        BoxLayout:
+            orientation: 'vertical'
+            spacing: 10
+            size_hint: (0.25, 1)
+            pos_hint: {'x': 0.75, 'y': 0}
+
+            BoxLayout:
+                size_hint: (1, None)
+
+                ToggleButton:
+                    text: 'Scan'
+                    group: 'task'
+                    state: 'down'
+                    on_press: root.start_ramp()
+                ToggleButton:
+                    text: 'Lock'
+                    group: 'task'
+                    on_press: root.start_lock()
+
+            BoxLayout:
+                size_hint: (1, None)
+                Button:
+                    text: '-'
+                    on_press: root.change_frequency(False)
+                Label:
+                    id: frequency_display
+                Button:
+                    text: '+'
+                    on_press: root.change_frequency(True)
+
+            BoxLayout:
+                size_hint: (1, None)
+                Button:
+                    text: '-'
+                    on_press: root.change_amplitude(False)
+                Label:
+                    id: amplitude_display
+                Button:
+                    text: '+'
+                    on_press: root.change_amplitude(True)
+
+            BoxLayout:
+                size_hint: (1, None)
+                Button:
+                    text: '-'
+                    on_press: root.change_phase(False)
+                Label:
+                    id: phase_display
+                Button:
+                    text: '+'
+                    on_press: root.change_phase(True)
+
+            NumberInput:
+                on_text_validate: root.change_offset(*args)
+                multiline: False
+
+            BoxLayout:
+                TextInput:
+                    id: k
+                    text: str(root.parameters.k._start)
+                    multiline: False
+                    on_text_validate: root.set_k(*args)
+                TextInput:
+                    id: f
+                    text: str(root.parameters.f._start)
+                    multiline: False
+                    on_text_validate: root.set_f(*args)
+
+    BoxLayout:
+        size_hint: (None, None)
+        pos_hint: {'center_x': 0.7/2, 'y': 0.9}
+        size: (300, 25)
+
+        Label:
+            id: scan_range_display
+        Button:
+            text: '+'
+            on_press: root.change_range(True)
+        Button:
+            text: '-'
+            on_press: root.change_range(False)
+        Button:
+            text: 'reset'
+            on_press: root.reset_range()
