@@ -145,7 +145,12 @@ class RootElement(FloatLayout):
         self.set_numeric_pid_parameter(input, self.parameters.f)
 
     def graph_on_click(self, x, y):
-        print('click', x, y)
+        center = (center - 0.5) * 2
+        center = self.parameters.center.value + \
+            (center * self.parameters.ramp_amplitude.value)
+
+        self.parameters.ramp_amplitude.value /= .5
+        self.parameters.center = center
 
     def graph_on_selection(self, x0, x):
         x0 /= self.ids.graph.xmax
