@@ -101,6 +101,10 @@
                     text: str(root.parameters.f._start)
                     multiline: False
                     on_text_validate: root.set_f(*args)
+            
+            Button:
+                text: 'export'
+                on_press: root.export_data()
 
     BoxLayout:
         size_hint: (None, None)

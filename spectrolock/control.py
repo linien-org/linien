@@ -169,6 +169,14 @@ class RedPitayaControl:
 
         for k, v in new.items():
             self.ssh.set(k, int(v))
+        
+        if 'fast_b_sweep_step' in new:
+            # reset sweep for a short time if the scan range was changed
+            # this is needed because otherwise it may take too long before
+            # the new scan range is reached --> no scope trigger is sent
+            self.ssh.set('fast_b_sweep_run', 0)
+            self.ssh.set('fast_b_sweep_run', 1)
+            
 
         k = params['k']
         f = params['f']
