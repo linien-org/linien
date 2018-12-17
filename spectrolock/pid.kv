@@ -41,14 +41,17 @@
                 size_hint: (1, None)
 
                 ToggleButton:
+                    id: scan_button
                     text: 'Scan'
                     group: 'task'
                     state: 'down'
-                    on_press: root.start_ramp()
+                    on_press: root.control.start_ramp()
+
                 ToggleButton:
+                    id: lock_button
                     text: 'Lock'
                     group: 'task'
-                    on_press: root.start_lock()
+                    on_press: root.control.start_lock()
 
             BoxLayout:
                 size_hint: (1, None)

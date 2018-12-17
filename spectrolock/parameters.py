@@ -30,6 +30,12 @@ class Parameter:
         if self._value is not None:
             function(self._value)
 
+    def remove_listener(self, function):
+        self._listeners = [
+            listener for listener in self._listeners
+            if listener != function
+        ]
+
     def reset(self):
         self.value = self._start
 
@@ -73,6 +79,7 @@ class Parameters:
         self.to_plot = Parameter()
         self.k = Parameter(start=-0.05)
         self.f = Parameter(start=1e-4)
+        self.task = Parameter(start=None)
 
     def __iter__(self):
         for name, element in self.__dict__.items():

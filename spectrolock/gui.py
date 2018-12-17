@@ -5,18 +5,13 @@ from time import time
 
 from kivy.app import App
 from kivy.uix.button import Button
-from kivy.uix.togglebutton import ToggleButton
-from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.stacklayout import StackLayout
-from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
+from kivy.properties import ObjectProperty
 from kivy.garden.graph import Graph, MeshLinePlot
-from kivy.garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg
 from kivy.graphics.instructions import InstructionGroup
 from kivy.graphics.context_instructions import Color
 from kivy.graphics.vertex_instructions import Rectangle
-from kivy.properties import ObjectProperty
 
 
 def to_data_coords(widget, event):
@@ -75,14 +70,11 @@ class RootElement(FloatLayout):
         )
 
         self.parameters.to_plot.change(self.replot)
+        def lock_status_changed(lock):
+            self.ids.scan_button.state = 'normal' if lock else 'down'
+            self.ids.lock_button.state = 'normal' if not lock else 'down'
 
-    def start_ramp(self):
-        self.parameters.lock.value = False
-        self.control.write_data()
-
-    def start_lock(self):
-        self.parameters.lock.value = True
-        self.control.write_data()
+        self.parameters.lock.change(lock_status_changed)
 
     def change_frequency(self, positive):
         if positive:
@@ -144,14 +136,6 @@ class RootElement(FloatLayout):
     def set_f(self, input):
         self.set_numeric_pid_parameter(input, self.parameters.f)
 
-    def graph_on_click(self, x, y):
-        center = (center - 0.5) * 2
-        center = self.parameters.center.value + \
-            (center * self.parameters.ramp_amplitude.value)
-
-        self.parameters.ramp_amplitude.value /= .5
-        self.parameters.center = center
-
     def graph_on_selection(self, x0, x):
         x0 /= self.ids.graph.xmax
         x /= self.ids.graph.xmax
@@ -164,15 +148,15 @@ class RootElement(FloatLayout):
         center = self.parameters.center.value + \
             (center * self.parameters.ramp_amplitude.value)
 
-        print('new zoom', center, amplitude)
-
         self.parameters.ramp_amplitude.value = amplitude
         self.parameters.center.value = center
         self.control.write_data()
 
     def graph_mouse_down(self, widget, event):
+        if self.parameters.lock.value:
+            return
+
         # check whether click is on widget
-        print('down')
         if not widget.collide_point(event.x, event.y):
             self.touch_start = None
             return None
@@ -206,16 +190,21 @@ class RootElement(FloatLayout):
         xdiff = np.abs(x0 - x)
         if xdiff / self.ids.graph.xmax < 0.01:
             # it was a click
-            self.graph_on_click(x0, y0)
+            # TODO: HANDLE IT
+            #self.control.start_autolock(x0, y0)
+            pass
         else:
             # it was a selection
-            self.graph_on_selection(x0, x)
+            self.control.start_autolock(*sorted([x0, x]))
+            # TODO: re-implement manual mode self.graph_on_selection(x0, x)
 
         self.set_selection_overlay(0, 0)
         self.touch_start = None
 
     def replot(self, to_plot):
         if to_plot is not None:
+            self.last_plot_data = to_plot
+
             error_signal = to_plot[0]
             control_signal = to_plot[1]
 

@@ -9,6 +9,7 @@ from rpyc.utils.classic import upload_package
 from rpyc.utils.zerodeploy import DeployedServer
 
 from csr import make_filter, PitayaSSH
+from autolock import Autolock
 from server.server import DataAcquisition
 
 # TODO: enum
@@ -238,7 +239,6 @@ class RedPitayaControl:
                         break
                     elif data[0] == SET_ASG_OFFSET:
                         idx, value = data[1:]
-                        print('set2', data[1:])
                         acquisition.set_asg_offset(idx, value)
 
                 data = pickle.loads(acquisition.return_data())
@@ -263,18 +263,28 @@ class RedPitayaControl:
 
         # wait until connection is established
         self.parent_conn.recv()
-        print('received!')
 
         t = threading.Thread(target=receive_acquired_data, args=(self.parent_conn,))
         t.daemon = True
         t.start()
 
         def prepare_exit():
-            print('exit')
             self.parent_conn.send((SHUTDOWN,))
 
         atexit.register(prepare_exit)
 
     def set_asg_offset(self, idx, offset):
-        print('set offset', idx, offset)
         self.parent_conn.send((SET_ASG_OFFSET, idx, offset))
+
+    def start_autolock(self, x0, x1):
+        autolock = Autolock(self, self.parameters)
+        self.parameters.task.value = autolock
+        autolock.run(x0, x1)
+
+    def start_ramp(self):
+        self.parameters.lock.value = False
+        self.write_data()
+
+    def start_lock(self):
+        self.parameters.lock.value = True
+        self.write_data()
