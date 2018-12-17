@@ -80,7 +80,8 @@ class Parameters:
 
         self.k = Parameter(start=-0.1)
         self.f = Parameter(start=1e-5)
-        self.task = Parameter(start=None)
+        self.task = Parameter(start=0)
+        self.automatic_mode = Parameter(start=True)
 
     def __iter__(self):
         for name, element in self.__dict__.items():

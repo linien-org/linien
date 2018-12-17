@@ -1,6 +1,7 @@
 <RootElement>:
     BoxLayout:
         Button:
+            id: button_go_left
             text: '<'
             size_hint: (.1, None)
             pos_hint: {'center_y': 0.5}
@@ -26,89 +27,182 @@
             on_touch_move: root.graph_mouse_move(*args)
 
         Button:
+            id: button_go_right
             text: '>'
             size_hint: (.1, None)
             pos_hint: {'center_y': 0.5}
-            on_press: root.change_center(False)
+            on_press: root.change_center(True)
 
         BoxLayout:
             orientation: 'vertical'
             spacing: 10
             size_hint: (0.25, 1)
             pos_hint: {'x': 0.75, 'y': 0}
+            padding: (10, 10)
 
             BoxLayout:
+                orientation: 'vertical'
                 size_hint: (1, None)
 
-                ToggleButton:
-                    id: scan_button
-                    text: 'Scan'
-                    group: 'task'
-                    state: 'down'
-                    on_press: root.control.start_ramp()
-
-                ToggleButton:
-                    id: lock_button
-                    text: 'Lock'
-                    group: 'task'
-                    on_press: root.control.start_lock()
-
-            BoxLayout:
-                size_hint: (1, None)
-                Button:
-                    text: '-'
-                    on_press: root.change_frequency(False)
                 Label:
-                    id: frequency_display
-                Button:
-                    text: '+'
-                    on_press: root.change_frequency(True)
+                    text: 'Modulation frequency'
+
+                BoxLayout:
+                    Button:
+                        text: '-'
+                        on_press: root.change_frequency(False)
+                    Label:
+                        id: frequency_display
+                    Button:
+                        text: '+'
+                        on_press: root.change_frequency(True)
 
             BoxLayout:
+                orientation: 'vertical'
                 size_hint: (1, None)
-                Button:
-                    text: '-'
-                    on_press: root.change_amplitude(False)
+
                 Label:
-                    id: amplitude_display
-                Button:
-                    text: '+'
-                    on_press: root.change_amplitude(True)
+                    text: 'Modulation amplitude'
+
+                BoxLayout:
+                    Button:
+                        text: '-'
+                        on_press: root.change_amplitude(False)
+                    Label:
+                        id: amplitude_display
+                    Button:
+                        text: '+'
+                        on_press: root.change_amplitude(True)
 
             BoxLayout:
+                orientation: 'vertical'
                 size_hint: (1, None)
-                Button:
-                    text: '-'
-                    on_press: root.change_phase(False)
-                Label:
-                    id: phase_display
-                Button:
-                    text: '+'
-                    on_press: root.change_phase(True)
 
-            NumberInput:
-                on_text_validate: root.change_offset(*args)
-                multiline: False
+                Label:
+                    text: 'Demodulation phase'
+
+                BoxLayout:
+                    Button:
+                        text: '-'
+                        on_press: root.change_phase(False)
+                    Label:
+                        id: phase_display
+                    Button:
+                        text: '+'
+                        on_press: root.change_phase(True)
 
             BoxLayout:
-                TextInput:
-                    id: k
-                    text: str(root.parameters.k._start)
-                    multiline: False
-                    on_text_validate: root.set_k(*args)
-                TextInput:
-                    id: f
-                    text: str(root.parameters.f._start)
-                    multiline: False
-                    on_text_validate: root.set_f(*args)
-            
-            Button:
-                text: 'export'
-                on_press: root.export_data()
+                orientation: 'vertical'
+                size_hint: (1, None)
+
+                Label:
+                    text: 'P and I'
+
+                BoxLayout:
+                    TextInput:
+                        id: k
+                        text: str(root.parameters.k._start)
+                        multiline: False
+                        on_text_validate: root.set_k(*args)
+                    TextInput:
+                        id: f
+                        text: str(root.parameters.f._start)
+                        multiline: False
+                        on_text_validate: root.set_f(*args)
+
+            TabbedPanel:
+                id: mode_tab
+                do_default_tab: False
+
+                TabbedPanelItem:
+                    id: automatic_mode
+                    text: 'Automatic'
+                    on_release: root.change_tab(True)
+
+                    BoxLayout:
+                        orientation: 'vertical'
+                        padding: (20, 20)
+
+                        Label:
+                            id: explain_autolock
+                            size_hint: (1, None)
+                            font_size: 20
+                            text_size: self.size
+                            text: 'For automatic lock, click and drag over a line.'
+                            halign: 'center'
+
+                        Label:
+                            id: autolock_running
+                            size_hint: (1, None)
+                            text: 'Autolock is running...'
+                            font_size: 20
+                            color: [0, 1, 0]
+
+                        Label:
+                            id: autolock_failed
+                            size_hint: (1, None)
+                            font_size: 20
+                            text: 'Autolock failed!'
+                            color: [1, 0, 0]
+
+                        Label:
+                            id: autolock_locked
+                            size_hint: (1, None)
+                            font_size: 20
+                            text: 'Locked!'
+                            color: [0, 1, 0]
+
+                        Button:
+                            id: button_stop_autolock
+                            size_hint: (1, 1)
+                            text: 'Stop'
+                            on_press: root.stop_autolock()
+
+                TabbedPanelItem:
+                    id: manual_mode
+                    text: 'Manual'
+                    on_release: root.change_tab(False)
+
+                    BoxLayout:
+                        padding: (10, 10)
+                        orientation: 'vertical'
+
+                        BoxLayout:
+                            size_hint: (1, None)
+                            ToggleButton:
+                                id: scan_button
+                                text: 'Scan'
+                                group: 'task'
+                                state: 'down'
+                                on_press: root.control.start_ramp()
+
+                            ToggleButton:
+                                id: lock_button
+                                text: 'Lock'
+                                group: 'task'
+                                on_press: root.control.start_lock()
+
+                        Label:
+                            size_hint: (1, None)
+                            text: 'Signal Offset'
+
+                        NumberInput:
+                            id: offset_display
+                            size_hint: (1, None)
+                            on_text_validate: root.change_offset(*args)
+                            multiline: False
+
+                        Label:
+                            size_hint: (1, 100)
+
+            #Button:
+            #    text: 'export'
+            #    on_press: root.export_data()
 
     BoxLayout:
+        id: zoom_container
         size_hint: (None, None)
-        pos_hint: {'center_x': 0.7/2, 'y': 0.9}
+        # position is set in gui as a reaction to lock status change
         size: (300, 25)
 
         Label:

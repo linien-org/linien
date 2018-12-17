@@ -75,13 +75,55 @@ class RootElement(FloatLayout):
         self.parameters.ramp_amplitude.change(
             lambda value: setattr(self.ids.scan_range_display, 'text', '%d %%' % (value * 100))
         )
+        self.parameters.offset.change(
+            lambda value: setattr(self.ids.offset_display, 'text', '%d' % (value))
+        )
 
         self.parameters.to_plot.change(self.replot)
-        def lock_status_changed(lock):
+        def lock_status_changed(*args):
+            lock = self.parameters.lock.value
+            auto = self.parameters.automatic_mode.value
+
             self.ids.scan_button.state = 'normal' if lock else 'down'
             self.ids.lock_button.state = 'normal' if not lock else 'down'
 
+            # hide zoom container when locked
+            if lock or auto:
+                self.ids.zoom_container.pos_hint = {'center_x': -1000}
+            else:
+                self.ids.zoom_container.pos_hint = {'center_x': 0.7/2, 'y': 0.9}
+
+            for button in [self.ids.button_go_left, self.ids.button_go_right]:
+                if lock or auto:
+                    button.opacity = 0
+                    button.disabled = True
+                else:
+                    button.opacity = 1
+                    button.disabled = False
+
         self.parameters.lock.change(lock_status_changed)
+        self.parameters.automatic_mode.change(lock_status_changed)
+
+        def task_changed(task):
+            explain = not task or task.failed
+
+            if task:
+                running = task.running
+                success = not task.failed
+            else:
+                running = False
+                success = False
+
+            def show_when(element, value):
+                element.opacity = 1 if value else 0
+
+            show_when(self.ids.explain_autolock, explain)
+            show_when(self.ids.autolock_running, running)
+            show_when(self.ids.autolock_failed, task and not running and not success)
+            show_when(self.ids.autolock_locked, not running and success)
+            show_when(self.ids.button_stop_autolock, running or success)
+
+        self.parameters.task.change(task_changed)
 
     def change_frequency(self, positive):
         if positive:
@@ -143,6 +185,9 @@ class RootElement(FloatLayout):
     def set_f(self, input):
         self.set_numeric_pid_parameter(input, self.parameters.f)
 
+    def change_tab(self, automatic_mode):
+        self.parameters.automatic_mode.value = automatic_mode
+
     def graph_on_selection(self, x0, x):
         x0 /= self.ids.graph.xmax
         x /= self.ids.graph.xmax
@@ -197,16 +242,27 @@ class RootElement(FloatLayout):
         xdiff = np.abs(x0 - x)
         if xdiff / self.ids.graph.xmax < 0.01:
             # it was a click
-            # TODO: HANDLE IT
-            #self.control.start_autolock(x0, y0)
-            pass
+            if not self.parameters.automatic_mode.value:
+                self.graph_on_click(x0, y0)
         else:
             # it was a selection
-            self.control.start_autolock(*sorted([x0, x]))
-            # TODO: re-implement manual mode self.graph_on_selection(x0, x)
+            if self.parameters.automatic_mode.value:
+                self.control.start_autolock(*sorted([x0, x]))
+            else:
+                self.graph_on_selection(x0, x)
 
         self.set_selection_overlay(0, 0)
         self.touch_start = None
+
+    def graph_on_click(self, x, y):
+        center = x / self.ids.graph.xmax
+        center = (center - 0.5) * 2
+        center = self.parameters.center.value + \
+            (center * self.parameters.ramp_amplitude.value)
+
+        self.parameters.ramp_amplitude.value /= 2
+        self.parameters.center.value = center
+        self.control.write_data()
 
     def replot(self, to_plot):
         if to_plot is not None:
@@ -263,6 +319,9 @@ class RootElement(FloatLayout):
         self.parameters.ramp_amplitude.reset()
         self.parameters.center.reset()
         self.control.write_data()
+
+    def stop_autolock(self):
+        self.parameters.task.value.stop()
 
 
 class PIDApp(App):
