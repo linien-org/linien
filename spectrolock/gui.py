@@ -47,6 +47,7 @@ class RootElement(FloatLayout):
         self.parameters = parameters
 
         self.last_plot_rescale = 0
+        self.last_plot_data = None
         self.plot_max = 0
         self.plot_min = np.inf
         self.touch_start = None
@@ -55,6 +56,12 @@ class RootElement(FloatLayout):
 
         self.init_graph()
         self.display_parameter_changes()
+    
+    def export_data(self):
+        import json
+        from time import time
+        with open('data-%d.json' % time(), 'w') as f:
+            json.dump(self.last_plot_data, f)
 
     def display_parameter_changes(self):
         MHz = 0x10000000 / 8
@@ -145,12 +152,15 @@ class RootElement(FloatLayout):
         self.set_numeric_pid_parameter(input, self.parameters.f)
 
     def graph_on_click(self, x, y):
+        center = x / self.ids.graph.xmax
         center = (center - 0.5) * 2
         center = self.parameters.center.value + \
             (center * self.parameters.ramp_amplitude.value)
 
-        self.parameters.ramp_amplitude.value /= .5
-        self.parameters.center = center
+        self.parameters.ramp_amplitude.value /= 2
+        self.parameters.center.value = center
+        print('click', center)
+        self.control.write_data()
 
     def graph_on_selection(self, x0, x):
         x0 /= self.ids.graph.xmax
@@ -217,6 +227,7 @@ class RootElement(FloatLayout):
     def replot(self, to_plot):
         if to_plot is not None:
             error_signal = to_plot[0]
+            self.last_plot_data = error_signal
             control_signal = to_plot[1]
 
             self.parameters.to_plot.value = None
