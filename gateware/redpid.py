@@ -53,8 +53,7 @@ class ScopeGen(Module, AutoCSR):
         dac_a = Signal((width, True))
         dac_b = Signal((width, True))
 
-        scope_trigger = Signal()
-        self.signal_in = adc_a, adc_b, scope_trigger
+        self.signal_in = adc_a, adc_b
         self.signal_out = dac_a, dac_b
         self.state_in = ()
         self.state_out = ()

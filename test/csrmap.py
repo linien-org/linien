@@ -243,7 +243,6 @@ csr = {
     'scopegen_dac_b_min': (6, 0x00f, 25, False),
     'scopegen_adc_a_sel': (6, 0x013, 5, True),
     'scopegen_adc_b_sel': (6, 0x014, 5, True),
-    'scopegen_scope_trigger_sel': (6, 0x015, 5, True),
     'slow_a_brk': (2, 0x000, 1, True),
     'slow_a_x_limit_min': (2, 0x001, 25, True),
     'slow_a_x_limit_max': (2, 0x005, 25, True),
