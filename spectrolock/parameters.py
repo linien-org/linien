@@ -70,7 +70,7 @@ class Parameters:
         )
         self.demodulation_phase = Parameter(
             min_=0,
-            max_=0xfff,
+            max_=0b1111111111111,
             start=0xc00,
             wrap=True
         )
