@@ -91,6 +91,11 @@
                         text: '+'
                         on_press: root.change_phase(True)
 
+            Button:
+                size_hint: (1, None)
+                text: 'Shutdown'
+                on_press: root.shutdown()
+
             BoxLayout:
                 orientation: 'vertical'
                 size_hint: (1, None)
@@ -101,12 +106,10 @@
                 BoxLayout:
                     TextInput:
                         id: k
-                        text: str(root.parameters.k._start)
                         multiline: False
                         on_text_validate: root.set_k(*args)
                     TextInput:
                         id: f
-                        text: str(root.parameters.f._start)
                         multiline: False
                         on_text_validate: root.set_f(*args)
 
@@ -120,43 +123,9 @@
                     on_release: root.change_tab(True)
 
                     BoxLayout:
+                        id: lock_status
                         orientation: 'vertical'
                         padding: (20, 20)
-
-                        Label:
-                            id: explain_autolock
-                            size_hint: (1, None)
-                            font_size: 20
-                            text_size: self.size
-                            text: 'For automatic lock, click and drag over a line.'
-                            halign: 'center'
-
-                        Label:
-                            id: autolock_running
-                            size_hint: (1, None)
-                            text: 'Autolock is running...'
-                            font_size: 20
-                            color: [0, 1, 0]
-
-                        Label:
-                            id: autolock_failed
-                            size_hint: (1, None)
-                            font_size: 20
-                            text: 'Autolock failed!'
-                            color: [1, 0, 0]
-
-                        Label:
-                            id: autolock_locked
-                            size_hint: (1, None)
-                            font_size: 20
-                            text: 'Locked!'
-                            color: [0, 1, 0]
-
-                        Button:
-                            id: button_stop_autolock
-                            size_hint: (1, 1)
-                            text: 'Stop'
-                            on_press: root.stop_autolock()
 
                 TabbedPanelItem:
                     id: manual_mode

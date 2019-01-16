@@ -39,6 +39,9 @@ class Parameter:
     def reset(self):
         self.value = self._start
 
+    def register_remote_listener(self, remote_uuid):
+        pass
+
 
 class Parameters:
     def __init__(self):
@@ -75,7 +78,6 @@ class Parameters:
             wrap=True
         )
         self.lock = Parameter(start=False)
-        self.decimation = Parameter(start=1024)
         self.to_plot = Parameter()
 
         self.k = Parameter(start=-0.1)
@@ -83,7 +85,27 @@ class Parameters:
         self.task = Parameter(start=0)
         self.automatic_mode = Parameter(start=True)
 
-    def __iter__(self):
+        self._remote_listener_queue = {}
+
+    def get_all_parameters(self):
         for name, element in self.__dict__.items():
             if isinstance(element, Parameter):
-                yield name, element.value
+                yield name, element
+
+    def register_remote_listener(self, uuid, param_name):
+        self._remote_listener_queue.setdefault(uuid, set())
+
+        def on_change(value, uuid=uuid, param_name=param_name):
+            self._remote_listener_queue[uuid].add(param_name)
+
+        param = getattr(self, param_name)
+        param.change(on_change)
+
+    def get_listener_queue(self, uuid):
+        queue = self._remote_listener_queue.get(uuid, set())
+        self._remote_listener_queue[uuid] = set()
+        return queue
+
+    def __iter__(self):
+        for name, param in self.get_all_parameters():
+            yield name, param.value

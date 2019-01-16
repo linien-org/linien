@@ -1,46 +1,94 @@
+import os
+import sys
+sys.path += ['../../']
+import _thread
 import pickle
-import threading
-import subprocess
-from os import path
-from time import sleep, time
+
+import rpyc
+from rpyc.utils.server import ThreadedServer
+
+from registers import Pitaya
+from autolock import Autolock
+from parameters import Parameters
+
+from spectrolock.config import SERVER_PORT
 
 
-class DataAcquisition:
-    data = pickle.dumps(None)
+class FakeRedPitayaControl(rpyc.Service):
+    def __init__(self, ip, user, password, parameters):
+        self.parameters = Parameters()
 
-    def __init__(self, decimation, trigger_delay):
-        from PyRedPitaya.board import RedPitaya
-        self.r = RedPitaya()
+    def write_data(self):
+        pass
 
-        self.r.scope.data_decimation = decimation
-        self.r.scope.trigger_delay = trigger_delay
+    def run_acquiry_loop(self):
+        from random import randint
+        self.parameters.to_plot.value = (
+            [randint(-8192, 8192) for _ in range(16384)],
+            list(_ - 8192 for _ in range(16384))
+        )
 
-        def run_acquiry_loop():
-            while True:
-                #while True:
-                #    #
-                #    # sleep(5)
-                #    if not r.scope.trigger_bit:
-                #        break
-                sleep(.4 / 1024 * decimation)
-                data = [
-                    [float(i) for i in channel[:]]
-                    for channel in
-                    (self.r.scope.data_ch1, self.r.scope.data_ch2)
-                ]
-                self.r.scope.rearm(trigger_source=6)
-                self.data = pickle.dumps(data)
+    def set_asg_offset(self, idx, offset):
+        pass
 
-        self.t = threading.Thread(target=run_acquiry_loop, args=())
-        self.t.daemon = True
-        self.t.start()
 
-    def return_data(self):
-        return self.data[:]
+class RedPitayaControlService(rpyc.Service):
+    def __init__(self, pitaya):
+        self.parameters = Parameters()
+        self._cached_data = {}
+        self._is_locked = None
 
-    def set_asg_offset(self, idx, value):
-        asg = getattr(self.r, ['asga', 'asgb'][idx])
-        asg.offset = value
+        self.pitaya = pitaya
+        self.pitaya.connect(self, self.parameters)
+
+    def write_data(self):
+        self.pitaya.write_registers()
+
+    def run_acquiry_loop(self):
+        def on_change(plot_data):
+            self.parameters.to_plot.value = plot_data
+
+        self.pitaya.listen_for_plot_data_changes(on_change)
+
+    def set_asg_offset(self, idx, offset):
+        self.pitaya.set_asg_offset(idx, offset)
+
+    def start_autolock(self, x0, x1):
+        autolock = Autolock(self, self.parameters)
+        self.parameters.task.value = autolock
+        autolock.run(x0, x1)
+
+    def start_ramp(self):
+        self.parameters.lock.value = False
+        self.write_data()
+
+    def start_lock(self):
+        self.parameters.lock.value = True
+        self.write_data()
+
+    def reset(self):
+        self.parameters.ramp_amplitude.value = 1
+        self.parameters.center.value = 0
+        self.start_ramp()
+        self.write_data()
+
+    def shutdown(self):
+        self.pitaya.shutdown()
+        _thread.interrupt_main()
+        os._exit(0)
+
 
 if __name__ == '__main__':
-    d = DataAcquisition()
+    ssh = False
+
+    pitaya = Pitaya()
+
+    control = RedPitayaControlService(pitaya)
+    control.run_acquiry_loop()
+    control.write_data()
+
+    t = ThreadedServer(control, port=SERVER_PORT, protocol_config={
+        'allow_all_attrs': True,
+        'allow_setattr': True
+    })
+    t.start()

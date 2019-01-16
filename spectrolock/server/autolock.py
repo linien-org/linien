@@ -1,8 +1,8 @@
+import pickle
 import traceback
 import numpy as np
-from time import sleep
+from time import sleep, time
 from scipy.signal import correlate
-from matplotlib import pyplot as plt
 
 
 class Autolock:
@@ -30,6 +30,10 @@ class Autolock:
         if plot_data is None or not self.running:
             return
 
+        plot_data = pickle.loads(plot_data)
+        if plot_data is None:
+            return
+
         error_signal = plot_data[0]
         control_signal = plot_data[1]
 
@@ -40,7 +44,7 @@ class Autolock:
                 return self.record_first_error_signal(error_signal)
 
             if self.approaching:
-                if self.skipped < 10:
+                if self.skipped < 5:
                     self.skipped += 1
                     return
 
@@ -108,10 +112,17 @@ class Autolock:
 
         # check that the data received is new data, i.e. with the correct
         # scan range
+        print('new', np.abs(control_signal_amplitude - amplitude_target) / control_signal_amplitude < 0.2)
         if np.abs(control_signal_amplitude - amplitude_target) / control_signal_amplitude < 0.2:
             self.history.append((zoomed_data, error_signal[::self.zoom_factor]))
-            correlation = correlate(zoomed_data, error_signal[::self.zoom_factor])
-            shift = np.argmax(correlation)
+
+            # correlation is slow on red pitaya --> use at maximum 4096 points
+            skip_factor = int(len(zoomed_data) / 4096)
+            if skip_factor < 1:
+                skip_factor = 1
+
+            correlation = correlate(zoomed_data[::skip_factor], error_signal[::self.zoom_factor][::skip_factor])
+            shift = np.argmax(correlation) * skip_factor
             shift = (shift - len(zoomed_data)) / len(zoomed_data) * 2 / self.zoom_factor
 
             self.control.write_data()

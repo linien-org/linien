@@ -1,13 +1,17 @@
+import sys
 import math
 import string
 import numpy as np
 from time import time
+from decimal import Decimal
 
 from kivy.app import App
+from kivy.clock import Clock
 from kivy.uix.button import Button
+from kivy.uix.label import Label
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.textinput import TextInput
-from kivy.properties import ObjectProperty
+from kivy.uix.boxlayout import BoxLayout
 from kivy.garden.graph import Graph, MeshLinePlot
 from kivy.graphics.instructions import InstructionGroup
 from kivy.graphics.context_instructions import Color
@@ -37,10 +41,7 @@ class NumberInput(TextInput):
 
 
 class RootElement(FloatLayout):
-    def __init__(self, parameters, control):
-        self.control = control
-        self.parameters = parameters
-
+    def __init__(self):
         self.last_plot_rescale = 0
         self.last_plot_data = None
         self.plot_max = 0
@@ -48,6 +49,10 @@ class RootElement(FloatLayout):
         self.touch_start = None
 
         FloatLayout.__init__(self)
+
+    def connected(self, parameters, control):
+        self.control = control
+        self.parameters = parameters
 
         self.init_graph()
         self.display_parameter_changes()
@@ -77,6 +82,16 @@ class RootElement(FloatLayout):
         )
         self.parameters.offset.change(
             lambda value: setattr(self.ids.offset_display, 'text', '%d' % (value))
+        )
+        def format_e(n):
+            n = Decimal(n)
+            a = '%E' % n
+            return a.split('E')[0].rstrip('0').rstrip('.') + 'E' + a.split('E')[1]
+        self.parameters.k.change(
+            lambda value: setattr(self.ids.k, 'text', format_e(value))
+        )
+        self.parameters.f.change(
+            lambda value: setattr(self.ids.f, 'text', format_e(value))
         )
 
         self.parameters.to_plot.change(self.replot)
@@ -114,14 +129,40 @@ class RootElement(FloatLayout):
                 running = False
                 success = False
 
-            def show_when(element, value):
-                element.opacity = 1 if value else 0
+            container = self.ids.lock_status
+            container.clear_widgets()
 
-            show_when(self.ids.explain_autolock, explain)
-            show_when(self.ids.autolock_running, running)
-            show_when(self.ids.autolock_failed, task and not running and not success)
-            show_when(self.ids.autolock_locked, not running and success)
-            show_when(self.ids.button_stop_autolock, running or success)
+            def show_when(element, value):
+                if value:
+                    container.add_widget(element)
+
+            explain_autolock = Label(
+                size_hint=(1, None), font_size=20,
+                text='For automatic lock, click and drag over a line.',
+                halign='center'
+            )
+            autolock_running = Label(
+                size_hint=(1, None), font_size=20,
+                text='Autlock is running...', color=[0, 1, 0]
+            )
+            autolock_failed = Label(
+                size_hint=(1, None), font_size=20,
+                text='Autlock failed!', color=[1, 0, 0]
+            )
+            autolock_locked = Label(
+                size_hint=(1, None), font_size=20,
+                text='Locked!', color=[0, 1, 0]
+            )
+            button_stop_autolock = Button(
+                size_hint=(1, 1),
+                text='Stop',
+                on_press=lambda *args: self.stop_autolock()
+            )
+            show_when(explain_autolock, explain)
+            show_when(autolock_running, running)
+            show_when(autolock_failed, task and not running and not success)
+            show_when(autolock_locked, not running and success)
+            show_when(button_stop_autolock, running or success)
 
         self.parameters.task.change(task_changed)
 
@@ -323,15 +364,37 @@ class RootElement(FloatLayout):
     def stop_autolock(self):
         self.parameters.task.value.stop()
 
+    def shutdown(self):
+        self.control.shutdown()
+        sys.exit()
+
 
 class PIDApp(App):
-    foobar = ObjectProperty(None)
-
-    def __init__(self, parameters, control):
-        self.control = control
-        self.parameters = parameters
-
+    def __init__(self):
         App.__init__(self)
 
     def build(self):
-        return RootElement(self.parameters, self.control)
+        self.layout = BoxLayout()
+        self.add_loading()
+
+        return self.layout
+
+    def add_loading(self):
+        self.main_element = None
+        self.layout.clear_widgets()
+        self.layout.add_widget(
+            Label(text='Connecting to RedPitaya')
+        )
+
+    def connected(self, parameters, control):
+        self.control = control
+        self.parameters = parameters
+
+        def do(*args):
+            self.layout.clear_widgets()
+            self.main_element = RootElement()
+            self.layout.add_widget(self.main_element)
+            self.main_element.connected(parameters, control)
+
+        # this executes in GUI thread
+        Clock.schedule_once(do, 0)

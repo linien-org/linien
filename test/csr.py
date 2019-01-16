@@ -96,6 +96,24 @@ class PitayaSSH(PitayaCSR):
         return int(ret.split('[10]')[-1].strip())
 
 
+class PitayaLocal(PitayaCSR):
+    def __init__(self, monitor_cmd="/usr/bin/monitoradvanced"):
+        self.p = subprocess.Popen([monitor_cmd, '-'],
+            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    def set_one(self, addr, value):
+        cmd = "0x{:08x} w 0x{:02x}\n\n".format(addr, value)
+        self.p.stdin.write(cmd.encode("ascii"))
+        self.p.stdin.flush()
+
+    def get_one(self, addr):
+        cmd = "0x{:08x} w\n\n".format(addr)
+        self.p.stdin.write(cmd.encode("ascii"))
+        self.p.stdin.flush()
+        ret = self.p.stdout.readline().decode("ascii")
+        return int(ret.split('[10]')[-1].strip())
+
+
 class PitayaTB(PitayaCSR):
     def __init__(self, x=None):
         from transfer import Filter, CsrThread
