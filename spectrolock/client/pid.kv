@@ -1,10 +1,19 @@
 <RootElement>:
+    # creates strong reference such that these elements are not cleared
+    # when temporarily removed from GUI
+    explain_autolock: explain_autolock.__self__
+    autolock_running: autolock_running.__self__
+    autolock_failed: autolock_failed.__self__
+    autolock_locked: autolock_locked.__self__
+    button_stop_autolock: button_stop_autolock.__self__
+
     BoxLayout:
         Button:
             id: button_go_left
             text: '<'
             size_hint: (.1, None)
             pos_hint: {'center_y': 0.5}
+            font_size: 30
             on_press: root.change_center(False)
 
         Graph:
@@ -31,6 +40,7 @@
             text: '>'
             size_hint: (.1, None)
             pos_hint: {'center_y': 0.5}
+            font_size: 30
             on_press: root.change_center(True)
 
         BoxLayout:
@@ -43,11 +53,17 @@
             BoxLayout:
                 orientation: 'vertical'
                 size_hint: (1, None)
+                height: dp(60)
 
                 Label:
                     text: 'Modulation frequency'
+                    size_hint: (1, None)
+                    height: dp(30)
 
                 BoxLayout:
+                    size_hint: (1, None)
+                    height: dp(30)
+
                     Button:
                         text: '-'
                         on_press: root.change_frequency(False)
@@ -60,11 +76,17 @@
             BoxLayout:
                 orientation: 'vertical'
                 size_hint: (1, None)
+                height: dp(60)
 
                 Label:
                     text: 'Modulation amplitude'
+                    size_hint: (1, None)
+                    height: dp(30)
 
                 BoxLayout:
+                    size_hint: (1, None)
+                    height: dp(30)
+
                     Button:
                         text: '-'
                         on_press: root.change_amplitude(False)
@@ -77,11 +99,17 @@
             BoxLayout:
                 orientation: 'vertical'
                 size_hint: (1, None)
+                height: dp(60)
 
                 Label:
                     text: 'Demodulation phase'
+                    size_hint: (1, None)
+                    height: dp(30)
 
                 BoxLayout:
+                    size_hint: (1, None)
+                    height: dp(30)
+
                     Button:
                         text: '-'
                         on_press: root.change_phase(False)
@@ -91,31 +119,39 @@
                         text: '+'
                         on_press: root.change_phase(True)
 
-            Button:
-                size_hint: (1, None)
-                text: 'Shutdown'
-                on_press: root.shutdown()
-
             BoxLayout:
                 orientation: 'vertical'
                 size_hint: (1, None)
+                height: dp(60)
 
                 Label:
                     text: 'P and I'
+                    size_hint: (1, None)
+                    height: dp(30)
 
                 BoxLayout:
+                    size_hint: (1, None)
+                    height: dp(30)
+
                     TextInput:
                         id: k
                         multiline: False
                         on_text_validate: root.set_k(*args)
+                        size_hint: (1, None)
+                        height: dp(30)
+
                     TextInput:
                         id: f
                         multiline: False
                         on_text_validate: root.set_f(*args)
+                        size_hint: (1, None)
+                        height: dp(30)
 
             TabbedPanel:
                 id: mode_tab
                 do_default_tab: False
+                size_hint: (1, None)
+                height: dp(300)
 
                 TabbedPanelItem:
                     id: automatic_mode
@@ -126,6 +162,47 @@
                         id: lock_status
                         orientation: 'vertical'
                         padding: (20, 20)
+
+                        Label:
+                            id: explain_autolock
+                            size_hint: (1, None)
+                            font_size: 20
+                            text_size: self.size
+                            text: 'For automatic lock, click and drag over a line.'
+                            halign: 'center'
+
+                        Label:
+                            id: autolock_running
+                            size_hint: (1, None)
+                            text: 'Autolock is running...'
+                            font_size: 20
+                            color: [0, 1, 0]
+
+                        Label:
+                            id: autolock_failed
+                            size_hint: (1, None)
+                            font_size: 20
+                            text: 'Autolock failed!'
+                            color: [1, 0, 0]
+
+                        Label:
+                            id: autolock_locked
+                            size_hint: (1, None)
+                            font_size: 20
+                            text: 'Locked!'
+                            color: [0, 1, 0]
+
+                        Button:
+                            id: button_stop_autolock
+                            size_hint: (1, 0)
+                            height: dp(30)
+                            text: 'Stop lock'
+                            on_press: root.stop_autolock()
+                        
+                        Widget:
+                            # this widget has the purpose of moving everything up such that
+                            # the widgets are aligned to the top
+                            size_hint: (1, 1)
 
                 TabbedPanelItem:
                     id: manual_mode
@@ -138,6 +215,8 @@
 
                         BoxLayout:
                             size_hint: (1, None)
+                            height: dp(60)
+
                             ToggleButton:
                                 id: scan_button
                                 text: 'Scan'
@@ -153,16 +232,28 @@
 
                         Label:
                             size_hint: (1, None)
+                            height: dp(30)
                             text: 'Signal Offset'
 
                         NumberInput:
                             id: offset_display
+                            height: dp(30)
                             size_hint: (1, None)
                             on_text_validate: root.change_offset(*args)
                             multiline: False
 
                         Label:
                             size_hint: (1, 100)
+
+            Button:
+                size_hint: (1, 0)
+                text: 'Shutdown'
+                on_press: root.shutdown()
+                height: dp(30)
+
+            Widget:
+                # this widget has the purpose of moving everything up such that
+                # the widgets are aligned to the top
 
             #Button:
             #    text: 'export'

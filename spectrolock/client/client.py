@@ -2,7 +2,7 @@ import os
 import sys
 import threading
 
-os.environ["KIVY_NO_CONSOLELOG"] = "1"
+#os.environ["KIVY_NO_CONSOLELOG"] = "1"
 
 sys.path += ['../', '../../']
 

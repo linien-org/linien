@@ -48,6 +48,8 @@ class RootElement(FloatLayout):
         self.plot_min = np.inf
         self.touch_start = None
 
+        self._cached = {}
+
         FloatLayout.__init__(self)
 
     def connected(self, parameters, control):
@@ -129,40 +131,26 @@ class RootElement(FloatLayout):
                 running = False
                 success = False
 
+            def cache_element(id_):
+                if id_ not in self._cached:
+                    el = getattr(self.ids, id_)
+                    self._cached[id_] = el
+            
+            for id_ in ('explain_autolock', 'autolock_running', 'autolock_failed', 'autolock_locked', 'button_stop_autolock'):
+                cache_element(id_)
+
             container = self.ids.lock_status
             container.clear_widgets()
 
             def show_when(element, value):
                 if value:
-                    container.add_widget(element)
+                    container.add_widget(self._cached[element])
 
-            explain_autolock = Label(
-                size_hint=(1, None), font_size=20,
-                text='For automatic lock, click and drag over a line.',
-                halign='center'
-            )
-            autolock_running = Label(
-                size_hint=(1, None), font_size=20,
-                text='Autlock is running...', color=[0, 1, 0]
-            )
-            autolock_failed = Label(
-                size_hint=(1, None), font_size=20,
-                text='Autlock failed!', color=[1, 0, 0]
-            )
-            autolock_locked = Label(
-                size_hint=(1, None), font_size=20,
-                text='Locked!', color=[0, 1, 0]
-            )
-            button_stop_autolock = Button(
-                size_hint=(1, 1),
-                text='Stop',
-                on_press=lambda *args: self.stop_autolock()
-            )
-            show_when(explain_autolock, explain)
-            show_when(autolock_running, running)
-            show_when(autolock_failed, task and not running and not success)
-            show_when(autolock_locked, not running and success)
-            show_when(button_stop_autolock, running or success)
+            show_when('explain_autolock', explain)
+            show_when('autolock_running', running)
+            show_when('autolock_failed', task and not running and not success)
+            show_when('autolock_locked', not running and success)
+            show_when('button_stop_autolock', running or success)
 
         self.parameters.task.change(task_changed)
 
