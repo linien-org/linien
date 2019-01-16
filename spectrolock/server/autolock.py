@@ -21,12 +21,13 @@ class Autolock:
         self.running = True
         self.x0, self.x1 = int(x0), int(x1)
 
-        self.parameters.to_plot.change(self.plot_data_received)
+        self.parameters.to_plot.change(self.react_to_new_spectrum)
 
     def emit_status(self):
+        # re-assign the task such that the change information is propagated
         self.parameters.task.value = self
 
-    def plot_data_received(self, plot_data):
+    def react_to_new_spectrum(self, plot_data):
         if plot_data is None or not self.running:
             return
 
@@ -39,23 +40,29 @@ class Autolock:
 
         try:
             if self.first_error_signal is None:
+                # the auto lock just started
                 self.approaching = True
                 self.emit_status()
                 return self.record_first_error_signal(error_signal)
 
             if self.approaching:
                 if self.skipped < 5:
+                    # after every step, we skip some data in order to let
+                    # the laser equilibrate
                     self.skipped += 1
                     return
 
                 self.skipped = 0
                 return self.approach_line(error_signal, control_signal)
             else:
-                if self.skipped < 30:
+                # we are done with approaching and have started the lock.
+                # skip some data and check whether we really are in lock
+                # afterwards.
+                if self.skipped < 15:
                     self.skipped += 1
                     return
 
-                self.parameters.to_plot.remove_listener(self.plot_data_received)
+                self.parameters.to_plot.remove_listener(self.react_to_new_spectrum)
 
                 in_lock = self.check_whether_in_lock(control_signal)
 
@@ -66,15 +73,15 @@ class Autolock:
                 self.running = False
                 self.emit_status()
 
-                return
-                for hist in self.history:
+                """for hist in self.history:
                     if isinstance(hist, (tuple, list)):
                         zoomed_data, error_signal = hist
                         plt.plot(zoomed_data)
                         plt.plot(error_signal)
                         plt.show()
                     else:
-                        print(hist)
+                        print(hist)"""
+
         except Exception:
             traceback.print_exc()
             self.stop()
@@ -112,7 +119,6 @@ class Autolock:
 
         # check that the data received is new data, i.e. with the correct
         # scan range
-        print('new', np.abs(control_signal_amplitude - amplitude_target) / control_signal_amplitude < 0.2)
         if np.abs(control_signal_amplitude - amplitude_target) / control_signal_amplitude < 0.2:
             self.history.append((zoomed_data, error_signal[::self.zoom_factor]))
 

@@ -136,7 +136,8 @@ class RootElement(FloatLayout):
                     el = getattr(self.ids, id_)
                     self._cached[id_] = el
             
-            for id_ in ('explain_autolock', 'autolock_running', 'autolock_failed', 'autolock_locked', 'button_stop_autolock'):
+            for id_ in ('explain_autolock', 'autolock_running', 'autolock_failed',
+                        'autolock_locked', 'button_stop_autolock'):
                 cache_element(id_)
 
             container = self.ids.lock_status
