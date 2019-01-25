@@ -6,28 +6,62 @@ from scipy.signal import correlate
 
 
 class Autolock:
+    """Spectroscopy autolock based on correlation."""
     def __init__(self, control, parameters):
         self.control = control
         self.parameters = parameters
 
-        self.zoom_factor = 1
         self.first_error_signal = None
-        self.skipped = 0
-        self.history = []
-        self.failed = False
         self.running = False
+        self.should_watch_lock = False
 
-    def run(self, x0, x1):
+        self.reset_properties()
+
+    def reset_properties(self):
+        self.history = []
+        self.zoom_factor = 1
+        self.skipped = 0
+        self.failed = False
+        self.locked = False
+        self.watching = False
+
+    def run(self, x0, x1, should_watch_lock=False):
+        """Starts the autolock.
+
+        If `should_watch_lock` is specified, the autolock continuously monitors
+        the control and error signals after the lock was successful and tries to
+        relock automatically using the spectrum that was recorded in the first
+        run of the lock.
+        """
         self.running = True
         self.x0, self.x1 = int(x0), int(x1)
+        self.should_watch_lock = should_watch_lock
+        self.add_data_listener()
 
+    def add_data_listener(self):
         self.parameters.to_plot.change(self.react_to_new_spectrum)
 
     def emit_status(self):
-        # re-assign the task such that the change information is propagated
+        """Sets the `task` parameter again such that the change information is propagated"""
         self.parameters.task.value = self
 
     def react_to_new_spectrum(self, plot_data):
+        """React to new spectrum data.
+
+        If this is executed for the first time, a reference spectrum is
+        recorded.
+
+        If the autolock is approaching the desired line, a correlation
+        function of the spectrum with the reference spectrum is calculated
+        and the laser current is adapted such that the targeted line is centered.
+
+        After this procedure is done, the real lock is turned on and after some
+        time the lock is verified.
+
+        If automatic relocking is desired, the control and error signals are
+        continuously monitored after locking.
+        """
+
         if plot_data is None or not self.running:
             return
 
@@ -35,17 +69,21 @@ class Autolock:
         if plot_data is None:
             return
 
-        error_signal = plot_data[0]
-        control_signal = plot_data[1]
+        error_signal, control_signal = plot_data
 
         try:
             if self.first_error_signal is None:
-                # the auto lock just started
+                # the auto lock just started, we have not yet recorded a
+                # spectrum.
                 self.approaching = True
                 self.emit_status()
                 return self.record_first_error_signal(error_signal)
 
-            if self.approaching:
+            elif self.approaching:
+                # we have already recorded a spectrum and are now approaching
+                # the line by decreasing the scan range and adapting the
+                # center current multiple times.
+
                 if self.skipped < 5:
                     # after every step, we skip some data in order to let
                     # the laser equilibrate
@@ -53,34 +91,27 @@ class Autolock:
                     return
 
                 self.skipped = 0
+
                 return self.approach_line(error_signal, control_signal)
+
+            elif self.watching:
+                # the laser was locked successfully before. Now we check
+                # periodically whether the laser is still in lock
+
+                return self.watch_lock(error_signal, control_signal)
+
             else:
                 # we are done with approaching and have started the lock.
                 # skip some data and check whether we really are in lock
                 # afterwards.
-                if self.skipped < 15:
+
+                if self.skipped < 10:
                     self.skipped += 1
                     return
 
-                self.parameters.to_plot.remove_listener(self.react_to_new_spectrum)
+                self.skipped = 0
 
-                in_lock = self.check_whether_in_lock(control_signal)
-
-                if not in_lock:
-                    self.control.reset()
-                    self.failed = True
-
-                self.running = False
-                self.emit_status()
-
-                """for hist in self.history:
-                    if isinstance(hist, (tuple, list)):
-                        zoomed_data, error_signal = hist
-                        plt.plot(zoomed_data)
-                        plt.plot(error_signal)
-                        plt.show()
-                    else:
-                        print(hist)"""
+                return self.after_lock(control_signal)
 
         except Exception:
             traceback.print_exc()
@@ -128,8 +159,13 @@ class Autolock:
                 skip_factor = 1
 
             correlation = correlate(zoomed_data[::skip_factor], error_signal[::self.zoom_factor][::skip_factor])
+            print('CORRELATION', np.max(correlation))
             shift = np.argmax(correlation) * skip_factor
             shift = (shift - len(zoomed_data)) / len(zoomed_data) * 2 / self.zoom_factor
+            print('SHIFT', shift)
+
+            if np.abs(shift) > 0.5:
+                return self.relock()
 
             self.control.write_data()
             self.history.append('shift %f' % (-1 * shift))
@@ -146,14 +182,77 @@ class Autolock:
                 self.emit_status()
                 self.control.start_lock()
 
-    def check_whether_in_lock(self, control_signal):
-        mean = np.mean(control_signal) / 8192
-        center = self.parameters.center.value
-        ampl = self.parameters.ramp_amplitude.value
-        return (center - ampl) <= mean <= (center + ampl)
+    def after_lock(self, control_signal):
+        """After locking, this method checks whether the laser really is locked.
+
+        If desired, it automatically tries to relock if locking failed, or
+        starts a watcher that does so over and over again.
+        """
+        def check_whether_in_lock(control_signal):
+            """
+            The laser is considered in lock if the mean value of the control
+            signal is within the boundaries of the smalles current ramp we had
+            before turning on the lock.
+            """
+            mean = np.mean(control_signal) / 8192
+            center = self.parameters.center.value
+            ampl = self.parameters.ramp_amplitude.value
+            return (center - ampl) <= mean <= (center + ampl)
+
+        self.locked = check_whether_in_lock(control_signal)
+
+        if self.locked and self.should_watch_lock:
+            # we start watching the lock status from now on.
+            # this is done in `react_to_new_spectrum()` which is called regularly.
+            self.watching = True
+        else:
+            self.parameters.to_plot.remove_listener(self.react_to_new_spectrum)
+
+            if not self.locked:
+                if self.should_watch_lock:
+                    return self.relock()
+
+                self.control.reset()
+                self.failed = True
+
+            self.running = False
+
+        self.emit_status()
+
+    def watch_lock(self, error_signal, control_signal):
+        """Check whether the laser is still in lock and init a relock if not."""
+        mean = np.abs(np.mean(control_signal) / 8192)
+        still_in_lock = mean < 0.9
+
+        if not still_in_lock:
+            self.relock()
+
+    def relock(self):
+        """
+        Relock the laser using the reference spectrum recorded in the first
+        locking approach.
+        """
+        self.reset_properties()
+        self.running = True
+        self.approaching = True
+
+        self.parameters.center.value = 0
+        self.parameters.ramp_amplitude.value = 1
+        self.control.start_ramp()
+
+        self.emit_status()
+
+        # add a listener that listens for new spectrum data and consequently
+        # tries to relock.
+        self.add_data_listener()
 
     def stop(self):
+        """Abort any operation."""
         self.failed = True
         self.running = False
+        self.locked = False
+        self.approaching = False
+        self.watching = False
+
         self.control.reset()
         self.emit_status()

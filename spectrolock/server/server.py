@@ -53,13 +53,13 @@ class RedPitayaControlService(rpyc.Service):
     def set_asg_offset(self, idx, offset):
         self.pitaya.set_asg_offset(idx, offset)
 
-    def start_autolock(self, x0, x1):
+    def start_autolock(self, x0, x1, start_watching=False):
         current_task = self.parameters.task.value
 
         if not current_task or not current_task.running:
             autolock = Autolock(self, self.parameters)
             self.parameters.task.value = autolock
-            autolock.run(x0, x1)
+            autolock.run(x0, x1, should_watch_lock=start_watching)
 
     def start_ramp(self):
         self.parameters.lock.value = False

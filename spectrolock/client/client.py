@@ -7,10 +7,11 @@ import threading
 sys.path += ['../', '../../']
 
 from gui import PIDApp
-from connection import Connection
+from connection import Connection, FakeConnection
 
 def run_connection(gui):
     conn = Connection('rp-f0685a.local', 'root', 'zeilinger')
+    #conn = FakeConnection('rp-f0685a.local', 'root', 'zeilinger')
     gui.connected(conn.parameters, conn.control)
 
 def run_application():

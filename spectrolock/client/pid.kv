@@ -5,7 +5,10 @@
     autolock_running: autolock_running.__self__
     autolock_failed: autolock_failed.__self__
     autolock_locked: autolock_locked.__self__
+    autolock_watching: autolock_watching.__self__
     button_stop_autolock: button_stop_autolock.__self__
+    watch_lock_checkbox_container: watch_lock_checkbox_container.__self__
+    watch_lock_checkbox: watch_lock_checkbox.__self__
 
     BoxLayout:
         Button:
@@ -163,6 +166,18 @@
                         orientation: 'vertical'
                         padding: (20, 20)
 
+
+                        BoxLayout:
+                            id: watch_lock_checkbox_container
+                            orientation: 'horizontal'
+
+                            CheckBox:
+                                id: watch_lock_checkbox
+                                active: True
+
+                            Label:
+                                text: 'Automatic relock'
+
                         Label:
                             id: explain_autolock
                             size_hint: (1, None)
@@ -176,7 +191,7 @@
                             size_hint: (1, None)
                             text: 'Autolock is running...'
                             font_size: 20
-                            color: [0, 1, 0]
+                            color: [1, 1, 0]
 
                         Label:
                             id: autolock_failed
@@ -192,13 +207,20 @@
                             text: 'Locked!'
                             color: [0, 1, 0]
 
+                        Label:
+                            id: autolock_watching
+                            size_hint: (1, None)
+                            font_size: 20
+                            text: 'Locked! Watching continuously...'
+                            color: [0, 1, 0]
+
                         Button:
                             id: button_stop_autolock
                             size_hint: (1, 0)
                             height: dp(30)
                             text: 'Stop lock'
                             on_press: root.stop_autolock()
-                        
+
                         Widget:
                             # this widget has the purpose of moving everything up such that
                             # the widgets are aligned to the top

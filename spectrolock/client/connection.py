@@ -9,10 +9,29 @@ from socket import gaierror
 
 from kivy.clock import Clock
 from spectrolock.config import SERVER_PORT, REMOTE_BASE_PATH
+from spectrolock.server.parameters import Parameters
 
 
 class ConnectionError(Exception):
     pass
+
+
+class FakeControl:
+    def write_data(self):
+        pass
+
+    def shutdown(self):
+        pass
+
+    def start_autolock(self, *args, **kwargs):
+        pass
+
+
+class FakeConnection:
+    """Fake connection that can be used for testing the GUI."""
+    def __init__(self, *args, **kwargs):
+        self.parameters = Parameters()
+        self.control = FakeControl()
 
 
 class Connection:

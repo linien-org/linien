@@ -5,7 +5,7 @@ class Parameter:
         self.wrap = wrap
         self._value = start
         self._start = start
-        self._listeners = []
+        self._listeners = set()
 
     @property
     def value(self):
@@ -21,20 +21,19 @@ class Parameter:
 
         self._value = value
 
-        for listener in self._listeners:
+        # we copy it because a listener could remove a listener --> this would
+        # cause an error in this loop
+        for listener in self._listeners.copy():
             listener(value)
 
     def change(self, function):
-        self._listeners.append(function)
+        self._listeners.add(function)
 
         if self._value is not None:
             function(self._value)
 
     def remove_listener(self, function):
-        self._listeners = [
-            listener for listener in self._listeners
-            if listener != function
-        ]
+        self._listeners.remove(function)
 
     def reset(self):
         self.value = self._start

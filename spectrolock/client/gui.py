@@ -126,18 +126,23 @@ class RootElement(FloatLayout):
 
             if task:
                 running = task.running
-                success = not task.failed
+                locked = task.locked
+                watching = task.watching
+                failed = task.failed
             else:
                 running = False
-                success = False
+                locked = False
+                watching = False
+                failed = False
 
             def cache_element(id_):
                 if id_ not in self._cached:
                     el = getattr(self.ids, id_)
                     self._cached[id_] = el
-            
+
             for id_ in ('explain_autolock', 'autolock_running', 'autolock_failed',
-                        'autolock_locked', 'button_stop_autolock'):
+                        'autolock_locked', 'button_stop_autolock', 'autolock_watching',
+                        'watch_lock_checkbox_container'):
                 cache_element(id_)
 
             container = self.ids.lock_status
@@ -147,11 +152,13 @@ class RootElement(FloatLayout):
                 if value:
                     container.add_widget(self._cached[element])
 
+            show_when('watch_lock_checkbox_container', not running and not locked)
             show_when('explain_autolock', explain)
-            show_when('autolock_running', running)
-            show_when('autolock_failed', task and not running and not success)
-            show_when('autolock_locked', not running and success)
-            show_when('button_stop_autolock', running or success)
+            show_when('autolock_running', running and not watching)
+            show_when('autolock_failed', task and not running and failed)
+            show_when('autolock_locked', not running and locked)
+            show_when('autolock_watching', running and watching)
+            show_when('button_stop_autolock', running or locked)
 
         self.parameters.task.change(task_changed)
 
@@ -277,7 +284,10 @@ class RootElement(FloatLayout):
         else:
             # it was a selection
             if self.parameters.automatic_mode.value:
-                self.control.start_autolock(*sorted([x0, x]))
+                self.control.start_autolock(
+                    *sorted([x0, x]),
+                    start_watching=self.ids.watch_lock_checkbox.active
+                )
             else:
                 self.graph_on_selection(x0, x)
 
