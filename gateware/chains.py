@@ -31,9 +31,9 @@ class FastChain(Module, AutoCSR):
         self.adc = Signal((width, True))
         self.dac = Signal((width, True))
 
-        self.x_tap = CSRStorage(3)
+        self.x_tap = CSRStorage(2)
         self.brk = CSRStorage(1)
-        self.y_tap = CSRStorage(2)
+        self.y_tap = CSRStorage(3)
 
         x_hold = Signal()
         x_clear = Signal()
@@ -96,11 +96,6 @@ class FastChain(Module, AutoCSR):
         s2 = 2*coeff_width - signal_width
 
         self.comb += [
-            self.pid.input.eq(self.adc),
-            pid_out.eq(self.pid.pid_out << s)
-        ]
-
-        self.comb += [
             self.iir_a.x.eq(self.adc << s),
             self.iir_a.hold.eq(x_hold),
             self.iir_a.clear.eq(x_clear),
@@ -118,11 +113,11 @@ class FastChain(Module, AutoCSR):
             ),
         ]
         xs = Array([self.iir_a.x, self.iir_a.y,
-                    self.iir_b.x >> s2, self.iir_b.y >> s2,
-                    pid_out])
+                    self.iir_b.x >> s2, self.iir_b.y >> s2])
         self.sync += x.eq(
             Mux(self.brk.storage, 0, xs[self.x_tap.storage]) + dx
         )
+
         self.comb += [
             self.x_limit.x.eq(x),
             x_railed.eq(self.x_limit.error),
@@ -156,7 +151,14 @@ class FastChain(Module, AutoCSR):
         ]
         ya = Signal((width + 3, True))
         ys = Array([self.iir_c.x, self.iir_c.y,
-                    self.iir_d.y, self.iir_e.y >> s2])
+                    self.iir_d.y, self.iir_e.y >> s2,
+                    pid_out])
+
+        self.comb += [
+            self.pid.input.eq(self.x_limit.y >> s),
+            pid_out.eq(self.pid.pid_out << s)
+        ]
+
         self.sync += ya.eq(
             (self.mod.y + (dy >> s)) +
             (self.sweep.y + self.relock.y)),

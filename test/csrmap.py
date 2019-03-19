@@ -91,9 +91,9 @@ csr_constants = {
 
 csr = {
     'dna_dna': (28, 0x000, 64, False),
-    'fast_a_x_tap': (0, 0x000, 3, True),
+    'fast_a_x_tap': (0, 0x000, 2, True),
     'fast_a_brk': (0, 0x001, 1, True),
-    'fast_a_y_tap': (0, 0x002, 2, True),
+    'fast_a_y_tap': (0, 0x002, 3, True),
     'fast_a_pid_setpoint': (0, 0x003, 14, True),
     'fast_a_pid_kp': (0, 0x005, 14, True),
     'fast_a_pid_ki': (0, 0x007, 14, True),
@@ -157,9 +157,9 @@ csr = {
     'fast_a_dx_sel': (0, 0x0b8, 5, True),
     'fast_a_dy_sel': (0, 0x0b9, 5, True),
     'fast_a_rx_sel': (0, 0x0ba, 5, True),
-    'fast_b_x_tap': (1, 0x000, 3, True),
+    'fast_b_x_tap': (1, 0x000, 2, True),
     'fast_b_brk': (1, 0x001, 1, True),
-    'fast_b_y_tap': (1, 0x002, 2, True),
+    'fast_b_y_tap': (1, 0x002, 3, True),
     'fast_b_pid_setpoint': (1, 0x003, 14, True),
     'fast_b_pid_kp': (1, 0x005, 14, True),
     'fast_b_pid_ki': (1, 0x007, 14, True),

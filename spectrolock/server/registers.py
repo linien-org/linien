@@ -51,11 +51,11 @@ class Pitaya:
 
         new = dict(
             # channel B (channel for ramping and PID)
-            fast_b_x_tap=4,
+            fast_b_x_tap=2,
             fast_b_demod_delay=params['demodulation_phase'],
             fast_b_brk=0,
             fast_b_dx_sel=self.pitaya.signal("scopegen_dac_a"),
-            fast_b_y_tap=1,
+            fast_b_y_tap=4,
 
             fast_b_sweep_run=1,
             fast_b_sweep_step=2 * 125 * params['ramp_amplitude'] * 1024 / DECIMATION,
@@ -76,7 +76,7 @@ class Pitaya:
             fast_a_brk=1,
             fast_a_mod_amp=params['modulation_amplitude'],
             fast_a_mod_freq=params['modulation_frequency'],
-            fast_a_x_tap=4,
+            fast_a_x_tap=2,
             fast_a_demod_delay=params['demodulation_phase'],
             fast_a_sweep_run=0,
             fast_a_dy_sel=self.pitaya.signal('zero'),
@@ -104,8 +104,8 @@ class Pitaya:
         lock = params['lock']
         self.control._is_locked = lock
 
-        if lock_changed and lock:
-            new['fast_b_sweep_run'] = 0
+        new['fast_b_sweep_run'] = 0 if lock else 1
+        #if lock_changed and lock:
             #new['scopegen_adc_a_sel'] = self.pitaya.signal("fast_b_x")
 
         # filter out values that did not change
@@ -128,6 +128,7 @@ class Pitaya:
                 pass
 
         for k, v in new.items():
+            print('SET', k, v)
             self.pitaya.set(k, int(v))
 
         if 'fast_b_sweep_step' in new:
@@ -152,22 +153,23 @@ class Pitaya:
 
                 # set PI parameters
                 self.pitaya.set('fast_b_pid_reset', 0)
-                #self.pitaya.set('fast_b_pid_kp', kp)
-                #self.pitaya.set('fast_b_pid_ki', ki)
-                #self.pitaya.set('fast_b_pid_kd', kd)
+                self.pitaya.set('fast_b_pid_kp', kp)
+                self.pitaya.set('fast_b_pid_ki', ki)
+                self.pitaya.set('fast_b_pid_kd', kd)
 
                 # re-enable lock
                 #self.pitaya.set('fast_b_y_clear_en', self.pitaya.states())
                 #self.pitaya.set('fast_b_x_clear_en', self.pitaya.states())
             else:
                 # just enable P with unity gain
+                # # FIXME: ZERO!
                 unity = 1024
-                self.pitaya.set('fast_b_pid_kp', unity)
+                self.pitaya.set('fast_b_pid_kp', 0)
                 self.pitaya.set('fast_b_pid_ki', 0)
                 self.pitaya.set('fast_b_pid_kd', 0)
                 self.pitaya.set('fast_b_pid_reset', 1)
 
-                self.pitaya.set('fast_a_pid_kp', unity)
+                self.pitaya.set('fast_a_pid_kp', 0)
                 self.pitaya.set('fast_a_pid_ki', 0)
                 self.pitaya.set('fast_a_pid_kd', 0)
                 self.pitaya.set('fast_a_pid_reset', 1)
@@ -183,10 +185,9 @@ class Pitaya:
 
             if lock:
                 # set new PI parameters
-                #self.pitaya.set('fast_b_pid_kp', kp)
-                #self.pitaya.set('fast_b_pid_ki', ki)
-                #self.pitaya.set('fast_b_pid_kd', kd)
-                pass
+                self.pitaya.set('fast_b_pid_kp', kp)
+                self.pitaya.set('fast_b_pid_ki', ki)
+                self.pitaya.set('fast_b_pid_kd', kd)
 
             # reset "hold"
             self.pitaya.set('fast_b_y_hold_en', self.pitaya.states())
