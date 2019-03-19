@@ -19,6 +19,7 @@ from migen import *
 from misoc.interconnect.csr import AutoCSR, CSRStorage, CSRStatus, CSR
 
 from .iir import Iir
+from .pid import PID
 from .limit import LimitCSR
 from .sweep import SweepCSR
 from .relock import Relock
@@ -30,7 +31,7 @@ class FastChain(Module, AutoCSR):
         self.adc = Signal((width, True))
         self.dac = Signal((width, True))
 
-        self.x_tap = CSRStorage(2)
+        self.x_tap = CSRStorage(3)
         self.brk = CSRStorage(1)
         self.y_tap = CSRStorage(2)
 
@@ -55,10 +56,14 @@ class FastChain(Module, AutoCSR):
         dy = Signal((signal_width, True))
         rx = Signal((signal_width, True))
 
+        pid_out = Signal((signal_width, True))
+
         self.signal_in = dx, dy, rx
         self.signal_out = x, y, sweep_trigger
 
         ###
+
+        self.submodules.pid = PID()
 
         self.submodules.iir_a = Iir(
             width=signal_width, coeff_width=coeff_width, shift=coeff_width-2,
@@ -89,6 +94,12 @@ class FastChain(Module, AutoCSR):
         s = signal_width - width
         s1 = 2*coeff_width - width
         s2 = 2*coeff_width - signal_width
+
+        self.comb += [
+            self.pid.input.eq(self.adc),
+            pid_out.eq(self.pid.pid_out << s)
+        ]
+
         self.comb += [
             self.iir_a.x.eq(self.adc << s),
             self.iir_a.hold.eq(x_hold),
@@ -107,7 +118,8 @@ class FastChain(Module, AutoCSR):
             ),
         ]
         xs = Array([self.iir_a.x, self.iir_a.y,
-                    self.iir_b.x >> s2, self.iir_b.y >> s2])
+                    self.iir_b.x >> s2, self.iir_b.y >> s2,
+                    pid_out])
         self.sync += x.eq(
             Mux(self.brk.storage, 0, xs[self.x_tap.storage]) + dx
         )

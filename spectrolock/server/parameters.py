@@ -79,8 +79,9 @@ class Parameters:
         self.lock = Parameter(start=False)
         self.to_plot = Parameter()
 
-        self.k = Parameter(start=-0.1)
-        self.f = Parameter(start=1e-5)
+        self.p = Parameter(start=0)
+        self.i = Parameter(start=0)
+        self.d = Parameter(start=0)
         self.task = Parameter(start=0)
         self.automatic_mode = Parameter(start=True)
 

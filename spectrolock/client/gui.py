@@ -85,15 +85,14 @@ class RootElement(FloatLayout):
         self.parameters.offset.change(
             lambda value: setattr(self.ids.offset_display, 'text', '%d' % (value))
         )
-        def format_e(n):
-            n = Decimal(n)
-            a = '%E' % n
-            return a.split('E')[0].rstrip('0').rstrip('.') + 'E' + a.split('E')[1]
-        self.parameters.k.change(
-            lambda value: setattr(self.ids.k, 'text', format_e(value))
+        self.parameters.p.change(
+            lambda value: setattr(self.ids.kp, 'text', str(value))
         )
-        self.parameters.f.change(
-            lambda value: setattr(self.ids.f, 'text', format_e(value))
+        self.parameters.i.change(
+            lambda value: setattr(self.ids.ki, 'text', str(value))
+        )
+        self.parameters.d.change(
+            lambda value: setattr(self.ids.kd, 'text', str(value))
         )
 
         self.parameters.to_plot.change(self.replot)
@@ -208,7 +207,7 @@ class RootElement(FloatLayout):
     def set_numeric_pid_parameter(self, input, parameter):
         for i in range(2):
             try:
-                parameter.value = float(input.text)
+                parameter.value = int(input.text)
                 break
             except ValueError:
                 # reset the value
@@ -216,11 +215,14 @@ class RootElement(FloatLayout):
 
         self.control.write_data()
 
-    def set_k(self, input):
-        self.set_numeric_pid_parameter(input, self.parameters.k)
+    def set_p(self, input):
+        self.set_numeric_pid_parameter(input, self.parameters.p)
 
-    def set_f(self, input):
-        self.set_numeric_pid_parameter(input, self.parameters.f)
+    def set_i(self, input):
+        self.set_numeric_pid_parameter(input, self.parameters.i)
+
+    def set_d(self, input):
+        self.set_numeric_pid_parameter(input, self.parameters.d)
 
     def change_tab(self, automatic_mode):
         self.parameters.automatic_mode.value = automatic_mode
@@ -305,7 +307,11 @@ class RootElement(FloatLayout):
         self.control.write_data()
 
     def replot(self, to_plot):
+        #print('!!', to_plot)
+        #from matplotlib import pyplot as plt
         if to_plot is not None:
+            #plt.plot(to_plot[0])
+            #plt.show()
             self.last_plot_data = to_plot
 
             error_signal = to_plot[0]

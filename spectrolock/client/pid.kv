@@ -128,7 +128,7 @@
                 height: dp(60)
 
                 Label:
-                    text: 'P and I'
+                    text: 'P, I and D'
                     size_hint: (1, None)
                     height: dp(30)
 
@@ -137,16 +137,23 @@
                     height: dp(30)
 
                     TextInput:
-                        id: k
+                        id: kp
                         multiline: False
-                        on_text_validate: root.set_k(*args)
+                        on_text_validate: root.set_p(*args)
                         size_hint: (1, None)
                         height: dp(30)
 
                     TextInput:
-                        id: f
+                        id: ki
                         multiline: False
-                        on_text_validate: root.set_f(*args)
+                        on_text_validate: root.set_i(*args)
+                        size_hint: (1, None)
+                        height: dp(30)
+
+                    TextInput:
+                        id: kd
+                        multiline: False
+                        on_text_validate: root.set_d(*args)
                         size_hint: (1, None)
                         height: dp(30)
 
