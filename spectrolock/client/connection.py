@@ -38,7 +38,7 @@ class Connection:
     def __init__(self, host, user=None, password=None):
         self.uuid = uuid.uuid4().hex
 
-        if host == 'localhost':
+        if host in ('localhost', '127.0.0.1'):
             self.connect_localhost()
         else:
             assert user and password
@@ -89,7 +89,7 @@ class Connection:
 
     def connect_localhost(self):
         try:
-            self.conn = rpyc.connect('localhost', port=SERVER_PORT)
+            self.conn = rpyc.connect('127.0.0.1', port=SERVER_PORT)
         except Exception as e:
             raise ConnectionError from e
 

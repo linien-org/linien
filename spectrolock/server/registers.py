@@ -33,7 +33,7 @@ class Pitaya:
         self.control = control
         self.parameters = parameters
 
-        self.use_ssh = self.host is not None and self.host != 'localhost'
+        self.use_ssh = self.host is not None and self.host not in ('localhost', '127.0.0.1')
 
         if self.use_ssh:
             self.pitaya = PitayaSSH(
@@ -208,7 +208,7 @@ class Pitaya:
 
                 for i in range(2):
                     try:
-                        pitaya_rpyc = rpyc.connect("localhost", ACQUISITION_PORT)
+                        pitaya_rpyc = rpyc.connect('127.0.0.1', ACQUISITION_PORT)
                     except:
                         if i == 0:
                             stop_nginx()
