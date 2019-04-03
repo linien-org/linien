@@ -70,6 +70,11 @@ class Parameters:
             max_=1,
             start=1
         )
+        self.ramp_speed = Parameter(
+            min_=125,
+            max_=8096,
+            start=125
+        )
         self.demodulation_phase = Parameter(
             min_=0,
             max_=0b1111111111111,

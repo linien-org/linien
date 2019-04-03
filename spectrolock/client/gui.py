@@ -75,6 +75,10 @@ class RootElement(FloatLayout):
             lambda value: setattr(self.ids.amplitude_display, 'text', '%d' % (value))
         )
 
+        self.parameters.ramp_speed.change(
+            lambda value: setattr(self.ids.ramp_speed_display, 'text', '%d' % (value))
+        )
+
         self.parameters.demodulation_phase.change(
             lambda value: setattr(self.ids.phase_display, 'text', hex(value))
         )
@@ -181,6 +185,12 @@ class RootElement(FloatLayout):
             delta_phase *= -1
         self.parameters.demodulation_phase.value += delta_phase
         self.control.write_data()
+
+    def change_ramp_speed(self, positive):
+        if positive:
+            self.parameters.ramp_speed.value = int(self.parameters.ramp_speed.value * 1.1)
+        else:
+            self.parameters.ramp_speed.value = int(self.parameters.ramp_speed.value / 1.1)
 
     def change_offset(self, input):
         try:

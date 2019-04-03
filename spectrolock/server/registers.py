@@ -58,7 +58,7 @@ class Pitaya:
             fast_b_y_tap=4,
 
             fast_b_sweep_run=1,
-            fast_b_sweep_step=2 * 125 * params['ramp_amplitude'] * 1024 / DECIMATION,
+            fast_b_sweep_step=2 * int(params['ramp_speed']) * params['ramp_amplitude'] * 1024 / DECIMATION,
             fast_b_sweep_min=sweep_min,
             fast_b_sweep_max=sweep_max,
             fast_b_dy_sel=self.pitaya.signal("scopegen_dac_b"),

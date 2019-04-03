@@ -128,6 +128,29 @@
                 height: dp(60)
 
                 Label:
+                    text: 'Ramp speed (a.u.)'
+                    size_hint: (1, None)
+                    height: dp(30)
+
+                BoxLayout:
+                    size_hint: (1, None)
+                    height: dp(30)
+
+                    Button:
+                        text: '-'
+                        on_press: root.change_ramp_speed(False)
+                    Label:
+                        id: ramp_speed_display
+                    Button:
+                        text: '+'
+                        on_press: root.change_ramp_speed(True)
+
+            BoxLayout:
+                orientation: 'vertical'
+                size_hint: (1, None)
+                height: dp(60)
+
+                Label:
                     text: 'P, I and D'
                     size_hint: (1, None)
                     height: dp(30)
