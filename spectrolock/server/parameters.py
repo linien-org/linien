@@ -71,7 +71,7 @@ class Parameters:
             start=1
         )
         self.ramp_speed = Parameter(
-            min_=125,
+            min_=10,
             max_=8096,
             start=125
         )

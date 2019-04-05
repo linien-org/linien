@@ -9,7 +9,7 @@ from rpyc.utils.server import OneShotServer
 from PyRedPitaya.board import RedPitaya
 
 sys.path += ['../../']
-from spectrolock.config import ACQUISITION_PORT, DECIMATION
+from spectrolock.config import ACQUISITION_PORT, DECIMATION, DEFAULT_RAMP_SPEED
 
 
 class DataAcquisitionService(Service):
@@ -21,15 +21,18 @@ class DataAcquisitionService(Service):
 
         super(DataAcquisitionService, self).__init__()
 
+        self.set_ramp_speed(DEFAULT_RAMP_SPEED)
         self.run(DECIMATION)
 
     def run(self, decimation, trigger_delay=16384):
         self.r.scope.data_decimation = decimation
         self.r.scope.trigger_delay = trigger_delay
-        self.sleep_time = .4 / 1024 * decimation
+        self.sleep_time = .4 / 1024 * decimation \
+            * (DEFAULT_RAMP_SPEED / self.ramp_speed)
 
         def run_acquiry_loop():
             while True:
+                # FIXME: is sleep really necessary? What happens without it, just comparing the data?
                 sleep(self.sleep_time)
 
                 data = [
@@ -57,6 +60,9 @@ class DataAcquisitionService(Service):
     def set_asg_offset(self, idx, value):
         asg = getattr(self.r, ['asga', 'asgb'][idx])
         asg.offset = value
+
+    def set_ramp_speed(self, speed):
+        self.ramp_speed = speed
 
 if __name__ == '__main__':
     t = OneShotServer(DataAcquisitionService(), port=ACQUISITION_PORT, protocol_config={

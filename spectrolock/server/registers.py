@@ -19,6 +19,7 @@ class AcquisitionConnectionError(Exception):
 class AcquisitionProcessSignals(Enum):
     SHUTDOWN = 0
     SET_ASG_OFFSET = 1
+    SET_RAMP_SPEED = 2
 
 
 class Pitaya:
@@ -127,6 +128,10 @@ class Pitaya:
             except KeyError:
                 pass
 
+        # pass ramp speed changes to acquisition process
+        if 'fast_b_sweep_step' in new:
+            self.control.set_ramp_speed(int(params['ramp_speed']))
+
         for k, v in new.items():
             print('SET', k, v)
             self.pitaya.set(k, int(v))
@@ -198,7 +203,6 @@ class Pitaya:
         self.pitaya.set('root_sync_phase_en', self.pitaya.states('force'))
         self.pitaya.set('root_sync_phase_en', self.pitaya.states())
 
-
     def listen_for_plot_data_changes(self, on_change):
         def run_acquiry_loop(conn):
             if self.use_ssh:
@@ -237,6 +241,9 @@ class Pitaya:
                     elif data[0] == AcquisitionProcessSignals.SET_ASG_OFFSET:
                         idx, value = data[1:]
                         pitaya_rpyc.root.set_asg_offset(idx, value)
+                    elif data[0] == AcquisitionProcessSignals.SET_RAMP_SPEED:
+                        speed = data[1]
+                        pitaya_rpyc.root.set_ramp_speed(speed)
 
                 data = pitaya_rpyc.root.return_data()
 
@@ -266,6 +273,9 @@ class Pitaya:
 
     def set_asg_offset(self, idx, offset):
         self.acq_process.send((AcquisitionProcessSignals.SET_ASG_OFFSET, idx, offset))
+
+    def set_ramp_speed(self, speed):
+        self.acq_process.send((AcquisitionProcessSignals.SET_RAMP_SPEED, speed))
 
     def shutdown(self):
         if self.acq_process:
