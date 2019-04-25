@@ -167,8 +167,7 @@ class RemoteParameters:
 
         self._listeners = {}
 
-        print('dont call listeners')
-        # FIXME: self.call_listeners()
+        self.call_listeners()
 
     def __iter__(self):
         for name, param in self.remote.get_all_parameters():

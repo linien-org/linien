@@ -30,16 +30,13 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
         def lock_status_changed(*args):
             lock = params.lock.value
             auto = params.automatic_mode.value
-            # FIXME:
-            print('DISABLED!')
-            return
 
             # hide zoom container when locked
             if lock or auto:
-                self.ids.lock_status_container.show()
+                #self.ids.lock_status_container.show()
                 self.ids.lock_control_container.hide()
             else:
-                self.ids.lock_status_container.hide()
+                #self.ids.lock_status_container.hide()
                 self.ids.lock_control_container.show()
 
         params.lock.change(lock_status_changed)
@@ -109,10 +106,10 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
     def set_d(self, input):
         self.set_numeric_pid_parameter(input, self.parameters.d)
     def kp_changed(self):
-        self.parameters.p = self.ids.kp.value()
+        self.parameters.p.value = self.ids.kp.value()
 
     def ki_changed(self):
-        self.parameters.i = self.ids.ki.value()
+        self.parameters.i.value = self.ids.ki.value()
 
     def kd_changed(self):
-        self.parameters.d = self.ids.kd.value()"""
+        self.parameters.d.value = self.ids.kd.value()"""

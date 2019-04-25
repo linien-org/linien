@@ -269,8 +269,6 @@ class QTApp(QtCore.QObject):
         self.control = control
         self.parameters = parameters
 
-        return
-
         self.ready.connect(self.init)
         self.ready.emit(True)
 

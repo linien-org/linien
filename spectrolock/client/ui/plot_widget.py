@@ -95,6 +95,7 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
 
     def connection_established(self, app):
         self.app = app
+        self.control = app.control
         self.parameters = self.app.parameters
 
         self.parameters.to_plot.change(self.replot)
@@ -136,7 +137,6 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
             self.last_plot_data = to_plot
 
             error_signal, control_signal = to_plot
-            self.last_plot_data = error_signal
 
             self.parameters.to_plot.value = None
             self.signal.setData(list(range(len(error_signal))), error_signal)

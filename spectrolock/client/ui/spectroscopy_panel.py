@@ -46,10 +46,10 @@ class SpectroscopyPanel(QtGui.QWidget, CustomWidget):
         self.ids.signal_offset.valueChanged.connect(self.change_signal_offset)
 
     def change_modulation_frequency(self):
-        self.parameters.modulation_frequency = self.ids.modulation_frequency.value() * MHz
+        self.parameters.modulation_frequency.value = self.ids.modulation_frequency.value() * MHz
 
     def change_modulation_amplitude(self):
-        self.parameters.modulation_amplitude = self.ids.modulation_amplitude.value() * Vpp
+        self.parameters.modulation_amplitude.value = self.ids.modulation_amplitude.value() * Vpp
 
     def change_signal_offset(self):
         self.parameters.offset.value = self.ids.signal_offset.value()
