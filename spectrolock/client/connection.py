@@ -6,8 +6,8 @@ import paramiko
 
 from time import sleep
 from socket import gaierror
+from pyqtgraph.Qt import QtCore
 
-from kivy.clock import Clock
 from spectrolock.config import SERVER_PORT, REMOTE_BASE_PATH
 from spectrolock.server.parameters import Parameters
 
@@ -167,7 +167,8 @@ class RemoteParameters:
 
         self._listeners = {}
 
-        self.call_listeners()
+        print('dont call listeners')
+        # FIXME: self.call_listeners()
 
     def __iter__(self):
         for name, param in self.remote.get_all_parameters():
@@ -178,7 +179,7 @@ class RemoteParameters:
         self._listeners.setdefault(param.name, [])
         self._listeners[param.name].append(function)
 
-    def call_listeners(self, something=None):
+    def call_listeners(self):
         for param_name in self.remote.get_listener_queue(self.uuid):
             value = getattr(self, param_name).value
 
@@ -192,4 +193,4 @@ class RemoteParameters:
             for listener in self._listeners[param_name]:
                 listener(value)
 
-        Clock.schedule_once(self.call_listeners, 0.1)
+        QtCore.QTimer.singleShot(100, self.call_listeners)

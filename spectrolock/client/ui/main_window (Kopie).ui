@@ -57,7 +57,14 @@
        </layout>
       </item>
       <item>
-       <widget class="PlotWidget" name="graphicsView"/>
+       <widget class="PlotWidget" name="graphicsView">
+        <property name="minimumSize">
+         <size>
+          <width>100</width>
+          <height>100</height>
+         </size>
+        </property>
+       </widget>
       </item>
      </layout>
     </item>
@@ -784,7 +791,7 @@
               <property name="geometry">
                <rect>
                 <x>0</x>
-                <y>-58</y>
+                <y>-83</y>
                 <width>218</width>
                 <height>428</height>
                </rect>
@@ -822,7 +829,7 @@
                 </widget>
                </item>
                <item>
-                <widget class="QTabWidget" name="tabWidget">
+                <widget class="QTabWidget" name="lock_control_container">
                  <property name="currentIndex">
                   <number>0</number>
                  </property>
@@ -932,7 +939,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QWidget" name="widget" native="true">
+        <widget class="QWidget" name="lock_status_container" native="true">
          <layout class="QVBoxLayout" name="verticalLayout_18">
           <item>
            <widget class="QLabel" name="lock_status">
@@ -942,7 +949,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="pushButton">
+           <widget class="QPushButton" name="stop_lock">
             <property name="text">
              <string>Stop lock</string>
             </property>

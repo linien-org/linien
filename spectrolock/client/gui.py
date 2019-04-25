@@ -1,3 +1,4 @@
+import os
 import sys
 import math
 import string
@@ -5,30 +6,8 @@ import numpy as np
 from time import time
 from decimal import Decimal
 
-from kivy.app import App
-from kivy.clock import Clock
-from kivy.uix.button import Button
-from kivy.uix.label import Label
-from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.textinput import TextInput
-from kivy.uix.boxlayout import BoxLayout
-from kivy.garden.graph import Graph, MeshLinePlot
-from kivy.graphics.instructions import InstructionGroup
-from kivy.graphics.context_instructions import Color
-from kivy.graphics.vertex_instructions import Rectangle
 
-
-def to_data_coords(widget, event):
-    # global coordinates
-    x, y = event.x, event.y
-    # coordinates relative to widget
-    x, y = widget.to_widget(x, y, relative=True)
-    # data coordinates
-    x, y = widget.to_data(x, y)
-    return x, y
-
-
-class NumberInput(TextInput):
+"""class NumberInput(TextInput):
     def __init__(self, *args, **kwargs):
         super(NumberInput, self).__init__(*args, **kwargs)
 
@@ -56,14 +35,7 @@ class RootElement(FloatLayout):
         self.control = control
         self.parameters = parameters
 
-        self.init_graph()
         self.display_parameter_changes()
-
-    def export_data(self):
-        import json
-        from time import time
-        with open('data-%d.json' % time(), 'w') as f:
-            json.dump(self.last_plot_data, f)
 
     def display_parameter_changes(self):
         MHz = 0x10000000 / 8
@@ -202,18 +174,6 @@ class RootElement(FloatLayout):
         self.parameters.offset.value = value
         self.control.write_data()
 
-    def change_center(self, positive):
-        delta_center = self.parameters.ramp_amplitude.value / 10
-        if not positive:
-            delta_center *= -1
-        new_center = self.parameters.center.value + delta_center
-
-        if np.abs(new_center) + self.parameters.ramp_amplitude.value > 1:
-            new_center = np.sign(new_center) * (1 - self.parameters.ramp_amplitude.value)
-
-        self.parameters.center.value = new_center
-        self.control.write_data()
-
     def set_numeric_pid_parameter(self, input, parameter):
         for i in range(2):
             try:
@@ -237,156 +197,18 @@ class RootElement(FloatLayout):
     def change_tab(self, automatic_mode):
         self.parameters.automatic_mode.value = automatic_mode
 
-    def graph_on_selection(self, x0, x):
-        x0 /= self.ids.graph.xmax
-        x /= self.ids.graph.xmax
-
-        center = np.mean([x, x0])
-        amplitude = np.abs(center - x) * 2
-        center = (center - 0.5) * 2
-
-        amplitude *= self.parameters.ramp_amplitude.value
-        center = self.parameters.center.value + \
-            (center * self.parameters.ramp_amplitude.value)
-
-        self.parameters.ramp_amplitude.value = amplitude
-        self.parameters.center.value = center
-        self.control.write_data()
-
-    def graph_mouse_down(self, widget, event):
-        if self.parameters.lock.value:
-            return
-
-        # check whether click is on widget
-        if not widget.collide_point(event.x, event.y):
-            self.touch_start = None
-            return None
-
-        x, y = to_data_coords(widget, event)
-
-        if 0 <= x <= self.ids.graph.xmax:
-            self.touch_start = x, y, event.x, event.y
-        else:
-            self.touch_start = None
-
-    def graph_mouse_move(self, widget, event):
-        if self.touch_start is None:
-            return
-        _, _2, x0, _3 = self.touch_start
-        self.set_selection_overlay(x0, event.x - x0)
-
-    def set_selection_overlay(self, x_start, width):
-        self.overlay_rect.pos = (x_start, self.ids.graph._plot_area.pos[1])
-        self.overlay_rect.size = (width, self.ids.graph._plot_area.size[1])
-
-    def graph_mouse_up(self, widget, event):
-        # mouse down was not on widget
-        if self.touch_start is None:
-            return
-
-        x0, y0, _, _2 = self.touch_start
-        x, y = to_data_coords(widget, event)
-        xmax = self.ids.graph.xmax
-
-        xdiff = np.abs(x0 - x)
-        if xdiff / self.ids.graph.xmax < 0.01:
-            # it was a click
-            if not self.parameters.automatic_mode.value:
-                self.graph_on_click(x0, y0)
-        else:
-            # it was a selection
-            if self.parameters.automatic_mode.value:
-                self.control.start_autolock(
-                    *sorted([x0, x]),
-                    start_watching=self.ids.watch_lock_checkbox.active
-                )
-            else:
-                self.graph_on_selection(x0, x)
-
-        self.set_selection_overlay(0, 0)
-        self.touch_start = None
-
-    def graph_on_click(self, x, y):
-        center = x / self.ids.graph.xmax
-        center = (center - 0.5) * 2
-        center = self.parameters.center.value + \
-            (center * self.parameters.ramp_amplitude.value)
-
-        self.parameters.ramp_amplitude.value /= 2
-        self.parameters.center.value = center
-        self.control.write_data()
-
-    def replot(self, to_plot):
-        #print('!!', to_plot)
-        #from matplotlib import pyplot as plt
-        if to_plot is not None:
-            #plt.plot(to_plot[0])
-            #plt.show()
-            self.last_plot_data = to_plot
-
-            error_signal = to_plot[0]
-            self.last_plot_data = error_signal
-            control_signal = to_plot[1]
-
-            self.parameters.to_plot.value = None
-            self.plot.points = list(enumerate(error_signal))
-            self.control_signal.points = list(enumerate([
-                point / 8192 * self.plot_max
-                for point in control_signal
-            ]))
-
-            self.plot_max = np.max([-1 * self.plot_min, self.plot_max, math.ceil(np.max(error_signal))])
-            self.plot_min = np.min([-1 * self.plot_max, self.plot_min, math.floor(np.min(error_signal))])
-
-            if time() - self.last_plot_rescale > 2:
-                self.ids.graph.xmax = len(error_signal)
-                self.ids.graph.ymin = math.floor(self.plot_min)
-                self.ids.graph.ymax = math.ceil(self.plot_max)
-                self.ids.graph.y_ticks_major = int(self.plot_max * 2 / 5)
-
-                if self.ids.graph.ymin == self.ids.graph.ymax:
-                    self.ids.graph.ymax += 1
-
-                self.last_plot_rescale = time()
-
-    def init_graph(self):
-        self.plot = MeshLinePlot(color=[1, 0, 0, 1])
-        self.control_signal = MeshLinePlot(color=[0, 1, 0, 1])
-        zero_line = MeshLinePlot(color=[1,1,1,1])
-        zero_line.points = [(-1, 0), (100000, 0)]
-        self.ids.graph.add_plot(self.control_signal)
-        self.ids.graph.add_plot(self.plot)
-        self.ids.graph.add_plot(zero_line)
-
-        overlay = InstructionGroup()
-        overlay.add(Color(0, 0, 1, 0.5))
-        self.overlay_rect = Rectangle(pos=(0, 0), size=(0, 100))
-        overlay.add(self.overlay_rect)
-        self.ids.graph.canvas.add(overlay)
-
-    def change_range(self, positive):
-        if positive:
-            self.parameters.ramp_amplitude.value *= 1.5
-        else:
-            self.parameters.ramp_amplitude.value /= 1.5
-        self.control.write_data()
-
-    def reset_range(self):
-        self.parameters.ramp_amplitude.reset()
-        self.parameters.center.reset()
-        self.control.write_data()
-
     def stop_autolock(self):
         self.parameters.task.value.stop()
 
     def shutdown(self):
         self.control.shutdown()
-        sys.exit()
+    sys.exit()"""
 
 
-class PIDApp(App):
+"""class PIDApp():
     def __init__(self):
-        App.__init__(self)
+        App.__init__(self)"""
+class PIDApp():
 
     def build(self):
         self.layout = BoxLayout()
@@ -397,6 +219,7 @@ class PIDApp(App):
     def add_loading(self):
         self.main_element = None
         self.layout.clear_widgets()
+        # FIXME: missing
         self.layout.add_widget(
             Label(text='Connecting to RedPitaya')
         )
@@ -413,3 +236,56 @@ class PIDApp(App):
 
         # this executes in GUI thread
         Clock.schedule_once(do, 0)
+
+
+from PyQt5 import QtWidgets
+from pyqtgraph.Qt import QtCore, QtGui
+# add ui folder to path
+sys.path += [
+    os.path.join(*list(
+        os.path.split(os.path.abspath(__file__))[:-1]) + ['ui']
+    )
+]
+from spectrolock.client.widgets import CustomWidget
+from spectrolock.client.ui.main_window import Ui_MainWindow
+
+class QTApp(QtCore.QObject):
+    ready = QtCore.pyqtSignal(bool)
+
+    def __init__(self):
+        self.app = QtWidgets.QApplication(sys.argv)
+        MainWindow = QtWidgets.QMainWindow()
+        ui = Ui_MainWindow()
+        ui.setupUi(MainWindow)
+        MainWindow.show()
+
+        self.window = MainWindow
+
+        self.app.aboutToQuit.connect(self.shutdown)
+
+        super().__init__()
+
+    def connected(self, parameters, control):
+        self.control = control
+        self.parameters = parameters
+
+        return
+
+        self.ready.connect(self.init)
+        self.ready.emit(True)
+
+    def init(self):
+        for instance in CustomWidget.instances:
+            instance.connection_established(self)
+
+        self.parameters.call_listeners()
+
+    def get_widget(self, name):
+        """Queries a widget by name."""
+        return self.window.findChild(QtCore.QObject, name)
+
+    def close(self):
+        self.app.quit()
+
+    def shutdown(self):
+        self.close()

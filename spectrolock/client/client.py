@@ -6,23 +6,24 @@ import threading
 
 sys.path += ['../', '../../']
 
-from gui import PIDApp
+from spectrolock.client.gui import QTApp
 from connection import Connection, FakeConnection
 
 def run_connection(gui):
-    #conn = Connection('rp-f0685a.local', 'root', 'zeilinger')
+    conn = Connection('rp-f0685a.local', 'root', 'zeilinger')
     #conn = Connection('rp-f06746.local', 'root', 'zeilinger')
-    conn = FakeConnection('rp-f0685a.local', 'root', 'zeilinger')
+    #conn = FakeConnection('rp-f06503.local', 'root', 'zeilinger')
     gui.connected(conn.parameters, conn.control)
 
 def run_application():
-    gui = PIDApp()
+    gui = QTApp()
 
     t = threading.Thread(target=run_connection, args=(gui,))
     t.daemon = True
     t.start()
 
-    gui.run()
+    sys.exit(gui.app.exec_())
+
 
 
 if __name__ == '__main__':
