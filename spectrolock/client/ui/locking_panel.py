@@ -6,9 +6,8 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def connection_established(self, app):
-        self.app = app
-        params = app.parameters
+    def connection_established(self):
+        params = self.app().parameters
         self.parameters = params
 
         params.p.change(
@@ -21,9 +20,9 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
             lambda value: self.ids.kd.setValue(value)
         )
 
-        self.ids.kp.valueChanged.connect(self.kp_changed)
-        self.ids.ki.valueChanged.connect(self.ki_changed)
-        self.ids.kd.valueChanged.connect(self.kd_changed)
+        self.ids.kp.editingFinished.connect(self.kp_changed)
+        self.ids.ki.editingFinished.connect(self.ki_changed)
+        self.ids.kd.editingFinished.connect(self.kd_changed)
 
 
         def lock_status_changed(lock):

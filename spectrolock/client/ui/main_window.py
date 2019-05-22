@@ -2,11 +2,12 @@
 
 # Form implementation generated from reading ui file 'main_window.ui'
 #
-# Created by: PyQt5 UI code generator 5.11.3
+# Created by: PyQt5 UI code generator 5.12.2
 #
 # WARNING! All changes made in this file will be lost!
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -55,6 +56,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_8.addWidget(self.go_right)
         self.horizontalLayout.addWidget(self.horizontalWidget)
         self.rightPanel = RightPanel(self.centralwidget)
+        self.rightPanel.setMinimumSize(QtCore.QSize(250, 0))
         self.rightPanel.setObjectName("rightPanel")
         self.verticalLayout_11 = QtWidgets.QVBoxLayout(self.rightPanel)
         self.verticalLayout_11.setObjectName("verticalLayout_11")
@@ -111,6 +113,9 @@ class Ui_MainWindow(object):
         brush = QtGui.QBrush(QtGui.QColor(0, 0, 0))
         brush.setStyle(QtCore.Qt.SolidPattern)
         palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.ToolTipText, brush)
+        brush = QtGui.QBrush(QtGui.QColor(0, 0, 0, 128))
+        brush.setStyle(QtCore.Qt.NoBrush)
+        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.PlaceholderText, brush)
         brush = QtGui.QBrush(QtGui.QColor(0, 0, 0))
         brush.setStyle(QtCore.Qt.SolidPattern)
         palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.WindowText, brush)
@@ -156,6 +161,9 @@ class Ui_MainWindow(object):
         brush = QtGui.QBrush(QtGui.QColor(0, 0, 0))
         brush.setStyle(QtCore.Qt.SolidPattern)
         palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.ToolTipText, brush)
+        brush = QtGui.QBrush(QtGui.QColor(0, 0, 0, 128))
+        brush.setStyle(QtCore.Qt.NoBrush)
+        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.PlaceholderText, brush)
         brush = QtGui.QBrush(QtGui.QColor(102, 0, 0))
         brush.setStyle(QtCore.Qt.SolidPattern)
         palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.WindowText, brush)
@@ -201,6 +209,9 @@ class Ui_MainWindow(object):
         brush = QtGui.QBrush(QtGui.QColor(0, 0, 0))
         brush.setStyle(QtCore.Qt.SolidPattern)
         palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.ToolTipText, brush)
+        brush = QtGui.QBrush(QtGui.QColor(0, 0, 0, 128))
+        brush.setStyle(QtCore.Qt.NoBrush)
+        palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.PlaceholderText, brush)
         self.shutdownButton.setPalette(palette)
         self.shutdownButton.setAutoFillBackground(False)
         self.shutdownButton.setObjectName("shutdownButton")
@@ -211,9 +222,10 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.toolBox.sizePolicy().hasHeightForWidth())
         self.toolBox.setSizePolicy(sizePolicy)
+        self.toolBox.setMinimumSize(QtCore.QSize(250, 0))
         self.toolBox.setObjectName("toolBox")
         self.page = SpectroscopyPanel()
-        self.page.setGeometry(QtCore.QRect(0, 0, 224, 225))
+        self.page.setGeometry(QtCore.QRect(0, 0, 250, 303))
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -226,7 +238,7 @@ class Ui_MainWindow(object):
         self.scrollArea_2.setWidgetResizable(True)
         self.scrollArea_2.setObjectName("scrollArea_2")
         self.scrollAreaWidgetContents_3 = QtWidgets.QWidget()
-        self.scrollAreaWidgetContents_3.setGeometry(QtCore.QRect(0, 0, 208, 500))
+        self.scrollAreaWidgetContents_3.setGeometry(QtCore.QRect(0, 0, 220, 500))
         self.scrollAreaWidgetContents_3.setObjectName("scrollAreaWidgetContents_3")
         self.verticalLayout_9 = QtWidgets.QVBoxLayout(self.scrollAreaWidgetContents_3)
         self.verticalLayout_9.setObjectName("verticalLayout_9")
@@ -309,7 +321,7 @@ class Ui_MainWindow(object):
         self.verticalLayout.addWidget(self.scrollArea_2)
         self.toolBox.addItem(self.page, "")
         self.page_3 = QtWidgets.QWidget()
-        self.page_3.setGeometry(QtCore.QRect(0, 0, 106, 225))
+        self.page_3.setGeometry(QtCore.QRect(0, 0, 250, 303))
         self.page_3.setObjectName("page_3")
         self.verticalLayout_14 = QtWidgets.QVBoxLayout(self.page_3)
         self.verticalLayout_14.setObjectName("verticalLayout_14")
@@ -318,7 +330,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_14.addWidget(self.label_7)
         self.toolBox.addItem(self.page_3, "")
         self.page_2 = LockingPanel()
-        self.page_2.setGeometry(QtCore.QRect(0, 0, 234, 303))
+        self.page_2.setGeometry(QtCore.QRect(0, 0, 250, 303))
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -331,7 +343,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName("scrollArea")
         self.scrollAreaWidgetContents = QtWidgets.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, -233, 218, 506))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 220, 504))
         self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
         self.verticalLayout_8 = QtWidgets.QVBoxLayout(self.scrollAreaWidgetContents)
         self.verticalLayout_8.setObjectName("verticalLayout_8")
@@ -345,9 +357,13 @@ class Ui_MainWindow(object):
         self.verticalLayout_6 = QtWidgets.QVBoxLayout(self.groupBox_5)
         self.verticalLayout_6.setObjectName("verticalLayout_6")
         self.kp = QtWidgets.QSpinBox(self.groupBox_5)
+        self.kp.setMinimum(-8192)
+        self.kp.setMaximum(8191)
         self.kp.setObjectName("kp")
         self.verticalLayout_6.addWidget(self.kp)
         self.ki = QtWidgets.QSpinBox(self.groupBox_5)
+        self.ki.setMinimum(-8192)
+        self.ki.setMaximum(8191)
         self.ki.setObjectName("ki")
         self.verticalLayout_6.addWidget(self.ki)
         self.kd = QtWidgets.QSpinBox(self.groupBox_5)
@@ -356,6 +372,8 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.kd.sizePolicy().hasHeightForWidth())
         self.kd.setSizePolicy(sizePolicy)
+        self.kd.setMinimum(-8192)
+        self.kd.setMaximum(8191)
         self.kd.setObjectName("kd")
         self.verticalLayout_6.addWidget(self.kd)
         self.verticalLayout_8.addWidget(self.groupBox_5)
@@ -431,8 +449,11 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
-        self.toolBox.setCurrentIndex(2)
+        self.toolBox.setCurrentIndex(0)
         self.lock_control_container.setCurrentIndex(0)
+        self.closeButton.clicked.connect(self.rightPanel.close_app)
+        self.shutdownButton.clicked.connect(self.rightPanel.shutdown_server)
+        self.openDeviceManagerButton.clicked.connect(self.rightPanel.open_device_manager)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -479,12 +500,14 @@ class Ui_MainWindow(object):
         self.stop_lock.setText(_translate("MainWindow", "Stop lock"))
         self.toolBox.setItemText(self.toolBox.indexOf(self.page_2), _translate("MainWindow", "Locking"))
 
+
 from central_panel import CentralPanel
 from lock_status_panel import LockStatusPanel
 from locking_panel import LockingPanel
 from plot_widget import PlotWidget
 from right_panel import RightPanel
 from spectroscopy_panel import SpectroscopyPanel
+
 
 if __name__ == "__main__":
     import sys
@@ -494,4 +517,3 @@ if __name__ == "__main__":
     ui.setupUi(MainWindow)
     MainWindow.show()
     sys.exit(app.exec_())
-

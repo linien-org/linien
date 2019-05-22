@@ -20,9 +20,17 @@ class CustomWidget:
 
         self.ids = IDSelector(self)
 
-    def connection_established(self, app):
+    def connection_established(self):
         pass
 
     def get_widget(self, name):
         """Queries a widget by name."""
         return self.findChild(QtCore.QObject, name)
+
+    def app(self):
+        # this property is set manually. Probably there is a more elegant way
+        # to solve this...
+        return self.window().app
+
+    def bar(self):
+        print('foo')

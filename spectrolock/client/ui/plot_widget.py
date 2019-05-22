@@ -1,4 +1,5 @@
 import math
+import pickle
 import numpy as np
 from PyQt5 import QtGui, QtWidgets
 from spectrolock.client.widgets import CustomWidget
@@ -93,10 +94,9 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         self.set_selection_overlay(0, 0)
         self.touch_start = None
 
-    def connection_established(self, app):
-        self.app = app
-        self.control = app.control
-        self.parameters = self.app.parameters
+    def connection_established(self):
+        self.control = self.app().control
+        self.parameters = self.app().parameters
 
         self.parameters.to_plot.change(self.replot)
 
@@ -133,11 +133,13 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
 
     def replot(self, to_plot):
         if to_plot is not None:
+            to_plot = pickle.loads(to_plot)
             self.last_plot_data = to_plot
 
             error_signal, control_signal = to_plot
 
             self.parameters.to_plot.value = None
+
             self.signal.setData(list(range(len(error_signal))), error_signal)
             self.control_signal.setData(
                 list(range(len(error_signal))),

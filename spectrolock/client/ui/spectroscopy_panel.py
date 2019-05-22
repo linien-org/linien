@@ -9,9 +9,8 @@ class SpectroscopyPanel(QtGui.QWidget, CustomWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def connection_established(self, app):
-        self.app = app
-        params = app.parameters
+    def connection_established(self):
+        params = self.app().parameters
         self.parameters = params
 
         #self.close_button.clicked.connect(self.close_app)
@@ -41,9 +40,9 @@ class SpectroscopyPanel(QtGui.QWidget, CustomWidget):
             lambda value: self.ids.signal_offset.setValue(value)
         )
 
-        self.ids.modulation_frequency.valueChanged.connect(self.change_modulation_frequency)
-        self.ids.modulation_amplitude.valueChanged.connect(self.change_modulation_amplitude)
-        self.ids.signal_offset.valueChanged.connect(self.change_signal_offset)
+        self.ids.modulation_frequency.editingFinished.connect(self.change_modulation_frequency)
+        self.ids.modulation_amplitude.editingFinished.connect(self.change_modulation_amplitude)
+        self.ids.signal_offset.editingFinished.connect(self.change_signal_offset)
 
     def change_modulation_frequency(self):
         self.parameters.modulation_frequency.value = self.ids.modulation_frequency.value() * MHz

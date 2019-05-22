@@ -7,10 +7,9 @@ class CentralPanel(QtGui.QWidget, CustomWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def connection_established(self, app):
-        self.app = app
-        self.control = app.control
-        params = app.parameters
+    def connection_established(self):
+        self.control = self.app().control
+        params = self.app().parameters
         self.parameters = params
 
         self.ids.go_right.clicked.connect(lambda: self.change_center(False))

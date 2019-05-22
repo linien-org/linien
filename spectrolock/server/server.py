@@ -12,37 +12,41 @@ from autolock import Autolock
 from parameters import Parameters
 
 from spectrolock.config import SERVER_PORT
+from spectrolock.communication.server import BaseService
 
 
-class FakeRedPitayaControl(rpyc.Service):
-    def __init__(self, ip, user, password, parameters):
-        self.parameters = Parameters()
+class FakeRedPitayaControl(BaseService):
+    def __init__(self):
+        super().__init__(Parameters)
 
-    def write_data(self):
+    def exposed_write_data(self):
         pass
 
     def run_acquiry_loop(self):
         from random import randint
-        self.parameters.to_plot.value = (
-            [randint(-8192, 8192) for _ in range(16384)],
-            list(_ - 8192 for _ in range(16384))
-        )
+        self.parameters.to_plot.value = pickle.dumps((
+            [randint(-8192, 8192) for _ in range(100)],
+            list(_ - 8192 for _ in range(100))
+        ))
 
     def set_asg_offset(self, idx, offset):
         pass
 
+    def exposed_shutdown(self):
+        _thread.interrupt_main()
+        os._exit(0)
 
-class RedPitayaControlService(rpyc.Service):
-    def __init__(self, pitaya):
-        self.parameters = Parameters()
+
+class RedPitayaControlService(BaseService):
+    def __init__(self):
         self._cached_data = {}
         self._is_locked = None
 
+        super().__init__(Parameters)
+
+        pitaya = Pitaya()
         self.pitaya = pitaya
         self.pitaya.connect(self, self.parameters)
-
-    def write_data(self):
-        self.pitaya.write_registers()
 
     def run_acquiry_loop(self):
         def on_change(plot_data):
@@ -50,13 +54,16 @@ class RedPitayaControlService(rpyc.Service):
 
         self.pitaya.listen_for_plot_data_changes(on_change)
 
-    def set_asg_offset(self, idx, offset):
+    def exposed_write_data(self):
+        self.pitaya.write_registers()
+
+    def exposed_set_asg_offset(self, idx, offset):
         self.pitaya.set_asg_offset(idx, offset)
 
-    def set_ramp_speed(self, speed):
+    def exposed_set_ramp_speed(self, speed):
         self.pitaya.set_ramp_speed(speed)
 
-    def start_autolock(self, x0, x1, start_watching=False):
+    def exposed_start_autolock(self, x0, x1, start_watching=False):
         current_task = self.parameters.task.value
 
         if not current_task or not current_task.running:
@@ -64,37 +71,31 @@ class RedPitayaControlService(rpyc.Service):
             self.parameters.task.value = autolock
             autolock.run(x0, x1, should_watch_lock=start_watching)
 
-    def start_ramp(self):
+    def exposed_start_ramp(self):
         self.parameters.lock.value = False
-        self.write_data()
+        self.exposed_write_data()
 
-    def start_lock(self):
+    def exposed_start_lock(self):
         self.parameters.lock.value = True
-        self.write_data()
+        self.exposed_write_data()
 
-    def reset(self):
+    def exposed_reset(self):
         self.parameters.ramp_amplitude.value = 1
         self.parameters.center.value = 0
-        self.start_ramp()
-        self.write_data()
+        self.exposed_start_ramp()
+        self.exposed_write_data()
 
-    def shutdown(self):
+    def exposed_shutdown(self):
         self.pitaya.shutdown()
         _thread.interrupt_main()
         os._exit(0)
 
 
 if __name__ == '__main__':
-    ssh = False
-
-    pitaya = Pitaya()
-
-    control = RedPitayaControlService(pitaya)
+    # control = RedPitayaControlService()
+    control = FakeRedPitayaControl()
     control.run_acquiry_loop()
-    control.write_data()
+    control.exposed_write_data()
 
-    t = ThreadedServer(control, port=SERVER_PORT, protocol_config={
-        'allow_all_attrs': True,
-        'allow_setattr': True
-    })
+    t = ThreadedServer(control, port=SERVER_PORT)
     t.start()

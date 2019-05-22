@@ -242,20 +242,28 @@ sys.path += [
 ]
 from spectrolock.client.widgets import CustomWidget
 from spectrolock.client.ui.main_window import Ui_MainWindow
+from spectrolock.client.ui.device_manager import Ui_DeviceManager
+from spectrolock.client.connection import Connection
+
 
 class QTApp(QtCore.QObject):
     ready = QtCore.pyqtSignal(bool)
 
     def __init__(self):
         self.app = QtWidgets.QApplication(sys.argv)
-        MainWindow = QtWidgets.QMainWindow()
+
+        self.main_window = QtWidgets.QMainWindow()
+        self.main_window.app = self
         ui = Ui_MainWindow()
-        ui.setupUi(MainWindow)
-        MainWindow.show()
+        ui.setupUi(self.main_window)
 
-        self.window = MainWindow
+        self.device_manager = QtWidgets.QMainWindow()
+        self.device_manager.app = self
+        ui2 = Ui_DeviceManager()
+        ui2.setupUi(self.device_manager)
+        self.device_manager.show()
 
-        self.app.aboutToQuit.connect(self.shutdown)
+        self.app.aboutToQuit.connect(lambda: self.app.quit())
 
         super().__init__()
 
@@ -268,16 +276,33 @@ class QTApp(QtCore.QObject):
 
     def init(self):
         for instance in CustomWidget.instances:
-            instance.connection_established(self)
+            instance.connection_established()
 
         self.parameters.call_listeners()
 
-    def get_widget(self, name):
+    def get_widget(self, name, window=None):
         """Queries a widget by name."""
-        return self.window.findChild(QtCore.QObject, name)
+        window = window or self.main_window
+        return window.findChild(QtCore.QObject, name)
 
     def close(self):
         self.app.quit()
 
     def shutdown(self):
+        self.control.shutdown()
         self.close()
+
+    def connect(self, host, username, password):
+        self.device_manager.hide()
+
+        conn = Connection(host, username, password)
+        self.connection = conn
+        self.connected(conn.parameters, conn.control)
+        self.main_window.show()
+
+    def open_device_manager(self):
+        self.main_window.hide()
+        self.device_manager.show()
+
+        self.connection.disconnect()
+        del self.connection
