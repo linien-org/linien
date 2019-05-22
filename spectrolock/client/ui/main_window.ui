@@ -16,69 +16,75 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout">
     <item>
-     <widget class="QPushButton" name="go_left">
-      <property name="text">
-       <string>&lt;</string>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <layout class="QVBoxLayout" name="verticalLayout_17">
-      <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_3">
-        <item>
-         <widget class="QLabel" name="scan_amplitude">
-          <property name="text">
-           <string>100 %</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="increase_scan_amplitude">
-          <property name="text">
-           <string>+</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="decrease_scan_amplitude">
-          <property name="text">
-           <string>-</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="reset_scan_amplitude">
-          <property name="text">
-           <string>reset</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <widget class="PlotWidget" name="graphicsView">
-        <property name="minimumSize">
-         <size>
-          <width>100</width>
-          <height>100</height>
-         </size>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
-    <item>
-     <widget class="QPushButton" name="go_right">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="text">
-       <string>&gt;</string>
-      </property>
+     <widget class="CentralPanel" name="horizontalWidget" native="true">
+      <layout class="QHBoxLayout" name="horizontalLayout_8">
+       <item>
+        <widget class="QPushButton" name="go_left">
+         <property name="text">
+          <string>&lt;</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QVBoxLayout" name="verticalLayout_17">
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_3">
+           <item>
+            <widget class="QLabel" name="scan_amplitude">
+             <property name="text">
+              <string>100 %</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="increase_scan_amplitude">
+             <property name="text">
+              <string>+</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="decrease_scan_amplitude">
+             <property name="text">
+              <string>-</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="reset_scan_amplitude">
+             <property name="text">
+              <string>reset</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="PlotWidget" name="graphicsView">
+           <property name="minimumSize">
+            <size>
+             <width>100</width>
+             <height>100</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QPushButton" name="go_right">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>&gt;</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
     </item>
     <item>
@@ -540,7 +546,7 @@
             <x>0</x>
             <y>0</y>
             <width>224</width>
-            <height>82</height>
+            <height>225</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -564,7 +570,7 @@
                 <x>0</x>
                 <y>0</y>
                 <width>208</width>
-                <height>662</height>
+                <height>500</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_9">
@@ -633,41 +639,6 @@
                      </widget>
                     </item>
                    </layout>
-                  </item>
-                 </layout>
-                </widget>
-               </item>
-               <item>
-                <widget class="QGroupBox" name="groupBox_8">
-                 <property name="title">
-                  <string>Ramp amplitude</string>
-                 </property>
-                 <layout class="QVBoxLayout" name="verticalLayout_15">
-                  <item>
-                   <widget class="QDoubleSpinBox" name="ramp_amplitude">
-                    <property name="maximum">
-                     <double>1.000000000000000</double>
-                    </property>
-                    <property name="singleStep">
-                     <double>0.100000000000000</double>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </widget>
-               </item>
-               <item>
-                <widget class="QGroupBox" name="groupBox_9">
-                 <property name="title">
-                  <string>Center</string>
-                 </property>
-                 <layout class="QVBoxLayout" name="verticalLayout_16">
-                  <item>
-                   <widget class="QDoubleSpinBox" name="ramp_center">
-                    <property name="maximum">
-                     <double>1.000000000000000</double>
-                    </property>
-                   </widget>
                   </item>
                  </layout>
                 </widget>
@@ -746,8 +717,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>104</width>
-            <height>31</height>
+            <width>106</width>
+            <height>225</height>
            </rect>
           </property>
           <attribute name="label">
@@ -769,7 +740,7 @@
             <x>0</x>
             <y>0</y>
             <width>234</width>
-            <height>225</height>
+            <height>303</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -791,9 +762,9 @@
               <property name="geometry">
                <rect>
                 <x>0</x>
-                <y>0</y>
+                <y>-233</y>
                 <width>218</width>
-                <height>428</height>
+                <height>506</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_8">
@@ -930,32 +901,32 @@
                  </widget>
                 </widget>
                </item>
+               <item>
+                <widget class="LockStatusPanel" name="lock_status_container" native="true">
+                 <layout class="QVBoxLayout" name="verticalLayout_18">
+                  <item>
+                   <widget class="QLabel" name="lock_status">
+                    <property name="text">
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Lock status&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="stop_lock">
+                    <property name="text">
+                     <string>Stop lock</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
               </layout>
              </widget>
             </widget>
            </item>
           </layout>
          </widget>
-        </widget>
-       </item>
-       <item>
-        <widget class="QWidget" name="lock_status_container" native="true">
-         <layout class="QVBoxLayout" name="verticalLayout_18">
-          <item>
-           <widget class="QLabel" name="lock_status">
-            <property name="text">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Lock status&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="stop_lock">
-            <property name="text">
-             <string>Stop lock</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
         </widget>
        </item>
       </layout>
@@ -997,6 +968,18 @@
    <class>SpectroscopyPanel</class>
    <extends>QWidget</extends>
    <header location="global">spectroscopy_panel.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>CentralPanel</class>
+   <extends>QWidget</extends>
+   <header location="global">central_panel.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>LockStatusPanel</class>
+   <extends>QWidget</extends>
+   <header location="global">lock_status_panel.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

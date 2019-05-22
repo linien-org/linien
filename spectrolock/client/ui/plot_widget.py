@@ -14,11 +14,11 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         self.setMouseEnabled(x=False, y=False)
         self.setMenuEnabled(False)
 
-        self.signal = pg.PlotCurveItem()
+        self.signal = pg.PlotCurveItem(pen=pg.mkPen('g', width=3))
         self.addItem(self.signal)
-        self.control_signal = pg.PlotCurveItem()
+        self.control_signal = pg.PlotCurveItem(pen=pg.mkPen('r', width=3))
         self.addItem(self.control_signal)
-        self.zero_line = pg.PlotCurveItem()
+        self.zero_line = pg.PlotCurveItem(pen=pg.mkPen('w', width=1))
         self.addItem(self.zero_line)
 
         self.zero_line.setData([-1, 10000], [0, 0])
@@ -105,7 +105,6 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         return len(self.last_plot_data[0]) - 1
 
     def graph_on_selection(self, x0, x):
-        #FIXME: missing
         x0 /= self.xmax
         x /= self.xmax
 

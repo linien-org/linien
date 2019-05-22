@@ -9,6 +9,7 @@ class CentralPanel(QtGui.QWidget, CustomWidget):
 
     def connection_established(self, app):
         self.app = app
+        self.control = app.control
         params = app.parameters
         self.parameters = params
 
@@ -23,7 +24,7 @@ class CentralPanel(QtGui.QWidget, CustomWidget):
         self.ids.reset_scan_amplitude.clicked.connect(self.reset_range)
 
         params.ramp_amplitude.change(
-            lambda value: self.ids.scan_amplitude.setText('%d %%' % value * 100)
+            lambda value: self.ids.scan_amplitude.setText('%d %%' % (value * 100))
         )
 
     def change_center(self, positive):

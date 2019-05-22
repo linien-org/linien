@@ -196,12 +196,6 @@ class RootElement(FloatLayout):
 
     def change_tab(self, automatic_mode):
         self.parameters.automatic_mode.value = automatic_mode
-
-    def stop_autolock(self):
-        self.parameters.task.value.stop()
-
-    def shutdown(self):
-        self.control.shutdown()
     sys.exit()"""
 
 

@@ -27,10 +27,22 @@ class FakeControl:
         pass
 
 
+class FakeRemoteParameters(Parameters):
+    def call_listeners(self):
+        for param_name, param in self.get_all_parameters():
+            if param_name == 'to_plot':
+                continue
+
+            for listener in param._listeners:
+                listener(param.value)
+
+        #QtCore.QTimer.singleShot(100, self.call_listeners)
+
+
 class FakeConnection:
     """Fake connection that can be used for testing the GUI."""
     def __init__(self, *args, **kwargs):
-        self.parameters = Parameters()
+        self.parameters = FakeRemoteParameters()
         self.control = FakeControl()
 
 
