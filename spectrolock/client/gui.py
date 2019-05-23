@@ -243,7 +243,6 @@ sys.path += [
 from spectrolock.client.widgets import CustomWidget
 from spectrolock.client.ui.main_window import Ui_MainWindow
 from spectrolock.client.ui.device_manager import Ui_DeviceManager
-from spectrolock.client.connection import Connection
 
 
 class QTApp(QtCore.QObject):
@@ -267,7 +266,11 @@ class QTApp(QtCore.QObject):
 
         super().__init__()
 
-    def connected(self, parameters, control):
+    def connected(self, connection, parameters, control):
+        self.device_manager.hide()
+        self.main_window.show()
+
+        self.connection = connection
         self.control = control
         self.parameters = parameters
 
@@ -291,14 +294,6 @@ class QTApp(QtCore.QObject):
     def shutdown(self):
         self.control.shutdown()
         self.close()
-
-    def connect(self, host, username, password):
-        self.device_manager.hide()
-
-        conn = Connection(host, username, password)
-        self.connection = conn
-        self.connected(conn.parameters, conn.control)
-        self.main_window.show()
 
     def open_device_manager(self):
         self.main_window.hide()

@@ -577,7 +577,7 @@
           </size>
          </property>
          <property name="currentIndex">
-          <number>0</number>
+          <number>2</number>
          </property>
          <widget class="SpectroscopyPanel" name="page">
           <property name="geometry">
@@ -801,9 +801,9 @@
               <property name="geometry">
                <rect>
                 <x>0</x>
-                <y>0</y>
+                <y>-135</y>
                 <width>220</width>
-                <height>504</height>
+                <height>483</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_8">
@@ -881,13 +881,6 @@
                      </property>
                      <property name="wordWrap">
                       <bool>true</bool>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QCheckBox" name="checkBox">
-                     <property name="text">
-                      <string>Automatic relock</string>
                      </property>
                     </widget>
                    </item>
@@ -1020,6 +1013,7 @@
     <slot>close_app()</slot>
     <slot>shutdown_server()</slot>
     <slot>open_device_manager()</slot>
+    <slot>start_manual_lock()</slot>
    </slots>
   </customwidget>
   <customwidget>
@@ -1090,6 +1084,22 @@
     <hint type="sourcelabel">
      <x>667</x>
      <y>56</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>667</x>
+     <y>301</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>manualLockButton</sender>
+   <signal>clicked()</signal>
+   <receiver>rightPanel</receiver>
+   <slot>start_manual_lock()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>665</x>
+     <y>526</y>
     </hint>
     <hint type="destinationlabel">
      <x>667</x>

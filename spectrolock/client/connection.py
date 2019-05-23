@@ -41,8 +41,7 @@ class Connection(BaseClient):
             except gaierror:
                 # host not found
                 print('host not found')
-                sleep(1)
-                continue
+                break
             except Exception as e:
                 print('connection error', e)
 
@@ -50,13 +49,16 @@ class Connection(BaseClient):
                     print('start server')
                     try:
                         run_server(host, self.user, self.password)
-                        sleep(5)
+                        sleep(7)
                     except:
                         print('starting server failed')
                         sleep(1)
                         continue
 
             sleep(1)
+
+            if i == 10:
+                break
 
         if self.connection is None:
             raise ConnectionError()

@@ -2,6 +2,7 @@ from PyQt5 import QtGui, QtWidgets, QtCore
 from spectrolock.client.config import load_device_data, save_device_data
 from spectrolock.client.widgets import CustomWidget
 from spectrolock.client.ui.new_device_dialog import Ui_NewDeviceDialog
+from spectrolock.client.connection import Connection
 
 
 class DeviceManagerCenter(QtGui.QWidget, CustomWidget):
@@ -28,7 +29,12 @@ class DeviceManagerCenter(QtGui.QWidget, CustomWidget):
             return
 
         device = devices[self.get_list_index()]
-        self.app().connect(device['host'], device['username'], device['password'])
+
+        try:
+            conn = Connection(device['host'], device['username'], device['password'])
+            self.app().connected(conn, conn.parameters, conn.control)
+        except:
+            pass
 
     def new_device(self):
         self.dialog = QtWidgets.QDialog()
