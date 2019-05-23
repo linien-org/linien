@@ -16,15 +16,8 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout">
     <item>
-     <widget class="CentralPanel" name="horizontalWidget" native="true">
+     <widget class="CentralPanel" name="centralPanel" native="true">
       <layout class="QHBoxLayout" name="horizontalLayout_8">
-       <item>
-        <widget class="QPushButton" name="go_left">
-         <property name="text">
-          <string>&lt;</string>
-         </property>
-        </widget>
-       </item>
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_17">
          <item>
@@ -57,6 +50,39 @@
              </property>
             </widget>
            </item>
+           <item>
+            <spacer name="horizontalSpacer">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QPushButton" name="go_left">
+             <property name="text">
+              <string>&lt;</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="go_right">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>&gt;</string>
+             </property>
+            </widget>
+           </item>
           </layout>
          </item>
          <item>
@@ -70,19 +96,6 @@
           </widget>
          </item>
         </layout>
-       </item>
-       <item>
-        <widget class="QPushButton" name="go_right">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string>&gt;</string>
-         </property>
-        </widget>
        </item>
       </layout>
      </widget>
@@ -585,7 +598,7 @@
             <x>0</x>
             <y>0</y>
             <width>250</width>
-            <height>471</height>
+            <height>498</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -757,7 +770,7 @@
             <x>0</x>
             <y>0</y>
             <width>250</width>
-            <height>471</height>
+            <height>498</height>
            </rect>
           </property>
           <attribute name="label">
@@ -773,13 +786,13 @@
            </item>
           </layout>
          </widget>
-         <widget class="LockingPanel" name="page_2">
+         <widget class="LockingPanel" name="lockingPanel">
           <property name="geometry">
            <rect>
             <x>0</x>
             <y>0</y>
             <width>250</width>
-            <height>471</height>
+            <height>498</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -999,16 +1012,6 @@
     </item>
    </layout>
   </widget>
-  <widget class="QMenuBar" name="menubar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>1024</width>
-     <height>27</height>
-    </rect>
-   </property>
-  </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
  <customwidgets>
@@ -1034,6 +1037,12 @@
    <extends>QWidget</extends>
    <header location="global">locking_panel.h</header>
    <container>1</container>
+   <slots>
+    <slot>kp_changed()</slot>
+    <slot>ki_changed()</slot>
+    <slot>kd_changed()</slot>
+    <slot>watch_lock_changed()</slot>
+   </slots>
   </customwidget>
   <customwidget>
    <class>SpectroscopyPanel</class>
@@ -1046,6 +1055,13 @@
    <extends>QWidget</extends>
    <header location="global">central_panel.h</header>
    <container>1</container>
+   <slots>
+    <slot>go_right()</slot>
+    <slot>go_left()</slot>
+    <slot>increase_scan_amplitude()</slot>
+    <slot>decrease_scan_amplitude()</slot>
+    <slot>reset_scan_amplitude()</slot>
+   </slots>
   </customwidget>
   <customwidget>
    <class>LockStatusPanel</class>
@@ -1117,6 +1133,86 @@
     <hint type="destinationlabel">
      <x>667</x>
      <y>301</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>go_right</sender>
+   <signal>clicked()</signal>
+   <receiver>centralPanel</receiver>
+   <slot>go_right()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>699</x>
+     <y>385</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>377</x>
+     <y>385</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>go_left</sender>
+   <signal>clicked()</signal>
+   <receiver>centralPanel</receiver>
+   <slot>go_left()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>55</x>
+     <y>385</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>377</x>
+     <y>385</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>increase_scan_amplitude</sender>
+   <signal>clicked()</signal>
+   <receiver>centralPanel</receiver>
+   <slot>increase_scan_amplitude()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>309</x>
+     <y>58</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>377</x>
+     <y>385</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>decrease_scan_amplitude</sender>
+   <signal>clicked()</signal>
+   <receiver>centralPanel</receiver>
+   <slot>decrease_scan_amplitude()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>446</x>
+     <y>58</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>377</x>
+     <y>385</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>reset_scan_amplitude</sender>
+   <signal>clicked()</signal>
+   <receiver>centralPanel</receiver>
+   <slot>reset_scan_amplitude()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>582</x>
+     <y>58</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>377</x>
+     <y>385</y>
     </hint>
    </hints>
   </connection>

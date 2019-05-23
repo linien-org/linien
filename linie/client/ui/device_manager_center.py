@@ -9,10 +9,8 @@ class DeviceManagerCenter(QtGui.QWidget, CustomWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        QtCore.QTimer.singleShot(100, lambda: self.load_device_data(autoload=True))
-
-    def connection_established(self):
-        pass
+    def ready(self):
+        self.load_device_data(autoload=True)
 
     def load_device_data(self, autoload=False):
         devices = load_device_data()

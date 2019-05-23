@@ -20,6 +20,11 @@ class CustomWidget:
 
         self.ids = IDSelector(self)
 
+        QtCore.QTimer.singleShot(100, self.ready)
+
+    def ready(self):
+        pass
+
     def connection_established(self):
         pass
 

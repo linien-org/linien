@@ -7,9 +7,6 @@ class NewDeviceDialogCenter(QtGui.QWidget, CustomWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def connection_established(self):
-        pass
-
     def add_new_device(self):
         device = {
             'name': self.ids.deviceName.text(),

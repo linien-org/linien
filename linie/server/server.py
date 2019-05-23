@@ -105,8 +105,8 @@ class RedPitayaControlService(BaseService):
 
 
 if __name__ == '__main__':
-    # FIXME: control = RedPitayaControlService()
-    control = FakeRedPitayaControl()
+    control = RedPitayaControlService()
+    #control = FakeRedPitayaControl()
     control.run_acquiry_loop()
     control.exposed_write_data()
 

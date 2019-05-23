@@ -12,19 +12,21 @@ class CentralPanel(QtGui.QWidget, CustomWidget):
         params = self.app().parameters
         self.parameters = params
 
-        self.ids.go_right.clicked.connect(lambda: self.change_center(False))
-        self.ids.go_left.clicked.connect(lambda: self.change_center(True))
-        self.ids.increase_scan_amplitude.clicked.connect(
-            lambda: self.change_range(True)
-        )
-        self.ids.decrease_scan_amplitude.clicked.connect(
-            lambda: self.change_range(False)
-        )
-        self.ids.reset_scan_amplitude.clicked.connect(self.reset_range)
-
         params.ramp_amplitude.change(
             lambda value: self.ids.scan_amplitude.setText('%d %%' % (value * 100))
         )
+
+    def increase_scan_amplitude(self):
+        self.change_range(True)
+
+    def decrease_scan_amplitude(self):
+        self.change_range(False)
+
+    def go_right(self):
+        self.change_center(False)
+
+    def go_left(self):
+        self.change_center(True)
 
     def change_center(self, positive):
         delta_center = self.parameters.ramp_amplitude.value / 10
@@ -45,7 +47,7 @@ class CentralPanel(QtGui.QWidget, CustomWidget):
             self.parameters.ramp_amplitude.value /= 1.5
         self.control.write_data()
 
-    def reset_range(self):
+    def reset_scan_amplitude(self):
         self.parameters.ramp_amplitude.reset()
         self.parameters.center.reset()
         self.control.write_data()
