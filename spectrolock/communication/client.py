@@ -1,5 +1,5 @@
 """
-    spectrolock.communication.client
+    linie.communication.client
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     Contains the client that can be used to access a service with easy access
@@ -7,7 +7,7 @@
 """
 import rpyc
 import uuid
-from spectrolock.communication.remote_parameters import RemoteParameters
+from linie.communication.remote_parameters import RemoteParameters
 
 
 class ClientService(rpyc.Service):

@@ -4,7 +4,7 @@ import threading
 
 sys.path += ['../', '../../']
 
-from spectrolock.client.gui import QTApp
+from linie.client.gui import QTApp
 
 
 def run_application():

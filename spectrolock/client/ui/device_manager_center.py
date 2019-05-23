@@ -1,8 +1,8 @@
 from PyQt5 import QtGui, QtWidgets, QtCore
-from spectrolock.client.config import load_device_data, save_device_data
-from spectrolock.client.widgets import CustomWidget
-from spectrolock.client.ui.new_device_dialog import Ui_NewDeviceDialog
-from spectrolock.client.connection import Connection
+from linie.client.config import load_device_data, save_device_data
+from linie.client.widgets import CustomWidget
+from linie.client.ui.new_device_dialog import Ui_NewDeviceDialog
+from linie.client.connection import Connection
 
 
 class DeviceManagerCenter(QtGui.QWidget, CustomWidget):

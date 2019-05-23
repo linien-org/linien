@@ -1,6 +1,6 @@
 import numpy as np
 from PyQt5 import QtGui
-from spectrolock.client.widgets import CustomWidget
+from linie.client.widgets import CustomWidget
 
 
 class LockStatusPanel(QtGui.QWidget, CustomWidget):

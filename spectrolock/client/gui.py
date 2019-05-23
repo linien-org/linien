@@ -240,9 +240,9 @@ sys.path += [
         os.path.split(os.path.abspath(__file__))[:-1]) + ['ui']
     )
 ]
-from spectrolock.client.widgets import CustomWidget
-from spectrolock.client.ui.main_window import Ui_MainWindow
-from spectrolock.client.ui.device_manager import Ui_DeviceManager
+from linie.client.widgets import CustomWidget
+from linie.client.ui.main_window import Ui_MainWindow
+from linie.client.ui.device_manager import Ui_DeviceManager
 
 
 class QTApp(QtCore.QObject):

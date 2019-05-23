@@ -9,7 +9,7 @@ from rpyc.utils.server import OneShotServer
 from PyRedPitaya.board import RedPitaya
 
 sys.path += ['../../']
-from spectrolock.config import ACQUISITION_PORT, DECIMATION, DEFAULT_RAMP_SPEED
+from linie.config import ACQUISITION_PORT, DECIMATION, DEFAULT_RAMP_SPEED
 
 
 class DataAcquisitionService(Service):

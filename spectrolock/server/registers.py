@@ -9,7 +9,7 @@ from multiprocessing import Process, Pipe
 
 from csr import make_filter, PitayaLocal, PitayaSSH
 from utils import start_nginx, stop_nginx, start_acquisition_process
-from spectrolock.config import ACQUISITION_PORT, DECIMATION
+from linie.config import ACQUISITION_PORT, DECIMATION
 
 
 class AcquisitionConnectionError(Exception):

@@ -1,5 +1,5 @@
 import subprocess
-from spectrolock.config import REMOTE_BASE_PATH
+from linie.config import REMOTE_BASE_PATH
 
 
 def stop_nginx():

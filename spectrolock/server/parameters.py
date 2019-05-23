@@ -1,4 +1,4 @@
-from spectrolock.communication.server import Parameter, BaseParameters
+from linie.communication.server import Parameter, BaseParameters
 
 
 class Parameters(BaseParameters):

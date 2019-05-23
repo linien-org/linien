@@ -2,7 +2,7 @@ import math
 import pickle
 import numpy as np
 from PyQt5 import QtGui, QtWidgets
-from spectrolock.client.widgets import CustomWidget
+from linie.client.widgets import CustomWidget
 from pyqtgraph.Qt import QtCore, QtGui
 import pyqtgraph as pg
 from time import time

@@ -1,9 +1,9 @@
 from time import sleep
 from socket import gaierror
 
-from spectrolock.config import SERVER_PORT
-from spectrolock.client.utils import run_server
-from spectrolock.communication.client import BaseClient
+from linie.config import SERVER_PORT
+from linie.client.utils import run_server
+from linie.communication.client import BaseClient
 
 
 class ConnectionError(Exception):

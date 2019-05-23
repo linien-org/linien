@@ -1,5 +1,5 @@
 from PyQt5 import QtGui
-from spectrolock.client.widgets import CustomWidget
+from linie.client.widgets import CustomWidget
 
 
 class RightPanel(QtGui.QWidget, CustomWidget):

@@ -11,8 +11,8 @@ from registers import Pitaya
 from autolock import Autolock
 from parameters import Parameters
 
-from spectrolock.config import SERVER_PORT
-from spectrolock.communication.server import BaseService
+from linie.config import SERVER_PORT
+from linie.communication.server import BaseService
 
 
 class FakeRedPitayaControl(BaseService):
