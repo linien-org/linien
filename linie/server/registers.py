@@ -124,13 +124,13 @@ class Pitaya:
         for idx, asg in enumerate(('asga', 'asgb')):
             try:
                 value = new.pop('%s_offset' % asg)
-                self.control.set_asg_offset(idx, value)
+                self.control.exposed_set_asg_offset(idx, value)
             except KeyError:
                 pass
 
         # pass ramp speed changes to acquisition process
         if 'fast_b_sweep_step' in new:
-            self.control.set_ramp_speed(int(params['ramp_speed']))
+            self.control.exposed_set_ramp_speed(int(params['ramp_speed']))
 
         for k, v in new.items():
             print('SET', k, v)

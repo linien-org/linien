@@ -23,11 +23,20 @@ class FakeRedPitayaControl(BaseService):
         pass
 
     def run_acquiry_loop(self):
+        import threading
+        from time import sleep
         from random import randint
-        self.parameters.to_plot.value = pickle.dumps((
-            [randint(-8192, 8192) for _ in range(100)],
-            list(_ - 8192 for _ in range(100))
-        ))
+
+        def run():
+            while True:
+                self.parameters.to_plot.value = pickle.dumps((
+                    [randint(-8192, 8192) for _ in range(16384)],
+                    list(_ - 8192 for _ in range(16384))
+                ))
+                sleep(.1)
+        t = threading.Thread(target=run)
+        t.daemon = True
+        t.start()
 
     def set_asg_offset(self, idx, offset):
         pass
@@ -35,6 +44,9 @@ class FakeRedPitayaControl(BaseService):
     def exposed_shutdown(self):
         _thread.interrupt_main()
         os._exit(0)
+
+    def exposed_start_autolock(self, x0, x1):
+        print('start autolock', x0, x1)
 
 
 class RedPitayaControlService(BaseService):
@@ -63,7 +75,8 @@ class RedPitayaControlService(BaseService):
     def exposed_set_ramp_speed(self, speed):
         self.pitaya.set_ramp_speed(speed)
 
-    def exposed_start_autolock(self, x0, x1, start_watching=False):
+    def exposed_start_autolock(self, x0, x1):
+        start_watching = self.parameters.watch_lock.value
         current_task = self.parameters.task.value
 
         if not current_task or not current_task.running:
@@ -92,7 +105,7 @@ class RedPitayaControlService(BaseService):
 
 
 if __name__ == '__main__':
-    # control = RedPitayaControlService()
+    # FIXME: control = RedPitayaControlService()
     control = FakeRedPitayaControl()
     control.run_acquiry_loop()
     control.exposed_write_data()

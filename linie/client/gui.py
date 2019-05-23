@@ -202,34 +202,7 @@ class RootElement(FloatLayout):
 """class PIDApp():
     def __init__(self):
         App.__init__(self)"""
-class PIDApp():
 
-    def build(self):
-        self.layout = BoxLayout()
-        self.add_loading()
-
-        return self.layout
-
-    def add_loading(self):
-        self.main_element = None
-        self.layout.clear_widgets()
-        # FIXME: missing
-        self.layout.add_widget(
-            Label(text='Connecting to RedPitaya')
-        )
-
-    def connected(self, parameters, control):
-        self.control = control
-        self.parameters = parameters
-
-        def do(*args):
-            self.layout.clear_widgets()
-            self.main_element = RootElement()
-            self.layout.add_widget(self.main_element)
-            self.main_element.connected(parameters, control)
-
-        # this executes in GUI thread
-        Clock.schedule_once(do, 0)
 
 
 from PyQt5 import QtWidgets

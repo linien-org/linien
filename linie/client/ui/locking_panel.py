@@ -19,11 +19,14 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
         params.d.change(
             lambda value: self.ids.kd.setValue(value)
         )
+        params.watch_lock.change(
+            lambda value: self.ids.watchLockCheckbox.setChecked(value)
+        )
 
         self.ids.kp.editingFinished.connect(self.kp_changed)
         self.ids.ki.editingFinished.connect(self.ki_changed)
         self.ids.kd.editingFinished.connect(self.kd_changed)
-
+        self.ids.watchLockCheckbox.stateChanged.connect(self.watch_lock_changed)
 
         def lock_status_changed(lock):
             if lock:
@@ -41,3 +44,6 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
 
     def kd_changed(self):
         self.parameters.d.value = self.ids.kd.value()
+
+    def watch_lock_changed(self):
+        self.parameters.watch_lock.value = self.ids.watchLockCheckbox.checkState()

@@ -12,18 +12,25 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        self.hideAxis('bottom')
+        self.hideAxis('left')
+
         self.setMouseEnabled(x=False, y=False)
         self.setMenuEnabled(False)
 
-        self.signal = pg.PlotCurveItem(pen=pg.mkPen('g', width=3))
-        self.addItem(self.signal)
-        self.control_signal = pg.PlotCurveItem(pen=pg.mkPen('r', width=3))
-        self.addItem(self.control_signal)
+        # important: increasing pen width makes plotting much slower!
+        # alternative: pg.setConfigOptions(useOpenGL=True)
+        # see: https://github.com/pyqtgraph/pyqtgraph/issues/533
+        pen_width = 1
         self.zero_line = pg.PlotCurveItem(pen=pg.mkPen('w', width=1))
         self.addItem(self.zero_line)
+        self.signal = pg.PlotCurveItem(pen=pg.mkPen((100, 0, 0, 100), width=pen_width))
+        self.addItem(self.signal)
+        self.control_signal = pg.PlotCurveItem(pen=pg.mkPen((0, 0, 100, 200), width=pen_width))
+        self.addItem(self.control_signal)
 
-        self.zero_line.setData([-1, 10000], [0, 0])
-        self.signal.setData([-1, 10000], [1, 1])
+        self.zero_line.setData([0, 16383], [0, 0])
+        self.signal.setData([0, 16383], [1, 1])
 
         self.connection = None
         self.parameters = None
@@ -53,22 +60,23 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         self.set_selection_overlay(x0, x - x0)
 
     def init_overlay(self):
-        self.overlay = pg.QtGui.QGraphicsRectItem(0, 0, 0, 0)
-        self.overlay.setPen(pg.mkPen(None))
-        self.overlay.setBrush(pg.mkBrush('r'))
-        vb = self.plotItem.vb
-        vb.addItem(self.overlay)
+        self.overlay = pg.LinearRegionItem(values=(-1000, -1000), movable=False)
+        self.overlay.setVisible(False)
+        self.addItem(self.overlay)
 
     def set_selection_overlay(self, x_start, width):
-        self.overlay.setRect(x_start, 0, width, 10000)
+        self.overlay.setRegion((x_start, x_start + width))
 
     def mousePressEvent(self, event):
+        super().mousePressEvent(event)
         x, y = self._to_data_coords(event)
 
         self.touch_start = x, y
+        self.set_selection_overlay(x, 0)
+        self.overlay.setVisible(True)
 
     def mouseReleaseEvent(self, event):
-        pg.PlotWidget.mouseReleaseEvent(self, event)
+        super().mouseReleaseEvent(event)
 
         if self.touch_start is None:
             return
@@ -85,13 +93,12 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
             # it was a selection
             if self.parameters.automatic_mode.value:
                 self.control.start_autolock(
-                    *sorted([x0, x]),
-                    start_watching=self.ids.watch_lock_checkbox.active
+                    *sorted([x0, x])
                 )
             else:
                 self.graph_on_selection(x0, x)
 
-        self.set_selection_overlay(0, 0)
+        self.overlay.setVisible(False)
         self.touch_start = None
 
     def connection_established(self):
@@ -132,7 +139,7 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         self.control.write_data()
 
     def replot(self, to_plot):
-        if to_plot is not None:
+        if to_plot is not None and not self.touch_start:
             to_plot = pickle.loads(to_plot)
             self.last_plot_data = to_plot
 
@@ -153,12 +160,12 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
             self.plot_min = np.min([-1 * self.plot_max, self.plot_min, math.floor(np.min(error_signal))])
 
             if time() - self.last_plot_rescale > 2:
-                self.setYRange(math.floor(self.plot_min), math.ceil(self.plot_max))
-                # FIXME:missing
-                #self.ids.graph.xmax = len(error_signal)
-                #self.ids.graph.y_ticks_major = int(self.plot_max * 2 / 5)
+                plot_min = math.floor(self.plot_min)
+                plot_max = math.ceil(self.plot_max)
 
-                #if self.ids.graph.ymin == self.ids.graph.ymax:
-                #    self.ids.graph.ymax += 1
+                if plot_min == plot_max:
+                    plot_max += 1
+
+                self.setYRange(plot_min, plot_max)
 
                 self.last_plot_rescale = time()

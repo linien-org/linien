@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>1024</width>
+    <height>768</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -585,7 +585,7 @@
             <x>0</x>
             <y>0</y>
             <width>250</width>
-            <height>303</height>
+            <height>471</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -757,7 +757,7 @@
             <x>0</x>
             <y>0</y>
             <width>250</width>
-            <height>303</height>
+            <height>471</height>
            </rect>
           </property>
           <attribute name="label">
@@ -779,7 +779,7 @@
             <x>0</x>
             <y>0</y>
             <width>250</width>
-            <height>303</height>
+            <height>471</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -801,9 +801,9 @@
               <property name="geometry">
                <rect>
                 <x>0</x>
-                <y>-135</y>
+                <y>0</y>
                 <width>220</width>
-                <height>483</height>
+                <height>504</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_8">
@@ -885,9 +885,22 @@
                     </widget>
                    </item>
                    <item>
+                    <widget class="QCheckBox" name="watchLockCheckbox">
+                     <property name="text">
+                      <string>Watch lock</string>
+                     </property>
+                     <property name="checked">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
                     <widget class="QCheckBox" name="checkBox_2">
                      <property name="text">
                       <string>Determine signal offset</string>
+                     </property>
+                     <property name="checked">
+                      <bool>true</bool>
                      </property>
                     </widget>
                    </item>
@@ -991,7 +1004,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
+     <width>1024</width>
      <height>27</height>
     </rect>
    </property>

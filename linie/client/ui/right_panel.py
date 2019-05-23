@@ -7,7 +7,8 @@ class RightPanel(QtGui.QWidget, CustomWidget):
         super().__init__(*args, **kwargs)
 
     def connection_established(self):
-        pass
+        self.control = self.app().control
+        self.parameters = self.app().parameters
 
     def close_app(self):
         self.app().close()
@@ -19,5 +20,4 @@ class RightPanel(QtGui.QWidget, CustomWidget):
         self.app().open_device_manager()
 
     def start_manual_lock(self):
-        # FIXME: missing
-        pass
+        self.control.start_lock()

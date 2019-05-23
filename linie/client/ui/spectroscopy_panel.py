@@ -11,6 +11,7 @@ class SpectroscopyPanel(QtGui.QWidget, CustomWidget):
 
     def connection_established(self):
         params = self.app().parameters
+        self.control = self.app().control
         self.parameters = params
 
         #self.close_button.clicked.connect(self.close_app)

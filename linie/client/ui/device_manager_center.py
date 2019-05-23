@@ -9,12 +9,12 @@ class DeviceManagerCenter(QtGui.QWidget, CustomWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        QtCore.QTimer.singleShot(100, self.load_device_data)
+        QtCore.QTimer.singleShot(100, lambda: self.load_device_data(autoload=True))
 
     def connection_established(self):
         pass
 
-    def load_device_data(self):
+    def load_device_data(self, autoload=False):
         devices = load_device_data()
         lst = self.ids.deviceList
         lst.clear()
@@ -22,14 +22,18 @@ class DeviceManagerCenter(QtGui.QWidget, CustomWidget):
         for device in devices:
             lst.addItem('%s (%s)' % (device['name'], device['host']))
 
+        if autoload and len(devices) == 1:
+            self.connect_to_device(devices[0])
+
     def connect(self):
         devices = load_device_data()
 
         if not devices:
             return
 
-        device = devices[self.get_list_index()]
+        self.connect_to_device(devices[self.get_list_index()])
 
+    def connect_to_device(self, device):
         try:
             conn = Connection(device['host'], device['username'], device['password'])
             self.app().connected(conn, conn.parameters, conn.control)
