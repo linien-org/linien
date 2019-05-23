@@ -1,0 +1,3 @@
+[submodule "linie/communication"]
+	path = linie/communication
+	url = https://github.com/hermitdemschoenenleben/sync_parameters.git
