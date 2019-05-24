@@ -21,69 +21,71 @@
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_17">
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_3">
-           <item>
-            <widget class="QLabel" name="scan_amplitude">
-             <property name="text">
-              <string>100 %</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="increase_scan_amplitude">
-             <property name="text">
-              <string>+</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="decrease_scan_amplitude">
-             <property name="text">
-              <string>-</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="reset_scan_amplitude">
-             <property name="text">
-              <string>reset</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <spacer name="horizontalSpacer">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>40</width>
-               <height>20</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item>
-            <widget class="QPushButton" name="go_left">
-             <property name="text">
-              <string>&lt;</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="go_right">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>&gt;</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
+          <widget class="QWidget" name="manual_navigation" native="true">
+           <layout class="QHBoxLayout" name="horizontalLayout_3">
+            <item>
+             <widget class="QLabel" name="scan_amplitude">
+              <property name="text">
+               <string>100 %</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="decrease_scan_amplitude">
+              <property name="text">
+               <string>-</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="increase_scan_amplitude">
+              <property name="text">
+               <string>+</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="reset_scan_amplitude">
+              <property name="text">
+               <string>reset</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>195</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QPushButton" name="go_left">
+              <property name="text">
+               <string>&lt;</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="go_right">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>&gt;</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
          </item>
          <item>
           <widget class="PlotWidget" name="graphicsView">
@@ -590,7 +592,7 @@
           </size>
          </property>
          <property name="currentIndex">
-          <number>0</number>
+          <number>2</number>
          </property>
          <widget class="SpectroscopyPanel" name="page">
           <property name="geometry">
@@ -620,7 +622,7 @@
               <property name="geometry">
                <rect>
                 <x>0</x>
-                <y>0</y>
+                <y>-18</y>
                 <width>220</width>
                 <height>500</height>
                </rect>
@@ -778,7 +780,14 @@
                   <item>
                    <layout class="QHBoxLayout" name="horizontalLayout_4">
                     <item>
-                     <widget class="QDoubleSpinBox" name="demodulation_phase"/>
+                     <widget class="QDoubleSpinBox" name="demodulation_phase">
+                      <property name="maximum">
+                       <double>360.000000000000000</double>
+                      </property>
+                      <property name="singleStep">
+                       <double>10.000000000000000</double>
+                      </property>
+                     </widget>
                     </item>
                     <item>
                      <widget class="QLabel" name="label_3">
@@ -890,7 +899,7 @@
                 <x>0</x>
                 <y>0</y>
                 <width>220</width>
-                <height>504</height>
+                <height>603</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_8">
@@ -1057,9 +1066,25 @@
                 <widget class="LockStatusPanel" name="lock_status_container" native="true">
                  <layout class="QVBoxLayout" name="verticalLayout_18">
                   <item>
+                   <spacer name="verticalSpacer">
+                    <property name="orientation">
+                     <enum>Qt::Vertical</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>20</width>
+                      <height>40</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
+                  <item>
                    <widget class="QLabel" name="lock_status">
                     <property name="text">
-                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Lock status&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:16pt; font-weight:600;&quot;&gt;Lock status&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    </property>
+                    <property name="wordWrap">
+                     <bool>true</bool>
                     </property>
                    </widget>
                   </item>
@@ -1069,6 +1094,19 @@
                      <string>Stop lock</string>
                     </property>
                    </widget>
+                  </item>
+                  <item>
+                   <spacer name="verticalSpacer_2">
+                    <property name="orientation">
+                     <enum>Qt::Vertical</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>20</width>
+                      <height>40</height>
+                     </size>
+                    </property>
+                   </spacer>
                   </item>
                  </layout>
                 </widget>
@@ -1211,34 +1249,18 @@
    </hints>
   </connection>
   <connection>
-   <sender>go_right</sender>
+   <sender>decrease_scan_amplitude</sender>
    <signal>clicked()</signal>
    <receiver>centralPanel</receiver>
-   <slot>go_right()</slot>
+   <slot>decrease_scan_amplitude()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>699</x>
-     <y>385</y>
+     <x>112</x>
+     <y>36</y>
     </hint>
     <hint type="destinationlabel">
      <x>377</x>
-     <y>385</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>go_left</sender>
-   <signal>clicked()</signal>
-   <receiver>centralPanel</receiver>
-   <slot>go_left()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>55</x>
-     <y>385</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>377</x>
-     <y>385</y>
+     <y>371</y>
     </hint>
    </hints>
   </connection>
@@ -1249,28 +1271,12 @@
    <slot>increase_scan_amplitude()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>309</x>
-     <y>58</y>
+     <x>206</x>
+     <y>36</y>
     </hint>
     <hint type="destinationlabel">
      <x>377</x>
-     <y>385</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>decrease_scan_amplitude</sender>
-   <signal>clicked()</signal>
-   <receiver>centralPanel</receiver>
-   <slot>decrease_scan_amplitude()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>446</x>
-     <y>58</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>377</x>
-     <y>385</y>
+     <y>371</y>
     </hint>
    </hints>
   </connection>
@@ -1281,12 +1287,44 @@
    <slot>reset_scan_amplitude()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>582</x>
-     <y>58</y>
+     <x>300</x>
+     <y>36</y>
     </hint>
     <hint type="destinationlabel">
      <x>377</x>
-     <y>385</y>
+     <y>371</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>go_left</sender>
+   <signal>clicked()</signal>
+   <receiver>centralPanel</receiver>
+   <slot>go_left()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>598</x>
+     <y>36</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>377</x>
+     <y>371</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>go_right</sender>
+   <signal>clicked()</signal>
+   <receiver>centralPanel</receiver>
+   <slot>go_right()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>692</x>
+     <y>36</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>377</x>
+     <y>371</y>
     </hint>
    </hints>
   </connection>

@@ -16,40 +16,6 @@ from linie.common import update_control_signal_history
 from linie.communication.server import BaseService
 
 
-class FakeRedPitayaControl(BaseService):
-    def __init__(self):
-        super().__init__(Parameters)
-
-    def exposed_write_data(self):
-        pass
-
-    def run_acquiry_loop(self):
-        import threading
-        from time import sleep
-        from random import randint
-
-        def run():
-            while True:
-                self.parameters.to_plot.value = pickle.dumps((
-                    [randint(-8192, 8192) for _ in range(16384)],
-                    list(_ - 8192 for _ in range(16384))
-                ))
-                sleep(.1)
-        t = threading.Thread(target=run)
-        t.daemon = True
-        t.start()
-
-    def set_asg_offset(self, idx, offset):
-        pass
-
-    def exposed_shutdown(self):
-        _thread.interrupt_main()
-        os._exit(0)
-
-    def exposed_start_autolock(self, x0, x1):
-        print('start autolock', x0, x1)
-
-
 class RedPitayaControlService(BaseService):
     def __init__(self):
         self._cached_data = {}
@@ -71,16 +37,10 @@ class RedPitayaControlService(BaseService):
                     self.exposed_is_locked
                 )
 
-        self.pitaya.listen_for_plot_data_changes(on_change)
+        self.pitaya.run_data_acquisition(on_change)
 
     def exposed_write_data(self):
         self.pitaya.write_registers()
-
-    def exposed_set_asg_offset(self, idx, offset):
-        self.pitaya.set_asg_offset(idx, offset)
-
-    def exposed_set_ramp_speed(self, speed):
-        self.pitaya.set_ramp_speed(speed)
 
     def exposed_start_autolock(self, x0, x1):
         start_watching = self.parameters.watch_lock.value
@@ -91,7 +51,7 @@ class RedPitayaControlService(BaseService):
             self.parameters.task.value = autolock
             autolock.run(x0, x1, should_watch_lock=start_watching)
 
-    def exposed_start_ramp(self):
+    def start_ramp(self):
         self.parameters.lock.value = False
         self.exposed_write_data()
 
@@ -102,18 +62,51 @@ class RedPitayaControlService(BaseService):
     def exposed_reset(self):
         self.parameters.ramp_amplitude.value = 1
         self.parameters.center.value = 0
-        self.exposed_start_ramp()
+        self.start_ramp()
         self.exposed_write_data()
 
     def exposed_shutdown(self):
-        self.pitaya.shutdown()
+        self.pitaya.acquisition.shutdown()
         _thread.interrupt_main()
         os._exit(0)
 
 
+class FakeRedPitayaControl(BaseService):
+    def __init__(self):
+        super().__init__(Parameters)
+        self.exposed_is_locked = None
+
+    def exposed_write_data(self):
+        pass
+
+    def run_acquiry_loop(self):
+        import threading
+        from time import sleep
+        from random import randint
+
+        def run():
+            while True:
+                self.parameters.to_plot.value = pickle.dumps((
+                    [randint(-8192, 8192) for _ in range(16384)],
+                    list(_ - 8192 for _ in range(16384))
+                ))
+                sleep(.1)
+        t = threading.Thread(target=run)
+        t.daemon = True
+        t.start()
+
+    def exposed_shutdown(self):
+        _thread.interrupt_main()
+        os._exit(0)
+
+    def exposed_start_autolock(self, x0, x1):
+        print('start autolock', x0, x1)
+
+
 if __name__ == '__main__':
-    control = RedPitayaControlService()
-    #control = FakeRedPitayaControl()
+    # FIXME:
+    #control = RedPitayaControlService()
+    control = FakeRedPitayaControl()
     control.run_acquiry_loop()
     control.exposed_write_data()
 

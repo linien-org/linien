@@ -238,7 +238,7 @@ class Autolock:
 
         self.parameters.center.value = 0
         self.parameters.ramp_amplitude.value = 1
-        self.control.exposed_start_ramp()
+        self.control.start_ramp()
 
         self.emit_status()
 

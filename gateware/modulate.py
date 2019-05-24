@@ -23,11 +23,13 @@ from .filter import Filter
 
 
 class Demodulate(Filter):
-    def __init__(self, **kwargs):
+    def __init__(self, freq_width=32, **kwargs):
         Filter.__init__(self, **kwargs)
 
         width = len(self.y)
-        self.delay = CSRStorage(width)
+        # FIXME: check whether this is right
+        self.delay = CSRStorage(freq_width)
+        self.multiplier = CSRStorage(4, reset=1)
         self.phase = Signal(width)
 
         self.submodules.cordic = Cordic(
@@ -36,7 +38,7 @@ class Demodulate(Filter):
             func_mode="circular")
         self.comb += [
             self.cordic.xi.eq(self.x),
-            self.cordic.zi.eq((self.phase + self.delay.storage) << 1),
+            self.cordic.zi.eq(((self.phase * self.multiplier.storage) + self.delay.storage) << 1),
             self.y.eq(self.cordic.xo >> 1)
         ]
 

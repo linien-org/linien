@@ -147,24 +147,7 @@ class PitayaTB(PitayaCSR):
 
 
 if __name__ == "__main__":
-    #p = PitayaReal("ssh -p 2201 root@localhost /opt/bin/monitor -")
     p = PitayaSSH()
-    #p = PitayaTB()
-    #p.start()
-    #assert p.get("pid_version") == 1
-    da = 0x2345
-    #assert p.get("deltasigma_data0") == da
-    #print(hex(p.get("slow_dna_dna")))
-    #assert p.get("slow_dna_dna") & 0x7f == 0b1000001
-    #print("temp", p.get("xadc_temp")*503.975/0xfff-273.15)
-    """for u, ns in [
-            (1./0xfff*(30 + 4.99)/4.99, "a b c d"),
-            (1./0xfff*(56 + 4.99)/4.99, "v")]:
-        for n in ns.split():
-            v = p.get("xadc_{}".format(n))
-            if v & 0x800 and n in "abcd":
-                v = v - 0x1000
-            print(n, u*v)"""
 
     new = dict(
         fast_a_x_tap=2,
@@ -237,67 +220,15 @@ if __name__ == "__main__":
     for k, v in sorted(new.items()):
         p.set(k, int(v))
 
-    # 182ns latency, 23 cycles (6 adc, 1 in, 1 comp, 1 in_a_y, 1 iir_x,
-    # 1 iir_b0, 1 iir_y, 1 out_a_y, 1 out_a_lim_x, 1 out_dac, 1 comp, 1 oddr, 1
-    # dac) = 18 + analog filter
     b, a = make_filter("P", k=1)
-    ##p.set_iir("fast_a_iir_a", *make_filter("HP", k=2, f=1e-4))
     p.set_iir("fast_a_iir_a", b, a)
-    #p.set_iir("fast_a_iir_a", *make_filter("PI", k=1, f=1e-6))
-    #p.set_iir("fast_a_iir_a", *make_filter("HP", k=0, f=0.1))
-    #p.set_iir("fast_a_iir_a", *make_filter("LP", k=1e-2, f=1e-2))
     p.set_iir("fast_a_iir_b", b, a)
-    #p.set_iir("fast_a_iir_b", *make_filter("LP", k=1000, f=2e-5))
-    #p.set_iir("fast_a_iir_b", *make_filter("LP2", k=1000, f=5e-4, g=1e6, q=.5))
-    #p.set_iir("fast_a_iir_b", *make_filter("LP", k=5000, f=1e-7))
     n = "fast_a_iir_c"
-    #p.set_iir("fast_a_iir_c", *make_filter("I", k=1, f=5e-5))
-    #p.set_iir("fast_a_iir_c", *make_filter("P", k=1, f=5e-5))
     p.set_iir("fast_a_iir_c", *make_filter("PI", k=.91, f=5e-5))
-    ##p.set_iir("fast_a_iir_d", *make_filter("P", k=1., f=1))
     p.set_iir("fast_a_iir_d", b, a)
-    #p.set_iir("fast_a_iir_e", *make_filter("I", k=1, f=2e-7))
     p.set_iir("fast_a_iir_e", *make_filter("PI", k=-.01, f=1e-5))
-    #p.set_iir("fast_a_iir_e", *make_filter("IHO", k=-1e-3, f=1e-4, g=10, q=2.5))
-    #p.set_iir(n, *make_filter("P", k=-1.047, f=1))
-    #p.set_iir(n, *make_filter("I", k=4e-5, f=1))
-    #p.set_iir("fast_a_iir_c", *make_filter("P", k=-.5, f=1))
-    #p.set_iir("fast_a_iir_c", *make_filter("P", k=1, f=1))
-    #p.set_iir("fast_a_iir_d", *make_filter("P", k=1, f=1))
-    #p.set_iir("fast_a_iir_e", *make_filter("PI", k=-.01*.1, f=.01))
-    #p.set_iir("fast_a_iir_e", *make_filter("PI", f=1e-3, k=.00001), z=1<<31)
-    #p.set_iir("fast_a_iir_e", *make_filter("PI", f=5e-6, k=-1e-2), z=0)
-    #p.set_iir("fast_a_iir_e", *make_filter("I", f=3e-7, k=-1), z=0)
-    #p.set_iir(n, *make_filter("PI", f=.2, k=-.2))
-    #p.set_iir(n, *make_filter("PI", f=2e-1, k=1e-4))
-    #p.set_iir(n, *make_filter("PI", f=2e-1, k=-1e-3))
-    #p.set_iir(n, *make_filter("LP", f=1e-4, k=1.))
-    #p.set_iir(n, *make_filter("I", k=4e-5, f=1))
     p.set_iir("fast_b_iir_a", *make_filter("LP", k=1, f=1e-2))
     p.set_iir("fast_b_iir_c", *make_filter("LP", k=100, f=5e-6))
-    #p.set_iir("fast_b_iir_d", *make_filter("P", k=.1, f=1))
     p.set_iir("fast_b_iir_d", *make_filter("LP", k=1, f=1e-5))
-    #p.set_iir("fast_b_iir_e", *make_filter("LP", k=500, f=1e-7), z=-3000)
-    #p.set_iir("fast_b_iir_e", *make_filter("NOTCH", k=1, f=2e-4, q=.707))
-    #p.set_iir("fast_b_iir_e", *make_filter("NOTCH", k=.99, f=1e-4, g=10., q=.5))
     p.set_iir("fast_b_iir_e", *make_filter("LP", k=80, f=2e-8, q=40.))
-    #p.set_iir("fast_b_iir_e", *make_filter("LP", k=.1, f=1e-3, q=.5))
-    #p.set_iir("fast_b_iir_e", *make_filter("LP", k=1000, f=1e-7, q=1.5))
-    #p.set_iir("fast_b_iir_e", *make_filter("LP2", k=1, f=5e-4, q=3))
-    #p.set_iir("fast_b_iir_e", *make_filter("IHO", k=.01, f=2e-3, q=10, g=10))
-    #p.set_iir("fast_b_iir_e", *make_filter("NOTCH", k=1., f=5e-4, q=2))
-    #p.set_iir("fast_b_iir_e", *make_filter("LP2", k=10, f=1.5e-4, q=1.5))
-    #p.set_iir("slow_a_iir", *make_filter("PI", k=-1e-3, f=1e-5), z=-0x10000)
     p.set_iir("slow_a_iir", *make_filter("PI", k=-.01, f=1e-4), z=0)
-    #p.set_iir("slow_a_iir", *make_filter("P", k=1, f=1.), z=0)
-
-    """settings = {}
-    for n in sorted(p.map):
-        settings[n] = v = p.get(n)
-        print(n, hex(v))"""
-
-    #p.stop(10)
-
-    import matplotlib.pyplot as plt
-    #plt.plot(p.io.y)
-    #plt.show()

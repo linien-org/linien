@@ -1,4 +1,6 @@
+import shutil
 import subprocess
+
 from linie.config import REMOTE_BASE_PATH
 
 
@@ -12,4 +14,8 @@ def start_nginx():
 
 
 def start_acquisition_process():
-    subprocess.Popen(['python3', REMOTE_BASE_PATH + '/server/acquisition.py'])
+    subprocess.Popen(['python3', REMOTE_BASE_PATH + '/server/acquisition_process.py'])
+
+
+def flash_fpga():
+    shutil.copyfile('redpid.bin', '/dev/xdevcfg')

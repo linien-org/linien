@@ -1,5 +1,4 @@
 from linie.communication.server import Parameter, BaseParameters
-from linie.config import DEFAULT_RAMP_SPEED
 
 
 class Parameters(BaseParameters):
@@ -39,9 +38,14 @@ class Parameters(BaseParameters):
         )
         self.demodulation_phase = Parameter(
             min_=0,
-            max_=0b1111111111111,
+            max_=0xffffffff,
             start=0xc00,
             wrap=True
+        )
+        self.demodulation_multiplier = Parameter(
+            min_=0,
+            max_=15,
+            start=1
         )
         self.lock = Parameter(start=False)
         self.to_plot = Parameter()

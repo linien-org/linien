@@ -1,26 +1,10 @@
-import rpyc
-import shutil
-import atexit
 import numpy as np
-import threading
-from enum import Enum
 from time import sleep, time
-from multiprocessing import Process, Pipe
 
 from csr import make_filter, PitayaLocal, PitayaSSH
-from utils import start_nginx, stop_nginx, start_acquisition_process
-from linie.config import ACQUISITION_PORT, DEFAULT_RAMP_SPEED
-
-
-class AcquisitionConnectionError(Exception):
-    pass
-
-
-class AcquisitionProcessSignals(Enum):
-    SHUTDOWN = 0
-    SET_ASG_OFFSET = 1
-    SET_RAMP_SPEED = 2
-    SET_LOCK_STATUS = 3
+from utils import start_nginx, stop_nginx
+from linie.config import DEFAULT_RAMP_SPEED
+from linie.server.acquisition import AcquisitionMaster
 
 
 class Pitaya:
@@ -28,8 +12,6 @@ class Pitaya:
         self.host = host
         self.user = user
         self.password = password
-
-        self.acq_process = None
 
     def connect(self, control, parameters):
         self.control = control
@@ -44,7 +26,7 @@ class Pitaya:
         else:
             self.pitaya = PitayaLocal()
 
-        self.parameters.lock.change(self.lock_status_changed)
+        self.parameters.lock.change(self.acquisition.lock_status_changed)
 
     def write_registers(self):
         params = dict(self.parameters)
@@ -53,18 +35,25 @@ class Pitaya:
         sweep_min = -1 * _max(params['ramp_amplitude'] * 8191)
         sweep_max = _max(params['ramp_amplitude'] * 8191)
 
+        demod_delay = int(
+            params['demodulation_phase'] / 360
+            * params['modulation_frequency']
+        )
+        demod_multiplier = params['demodulation_multiplier']
+
         new = dict(
             # channel B (channel for ramping and PID)
             fast_b_x_tap=2,
-            fast_b_demod_delay=params['demodulation_phase'],
+            fast_b_demod_delay=demod_delay,
+            fast_b_demod_multiplier=demod_multiplier,
             fast_b_brk=0,
             fast_b_dx_sel=self.pitaya.signal("scopegen_dac_a"),
             fast_b_y_tap=4,
 
             fast_b_sweep_run=1,
             fast_b_sweep_step=int(
-                2 * DEFAULT_RAMP_SPEED * params['ramp_amplitude']
-                * 1024 / (2 ** params['ramp_speed'])
+                DEFAULT_RAMP_SPEED * params['ramp_amplitude']
+                / (2 ** params['ramp_speed'])
             ),
             fast_b_sweep_min=sweep_min,
             fast_b_sweep_max=sweep_max,
@@ -84,7 +73,8 @@ class Pitaya:
             fast_a_mod_amp=params['modulation_amplitude'],
             fast_a_mod_freq=params['modulation_frequency'],
             fast_a_x_tap=2,
-            fast_a_demod_delay=params['demodulation_phase'],
+            fast_a_demod_delay=demod_delay,
+            fast_a_demod_multiplier=demod_multiplier,
             fast_a_sweep_run=0,
             fast_a_dy_sel=self.pitaya.signal('zero'),
 
@@ -130,16 +120,15 @@ class Pitaya:
         for idx, asg in enumerate(('asga', 'asgb')):
             try:
                 value = new.pop('%s_offset' % asg)
-                self.control.exposed_set_asg_offset(idx, value)
+                self.acquisition.set_asg_offset(idx, value)
             except KeyError:
                 pass
 
         # pass ramp speed changes to acquisition process
         if 'fast_b_sweep_step' in new:
-            self.control.exposed_set_ramp_speed(params['ramp_speed'])
+            self.acquisition.set_ramp_speed(params['ramp_speed'])
 
         for k, v in new.items():
-            print('SET', k, v)
             self.pitaya.set(k, int(v))
 
         if 'fast_b_sweep_step' in new:
@@ -209,81 +198,7 @@ class Pitaya:
         self.pitaya.set('root_sync_phase_en', self.pitaya.states('force'))
         self.pitaya.set('root_sync_phase_en', self.pitaya.states())
 
-    def listen_for_plot_data_changes(self, on_change):
-        def run_acquiry_loop(conn):
-            if self.use_ssh:
-                pitaya_rpyc = rpyc.connect(self.host, ACQUISITION_PORT)
-            else:
-                pitaya_rpyc = None
-
-                for i in range(2):
-                    try:
-                        pitaya_rpyc = rpyc.connect('127.0.0.1', ACQUISITION_PORT)
-                    except:
-                        if i == 0:
-                            stop_nginx()
-                            shutil.copyfile('redpid.bin', '/dev/xdevcfg')
-
-                            start_acquisition_process()
-
-                            sleep(2)
-
-            if pitaya_rpyc is None:
-                raise AcquisitionConnectionError()
-
-            params = dict(self.parameters)
-
-            conn.send(True)
-
-            while True:
-                if conn.poll():
-                    data = conn.recv()
-                    if data[0] == AcquisitionProcessSignals.SHUTDOWN:
-                        break
-                    elif data[0] == AcquisitionProcessSignals.SET_ASG_OFFSET:
-                        idx, value = data[1:]
-                        pitaya_rpyc.root.set_asg_offset(idx, value)
-                    elif data[0] == AcquisitionProcessSignals.SET_RAMP_SPEED:
-                        speed = data[1]
-                        pitaya_rpyc.root.set_ramp_speed(speed)
-                    elif data[0] == AcquisitionProcessSignals.SET_LOCK_STATUS:
-                        pitaya_rpyc.root.set_lock_status(data[1])
-
-                data = pitaya_rpyc.root.return_data()
-
-                conn.send(data)
-
-                sleep(0.05)
-
-        def receive_acquired_data(conn):
-            while True:
-                on_change(conn.recv())
-
-        self.acq_process, child_conn = Pipe()
-        p = Process(target=run_acquiry_loop, args=(child_conn,))
-        p.start()
-
-        # wait until connection is established
-        self.acq_process.recv()
-
-        t = threading.Thread(target=receive_acquired_data, args=(self.acq_process,))
-        t.daemon = True
-        t.start()
-
-        atexit.register(self.shutdown)
-
-    def set_asg_offset(self, idx, offset):
-        self.acq_process.send((AcquisitionProcessSignals.SET_ASG_OFFSET, idx, offset))
-
-    def set_ramp_speed(self, speed):
-        self.acq_process.send((AcquisitionProcessSignals.SET_RAMP_SPEED, speed))
-
-    def shutdown(self):
-        if self.acq_process:
-            self.acq_process.send((AcquisitionProcessSignals.SHUTDOWN,))
-
-        start_nginx()
-
-    def lock_status_changed(self, status):
-        if self.acq_process:
-            self.acq_process.send((AcquisitionProcessSignals.SET_LOCK_STATUS, status))
+    def run_data_acquisition(self, on_change):
+        self.acquisition = AcquisitionMaster(
+            on_change, self.use_ssh, self.host
+        )
