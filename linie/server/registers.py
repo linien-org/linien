@@ -20,6 +20,7 @@ class AcquisitionProcessSignals(Enum):
     SHUTDOWN = 0
     SET_ASG_OFFSET = 1
     SET_RAMP_SPEED = 2
+    SET_LOCK_STATUS = 3
 
 
 class Pitaya:
@@ -42,6 +43,8 @@ class Pitaya:
             )
         else:
             self.pitaya = PitayaLocal()
+
+        self.parameters.lock.change(self.lock_status_changed)
 
     def write_registers(self):
         params = dict(self.parameters)
@@ -243,6 +246,8 @@ class Pitaya:
                     elif data[0] == AcquisitionProcessSignals.SET_RAMP_SPEED:
                         speed = data[1]
                         pitaya_rpyc.root.set_ramp_speed(speed)
+                    elif data[0] == AcquisitionProcessSignals.SET_LOCK_STATUS:
+                        pitaya_rpyc.root.set_lock_status(data[1])
 
                 data = pitaya_rpyc.root.return_data()
 
@@ -278,3 +283,7 @@ class Pitaya:
             self.acq_process.send((AcquisitionProcessSignals.SHUTDOWN,))
 
         start_nginx()
+
+    def lock_status_changed(self, status):
+        if self.acq_process:
+            self.acq_process.send((AcquisitionProcessSignals.SET_LOCK_STATUS, status))

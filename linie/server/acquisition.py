@@ -21,7 +21,9 @@ class DataAcquisitionService(Service):
 
         super(DataAcquisitionService, self).__init__()
 
-        self.set_ramp_speed(0)
+        self.exposed_set_ramp_speed(0)
+        self.locked = False
+
         self.run()
 
     def run(self, trigger_delay=16384):
@@ -31,7 +33,7 @@ class DataAcquisitionService(Service):
             while True:
                 # copied from https://github.com/RedPitaya/RedPitaya/blob/14cca62dd58f29826ee89f4b28901602f5cdb1d8/api/src/oscilloscope.c#L115
                 # check whether scope was triggered
-                if (self.r.scope.read(0x1<<2) & 0x4) > 0:
+                if (self.r.scope.read(0x1<<2) & 0x4) > 0 and not self.locked:
                     sleep(.05)
                     continue
 
@@ -54,20 +56,20 @@ class DataAcquisitionService(Service):
         self.t.daemon = True
         self.t.start()
 
-    def return_data(self):
+    def exposed_return_data(self):
         self.data_retrieval_time = time()
         return self.data[:]
 
-    def set_asg_offset(self, idx, value):
+    def exposed_set_asg_offset(self, idx, value):
         asg = getattr(self.r, ['asga', 'asgb'][idx])
         asg.offset = value
 
-    def set_ramp_speed(self, speed):
+    def exposed_set_ramp_speed(self, speed):
         self.ramp_speed = speed
 
+    def exposed_set_lock_status(self, locked):
+        self.locked = locked
+
 if __name__ == '__main__':
-    t = OneShotServer(DataAcquisitionService(), port=ACQUISITION_PORT, protocol_config={
-        'allow_all_attrs': True,
-        'allow_setattr': True
-    })
+    t = OneShotServer(DataAcquisitionService(), port=ACQUISITION_PORT)
     t.start()
