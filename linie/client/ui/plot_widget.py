@@ -26,11 +26,11 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
 
         self.zero_line = pg.PlotCurveItem(pen=pg.mkPen('w', width=1))
         self.addItem(self.zero_line)
-        self.signal = pg.PlotCurveItem(pen=pg.mkPen((150, 0, 0, 200), width=pen_width))
+        self.signal = pg.PlotCurveItem(pen=pg.mkPen((200, 0, 0, 200), width=pen_width))
         self.addItem(self.signal)
-        self.control_signal = pg.PlotCurveItem(pen=pg.mkPen((0, 0, 150, 200), width=pen_width))
+        self.control_signal = pg.PlotCurveItem(pen=pg.mkPen((0, 0, 200, 200), width=pen_width))
         self.addItem(self.control_signal)
-        self.control_signal_history = pg.PlotCurveItem(pen=pg.mkPen((0, 100, 0, 150), width=pen_width))
+        self.control_signal_history = pg.PlotCurveItem(pen=pg.mkPen((0, 200, 0, 200), width=pen_width))
         self.addItem(self.control_signal_history)
 
         self.zero_line.setData([0, 16383], [0, 0])
