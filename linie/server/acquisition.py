@@ -21,12 +21,10 @@ class DataAcquisitionService(Service):
 
         super(DataAcquisitionService, self).__init__()
 
-        self.set_ramp_speed(0)
+        self.set_ramp_speed(9)
         self.run()
 
     def run(self, trigger_delay=16384):
-        self.r.scope.trigger_delay = trigger_delay
-
         def run_acquiry_loop():
             while True:
                 # copied from https://github.com/RedPitaya/RedPitaya/blob/14cca62dd58f29826ee89f4b28901602f5cdb1d8/api/src/oscilloscope.c#L115
@@ -42,6 +40,7 @@ class DataAcquisitionService(Service):
                 ]
                 self.r.scope.rearm(trigger_source=6)
                 self.r.scope.data_decimation = 2 ** self.ramp_speed
+                self.r.scope.trigger_delay = trigger_delay - 1
                 self.data = pickle.dumps(data)
 
                 if self.data_retrieval_time is not None:
