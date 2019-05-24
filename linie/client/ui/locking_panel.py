@@ -47,4 +47,4 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
         self.parameters.d.value = self.ids.kd.value()
 
     def watch_lock_changed(self):
-        self.parameters.watch_lock.value = self.ids.watchLockCheckbox.checkState()
+        self.parameters.watch_lock.value = int(self.ids.watchLockCheckbox.checkState())

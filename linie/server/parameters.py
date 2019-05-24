@@ -52,3 +52,4 @@ class Parameters(BaseParameters):
         self.automatic_mode = Parameter(start=True)
 
         self.watch_lock = Parameter(start=True)
+        self.control_signal_history = Parameter(start=[])

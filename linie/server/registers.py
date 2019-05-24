@@ -101,9 +101,9 @@ class Pitaya:
             asgb_offset=int(params['center'] * 8191),
         )
 
-        lock_changed = params['lock'] != self.control._is_locked
+        lock_changed = params['lock'] != self.control.exposed_is_locked
         lock = params['lock']
-        self.control._is_locked = lock
+        self.control.exposed_is_locked = lock
 
         new['fast_b_sweep_run'] = 0 if lock else 1
         #if lock_changed and lock:

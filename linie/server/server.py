@@ -12,6 +12,7 @@ from autolock import Autolock
 from parameters import Parameters
 
 from linie.config import SERVER_PORT
+from linie.common import update_control_signal_history
 from linie.communication.server import BaseService
 
 
@@ -52,7 +53,7 @@ class FakeRedPitayaControl(BaseService):
 class RedPitayaControlService(BaseService):
     def __init__(self):
         self._cached_data = {}
-        self._is_locked = None
+        self.exposed_is_locked = None
 
         super().__init__(Parameters)
 
@@ -63,6 +64,12 @@ class RedPitayaControlService(BaseService):
     def run_acquiry_loop(self):
         def on_change(plot_data):
             self.parameters.to_plot.value = plot_data
+            self.parameters.control_signal_history.value = \
+                update_control_signal_history(
+                    self.parameters.control_signal_history.value,
+                    pickle.loads(plot_data),
+                    self.exposed_is_locked
+                )
 
         self.pitaya.listen_for_plot_data_changes(on_change)
 
@@ -79,7 +86,7 @@ class RedPitayaControlService(BaseService):
         start_watching = self.parameters.watch_lock.value
         current_task = self.parameters.task.value
 
-        if not current_task or not current_task.running:
+        if not current_task or not current_task.exposed_running:
             autolock = Autolock(self, self.parameters)
             self.parameters.task.value = autolock
             autolock.run(x0, x1, should_watch_lock=start_watching)

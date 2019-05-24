@@ -6,6 +6,7 @@ from linie.client.widgets import CustomWidget
 from pyqtgraph.Qt import QtCore, QtGui
 import pyqtgraph as pg
 from time import time
+from linie.common import update_control_signal_history
 
 
 class PlotWidget(pg.PlotWidget, CustomWidget):
@@ -22,12 +23,15 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         # alternative: pg.setConfigOptions(useOpenGL=True)
         # see: https://github.com/pyqtgraph/pyqtgraph/issues/533
         pen_width = 1
+
         self.zero_line = pg.PlotCurveItem(pen=pg.mkPen('w', width=1))
         self.addItem(self.zero_line)
-        self.signal = pg.PlotCurveItem(pen=pg.mkPen((100, 0, 0, 100), width=pen_width))
+        self.signal = pg.PlotCurveItem(pen=pg.mkPen((150, 0, 0, 200), width=pen_width))
         self.addItem(self.signal)
-        self.control_signal = pg.PlotCurveItem(pen=pg.mkPen((0, 0, 100, 200), width=pen_width))
+        self.control_signal = pg.PlotCurveItem(pen=pg.mkPen((0, 0, 150, 200), width=pen_width))
         self.addItem(self.control_signal)
+        self.control_signal_history = pg.PlotCurveItem(pen=pg.mkPen((0, 100, 0, 150), width=pen_width))
+        self.addItem(self.control_signal_history)
 
         self.zero_line.setData([0, 16383], [0, 0])
         self.signal.setData([0, 16383], [1, 1])
@@ -47,8 +51,13 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         x, y = pos.x(), pos.y()
         return x, y
 
-    def mouseClickevent(self, event):
-        print('CLICK', event)
+    def connection_established(self):
+        self.control = self.app().control
+        self.parameters = self.app().parameters
+
+        self.control_signal_history_data = self.parameters.control_signal_history.value
+
+        self.parameters.to_plot.change(self.replot)
 
     def mouseMoveEvent(self, event):
         if self.touch_start is None:
@@ -101,12 +110,6 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         self.overlay.setVisible(False)
         self.touch_start = None
 
-    def connection_established(self):
-        self.control = self.app().control
-        self.parameters = self.app().parameters
-
-        self.parameters.to_plot.change(self.replot)
-
     @property
     def xmax(self):
         return len(self.last_plot_data[0]) - 1
@@ -141,11 +144,13 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
     def replot(self, to_plot):
         if to_plot is not None and not self.touch_start:
             to_plot = pickle.loads(to_plot)
+
+            if to_plot is None:
+                return
+
             self.last_plot_data = to_plot
 
             error_signal, control_signal = to_plot
-
-            self.parameters.to_plot.value = None
 
             self.signal.setData(list(range(len(error_signal))), error_signal)
             self.control_signal.setData(
@@ -169,3 +174,20 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
                 self.setYRange(plot_min, plot_max)
 
                 self.last_plot_rescale = time()
+
+            self.control_history_data = update_control_signal_history(
+                self.control_signal_history_data,
+                to_plot,
+                # FIXME: this causes an unnecessary call every time!
+                self.control.exposed_is_locked
+            )
+            # FIXME: this causes an unnecessary call every time!
+            if self.control.exposed_is_locked:
+                self.control_signal_history.setData(
+                    # FIXME: Scale x axis correctly
+                    list(range(len(self.control_signal_history_data))),
+                    [
+                        point / 8192 * self.plot_max
+                        for point in self.control_signal_history_data
+                    ]
+                )

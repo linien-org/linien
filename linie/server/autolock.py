@@ -12,7 +12,7 @@ class Autolock:
         self.parameters = parameters
 
         self.first_error_signal = None
-        self.running = False
+        self.exposed_running = False
         self.should_watch_lock = False
 
         self.reset_properties()
@@ -21,9 +21,9 @@ class Autolock:
         self.history = []
         self.zoom_factor = 1
         self.skipped = 0
-        self.failed = False
-        self.locked = False
-        self.watching = False
+        self.exposed_failed = False
+        self.exposed_locked = False
+        self.exposed_watching = False
 
     def run(self, x0, x1, should_watch_lock=False):
         """Starts the autolock.
@@ -33,7 +33,7 @@ class Autolock:
         relock automatically using the spectrum that was recorded in the first
         run of the lock.
         """
-        self.running = True
+        self.exposed_running = True
         self.x0, self.x1 = int(x0), int(x1)
         self.should_watch_lock = should_watch_lock
         self.add_data_listener()
@@ -62,7 +62,7 @@ class Autolock:
         continuously monitored after locking.
         """
 
-        if plot_data is None or not self.running:
+        if plot_data is None or not self.exposed_running:
             return
 
         plot_data = pickle.loads(plot_data)
@@ -94,7 +94,7 @@ class Autolock:
 
                 return self.approach_line(error_signal, control_signal)
 
-            elif self.watching:
+            elif self.exposed_watching:
                 # the laser was locked successfully before. Now we check
                 # periodically whether the laser is still in lock
 
@@ -115,7 +115,7 @@ class Autolock:
 
         except Exception:
             traceback.print_exc()
-            self.stop()
+            self.exposed_stop()
 
     def record_first_error_signal(self, error_signal):
         # TODO: Should this only be allowed when fully zoomed out?
@@ -167,20 +167,20 @@ class Autolock:
             if np.abs(shift) > 0.5:
                 return self.relock()
 
-            self.control.write_data()
+            self.control.exposed_write_data()
             self.history.append('shift %f' % (-1 * shift))
 
             self.zoom_factor *= 2
             self.parameters.ramp_amplitude.value /= 2
-            self.control.write_data()
+            self.control.exposed_write_data()
 
             self.parameters.center.value -= shift
-            self.control.write_data()
+            self.control.exposed_write_data()
 
             if self.zoom_factor >= self.target_zoom:
                 self.approaching = False
                 self.emit_status()
-                self.control.start_lock()
+                self.control.exposed_start_lock()
 
     def after_lock(self, control_signal):
         """After locking, this method checks whether the laser really is locked.
@@ -199,23 +199,23 @@ class Autolock:
             ampl = self.parameters.ramp_amplitude.value
             return (center - ampl) <= mean <= (center + ampl)
 
-        self.locked = check_whether_in_lock(control_signal)
+        self.exposed_locked = check_whether_in_lock(control_signal)
 
-        if self.locked and self.should_watch_lock:
+        if self.exposed_locked and self.should_watch_lock:
             # we start watching the lock status from now on.
             # this is done in `react_to_new_spectrum()` which is called regularly.
-            self.watching = True
+            self.exposed_watching# = True
         else:
             self.parameters.to_plot.remove_listener(self.react_to_new_spectrum)
 
-            if not self.locked:
+            if not self.exposed_locked:
                 if self.should_watch_lock:
                     return self.relock()
 
-                self.control.reset()
-                self.failed = True
+                self.control.exposed_reset()
+                self.exposed_failed = True
 
-            self.running = False
+            self.exposed_running = False
 
         self.emit_status()
 
@@ -233,12 +233,12 @@ class Autolock:
         locking approach.
         """
         self.reset_properties()
-        self.running = True
+        self.exposed_running = True
         self.approaching = True
 
         self.parameters.center.value = 0
         self.parameters.ramp_amplitude.value = 1
-        self.control.start_ramp()
+        self.control.exposed_start_ramp()
 
         self.emit_status()
 
@@ -246,13 +246,13 @@ class Autolock:
         # tries to relock.
         self.add_data_listener()
 
-    def stop(self):
+    def exposed_stop(self):
         """Abort any operation."""
-        self.failed = True
-        self.running = False
-        self.locked = False
+        self.exposed_failed = True
+        self.exposed_running = False
+        self.exposed_locked = False
         self.approaching = False
-        self.watching = False
+        self.exposed_watching = False
 
-        self.control.reset()
+        self.control.exposed_reset()
         self.emit_status()
