@@ -1,4 +1,5 @@
 from linie.communication.server import Parameter, BaseParameters
+from linie.config import DEFAULT_RAMP_SPEED
 
 
 class Parameters(BaseParameters):
@@ -32,9 +33,9 @@ class Parameters(BaseParameters):
             start=1
         )
         self.ramp_speed = Parameter(
-            min_=10,
-            max_=8096,
-            start=125
+            min_=0,
+            max_=16,
+            start=9
         )
         self.demodulation_phase = Parameter(
             min_=0,

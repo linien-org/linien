@@ -9,7 +9,7 @@ from multiprocessing import Process, Pipe
 
 from csr import make_filter, PitayaLocal, PitayaSSH
 from utils import start_nginx, stop_nginx, start_acquisition_process
-from linie.config import ACQUISITION_PORT, DECIMATION
+from linie.config import ACQUISITION_PORT, DEFAULT_RAMP_SPEED
 
 
 class AcquisitionConnectionError(Exception):
@@ -59,7 +59,10 @@ class Pitaya:
             fast_b_y_tap=4,
 
             fast_b_sweep_run=1,
-            fast_b_sweep_step=2 * int(params['ramp_speed']) * params['ramp_amplitude'] * 1024 / DECIMATION,
+            fast_b_sweep_step=int(
+                2 * DEFAULT_RAMP_SPEED * params['ramp_amplitude']
+                * 1024 / (2 ** params['ramp_speed'])
+            ),
             fast_b_sweep_min=sweep_min,
             fast_b_sweep_max=sweep_max,
             fast_b_dy_sel=self.pitaya.signal("scopegen_dac_b"),
@@ -130,7 +133,7 @@ class Pitaya:
 
         # pass ramp speed changes to acquisition process
         if 'fast_b_sweep_step' in new:
-            self.control.exposed_set_ramp_speed(int(params['ramp_speed']))
+            self.control.exposed_set_ramp_speed(params['ramp_speed'])
 
         for k, v in new.items():
             print('SET', k, v)
@@ -227,13 +230,9 @@ class Pitaya:
 
             params = dict(self.parameters)
 
-            sleep_time = float(pitaya_rpyc.root.sleep_time)
-
             conn.send(True)
 
             while True:
-                t1 = time()
-
                 if conn.poll():
                     data = conn.recv()
                     if data[0] == AcquisitionProcessSignals.SHUTDOWN:
@@ -249,10 +248,7 @@ class Pitaya:
 
                 conn.send(data)
 
-                poll_time = time() - t1
-                sleep_time_awaiting = sleep_time - poll_time
-                if sleep_time_awaiting > 0:
-                    sleep(sleep_time_awaiting)
+                sleep(0.05)
 
         def receive_acquired_data(conn):
             while True:

@@ -13,6 +13,7 @@ class SpectroscopyPanel(QtGui.QWidget, CustomWidget):
         self.ids.modulation_frequency.editingFinished.connect(self.change_modulation_frequency)
         self.ids.modulation_amplitude.editingFinished.connect(self.change_modulation_amplitude)
         self.ids.signal_offset.editingFinished.connect(self.change_signal_offset)
+        self.ids.ramp_speed.currentIndexChanged.connect(self.change_ramp_speed)
 
     def connection_established(self):
         params = self.app().parameters
@@ -31,7 +32,7 @@ class SpectroscopyPanel(QtGui.QWidget, CustomWidget):
         )
 
         params.ramp_speed.change(
-            lambda value: self.ids.ramp_speed.setValue(value)
+            lambda value: self.ids.ramp_speed.setCurrentIndex(value)
         )
 
         params.demodulation_phase.change(
@@ -48,10 +49,17 @@ class SpectroscopyPanel(QtGui.QWidget, CustomWidget):
 
     def change_modulation_frequency(self):
         self.parameters.modulation_frequency.value = self.ids.modulation_frequency.value() * MHz
+        self.control.write_data()
 
     def change_modulation_amplitude(self):
         self.parameters.modulation_amplitude.value = self.ids.modulation_amplitude.value() * Vpp
+        self.control.write_data()
 
     def change_signal_offset(self):
         self.parameters.offset.value = self.ids.signal_offset.value()
+        self.control.write_data()
+
+    def change_ramp_speed(self, decimation):
+        print('new ramp speed', decimation)
+        self.parameters.ramp_speed.value = decimation
         self.control.write_data()

@@ -18,7 +18,7 @@
 /**
  * GENERAL DESCRIPTION:
  *
- * This is simple data aquisition module, primerly used for scilloscope 
+ * This is simple data aquisition module, primerly used for scilloscope
  * application. It consists from three main parts.
  *
  *
@@ -32,21 +32,21 @@
  *                                                  ^         ˇ
  *                /--------\      /-----------\     |      /-----\
  *   ADC CHB ---> | DFILT1 | ---> | AVG & DEC | ---------> | BUF | --->  SW
- *                \--------/      \-----------/            \-----/ 
+ *                \--------/      \-----------/            \-----/
  *
  *
  * Input data is optionaly averaged and decimated via average filter.
  *
- * Trigger section makes triggers from input ADC data or external digital 
+ * Trigger section makes triggers from input ADC data or external digital
  * signal. To make trigger from analog signal schmitt trigger is used, external
  * trigger goes first over debouncer, which is separate for pos. and neg. edge.
  *
- * Data capture buffer is realized with BRAM. Writing into ram is done with 
+ * Data capture buffer is realized with BRAM. Writing into ram is done with
  * arm/trig logic. With adc_arm_do signal (SW) writing is enabled, this is active
  * until trigger arrives and adc_dly_cnt counts to zero. Value adc_wp_trig
  * serves as pointer which shows when trigger arrived. This is used to show
  * pre-trigger data.
- * 
+ *
  */
 
 
@@ -61,7 +61,7 @@ module red_pitaya_scope
    input                 trig_ext_i      ,  //!< external trigger
    input                 trig_asg_i      ,  //!< ASG trigger
 
-  
+
    // System bus
    input                 sys_clk_i       ,  //!< bus clock
    input                 sys_rstn_i      ,  //!< bus reset - active low
@@ -178,10 +178,21 @@ always @(posedge adc_clk_i) begin
       case (set_dec & {17{set_avg_en}})
          17'h0     : begin adc_a_dat <= adc_a_filt_out;            adc_b_dat <= adc_b_filt_out;        end
          17'h1     : begin adc_a_dat <= adc_a_sum[15+0 :  0];      adc_b_dat <= adc_b_sum[15+0 :  0];  end
+         17'h2     : begin adc_a_dat <= adc_a_sum[15+1 :  1];      adc_b_dat <= adc_b_sum[15+1 :  1];  end
+         17'h4     : begin adc_a_dat <= adc_a_sum[15+2 :  2];      adc_b_dat <= adc_b_sum[15+2 :  2];  end
          17'h8     : begin adc_a_dat <= adc_a_sum[15+3 :  3];      adc_b_dat <= adc_b_sum[15+3 :  3];  end
+         17'h10    : begin adc_a_dat <= adc_a_sum[15+4 :  4];      adc_b_dat <= adc_b_sum[15+4 :  4];  end
+         17'h20    : begin adc_a_dat <= adc_a_sum[15+5 :  5];      adc_b_dat <= adc_b_sum[15+5 :  5];  end
          17'h40    : begin adc_a_dat <= adc_a_sum[15+6 :  6];      adc_b_dat <= adc_b_sum[15+6 :  6];  end
+         17'h80    : begin adc_a_dat <= adc_a_sum[15+7 :  7];      adc_b_dat <= adc_b_sum[15+7 :  7];  end
+         17'h100   : begin adc_a_dat <= adc_a_sum[15+8 :  8];      adc_b_dat <= adc_b_sum[15+8 :  8];  end
+         17'h200   : begin adc_a_dat <= adc_a_sum[15+9 :  9];      adc_b_dat <= adc_b_sum[15+9 :  9];  end
          17'h400   : begin adc_a_dat <= adc_a_sum[15+10: 10];      adc_b_dat <= adc_b_sum[15+10: 10];  end
+         17'h800   : begin adc_a_dat <= adc_a_sum[15+11: 11];      adc_b_dat <= adc_b_sum[15+11: 11];  end
+         17'h1000  : begin adc_a_dat <= adc_a_sum[15+12: 12];      adc_b_dat <= adc_b_sum[15+12: 12];  end
          17'h2000  : begin adc_a_dat <= adc_a_sum[15+13: 13];      adc_b_dat <= adc_b_sum[15+13: 13];  end
+         17'h4000  : begin adc_a_dat <= adc_a_sum[15+14: 14];      adc_b_dat <= adc_b_sum[15+14: 14];  end
+         17'h8000  : begin adc_a_dat <= adc_a_sum[15+15: 15];      adc_b_dat <= adc_b_sum[15+15: 15];  end
          17'h10000 : begin adc_a_dat <= adc_a_sum[15+16: 16];      adc_b_dat <= adc_b_sum[15+16: 16];  end
          default   : begin adc_a_dat <= adc_a_sum[15+0 :  0];      adc_b_dat <= adc_b_sum[15+0 :  0];  end
       endcase
@@ -286,7 +297,7 @@ assign adc_rd_dv = adc_rval[3];
 
 always @(posedge adc_clk_i) begin
    adc_raddr   <= addr[RSZ+1:2] ; // address synchronous to clock
-   adc_a_raddr <= adc_raddr     ; // double register 
+   adc_a_raddr <= adc_raddr     ; // double register
    adc_b_raddr <= adc_raddr     ; // otherwise memory corruption at reading
    adc_a_rd    <= adc_a_buf[adc_a_raddr] ;
    adc_b_rd    <= adc_b_buf[adc_b_raddr] ;
@@ -399,7 +410,7 @@ always @(posedge adc_clk_i) begin
       adc_scht_bp[1] <= adc_scht_bp[0] ;
       adc_scht_bn[1] <= adc_scht_bn[0] ;
 
-      adc_trig_ap <= adc_scht_ap[0] && !adc_scht_ap[1] ; // make 1 cyc pulse 
+      adc_trig_ap <= adc_scht_ap[0] && !adc_scht_ap[1] ; // make 1 cyc pulse
       adc_trig_an <= adc_scht_an[0] && !adc_scht_an[1] ;
       adc_trig_bp <= adc_scht_bp[0] && !adc_scht_bp[1] ;
       adc_trig_bn <= adc_scht_bn[0] && !adc_scht_bn[1] ;
@@ -563,7 +574,7 @@ always @(*) begin
    err <= 1'b0 ;
 
    casez (addr[19:0])
-     20'h00004 : begin ack <= 1'b1;          rdata <= {{32- 4{1'b0}}, set_trig_src}       ; end 
+     20'h00004 : begin ack <= 1'b1;          rdata <= {{32- 4{1'b0}}, set_trig_src}       ; end
 
      20'h00008 : begin ack <= 1'b1;          rdata <= {{32-14{1'b0}}, set_a_tresh}        ; end
      20'h0000C : begin ack <= 1'b1;          rdata <= {{32-14{1'b0}}, set_b_tresh}        ; end
