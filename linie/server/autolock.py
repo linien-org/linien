@@ -25,7 +25,7 @@ class Autolock:
         self.exposed_locked = False
         self.exposed_watching = False
 
-    def run(self, x0, x1, should_watch_lock=False):
+    def run(self, x0, x1, spectrum, should_watch_lock=False):
         """Starts the autolock.
 
         If `should_watch_lock` is specified, the autolock continuously monitors
@@ -36,6 +36,11 @@ class Autolock:
         self.exposed_running = True
         self.x0, self.x1 = int(x0), int(x1)
         self.should_watch_lock = should_watch_lock
+
+        self.approaching = True
+        self.emit_status()
+        self.record_first_error_signal(spectrum)
+
         self.add_data_listener()
 
     def add_data_listener(self):
@@ -72,14 +77,7 @@ class Autolock:
         error_signal, control_signal = plot_data
 
         try:
-            if self.first_error_signal is None:
-                # the auto lock just started, we have not yet recorded a
-                # spectrum.
-                self.approaching = True
-                self.emit_status()
-                return self.record_first_error_signal(error_signal)
-
-            elif self.approaching:
+            if self.approaching:
                 # we have already recorded a spectrum and are now approaching
                 # the line by decreasing the scan range and adapting the
                 # center current multiple times.
@@ -204,7 +202,7 @@ class Autolock:
         if self.exposed_locked and self.should_watch_lock:
             # we start watching the lock status from now on.
             # this is done in `react_to_new_spectrum()` which is called regularly.
-            self.exposed_watching# = True
+            self.exposed_watching = True
         else:
             self.parameters.to_plot.remove_listener(self.react_to_new_spectrum)
 

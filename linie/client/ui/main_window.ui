@@ -918,7 +918,7 @@
                   <item>
                    <widget class="QSpinBox" name="kp">
                     <property name="minimum">
-                     <number>-8192</number>
+                     <number>0</number>
                     </property>
                     <property name="maximum">
                      <number>8191</number>
@@ -928,7 +928,7 @@
                   <item>
                    <widget class="QSpinBox" name="ki">
                     <property name="minimum">
-                     <number>-8192</number>
+                     <number>0</number>
                     </property>
                     <property name="maximum">
                      <number>8191</number>
@@ -944,7 +944,7 @@
                      </sizepolicy>
                     </property>
                     <property name="minimum">
-                     <number>-8192</number>
+                     <number>0</number>
                     </property>
                     <property name="maximum">
                      <number>8191</number>

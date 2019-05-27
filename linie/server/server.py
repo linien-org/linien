@@ -7,7 +7,7 @@ import pickle
 import rpyc
 from rpyc.utils.server import ThreadedServer
 
-from registers import Pitaya
+from registers import Registers
 from autolock import Autolock
 from parameters import Parameters
 
@@ -23,9 +23,8 @@ class RedPitayaControlService(BaseService):
 
         super().__init__(Parameters)
 
-        pitaya = Pitaya()
-        self.pitaya = pitaya
-        self.pitaya.connect(self, self.parameters)
+        self.registers = Registers()
+        self.registers.connect(self, self.parameters)
 
     def run_acquiry_loop(self):
         def on_change(plot_data):
@@ -37,19 +36,19 @@ class RedPitayaControlService(BaseService):
                     self.exposed_is_locked
                 )
 
-        self.pitaya.run_data_acquisition(on_change)
+        self.registers.run_data_acquisition(on_change)
 
     def exposed_write_data(self):
-        self.pitaya.write_registers()
+        self.registers.write_registers()
 
-    def exposed_start_autolock(self, x0, x1):
+    def exposed_start_autolock(self, x0, x1, spectrum):
         start_watching = self.parameters.watch_lock.value
         current_task = self.parameters.task.value
 
         if not current_task or not current_task.exposed_running:
             autolock = Autolock(self, self.parameters)
             self.parameters.task.value = autolock
-            autolock.run(x0, x1, should_watch_lock=start_watching)
+            autolock.run(x0, x1, spectrum, should_watch_lock=start_watching)
 
     def start_ramp(self):
         self.parameters.lock.value = False
@@ -66,7 +65,7 @@ class RedPitayaControlService(BaseService):
         self.exposed_write_data()
 
     def exposed_shutdown(self):
-        self.pitaya.acquisition.shutdown()
+        self.registers.acquisition.shutdown()
         _thread.interrupt_main()
         os._exit(0)
 
@@ -99,7 +98,7 @@ class FakeRedPitayaControl(BaseService):
         _thread.interrupt_main()
         os._exit(0)
 
-    def exposed_start_autolock(self, x0, x1):
+    def exposed_start_autolock(self, x0, x1, spectrum):
         print('start autolock', x0, x1)
 
 

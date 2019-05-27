@@ -7,7 +7,7 @@ from linie.config import DEFAULT_RAMP_SPEED
 from linie.server.acquisition import AcquisitionMaster
 
 
-class Pitaya:
+class Registers:
     def __init__(self, host=None, user=None, password=None):
         self.host = host
         self.user = user
@@ -20,11 +20,11 @@ class Pitaya:
         self.use_ssh = self.host is not None and self.host not in ('localhost', '127.0.0.1')
 
         if self.use_ssh:
-            self.pitaya = PitayaSSH(
+            self.rp = PitayaSSH(
                 ssh_cmd="sshpass -p %s ssh %s@%s" % (self.password, self.user, self.host)
             )
         else:
-            self.pitaya = PitayaLocal()
+            self.rp = PitayaLocal()
 
         self.parameters.lock.change(self.acquisition.lock_status_changed)
 
@@ -47,7 +47,7 @@ class Pitaya:
             fast_b_demod_delay=demod_delay,
             fast_b_demod_multiplier=demod_multiplier,
             fast_b_brk=0,
-            fast_b_dx_sel=self.pitaya.signal("scopegen_dac_a"),
+            fast_b_dx_sel=self.rp.signal("scopegen_dac_a"),
             fast_b_y_tap=4,
 
             fast_b_sweep_run=1,
@@ -57,16 +57,16 @@ class Pitaya:
             ),
             fast_b_sweep_min=sweep_min,
             fast_b_sweep_max=sweep_max,
-            fast_b_dy_sel=self.pitaya.signal("scopegen_dac_b"),
+            fast_b_dy_sel=self.rp.signal("scopegen_dac_b"),
 
             fast_b_mod_freq=params['modulation_frequency'],
             fast_b_mod_amp=0x0,
 
             fast_b_relock_run=0,
-            fast_b_relock_en=self.pitaya.states(),
-            fast_b_y_hold_en=self.pitaya.states(),
-            fast_b_y_clear_en=self.pitaya.states(),
-            fast_b_rx_sel=self.pitaya.signal('zero'),
+            fast_b_relock_en=self.rp.states(),
+            fast_b_y_hold_en=self.rp.states(),
+            fast_b_y_clear_en=self.rp.states(),
+            fast_b_rx_sel=self.rp.signal('zero'),
 
             # channel A (channel for modulation)
             fast_a_brk=1,
@@ -76,10 +76,13 @@ class Pitaya:
             fast_a_demod_delay=demod_delay,
             fast_a_demod_multiplier=demod_multiplier,
             fast_a_sweep_run=0,
-            fast_a_dy_sel=self.pitaya.signal('zero'),
+            fast_a_pid_kp=0,
+            fast_a_pid_ki=0,
+            fast_a_pid_kd=0,
+            fast_a_dy_sel=self.rp.signal('zero'),
 
-            scopegen_adc_a_sel=self.pitaya.signal("fast_b_x"),
-            scopegen_adc_b_sel=self.pitaya.signal("fast_b_y"),
+            scopegen_adc_a_sel=self.rp.signal("fast_b_x"),
+            scopegen_adc_b_sel=self.rp.signal("fast_b_y"),
             # trigger on ramp
             scopegen_external_trigger=2,
 
@@ -89,8 +92,8 @@ class Pitaya:
             gpio_p_outs=0,
             gpio_n_outs=0,
 
-            gpio_n_do0_en=self.pitaya.signal('zero'),
-            gpio_n_do1_en=self.pitaya.signal('zero'),
+            gpio_n_do0_en=self.rp.signal('zero'),
+            gpio_n_do1_en=self.rp.signal('zero'),
 
             # asg offset (is not set via ssh but via rpyc)
             asga_offset=int(params['offset']),
@@ -102,8 +105,6 @@ class Pitaya:
         self.control.exposed_is_locked = lock
 
         new['fast_b_sweep_run'] = 0 if lock else 1
-        #if lock_changed and lock:
-            #new['scopegen_adc_a_sel'] = self.pitaya.signal("fast_b_x")
 
         # filter out values that did not change
         new = dict(
@@ -129,14 +130,14 @@ class Pitaya:
             self.acquisition.set_ramp_speed(params['ramp_speed'])
 
         for k, v in new.items():
-            self.pitaya.set(k, int(v))
+            self.rp.set(k, int(v))
 
         if 'fast_b_sweep_step' in new:
             # reset sweep for a short time if the scan range was changed
             # this is needed because otherwise it may take too long before
             # the new scan range is reached --> no scope trigger is sent
-            self.pitaya.set('fast_b_sweep_run', 0)
-            self.pitaya.set('fast_b_sweep_run', 1)
+            self.rp.set('fast_b_sweep_run', 0)
+            self.rp.set('fast_b_sweep_run', 1)
 
         kp = params['p']
         ki = params['i']
@@ -144,61 +145,51 @@ class Pitaya:
 
         if lock_changed:
             if lock:
-                # clear
-                #self.pitaya.set('fast_b_x_clear_en', self.pitaya.states('force'))
-                #self.pitaya.set('fast_b_y_clear_en', self.pitaya.states('force'))
-
                 # sync modulation phases
                 self.sync_modulation_phases()
 
                 # set PI parameters
-                self.pitaya.set('fast_b_pid_reset', 0)
-                self.pitaya.set('fast_b_pid_kp', kp)
-                self.pitaya.set('fast_b_pid_ki', ki)
-                self.pitaya.set('fast_b_pid_kd', kd)
-
-                # re-enable lock
-                #self.pitaya.set('fast_b_y_clear_en', self.pitaya.states())
-                #self.pitaya.set('fast_b_x_clear_en', self.pitaya.states())
+                self.set_pid(kp, ki, kd, reset=0)
             else:
-                # just enable P with unity gain
-                # # FIXME: ZERO!
-                unity = 1024
-                self.pitaya.set('fast_b_pid_kp', 0)
-                self.pitaya.set('fast_b_pid_ki', 0)
-                self.pitaya.set('fast_b_pid_kd', 0)
-                self.pitaya.set('fast_b_pid_reset', 1)
+                self.set_pid(0, 0, 0, reset=1)
 
-                self.pitaya.set('fast_a_pid_kp', 0)
-                self.pitaya.set('fast_a_pid_ki', 0)
-                self.pitaya.set('fast_a_pid_kd', 0)
-                self.pitaya.set('fast_a_pid_reset', 1)
-
-                self.pitaya.set_iir("fast_a_iir_a", *make_filter('P', k=1))
-                self.pitaya.set_iir("fast_a_iir_c", *make_filter("P", k=0))
-                self.pitaya.set_iir("fast_b_iir_a", *make_filter('P', k=1))
-                self.pitaya.set_iir("fast_b_iir_c", *make_filter("P", k=0))
+                self.rp.set_iir("fast_a_iir_a", *make_filter('P', k=0))
+                self.rp.set_iir("fast_a_iir_c", *make_filter("P", k=0))
+                self.rp.set_iir("fast_b_iir_a", *make_filter('P', k=0))
+                self.rp.set_iir("fast_b_iir_c", *make_filter("P", k=0))
 
         else:
             # hold PID value
-            self.pitaya.set('fast_b_y_hold_en', self.pitaya.states('force'))
+            self.hold_pid(True)
 
             if lock:
                 # set new PI parameters
-                self.pitaya.set('fast_b_pid_kp', kp)
-                self.pitaya.set('fast_b_pid_ki', ki)
-                self.pitaya.set('fast_b_pid_kd', kd)
+                self.set_pid(kp, ki, kd)
 
             # reset "hold"
-            self.pitaya.set('fast_b_y_hold_en', self.pitaya.states())
+            self.hold_pid(False)
 
         self.sync_modulation_phases()
 
     def sync_modulation_phases(self):
-        self.pitaya.set('root_sync_phase_en', self.pitaya.states('force'))
-        self.pitaya.set('root_sync_phase_en', self.pitaya.states())
+        self.rp.set('root_sync_phase_en', self.rp.states('force'))
+        self.rp.set('root_sync_phase_en', self.rp.states())
 
     def run_data_acquisition(self, on_change):
         self.acquisition = AcquisitionMaster(
             on_change, self.use_ssh, self.host
+        )
+
+    def set_pid(self, p, i, d, reset=None):
+        self.rp.set('fast_b_pid_kp', p)
+        self.rp.set('fast_b_pid_ki', i)
+        self.rp.set('fast_b_pid_kd', d)
+
+        if reset is not None:
+            self.rp.set('fast_b_pid_reset', reset)
+
+    def hold_pid(self, hold):
+        self.rp.set(
+            'fast_b_y_hold_en',
+            self.rp.states('force') if hold else self.rp.states()
         )

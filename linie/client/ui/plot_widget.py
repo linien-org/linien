@@ -102,7 +102,8 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
             # it was a selection
             if self.parameters.automatic_mode.value:
                 self.control.start_autolock(
-                    *sorted([x0, x])
+                    *sorted([x0, x]),
+                    self.last_plot_data[0]
                 )
             else:
                 self.graph_on_selection(x0, x)

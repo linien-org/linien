@@ -55,6 +55,7 @@ class Parameters(BaseParameters):
         self.d = Parameter(start=0)
         self.task = Parameter(start=0)
         self.automatic_mode = Parameter(start=True)
+        self.target_slope_rising = Parameter(start=True)
 
         self.watch_lock = Parameter(start=True)
         self.control_signal_history = Parameter(start=[])
