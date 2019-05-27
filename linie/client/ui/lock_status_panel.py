@@ -13,25 +13,23 @@ class LockStatusPanel(QtGui.QWidget, CustomWidget):
         self.parameters = params
         self.ids.stop_lock.clicked.connect(self.stop_autolock)
 
-        def lock_status_changed(lock):
-            if lock:
+        def update_status(_):
+            locked = params.lock.value
+            task = params.task.value
+
+            if locked or (task is not None and not task.failed):
                 self.show()
             else:
                 self.hide()
 
-        params.lock.change(lock_status_changed)
-
-        def task_changed(task):
             explain = not task or task.failed
 
             if task:
                 running = task.running
-                locked = task.locked
                 watching = task.watching
                 failed = task.failed
             else:
                 running = False
-                locked = False
                 watching = False
                 failed = False
 
@@ -47,7 +45,11 @@ class LockStatusPanel(QtGui.QWidget, CustomWidget):
             if running and not watching:
                 set_text('Autolock is running...')
 
-        params.task.change(task_changed)
+        params.lock.change(update_status)
+        params.task.change(update_status)
 
     def stop_autolock(self):
-        self.parameters.task.value.stop()
+        if self.parameters.task.value is not None:
+            self.parameters.task.value.stop()
+        else:
+            self.control.exposed_start_ramp()

@@ -20,6 +20,7 @@ class Autolock:
     def reset_properties(self):
         self.history = []
         self.zoom_factor = 1
+        self.N_at_this_zoom = 0
         self.skipped = 0
         self.exposed_failed = False
         self.exposed_locked = False
@@ -125,6 +126,8 @@ class Autolock:
         mean_signal = np.mean([cropped_data[min_idx], cropped_data[max_idx]])
         slope_data = np.array(cropped_data[min_idx:max_idx]) - mean_signal
         self.parameters.offset.value -= mean_signal
+        self.parameters.target_slope_rising.value = max_idx > min_idx
+        self.control.exposed_write_data()
 
         zero_idx = self.x0 + min_idx + np.argmin(np.abs(slope_data))
 
@@ -160,7 +163,7 @@ class Autolock:
             print('CORRELATION', np.max(correlation))
             shift = np.argmax(correlation) * skip_factor
             shift = (shift - len(zoomed_data)) / len(zoomed_data) * 2 / self.zoom_factor
-            print('SHIFT', shift)
+            print('N', self.N_at_this_zoom, 'SHIFT', shift)
 
             if np.abs(shift) > 0.5:
                 return self.relock()
@@ -168,17 +171,23 @@ class Autolock:
             self.control.exposed_write_data()
             self.history.append('shift %f' % (-1 * shift))
 
-            self.zoom_factor *= 2
-            self.parameters.ramp_amplitude.value /= 2
-            self.control.exposed_write_data()
-
             self.parameters.center.value -= shift
             self.control.exposed_write_data()
 
-            if self.zoom_factor >= self.target_zoom:
-                self.approaching = False
-                self.emit_status()
-                self.control.exposed_start_lock()
+            self.N_at_this_zoom += 1
+
+            # FIXME: should be done until shift doesn't decrease anymore
+            if self.N_at_this_zoom > 5:
+                self.N_at_this_zoom = 0
+
+                self.zoom_factor *= 2
+                self.parameters.ramp_amplitude.value /= 2
+                self.control.exposed_write_data()
+
+                if self.zoom_factor >= self.target_zoom:
+                    self.approaching = False
+                    self.emit_status()
+                    self.control.exposed_start_lock()
 
     def after_lock(self, control_signal):
         """After locking, this method checks whether the laser really is locked.
@@ -236,7 +245,7 @@ class Autolock:
 
         self.parameters.center.value = 0
         self.parameters.ramp_amplitude.value = 1
-        self.control.start_ramp()
+        self.control.exposed_start_ramp()
 
         self.emit_status()
 

@@ -18,6 +18,3 @@ class RightPanel(QtGui.QWidget, CustomWidget):
 
     def open_device_manager(self):
         self.app().open_device_manager()
-
-    def start_manual_lock(self):
-        self.control.start_lock()

@@ -103,7 +103,9 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
             if self.parameters.automatic_mode.value:
                 self.control.start_autolock(
                     *sorted([x0, x]),
-                    self.last_plot_data[0]
+                    # we pickle it here because otherwise a netref is
+                    # transmitted which blocks the autolock
+                    pickle.dumps(self.last_plot_data[0])
                 )
             else:
                 self.graph_on_selection(x0, x)
@@ -188,7 +190,7 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
             if self.control.exposed_is_locked:
                 self.control_signal_history.setData(
                     # FIXME: Scale x axis correctly
-                    list(range(len(self.control_signal_history_data))),
+                    list(range(len(self.control_signal_history_data['values']))),
                     [
                         point / 8192 * self.plot_max
                         for point in self.control_signal_history_data['values']

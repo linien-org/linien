@@ -13,9 +13,12 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
         self.ids.watchLockCheckbox.stateChanged.connect(self.watch_lock_changed)
         self.ids.lock_control_container.currentChanged.connect(self.lock_mode_changed)
 
+        self.ids.manualLockButton.clicked.connect(self.start_manual_lock)
+
     def connection_established(self):
         params = self.app().parameters
         self.parameters = params
+        self.control = self.app().control
 
         params.p.change(
             lambda value: self.ids.kp.setValue(value)
@@ -33,13 +36,23 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
             lambda value: self.ids.lock_control_container.setCurrentIndex(0 if value else 1)
         )
 
-        def lock_status_changed(lock):
-            if lock:
+        def lock_status_changed(_):
+            locked = params.lock.value
+            task = params.task.value
+            task_running = (task is not None) and (not task.failed)
+
+            if locked or task_running:
                 self.ids.lock_control_container.hide()
             else:
                 self.ids.lock_control_container.show()
 
+        params.task.change(lock_status_changed)
         params.lock.change(lock_status_changed)
+
+        def target_slope_changed(rising):
+            self.ids.button_slope_rising.setChecked(rising)
+            self.ids.button_slope_rising.setChecked(not rising)
+        params.target_slope_rising.change(target_slope_changed)
 
     def kp_changed(self):
         self.parameters.p.value = self.ids.kp.value()
@@ -55,3 +68,8 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
 
     def lock_mode_changed(self, idx):
         self.parameters.automatic_mode.value = idx == 0
+
+    def start_manual_lock(self):
+        self.parameters.target_slope_rising.value = self.ids.button_slope_rising.isChecked()
+        self.control.write_data()
+        self.control.start_lock()

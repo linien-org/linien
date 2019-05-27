@@ -43,6 +43,7 @@ class RedPitayaControlService(BaseService):
         self.registers.write_registers()
 
     def exposed_start_autolock(self, x0, x1, spectrum):
+        spectrum = pickle.loads(spectrum)
         start_watching = self.parameters.watch_lock.value
         current_task = self.parameters.task.value
 
@@ -51,7 +52,7 @@ class RedPitayaControlService(BaseService):
             self.parameters.task.value = autolock
             autolock.run(x0, x1, spectrum, should_watch_lock=start_watching)
 
-    def start_ramp(self):
+    def exposed_start_ramp(self):
         self.parameters.lock.value = False
         self.exposed_write_data()
 
@@ -62,7 +63,7 @@ class RedPitayaControlService(BaseService):
     def exposed_reset(self):
         self.parameters.ramp_amplitude.value = 1
         self.parameters.center.value = 0
-        self.start_ramp()
+        self.exposed_start_ramp()
         self.exposed_write_data()
 
     def exposed_shutdown(self):

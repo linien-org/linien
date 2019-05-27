@@ -15,9 +15,13 @@ class CentralPanel(QtGui.QWidget, CustomWidget):
         params.ramp_amplitude.change(
             lambda value: self.ids.scan_amplitude.setText('%d %%' % (value * 100))
         )
-        params.automatic_mode.change(
-            lambda value: self.get_widget('manual_navigation').setVisible(not value)
-        )
+
+        def change_auto_manual_mode(auto):
+            self.get_widget('manual_navigation').setVisible(not auto)
+            if auto:
+                self.reset_scan_amplitude()
+
+        params.automatic_mode.change(change_auto_manual_mode)
 
     def increase_scan_amplitude(self):
         self.change_range(True)
@@ -26,10 +30,10 @@ class CentralPanel(QtGui.QWidget, CustomWidget):
         self.change_range(False)
 
     def go_right(self):
-        self.change_center(False)
+        self.change_center(True)
 
     def go_left(self):
-        self.change_center(True)
+        self.change_center(False)
 
     def change_center(self, positive):
         delta_center = self.parameters.ramp_amplitude.value / 10

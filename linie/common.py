@@ -19,5 +19,7 @@ def update_control_signal_history(history, to_plot, is_locked, max_time_diff):
         if time() - history['times'][0] > max_time_diff:
             history['times'].pop(0)
             history['values'].pop(0)
+            continue
+        break
 
     return history

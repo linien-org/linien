@@ -146,6 +146,7 @@ class Registers:
         kp = params['p']
         ki = params['i']
         kd = params['d']
+        slope = params['target_slope_rising']
 
         if lock_changed:
             if lock:
@@ -153,9 +154,9 @@ class Registers:
                 self.sync_modulation_phases()
 
                 # set PI parameters
-                self.set_pid(kp, ki, kd, reset=0)
+                self.set_pid(kp, ki, kd, slope, reset=0)
             else:
-                self.set_pid(0, 0, 0, reset=1)
+                self.set_pid(0, 0, 0, slope, reset=1)
 
                 self.rp.set_iir("fast_a_iir_a", *make_filter('P', k=1))
                 self.rp.set_iir("fast_a_iir_c", *make_filter("P", k=0))
@@ -168,7 +169,7 @@ class Registers:
 
             if lock:
                 # set new PI parameters
-                self.set_pid(kp, ki, kd)
+                self.set_pid(kp, ki, kd, slope)
 
             # reset "hold"
             self.hold_pid(False)
@@ -184,10 +185,11 @@ class Registers:
             on_change, self.use_ssh, self.host
         )
 
-    def set_pid(self, p, i, d, reset=None):
-        self.rp.set('fast_b_pid_kp', p)
-        self.rp.set('fast_b_pid_ki', i)
-        self.rp.set('fast_b_pid_kd', d)
+    def set_pid(self, p, i, d, slope, reset=None):
+        sign = -1 if slope else 1
+        self.rp.set('fast_b_pid_kp', p * slope)
+        self.rp.set('fast_b_pid_ki', i * slope)
+        self.rp.set('fast_b_pid_kd', d * slope)
 
         if reset is not None:
             self.rp.set('fast_b_pid_reset', reset)

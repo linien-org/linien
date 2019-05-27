@@ -33,14 +33,14 @@
             <item>
              <widget class="QPushButton" name="decrease_scan_amplitude">
               <property name="text">
-               <string>-</string>
+               <string>+</string>
               </property>
              </widget>
             </item>
             <item>
              <widget class="QPushButton" name="increase_scan_amplitude">
               <property name="text">
-               <string>+</string>
+               <string>-</string>
               </property>
              </widget>
             </item>
@@ -592,7 +592,7 @@
           </size>
          </property>
          <property name="currentIndex">
-          <number>0</number>
+          <number>2</number>
          </property>
          <widget class="SpectroscopyPanel" name="page">
           <property name="geometry">
@@ -978,7 +978,7 @@
                <item>
                 <widget class="QTabWidget" name="lock_control_container">
                  <property name="currentIndex">
-                  <number>0</number>
+                  <number>1</number>
                  </property>
                  <widget class="QWidget" name="auto_mode">
                   <attribute name="title">
@@ -1059,14 +1059,14 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="QRadioButton" name="radioButton">
+                    <widget class="QRadioButton" name="button_slope_rising">
                      <property name="text">
                       <string>Rising slope</string>
                      </property>
                     </widget>
                    </item>
                    <item>
-                    <widget class="QRadioButton" name="radioButton_2">
+                    <widget class="QRadioButton" name="button_slope_falling">
                      <property name="text">
                       <string>Falling slope</string>
                      </property>
@@ -1162,7 +1162,6 @@
     <slot>close_app()</slot>
     <slot>shutdown_server()</slot>
     <slot>open_device_manager()</slot>
-    <slot>start_manual_lock()</slot>
    </slots>
   </customwidget>
   <customwidget>
@@ -1175,6 +1174,7 @@
     <slot>ki_changed()</slot>
     <slot>kd_changed()</slot>
     <slot>watch_lock_changed()</slot>
+    <slot>start_manual_lock()</slot>
    </slots>
   </customwidget>
   <customwidget>
@@ -1246,22 +1246,6 @@
     <hint type="sourcelabel">
      <x>667</x>
      <y>56</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>667</x>
-     <y>301</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>manualLockButton</sender>
-   <signal>clicked()</signal>
-   <receiver>rightPanel</receiver>
-   <slot>start_manual_lock()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>665</x>
-     <y>526</y>
     </hint>
     <hint type="destinationlabel">
      <x>667</x>
