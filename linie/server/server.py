@@ -33,7 +33,8 @@ class RedPitayaControlService(BaseService):
                 update_control_signal_history(
                     self.parameters.control_signal_history.value,
                     pickle.loads(plot_data),
-                    self.exposed_is_locked
+                    self.exposed_is_locked,
+                    self.parameters.control_signal_history_length.value
                 )
 
         self.registers.run_data_acquisition(on_change)
@@ -103,9 +104,8 @@ class FakeRedPitayaControl(BaseService):
 
 
 if __name__ == '__main__':
-    # FIXME:
-    #control = RedPitayaControlService()
-    control = FakeRedPitayaControl()
+    control = RedPitayaControlService()
+    #control = FakeRedPitayaControl()
     control.run_acquiry_loop()
     control.exposed_write_data()
 

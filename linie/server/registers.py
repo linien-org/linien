@@ -12,6 +12,7 @@ class Registers:
         self.host = host
         self.user = user
         self.password = password
+        self.acquisition = None
 
     def connect(self, control, parameters):
         self.control = control
@@ -26,7 +27,11 @@ class Registers:
         else:
             self.rp = PitayaLocal()
 
-        self.parameters.lock.change(self.acquisition.lock_status_changed)
+        def lock_status_changed(v):
+            if self.acquisition is not None:
+                self.acquisition.lock_status_changed(v)
+
+        self.parameters.lock.change(lock_status_changed)
 
     def write_registers(self):
         params = dict(self.parameters)
@@ -39,6 +44,8 @@ class Registers:
             params['demodulation_phase'] / 360
             * params['modulation_frequency']
         )
+        # FIXME: remove
+        demod_delay = 0
         demod_multiplier = params['demodulation_multiplier']
 
         new = dict(

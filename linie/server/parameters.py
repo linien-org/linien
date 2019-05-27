@@ -58,4 +58,9 @@ class Parameters(BaseParameters):
         self.target_slope_rising = Parameter(start=True)
 
         self.watch_lock = Parameter(start=True)
-        self.control_signal_history = Parameter(start=[])
+        self.control_signal_history = Parameter(start={
+            'times': [],
+            'values': []
+        })
+        # in seconds
+        self.control_signal_history_length = Parameter(start=600)

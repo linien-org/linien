@@ -180,7 +180,9 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
                 self.control_signal_history_data,
                 to_plot,
                 # FIXME: this causes an unnecessary call every time!
-                self.control.exposed_is_locked
+                self.control.exposed_is_locked,
+                # FIXME: this causes an unnecessary call every time!
+                self.parameters.control_signal_history_length.value
             )
             # FIXME: this causes an unnecessary call every time!
             if self.control.exposed_is_locked:
@@ -189,6 +191,6 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
                     list(range(len(self.control_signal_history_data))),
                     [
                         point / 8192 * self.plot_max
-                        for point in self.control_signal_history_data
+                        for point in self.control_signal_history_data['values']
                     ]
                 )
