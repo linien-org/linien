@@ -7,7 +7,7 @@ class Parameters(BaseParameters):
 
         self.modulation_amplitude = Parameter(
             min_=0,
-            max_=0xffff,
+            max_=(1<<14) - 1,
             start=4046
         )
         self.modulation_frequency = Parameter(
@@ -38,8 +38,8 @@ class Parameters(BaseParameters):
         )
         self.demodulation_phase = Parameter(
             min_=0,
-            max_=0xffffffff,
-            start=0xc00,
+            max_=360,
+            start=0x0,
             wrap=True
         )
         self.demodulation_multiplier = Parameter(

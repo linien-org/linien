@@ -3,7 +3,7 @@ from PyQt5 import QtGui
 from linie.client.widgets import CustomWidget
 
 MHz = 0x10000000 / 8
-Vpp = 0xffff / 2
+Vpp = ((1<<14) - 1) / 4
 
 class SpectroscopyPanel(QtGui.QWidget, CustomWidget):
     def __init__(self, *args, **kwargs):
@@ -42,11 +42,7 @@ class SpectroscopyPanel(QtGui.QWidget, CustomWidget):
         )
 
         params.demodulation_multiplier.change(
-            lambda value: self.ids.demodulation_frequency.setCurrentIndex({
-                1: 0,
-                3: 1,
-                5: 2
-            }[value])
+            lambda value: self.ids.demodulation_frequency.setCurrentIndex(value - 1)
         )
 
         params.offset.change(
@@ -74,5 +70,5 @@ class SpectroscopyPanel(QtGui.QWidget, CustomWidget):
         self.control.write_data()
 
     def change_demod_multiplier(self, idx):
-        self.parameters.demodulation_multiplier.value = [1, 3, 5][idx]
+        self.parameters.demodulation_multiplier.value = idx + 1
         self.control.write_data()

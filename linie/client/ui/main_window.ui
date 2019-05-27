@@ -592,7 +592,7 @@
           </size>
          </property>
          <property name="currentIndex">
-          <number>2</number>
+          <number>0</number>
          </property>
          <widget class="SpectroscopyPanel" name="page">
           <property name="geometry">
@@ -660,7 +660,14 @@
                   <item>
                    <layout class="QHBoxLayout" name="horizontalLayout_2">
                     <item>
-                     <widget class="QDoubleSpinBox" name="modulation_amplitude"/>
+                     <widget class="QDoubleSpinBox" name="modulation_amplitude">
+                      <property name="maximum">
+                       <double>2.000000000000000</double>
+                      </property>
+                      <property name="singleStep">
+                       <double>0.100000000000000</double>
+                      </property>
+                     </widget>
                     </item>
                     <item>
                      <widget class="QLabel" name="label">
@@ -816,7 +823,17 @@
                     </item>
                     <item>
                      <property name="text">
+                      <string>2f</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
                       <string>3f</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>4f</string>
                      </property>
                     </item>
                     <item>
@@ -836,7 +853,11 @@
                  </property>
                  <layout class="QHBoxLayout" name="horizontalLayout_7">
                   <item>
-                   <widget class="QSpinBox" name="signal_offset"/>
+                   <widget class="QSpinBox" name="signal_offset">
+                    <property name="singleStep">
+                     <number>100</number>
+                    </property>
+                   </widget>
                   </item>
                  </layout>
                 </widget>

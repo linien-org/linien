@@ -41,11 +41,8 @@ class Registers:
         sweep_max = _max(params['ramp_amplitude'] * 8191)
 
         demod_delay = int(
-            params['demodulation_phase'] / 360
-            * params['modulation_frequency']
+            params['demodulation_phase'] / 360 * (1<<14)
         )
-        # FIXME: remove
-        demod_delay = 0
         demod_multiplier = params['demodulation_multiplier']
 
         new = dict(
@@ -160,9 +157,9 @@ class Registers:
             else:
                 self.set_pid(0, 0, 0, reset=1)
 
-                self.rp.set_iir("fast_a_iir_a", *make_filter('P', k=0))
+                self.rp.set_iir("fast_a_iir_a", *make_filter('P', k=1))
                 self.rp.set_iir("fast_a_iir_c", *make_filter("P", k=0))
-                self.rp.set_iir("fast_b_iir_a", *make_filter('P', k=0))
+                self.rp.set_iir("fast_b_iir_a", *make_filter('P', k=1))
                 self.rp.set_iir("fast_b_iir_c", *make_filter("P", k=0))
 
         else:
