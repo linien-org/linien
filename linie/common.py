@@ -15,6 +15,7 @@ def update_control_signal_history(history, to_plot, is_locked, max_time_diff):
         history['times'].append(time())
 
     # truncate
+    # FIXME: downsample for very long intervals
     while len(history['values']) > 0:
         if time() - history['times'][0] > max_time_diff:
             history['times'].pop(0)

@@ -131,7 +131,7 @@ class Autolock:
 
         zero_idx = self.x0 + min_idx + np.argmin(np.abs(slope_data))
 
-        self.target_zoom = 16384 / (max_idx - min_idx) / 3
+        self.target_zoom = 16384 / (max_idx - min_idx) / 1.5
 
         error_signal = np.roll(error_signal, -int(zero_idx - (length/2)))
         self.first_error_signal = error_signal
@@ -176,8 +176,7 @@ class Autolock:
 
             self.N_at_this_zoom += 1
 
-            # FIXME: should be done until shift doesn't decrease anymore
-            if self.N_at_this_zoom > 5:
+            if self.N_at_this_zoom > 2:
                 self.N_at_this_zoom = 0
 
                 self.zoom_factor *= 2

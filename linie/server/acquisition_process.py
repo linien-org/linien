@@ -12,6 +12,11 @@ sys.path += ['../../']
 from linie.config import ACQUISITION_PORT
 
 
+def shutdown():
+    _thread.interrupt_main()
+    os._exit(0)
+
+
 class DataAcquisitionService(Service):
     def __init__(self):
         self.r = RedPitaya()
@@ -23,6 +28,7 @@ class DataAcquisitionService(Service):
 
         self.exposed_set_ramp_speed(9)
         self.locked = False
+        self.start_time = time()
 
         self.run()
 
@@ -45,11 +51,17 @@ class DataAcquisitionService(Service):
                 self.r.scope.trigger_delay = trigger_delay - 1
                 self.data = pickle.dumps(data)
 
+                if self.data_retrieval_time is None and (time() - self.start_time > 5):
+                    # acquisition process is up and running but server did not poll
+                    # anything. Maybe it died, so should we
+                    return shutdown()
+
                 if self.data_retrieval_time is not None:
                     if time() - self.data_retrieval_time > 2:
-                        # the parent process died, shut down this child process, too
-                        _thread.interrupt_main()
-                        os._exit(0)
+                        # the parent process did not poll for more than 2 seconds.
+                        # This probably means that it died, so shut down this
+                        # child process, too
+                        return shutdown()
 
         self.t = threading.Thread(target=run_acquiry_loop, args=())
         self.t.daemon = True
@@ -70,7 +82,5 @@ class DataAcquisitionService(Service):
         self.locked = locked
 
 if __name__ == '__main__':
-    # FIXME: used to be DataAcquisitionService(), I changed it to make the
-    # connection available more quickly, but it may cause a problem
-    t = OneShotServer(DataAcquisitionService, port=ACQUISITION_PORT)
+    t = OneShotServer(DataAcquisitionService(), port=ACQUISITION_PORT)
     t.start()
