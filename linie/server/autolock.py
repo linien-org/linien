@@ -165,9 +165,6 @@ class Autolock:
             shift = (shift - len(zoomed_data)) / len(zoomed_data) * 2 / self.zoom_factor
             print('N', self.N_at_this_zoom, 'SHIFT', shift)
 
-            if np.abs(shift) > 0.5:
-                return self.relock()
-
             self.control.exposed_write_data()
             self.history.append('shift %f' % (-1 * shift))
 
