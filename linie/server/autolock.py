@@ -2,7 +2,30 @@ import pickle
 import traceback
 import numpy as np
 from time import sleep, time
-from scipy.signal import correlate
+from scipy.signal import correlate, resample
+
+
+def determine_shift_by_correlation(zoom_factor, reference_signal, error_signal):
+    length = len(error_signal)
+    center_idx = int(length / 2)
+
+    idx_shift = int(length * (1 / zoom_factor / 2))
+    zoomed_ref = reference_signal[center_idx - idx_shift:center_idx + idx_shift]
+
+    # correlation is slow on red pitaya --> use at maximum 4096 points
+    skip_factor = int(len(zoomed_ref) / 4096)
+    if skip_factor < 1:
+        skip_factor = 1
+
+    zoomed_ref = zoomed_ref[::skip_factor]
+    downsampled_error_signal = resample(error_signal, len(reference_signal))
+    correlation = correlate(reference_signal, downsampled_error_signal)
+
+    print('CORRELATION', np.max(correlation))
+    shift = np.argmax(correlation) * skip_factor
+    shift = (shift - len(zoomed_ref)) / len(zoomed_ref) * 2 / zoom_factor
+
+    return shift, zoomed_ref, downsampled_error_signal
 
 
 class Autolock:
@@ -83,7 +106,7 @@ class Autolock:
                 # the line by decreasing the scan range and adapting the
                 # center current multiple times.
 
-                if self.skipped < 5:
+                if self.skipped < 1:
                     # after every step, we skip some data in order to let
                     # the laser equilibrate
                     self.skipped += 1
@@ -137,12 +160,8 @@ class Autolock:
         self.first_error_signal = error_signal
 
     def approach_line(self, error_signal, control_signal):
-        length = len(error_signal)
-        center_idx = int(length / 2)
-
-        shift = int(length * (1/self.zoom_factor/2))
-        zoomed_data = self.first_error_signal[center_idx - shift:center_idx + shift]
-
+        # we ignore some points as sometimes the triggering is not 100%ly
+        # correct, i.e. at the beginning or end of the sample we have a glitch
         control_signal_center = control_signal[100:-100]
         control_signal_amplitude = (
             np.max(control_signal_center) - np.min(control_signal_center)
@@ -150,19 +169,12 @@ class Autolock:
         amplitude_target = self.parameters.ramp_amplitude.value
 
         # check that the data received is new data, i.e. with the correct
-        # scan range
+        # scan range. Otherwise just wait for the next sample.
         if np.abs(control_signal_amplitude - amplitude_target) / control_signal_amplitude < 0.2:
-            self.history.append((zoomed_data, error_signal[::self.zoom_factor]))
-
-            # correlation is slow on red pitaya --> use at maximum 4096 points
-            skip_factor = int(len(zoomed_data) / 4096)
-            if skip_factor < 1:
-                skip_factor = 1
-
-            correlation = correlate(zoomed_data[::skip_factor], error_signal[::self.zoom_factor][::skip_factor])
-            print('CORRELATION', np.max(correlation))
-            shift = np.argmax(correlation) * skip_factor
-            shift = (shift - len(zoomed_data)) / len(zoomed_data) * 2 / self.zoom_factor
+            shift, zoomed_ref, zoomed_err = determine_shift_by_correlation(
+                self.zoom_factor, self.first_error_signal, error_signal
+            )
+            self.history.append((zoomed_ref, zoomed_err))
             print('N', self.N_at_this_zoom, 'SHIFT', shift)
 
             self.control.exposed_write_data()
