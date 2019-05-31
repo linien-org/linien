@@ -39,19 +39,21 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
         def lock_status_changed(_):
             locked = params.lock.value
             task = params.task.value
-            task_running = (task is not None) and (not task.failed)
+            al_failed = params.autolock_failed.value
+            task_running = (task is not None) and (not al_failed)
 
             if locked or task_running:
                 self.ids.lock_control_container.hide()
             else:
                 self.ids.lock_control_container.show()
 
-        params.task.change(lock_status_changed)
-        params.lock.change(lock_status_changed)
+        for param in (params.lock, params.autolock_approaching, params.autolock_watching,
+                      params.autolock_failed, params.autolock_locked):
+            param.change(lock_status_changed)
 
         def target_slope_changed(rising):
             self.ids.button_slope_rising.setChecked(rising)
-            self.ids.button_slope_rising.setChecked(not rising)
+            self.ids.button_slope_falling.setChecked(not rising)
         params.target_slope_rising.change(target_slope_changed)
 
     def kp_changed(self):

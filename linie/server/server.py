@@ -23,6 +23,7 @@ class RedPitayaControlService(BaseService):
 
         super().__init__(Parameters)
 
+        #self.registers = Registers(host='rp-f0685a.local', user='root', password='zeilinger')
         self.registers = Registers()
         self.registers.connect(self, self.parameters)
 
@@ -45,9 +46,8 @@ class RedPitayaControlService(BaseService):
     def exposed_start_autolock(self, x0, x1, spectrum):
         spectrum = pickle.loads(spectrum)
         start_watching = self.parameters.watch_lock.value
-        current_task = self.parameters.task.value
 
-        if not current_task or not current_task.exposed_running:
+        if not self.parameters.autolock_running.value:
             autolock = Autolock(self, self.parameters)
             self.parameters.task.value = autolock
             autolock.run(x0, x1, spectrum, should_watch_lock=start_watching)

@@ -9,7 +9,7 @@ class LockStatusPanel(QtGui.QWidget, CustomWidget):
 
     def ready(self):
         self.ids.stop_lock.clicked.connect(self.stop_autolock)
-        self.ids.control_signal_history_length.editingFinished(self.control_signal_history_length_changed)
+        self.ids.control_signal_history_length.editingFinished.connect(self.control_signal_history_length_changed)
 
     def connection_established(self):
         self.control = self.app().control
@@ -19,18 +19,19 @@ class LockStatusPanel(QtGui.QWidget, CustomWidget):
         def update_status(_):
             locked = params.lock.value
             task = params.task.value
+            al_failed = params.autolock_failed.value
+            running = params.autolock_running.value
 
-            if locked or (task is not None and not task.failed):
+            if locked or (task is not None and not al_failed):
                 self.show()
             else:
                 self.hide()
 
-            explain = not task or task.failed
+            explain = not running
 
             if task:
-                running = task.running
-                watching = task.watching
-                failed = task.failed
+                watching = params.autolock_watching.value
+                failed = al_failed
             else:
                 running = False
                 watching = False
@@ -48,8 +49,9 @@ class LockStatusPanel(QtGui.QWidget, CustomWidget):
             if running and not watching:
                 set_text('Autolock is running...')
 
-        params.lock.change(update_status)
-        params.task.change(update_status)
+        for param in (params.lock, params.autolock_approaching, params.autolock_watching,
+                params.autolock_failed, params.autolock_locked):
+            param.change(update_status)
 
         params.control_signal_history_length.change(
             lambda value: self.ids.control_signal_history_length.setValue(value)
@@ -61,5 +63,6 @@ class LockStatusPanel(QtGui.QWidget, CustomWidget):
         else:
             self.control.exposed_start_ramp()
 
-    def control_signal_history_length_changed(self, value):
-        self.parameters.control_signal_history_length.value = value
+    def control_signal_history_length_changed(self):
+        self.parameters.control_signal_history_length.value = \
+            self.ids.control_signal_history_length.value()

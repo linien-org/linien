@@ -53,14 +53,19 @@ class Parameters(BaseParameters):
         self.p = Parameter(start=50)
         self.i = Parameter(start=5)
         self.d = Parameter(start=0)
-        self.task = Parameter(start=None)
+        self.task = Parameter(start=None, sync=False)
         self.automatic_mode = Parameter(start=True)
         self.target_slope_rising = Parameter(start=True)
+        self.autolock_running = Parameter(start=False)
+        self.autolock_approaching = Parameter(start=False)
+        self.autolock_watching = Parameter(start=False)
+        self.autolock_failed = Parameter(start=False)
+        self.autolock_locked = Parameter(start=False)
 
         self.watch_lock = Parameter(start=True)
         self.control_signal_history = Parameter(start={
             'times': [],
             'values': []
-        })
+        }, sync=False)
         # in seconds
         self.control_signal_history_length = Parameter(start=600)

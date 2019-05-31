@@ -599,8 +599,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>250</width>
-            <height>498</height>
+            <width>227</width>
+            <height>82</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -622,8 +622,8 @@
               <property name="geometry">
                <rect>
                 <x>0</x>
-                <y>-18</y>
-                <width>220</width>
+                <y>0</y>
+                <width>211</width>
                 <height>500</height>
                </rect>
               </property>
@@ -873,8 +873,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>250</width>
-            <height>498</height>
+            <width>104</width>
+            <height>31</height>
            </rect>
           </property>
           <attribute name="label">
@@ -918,7 +918,7 @@
               <property name="geometry">
                <rect>
                 <x>0</x>
-                <y>-164</y>
+                <y>0</y>
                 <width>232</width>
                 <height>730</height>
                </rect>
@@ -978,7 +978,7 @@
                <item>
                 <widget class="QTabWidget" name="lock_control_container">
                  <property name="currentIndex">
-                  <number>1</number>
+                  <number>0</number>
                  </property>
                  <widget class="QWidget" name="auto_mode">
                   <attribute name="title">

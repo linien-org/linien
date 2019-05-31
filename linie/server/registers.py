@@ -187,9 +187,9 @@ class Registers:
 
     def set_pid(self, p, i, d, slope, reset=None):
         sign = -1 if slope else 1
-        self.rp.set('fast_b_pid_kp', p * slope)
-        self.rp.set('fast_b_pid_ki', i * slope)
-        self.rp.set('fast_b_pid_kd', d * slope)
+        self.rp.set('fast_b_pid_kp', p * sign)
+        self.rp.set('fast_b_pid_ki', i * sign)
+        self.rp.set('fast_b_pid_kd', d * sign)
 
         if reset is not None:
             self.rp.set('fast_b_pid_reset', reset)

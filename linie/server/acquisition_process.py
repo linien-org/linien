@@ -54,10 +54,13 @@ class DataAcquisitionService(Service):
                 if self.data_retrieval_time is None and (time() - self.start_time > 5):
                     # acquisition process is up and running but server did not poll
                     # anything. Maybe it died, so should we
+                    print('neverpoll')
                     return shutdown()
 
                 if self.data_retrieval_time is not None:
-                    if time() - self.data_retrieval_time > 2:
+                    # FIXME: increased this timeout, still necessary?
+                    if time() - self.data_retrieval_time > 5:
+                        print('nopoll')
                         # the parent process did not poll for more than 2 seconds.
                         # This probably means that it died, so shut down this
                         # child process, too
