@@ -11,9 +11,9 @@ from registers import Registers
 from autolock import Autolock
 from parameters import Parameters
 
-from linie.config import SERVER_PORT
-from linie.common import update_control_signal_history
-from linie.communication.server import BaseService
+from linien.config import SERVER_PORT
+from linien.common import update_control_signal_history
+from linien.communication.server import BaseService
 
 
 class RedPitayaControlService(BaseService):

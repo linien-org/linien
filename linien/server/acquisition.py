@@ -8,8 +8,8 @@ from enum import Enum
 from time import sleep
 from multiprocessing import Process, Pipe
 
-from linie.config import ACQUISITION_PORT
-from linie.server.utils import start_acquisition_process, stop_nginx, \
+from linien.config import ACQUISITION_PORT
+from linien.server.utils import start_acquisition_process, stop_nginx, \
     start_nginx, flash_fpga
 
 

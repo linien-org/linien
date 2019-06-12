@@ -1,6 +1,6 @@
 import numpy as np
 from PyQt5 import QtGui
-from linie.client.widgets import CustomWidget
+from linien.client.widgets import CustomWidget
 
 
 class LockStatusPanel(QtGui.QWidget, CustomWidget):

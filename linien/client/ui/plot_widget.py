@@ -2,11 +2,11 @@ import math
 import pickle
 import numpy as np
 from PyQt5 import QtGui, QtWidgets
-from linie.client.widgets import CustomWidget
+from linien.client.widgets import CustomWidget
 from pyqtgraph.Qt import QtCore, QtGui
 import pyqtgraph as pg
 from time import time
-from linie.common import update_control_signal_history, determine_shift_by_correlation, \
+from linien.common import update_control_signal_history, determine_shift_by_correlation, \
     get_lock_point, control_signal_has_correct_amplitude
 
 

@@ -1,6 +1,6 @@
 from PyQt5 import QtGui
-from linie.client.config import load_device_data, save_device_data
-from linie.client.widgets import CustomWidget
+from linien.client.config import load_device_data, save_device_data
+from linien.client.widgets import CustomWidget
 
 
 class NewDeviceDialogCenter(QtGui.QWidget, CustomWidget):

@@ -9,7 +9,7 @@ from rpyc.utils.server import OneShotServer
 from PyRedPitaya.board import RedPitaya
 
 sys.path += ['../../']
-from linie.config import ACQUISITION_PORT
+from linien.config import ACQUISITION_PORT
 
 
 def shutdown():

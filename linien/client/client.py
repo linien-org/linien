@@ -4,7 +4,7 @@ import threading
 
 sys.path += ['../', '../../']
 
-from linie.client.gui import QTApp
+from linien.client.gui import QTApp
 
 
 def run_application():

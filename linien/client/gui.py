@@ -11,9 +11,9 @@ sys.path += [
     )
 ]
 
-from linie.client.widgets import CustomWidget
-from linie.client.ui.main_window import Ui_MainWindow
-from linie.client.ui.device_manager import Ui_DeviceManager
+from linien.client.widgets import CustomWidget
+from linien.client.ui.main_window import Ui_MainWindow
+from linien.client.ui.device_manager import Ui_DeviceManager
 
 
 class QTApp(QtCore.QObject):

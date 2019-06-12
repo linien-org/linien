@@ -1,6 +1,6 @@
 import numpy as np
 from PyQt5 import QtGui
-from linie.client.widgets import CustomWidget
+from linien.client.widgets import CustomWidget
 
 MHz = 0x10000000 / 8
 Vpp = ((1<<14) - 1) / 4

@@ -1,4 +1,4 @@
-from linie.communication.server import Parameter, BaseParameters
+from linien.communication.server import Parameter, BaseParameters
 
 
 class Parameters(BaseParameters):

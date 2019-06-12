@@ -2,7 +2,7 @@ import pickle
 import traceback
 import numpy as np
 from time import sleep, time
-from linie.common import determine_shift_by_correlation, get_lock_point, \
+from linien.common import determine_shift_by_correlation, get_lock_point, \
     control_signal_has_correct_amplitude
 
 

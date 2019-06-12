@@ -3,8 +3,8 @@ from time import sleep, time
 
 from csr import make_filter, PitayaLocal, PitayaSSH
 from utils import start_nginx, stop_nginx
-from linie.config import DEFAULT_RAMP_SPEED
-from linie.server.acquisition import AcquisitionMaster
+from linien.config import DEFAULT_RAMP_SPEED
+from linien.server.acquisition import AcquisitionMaster
 
 
 class Registers:

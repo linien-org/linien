@@ -1,5 +1,5 @@
 from PyQt5 import QtGui
-from linie.client.widgets import CustomWidget
+from linien.client.widgets import CustomWidget
 
 
 class LockingPanel(QtGui.QWidget, CustomWidget):

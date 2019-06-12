@@ -1,9 +1,9 @@
 from time import sleep
 from socket import gaierror
 
-from linie.config import SERVER_PORT
-from linie.client.utils import run_server
-from linie.communication.client import BaseClient
+from linien.config import SERVER_PORT
+from linien.client.utils import run_server
+from linien.communication.client import BaseClient
 
 
 class ConnectionError(Exception):

@@ -1,7 +1,7 @@
 import os
 import paramiko
 
-from linie.config import REMOTE_BASE_PATH
+from linien.config import REMOTE_BASE_PATH
 
 
 def run_server(host, user, password):
