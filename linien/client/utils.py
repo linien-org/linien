@@ -19,11 +19,11 @@ def run_server(host, user, password):
 
     # upload the code required for running the server
     for dirpath, dirnames, filenames in os.walk(directory):
-        if '.' in dirpath or '__' in dirpath:
-            continue
-
         dirpath_rel = dirpath.replace(directory, '').lstrip('/')
         remote_path = os.path.join(REMOTE_BASE_PATH, dirpath_rel)
+
+        if '.' in dirpath_rel or '__' in dirpath_rel:
+            continue
 
         try:
             ftp.lstat(remote_path)

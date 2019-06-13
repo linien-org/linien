@@ -1,0 +1,5 @@
+include linien/server/redpid.bin
+include linien/server/start_server_in_screen.sh
+
+recursive-exclude test *
+recursive-exclude gateware *
