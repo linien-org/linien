@@ -3,6 +3,8 @@ from linien.client.config import load_device_data, save_device_data
 from linien.client.widgets import CustomWidget
 from linien.client.ui.new_device_dialog import Ui_NewDeviceDialog
 from linien.client.connection import Connection
+from linien.client.exceptions import GeneralConnectionErrorException, \
+    ServerNotInstalledException, InvalidServerVersionException
 
 
 class DeviceManagerCenter(QtGui.QWidget, CustomWidget):
@@ -35,7 +37,14 @@ class DeviceManagerCenter(QtGui.QWidget, CustomWidget):
         try:
             conn = Connection(device['host'], device['username'], device['password'])
             self.app().connected(conn, conn.parameters, conn.control)
-        except:
+        except GeneralConnectionErrorException:
+            # FIXME: missing
+            pass
+        except ServerNotInstalledException:
+            # FIXME: missing
+            pass
+        except InvalidServerVersionException:
+            # FIXME: missing
             pass
 
     def new_device(self):

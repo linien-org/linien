@@ -59,5 +59,6 @@ if __name__ == "__main__":
     fil.close()
 
     platform.add_source_dir("verilog")
-    platform.build(redpid, build_name="top")
-    bit2bin("build/top.bit", "build/redpid.bin", flip=True)
+    build_dir = 'fpga_build'
+    platform.build(redpid, build_name="top", build_dir=build_dir)
+    bit2bin("%s/top.bit" % build_dir, "%s/redpid.bin" % build_dir, flip=True)

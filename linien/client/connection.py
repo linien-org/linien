@@ -1,13 +1,13 @@
+import linien
+
 from time import sleep
 from socket import gaierror
 
 from linien.config import SERVER_PORT
 from linien.client.utils import run_server
+from linien.client.exceptions import GeneralConnectionErrorException, \
+    InvalidServerVersionException
 from linien.communication.client import BaseClient
-
-
-class ConnectionError(Exception):
-    pass
 
 
 class Connection(BaseClient):
@@ -47,13 +47,9 @@ class Connection(BaseClient):
 
                 if i == 0:
                     print('start server')
-                    try:
-                        run_server(host, self.user, self.password)
-                        sleep(7)
-                    except:
-                        print('starting server failed')
-                        sleep(1)
-                        continue
+                    run_server(host, self.user, self.password)
+
+                    sleep(7)
 
             sleep(1)
 
@@ -61,7 +57,12 @@ class Connection(BaseClient):
                 break
 
         if self.connection is None:
-            raise ConnectionError()
+            raise GeneralConnectionErrorException()
+
+        # now check that the remote version is the same as ours
+        remote_version = self.connection.root.exposed_get_server_version()
+        if remote_version != linien.__version__:
+            raise InvalidServerVersionException()
 
         print('connected', host, port)
 

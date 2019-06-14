@@ -71,6 +71,10 @@ class RedPitayaControlService(BaseService):
         _thread.interrupt_main()
         os._exit(0)
 
+    def exposed_get_server_version(self):
+        import linien
+        return linien.__version__
+
 
 class FakeRedPitayaControl(BaseService):
     def __init__(self):
@@ -104,7 +108,7 @@ class FakeRedPitayaControl(BaseService):
         print('start autolock', x0, x1)
 
 
-if __name__ == '__main__':
+def run_server():
     control = RedPitayaControlService()
     #control = FakeRedPitayaControl()
     control.run_acquiry_loop()
@@ -112,3 +116,7 @@ if __name__ == '__main__':
 
     t = ThreadedServer(control, port=SERVER_PORT)
     t.start()
+
+
+if __name__ == '__main__':
+    run_server()
