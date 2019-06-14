@@ -2,7 +2,7 @@ import setuptools
 import subprocess
 
 import linien
-assert linien.__version__ !== 'dev'
+assert linien.__version__ != 'dev'
 
 setuptools.setup(
     name="linien-server",

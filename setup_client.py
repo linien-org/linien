@@ -1,7 +1,7 @@
 import setuptools
 
 import linien
-assert linien.__version__ !== 'dev'
+assert linien.__version__ != 'dev'
 
 with open("README.rst", "r") as fh:
     long_description = fh.read()
