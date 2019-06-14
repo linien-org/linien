@@ -5,7 +5,7 @@ with open("README.rst", "r") as fh:
 
 setuptools.setup(
     name="linien",
-    version="0.0.1",
+    version="0.0.2",
     author="Benjamin Wiegand",
     author_email="highwaychile@posteo.de",
     description="Spectroscopy lock application using RedPitaya",
@@ -23,5 +23,8 @@ setuptools.setup(
             'linien=linien.client.client:run_application',
         ],
     },
+    install_requires=[
+        'numpy', 'PyQt5', 'rpyc', 'appdirs', 'pyqtgraph', 'scipy', 'paramiko'
+    ],
     include_package_data=True
 )
