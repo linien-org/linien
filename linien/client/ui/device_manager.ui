@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Linien - Spectroscopy lock - Device manager</string>
   </property>
   <widget class="DeviceManagerCenter" name="centralwidget">
    <property name="sizePolicy">

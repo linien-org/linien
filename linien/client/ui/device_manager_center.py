@@ -34,18 +34,47 @@ class DeviceManagerCenter(QtGui.QWidget, CustomWidget):
         self.connect_to_device(devices[self.get_list_index()])
 
     def connect_to_device(self, device):
-        try:
-            conn = Connection(device['host'], device['username'], device['password'])
-            self.app().connected(conn, conn.parameters, conn.control)
-        except GeneralConnectionErrorException:
-            # FIXME: missing
-            pass
-        except ServerNotInstalledException:
-            # FIXME: missing
-            pass
-        except InvalidServerVersionException:
-            # FIXME: missing
-            pass
+        self.loading_dialog = QtWidgets.QMessageBox(self)
+        self.loading_dialog.setIcon(QtWidgets.QMessageBox.Information)
+        self.loading_dialog.setText('Connecting to %s' % device['host'])
+        self.loading_dialog.setWindowTitle('Connecting')
+        self.loading_dialog.setModal(True)
+        self.loading_dialog.setWindowModality(QtCore.Qt.WindowModal)
+        self.loading_dialog.setStandardButtons(QtWidgets.QMessageBox.NoButton)
+        self.loading_dialog.show()
+
+        def do():
+            connected = False
+            display_error = None
+
+            try:
+                conn = Connection(device['host'], device['username'], device['password'])
+                connected = True
+            except GeneralConnectionErrorException:
+                display_error = "Unable to connect to device"
+            except ServerNotInstalledException:
+                display_error = """The server is not installed on the device. See XXX."""
+            except InvalidServerVersionException as e:
+                display_error = """
+                The server version (%s) does not match the client (%s) version.
+                """ % (e.remote_version, e.client_version)
+
+            self.loading_dialog.hide()
+
+            if display_error:
+                self.error_dialog = QtWidgets.QMessageBox(self)
+                self.error_dialog.setIcon(QtWidgets.QMessageBox.Critical)
+                self.error_dialog.setText(display_error)
+                #self.error_dialog.setInformativeText(display_error)
+                self.error_dialog.setWindowTitle("Error")
+                self.error_dialog.setModal(True)
+                self.error_dialog.setWindowModality(QtCore.Qt.WindowModal)
+                self.error_dialog.show()
+
+            if connected:
+                self.app().connected(conn, conn.parameters, conn.control)
+
+        QtCore.QTimer.singleShot(100, do)
 
     def new_device(self):
         self.dialog = QtWidgets.QDialog()

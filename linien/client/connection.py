@@ -61,8 +61,10 @@ class Connection(BaseClient):
 
         # now check that the remote version is the same as ours
         remote_version = self.connection.root.exposed_get_server_version()
-        if remote_version != linien.__version__:
-            raise InvalidServerVersionException()
+        client_version = linien.__version__
+
+        if remote_version != client_version:
+            raise InvalidServerVersionException(client_version, remote_version)
 
         print('connected', host, port)
 

@@ -62,7 +62,7 @@ class Ui_DeviceManager(object):
 
     def retranslateUi(self, DeviceManager):
         _translate = QtCore.QCoreApplication.translate
-        DeviceManager.setWindowTitle(_translate("DeviceManager", "MainWindow"))
+        DeviceManager.setWindowTitle(_translate("DeviceManager", "Linien - Spectroscopy lock - Device manager"))
         self.connectButton.setText(_translate("DeviceManager", "Connect"))
         self.addButton.setText(_translate("DeviceManager", "New device"))
         self.removeButton.setText(_translate("DeviceManager", "Remove device"))
