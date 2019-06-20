@@ -3,8 +3,9 @@ import sys
 import pickle
 import _thread
 import threading
-from time import sleep, time
 from rpyc import Service
+from time import sleep, time
+from random import random
 from rpyc.utils.server import OneShotServer
 from PyRedPitaya.board import RedPitaya
 
@@ -22,6 +23,7 @@ class DataAcquisitionService(Service):
         self.r = RedPitaya()
 
         self.data = pickle.dumps(None)
+        self.data_hash = None
 
         super(DataAcquisitionService, self).__init__()
 
@@ -48,10 +50,14 @@ class DataAcquisitionService(Service):
                 self.r.scope.data_decimation = 2 ** self.ramp_speed
                 self.r.scope.trigger_delay = trigger_delay - 1
                 self.data = pickle.dumps(data)
+                self.data_hash = random()
 
         self.t = threading.Thread(target=run_acquiry_loop, args=())
         self.t.daemon = True
         self.t.start()
+
+    def exposed_get_data_hash(self):
+        return self.data_hash
 
     def exposed_return_data(self):
         return self.data[:]

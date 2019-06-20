@@ -61,6 +61,7 @@ class AcquisitionMaster:
         # run a loop that listens for acquired data and transmits them
         # to the main thread. Also redirects calls from the main thread
         # to the acquiry process.
+        last_hash = None
         while True:
             # check whether the main thread sent a command to the acquiry process
             if pipe.poll():
@@ -77,9 +78,13 @@ class AcquisitionMaster:
                     acquisition.exposed_set_lock_status(data[1])
 
             # load acquired data and send it to the main thread
-            # FIXME: some method to wait for new data?
-            data = acquisition.exposed_return_data()
-            pipe.send(data)
+            current_hash = acquisition.exposed_get_data_hash()
+
+            if current_hash != last_hash:
+                last_hash = current_hash
+
+                data = acquisition.exposed_return_data()
+                pipe.send(data)
 
             sleep(0.05)
 
