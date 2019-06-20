@@ -54,6 +54,8 @@ class QTApp(QtCore.QObject):
 
         self.parameters.call_listeners()
 
+        QtCore.QTimer.singleShot(100, lambda: self.parameters.call_listeners)
+
     def get_widget(self, name, window=None):
         """Queries a widget by name."""
         window = window or self.main_window

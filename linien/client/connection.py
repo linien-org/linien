@@ -22,7 +22,7 @@ class Connection(BaseClient):
         else:
             assert user and password
 
-        super().__init__(host, SERVER_PORT)
+        super().__init__(host, SERVER_PORT, True)
 
         self.control = self.connection.root
 
