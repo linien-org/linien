@@ -27,7 +27,8 @@ setuptools.setup(
         ],
     },
     install_requires=[
-        'numpy', 'PyQt5', 'rpyc', 'appdirs', 'pyqtgraph', 'scipy', 'paramiko'
+        'numpy', 'scipy',, 'PyQt5>=5.12.2', 'rpyc>=4.1.0', 'appdirs>=1.4.3',
+        'pyqtgraph>=0.10.0', 'paramiko>=2.4.2'
     ],
     include_package_data=True
 )
