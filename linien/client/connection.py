@@ -50,8 +50,8 @@ class Connection(BaseClient):
                     run_server(host, self.user, self.password)
                     sleep(3)
                 else:
-                    if i < 10:
-                        print('server still not running, waiting...')
+                    if i < 20:
+                        print('server still not running, waiting (this may take some time)...')
                         sleep(1)
                     else:
                         print_exc()

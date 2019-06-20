@@ -1,5 +1,6 @@
 import os
 import paramiko
+from plumbum import colors
 
 import linien
 from linien.config import REMOTE_BASE_PATH
@@ -7,10 +8,15 @@ from linien.client.exceptions import InvalidServerVersionException, \
     ServerNotInstalledException
 
 
-def run_server(host, user, password):
+def connect_ssh(host, user, password):
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     ssh.connect(hostname=host, username=user, password=password)
+    return ssh
+
+
+def run_server(host, user, password):
+    ssh = connect_ssh(host, user, password)
 
     version = linien.__version__
 
@@ -27,9 +33,10 @@ def run_server(host, user, password):
             ('cd %s/../;' % REMOTE_BASE_PATH) +
             ('bash %s/server/linien_start_server' % REMOTE_BASE_PATH)
         )
-        # FIXME: output?
-        print('OUT', stdout.read())
-        print('ERR', stderr.read())
+        err = stderr.read()
+        if err:
+            print(colors.red | 'Error starting the server')
+            print(err)
     else:
         # it is a release and not a dev version.
 
