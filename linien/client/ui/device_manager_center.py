@@ -1,4 +1,7 @@
 from PyQt5 import QtGui, QtWidgets, QtCore
+from traceback import print_exc
+from paramiko.ssh_exception import AuthenticationException
+
 from linien.client.config import load_device_data, save_device_data
 from linien.client.widgets import CustomWidget
 from linien.client.ui.new_device_dialog import Ui_NewDeviceDialog
@@ -47,9 +50,6 @@ class DeviceManagerCenter(QtGui.QWidget, CustomWidget):
                 conn = Connection(device['host'], device['username'], device['password'])
                 connected = True
 
-            except GeneralConnectionErrorException:
-                display_error = "Unable to connect to device."
-
             except ServerNotInstalledException:
                 display_question = """The server is not yet installed on the device. Should it be installed?"""
                 question_callback = lambda: \
@@ -62,6 +62,19 @@ class DeviceManagerCenter(QtGui.QWidget, CustomWidget):
                     % (e.remote_version, e.client_version)
                 question_callback = lambda v=e.client_version: \
                     self.install_linien_server(device, version=v)
+
+            except AuthenticationException:
+                display_error = 'Error at SSH authentication. ' \
+                      'Check username and password and verify that you ' \
+                      'don\'t have any offending SSH keys in your known ' \
+                      'hosts file.'
+
+            except GeneralConnectionErrorException:
+                display_error = "Unable to connect to device."
+
+            except Exception as e:
+                print_exc()
+                display_error = 'Exception occured when connecting to the device.'
 
             self.loading_dialog.hide()
 
