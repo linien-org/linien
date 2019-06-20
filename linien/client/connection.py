@@ -2,6 +2,8 @@ import linien
 
 from time import sleep
 from socket import gaierror
+from plumbum import colors
+from traceback import print_exc
 
 from linien.config import SERVER_PORT
 from linien.client.utils import run_server
@@ -35,26 +37,26 @@ class Connection(BaseClient):
             i += 1
 
             try:
-                print('try to connect', host, port)
+                print('try to connect to %s:%s' % (host, port))
                 self._connect(host, port, use_parameter_cache)
                 break
             except gaierror:
                 # host not found
-                print('host not found')
+                print(colors.red | 'Error: host %s not found' % host)
                 break
             except Exception as e:
-                print('connection error', e)
-
                 if i == 0:
-                    print('start server')
+                    print('server is not running. Launching it!')
                     run_server(host, self.user, self.password)
-
-                    sleep(7)
-
-            sleep(1)
-
-            if i == 10:
-                break
+                    sleep(3)
+                else:
+                    if i < 10:
+                        print('server still not running, waiting...')
+                        sleep(1)
+                    else:
+                        print_exc()
+                        print(colors.red | 'Error: connection to the server could not be established')
+                        break
 
         if self.connection is None:
             raise GeneralConnectionErrorException()
@@ -66,7 +68,7 @@ class Connection(BaseClient):
         if remote_version != client_version:
             raise InvalidServerVersionException(client_version, remote_version)
 
-        print('connected', host, port)
+        print(colors.green | 'connected established!')
 
     def disconnect(self):
         self.connection.close()
