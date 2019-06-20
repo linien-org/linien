@@ -30,19 +30,20 @@ from .xadc import XADC
 from .delta_sigma import DeltaSigma
 from .dna import DNA
 from .lfsr import XORSHIFTGen
+from .modulate import Modulate
+from .sweep import SweepCSR
+from .limit import LimitCSR
 
 
 class ScopeGen(Module, AutoCSR):
     def __init__(self, width=25):
         self.gpio_trigger = Signal()
-        self.sweep_trigger_a = Signal()
-        self.sweep_trigger_b = Signal()
+        self.sweep_trigger = Signal()
 
-        self.external_trigger = CSRStorage(2)
+        self.external_trigger = CSRStorage(1)
         ext_scope_trigger = Array([
             self.gpio_trigger,
-            self.sweep_trigger_a,
-            self.sweep_trigger_b
+            self.sweep_trigger
         ])[self.external_trigger.storage]
 
         self.scope_sys = Record(sys_layout)
@@ -110,11 +111,20 @@ class ScopeGen(Module, AutoCSR):
 
 class PIDCSR(Module, AutoCSR):
     def __init__(self):
-        self.sync_phase = Signal()
-        self.state_in = [self.sync_phase]
+        self.state_in = []
         self.signal_in = []
         self.state_out = []
         self.signal_out = []
+
+        width = 14
+        self.submodules.mod = Modulate(width=width)
+        self.submodules.sweep = SweepCSR(width=width, step_width=24, step_shift=18)
+        self.submodules.limit = LimitCSR(width=width, guard=3)
+
+        self.comb += [
+            self.sweep.clear.eq(0),
+            self.sweep.hold.eq(0)
+        ]
 
 
 class Pid(Module, AutoCSR):
@@ -151,12 +161,8 @@ class Pid(Module, AutoCSR):
         self.submodules.dna = DNA(version=2)
 
         s, c = 25, 18
-        self.submodules.fast_a = FastChain(14, s, c)
-        self.submodules.fast_b = FastChain(14, s, c)
-        self.comb += [
-            self.fast_a.mod.sync_phase.eq(self.root.sync_phase),
-            self.fast_b.mod.sync_phase.eq(self.root.sync_phase)
-        ]
+        self.submodules.fast_a = FastChain(14, s, c, self.root.mod)
+        self.submodules.fast_b = FastChain(14, s, c, self.root.mod)
         sys_slow = ClockDomainsRenamer("sys_slow")
         self.submodules.slow_a = sys_slow(SlowChain(16, s, c))
         self.slow_a.iir.interval.value.value *= 15
@@ -178,15 +184,24 @@ class Pid(Module, AutoCSR):
             ("root", self.root)
         ])
 
+        width = 14
+        out = Signal((width + 3, True))
+
+        self.sync += out.eq(
+            self.fast_a.dac + self.fast_b.dac + self.root.sweep.y
+        )
+
         self.comb += [
                 self.scopegen.gpio_trigger.eq(self.gpio_p.i[0]),
-                self.scopegen.sweep_trigger_a.eq(self.fast_a.sweep.sweep.trigger),
-                self.scopegen.sweep_trigger_b.eq(self.fast_b.sweep.sweep.trigger),
+                self.scopegen.sweep_trigger.eq(self.root.sweep.sweep.trigger),
 
                 self.fast_a.adc.eq(self.analog.adc_a),
                 self.fast_b.adc.eq(self.analog.adc_b),
-                self.analog.dac_a.eq(self.fast_a.dac),
-                self.analog.dac_b.eq(self.fast_b.dac),
+
+                self.analog.dac_a.eq(self.root.mod.y),
+                self.root.limit.x.eq(out),
+                self.analog.dac_b.eq(self.root.limit.y),
+
                 self.slow_a.adc.eq(self.xadc.adc[0] << 4),
                 self.ds0.data.eq(self.slow_a.dac),
                 self.slow_b.adc.eq(self.xadc.adc[1] << 4),

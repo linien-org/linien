@@ -21,13 +21,11 @@ from misoc.interconnect.csr import AutoCSR, CSRStorage, CSRStatus, CSR
 from .iir import Iir
 from .pid import PID
 from .limit import LimitCSR
-from .sweep import SweepCSR
-from .relock import Relock
 from .modulate import Modulate, Demodulate
 
 
 class FastChain(Module, AutoCSR):
-    def __init__(self, width=14, signal_width=25, coeff_width=18):
+    def __init__(self, width=14, signal_width=25, coeff_width=18, mod=None):
         self.adc = Signal((width, True))
         self.dac = Signal((width, True))
 
@@ -43,12 +41,9 @@ class FastChain(Module, AutoCSR):
         y_clear = Signal()
         y_sat = Signal()
         y_railed = Signal()
-        relock = Signal()
-        unlocked = Signal()
-        sweep_trigger = Signal()
 
-        self.state_in = x_hold, x_clear, y_hold, y_clear, relock
-        self.state_out = x_sat, x_railed, y_sat, y_railed, unlocked
+        self.state_in = x_hold, x_clear, y_hold, y_clear
+        self.state_out = x_sat, x_railed, y_sat, y_railed
 
         x = Signal((signal_width, True))
         dx = Signal((signal_width, True))
@@ -59,7 +54,7 @@ class FastChain(Module, AutoCSR):
         pid_out = Signal((signal_width, True))
 
         self.signal_in = dx, dy, rx
-        self.signal_out = x, y, sweep_trigger
+        self.signal_out = x, y
 
         ###
 
@@ -82,11 +77,11 @@ class FastChain(Module, AutoCSR):
         self.submodules.iir_e = Iir(
             width=2*coeff_width, coeff_width=signal_width,
             shift=signal_width-2, order=2, mode="iterative")
-        self.submodules.relock = Relock(
-            width=width + 1, step_width=24, step_shift=16)
-        self.submodules.sweep = SweepCSR(
-            width=width, step_width=24, step_shift=18)
-        self.submodules.mod = Modulate(width=width)
+
+        if mod is None:
+            self.submodules.mod = Modulate(width=width)
+            mod = self.mod
+
         self.submodules.y_limit = LimitCSR(width=width, guard=3)
 
         ###
@@ -101,7 +96,7 @@ class FastChain(Module, AutoCSR):
             self.iir_a.clear.eq(x_clear),
 
             self.demod.x.eq(self.iir_a.y >> s),
-            self.demod.phase.eq(self.mod.phase),
+            self.demod.phase.eq(mod.phase),
 
             self.iir_b.x.eq(self.demod.y << s1),
             self.iir_b.hold.eq(x_hold),
@@ -139,15 +134,6 @@ class FastChain(Module, AutoCSR):
                 (self.iir_d.error & (self.y_tap.storage > 2)) |
                 (self.iir_e.error & (self.y_tap.storage > 3))
             ),
-
-            self.sweep.clear.eq(0),
-            self.sweep.hold.eq(0),
-            sweep_trigger.eq(self.sweep.sweep.trigger),
-
-            self.relock.x.eq(rx >> s),
-            self.relock.clear.eq(self.y_limit.error),
-            self.relock.hold.eq(relock),
-            unlocked.eq(self.relock.error)
         ]
         ya = Signal((width + 3, True))
         ys = Array([self.iir_c.x, self.iir_c.y,
@@ -159,9 +145,7 @@ class FastChain(Module, AutoCSR):
             pid_out.eq(self.pid.pid_out << s)
         ]
 
-        self.sync += ya.eq(
-            (self.mod.y + (dy >> s)) +
-            (self.sweep.y + self.relock.y)),
+        self.sync += ya.eq(((dy >> s))),
         self.comb += [
             self.y_limit.x.eq((ys[self.y_tap.storage] >> s) + ya),
             y.eq(self.y_limit.y << s),

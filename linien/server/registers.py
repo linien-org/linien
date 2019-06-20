@@ -46,25 +46,25 @@ class Registers:
         demod_multiplier = params['demodulation_multiplier']
 
         new = dict(
-            # channel B (channel for ramping and PID)
+            root_sweep_run=1,
+            root_sweep_step=int(
+                DEFAULT_RAMP_SPEED * params['ramp_amplitude']
+                / (2 ** params['ramp_speed'])
+            ),
+            root_sweep_min=sweep_min,
+            root_sweep_max=sweep_max,
+
+            root_mod_freq=params['modulation_frequency'],
+            root_mod_amp=params['modulation_amplitude'],
+
+            # channel B
             fast_b_x_tap=2,
             fast_b_demod_delay=demod_delay,
             fast_b_demod_multiplier=demod_multiplier,
             fast_b_brk=0,
             fast_b_dx_sel=self.rp.signal("scopegen_dac_a"),
             fast_b_y_tap=4,
-
-            fast_b_sweep_run=1,
-            fast_b_sweep_step=int(
-                DEFAULT_RAMP_SPEED * params['ramp_amplitude']
-                / (2 ** params['ramp_speed'])
-            ),
-            fast_b_sweep_min=sweep_min,
-            fast_b_sweep_max=sweep_max,
             fast_b_dy_sel=self.rp.signal("scopegen_dac_b"),
-
-            fast_b_mod_freq=params['modulation_frequency'],
-            fast_b_mod_amp=0x0,
 
             fast_b_relock_run=0,
             fast_b_relock_en=self.rp.states(),
@@ -72,14 +72,11 @@ class Registers:
             fast_b_y_clear_en=self.rp.states(),
             fast_b_rx_sel=self.rp.signal('zero'),
 
-            # channel A (channel for modulation)
+            # channel A
             fast_a_brk=1,
-            fast_a_mod_amp=params['modulation_amplitude'],
-            fast_a_mod_freq=params['modulation_frequency'],
             fast_a_x_tap=2,
             fast_a_demod_delay=demod_delay,
             fast_a_demod_multiplier=demod_multiplier,
-            fast_a_sweep_run=0,
             fast_a_pid_kp=0,
             fast_a_pid_ki=0,
             fast_a_pid_kd=0,
@@ -88,7 +85,7 @@ class Registers:
             scopegen_adc_a_sel=self.rp.signal("fast_b_x"),
             scopegen_adc_b_sel=self.rp.signal("fast_b_y"),
             # trigger on ramp
-            scopegen_external_trigger=2,
+            scopegen_external_trigger=1,
 
             gpio_p_oes=0,
             gpio_n_oes=0,
@@ -100,6 +97,7 @@ class Registers:
             gpio_n_do1_en=self.rp.signal('zero'),
 
             # asg offset (is not set via ssh but via rpyc)
+            # FIXME: das muss anders laufen
             asga_offset=int(params['offset']),
             asgb_offset=int(params['center'] * 8191),
         )
@@ -108,7 +106,7 @@ class Registers:
         lock = params['lock']
         self.control.exposed_is_locked = lock
 
-        new['fast_b_sweep_run'] = 0 if lock else 1
+        new['root_sweep_run'] = 0 if lock else 1
 
         # filter out values that did not change
         new = dict(
@@ -130,18 +128,18 @@ class Registers:
                 pass
 
         # pass ramp speed changes to acquisition process
-        if 'fast_b_sweep_step' in new:
+        if 'root_sweep_step' in new:
             self.acquisition.set_ramp_speed(params['ramp_speed'])
 
         for k, v in new.items():
             self.rp.set(k, int(v))
 
-        if 'fast_b_sweep_step' in new:
+        if 'root_sweep_step' in new:
             # reset sweep for a short time if the scan range was changed
             # this is needed because otherwise it may take too long before
             # the new scan range is reached --> no scope trigger is sent
-            self.rp.set('fast_b_sweep_run', 0)
-            self.rp.set('fast_b_sweep_run', 1)
+            self.rp.set('root_sweep_run', 0)
+            self.rp.set('root_sweep_run', 1)
 
         kp = params['p']
         ki = params['i']
@@ -150,9 +148,6 @@ class Registers:
 
         if lock_changed:
             if lock:
-                # sync modulation phases
-                self.sync_modulation_phases()
-
                 # set PI parameters
                 self.set_pid(kp, ki, kd, slope, reset=0)
             else:
@@ -173,12 +168,6 @@ class Registers:
 
             # reset "hold"
             self.hold_pid(False)
-
-        self.sync_modulation_phases()
-
-    def sync_modulation_phases(self):
-        self.rp.set('root_sync_phase_en', self.rp.states('force'))
-        self.rp.set('root_sync_phase_en', self.rp.states())
 
     def run_data_acquisition(self, on_change):
         self.acquisition = AcquisitionMaster(
