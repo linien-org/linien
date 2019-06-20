@@ -22,13 +22,11 @@ class DataAcquisitionService(Service):
         self.r = RedPitaya()
 
         self.data = pickle.dumps(None)
-        self.data_retrieval_time = None
 
         super(DataAcquisitionService, self).__init__()
 
         self.exposed_set_ramp_speed(9)
         self.locked = False
-        self.start_time = time()
 
         self.run()
 
@@ -51,27 +49,11 @@ class DataAcquisitionService(Service):
                 self.r.scope.trigger_delay = trigger_delay - 1
                 self.data = pickle.dumps(data)
 
-                if self.data_retrieval_time is None and (time() - self.start_time > 5):
-                    # acquisition process is up and running but server did not poll
-                    # anything. Maybe it died, so should we
-                    print('neverpoll')
-                    return shutdown()
-
-                if self.data_retrieval_time is not None:
-                    # FIXME: increased this timeout, still necessary?
-                    if time() - self.data_retrieval_time > 5:
-                        print('nopoll')
-                        # the parent process did not poll for more than 2 seconds.
-                        # This probably means that it died, so shut down this
-                        # child process, too
-                        return shutdown()
-
         self.t = threading.Thread(target=run_acquiry_loop, args=())
         self.t.daemon = True
         self.t.start()
 
     def exposed_return_data(self):
-        self.data_retrieval_time = time()
         return self.data[:]
 
     def exposed_set_asg_offset(self, idx, value):

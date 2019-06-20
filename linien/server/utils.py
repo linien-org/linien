@@ -13,9 +13,5 @@ def start_nginx():
     subprocess.Popen(['systemctl', 'start', 'redpitaya_nginx.service'])
 
 
-def start_acquisition_process():
-    subprocess.Popen(['python3', REMOTE_BASE_PATH + '/server/acquisition_process.py'])
-
-
 def flash_fpga():
     shutil.copyfile('redpid.bin', '/dev/xdevcfg')

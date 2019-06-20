@@ -23,8 +23,13 @@ def run_server(host, user, password):
         # For that, go to the parent directory; an import of "linien" then
         # points to that directory instead of any globally installed release
         # version.
-        ssh.exec_command('cd %s/../' % REMOTE_BASE_PATH)
-        ssh.exec_command('bash %s/server/linien_start_server' % REMOTE_BASE_PATH)
+        stdin, stdout, stderr = ssh.exec_command(
+            ('cd %s/../;' % REMOTE_BASE_PATH) +
+            ('bash %s/server/linien_start_server' % REMOTE_BASE_PATH)
+        )
+        # FIXME: output?
+        print('OUT', stdout.read())
+        print('ERR', stderr.read())
     else:
         # it is a release and not a dev version.
 
@@ -33,7 +38,7 @@ def run_server(host, user, password):
         print('remote version', remote_version, 'local version', version)
 
         if version != remote_version:
-            raise InvalidServerVersionException()
+            raise InvalidServerVersionException(version, remote_version)
 
         # start the server process using the global command
         ssh.exec_command('linien_start_server')

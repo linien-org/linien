@@ -52,9 +52,11 @@ class QTApp(QtCore.QObject):
         for instance in CustomWidget.instances:
             instance.connection_established()
 
-        self.parameters.call_listeners()
+        self.call_listeners()
 
-        QtCore.QTimer.singleShot(100, lambda: self.parameters.call_listeners)
+    def call_listeners(self):
+        self.parameters.call_listeners()
+        QtCore.QTimer.singleShot(100, self.call_listeners)
 
     def get_widget(self, name, window=None):
         """Queries a widget by name."""

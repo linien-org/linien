@@ -26,7 +26,7 @@ class Connection(BaseClient):
 
         self.control = self.connection.root
 
-    def connect(self, host, port):
+    def connect(self, host, port, use_parameter_cache):
         self.connection = None
 
         i = -1
@@ -36,7 +36,7 @@ class Connection(BaseClient):
 
             try:
                 print('try to connect', host, port)
-                self._connect(host, port)
+                self._connect(host, port, use_parameter_cache)
                 break
             except gaierror:
                 # host not found
