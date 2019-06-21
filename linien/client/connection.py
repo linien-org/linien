@@ -4,13 +4,51 @@ from time import sleep
 from socket import gaierror
 from plumbum import colors
 from traceback import print_exc
+from PyQt5.QtCore import QThread, pyqtSignal
+from paramiko.ssh_exception import AuthenticationException
 
 from linien.config import SERVER_PORT
 from linien.client.utils import run_server
 from linien.client.config import save_parameter, get_saved_parameters
 from linien.client.exceptions import GeneralConnectionErrorException, \
-    InvalidServerVersionException
+    InvalidServerVersionException, ServerNotInstalledException
 from linien.communication.client import BaseClient
+
+
+
+class ConnectionThread(QThread):
+    connected = pyqtSignal(object, int)
+    server_not_installed = pyqtSignal()
+    invalid_server_version = pyqtSignal(str, str)
+    authentication_exception = pyqtSignal()
+    general_connection_error = pyqtSignal()
+    exception = pyqtSignal()
+
+    def __init__(self, device):
+        super().__init__()
+
+        self.device = device
+
+    def run(self):
+        try:
+            conn = Connection(self.device)
+            self.connected.emit(conn)
+
+        except ServerNotInstalledException:
+            return self.server_not_installed.emit()
+
+        except InvalidServerVersionException as e:
+            return self.invalid_server_version.emit(e.remote_version, e.client_version)
+
+        except AuthenticationException:
+            return self.authentication_exception.emit()
+
+        except GeneralConnectionErrorException:
+            return self.general_connection_error.emit()
+
+        except Exception as e:
+            print_exc()
+            return self.exception.emit()
 
 
 class Connection(BaseClient):
@@ -96,6 +134,9 @@ class Connection(BaseClient):
             getattr(self.parameters, param).change(on_change)
 
     def restore_parameters(self):
+        # FIXME: disabled
+        print('NOT RESTORING!')
+        return
         params = get_saved_parameters(self.device['key']).items()
 
         for k, v in params:

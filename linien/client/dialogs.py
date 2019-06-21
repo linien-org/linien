@@ -1,5 +1,6 @@
 import paramiko
 
+from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QApplication, QWidget, QListWidget, QVBoxLayout, QLabel, QPushButton, QListWidgetItem, \
     QHBoxLayout, QDialog, QMessageBox
 from pyqtgraph import QtCore
@@ -8,19 +9,20 @@ from linien.client.utils import connect_ssh
 
 
 class SSHCommandOutputWidget(QListWidget):
+    command_ended = pyqtSignal()
+
     def __init__(self, *args):
         super().__init__(*args)
         self.setSelectionMode(self.NoSelection)
 
-    def execute(self, ssh, command, after_command):
-        self.after_command = after_command
+    def execute(self, ssh, command):
         self.stdin, self.stdout, self.stderr = ssh.exec_command(command)
         self.addItem('>>> %s' % command)
         self.show_output()
 
     def show_output(self):
         if self.stdout.channel.exit_status_ready():
-            return self.after_command()
+            return self.command_ended.emit()
         else:
             for output in (self.stdout, self.stderr):
                 buf = b''
@@ -51,22 +53,29 @@ def execute_command(parent, host, user, password, command, callback):
     def after_command():
         window.hide()
         callback()
+    widget.command_ended.connect(after_command)
 
-    widget.execute(ssh, command, callback)
+    widget.execute(ssh, command)
 
     return window
 
 
-def loading_dialog(parent, host):
-    dialog = QMessageBox(parent)
-    dialog.setIcon(QMessageBox.Information)
-    dialog.setText('Connecting to %s' % host)
-    dialog.setWindowTitle('Connecting')
-    dialog.setModal(True)
-    dialog.setWindowModality(QtCore.Qt.WindowModal)
-    dialog.setStandardButtons(QMessageBox.NoButton)
-    dialog.show()
-    return dialog
+class LoadingDialog(QMessageBox):
+    aborted = pyqtSignal()
+
+    def __init__(self, parent, host):
+        super().__init__(parent)
+
+        self.setIcon(QMessageBox.Information)
+        self.setText('Connecting to %s' % host)
+        self.setWindowTitle('Connecting')
+        self.setModal(True)
+        self.setWindowModality(QtCore.Qt.WindowModal)
+        self.setStandardButtons(QMessageBox.NoButton)
+        self.show()
+
+    def closeEvent(self, *args):
+        self.aborted.emit()
 
 
 def error_dialog(parent, error):

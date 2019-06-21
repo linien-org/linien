@@ -1,14 +1,12 @@
 from PyQt5 import QtGui, QtWidgets, QtCore
+from threading import Thread
 from traceback import print_exc
-from paramiko.ssh_exception import AuthenticationException
 
 from linien.client.config import load_device_data, save_device_data
 from linien.client.widgets import CustomWidget
 from linien.client.ui.new_device_dialog import Ui_NewDeviceDialog
-from linien.client.connection import Connection
-from linien.client.exceptions import GeneralConnectionErrorException, \
-    ServerNotInstalledException, InvalidServerVersionException
-from linien.client.dialogs import loading_dialog, error_dialog, execute_command, \
+from linien.client.connection import ConnectionThread
+from linien.client.dialogs import LoadingDialog, error_dialog, execute_command, \
     question_dialog
 
 
@@ -39,56 +37,66 @@ class DeviceManagerCenter(QtGui.QWidget, CustomWidget):
         self.connect_to_device(devices[self.get_list_index()])
 
     def connect_to_device(self, device):
-        self.loading_dialog = loading_dialog(self, device['host'])
+        loading_dialog = LoadingDialog(self, device['host'])
+        loading_dialog.show()
 
-        def do():
-            connected = False
-            display_error = None
-            display_question = None
+        aborted = {}
+        def was_aborted(*args):
+            aborted['aborted'] = True
+        loading_dialog.aborted.connect(was_aborted)
 
-            try:
-                conn = Connection(device)
-                connected = True
+        self.t = ConnectionThread(device)
 
-            except ServerNotInstalledException:
+        def connected(conn):
+            loading_dialog.hide()
+            if not aborted:
+                self.app().connected(conn, conn.parameters, conn.control)
+        self.t.connected.connect(connected)
+
+        def server_not_installed():
+            loading_dialog.hide()
+            if not aborted:
                 display_question = """The server is not yet installed on the device. Should it be installed?"""
-                question_callback = lambda: \
+                if question_dialog(self, display_question):
                     self.install_linien_server(device)
+        self.t.server_not_installed.connect(server_not_installed)
 
-            except InvalidServerVersionException as e:
+        def invalid_server_version(remote_version, client_version):
+            loading_dialog.hide()
+            if not aborted:
                 display_question = \
                     "The server version (%s) does not match the client (%s) version." \
                     "Should the corresponding server version be installed?" \
-                    % (e.remote_version, e.client_version)
-                question_callback = lambda v=e.client_version: \
-                    self.install_linien_server(device, version=v)
-
-            except AuthenticationException:
-                display_error = 'Error at SSH authentication. ' \
-                      'Check username and password and verify that you ' \
-                      'don\'t have any offending SSH keys in your known ' \
-                      'hosts file.'
-
-            except GeneralConnectionErrorException:
-                display_error = "Unable to connect to device."
-
-            except Exception as e:
-                print_exc()
-                display_error = 'Exception occured when connecting to the device.'
-
-            self.loading_dialog.hide()
-
-            if display_error:
-                error_dialog(self, display_error)
-
-            elif display_question:
+                    % (remote_version, client_version)
                 if question_dialog(self, display_question):
-                    question_callback()
+                    self.install_linien_server(device, version=client_version)
+        self.t.invalid_server_version.connect(invalid_server_version)
 
-            elif connected:
-                self.app().connected(conn, conn.parameters, conn.control)
+        def authentication_exception():
+            loading_dialog.hide()
+            if not aborted:
+                display_error = 'Error at SSH authentication. ' \
+                        'Check username and password and verify that you ' \
+                        'don\'t have any offending SSH keys in your known ' \
+                        'hosts file.'
+                error_dialog(self, display_error)
+        self.t.authentication_exception.connect(authentication_exception)
 
-        QtCore.QTimer.singleShot(100, do)
+        def general_connection_error():
+            loading_dialog.hide()
+            if not aborted:
+                display_error = "Unable to connect to device."
+                error_dialog(self, display_error)
+        self.t.general_connection_error.connect(general_connection_error)
+
+        def exception():
+            loading_dialog.hide()
+            if not aborted:
+                display_error = 'Exception occured when connecting to the device.'
+                error_dialog(self, display_error)
+        self.t.exception.connect(exception)
+
+        self.t.start()
 
     def install_linien_server(self, device, version=None):
         version_string = ''
