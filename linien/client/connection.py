@@ -17,7 +17,7 @@ from linien.communication.client import BaseClient
 
 
 class ConnectionThread(QThread):
-    connected = pyqtSignal(object, int)
+    connected = pyqtSignal(object)
     server_not_installed = pyqtSignal()
     invalid_server_version = pyqtSignal(str, str)
     authentication_exception = pyqtSignal()
