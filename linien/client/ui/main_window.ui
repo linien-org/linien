@@ -592,15 +592,15 @@
           </size>
          </property>
          <property name="currentIndex">
-          <number>2</number>
+          <number>0</number>
          </property>
          <widget class="SpectroscopyPanel" name="page">
           <property name="geometry">
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>227</width>
-            <height>82</height>
+            <width>250</width>
+            <height>498</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -622,8 +622,8 @@
               <property name="geometry">
                <rect>
                 <x>0</x>
-                <y>0</y>
-                <width>211</width>
+                <y>-18</y>
+                <width>220</width>
                 <height>500</height>
                </rect>
               </property>
@@ -873,8 +873,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>104</width>
-            <height>31</height>
+            <width>250</width>
+            <height>465</height>
            </rect>
           </property>
           <attribute name="label">
@@ -896,7 +896,7 @@
             <x>0</x>
             <y>0</y>
             <width>250</width>
-            <height>498</height>
+            <height>465</height>
            </rect>
           </property>
           <property name="sizePolicy">

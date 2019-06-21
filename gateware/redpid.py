@@ -110,20 +110,23 @@ class ScopeGen(Module, AutoCSR):
 
 
 class PIDCSR(Module, AutoCSR):
-    def __init__(self):
+    def __init__(self, width=14, signal_width=25):
+        control_signal = Signal((signal_width, True))
+        s = signal_width - width
+
         self.state_in = []
         self.signal_in = []
         self.state_out = []
-        self.signal_out = []
+        self.signal_out = [control_signal]
 
-        width = 14
         self.submodules.mod = Modulate(width=width)
         self.submodules.sweep = SweepCSR(width=width, step_width=24, step_shift=18)
         self.submodules.limit = LimitCSR(width=width, guard=3)
 
         self.comb += [
             self.sweep.clear.eq(0),
-            self.sweep.hold.eq(0)
+            self.sweep.hold.eq(0),
+            control_signal.eq(self.limit.y << s)
         ]
 
 

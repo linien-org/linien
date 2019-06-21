@@ -68,6 +68,8 @@ def read_remote_version(ssh):
 
 def upload_source_code(ssh):
     """Uploads the application's source code to the remote server using SFTP."""
+    print('uploading dev source code..')
+
     ftp = ssh.open_sftp()
 
     directory = os.path.abspath(

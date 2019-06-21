@@ -66,8 +66,6 @@ class Registers:
             fast_b_y_tap=4,
             fast_b_dy_sel=self.rp.signal("scopegen_dac_b"),
 
-            fast_b_relock_run=0,
-            fast_b_relock_en=self.rp.states(),
             fast_b_y_hold_en=self.rp.states(),
             fast_b_y_clear_en=self.rp.states(),
             fast_b_rx_sel=self.rp.signal('zero'),
@@ -83,7 +81,7 @@ class Registers:
             fast_a_dy_sel=self.rp.signal('zero'),
 
             scopegen_adc_a_sel=self.rp.signal("fast_b_x"),
-            scopegen_adc_b_sel=self.rp.signal("fast_b_y"),
+            scopegen_adc_b_sel=self.rp.signal("root_control_signal"),
             # trigger on ramp
             scopegen_external_trigger=1,
 
