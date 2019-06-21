@@ -91,14 +91,21 @@ class DeviceManagerCenter(QtGui.QWidget, CustomWidget):
         QtCore.QTimer.singleShot(100, do)
 
     def install_linien_server(self, device, version=None):
-        # FIXME: when a specific version is installed: kill screen of old session?
         version_string = ''
+        stop_server_command = ''
+
         if version is not None:
             version_string = '==' + version
+            # stop server if another version of linien is installed
+            stop_server_command = 'linien_stop_server;'
 
         self.ssh_command = execute_command(
             self, device['host'], device['username'], device['password'],
-            'pip3 install linien-server%s; linien_install_requirements;' % version_string,
+            (
+                '%s; '
+                'pip3 install linien-server%s; '
+                'linien_install_requirements; '
+            ) % (stop_server_command, version_string),
             lambda: self.connect_to_device(device)
         )
 

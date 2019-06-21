@@ -24,6 +24,7 @@ setuptools.setup(
     ],
     scripts=[
         'linien/server/linien_start_server',
+        'linien/server/linien_stop_server',
         'linien/server/linien_install_requirements'
     ],
     include_package_data=True

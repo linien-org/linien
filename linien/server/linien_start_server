@@ -8,7 +8,7 @@
 pth=`python3 -c 'import linien; print(linien.__path__[0]);'`
 
 # quit any remaining screen session
-screen -X -S spectrolockserver quit
+linien_stop_server
 # start a new one
 screen -S spectrolockserver -d -m
 
