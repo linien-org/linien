@@ -60,7 +60,7 @@ Linien running on RedPitaya can not only be controlled using the GUI but also by
     print(c.parameters.modulation_frequency.value / MHz)
 
     # set modulation amplitude
-    c.parameters.modulation_amplitude = 1 * Vpp
+    c.parameters.modulation_amplitude.value = 1 * Vpp
     c.connection.root.write_data()
 
 For a full list of parameters that can be controlled have a look at `parameters.py <https://github.com/hermitdemschoenenleben/linien/blob/master/linien/server/parameters.py>`_.
