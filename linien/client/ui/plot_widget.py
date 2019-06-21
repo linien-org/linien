@@ -15,7 +15,7 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         super().__init__(*args, **kwargs)
 
         self.hideAxis('bottom')
-        self.hideAxis('left')
+        #self.hideAxis('left')
 
         self.setMouseEnabled(x=False, y=False)
         self.setMenuEnabled(False)
@@ -209,17 +209,14 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
 
 
     def update_plot_scaling(self, error_signal):
-        self.plot_max = np.max([-1 * self.plot_min, self.plot_max, math.ceil(np.max(error_signal))])
-        self.plot_min = np.min([-1 * self.plot_max, self.plot_min, math.floor(np.min(error_signal))])
-
         if time() - self.last_plot_rescale > 2:
-            plot_min = math.floor(self.plot_min)
-            plot_max = math.ceil(self.plot_max)
+            self.plot_min = math.floor(np.min(error_signal))
+            self.plot_max = math.ceil(np.max(error_signal))
 
-            if plot_min == plot_max:
-                plot_max += 1
+            if self.plot_min == self.plot_max:
+                self.plot_max += 1
 
-            self.setYRange(plot_min, plot_max)
+            self.setYRange(self.plot_min, self.plot_max)
 
             self.last_plot_rescale = time()
 

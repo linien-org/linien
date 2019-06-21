@@ -14,6 +14,7 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
         self.ids.lock_control_container.currentChanged.connect(self.lock_mode_changed)
 
         self.ids.manualLockButton.clicked.connect(self.start_manual_lock)
+        self.ids.autoOffsetCheckbox.stateChanged.connect(self.auto_offset_changed)
 
     def connection_established(self):
         params = self.app().parameters
@@ -31,6 +32,9 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
         )
         params.watch_lock.change(
             lambda value: self.ids.watchLockCheckbox.setChecked(value)
+        )
+        params.autolock_determine_offset.change(
+            lambda value: self.ids.autoOffsetCheckbox.setChecked(value)
         )
         params.automatic_mode.change(
             lambda value: self.ids.lock_control_container.setCurrentIndex(0 if value else 1)
@@ -75,3 +79,6 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
         self.parameters.target_slope_rising.value = self.ids.button_slope_rising.isChecked()
         self.control.write_data()
         self.control.start_lock()
+
+    def auto_offset_changed(self):
+        self.parameters.autolock_determine_offset.value = int(self.ids.autoOffsetCheckbox.checkState())

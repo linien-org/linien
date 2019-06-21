@@ -27,7 +27,7 @@ class Autolock:
         self.parameters.autolock_locked.value = False
         self.parameters.autolock_watching.value = False
 
-    def run(self, x0, x1, spectrum, should_watch_lock=False):
+    def run(self, x0, x1, spectrum, should_watch_lock=False, auto_offset=True):
         """Starts the autolock.
 
         If `should_watch_lock` is specified, the autolock continuously monitors
@@ -38,6 +38,7 @@ class Autolock:
         self.parameters.autolock_running.value = True
         self.x0, self.x1 = int(x0), int(x1)
         self.should_watch_lock = should_watch_lock
+        self.auto_offset = auto_offset
 
         self.parameters.autolock_approaching.value = True
         self.record_first_error_signal(spectrum)
@@ -119,7 +120,8 @@ class Autolock:
         mean_signal, target_slope_rising, target_zoom, rolled_error_signal = \
             get_lock_point(error_signal, self.x0, self.x1)
 
-        self.parameters.offset.value -= mean_signal
+        if self.auto_offset:
+            self.parameters.offset.value -= mean_signal
         self.parameters.target_slope_rising.value = target_slope_rising
         self.control.exposed_write_data()
 

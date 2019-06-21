@@ -69,6 +69,7 @@ class Parameters(BaseParameters):
         self.autolock_watching = Parameter(start=False)
         self.autolock_failed = Parameter(start=False)
         self.autolock_locked = Parameter(start=False)
+        self.autolock_determine_offset = Parameter(start=True)
 
         self.watch_lock = Parameter(start=True)
         self.control_signal_history = Parameter(start={

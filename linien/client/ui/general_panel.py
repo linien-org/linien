@@ -15,9 +15,12 @@ class GeneralPanel(QtGui.QWidget, CustomWidget):
         self.control = self.app().control
         self.parameters = params
 
-        params.ramp_on_slow.change(
-            lambda value: self.ids.rampOnSlow.setChecked(value)
-        )
+        def ramp_on_slow_param_changed(value):
+            self.ids.rampOnSlow.setChecked(value)
+            self.ids.explainSweepOnAnalog.setVisible(value)
+            self.ids.explainNoSweepOnAnalog.setVisible(not value)
+
+        params.ramp_on_slow.change(ramp_on_slow_param_changed)
 
     def ramp_on_slow_changed(self):
         self.parameters.ramp_on_slow.value = int(self.ids.rampOnSlow.checkState() > 0)

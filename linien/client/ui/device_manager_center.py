@@ -111,7 +111,7 @@ class DeviceManagerCenter(QtGui.QWidget, CustomWidget):
             self, device['host'], device['username'], device['password'],
             (
                 '%s; '
-                'pip3 install linien-server%s; '
+                'pip3 install linien-server%s --no-cache-dir; '
                 'linien_install_requirements; '
             ) % (stop_server_command, version_string),
             lambda: self.connect_to_device(device)

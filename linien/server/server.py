@@ -7,7 +7,6 @@ import pickle
 import rpyc
 from rpyc.utils.server import ThreadedServer
 
-from registers import Registers
 from autolock import Autolock
 from parameters import Parameters
 
@@ -24,6 +23,7 @@ class RedPitayaControlService(BaseService):
         super().__init__(Parameters)
 
         #self.registers = Registers(host='rp-f0685a.local', user='root', password='zeilinger')
+        from registers import Registers
         self.registers = Registers()
         self.registers.connect(self, self.parameters)
 
@@ -43,14 +43,16 @@ class RedPitayaControlService(BaseService):
     def exposed_write_data(self):
         self.registers.write_registers()
 
-    def exposed_start_autolock(self, x0, x1, spectrum):
+    def exposed_start_autolock(self, x0, x1, spectrum, auto_offset=True):
         spectrum = pickle.loads(spectrum)
         start_watching = self.parameters.watch_lock.value
+        auto_offset = self.parameters.autolock_determine_offset.value
 
         if not self.parameters.autolock_running.value:
             autolock = Autolock(self, self.parameters)
             self.parameters.task.value = autolock
-            autolock.run(x0, x1, spectrum, should_watch_lock=start_watching)
+            autolock.run(x0, x1, spectrum, should_watch_lock=start_watching,
+                         auto_offset=auto_offset)
 
     def exposed_start_ramp(self):
         self.parameters.lock.value = False
@@ -94,8 +96,9 @@ class FakeRedPitayaControl(BaseService):
 
         def run():
             while True:
+                max_ = randint(0, 8191)
                 self.parameters.to_plot.value = pickle.dumps((
-                    [randint(-8192, 8192) for _ in range(16384)],
+                    [randint(-max_, max_) for _ in range(16384)],
                     list(_ - 8192 for _ in range(16384))
                 ))
                 sleep(.1)
@@ -113,10 +116,15 @@ class FakeRedPitayaControl(BaseService):
     def exposed_get_restorable_parameters(self):
         return self.parameters.restorable_parameters
 
+    def exposed_get_server_version(self):
+        import linien
+        return linien.__version__
+
 
 def run_server():
-    control = RedPitayaControlService()
-    #control = FakeRedPitayaControl()
+    #control = RedPitayaControlService()
+    # FIXME: FAKE
+    control = FakeRedPitayaControl()
     control.run_acquiry_loop()
     control.exposed_write_data()
 
