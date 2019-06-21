@@ -122,9 +122,8 @@ class FakeRedPitayaControl(BaseService):
 
 
 def run_server():
-    #control = RedPitayaControlService()
-    # FIXME: FAKE
-    control = FakeRedPitayaControl()
+    control = RedPitayaControlService()
+    #control = FakeRedPitayaControl()
     control.run_acquiry_loop()
     control.exposed_write_data()
 
