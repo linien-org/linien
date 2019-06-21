@@ -75,6 +75,9 @@ class RedPitayaControlService(BaseService):
         import linien
         return linien.__version__
 
+    def exposed_get_restorable_parameters(self):
+        return self.parameters.restorable_parameters
+
 
 class FakeRedPitayaControl(BaseService):
     def __init__(self):
@@ -106,6 +109,9 @@ class FakeRedPitayaControl(BaseService):
 
     def exposed_start_autolock(self, x0, x1, spectrum):
         print('start autolock', x0, x1)
+
+    def exposed_get_restorable_parameters(self):
+        return self.parameters.restorable_parameters
 
 
 def run_server():

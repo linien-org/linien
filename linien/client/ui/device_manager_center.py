@@ -47,7 +47,7 @@ class DeviceManagerCenter(QtGui.QWidget, CustomWidget):
             display_question = None
 
             try:
-                conn = Connection(device['host'], device['username'], device['password'])
+                conn = Connection(device)
                 connected = True
 
             except ServerNotInstalledException:

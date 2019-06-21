@@ -7,24 +7,27 @@ from traceback import print_exc
 
 from linien.config import SERVER_PORT
 from linien.client.utils import run_server
+from linien.client.config import save_parameter, get_saved_parameters
 from linien.client.exceptions import GeneralConnectionErrorException, \
     InvalidServerVersionException
 from linien.communication.client import BaseClient
 
 
 class Connection(BaseClient):
-    def __init__(self, host, user=None, password=None):
-        self.user = user
-        self.password = password
+    def __init__(self, device):
+        self.device = device
+        self.host = device['host']
+        self.user = device.get('username')
+        self.password = device.get('password')
 
-        if host in ('localhost', '127.0.0.1'):
+        if self.host in ('localhost', '127.0.0.1'):
             # RP is configured such that "localhost" doesn't point to
             # 127.0.0.1 in all cases
-            host = '127.0.0.1'
+            self.host = '127.0.0.1'
         else:
-            assert user and password
+            assert self.user and self.password
 
-        super().__init__(host, SERVER_PORT, True)
+        super().__init__(self.host, SERVER_PORT, True)
 
         self.control = self.connection.root
 
@@ -32,6 +35,7 @@ class Connection(BaseClient):
         self.connection = None
 
         i = -1
+        server_was_started = False
 
         while True:
             i += 1
@@ -47,6 +51,7 @@ class Connection(BaseClient):
             except Exception as e:
                 if i == 0:
                     print('server is not running. Launching it!')
+                    server_was_started = True
                     run_server(host, self.user, self.password)
                     sleep(3)
                 else:
@@ -70,5 +75,30 @@ class Connection(BaseClient):
 
         print(colors.green | 'connected established!')
 
+        if server_was_started:
+            self.restore_parameters()
+        self.prepare_parameter_restoring()
+
     def disconnect(self):
         self.connection.close()
+
+    def prepare_parameter_restoring(self):
+        """Listens for changes of some parameters and permanently saves their
+        values on the client's disk. This data can be used to restore the status
+        later, if the client tries to connect to the server but it doesn't run
+        anymore."""
+        params = self.parameters.remote.exposed_get_restorable_parameters()
+
+        for param in params:
+            def on_change(value, param=param):
+                save_parameter(self.device['key'], param, value)
+
+            getattr(self.parameters, param).change(on_change)
+
+    def restore_parameters(self):
+        params = get_saved_parameters(self.device['key']).items()
+
+        for k, v in params:
+            getattr(self.parameters, k).value = v
+
+        print('restored parameters: ', params)

@@ -32,3 +32,18 @@ def load_device_data():
         devices = []
 
     return devices
+
+
+def save_parameter(device_key, param, value):
+    devices = load_device_data()
+    device = [d for d in devices if d['key'] == device_key][0]
+    device.setdefault('params', {})
+    device['params'][param] = value
+    save_device_data(devices)
+
+
+def get_saved_parameters(device_key):
+    devices = load_device_data()
+    device = [d for d in devices if d['key'] == device_key][0]
+    device.setdefault('params', {})
+    return device['params']

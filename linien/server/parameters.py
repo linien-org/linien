@@ -5,6 +5,14 @@ class Parameters(BaseParameters):
     def __init__(self):
         super().__init__()
 
+        # parameters whose values are saved on the client and restored if no
+        # server is running
+        self.restorable_parameters = (
+            'modulation_amplitude', 'modulation_frequency', 'ramp_speed',
+            'demodulation_phase', 'demodulation_multiplier',
+            'p', 'i', 'd', 'watch_lock', 'ramp_on_slow'
+        )
+
         self.modulation_amplitude = Parameter(
             min_=0,
             max_=(1<<14) - 1,
