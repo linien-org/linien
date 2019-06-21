@@ -1,9 +1,8 @@
 import numpy as np
 from PyQt5 import QtGui
 from linien.client.widgets import CustomWidget
+from linien.client.connection import MHz, Vpp
 
-MHz = 0x10000000 / 8
-Vpp = ((1<<14) - 1) / 4
 
 class SpectroscopyPanel(QtGui.QWidget, CustomWidget):
     def __init__(self, *args, **kwargs):

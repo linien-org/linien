@@ -33,14 +33,37 @@ Run the application by calling
 
     linien
 
-Then, you can enter your RedPitaya's credentials and connect.
-The client automatically installs the server software.
+If this doesn't work, your local bin directory (e.g. ~/.local/bin). is probably missing in your PATH.
+Alternatively you can open linien using python:
+
+..  code-block:: python
+
+    from linien.client.client import run_application
+    run_application()
+
+Then, you can enter your RedPitaya's credentials and connect. If you agree, linien's server component is automatically installed.
 
 Physical setup
 ##############
 
+Scriptable interface
+####################
 
+Linien running on RedPitaya can not only be controlled using the GUI but also by python scripts.
 
+..  code-block:: python
+
+    from linien.client.connection import BaseClient, MHz, Vpp
+    c = BaseClient(host, 18862, False)
+
+    # read out the modulation frequency
+    print(c.parameters.modulation_frequency.value / MHz)
+
+    # set modulation amplitude
+    c.parameters.modulation_amplitude = 1 * Vpp
+    c.connection.root.write_data()
+
+For a full list of parameters that can be controlled have a look at `parameters.py <https://github.com/hermitdemschoenenleben/linien/blob/master/linien/server/parameters.py>`_.
 
 Development
 ###########
@@ -51,11 +74,9 @@ As linien uses a git submodule, you have to check it out like this:
 
     git clone https://github.com/hermitdemschoenenleben/linien.git --recursive
 
+To simplify development of the server component, its source code is automatically uploaded to the RedPitaya. For that, edit the `VERSION` file and replace it's content with `dev`. Check that no server is running on the RedPitaya and start the client. Your development code should be uploaded to /linien and the linien server is started from that directory.
 
-VERSION == dev erklären
-
-Scriptable interface
-####################
+In order to build the FPGA image, use `scripts/build_gateware.sh`.
 
 See Also
 ########

@@ -15,6 +15,9 @@ from linien.client.exceptions import GeneralConnectionErrorException, \
 from linien.communication.client import BaseClient
 
 
+MHz = 0x10000000 / 8
+Vpp = ((1<<14) - 1) / 4
+
 
 class ConnectionThread(QThread):
     connected = pyqtSignal(object)
