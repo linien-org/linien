@@ -114,6 +114,8 @@ class PIDCSR(Module, AutoCSR):
         control_signal = Signal((signal_width, True))
         s = signal_width - width
 
+        self.ramp_on_slow = CSRStorage()
+
         self.state_in = []
         self.signal_in = []
         self.state_out = []
@@ -135,7 +137,7 @@ class Pid(Module, AutoCSR):
         csr_map = {
                 "dna": 28, "xadc": 29, "gpio_n": 30, "gpio_p": 31,
                 "fast_a": 0, "fast_b": 1,
-                "slow_a": 2, "slow_b": 3, "slow_c": 4, "slow_d": 5,
+                #"slow_a": 2, "slow_b": 3, "slow_c": 4, "slow_d": 5,
                 "scopegen": 6, "noise": 7, 'root': 8
         }
 
@@ -167,22 +169,22 @@ class Pid(Module, AutoCSR):
         self.submodules.fast_a = FastChain(14, s, c, self.root.mod)
         self.submodules.fast_b = FastChain(14, s, c, self.root.mod)
         sys_slow = ClockDomainsRenamer("sys_slow")
-        self.submodules.slow_a = sys_slow(SlowChain(16, s, c))
-        self.slow_a.iir.interval.value.value *= 15
-        self.submodules.slow_b = sys_slow(SlowChain(16, s, c))
-        self.slow_b.iir.interval.value.value *= 15
-        self.submodules.slow_c = sys_slow(SlowChain(16, s, c))
-        self.slow_c.iir.interval.value.value *= 15
-        self.submodules.slow_d = sys_slow(SlowChain(16, s, c))
-        self.slow_d.iir.interval.value.value *= 15
+        #self.submodules.slow_a = sys_slow(SlowChain(16, s, c))
+        #self.slow_a.iir.interval.value.value *= 15
+        #self.submodules.slow_b = sys_slow(SlowChain(16, s, c))
+        #self.slow_b.iir.interval.value.value *= 15
+        #self.submodules.slow_c = sys_slow(SlowChain(16, s, c))
+        #self.slow_c.iir.interval.value.value *= 15
+        #self.submodules.slow_d = sys_slow(SlowChain(16, s, c))
+        #self.slow_d.iir.interval.value.value *= 15
         self.submodules.scopegen = ScopeGen(s)
         #self.submodules.noise = LFSRGen(s)
         self.submodules.noise = XORSHIFTGen(s)
 
         self.state_names, self.signal_names = cross_connect(self.gpio_n, [
             ("fast_a", self.fast_a), ("fast_b", self.fast_b),
-            ("slow_a", self.slow_a), ("slow_b", self.slow_b),
-            ("slow_c", self.slow_c), ("slow_d", self.slow_d),
+            #("slow_a", self.slow_a), ("slow_b", self.slow_b),
+            #("slow_c", self.slow_c), ("slow_d", self.slow_d),
             ("scopegen", self.scopegen), ("noise", self.noise),
             ("root", self.root)
         ])
@@ -191,7 +193,8 @@ class Pid(Module, AutoCSR):
         out = Signal((width + 3, True))
 
         self.sync += out.eq(
-            self.fast_a.dac + self.fast_b.dac + self.root.sweep.y
+            self.fast_a.dac + self.fast_b.dac
+            + Mux(self.root.ramp_on_slow.storage, 0, self.root.sweep.y)
         )
 
         self.comb += [
@@ -205,14 +208,22 @@ class Pid(Module, AutoCSR):
                 self.root.limit.x.eq(out),
                 self.analog.dac_b.eq(self.root.limit.y),
 
-                self.slow_a.adc.eq(self.xadc.adc[0] << 4),
-                self.ds0.data.eq(self.slow_a.dac),
-                self.slow_b.adc.eq(self.xadc.adc[1] << 4),
-                self.ds1.data.eq(self.slow_b.dac),
-                self.slow_c.adc.eq(self.xadc.adc[2] << 4),
-                self.ds2.data.eq(self.slow_c.dac),
-                self.slow_d.adc.eq(self.xadc.adc[3] << 4),
-                self.ds3.data.eq(self.slow_d.dac),
+                #self.slow_a.adc.eq(self.xadc.adc[0] << 4),
+                # FIXME: check
+                #self.ds0.data.eq(self.slow_a.dac),
+                self.ds0.data.eq(
+                    Mux(
+                        self.root.ramp_on_slow.storage,
+                        (self.root.sweep.y << 1) + (1<<14),
+                        0
+                    )
+                ),
+                #self.slow_b.adc.eq(self.xadc.adc[1] << 4),
+                #self.ds1.data.eq(self.slow_b.dac),
+                #self.slow_c.adc.eq(self.xadc.adc[2] << 4),
+                #self.ds2.data.eq(self.slow_c.dac),
+                #self.slow_d.adc.eq(self.xadc.adc[3] << 4),
+                #self.ds3.data.eq(self.slow_d.dac),
         ]
 
         self.submodules.csrbanks = csr_bus.CSRBankArray(self,

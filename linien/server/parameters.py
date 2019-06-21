@@ -69,3 +69,5 @@ class Parameters(BaseParameters):
         }, sync=False)
         # in seconds
         self.control_signal_history_length = Parameter(start=600)
+
+        self.ramp_on_slow = Parameter(start=False)

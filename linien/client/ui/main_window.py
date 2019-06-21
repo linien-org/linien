@@ -228,8 +228,16 @@ class Ui_MainWindow(object):
         self.toolBox.setSizePolicy(sizePolicy)
         self.toolBox.setMinimumSize(QtCore.QSize(250, 0))
         self.toolBox.setObjectName("toolBox")
+        self.page_2 = GeneralPanel()
+        self.page_2.setObjectName("page_2")
+        self.verticalLayout_15 = QtWidgets.QVBoxLayout(self.page_2)
+        self.verticalLayout_15.setObjectName("verticalLayout_15")
+        self.rampOnSlow = QtWidgets.QCheckBox(self.page_2)
+        self.rampOnSlow.setObjectName("rampOnSlow")
+        self.verticalLayout_15.addWidget(self.rampOnSlow)
+        self.toolBox.addItem(self.page_2, "")
         self.page = SpectroscopyPanel()
-        self.page.setGeometry(QtCore.QRect(0, 0, 227, 82))
+        self.page.setGeometry(QtCore.QRect(0, 0, 250, 465))
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -242,7 +250,7 @@ class Ui_MainWindow(object):
         self.scrollArea_2.setWidgetResizable(True)
         self.scrollArea_2.setObjectName("scrollArea_2")
         self.scrollAreaWidgetContents_3 = QtWidgets.QWidget()
-        self.scrollAreaWidgetContents_3.setGeometry(QtCore.QRect(0, 0, 211, 500))
+        self.scrollAreaWidgetContents_3.setGeometry(QtCore.QRect(0, 0, 220, 500))
         self.scrollAreaWidgetContents_3.setObjectName("scrollAreaWidgetContents_3")
         self.verticalLayout_9 = QtWidgets.QVBoxLayout(self.scrollAreaWidgetContents_3)
         self.verticalLayout_9.setObjectName("verticalLayout_9")
@@ -345,7 +353,7 @@ class Ui_MainWindow(object):
         self.verticalLayout.addWidget(self.scrollArea_2)
         self.toolBox.addItem(self.page, "")
         self.page_3 = QtWidgets.QWidget()
-        self.page_3.setGeometry(QtCore.QRect(0, 0, 104, 31))
+        self.page_3.setGeometry(QtCore.QRect(0, 0, 250, 465))
         self.page_3.setObjectName("page_3")
         self.verticalLayout_14 = QtWidgets.QVBoxLayout(self.page_3)
         self.verticalLayout_14.setObjectName("verticalLayout_14")
@@ -354,7 +362,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_14.addWidget(self.label_7)
         self.toolBox.addItem(self.page_3, "")
         self.lockingPanel = LockingPanel()
-        self.lockingPanel.setGeometry(QtCore.QRect(0, 0, 250, 498))
+        self.lockingPanel.setGeometry(QtCore.QRect(0, 0, 250, 465))
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -493,7 +501,7 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
-        self.toolBox.setCurrentIndex(2)
+        self.toolBox.setCurrentIndex(0)
         self.lock_control_container.setCurrentIndex(0)
         self.closeButton.clicked.connect(self.rightPanel.close_app)
         self.shutdownButton.clicked.connect(self.rightPanel.shutdown_server)
@@ -517,6 +525,8 @@ class Ui_MainWindow(object):
         self.openDeviceManagerButton.setText(_translate("MainWindow", "Device manager"))
         self.closeButton.setText(_translate("MainWindow", "Close client"))
         self.shutdownButton.setText(_translate("MainWindow", "Shutdown server"))
+        self.rampOnSlow.setText(_translate("MainWindow", "Ramp on slow"))
+        self.toolBox.setItemText(self.toolBox.indexOf(self.page_2), _translate("MainWindow", "General"))
         self.groupBox_4.setTitle(_translate("MainWindow", "Modulation frequency"))
         self.label_5.setText(_translate("MainWindow", "MHz"))
         self.groupBox.setTitle(_translate("MainWindow", "Modulation amplitude"))
@@ -570,6 +580,7 @@ class Ui_MainWindow(object):
 
 
 from central_panel import CentralPanel
+from general_panel import GeneralPanel
 from lock_status_panel import LockStatusPanel
 from locking_panel import LockingPanel
 from plot_widget import PlotWidget

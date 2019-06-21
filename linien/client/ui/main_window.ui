@@ -594,13 +594,27 @@
          <property name="currentIndex">
           <number>0</number>
          </property>
+         <widget class="GeneralPanel" name="page_2">
+          <attribute name="label">
+           <string>General</string>
+          </attribute>
+          <layout class="QVBoxLayout" name="verticalLayout_15">
+           <item>
+            <widget class="QCheckBox" name="rampOnSlow">
+             <property name="text">
+              <string>Ramp on slow</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
          <widget class="SpectroscopyPanel" name="page">
           <property name="geometry">
            <rect>
             <x>0</x>
             <y>0</y>
             <width>250</width>
-            <height>498</height>
+            <height>465</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -622,7 +636,7 @@
               <property name="geometry">
                <rect>
                 <x>0</x>
-                <y>-18</y>
+                <y>0</y>
                 <width>220</width>
                 <height>500</height>
                </rect>
@@ -1245,6 +1259,12 @@
    <class>LockStatusPanel</class>
    <extends>QWidget</extends>
    <header location="global">lock_status_panel.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>GeneralPanel</class>
+   <extends>QWidget</extends>
+   <header location="global">general_panel.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

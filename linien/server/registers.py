@@ -53,6 +53,7 @@ class Registers:
             ),
             root_sweep_min=sweep_min,
             root_sweep_max=sweep_max,
+            root_ramp_on_slow=params['ramp_on_slow'],
 
             root_mod_freq=params['modulation_frequency'],
             root_mod_amp=params['modulation_amplitude'],
