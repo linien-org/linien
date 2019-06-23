@@ -5,6 +5,7 @@ from linien.client.widgets import CustomWidget
 class LockingPanel(QtGui.QWidget, CustomWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.load_ui('locking_panel.ui')
 
     def ready(self):
         self.ids.kp.editingFinished.connect(self.kp_changed)

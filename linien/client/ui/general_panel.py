@@ -1,6 +1,7 @@
 import numpy as np
 from PyQt5 import QtGui
 from linien.client.widgets import CustomWidget
+from linien.client.connection import MHz, Vpp
 
 
 class GeneralPanel(QtGui.QWidget, CustomWidget):
@@ -9,6 +10,9 @@ class GeneralPanel(QtGui.QWidget, CustomWidget):
 
     def ready(self):
         self.ids.rampOnSlow.stateChanged.connect(self.ramp_on_slow_changed)
+        self.ids.modulation_frequency.editingFinished.connect(self.change_modulation_frequency)
+        self.ids.modulation_amplitude.editingFinished.connect(self.change_modulation_amplitude)
+        self.ids.ramp_speed.currentIndexChanged.connect(self.change_ramp_speed)
 
     def connection_established(self):
         params = self.app().parameters
@@ -21,7 +25,31 @@ class GeneralPanel(QtGui.QWidget, CustomWidget):
             self.ids.explainNoSweepOnAnalog.setVisible(not value)
 
         params.ramp_on_slow.change(ramp_on_slow_param_changed)
+        params.modulation_frequency.change(
+            lambda value: self.ids.modulation_frequency.setValue(value / MHz)
+        )
+
+        params.modulation_amplitude.change(
+            lambda value: self.ids.modulation_amplitude.setValue(value / Vpp)
+        )
+
+        params.ramp_speed.change(
+            lambda value: self.ids.ramp_speed.setCurrentIndex(value)
+        )
+
 
     def ramp_on_slow_changed(self):
         self.parameters.ramp_on_slow.value = int(self.ids.rampOnSlow.checkState() > 0)
+        self.control.write_data()
+
+    def change_modulation_frequency(self):
+        self.parameters.modulation_frequency.value = self.ids.modulation_frequency.value() * MHz
+        self.control.write_data()
+
+    def change_modulation_amplitude(self):
+        self.parameters.modulation_amplitude.value = self.ids.modulation_amplitude.value() * Vpp
+        self.control.write_data()
+
+    def change_ramp_speed(self, decimation):
+        self.parameters.ramp_speed.value = decimation
         self.control.write_data()

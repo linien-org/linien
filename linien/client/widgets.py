@@ -1,5 +1,8 @@
 import weakref
+from os import path
+from PyQt5 import uic
 from pyqtgraph.Qt import QtCore, QtGui
+from linien.client.gui import ui_path
 
 
 class IDSelector:
@@ -37,5 +40,6 @@ class CustomWidget:
         # to solve this...
         return self.window().app
 
-    def bar(self):
-        print('foo')
+    def load_ui(self, name):
+        assert name.endswith('.ui')
+        uic.loadUi(path.join(ui_path, name), self)

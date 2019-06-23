@@ -1,81 +1,157 @@
-# -*- coding: utf-8 -*-
+from PyQt5 import QtGui, QtWidgets, QtCore
+from threading import Thread
+from traceback import print_exc
 
-# Form implementation generated from reading ui file 'device_manager.ui'
-#
-# Created by: PyQt5 UI code generator 5.12.2
-#
-# WARNING! All changes made in this file will be lost!
-
-from PyQt5 import QtCore, QtGui, QtWidgets
-
-
-class Ui_DeviceManager(object):
-    def setupUi(self, DeviceManager):
-        DeviceManager.setObjectName("DeviceManager")
-        DeviceManager.resize(510, 331)
-        self.centralwidget = DeviceManagerCenter(DeviceManager)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.centralwidget.sizePolicy().hasHeightForWidth())
-        self.centralwidget.setSizePolicy(sizePolicy)
-        self.centralwidget.setMinimumSize(QtCore.QSize(510, 280))
-        self.centralwidget.setObjectName("centralwidget")
-        self.horizontalLayout = QtWidgets.QHBoxLayout(self.centralwidget)
-        self.horizontalLayout.setObjectName("horizontalLayout")
-        self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
-        self.deviceList = QtWidgets.QListWidget(self.centralwidget)
-        self.deviceList.setObjectName("deviceList")
-        self.horizontalLayout_2.addWidget(self.deviceList)
-        self.verticalLayout = QtWidgets.QVBoxLayout()
-        self.verticalLayout.setObjectName("verticalLayout")
-        self.connectButton = QtWidgets.QPushButton(self.centralwidget)
-        self.connectButton.setEnabled(False)
-        self.connectButton.setObjectName("connectButton")
-        self.verticalLayout.addWidget(self.connectButton)
-        self.addButton = QtWidgets.QPushButton(self.centralwidget)
-        self.addButton.setObjectName("addButton")
-        self.verticalLayout.addWidget(self.addButton)
-        self.removeButton = QtWidgets.QPushButton(self.centralwidget)
-        self.removeButton.setEnabled(False)
-        self.removeButton.setObjectName("removeButton")
-        self.verticalLayout.addWidget(self.removeButton)
-        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        self.verticalLayout.addItem(spacerItem)
-        self.horizontalLayout_2.addLayout(self.verticalLayout)
-        self.horizontalLayout.addLayout(self.horizontalLayout_2)
-        self.menubar = QtWidgets.QMenuBar(DeviceManager)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 510, 27))
-        self.menubar.setObjectName("menubar")
-        DeviceManager.setMenuBar(self.menubar)
-        self.statusbar = QtWidgets.QStatusBar(DeviceManager)
-        self.statusbar.setObjectName("statusbar")
-        DeviceManager.setStatusBar(self.statusbar)
-
-        self.retranslateUi(DeviceManager)
-        self.connectButton.clicked.connect(self.centralwidget.connect)
-        self.addButton.clicked.connect(self.centralwidget.new_device)
-        self.removeButton.clicked.connect(self.centralwidget.remove_device)
-        self.deviceList.currentRowChanged['int'].connect(self.centralwidget.selected_device_changed)
-        QtCore.QMetaObject.connectSlotsByName(DeviceManager)
-
-    def retranslateUi(self, DeviceManager):
-        _translate = QtCore.QCoreApplication.translate
-        DeviceManager.setWindowTitle(_translate("DeviceManager", "Linien - Spectroscopy lock - Device manager"))
-        self.connectButton.setText(_translate("DeviceManager", "Connect"))
-        self.addButton.setText(_translate("DeviceManager", "New device"))
-        self.removeButton.setText(_translate("DeviceManager", "Remove device"))
+from linien.client.config import load_device_data, save_device_data
+from linien.client.widgets import CustomWidget
+from linien.client.connection import ConnectionThread
+from linien.client.dialogs import LoadingDialog, error_dialog, execute_command, \
+    question_dialog
+from linien.client.ui.new_device_dialog import NewDeviceDialog
 
 
-from device_manager_center import DeviceManagerCenter
+class DeviceManager(QtGui.QMainWindow, CustomWidget):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.load_ui('device_manager.ui')
 
+    def ready(self):
+        self.load_device_data(autoload=True)
 
-if __name__ == "__main__":
-    import sys
-    app = QtWidgets.QApplication(sys.argv)
-    DeviceManager = QtWidgets.QMainWindow()
-    ui = Ui_DeviceManager()
-    ui.setupUi(DeviceManager)
-    DeviceManager.show()
-    sys.exit(app.exec_())
+    def load_device_data(self, autoload=False):
+        devices = load_device_data()
+        lst = self.ids.deviceList
+        lst.clear()
+
+        for device in devices:
+            lst.addItem('%s (%s)' % (device['name'], device['host']))
+
+        if autoload and len(devices) == 1:
+            self.connect_to_device(devices[0])
+
+    def connect(self):
+        devices = load_device_data()
+
+        if not devices:
+            return
+
+        self.connect_to_device(devices[self.get_list_index()])
+
+    def connect_to_device(self, device):
+        loading_dialog = LoadingDialog(self, device['host'])
+        loading_dialog.show()
+
+        aborted = {}
+        def was_aborted(*args):
+            aborted['aborted'] = True
+        loading_dialog.aborted.connect(was_aborted)
+
+        self.t = ConnectionThread(device)
+
+        def connected(conn):
+            loading_dialog.hide()
+            if not aborted:
+                self.app.connected(conn, conn.parameters, conn.control)
+        self.t.connected.connect(connected)
+
+        def server_not_installed():
+            loading_dialog.hide()
+            if not aborted:
+                display_question = """The server is not yet installed on the device. Should it be installed?"""
+                if question_dialog(self, display_question):
+                    self.install_linien_server(device)
+        self.t.server_not_installed.connect(server_not_installed)
+
+        def invalid_server_version(remote_version, client_version):
+            loading_dialog.hide()
+            if not aborted:
+                display_question = \
+                    "The server version (%s) does not match the client (%s) version." \
+                    "Should the corresponding server version be installed?" \
+                    % (remote_version, client_version)
+                if question_dialog(self, display_question):
+                    self.install_linien_server(device, version=client_version)
+        self.t.invalid_server_version.connect(invalid_server_version)
+
+        def authentication_exception():
+            loading_dialog.hide()
+            if not aborted:
+                display_error = 'Error at SSH authentication. ' \
+                        'Check username and password and verify that you ' \
+                        'don\'t have any offending SSH keys in your known ' \
+                        'hosts file.'
+                error_dialog(self, display_error)
+        self.t.authentication_exception.connect(authentication_exception)
+
+        def general_connection_error():
+            loading_dialog.hide()
+            if not aborted:
+                display_error = "Unable to connect to device."
+                error_dialog(self, display_error)
+        self.t.general_connection_error.connect(general_connection_error)
+
+        def exception():
+            loading_dialog.hide()
+            if not aborted:
+                display_error = 'Exception occured when connecting to the device.'
+                error_dialog(self, display_error)
+        self.t.exception.connect(exception)
+
+        self.t.start()
+
+    def install_linien_server(self, device, version=None):
+        version_string = ''
+        stop_server_command = ''
+
+        if version is not None:
+            version_string = '==' + version
+            # stop server if another version of linien is installed
+            stop_server_command = 'linien_stop_server;'
+
+        self.ssh_command = execute_command(
+            self, device['host'], device['username'], device['password'],
+            (
+                '%s; '
+                'pip3 install linien-server%s --no-cache-dir; '
+                'linien_install_requirements; '
+            ) % (stop_server_command, version_string),
+            lambda: self.connect_to_device(device)
+        )
+
+    def new_device(self):
+        self.dialog = NewDeviceDialog()
+        self.dialog.setModal(True)
+        self.dialog.show()
+
+        def reload_device_data():
+            # not very elegant...
+            QtCore.QTimer.singleShot(100, self.load_device_data)
+
+        self.dialog.accepted.connect(reload_device_data)
+
+    def get_list_index(self):
+        return self.ids.deviceList.currentIndex().row()
+
+    def remove_device(self):
+        devices = load_device_data()
+
+        if not devices:
+            return
+
+        devices.pop(self.get_list_index())
+        save_device_data(devices)
+        self.load_device_data()
+
+    def selected_device_changed(self):
+        idx = self.get_list_index()
+
+        disable_buttons = True
+
+        if idx >= 0:
+            devices = load_device_data()
+
+            if devices:
+                disable_buttons = False
+
+        for btn in [self.ids.connectButton, self.ids.removeButton]:
+            btn.setEnabled(not disable_buttons)

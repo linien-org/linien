@@ -33,7 +33,7 @@ Run the application by calling
 
     linien
 
-If this doesn't work, your local bin directory (e.g. ~/.local/bin). is probably missing in your PATH.
+If this doesn't work, your local bin directory (e.g. ~/.local/bin) is probably missing in your PATH.
 Alternatively you can open linien using python:
 
 ..  code-block:: python

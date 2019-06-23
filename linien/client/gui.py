@@ -5,15 +5,14 @@ import numpy as np
 from PyQt5 import QtWidgets
 from pyqtgraph.Qt import QtCore, QtGui
 # add ui folder to path
-sys.path += [
-    os.path.join(*list(
-        os.path.split(os.path.abspath(__file__))[:-1]) + ['ui']
-    )
-]
+ui_path = os.path.join(*list(
+    os.path.split(os.path.abspath(__file__))[:-1]) + ['ui']
+)
+sys.path += [ui_path]
 
 from linien.client.widgets import CustomWidget
-from linien.client.ui.main_window import Ui_MainWindow
-from linien.client.ui.device_manager import Ui_DeviceManager
+from linien.client.ui.main_window import MainWindow
+from linien.client.ui.device_manager import DeviceManager
 
 
 class QTApp(QtCore.QObject):
@@ -22,15 +21,11 @@ class QTApp(QtCore.QObject):
     def __init__(self):
         self.app = QtWidgets.QApplication(sys.argv)
 
-        self.main_window = QtWidgets.QMainWindow()
+        self.main_window = MainWindow()
         self.main_window.app = self
-        ui = Ui_MainWindow()
-        ui.setupUi(self.main_window)
 
-        self.device_manager = QtWidgets.QMainWindow()
+        self.device_manager = DeviceManager()
         self.device_manager.app = self
-        ui2 = Ui_DeviceManager()
-        ui2.setupUi(self.device_manager)
         self.device_manager.show()
 
         self.app.aboutToQuit.connect(lambda: self.app.quit())

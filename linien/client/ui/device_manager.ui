@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string>Linien - Spectroscopy lock - Device manager</string>
   </property>
-  <widget class="DeviceManagerCenter" name="centralwidget">
+  <widget class="QWidget" name="centralwidget">
    <property name="sizePolicy">
     <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
      <horstretch>0</horstretch>
@@ -92,26 +92,12 @@
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>DeviceManagerCenter</class>
-   <extends>QWidget</extends>
-   <header location="global">device_manager_center.h</header>
-   <container>1</container>
-   <slots>
-    <slot>connect()</slot>
-    <slot>new_device()</slot>
-    <slot>remove_device()</slot>
-    <slot>selected_device_changed()</slot>
-   </slots>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections>
   <connection>
    <sender>connectButton</sender>
    <signal>clicked()</signal>
-   <receiver>centralwidget</receiver>
+   <receiver>DeviceManager</receiver>
    <slot>connect()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -119,15 +105,15 @@
      <y>145</y>
     </hint>
     <hint type="destinationlabel">
-     <x>246</x>
-     <y>145</y>
+     <x>254</x>
+     <y>165</y>
     </hint>
    </hints>
   </connection>
   <connection>
    <sender>addButton</sender>
    <signal>clicked()</signal>
-   <receiver>centralwidget</receiver>
+   <receiver>DeviceManager</receiver>
    <slot>new_device()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -135,15 +121,15 @@
      <y>145</y>
     </hint>
     <hint type="destinationlabel">
-     <x>246</x>
-     <y>145</y>
+     <x>254</x>
+     <y>165</y>
     </hint>
    </hints>
   </connection>
   <connection>
    <sender>removeButton</sender>
    <signal>clicked()</signal>
-   <receiver>centralwidget</receiver>
+   <receiver>DeviceManager</receiver>
    <slot>remove_device()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -151,15 +137,15 @@
      <y>212</y>
     </hint>
     <hint type="destinationlabel">
-     <x>246</x>
-     <y>145</y>
+     <x>254</x>
+     <y>165</y>
     </hint>
    </hints>
   </connection>
   <connection>
    <sender>deviceList</sender>
    <signal>currentRowChanged(int)</signal>
-   <receiver>centralwidget</receiver>
+   <receiver>DeviceManager</receiver>
    <slot>selected_device_changed()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -168,9 +154,15 @@
     </hint>
     <hint type="destinationlabel">
      <x>254</x>
-     <y>166</y>
+     <y>165</y>
     </hint>
    </hints>
   </connection>
  </connections>
+ <slots>
+  <slot>remove_device()</slot>
+  <slot>selected_device_changed()</slot>
+  <slot>connect()</slot>
+  <slot>new_device()</slot>
+ </slots>
 </ui>

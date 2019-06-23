@@ -16,7 +16,7 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout">
     <item>
-     <widget class="CentralPanel" name="centralPanel" native="true">
+     <widget class="QWidget" name="centralPanel" native="true">
       <layout class="QHBoxLayout" name="horizontalLayout_8">
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_17">
@@ -31,21 +31,21 @@
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="decrease_scan_amplitude">
+             <widget class="QPushButton" name="decrease_scan_amplitude_btn">
               <property name="text">
                <string>+</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="increase_scan_amplitude">
+             <widget class="QPushButton" name="increase_scan_amplitude_btn">
               <property name="text">
                <string>-</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="reset_scan_amplitude">
+             <widget class="QPushButton" name="reset_scan_amplitude_btn">
               <property name="text">
                <string>reset</string>
               </property>
@@ -65,14 +65,14 @@
              </spacer>
             </item>
             <item>
-             <widget class="QPushButton" name="go_left">
+             <widget class="QPushButton" name="go_left_btn">
               <property name="text">
                <string>&lt;</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="go_right">
+             <widget class="QPushButton" name="go_right_btn">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -592,15 +592,15 @@
           </size>
          </property>
          <property name="currentIndex">
-          <number>0</number>
+          <number>2</number>
          </property>
          <widget class="GeneralPanel" name="page_2">
           <property name="geometry">
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>261</width>
-            <height>465</height>
+            <width>247</width>
+            <height>539</height>
            </rect>
           </property>
           <attribute name="label">
@@ -610,7 +610,7 @@
            <item>
             <widget class="QCheckBox" name="rampOnSlow">
              <property name="text">
-              <string>Sweep on analog output 0</string>
+              <string>Ramp on analog output 0</string>
              </property>
             </widget>
            </item>
@@ -802,6 +802,156 @@
             </widget>
            </item>
            <item>
+            <widget class="QGroupBox" name="groupBox_4">
+             <property name="title">
+              <string>Modulation frequency</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_5">
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_6">
+                <item>
+                 <widget class="QDoubleSpinBox" name="modulation_frequency"/>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label_5">
+                  <property name="text">
+                   <string>MHz</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBox">
+             <property name="title">
+              <string>Modulation amplitude</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_2">
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_2">
+                <item>
+                 <widget class="QDoubleSpinBox" name="modulation_amplitude">
+                  <property name="maximum">
+                   <double>2.000000000000000</double>
+                  </property>
+                  <property name="singleStep">
+                   <double>0.100000000000000</double>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label">
+                  <property name="text">
+                   <string>Vpp</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBox_3">
+             <property name="title">
+              <string>Ramp speed</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_4">
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_5">
+                <item>
+                 <widget class="QComboBox" name="ramp_speed">
+                  <item>
+                   <property name="text">
+                    <string>3.8 kHz</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>1.9 kHz</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>954 Hz</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>477 Hz</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>238 Hz</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>119 Hz</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>59 Hz</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>30 Hz</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>15 Hz</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>7.5 Hz</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>3.7 Hz</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>1.9 Hz</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>0.93 Hz</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>0.47 Hz</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>0.23 Hz</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>0.12 Hz</string>
+                   </property>
+                  </item>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
             <spacer name="verticalSpacer_4">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
@@ -816,13 +966,13 @@
            </item>
           </layout>
          </widget>
-         <widget class="SpectroscopyPanel" name="page">
+         <widget class="QWidget" name="page">
           <property name="geometry">
            <rect>
             <x>0</x>
             <y>0</y>
             <width>250</width>
-            <height>465</height>
+            <height>498</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -840,285 +990,28 @@
              <property name="widgetResizable">
               <bool>true</bool>
              </property>
-             <widget class="QWidget" name="scrollAreaWidgetContents_3">
+             <widget class="SpectroscopyPanel" name="spectroscopyPanel">
               <property name="geometry">
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>220</width>
-                <height>500</height>
+                <width>234</width>
+                <height>482</height>
                </rect>
               </property>
-              <layout class="QVBoxLayout" name="verticalLayout_9">
-               <item>
-                <widget class="QGroupBox" name="groupBox_4">
-                 <property name="title">
-                  <string>Modulation frequency</string>
-                 </property>
-                 <layout class="QVBoxLayout" name="verticalLayout_5">
-                  <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_6">
-                    <item>
-                     <widget class="QDoubleSpinBox" name="modulation_frequency"/>
-                    </item>
-                    <item>
-                     <widget class="QLabel" name="label_5">
-                      <property name="text">
-                       <string>MHz</string>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                 </layout>
-                </widget>
-               </item>
-               <item>
-                <widget class="QGroupBox" name="groupBox">
-                 <property name="title">
-                  <string>Modulation amplitude</string>
-                 </property>
-                 <layout class="QVBoxLayout" name="verticalLayout_2">
-                  <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_2">
-                    <item>
-                     <widget class="QDoubleSpinBox" name="modulation_amplitude">
-                      <property name="maximum">
-                       <double>2.000000000000000</double>
-                      </property>
-                      <property name="singleStep">
-                       <double>0.100000000000000</double>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QLabel" name="label">
-                      <property name="text">
-                       <string>Vpp</string>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                 </layout>
-                </widget>
-               </item>
-               <item>
-                <widget class="QGroupBox" name="groupBox_3">
-                 <property name="title">
-                  <string>Ramp speed</string>
-                 </property>
-                 <layout class="QVBoxLayout" name="verticalLayout_4">
-                  <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_5">
-                    <item>
-                     <widget class="QComboBox" name="ramp_speed">
-                      <item>
-                       <property name="text">
-                        <string>3.8 kHz</string>
-                       </property>
-                      </item>
-                      <item>
-                       <property name="text">
-                        <string>1.9 kHz</string>
-                       </property>
-                      </item>
-                      <item>
-                       <property name="text">
-                        <string>954 Hz</string>
-                       </property>
-                      </item>
-                      <item>
-                       <property name="text">
-                        <string>477 Hz</string>
-                       </property>
-                      </item>
-                      <item>
-                       <property name="text">
-                        <string>238 Hz</string>
-                       </property>
-                      </item>
-                      <item>
-                       <property name="text">
-                        <string>119 Hz</string>
-                       </property>
-                      </item>
-                      <item>
-                       <property name="text">
-                        <string>59 Hz</string>
-                       </property>
-                      </item>
-                      <item>
-                       <property name="text">
-                        <string>30 Hz</string>
-                       </property>
-                      </item>
-                      <item>
-                       <property name="text">
-                        <string>15 Hz</string>
-                       </property>
-                      </item>
-                      <item>
-                       <property name="text">
-                        <string>7.5 Hz</string>
-                       </property>
-                      </item>
-                      <item>
-                       <property name="text">
-                        <string>3.7 Hz</string>
-                       </property>
-                      </item>
-                      <item>
-                       <property name="text">
-                        <string>1.9 Hz</string>
-                       </property>
-                      </item>
-                      <item>
-                       <property name="text">
-                        <string>0.93 Hz</string>
-                       </property>
-                      </item>
-                      <item>
-                       <property name="text">
-                        <string>0.47 Hz</string>
-                       </property>
-                      </item>
-                      <item>
-                       <property name="text">
-                        <string>0.23 Hz</string>
-                       </property>
-                      </item>
-                      <item>
-                       <property name="text">
-                        <string>0.12 Hz</string>
-                       </property>
-                      </item>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                 </layout>
-                </widget>
-               </item>
-               <item>
-                <widget class="QGroupBox" name="groupBox_2">
-                 <property name="title">
-                  <string>Demodulation phase</string>
-                 </property>
-                 <layout class="QVBoxLayout" name="verticalLayout_3">
-                  <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_4">
-                    <item>
-                     <widget class="QDoubleSpinBox" name="demodulation_phase">
-                      <property name="maximum">
-                       <double>360.000000000000000</double>
-                      </property>
-                      <property name="singleStep">
-                       <double>10.000000000000000</double>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QLabel" name="label_3">
-                      <property name="text">
-                       <string>deg</string>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                 </layout>
-                </widget>
-               </item>
-               <item>
-                <widget class="QGroupBox" name="groupBox_7">
-                 <property name="title">
-                  <string>Demodulation frequency</string>
-                 </property>
-                 <layout class="QVBoxLayout" name="verticalLayout_13">
-                  <item>
-                   <widget class="QComboBox" name="demodulation_frequency">
-                    <item>
-                     <property name="text">
-                      <string>1f</string>
-                     </property>
-                    </item>
-                    <item>
-                     <property name="text">
-                      <string>2f</string>
-                     </property>
-                    </item>
-                    <item>
-                     <property name="text">
-                      <string>3f</string>
-                     </property>
-                    </item>
-                    <item>
-                     <property name="text">
-                      <string>4f</string>
-                     </property>
-                    </item>
-                    <item>
-                     <property name="text">
-                      <string>5f</string>
-                     </property>
-                    </item>
-                   </widget>
-                  </item>
-                 </layout>
-                </widget>
-               </item>
-               <item>
-                <widget class="QGroupBox" name="groupBox_6">
-                 <property name="title">
-                  <string>Signal offset</string>
-                 </property>
-                 <layout class="QHBoxLayout" name="horizontalLayout_7">
-                  <item>
-                   <widget class="QSpinBox" name="signal_offset">
-                    <property name="singleStep">
-                     <number>100</number>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </widget>
-               </item>
-              </layout>
+              <layout class="QVBoxLayout" name="verticalLayout_9"/>
              </widget>
             </widget>
            </item>
           </layout>
          </widget>
-         <widget class="QWidget" name="page_3">
+         <widget class="QWidget" name="lockingPanel">
           <property name="geometry">
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>104</width>
-            <height>31</height>
-           </rect>
-          </property>
-          <attribute name="label">
-           <string>Signal filtering</string>
-          </attribute>
-          <layout class="QVBoxLayout" name="verticalLayout_14">
-           <item>
-            <widget class="QLabel" name="label_7">
-             <property name="text">
-              <string>still missing...</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </widget>
-         <widget class="LockingPanel" name="lockingPanel">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>0</y>
-            <width>421</width>
-            <height>451</height>
+            <width>250</width>
+            <height>498</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -1136,305 +1029,16 @@
              <property name="widgetResizable">
               <bool>true</bool>
              </property>
-             <widget class="QWidget" name="scrollAreaWidgetContents">
+             <widget class="LockingPanel" name="scrollAreaWidgetContents">
               <property name="geometry">
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>391</width>
-                <height>769</height>
+                <width>234</width>
+                <height>482</height>
                </rect>
               </property>
-              <layout class="QVBoxLayout" name="verticalLayout_8">
-               <item>
-                <widget class="QGroupBox" name="groupBox_5">
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-                   <horstretch>0</horstretch>
-                   <verstretch>0</verstretch>
-                  </sizepolicy>
-                 </property>
-                 <property name="title">
-                  <string>P,I and D</string>
-                 </property>
-                 <layout class="QVBoxLayout" name="verticalLayout_6">
-                  <item>
-                   <widget class="QSpinBox" name="kp">
-                    <property name="minimum">
-                     <number>0</number>
-                    </property>
-                    <property name="maximum">
-                     <number>8191</number>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QSpinBox" name="ki">
-                    <property name="minimum">
-                     <number>0</number>
-                    </property>
-                    <property name="maximum">
-                     <number>8191</number>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QSpinBox" name="kd">
-                    <property name="sizePolicy">
-                     <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                      <horstretch>0</horstretch>
-                      <verstretch>0</verstretch>
-                     </sizepolicy>
-                    </property>
-                    <property name="minimum">
-                     <number>0</number>
-                    </property>
-                    <property name="maximum">
-                     <number>8191</number>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </widget>
-               </item>
-               <item>
-                <widget class="QTabWidget" name="lock_control_container">
-                 <property name="currentIndex">
-                  <number>0</number>
-                 </property>
-                 <widget class="QWidget" name="auto_mode">
-                  <attribute name="title">
-                   <string>Auto</string>
-                  </attribute>
-                  <layout class="QVBoxLayout" name="verticalLayout_10">
-                   <item>
-                    <widget class="QLabel" name="label_2">
-                     <property name="text">
-                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:14pt; font-weight:600;&quot;&gt;For automatic lock, click and drag over a line.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                     </property>
-                     <property name="scaledContents">
-                      <bool>false</bool>
-                     </property>
-                     <property name="alignment">
-                      <set>Qt::AlignCenter</set>
-                     </property>
-                     <property name="wordWrap">
-                      <bool>true</bool>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QCheckBox" name="watchLockCheckbox">
-                     <property name="text">
-                      <string>Watch lock</string>
-                     </property>
-                     <property name="checked">
-                      <bool>true</bool>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QLabel" name="label_8">
-                     <property name="text">
-                      <string>Detects glitches and automatically relocks</string>
-                     </property>
-                     <property name="wordWrap">
-                      <bool>true</bool>
-                     </property>
-                     <property name="margin">
-                      <number>0</number>
-                     </property>
-                     <property name="indent">
-                      <number>30</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QCheckBox" name="autoOffsetCheckbox">
-                     <property name="text">
-                      <string>Determine signal offset</string>
-                     </property>
-                     <property name="checked">
-                      <bool>true</bool>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QLabel" name="label_9">
-                     <property name="text">
-                      <string>Adapt offset such that lock is in the middle between minimum and maximum</string>
-                     </property>
-                     <property name="wordWrap">
-                      <bool>true</bool>
-                     </property>
-                     <property name="indent">
-                      <number>30</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QCheckBox" name="checkBox_4">
-                     <property name="text">
-                      <string>Emit TTL when locked</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QLabel" name="label_10">
-                     <property name="text">
-                      <string>DIO0_N high when locked</string>
-                     </property>
-                     <property name="wordWrap">
-                      <bool>true</bool>
-                     </property>
-                     <property name="indent">
-                      <number>30</number>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </widget>
-                 <widget class="QWidget" name="manual_mode">
-                  <attribute name="title">
-                   <string>Manual</string>
-                  </attribute>
-                  <layout class="QVBoxLayout" name="verticalLayout_12">
-                   <item>
-                    <widget class="QLabel" name="label_6">
-                     <property name="text">
-                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:14pt; font-weight:600;&quot;&gt;Center the line and zoom in before pressing the button.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                     </property>
-                     <property name="scaledContents">
-                      <bool>false</bool>
-                     </property>
-                     <property name="alignment">
-                      <set>Qt::AlignCenter</set>
-                     </property>
-                     <property name="wordWrap">
-                      <bool>true</bool>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QRadioButton" name="button_slope_rising">
-                     <property name="text">
-                      <string>Rising slope</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QRadioButton" name="button_slope_falling">
-                     <property name="text">
-                      <string>Falling slope</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QPushButton" name="manualLockButton">
-                     <property name="text">
-                      <string>Lock!</string>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </widget>
-                </widget>
-               </item>
-               <item>
-                <widget class="LockStatusPanel" name="lock_status_container" native="true">
-                 <layout class="QVBoxLayout" name="verticalLayout_18">
-                  <item>
-                   <spacer name="verticalSpacer">
-                    <property name="orientation">
-                     <enum>Qt::Vertical</enum>
-                    </property>
-                    <property name="sizeHint" stdset="0">
-                     <size>
-                      <width>20</width>
-                      <height>40</height>
-                     </size>
-                    </property>
-                   </spacer>
-                  </item>
-                  <item>
-                   <widget class="QLabel" name="lock_status">
-                    <property name="text">
-                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:16pt; font-weight:600;&quot;&gt;Lock status&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                    </property>
-                    <property name="wordWrap">
-                     <bool>true</bool>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QPushButton" name="stop_lock">
-                    <property name="text">
-                     <string>Stop lock</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <spacer name="verticalSpacer_3">
-                    <property name="orientation">
-                     <enum>Qt::Vertical</enum>
-                    </property>
-                    <property name="sizeHint" stdset="0">
-                     <size>
-                      <width>20</width>
-                      <height>40</height>
-                     </size>
-                    </property>
-                   </spacer>
-                  </item>
-                  <item>
-                   <widget class="QGroupBox" name="groupBox_8">
-                    <property name="title">
-                     <string>Control signal history length</string>
-                    </property>
-                    <layout class="QHBoxLayout" name="horizontalLayout_9">
-                     <item>
-                      <widget class="QSpinBox" name="control_signal_history_length">
-                       <property name="minimum">
-                        <number>10</number>
-                       </property>
-                       <property name="maximum">
-                        <number>100000</number>
-                       </property>
-                       <property name="singleStep">
-                        <number>60</number>
-                       </property>
-                       <property name="value">
-                        <number>120</number>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QLabel" name="label_4">
-                       <property name="text">
-                        <string>s</string>
-                       </property>
-                      </widget>
-                     </item>
-                    </layout>
-                   </widget>
-                  </item>
-                  <item>
-                   <spacer name="verticalSpacer_2">
-                    <property name="orientation">
-                     <enum>Qt::Vertical</enum>
-                    </property>
-                    <property name="sizeHint" stdset="0">
-                     <size>
-                      <width>20</width>
-                      <height>40</height>
-                     </size>
-                    </property>
-                   </spacer>
-                  </item>
-                 </layout>
-                </widget>
-               </item>
-              </layout>
+              <layout class="QVBoxLayout" name="verticalLayout_8"/>
              </widget>
             </widget>
            </item>
@@ -1486,25 +1090,6 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>CentralPanel</class>
-   <extends>QWidget</extends>
-   <header location="global">central_panel.h</header>
-   <container>1</container>
-   <slots>
-    <slot>go_right()</slot>
-    <slot>go_left()</slot>
-    <slot>increase_scan_amplitude()</slot>
-    <slot>decrease_scan_amplitude()</slot>
-    <slot>reset_scan_amplitude()</slot>
-   </slots>
-  </customwidget>
-  <customwidget>
-   <class>LockStatusPanel</class>
-   <extends>QWidget</extends>
-   <header location="global">lock_status_panel.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
    <class>GeneralPanel</class>
    <extends>QWidget</extends>
    <header location="global">general_panel.h</header>
@@ -1520,12 +1105,12 @@
    <slot>close_app()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>667</x>
-     <y>97</y>
+     <x>1011</x>
+     <y>87</y>
     </hint>
     <hint type="destinationlabel">
-     <x>667</x>
-     <y>301</y>
+     <x>1017</x>
+     <y>307</y>
     </hint>
    </hints>
   </connection>
@@ -1536,12 +1121,12 @@
    <slot>shutdown_server()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>667</x>
-     <y>138</y>
+     <x>1011</x>
+     <y>128</y>
     </hint>
     <hint type="destinationlabel">
-     <x>667</x>
-     <y>301</y>
+     <x>1017</x>
+     <y>307</y>
     </hint>
    </hints>
   </connection>
@@ -1552,19 +1137,19 @@
    <slot>open_device_manager()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>667</x>
-     <y>56</y>
+     <x>1011</x>
+     <y>46</y>
     </hint>
     <hint type="destinationlabel">
-     <x>667</x>
-     <y>301</y>
+     <x>1017</x>
+     <y>307</y>
     </hint>
    </hints>
   </connection>
   <connection>
-   <sender>decrease_scan_amplitude</sender>
+   <sender>decrease_scan_amplitude_btn</sender>
    <signal>clicked()</signal>
-   <receiver>centralPanel</receiver>
+   <receiver>MainWindow</receiver>
    <slot>decrease_scan_amplitude()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -1572,15 +1157,15 @@
      <y>36</y>
     </hint>
     <hint type="destinationlabel">
-     <x>377</x>
-     <y>371</y>
+     <x>511</x>
+     <y>383</y>
     </hint>
    </hints>
   </connection>
   <connection>
-   <sender>increase_scan_amplitude</sender>
+   <sender>increase_scan_amplitude_btn</sender>
    <signal>clicked()</signal>
-   <receiver>centralPanel</receiver>
+   <receiver>MainWindow</receiver>
    <slot>increase_scan_amplitude()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -1588,15 +1173,15 @@
      <y>36</y>
     </hint>
     <hint type="destinationlabel">
-     <x>377</x>
-     <y>371</y>
+     <x>511</x>
+     <y>383</y>
     </hint>
    </hints>
   </connection>
   <connection>
-   <sender>reset_scan_amplitude</sender>
+   <sender>reset_scan_amplitude_btn</sender>
    <signal>clicked()</signal>
-   <receiver>centralPanel</receiver>
+   <receiver>MainWindow</receiver>
    <slot>reset_scan_amplitude()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -1604,15 +1189,15 @@
      <y>36</y>
     </hint>
     <hint type="destinationlabel">
-     <x>377</x>
-     <y>371</y>
+     <x>511</x>
+     <y>383</y>
     </hint>
    </hints>
   </connection>
   <connection>
-   <sender>go_left</sender>
+   <sender>go_left_btn</sender>
    <signal>clicked()</signal>
-   <receiver>centralPanel</receiver>
+   <receiver>MainWindow</receiver>
    <slot>go_left()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -1620,15 +1205,15 @@
      <y>36</y>
     </hint>
     <hint type="destinationlabel">
-     <x>377</x>
-     <y>371</y>
+     <x>511</x>
+     <y>383</y>
     </hint>
    </hints>
   </connection>
   <connection>
-   <sender>go_right</sender>
+   <sender>go_right_btn</sender>
    <signal>clicked()</signal>
-   <receiver>centralPanel</receiver>
+   <receiver>MainWindow</receiver>
    <slot>go_right()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -1636,10 +1221,17 @@
      <y>36</y>
     </hint>
     <hint type="destinationlabel">
-     <x>377</x>
-     <y>371</y>
+     <x>511</x>
+     <y>383</y>
     </hint>
    </hints>
   </connection>
  </connections>
+ <slots>
+  <slot>increase_scan_amplitude()</slot>
+  <slot>decrease_scan_amplitude()</slot>
+  <slot>go_left()</slot>
+  <slot>go_right()</slot>
+  <slot>reset_scan_amplitude()</slot>
+ </slots>
 </ui>

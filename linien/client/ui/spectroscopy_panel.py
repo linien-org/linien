@@ -1,18 +1,14 @@
-import numpy as np
-from PyQt5 import QtGui
+from PyQt5 import QtGui, QtWidgets
 from linien.client.widgets import CustomWidget
-from linien.client.connection import MHz, Vpp
 
 
-class SpectroscopyPanel(QtGui.QWidget, CustomWidget):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+class SpectroscopyPanel(QtWidgets.QWidget, CustomWidget):
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.load_ui('spectroscopy_panel.ui')
 
     def ready(self):
-        self.ids.modulation_frequency.editingFinished.connect(self.change_modulation_frequency)
-        self.ids.modulation_amplitude.editingFinished.connect(self.change_modulation_amplitude)
         self.ids.signal_offset.editingFinished.connect(self.change_signal_offset)
-        self.ids.ramp_speed.currentIndexChanged.connect(self.change_ramp_speed)
         self.ids.demodulation_phase.editingFinished.connect(self.change_demod_phase)
         self.ids.demodulation_frequency.currentIndexChanged.connect(self.change_demod_multiplier)
 
@@ -23,18 +19,6 @@ class SpectroscopyPanel(QtGui.QWidget, CustomWidget):
 
         #self.close_button.clicked.connect(self.close_app)
         #self.shutdown_button.clicked.connect(self.shutdown_server)
-
-        params.modulation_frequency.change(
-            lambda value: self.ids.modulation_frequency.setValue(value / MHz)
-        )
-
-        params.modulation_amplitude.change(
-            lambda value: self.ids.modulation_amplitude.setValue(value / Vpp)
-        )
-
-        params.ramp_speed.change(
-            lambda value: self.ids.ramp_speed.setCurrentIndex(value)
-        )
 
         params.demodulation_phase.change(
             lambda value: self.ids.demodulation_phase.setValue(value)
@@ -48,20 +32,8 @@ class SpectroscopyPanel(QtGui.QWidget, CustomWidget):
             lambda value: self.ids.signal_offset.setValue(value)
         )
 
-    def change_modulation_frequency(self):
-        self.parameters.modulation_frequency.value = self.ids.modulation_frequency.value() * MHz
-        self.control.write_data()
-
-    def change_modulation_amplitude(self):
-        self.parameters.modulation_amplitude.value = self.ids.modulation_amplitude.value() * Vpp
-        self.control.write_data()
-
     def change_signal_offset(self):
         self.parameters.offset.value = self.ids.signal_offset.value()
-        self.control.write_data()
-
-    def change_ramp_speed(self, decimation):
-        self.parameters.ramp_speed.value = decimation
         self.control.write_data()
 
     def change_demod_phase(self):
