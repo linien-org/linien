@@ -8,9 +8,12 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
         self.load_ui('locking_panel.ui')
 
     def ready(self):
-        self.ids.kp.editingFinished.connect(self.kp_changed)
-        self.ids.ki.editingFinished.connect(self.ki_changed)
-        self.ids.kd.editingFinished.connect(self.kd_changed)
+        self.ids.kp.setKeyboardTracking(False)
+        self.ids.kp.valueChanged.connect(self.kp_changed)
+        self.ids.ki.setKeyboardTracking(False)
+        self.ids.ki.valueChanged.connect(self.ki_changed)
+        self.ids.kd.setKeyboardTracking(False)
+        self.ids.kd.valueChanged.connect(self.kd_changed)
         self.ids.watchLockCheckbox.stateChanged.connect(self.watch_lock_changed)
         self.ids.lock_control_container.currentChanged.connect(self.lock_mode_changed)
 

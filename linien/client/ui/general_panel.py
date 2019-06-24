@@ -10,8 +10,10 @@ class GeneralPanel(QtGui.QWidget, CustomWidget):
 
     def ready(self):
         self.ids.rampOnSlow.stateChanged.connect(self.ramp_on_slow_changed)
-        self.ids.modulation_frequency.editingFinished.connect(self.change_modulation_frequency)
-        self.ids.modulation_amplitude.editingFinished.connect(self.change_modulation_amplitude)
+        self.ids.modulation_frequency.setKeyboardTracking(False)
+        self.ids.modulation_frequency.valueChanged.connect(self.change_modulation_frequency)
+        self.ids.modulation_amplitude.setKeyboardTracking(False)
+        self.ids.modulation_amplitude.valueChanged.connect(self.change_modulation_amplitude)
         self.ids.ramp_speed.currentIndexChanged.connect(self.change_ramp_speed)
 
     def connection_established(self):

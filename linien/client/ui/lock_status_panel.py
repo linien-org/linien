@@ -9,7 +9,8 @@ class LockStatusPanel(QtGui.QWidget, CustomWidget):
 
     def ready(self):
         self.ids.stop_lock.clicked.connect(self.stop_autolock)
-        self.ids.control_signal_history_length.editingFinished.connect(self.control_signal_history_length_changed)
+        self.ids.control_signal_history_length.setKeyboardTracking(False)
+        self.ids.control_signal_history_length.valueChanged.connect(self.control_signal_history_length_changed)
 
     def connection_established(self):
         self.control = self.app().control

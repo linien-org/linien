@@ -8,8 +8,10 @@ class SpectroscopyPanel(QtWidgets.QWidget, CustomWidget):
         self.load_ui('spectroscopy_panel.ui')
 
     def ready(self):
-        self.ids.signal_offset.editingFinished.connect(self.change_signal_offset)
-        self.ids.demodulation_phase.editingFinished.connect(self.change_demod_phase)
+        self.ids.signal_offset.setKeyboardTracking(False)
+        self.ids.signal_offset.valueChanged.connect(self.change_signal_offset)
+        self.ids.demodulation_phase.setKeyboardTracking(False)
+        self.ids.demodulation_phase.valueChanged.connect(self.change_demod_phase)
         self.ids.demodulation_frequency.currentIndexChanged.connect(self.change_demod_multiplier)
 
     def connection_established(self):
