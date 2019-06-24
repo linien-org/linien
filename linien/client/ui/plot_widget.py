@@ -168,9 +168,9 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
 
             if not self.parameters.lock.value:
                 ramp_amplitude = self.parameters.ramp_amplitude.value
-                if not control_signal_has_correct_amplitude(control_signal, ramp_amplitude):
-                    print('SKIPPING')
-                    return
+                #if not control_signal_has_correct_amplitude(control_signal, ramp_amplitude):
+                #    print('SKIPPING')
+                #    return
 
             self.plot_data(control_signal, error_signal)
             self.plot_autolock_target_line(error_signal)
