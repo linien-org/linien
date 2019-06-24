@@ -19,7 +19,6 @@ from migen import *
 from misoc.interconnect.csr import AutoCSR, CSRStorage, CSRStatus, CSR
 
 from .iir import Iir
-from .pid import PID
 from .limit import LimitCSR
 from .modulate import Modulate, Demodulate
 
@@ -31,7 +30,7 @@ class FastChain(Module, AutoCSR):
 
         self.x_tap = CSRStorage(2)
         self.brk = CSRStorage(1)
-        self.y_tap = CSRStorage(3)
+        self.y_tap = CSRStorage(2)
 
         x_hold = Signal()
         x_clear = Signal()
@@ -51,14 +50,10 @@ class FastChain(Module, AutoCSR):
         dy = Signal((signal_width, True))
         rx = Signal((signal_width, True))
 
-        pid_out = Signal((signal_width, True))
-
         self.signal_in = dx, dy, rx
         self.signal_out = x, y
 
         ###
-
-        self.submodules.pid = PID()
 
         self.submodules.iir_a = Iir(
             width=signal_width, coeff_width=coeff_width, shift=coeff_width-2,
@@ -137,13 +132,7 @@ class FastChain(Module, AutoCSR):
         ]
         ya = Signal((width + 3, True))
         ys = Array([self.iir_c.x, self.iir_c.y,
-                    self.iir_d.y, self.iir_e.y >> s2,
-                    pid_out])
-
-        self.comb += [
-            self.pid.input.eq(self.x_limit.y >> s),
-            pid_out.eq(self.pid.pid_out << s)
-        ]
+                    self.iir_d.y, self.iir_e.y >> s2])
 
         self.sync += ya.eq(((dy >> s))),
         self.comb += [

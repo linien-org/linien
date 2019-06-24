@@ -9,8 +9,10 @@ class Parameters(BaseParameters):
         # server is running
         self.restorable_parameters = (
             'modulation_amplitude', 'modulation_frequency', 'ramp_speed',
-            'demodulation_phase', 'demodulation_multiplier',
-            'p', 'i', 'd', 'watch_lock', 'ramp_on_slow'
+            'demodulation_phase_a', 'demodulation_multiplier_a',
+            'demodulation_phase_b', 'demodulation_multiplier_b',
+            'p', 'i', 'd', 'watch_lock', 'ramp_on_slow', 'dual_channel',
+            'channel_mixing'
         )
 
         self.modulation_amplitude = Parameter(
@@ -29,6 +31,8 @@ class Parameters(BaseParameters):
             max_=1,
             start=0
         )
+
+        # FIXME: offset muss verwendet werden
         self.offset = Parameter(
             min_=-8191,
             max_=8191,
@@ -44,17 +48,20 @@ class Parameters(BaseParameters):
             max_=16,
             start=9
         )
-        self.demodulation_phase = Parameter(
-            min_=0,
-            max_=360,
-            start=0x0,
-            wrap=True
-        )
-        self.demodulation_multiplier = Parameter(
-            min_=0,
-            max_=15,
-            start=1
-        )
+
+        for channel in ('a', 'b'):
+            setattr(self, 'demodulation_phase_%s' % channel, Parameter(
+                min_=0,
+                max_=360,
+                start=0x0,
+                wrap=True
+            ))
+            setattr(self, 'demodulation_multiplier_%s' % channel, Parameter(
+                min_=0,
+                max_=15,
+                start=1
+            ))
+
         self.lock = Parameter(start=False)
         self.to_plot = Parameter()
 
@@ -80,3 +87,5 @@ class Parameters(BaseParameters):
         self.control_signal_history_length = Parameter(start=600)
 
         self.ramp_on_slow = Parameter(start=False)
+        self.dual_channel = Parameter(start=False)
+        self.channel_mixing = Parameter(start=0)

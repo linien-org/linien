@@ -4,6 +4,7 @@ from time import sleep, time
 from csr import make_filter, PitayaLocal, PitayaSSH
 from utils import start_nginx, stop_nginx
 from linien.config import DEFAULT_RAMP_SPEED
+from linien.common import convert_channel_mixing_value
 from linien.server.acquisition import AcquisitionMaster
 
 
@@ -40,10 +41,22 @@ class Registers:
         sweep_min = -1 * _max(params['ramp_amplitude'] * 8191)
         sweep_max = _max(params['ramp_amplitude'] * 8191)
 
-        demod_delay = int(
-            params['demodulation_phase'] / 360 * (1<<14)
+        # FIXME: eleganter
+        demod_delay_a = int(
+            params['demodulation_phase_a'] / 360 * (1<<14)
         )
-        demod_multiplier = params['demodulation_multiplier']
+        demod_multiplier_a = params['demodulation_multiplier_a']
+        demod_delay_b = int(
+            params['demodulation_phase_b'] / 360 * (1<<14)
+        )
+        demod_multiplier_b = params['demodulation_multiplier_b']
+
+        if not params['dual_channel']:
+            factor_a = 256
+            factor_b = 0
+        else:
+            value = params['channel_mixing']
+            factor_a, factor_b = convert_channel_mixing_value(value)
 
         new = dict(
             root_sweep_run=1,
@@ -58,30 +71,36 @@ class Registers:
             root_mod_freq=params['modulation_frequency'],
             root_mod_amp=params['modulation_amplitude'],
 
-            # channel B
-            fast_b_x_tap=2,
-            fast_b_demod_delay=demod_delay,
-            fast_b_demod_multiplier=demod_multiplier,
-            fast_b_brk=0,
-            fast_b_dx_sel=self.rp.signal("scopegen_dac_a"),
-            fast_b_y_tap=4,
-            fast_b_dy_sel=self.rp.signal("scopegen_dac_b"),
-
-            fast_b_y_hold_en=self.rp.states(),
-            fast_b_y_clear_en=self.rp.states(),
-            fast_b_rx_sel=self.rp.signal('zero'),
+            root_chain_a_factor=factor_a,
+            root_chain_b_factor=factor_b,
 
             # channel A
-            fast_a_brk=1,
             fast_a_x_tap=2,
-            fast_a_demod_delay=demod_delay,
-            fast_a_demod_multiplier=demod_multiplier,
-            fast_a_pid_kp=0,
-            fast_a_pid_ki=0,
-            fast_a_pid_kd=0,
-            fast_a_dy_sel=self.rp.signal('zero'),
+            fast_a_demod_delay_a=demod_delay_a,
+            fast_a_demod_multiplier_a=demod_multiplier_a,
+            fast_a_brk=0,
+            fast_a_dx_sel=self.rp.signal("scopegen_dac_a"),
+            fast_a_y_tap=0,
+            fast_a_dy_sel=self.rp.signal("scopegen_dac_b"),
 
-            scopegen_adc_a_sel=self.rp.signal("fast_b_x"),
+            fast_a_y_hold_en=self.rp.states(),
+            fast_a_y_clear_en=self.rp.states(),
+            fast_a_rx_sel=self.rp.signal('zero'),
+
+            # channel B
+            fast_a_x_tap=2,
+            fast_a_demod_delay_a=demod_delay_b,
+            fast_a_demod_multiplier_a=demod_multiplier_b,
+            fast_a_brk=0,
+            fast_a_dx_sel=self.rp.signal("scopegen_dac_a"),
+            fast_a_y_tap=0,
+            fast_a_dy_sel=self.rp.signal("scopegen_dac_b"),
+
+            fast_a_y_hold_en=self.rp.states(),
+            fast_a_y_clear_en=self.rp.states(),
+            fast_a_rx_sel=self.rp.signal('zero'),
+
+            scopegen_adc_a_sel=self.rp.signal("fast_a_x"),
             scopegen_adc_b_sel=self.rp.signal("root_control_signal"),
             # trigger on ramp
             scopegen_external_trigger=1,
@@ -152,6 +171,7 @@ class Registers:
             else:
                 self.set_pid(0, 0, 0, slope, reset=1)
 
+                # FIXME: sollte das jeweils 4096 sein?
                 self.rp.set_iir("fast_a_iir_a", *make_filter('P', k=1))
                 self.rp.set_iir("fast_a_iir_c", *make_filter("P", k=0))
                 self.rp.set_iir("fast_b_iir_a", *make_filter('P', k=1))
@@ -175,15 +195,21 @@ class Registers:
 
     def set_pid(self, p, i, d, slope, reset=None):
         sign = -1 if slope else 1
-        self.rp.set('fast_b_pid_kp', p * sign)
-        self.rp.set('fast_b_pid_ki', i * sign)
-        self.rp.set('fast_b_pid_kd', d * sign)
+        self.rp.set('root_pid_kp', p * sign)
+        self.rp.set('root_pid_ki', i * sign)
+        self.rp.set('root_pid_kd', d * sign)
 
         if reset is not None:
-            self.rp.set('fast_b_pid_reset', reset)
+            self.rp.set('root_pid_reset', reset)
 
     def hold_pid(self, hold):
+        # FIXME: root?
+        # FIXME: ist das überhaupt noch in der Chain?
         self.rp.set(
             'fast_b_y_hold_en',
+            self.rp.states('force') if hold else self.rp.states()
+        )
+        self.rp.set(
+            'fast_a_y_hold_en',
             self.rp.states('force') if hold else self.rp.states()
         )

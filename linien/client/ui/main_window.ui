@@ -592,15 +592,15 @@
           </size>
          </property>
          <property name="currentIndex">
-          <number>2</number>
+          <number>3</number>
          </property>
          <widget class="GeneralPanel" name="page_2">
           <property name="geometry">
            <rect>
             <x>0</x>
-            <y>0</y>
+            <y>-32</y>
             <width>247</width>
-            <height>539</height>
+            <height>506</height>
            </rect>
           </property>
           <attribute name="label">
@@ -611,6 +611,26 @@
             <widget class="QCheckBox" name="rampOnSlow">
              <property name="text">
               <string>Ramp on analog output 0</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="dual_channel">
+             <property name="text">
+              <string>dual-channel spectroscopy</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="label_2">
+             <property name="text">
+              <string>e.g. for combined FMS+MTS</string>
+             </property>
+             <property name="wordWrap">
+              <bool>true</bool>
+             </property>
+             <property name="indent">
+              <number>30</number>
              </property>
             </widget>
            </item>
@@ -626,7 +646,7 @@
              <item>
               <widget class="QLabel" name="label_11">
                <property name="text">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;FAST IN 2:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;FAST IN 1:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
                <property name="textFormat">
                 <enum>Qt::RichText</enum>
@@ -636,7 +656,7 @@
              <item>
               <widget class="QLabel" name="label_12">
                <property name="text">
-                <string>spectroscopy signal</string>
+                <string>spectroscopy signal 1</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -647,6 +667,45 @@
               </widget>
              </item>
             </layout>
+           </item>
+           <item>
+            <widget class="Line" name="line_5">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QWidget" name="explain_second_channel" native="true">
+             <layout class="QHBoxLayout" name="horizontalLayout_4">
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QLabel" name="label_3">
+                <property name="text">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;FAST IN 2:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="label_4">
+                <property name="text">
+                 <string>spectroscopy signal 2</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
            </item>
            <item>
             <widget class="Line" name="line">
@@ -802,6 +861,110 @@
             </widget>
            </item>
            <item>
+            <widget class="QGroupBox" name="dual_channel_mixing">
+             <property name="title">
+              <string>Mixing of channel 1 and 2</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_6">
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_7">
+                <item>
+                 <widget class="QLabel" name="label_7">
+                  <property name="text">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Channel 1&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer_2">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label_6">
+                  <property name="text">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Channel 2&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_9">
+                <item>
+                 <widget class="QLabel" name="chain_a_factor">
+                  <property name="text">
+                   <string>X %</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer_3">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
+                 <widget class="QLabel" name="chain_b_factor">
+                  <property name="text">
+                   <string>Y %</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <widget class="QSlider" name="channel_mixing_slider">
+                <property name="maximum">
+                 <number>255</number>
+                </property>
+                <property name="value">
+                 <number>128</number>
+                </property>
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_4">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="page_3">
+          <attribute name="label">
+           <string>Modulation &amp;&amp; Ramp</string>
+          </attribute>
+          <layout class="QVBoxLayout" name="verticalLayout_3">
+           <item>
             <widget class="QGroupBox" name="groupBox_4">
              <property name="title">
               <string>Modulation frequency</string>
@@ -952,7 +1115,7 @@
             </widget>
            </item>
            <item>
-            <spacer name="verticalSpacer_4">
+            <spacer name="verticalSpacer">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
              </property>
@@ -966,13 +1129,13 @@
            </item>
           </layout>
          </widget>
-         <widget class="QWidget" name="page">
+         <widget class="QWidget" name="spectroscopy_channel_1_page">
           <property name="geometry">
            <rect>
             <x>0</x>
             <y>0</y>
             <width>250</width>
-            <height>498</height>
+            <height>432</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -982,7 +1145,7 @@
            </sizepolicy>
           </property>
           <attribute name="label">
-           <string>Spectroscopy</string>
+           <string>Spectroscopy Channel 1</string>
           </attribute>
           <layout class="QVBoxLayout" name="verticalLayout">
            <item>
@@ -990,18 +1153,28 @@
              <property name="widgetResizable">
               <bool>true</bool>
              </property>
-             <widget class="SpectroscopyPanel" name="spectroscopyPanel">
+             <widget class="SpectroscopyChannelAPanel" name="spectroscopyPanel">
               <property name="geometry">
                <rect>
                 <x>0</x>
                 <y>0</y>
                 <width>234</width>
-                <height>482</height>
+                <height>416</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_9"/>
              </widget>
             </widget>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="spectroscopy_channel_2_page">
+          <attribute name="label">
+           <string>Spectroscopy Channel 2</string>
+          </attribute>
+          <layout class="QVBoxLayout" name="verticalLayout_10">
+           <item>
+            <widget class="SpectroscopyChannelBPanel" name="widget" native="true"/>
            </item>
           </layout>
          </widget>
@@ -1011,7 +1184,7 @@
             <x>0</x>
             <y>0</y>
             <width>250</width>
-            <height>498</height>
+            <height>432</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -1035,7 +1208,7 @@
                 <x>0</x>
                 <y>0</y>
                 <width>234</width>
-                <height>482</height>
+                <height>416</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_8"/>
@@ -1084,15 +1257,21 @@
    </slots>
   </customwidget>
   <customwidget>
-   <class>SpectroscopyPanel</class>
+   <class>GeneralPanel</class>
+   <extends>QWidget</extends>
+   <header location="global">general_panel.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>SpectroscopyChannelBPanel</class>
    <extends>QWidget</extends>
    <header location="global">spectroscopy_panel.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>GeneralPanel</class>
+   <class>SpectroscopyChannelAPanel</class>
    <extends>QWidget</extends>
-   <header location="global">general_panel.h</header>
+   <header location="global">spectroscopy_panel.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

@@ -86,3 +86,14 @@ def control_signal_has_correct_amplitude(control_signal, amplitude_target):
     ) / len(control_signal_center) * len(control_signal) / 16384
 
     return np.abs(control_signal_amplitude - amplitude_target) / control_signal_amplitude < 0.1
+
+
+def convert_channel_mixing_value(value):
+    if value <= 0:
+        a_value = 128 + value
+        b_value = 128
+    else:
+        a_value = 128
+        b_value = 127 - value
+
+    return a_value, b_value

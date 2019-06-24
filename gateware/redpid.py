@@ -33,6 +33,7 @@ from .lfsr import XORSHIFTGen
 from .modulate import Modulate
 from .sweep import SweepCSR
 from .limit import LimitCSR
+from .pid import PID
 
 
 class ScopeGen(Module, AutoCSR):
@@ -110,11 +111,15 @@ class ScopeGen(Module, AutoCSR):
 
 
 class PIDCSR(Module, AutoCSR):
-    def __init__(self, width=14, signal_width=25):
+    def __init__(self, width=14, signal_width=25, chain_factor_width=8):
         control_signal = Signal((signal_width, True))
         s = signal_width - width
 
         self.ramp_on_slow = CSRStorage()
+        factor_reset = 1 << (chain_factor_width - 1)
+        # we use chain_factor_width + 1 for the single channel mode
+        self.chain_a_factor = CSRStorage(chain_factor_width + 1, reset=factor_reset)
+        self.chain_b_factor = CSRStorage(chain_factor_width + 1, reset=factor_reset)
 
         self.state_in = []
         self.signal_in = []
@@ -123,7 +128,9 @@ class PIDCSR(Module, AutoCSR):
 
         self.submodules.mod = Modulate(width=width)
         self.submodules.sweep = SweepCSR(width=width, step_width=24, step_shift=18)
+        self.submodules.limit1 = LimitCSR(width=width, guard=3)
         self.submodules.limit = LimitCSR(width=width, guard=3)
+        self.submodules.pid = PID()
 
         self.comb += [
             self.sweep.clear.eq(0),
@@ -141,7 +148,9 @@ class Pid(Module, AutoCSR):
                 "scopegen": 6, "noise": 7, 'root': 8
         }
 
-        self.submodules.root = PIDCSR()
+        chain_factor_bits = 8
+
+        self.submodules.root = PIDCSR(chain_factor_width=chain_factor_bits)
 
         self.submodules.analog = PitayaAnalog(
                 platform.request("adc"), platform.request("dac"))
@@ -190,10 +199,36 @@ class Pid(Module, AutoCSR):
         ])
 
         width = 14
-        out = Signal((width + 3, True))
 
+        # now, we combine the output of the two paths, with a variable
+        # factor each.
+        # FIXME: reicht das eine bit extra?
+        mixed = Signal((width + 1, True))
+        self.sync += mixed.eq(
+            (
+                # FIXME: wenn dual_channel an ist und und z.B. beide Werte auf 128
+                # sind, geht damit jeweils ein bit verloren. Nicht schlimm,
+                # vermutlich, aber eventuell kann man die weitere Kette mit
+                # mehr Bits rechnen lassen?
+                (self.root.chain_a_factor.storage * self.fast_a.dac)
+                + (self.root.chain_b_factor.storage * self.fast_b.dac)
+            ) >> chain_factor_bits
+        )
+
+        mixed_limited = Signal((width, True))
+        self.comb += [
+            self.root.limit1.x.eq(mixed),
+            mixed_limited.eq(self.root.limit1.y)
+        ]
+
+        pid_out = Signal((width, True))
+        self.comb += [
+            self.root.pid.input.eq(mixed_limited),
+            pid_out.eq(self.root.pid.pid_out)
+        ]
+        out = Signal((width + 1, True))
         self.sync += out.eq(
-            self.fast_a.dac + self.fast_b.dac
+            pid_out
             + Mux(self.root.ramp_on_slow.storage, 0, self.root.sweep.y)
         )
 
@@ -209,7 +244,6 @@ class Pid(Module, AutoCSR):
                 self.analog.dac_b.eq(self.root.limit.y),
 
                 #self.slow_a.adc.eq(self.xadc.adc[0] << 4),
-                # FIXME: check
                 #self.ds0.data.eq(self.slow_a.dac),
                 self.ds0.data.eq(
                     Mux(
