@@ -68,7 +68,7 @@
    <item>
     <widget class="QTabWidget" name="lock_control_container">
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="auto_mode">
       <attribute name="title">

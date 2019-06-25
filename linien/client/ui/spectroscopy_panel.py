@@ -1,5 +1,6 @@
 from PyQt5 import QtGui, QtWidgets
 from linien.client.widgets import CustomWidget
+from linien.client.utils import param2ui
 
 
 class SpectroscopyPanel(QtWidgets.QWidget, CustomWidget):
@@ -25,16 +26,18 @@ class SpectroscopyPanel(QtWidgets.QWidget, CustomWidget):
         #self.close_button.clicked.connect(self.close_app)
         #self.shutdown_button.clicked.connect(self.shutdown_server)
 
-        self.get_param('demodulation_phase').change(
-            lambda value: self.ids.demodulation_phase.setValue(value)
+        param2ui(
+            self.get_param('demodulation_phase'),
+            self.ids.demodulation_phase
         )
-
-        self.get_param('demodulation_multiplier').change(
-            lambda value: self.ids.demodulation_frequency.setCurrentIndex(value - 1)
+        param2ui(
+            self.get_param('demodulation_multiplier')
+            self.ids.demodulation_frequency,
+            lambda value: value - 1
         )
-
-        self.get_param('offset').change(
-            lambda value: self.ids.signal_offset.setValue(value)
+        param2ui(
+            self.get_param('offset'),
+            self.ids.signal_offset
         )
 
     def change_signal_offset(self):

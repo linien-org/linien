@@ -1,6 +1,7 @@
 import numpy as np
 from PyQt5 import QtGui
 from linien.client.widgets import CustomWidget
+from linien.client.utils import param2ui
 
 
 class LockStatusPanel(QtGui.QWidget, CustomWidget):
@@ -54,8 +55,9 @@ class LockStatusPanel(QtGui.QWidget, CustomWidget):
                 params.autolock_failed, params.autolock_locked):
             param.change(update_status)
 
-        params.control_signal_history_length.change(
-            lambda value: self.ids.control_signal_history_length.setValue(value)
+        param2ui(
+            params.control_signal_history_length,
+            self.ids.control_signal_history_length
         )
 
     def stop_autolock(self):

@@ -1,5 +1,6 @@
 from PyQt5 import QtGui
 from linien.client.widgets import CustomWidget
+from linien.client.utils import param2ui
 
 
 class LockingPanel(QtGui.QWidget, CustomWidget):
@@ -25,23 +26,16 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
         self.parameters = params
         self.control = self.app().control
 
-        params.p.change(
-            lambda value: self.ids.kp.setValue(value)
-        )
-        params.i.change(
-            lambda value: self.ids.ki.setValue(value)
-        )
-        params.d.change(
-            lambda value: self.ids.kd.setValue(value)
-        )
-        params.watch_lock.change(
-            lambda value: self.ids.watchLockCheckbox.setChecked(value)
-        )
-        params.autolock_determine_offset.change(
-            lambda value: self.ids.autoOffsetCheckbox.setChecked(value)
-        )
-        params.automatic_mode.change(
-            lambda value: self.ids.lock_control_container.setCurrentIndex(0 if value else 1)
+        param2ui(params.p, self.ids.kp)
+        param2ui(params.i, self.ids.ki)
+        param2ui(params.d, self.ids.kd)
+
+        param2ui(params.watch_lock, self.ids.watchLockCheckbox)
+        param2ui(params.autolock_determine_offset, self.ids.autoOffsetCheckbox)
+        param2ui(
+            params.automatic_mode,
+            self.ids.lock_control_container,
+            lambda value: 0 if value else 1
         )
 
         def lock_status_changed(_):
@@ -59,10 +53,12 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
                       params.autolock_failed, params.autolock_locked):
             param.change(lock_status_changed)
 
-        def target_slope_changed(rising):
-            self.ids.button_slope_rising.setChecked(rising)
-            self.ids.button_slope_falling.setChecked(not rising)
-        params.target_slope_rising.change(target_slope_changed)
+        param2ui(params.target_slope_rising, self.ids.button_slope_rising)
+        param2ui(
+            params.target_slope_rising,
+            self.ids.button_slope_falling,
+            lambda value: not value
+        )
 
     def kp_changed(self):
         self.parameters.p.value = self.ids.kp.value()

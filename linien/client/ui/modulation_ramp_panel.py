@@ -2,6 +2,7 @@ import numpy as np
 from PyQt5 import QtGui
 from linien.client.widgets import CustomWidget
 from linien.client.connection import MHz, Vpp
+from linien.client.utils import param2ui
 
 
 class ModulationAndRampPanel(QtGui.QWidget, CustomWidget):
@@ -20,18 +21,20 @@ class ModulationAndRampPanel(QtGui.QWidget, CustomWidget):
         self.control = self.app().control
         self.parameters = params
 
-        params.modulation_frequency.change(
-            lambda value: self.ids.modulation_frequency.setValue(value / MHz)
+        param2ui(
+            params.modulation_frequency,
+            self.ids.modulation_frequency,
+            lambda value: value / MHz
         )
-
-        params.modulation_amplitude.change(
-            lambda value: self.ids.modulation_amplitude.setValue(value / Vpp)
+        param2ui(
+            params.modulation_amplitude,
+            self.ids.modulation_amplitude,
+            lambda value: value / Vpp
         )
-
-        params.ramp_speed.change(
-            lambda value: self.ids.ramp_speed.setCurrentIndex(value)
+        param2ui(
+            params.ramp_speed,
+            self.ids.ramp_speed
         )
-
 
     def change_modulation_frequency(self):
         self.parameters.modulation_frequency.value = self.ids.modulation_frequency.value() * MHz

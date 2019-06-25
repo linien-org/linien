@@ -2,6 +2,7 @@ import numpy as np
 from PyQt5 import QtGui
 
 from linien.common import convert_channel_mixing_value
+from linien.client.utils import param2ui
 from linien.client.widgets import CustomWidget
 from linien.client.connection import MHz, Vpp
 
@@ -21,28 +22,31 @@ class GeneralPanel(QtGui.QWidget, CustomWidget):
         self.parameters = params
 
         def ramp_on_slow_param_changed(value):
-            self.ids.rampOnSlow.setChecked(value)
             self.ids.explainSweepOnAnalog.setVisible(value)
             self.ids.explainNoSweepOnAnalog.setVisible(not value)
-
-        params.ramp_on_slow.change(ramp_on_slow_param_changed)
+            return value
+        param2ui(
+            params.ramp_slow,
+            self.ids.rampOnSlow,
+            ramp_on_slow_param_changed
+        )
 
         def dual_channel_changed(value):
-            self.ids.dual_channel.setChecked(value)
             self.ids.dual_channel_mixing.setVisible(value)
             self.ids.explain_second_channel.setVisible(value)
             self.app().main_window.ids.spectroscopy_channel_2_page.setEnabled(value)
+            return value
+        param2ui(
+            params.dual_channel,
+            self.ids.dual_channel,
+            dual_channel_changed
+        )
 
-        params.dual_channel.change(dual_channel_changed)
-
-        def channel_mixing_changed(value):
-            # FIXME: blockSignals überall?
-            self.ids.channel_mixing_slider.blockSignals(True)
-            self.ids.channel_mixing_slider.setValue(value + 128)
-            self.ids.channel_mixing_slider.blockSignals(False)
-
-            self.update_channel_mixing_slider(value)
-        params.channel_mixing.change(channel_mixing_changed)
+        param2ui(
+            params.channel_mixing,
+            self.ids.channel_mixing_slider,
+            lambda value: value + 128
+        )
 
     def ramp_on_slow_changed(self):
         self.parameters.ramp_on_slow.value = int(self.ids.rampOnSlow.checkState() > 0)

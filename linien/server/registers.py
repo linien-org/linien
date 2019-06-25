@@ -174,15 +174,17 @@ class Registers:
                 self.rp.set_iir("fast_b_iir_c", *make_filter("P", k=0))
 
         else:
-            # hold PID value
-            self.hold_pid(True)
-
             if lock:
+                # FIXME: check that this is not called without the need to do so
+
+                # hold PID value
+                self.hold_pid(True)
+
                 # set new PI parameters
                 self.set_pid(kp, ki, kd, slope)
 
-            # reset "hold"
-            self.hold_pid(False)
+                # reset "hold"
+                self.hold_pid(False)
 
     def run_data_acquisition(self, on_change):
         self.acquisition = AcquisitionMaster(
