@@ -41,15 +41,9 @@ class Registers:
         sweep_min = -1 * _max(params['ramp_amplitude'] * 8191)
         sweep_max = _max(params['ramp_amplitude'] * 8191)
 
-        # FIXME: eleganter
-        demod_delay_a = int(
-            params['demodulation_phase_a'] / 360 * (1<<14)
+        phase_to_delay = lambda phase: int(
+            phase / 360 * (1<<14)
         )
-        demod_multiplier_a = params['demodulation_multiplier_a']
-        demod_delay_b = int(
-            params['demodulation_phase_b'] / 360 * (1<<14)
-        )
-        demod_multiplier_b = params['demodulation_multiplier_b']
 
         if not params['dual_channel']:
             factor_a = 256
@@ -80,8 +74,8 @@ class Registers:
 
             # channel A
             fast_a_x_tap=2,
-            fast_a_demod_delay=demod_delay_a,
-            fast_a_demod_multiplier=demod_multiplier_a,
+            fast_a_demod_delay=phase_to_delay(params['demodulation_phase_a']),
+            fast_a_demod_multiplier=params['demodulation_multiplier_a'],
             fast_a_brk=0,
             fast_a_dx_sel=self.rp.signal('zero'),
             fast_a_y_tap=0,
@@ -93,8 +87,8 @@ class Registers:
 
             # channel B
             fast_b_x_tap=2,
-            fast_b_demod_delay=demod_delay_b,
-            fast_b_demod_multiplier=demod_multiplier_b,
+            fast_b_demod_delay=phase_to_delay(params['demodulation_phase_b']),
+            fast_b_demod_multiplier=params['demodulation_multiplier_b'],
             fast_b_brk=0,
             fast_b_dx_sel=self.rp.signal('zero'),
             fast_b_y_tap=0,
