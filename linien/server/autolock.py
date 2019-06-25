@@ -128,9 +128,7 @@ class Autolock:
             get_lock_point(error_signal, self.x0, self.x1)
 
         if self.auto_offset:
-            # FIXME: disabled as there is no single "offset" anymore
-            # self.parameters.offset.value -= mean_signal
-            pass
+            self.parameters.combined_offset.value = -1 * mean_signal
         self.parameters.target_slope_rising.value = target_slope_rising
         self.control.exposed_write_data()
 

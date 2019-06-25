@@ -61,6 +61,12 @@ class Parameters(BaseParameters):
                 start=0
             ))
 
+        self.combined_offset = Parameter(
+            min_=-8191,
+            max_=8191,
+            start=0
+        )
+
         self.lock = Parameter(start=False)
         self.to_plot = Parameter()
 

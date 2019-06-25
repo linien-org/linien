@@ -127,12 +127,15 @@ class PIDCSR(Module, AutoCSR):
         self.chain_b_offset = CSRStorage(width)
         self.chain_a_offset_signed = Signal((width, True))
         self.chain_b_offset_signed = Signal((width, True))
+        self.combined_offset = CSRStorage(width)
+        self.combined_offset_signed = Signal((width, True))
         self.out_offset = CSRStorage(width)
         self.out_offset_signed = Signal((width, True))
 
         self.sync += [
             self.chain_a_offset_signed.eq(self.chain_a_offset.storage),
             self.chain_b_offset_signed.eq(self.chain_b_offset.storage),
+            self.combined_offset_signed.eq(self.combined_offset.storage),
             self.out_offset_signed.eq(self.out_offset.storage)
         ]
 
@@ -145,8 +148,8 @@ class PIDCSR(Module, AutoCSR):
 
         self.submodules.mod = Modulate(width=width)
         self.submodules.sweep = SweepCSR(width=width, step_width=24, step_shift=18)
-        self.submodules.limit1 = LimitCSR(width=width, guard=3)
-        self.submodules.limit = LimitCSR(width=width, guard=3)
+        self.submodules.limit1 = LimitCSR(width=width, guard=4)
+        self.submodules.limit = LimitCSR(width=width, guard=4)
         self.submodules.pid = PID()
 
         self.comb += [
@@ -220,7 +223,7 @@ class Pid(Module, AutoCSR):
 
         # now, we combine the output of the two paths, with a variable
         # factor each.
-        mixed = Signal((1 + ((width + 1) + self.root.chain_a_factor.size), True))
+        mixed = Signal((2 + ((width + 1) + self.root.chain_a_factor.size), True))
         self.sync += mixed.eq(
             (
                 # FIXME: wenn dual_channel an ist und und z.B. beide Werte auf 128
@@ -229,6 +232,7 @@ class Pid(Module, AutoCSR):
                 # mehr Bits rechnen lassen?
                 (self.root.chain_a_factor.storage * self.fast_a.dac)
                 + (self.root.chain_b_factor.storage * self.fast_b.dac)
+                + self.root.combined_offset_signed
             )
         )
 

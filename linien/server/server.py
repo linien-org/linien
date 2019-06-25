@@ -56,6 +56,7 @@ class RedPitayaControlService(BaseService):
                          auto_offset=auto_offset)
 
     def exposed_start_ramp(self):
+        self.parameters.combined_offset.value = 0
         self.parameters.lock.value = False
         self.exposed_write_data()
 

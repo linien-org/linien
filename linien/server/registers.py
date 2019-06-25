@@ -76,6 +76,7 @@ class Registers:
             root_chain_a_offset=twos_complement(int(params['offset_a']), 14),
             root_chain_b_offset=twos_complement(int(params['offset_b']), 14),
             root_out_offset=int(params['center'] * 8191),
+            root_combined_offset=twos_complement(params['combined_offset'], 14),
 
             # channel A
             fast_a_x_tap=2,
