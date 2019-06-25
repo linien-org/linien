@@ -42,7 +42,7 @@ class DataAcquisitionService(Service):
                     continue
 
                 data = [
-                    [float(i) for i in channel[:]]
+                    [int(i) for i in channel[:]]
                     for channel in
                     (self.r.scope.data_ch1, self.r.scope.data_ch2)
                 ]
