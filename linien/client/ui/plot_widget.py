@@ -7,7 +7,7 @@ from pyqtgraph.Qt import QtCore, QtGui
 import pyqtgraph as pg
 from time import time
 from linien.common import update_control_signal_history, determine_shift_by_correlation, \
-    get_lock_point, control_signal_has_correct_amplitude
+    get_lock_point, control_signal_has_correct_amplitude, combine_error_signal
 
 
 class PlotWidget(pg.PlotWidget, CustomWidget):
@@ -27,15 +27,22 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
 
         self.zero_line = pg.PlotCurveItem(pen=pg.mkPen('w', width=1))
         self.addItem(self.zero_line)
-        self.signal = pg.PlotCurveItem(pen=pg.mkPen((200, 0, 0, 200), width=pen_width))
-        self.addItem(self.signal)
-        self.control_signal = pg.PlotCurveItem(pen=pg.mkPen((0, 0, 200, 200), width=pen_width))
+        self.signal1 = pg.PlotCurveItem(pen=pg.mkPen((200, 0, 0, 200), width=pen_width))
+        self.addItem(self.signal1)
+        self.signal2 = pg.PlotCurveItem(pen=pg.mkPen((0, 200, 0, 200), width=pen_width))
+        self.addItem(self.signal2)
+        self.combined_signal = pg.PlotCurveItem(pen=pg.mkPen((0, 0, 200, 200), width=pen_width))
+        self.addItem(self.combined_signal)
+
+        self.control_signal = pg.PlotCurveItem(pen=pg.mkPen((200, 0, 0, 200), width=pen_width))
         self.addItem(self.control_signal)
         self.control_signal_history = pg.PlotCurveItem(pen=pg.mkPen((0, 200, 0, 200), width=pen_width))
         self.addItem(self.control_signal_history)
 
         self.zero_line.setData([0, 16383], [0, 0])
-        self.signal.setData([0, 16383], [1, 1])
+        self.signal1.setData([0, 16383], [1, 1])
+        self.signal1.setData([0, 16383], [1, 1])
+        self.combined_signal.setData([0, 16383], [1, 1])
 
         self.connection = None
         self.parameters = None
@@ -109,15 +116,15 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         else:
             # it was a selection
             if self.parameters.automatic_mode.value:
-                last_error_signal = self.last_plot_data[0]
+                last_combined_error_signal = self.last_plot_data[2]
                 self.control.start_autolock(
                     *sorted([x0, x]),
                     # we pickle it here because otherwise a netref is
                     # transmitted which blocks the autolock
-                    pickle.dumps(last_error_signal)
+                    pickle.dumps(last_combined_error_signal)
                 )
                 mean_signal, target_slope_rising, target_zoom, rolled_error_signal = \
-                    get_lock_point(last_error_signal, int(x0), int(x))
+                    get_lock_point(last_combined_error_signal, int(x0), int(x))
                 self.autolock_ref_spectrum = rolled_error_signal
             else:
                 self.graph_on_selection(x0, x)
@@ -162,32 +169,51 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
             if to_plot is None:
                 return
 
-            self.last_plot_data = to_plot
-
-            error_signal, control_signal = to_plot
-
-            if not self.parameters.lock.value:
-                ramp_amplitude = self.parameters.ramp_amplitude.value
-                #if not control_signal_has_correct_amplitude(control_signal, ramp_amplitude):
-                #    print('SKIPPING')
-                #    return
-
-            self.plot_data(control_signal, error_signal)
-            self.plot_autolock_target_line(error_signal)
-            self.update_plot_scaling(error_signal)
+            # we also call this if the laser is not locked because it resets
+            # the history in this case
             self.update_control_signal_history(to_plot)
 
-    def plot_data(self, control_signal, error_signal):
-        self.signal.setData(list(range(len(error_signal))), error_signal)
-        self.control_signal.setData(
-            list(range(len(error_signal))),
-            [
-                point / 8192 * self.plot_max
-                for point in control_signal
-            ]
-        )
+            if self.parameters.lock.value:
+                self.last_plot_data = to_plot
 
-    def plot_autolock_target_line(self, error_signal):
+                self.signal1.setVisible(False)
+                self.signal2.setVisible(False)
+                self.control_signal.setVisible(True)
+                self.control_signal_history.setVisible(True)
+                self.combined_signal.setVisible(True)
+
+                self.plot_data_locked(to_plot)
+                self.update_plot_scaling(to_plot)
+            else:
+                self.signal1.setVisible(True)
+                self.signal2.setVisible(self.parameters.dual_channel.value)
+                self.combined_signal.setVisible(self.parameters.dual_channel.value)
+                self.control_signal.setVisible(False)
+                self.control_signal_history.setVisible(False)
+
+                combined_error_signal = combine_error_signal(
+                    to_plot,
+                    self.parameters.dual_channel.value,
+                    self.parameters.channel_mixing.value
+                )
+                self.last_plot_data = list(to_plot) + [combined_error_signal]
+
+                self.plot_data_unlocked(to_plot, combined_error_signal)
+                self.plot_autolock_target_line(combined_error_signal)
+                self.update_plot_scaling(list(to_plot) + [combined_error_signal])
+
+    def plot_data_unlocked(self, error_signals, combined_signal):
+        error_signal1, error_signal2 = error_signals
+        self.signal1.setData(list(range(len(error_signal1))), error_signal1)
+        self.signal2.setData(list(range(len(error_signal2))), error_signal2)
+        self.combined_signal.setData(list(range(len(combined_signal))), combined_signal)
+
+    def plot_data_locked(self, signals):
+        error_signal, control_signal = signals
+        self.combined_signal.setData(list(range(len(error_signal))), error_signal)
+        self.control_signal.setData(list(range(len(error_signal))), control_signal)
+
+    def plot_autolock_target_line(self, combined_error_signal):
         if self.autolock_ref_spectrum is not None and self.parameters.autolock_approaching.value:
             ramp_amplitude = self.parameters.ramp_amplitude.value
             zoom_factor = 1 / ramp_amplitude
@@ -196,10 +222,10 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
             shift, _1, _2 = determine_shift_by_correlation(
                 zoom_factor,
                 self.autolock_ref_spectrum,
-                error_signal
+                combined_error_signal
             )
 
-            length = len(error_signal)
+            length = len(combined_error_signal)
             shift = (length / 2) - (shift / 2* length * zoom_factor)
 
             self.lock_target_line.setVisible(True)
@@ -208,10 +234,13 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
             self.lock_target_line.setVisible(False)
 
 
-    def update_plot_scaling(self, error_signal):
-        if time() - self.last_plot_rescale > 2:
-            self.plot_min = math.floor(np.min(error_signal))
-            self.plot_max = math.ceil(np.max(error_signal))
+    def update_plot_scaling(self, signals):
+        if time() - self.last_plot_rescale > .5:
+            all_ = []
+            for signal in signals:
+                all_ += signal
+            self.plot_min = math.floor(np.min(all_))
+            self.plot_max = math.ceil(np.max(all_))
 
             if self.plot_min == self.plot_max:
                 self.plot_max += 1
@@ -236,10 +265,7 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
             self.control_signal_history.setData(
                 times,
                 [
-                    point / 8192 * self.plot_max
+                    point
                     for point in self.control_signal_history_data['values']
                 ]
             )
-            self.control_signal_history.setVisible(True)
-        else:
-            self.control_signal_history.setVisible(False)

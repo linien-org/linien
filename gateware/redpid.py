@@ -112,7 +112,9 @@ class ScopeGen(Module, AutoCSR):
 
 class PIDCSR(Module, AutoCSR):
     def __init__(self, width=14, signal_width=25, chain_factor_width=8):
+        combined_error_signal = Signal((signal_width, True))
         control_signal = Signal((signal_width, True))
+
         s = signal_width - width
 
         self.ramp_on_slow = CSRStorage()
@@ -121,10 +123,25 @@ class PIDCSR(Module, AutoCSR):
         self.chain_a_factor = CSRStorage(chain_factor_width + 1, reset=factor_reset)
         self.chain_b_factor = CSRStorage(chain_factor_width + 1, reset=factor_reset)
 
+        self.chain_a_offset = CSRStorage(width)
+        self.chain_b_offset = CSRStorage(width)
+        self.chain_a_offset_signed = Signal((width, True))
+        self.chain_b_offset_signed = Signal((width, True))
+        self.out_offset = CSRStorage(width)
+        self.out_offset_signed = Signal((width, True))
+
+        self.sync += [
+            self.chain_a_offset_signed.eq(self.chain_a_offset.storage),
+            self.chain_b_offset_signed.eq(self.chain_b_offset.storage),
+            self.out_offset_signed.eq(self.out_offset.storage)
+        ]
+
         self.state_in = []
         self.signal_in = []
         self.state_out = []
-        self.signal_out = [control_signal]
+        self.signal_out = [
+            control_signal, combined_error_signal
+        ]
 
         self.submodules.mod = Modulate(width=width)
         self.submodules.sweep = SweepCSR(width=width, step_width=24, step_shift=18)
@@ -135,6 +152,7 @@ class PIDCSR(Module, AutoCSR):
         self.comb += [
             self.sweep.clear.eq(0),
             self.sweep.hold.eq(0),
+            combined_error_signal.eq(self.limit1.y << s),
             control_signal.eq(self.limit.y << s)
         ]
 
@@ -175,8 +193,8 @@ class Pid(Module, AutoCSR):
         self.submodules.dna = DNA(version=2)
 
         s, c = 25, 18
-        self.submodules.fast_a = FastChain(14, s, c, self.root.mod)
-        self.submodules.fast_b = FastChain(14, s, c, self.root.mod)
+        self.submodules.fast_a = FastChain(14, s, c, self.root.mod, offset_signal=self.root.chain_a_offset_signed)
+        self.submodules.fast_b = FastChain(14, s, c, self.root.mod, offset_signal=self.root.chain_b_offset_signed)
         sys_slow = ClockDomainsRenamer("sys_slow")
         #self.submodules.slow_a = sys_slow(SlowChain(16, s, c))
         #self.slow_a.iir.interval.value.value *= 15
@@ -188,13 +206,13 @@ class Pid(Module, AutoCSR):
         #self.slow_d.iir.interval.value.value *= 15
         self.submodules.scopegen = ScopeGen(s)
         #self.submodules.noise = LFSRGen(s)
-        self.submodules.noise = XORSHIFTGen(s)
+        #self.submodules.noise = XORSHIFTGen(s)
 
         self.state_names, self.signal_names = cross_connect(self.gpio_n, [
             ("fast_a", self.fast_a), ("fast_b", self.fast_b),
             #("slow_a", self.slow_a), ("slow_b", self.slow_b),
             #("slow_c", self.slow_c), ("slow_d", self.slow_d),
-            ("scopegen", self.scopegen), ("noise", self.noise),
+            ("scopegen", self.scopegen), #("noise", self.noise),
             ("root", self.root)
         ])
 
@@ -202,8 +220,7 @@ class Pid(Module, AutoCSR):
 
         # now, we combine the output of the two paths, with a variable
         # factor each.
-        # FIXME: reicht das eine bit extra?
-        mixed = Signal((width + 1, True))
+        mixed = Signal((1 + ((width + 1) + self.root.chain_a_factor.size), True))
         self.sync += mixed.eq(
             (
                 # FIXME: wenn dual_channel an ist und und z.B. beide Werte auf 128
@@ -212,12 +229,12 @@ class Pid(Module, AutoCSR):
                 # mehr Bits rechnen lassen?
                 (self.root.chain_a_factor.storage * self.fast_a.dac)
                 + (self.root.chain_b_factor.storage * self.fast_b.dac)
-            ) >> chain_factor_bits
+            )
         )
 
         mixed_limited = Signal((width, True))
         self.comb += [
-            self.root.limit1.x.eq(mixed),
+            self.root.limit1.x.eq(mixed >> chain_factor_bits),
             mixed_limited.eq(self.root.limit1.y)
         ]
 
@@ -226,10 +243,11 @@ class Pid(Module, AutoCSR):
             self.root.pid.input.eq(mixed_limited),
             pid_out.eq(self.root.pid.pid_out)
         ]
-        out = Signal((width + 1, True))
+        out = Signal((width + 2, True))
         self.sync += out.eq(
             pid_out
             + Mux(self.root.ramp_on_slow.storage, 0, self.root.sweep.y)
+            + self.root.out_offset_signed
         )
 
         self.comb += [

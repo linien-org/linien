@@ -64,11 +64,12 @@ def get_lock_point(error_signal, x0, x1):
     max_idx = np.argmax(cropped_data)
 
     mean_signal = np.mean([cropped_data[min_idx], cropped_data[max_idx]])
-    slope_data = np.array(cropped_data[min_idx:max_idx]) - mean_signal
+    idxs = sorted([min_idx, max_idx])
+    slope_data = np.array(cropped_data[idxs[0]:idxs[1]]) - mean_signal
 
-    zero_idx = x0 + min_idx + np.argmin(np.abs(slope_data))
+    zero_idx = x0 + np.min(idxs) + np.argmin(np.abs(slope_data))
     target_slope_rising = max_idx > min_idx
-    target_zoom = 16384 / (max_idx - min_idx) / 1.5
+    target_zoom = 16384 / (idxs[1] - idxs[0]) / 1.5
 
     length = len(error_signal)
     rolled_error_signal = np.roll(error_signal, -int(zero_idx - (length/2)))
@@ -97,3 +98,15 @@ def convert_channel_mixing_value(value):
         b_value = 127 - value
 
     return a_value, b_value
+
+
+def combine_error_signal(error_signals, dual_channel, channel_mixing, chain_factor_width=8):
+    if not dual_channel:
+        return error_signals[0]
+
+    a_factor, b_factor = convert_channel_mixing_value(channel_mixing)
+
+    return [
+        (a_factor * a + b_factor * b) >> chain_factor_width
+        for a, b in zip(*error_signals)
+    ]

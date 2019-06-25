@@ -102,6 +102,12 @@
      <layout class="QHBoxLayout" name="horizontalLayout_7">
       <item>
        <widget class="QSpinBox" name="signal_offset">
+        <property name="minimum">
+         <number>-8191</number>
+        </property>
+        <property name="maximum">
+         <number>8191</number>
+        </property>
         <property name="singleStep">
          <number>100</number>
         </property>

@@ -10,8 +10,6 @@ from multiprocessing import Process, Pipe
 
 from linien.config import ACQUISITION_PORT
 from linien.server.utils import stop_nginx, start_nginx, flash_fpga
-from linien.server.acquisition_process import DataAcquisitionService
-
 
 class AcquisitionConnectionError(Exception):
     pass
@@ -19,7 +17,6 @@ class AcquisitionConnectionError(Exception):
 
 class AcquisitionProcessSignals(Enum):
     SHUTDOWN = 0
-    SET_ASG_OFFSET = 1
     SET_RAMP_SPEED = 2
     SET_LOCK_STATUS = 3
 
@@ -51,6 +48,7 @@ class AcquisitionMaster:
             acquisition_rpyc = rpyc.connect(host, ACQUISITION_PORT)
             acquisition = acquisition_rpyc.root
         else:
+            from linien.server.acquisition_process import DataAcquisitionService
             stop_nginx()
             flash_fpga()
             acquisition = DataAcquisitionService()
@@ -68,9 +66,6 @@ class AcquisitionMaster:
                 data = pipe.recv()
                 if data[0] == AcquisitionProcessSignals.SHUTDOWN:
                     break
-                elif data[0] == AcquisitionProcessSignals.SET_ASG_OFFSET:
-                    idx, value = data[1:]
-                    acquisition.exposed_set_asg_offset(idx, value)
                 elif data[0] == AcquisitionProcessSignals.SET_RAMP_SPEED:
                     speed = data[1]
                     acquisition.exposed_set_ramp_speed(speed)
@@ -93,9 +88,6 @@ class AcquisitionMaster:
             self.acq_process.send((AcquisitionProcessSignals.SHUTDOWN,))
 
         start_nginx()
-
-    def set_asg_offset(self, idx, offset):
-        self.acq_process.send((AcquisitionProcessSignals.SET_ASG_OFFSET, idx, offset))
 
     def set_ramp_speed(self, speed):
         self.acq_process.send((AcquisitionProcessSignals.SET_RAMP_SPEED, speed))

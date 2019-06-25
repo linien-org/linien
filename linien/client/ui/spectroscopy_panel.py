@@ -11,9 +11,8 @@ class SpectroscopyPanel(QtWidgets.QWidget, CustomWidget):
         return getattr(self.parameters, '%s_%s' % (name, 'a' if self.channel == 0 else 'b'))
 
     def ready(self):
-        # FIXME: offset is disabled
-        """self.ids.signal_offset.setKeyboardTracking(False)
-        self.ids.signal_offset.valueChanged.connect(self.change_signal_offset)"""
+        self.ids.signal_offset.setKeyboardTracking(False)
+        self.ids.signal_offset.valueChanged.connect(self.change_signal_offset)
         self.ids.demodulation_phase.setKeyboardTracking(False)
         self.ids.demodulation_phase.valueChanged.connect(self.change_demod_phase)
         self.ids.demodulation_frequency.currentIndexChanged.connect(self.change_demod_multiplier)
@@ -34,15 +33,13 @@ class SpectroscopyPanel(QtWidgets.QWidget, CustomWidget):
             lambda value: self.ids.demodulation_frequency.setCurrentIndex(value - 1)
         )
 
-        # FIXME: offset is disabled
-        """self.get_param('offset').change(
+        self.get_param('offset').change(
             lambda value: self.ids.signal_offset.setValue(value)
-        )"""
+        )
 
-    # FIXME: offset is disabled
-    """def change_signal_offset(self):
+    def change_signal_offset(self):
         self.get_param('offset').value = self.ids.signal_offset.value()
-        self.control.write_data()"""
+        self.control.write_data()
 
     def change_demod_phase(self):
         self.get_param('demodulation_phase').value = self.ids.demodulation_phase.value()

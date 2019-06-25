@@ -592,13 +592,13 @@
           </size>
          </property>
          <property name="currentIndex">
-          <number>3</number>
+          <number>1</number>
          </property>
          <widget class="GeneralPanel" name="page_2">
           <property name="geometry">
            <rect>
             <x>0</x>
-            <y>-32</y>
+            <y>0</y>
             <width>247</width>
             <height>506</height>
            </rect>
@@ -959,7 +959,15 @@
            </item>
           </layout>
          </widget>
-         <widget class="QWidget" name="page_3">
+         <widget class="ModulationAndRampPanel" name="page_3">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>250</width>
+            <height>432</height>
+           </rect>
+          </property>
           <attribute name="label">
            <string>Modulation &amp;&amp; Ramp</string>
           </attribute>
@@ -1169,6 +1177,14 @@
           </layout>
          </widget>
          <widget class="QWidget" name="spectroscopy_channel_2_page">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>250</width>
+            <height>432</height>
+           </rect>
+          </property>
           <attribute name="label">
            <string>Spectroscopy Channel 2</string>
           </attribute>
@@ -1272,6 +1288,12 @@
    <class>SpectroscopyChannelAPanel</class>
    <extends>QWidget</extends>
    <header location="global">spectroscopy_panel.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ModulationAndRampPanel</class>
+   <extends>QWidget</extends>
+   <header location="global">modulation_ramp_panel.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

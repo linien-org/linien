@@ -25,6 +25,7 @@ class RedPitayaControlService(BaseService):
         #self.registers = Registers(host='rp-f0685a.local', user='root', password='zeilinger')
         from registers import Registers
         self.registers = Registers()
+        #self.registers = Registers(host='rp-f0685a.local', user='root', password='zeilinger')
         self.registers.connect(self, self.parameters)
 
     def run_acquiry_loop(self):

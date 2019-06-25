@@ -3,7 +3,7 @@ import traceback
 import numpy as np
 from time import sleep, time
 from linien.common import determine_shift_by_correlation, get_lock_point, \
-    control_signal_has_correct_amplitude
+    control_signal_has_correct_amplitude, combine_error_signal
 
 
 class Autolock:
@@ -74,7 +74,14 @@ class Autolock:
         if plot_data is None:
             return
 
-        error_signal, control_signal = plot_data
+        if self.parameters.lock.value:
+            error_signal, control_signal = plot_data
+        else:
+            combined_error_signal = combine_error_signal(
+                plot_data,
+                self.parameters.dual_channel.value,
+                self.parameters.channel_mixing.value
+            )
 
         try:
             if self.parameters.autolock_approaching.value:
@@ -90,7 +97,7 @@ class Autolock:
 
                 self.skipped = 0
 
-                return self.approach_line(error_signal, control_signal)
+                return self.approach_line(combined_error_signal)
 
             elif self.parameters.autolock_watching.value:
                 # the laser was locked successfully before. Now we check
@@ -103,7 +110,7 @@ class Autolock:
                 # skip some data and check whether we really are in lock
                 # afterwards.
 
-                if self.skipped < 10:
+                if self.skipped < 3:
                     self.skipped += 1
                     return
 
@@ -121,43 +128,41 @@ class Autolock:
             get_lock_point(error_signal, self.x0, self.x1)
 
         if self.auto_offset:
-            self.parameters.offset.value -= mean_signal
+            # FIXME: disabled as there is no single "offset" anymore
+            # self.parameters.offset.value -= mean_signal
+            pass
         self.parameters.target_slope_rising.value = target_slope_rising
         self.control.exposed_write_data()
 
         self.target_zoom = target_zoom
         self.first_error_signal = rolled_error_signal
 
-    def approach_line(self, error_signal, control_signal):
-        # check that the data received is new data, i.e. with the correct
-        # scan range. Otherwise just wait for the next sample.
-        if control_signal_has_correct_amplitude(control_signal, self.parameters.ramp_amplitude.value):
-            shift, zoomed_ref, zoomed_err = determine_shift_by_correlation(
-                self.zoom_factor, self.first_error_signal, error_signal
-            )
-            self.history.append((zoomed_ref, zoomed_err))
-            print('N', self.N_at_this_zoom, 'SHIFT', shift)
+    def approach_line(self, error_signal):
+        shift, zoomed_ref, zoomed_err = determine_shift_by_correlation(
+            self.zoom_factor, self.first_error_signal, error_signal
+        )
+        self.history.append((zoomed_ref, zoomed_err))
+        print('N', self.N_at_this_zoom, 'SHIFT', shift)
 
+        self.control.exposed_write_data()
+        self.history.append('shift %f' % (-1 * shift))
+
+        self.parameters.center.value -= shift
+        self.control.exposed_write_data()
+
+        self.N_at_this_zoom += 1
+
+        if self.N_at_this_zoom > 1:
+            self.N_at_this_zoom = 0
+
+            zoom_step = 2
+            self.zoom_factor *= zoom_step
+            self.parameters.ramp_amplitude.value /= zoom_step
             self.control.exposed_write_data()
-            self.history.append('shift %f' % (-1 * shift))
 
-            self.parameters.center.value -= shift
-            self.control.exposed_write_data()
-
-            self.N_at_this_zoom += 1
-
-            if self.N_at_this_zoom > 1:
-                self.N_at_this_zoom = 0
-
-                zoom_step = 2
-                self.zoom_factor *= zoom_step
-                self.parameters.ramp_amplitude.value /= zoom_step
-                self.control.exposed_write_data()
-
-                if self.zoom_factor >= self.target_zoom:
-                    print('START LOCK!')
-                    self.parameters.autolock_approaching.value = False
-                    self.control.exposed_start_lock()
+            if self.zoom_factor >= self.target_zoom:
+                self.parameters.autolock_approaching.value = False
+                self.control.exposed_start_lock()
 
     def after_lock(self, control_signal):
         """After locking, this method checks whether the laser really is locked.

@@ -62,10 +62,6 @@ class DataAcquisitionService(Service):
     def exposed_return_data(self):
         return self.data[:]
 
-    def exposed_set_asg_offset(self, idx, value):
-        asg = getattr(self.r, ['asga', 'asgb'][idx])
-        asg.offset = value
-
     def exposed_set_ramp_speed(self, speed):
         self.ramp_speed = speed
 

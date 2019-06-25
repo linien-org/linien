@@ -24,7 +24,7 @@ from .modulate import Modulate, Demodulate
 
 
 class FastChain(Module, AutoCSR):
-    def __init__(self, width=14, signal_width=25, coeff_width=18, mod=None):
+    def __init__(self, width=14, signal_width=25, coeff_width=18, mod=None, offset_signal=None):
         self.adc = Signal((width, True))
         self.dac = Signal((width, True))
 
@@ -136,7 +136,7 @@ class FastChain(Module, AutoCSR):
 
         self.sync += ya.eq(((dy >> s))),
         self.comb += [
-            self.y_limit.x.eq((ys[self.y_tap.storage] >> s) + ya),
+            self.y_limit.x.eq((ys[self.y_tap.storage] >> s) + ya + offset_signal),
             y.eq(self.y_limit.y << s),
             y_railed.eq(self.y_limit.error),
 

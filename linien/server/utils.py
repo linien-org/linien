@@ -15,3 +15,13 @@ def start_nginx():
 
 def flash_fpga():
     shutil.copyfile('redpid.bin', '/dev/xdevcfg')
+
+
+def twos_complement(num, N_bits):
+    max_ = 1<<(N_bits - 1)
+    full = 2 * max_
+
+    if num < 0:
+        num += full
+
+    return num

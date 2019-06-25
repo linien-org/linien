@@ -32,12 +32,6 @@ class Parameters(BaseParameters):
             start=0
         )
 
-        # FIXME: offset muss verwendet werden
-        self.offset = Parameter(
-            min_=-8191,
-            max_=8191,
-            start=0
-        )
         self.ramp_amplitude = Parameter(
             min_=0.001,
             max_=1,
@@ -60,6 +54,11 @@ class Parameters(BaseParameters):
                 min_=0,
                 max_=15,
                 start=1
+            ))
+            setattr(self, 'offset_%s' % channel, Parameter(
+                min_=-8191,
+                max_=8191,
+                start=0
             ))
 
         self.lock = Parameter(start=False)

@@ -2,7 +2,7 @@ import numpy as np
 from time import sleep, time
 
 from csr import make_filter, PitayaLocal, PitayaSSH
-from utils import start_nginx, stop_nginx
+from utils import start_nginx, stop_nginx, twos_complement
 from linien.config import DEFAULT_RAMP_SPEED
 from linien.common import convert_channel_mixing_value
 from linien.server.acquisition import AcquisitionMaster
@@ -73,35 +73,36 @@ class Registers:
 
             root_chain_a_factor=factor_a,
             root_chain_b_factor=factor_b,
+            root_chain_a_offset=twos_complement(int(params['offset_a']), 14),
+            root_chain_b_offset=twos_complement(int(params['offset_b']), 14),
+            root_out_offset=int(params['center'] * 8191),
 
             # channel A
             fast_a_x_tap=2,
-            fast_a_demod_delay_a=demod_delay_a,
-            fast_a_demod_multiplier_a=demod_multiplier_a,
+            fast_a_demod_delay=demod_delay_a,
+            fast_a_demod_multiplier=demod_multiplier_a,
             fast_a_brk=0,
-            fast_a_dx_sel=self.rp.signal("scopegen_dac_a"),
+            fast_a_dx_sel=self.rp.signal('zero'),
             fast_a_y_tap=0,
-            fast_a_dy_sel=self.rp.signal("scopegen_dac_b"),
+            fast_a_dy_sel=self.rp.signal('zero'),
 
             fast_a_y_hold_en=self.rp.states(),
             fast_a_y_clear_en=self.rp.states(),
             fast_a_rx_sel=self.rp.signal('zero'),
 
             # channel B
-            fast_a_x_tap=2,
-            fast_a_demod_delay_a=demod_delay_b,
-            fast_a_demod_multiplier_a=demod_multiplier_b,
-            fast_a_brk=0,
-            fast_a_dx_sel=self.rp.signal("scopegen_dac_a"),
-            fast_a_y_tap=0,
-            fast_a_dy_sel=self.rp.signal("scopegen_dac_b"),
+            fast_b_x_tap=2,
+            fast_b_demod_delay=demod_delay_b,
+            fast_b_demod_multiplier=demod_multiplier_b,
+            fast_b_brk=0,
+            fast_b_dx_sel=self.rp.signal('zero'),
+            fast_b_y_tap=0,
+            fast_b_dy_sel=self.rp.signal('zero'),
 
-            fast_a_y_hold_en=self.rp.states(),
-            fast_a_y_clear_en=self.rp.states(),
-            fast_a_rx_sel=self.rp.signal('zero'),
+            fast_b_y_hold_en=self.rp.states(),
+            fast_b_y_clear_en=self.rp.states(),
+            fast_b_rx_sel=self.rp.signal('zero'),
 
-            scopegen_adc_a_sel=self.rp.signal("fast_a_x"),
-            scopegen_adc_b_sel=self.rp.signal("root_control_signal"),
             # trigger on ramp
             scopegen_external_trigger=1,
 
@@ -113,11 +114,6 @@ class Registers:
 
             gpio_n_do0_en=self.rp.signal('zero'),
             gpio_n_do1_en=self.rp.signal('zero'),
-
-            # asg offset (is not set via ssh but via rpyc)
-            # FIXME: das muss anders laufen
-            asga_offset=int(params['offset']),
-            asgb_offset=int(params['center'] * 8191),
         )
 
         lock_changed = params['lock'] != self.control.exposed_is_locked
@@ -125,6 +121,20 @@ class Registers:
         self.control.exposed_is_locked = lock
 
         new['root_sweep_run'] = 0 if lock else 1
+
+        if lock:
+            # display combined error signal and control signal
+            new.update({
+                'scopegen_adc_a_sel': self.rp.signal('root_combined_error_signal'),
+                'scopegen_adc_b_sel': self.rp.signal('root_control_signal')
+            })
+        else:
+            # display both demodulated error signals
+            new.update({
+                'scopegen_adc_a_sel': self.rp.signal("fast_a_y"),
+                'scopegen_adc_b_sel': self.rp.signal("fast_b_y")
+            })
+
 
         # filter out values that did not change
         new = dict(
@@ -136,14 +146,6 @@ class Registers:
             )
         )
         self.control._cached_data.update(new)
-
-        # set ASG offset
-        for idx, asg in enumerate(('asga', 'asgb')):
-            try:
-                value = new.pop('%s_offset' % asg)
-                self.acquisition.set_asg_offset(idx, value)
-            except KeyError:
-                pass
 
         # pass ramp speed changes to acquisition process
         if 'root_sweep_step' in new:
@@ -171,7 +173,6 @@ class Registers:
             else:
                 self.set_pid(0, 0, 0, slope, reset=1)
 
-                # FIXME: sollte das jeweils 4096 sein?
                 self.rp.set_iir("fast_a_iir_a", *make_filter('P', k=1))
                 self.rp.set_iir("fast_a_iir_c", *make_filter("P", k=0))
                 self.rp.set_iir("fast_b_iir_a", *make_filter('P', k=1))
@@ -204,7 +205,6 @@ class Registers:
 
     def hold_pid(self, hold):
         # FIXME: root?
-        # FIXME: ist das überhaupt noch in der Chain?
         self.rp.set(
             'fast_b_y_hold_en',
             self.rp.states('force') if hold else self.rp.states()
