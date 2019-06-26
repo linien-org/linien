@@ -51,10 +51,10 @@ class SpectroscopyPanel(QtWidgets.QWidget, CustomWidget):
         param2ui(
             self.get_param('filter_type'),
             self.ids.filter_type,
-            lambda type: {
+            lambda type_: {
                 LOW_PASS_FILTER: 0,
                 HIGH_PASS_FILTER: 1
-            }[type]
+            }[type_]
         )
 
     def change_signal_offset(self):
