@@ -89,7 +89,7 @@ class Autolock:
                 # the line by decreasing the scan range and adapting the
                 # center current multiple times.
 
-                if self.skipped < 10:
+                if self.skipped < 3:
                     # after every step, we skip some data in order to let
                     # the laser equilibrate
                     self.skipped += 1
@@ -129,6 +129,7 @@ class Autolock:
 
         if self.auto_offset:
             self.parameters.combined_offset.value = -1 * mean_signal
+            print('SET COMBINED OFFSET', -1 * mean_signal)
         self.parameters.target_slope_rising.value = target_slope_rising
         self.control.exposed_write_data()
 

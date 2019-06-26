@@ -99,7 +99,7 @@ class DeviceManager(QtGui.QMainWindow, CustomWidget):
 
         def connection_lost():
             error_dialog(self, 'Lost connection to the server!')
-            self.app().close()
+            self.app.close()
         self.t.connection_lost.connect(connection_lost)
 
         self.t.start()

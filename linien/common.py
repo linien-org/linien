@@ -72,7 +72,12 @@ def get_lock_point(error_signal, x0, x1):
     target_zoom = 16384 / (idxs[1] - idxs[0]) / 1.5
 
     length = len(error_signal)
-    rolled_error_signal = np.roll(error_signal, -int(zero_idx - (length/2)))
+    roll = -int(zero_idx - (length/2))
+    rolled_error_signal = np.roll(error_signal, roll)
+    if roll < 0:
+        rolled_error_signal[roll:] = 0
+    else:
+        rolled_error_signal[:roll] = 0
 
     return mean_signal, target_slope_rising, target_zoom, rolled_error_signal
 
@@ -91,11 +96,11 @@ def control_signal_has_correct_amplitude(control_signal, amplitude_target):
 
 def convert_channel_mixing_value(value):
     if value <= 0:
-        a_value = 128 + value
-        b_value = 128
-    else:
         a_value = 128
-        b_value = 127 - value
+        b_value = 128 + value
+    else:
+        a_value = 127 - value
+        b_value = 128
 
     return a_value, b_value
 
