@@ -1,11 +1,14 @@
 import math
 import pickle
 import numpy as np
-from PyQt5 import QtGui, QtWidgets
-from linien.client.widgets import CustomWidget
-from pyqtgraph.Qt import QtCore, QtGui
 import pyqtgraph as pg
+
 from time import time
+from PyQt5 import QtGui, QtWidgets
+from pyqtgraph.Qt import QtCore, QtGui
+
+from linien.client.config import COLORS
+from linien.client.widgets import CustomWidget
 from linien.common import update_control_signal_history, determine_shift_by_correlation, \
     get_lock_point, control_signal_has_correct_amplitude, combine_error_signal
 
@@ -27,16 +30,16 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
 
         self.zero_line = pg.PlotCurveItem(pen=pg.mkPen('w', width=1))
         self.addItem(self.zero_line)
-        self.signal1 = pg.PlotCurveItem(pen=pg.mkPen((200, 0, 0, 200), width=pen_width))
+        self.signal1 = pg.PlotCurveItem(pen=pg.mkPen(COLORS['spectroscopy1'], width=pen_width))
         self.addItem(self.signal1)
-        self.signal2 = pg.PlotCurveItem(pen=pg.mkPen((0, 200, 0, 200), width=pen_width))
+        self.signal2 = pg.PlotCurveItem(pen=pg.mkPen(COLORS['spectroscopy2'], width=pen_width))
         self.addItem(self.signal2)
-        self.combined_signal = pg.PlotCurveItem(pen=pg.mkPen((0, 0, 200, 200), width=pen_width))
+        self.combined_signal = pg.PlotCurveItem(pen=pg.mkPen(COLORS['spectroscopy_combined'], width=pen_width))
         self.addItem(self.combined_signal)
 
-        self.control_signal = pg.PlotCurveItem(pen=pg.mkPen((200, 0, 0, 200), width=pen_width))
+        self.control_signal = pg.PlotCurveItem(pen=pg.mkPen(COLORS['control_signal'], width=pen_width))
         self.addItem(self.control_signal)
-        self.control_signal_history = pg.PlotCurveItem(pen=pg.mkPen((0, 200, 0, 200), width=pen_width))
+        self.control_signal_history = pg.PlotCurveItem(pen=pg.mkPen(COLORS['control_signal_history'], width=pen_width))
         self.addItem(self.control_signal_history)
 
         self.zero_line.setData([0, 16383], [0, 0])

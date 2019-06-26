@@ -3,6 +3,15 @@ import pickle
 import appdirs
 
 
+COLORS = {
+    'spectroscopy1': (200, 0, 0, 200),
+    'spectroscopy2': (0, 200, 0, 200),
+    'spectroscopy_combined': (0, 0, 200, 200),
+    'control_signal': (200, 0, 0, 200),
+    'control_signal_history': (0, 200, 0, 200),
+}
+
+
 def get_data_folder():
     folder_name = appdirs.user_data_dir('linien')
 
