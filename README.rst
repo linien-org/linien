@@ -1,7 +1,7 @@
 LINIEN
 ======
 
-Spectroscopy locking of lasers using RedPitaya that just works.
+Spectroscopy locking of lasers using RedPitaya (STEMlab 125-14) that just works.
 Linien aims to follow the UNIX philosophy of doing one thing very well.
 It is built with Python and `Migen <https://github.com/m-labs/migen>`_ and is based on `RED PID <https://github.com/quartiq/redpid>`_.
 
@@ -14,6 +14,7 @@ Features
 * **Lock detection**: linien is capable of detecting loss of lock.
 * **Automatic relocking**: in that case, it can relock automatically using the autolock.
 * **Remote-controllable**: The client libraries can be used to control or monitor the spectroscopy lock with python.
+* **Combined FMS+MTS**: Supports dual-channel spectroscopy that can be used to implement `combined FMS+MTS <https://arxiv.org/pdf/1701.01918.pdf>`_
 * **Logging**: Use `linien-influxdb <https://github.com/hermitdemschoenenleben/linien-influxdb>`_ to log the lock status to influxdb.
 * **TTL status**: Outputs the lock status via TTL
 
