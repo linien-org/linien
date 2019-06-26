@@ -232,7 +232,7 @@ class Pid(Module, AutoCSR):
                 # mehr Bits rechnen lassen?
                 (self.root.chain_a_factor.storage * self.fast_a.dac)
                 + (self.root.chain_b_factor.storage * self.fast_b.dac)
-                + self.root.combined_offset_signed
+                + (self.root.combined_offset_signed << chain_factor_bits)
             )
         )
 
