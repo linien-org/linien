@@ -8,7 +8,7 @@ It is built with Python and `Migen <https://github.com/m-labs/migen>`_ and is ba
 Features
 ########
 
-* **All inclusive**: Modulation, demodulation, filtering and servo implemented on the FPGA.
+* **All inclusive**: Modulation (up to 50 MHz), demodulation, filtering and servo implemented on the FPGA.
 * **Client-server architecture**: Autonomous operation on RedPitaya. One or multiple GUI clients can connect to the server.
 * **Autolock**: Click and drag over a line, and linien will automatically approach it and lock to it.
 * **Lock detection**: linien is capable of detecting loss of lock.
