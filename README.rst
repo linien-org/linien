@@ -15,7 +15,7 @@ Features
 * **Automatic relocking**: in that case, it can relock automatically using the autolock.
 * **Remote-controllable**: The client libraries can be used to control or monitor the spectroscopy lock with python.
 * **Logging**: Use `linien-influxdb <https://github.com/hermitdemschoenenleben/linien-influxdb>`_ to log the lock status to influxdb.
-* **GPIO**:
+* **TTL status**: Outputs the lock status via TTL
 
 
 Getting started

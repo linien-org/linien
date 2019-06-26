@@ -1,5 +1,6 @@
 import os
 import sys
+import signal
 import threading
 
 from plumbum import colors
@@ -14,6 +15,8 @@ def run_application():
     print('Linien spectroscopy lock version ' + (colors.bold | linien.__version__))
     gui = QTApp()
 
+    # catch ctrl-c and shutdown
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
     sys.exit(gui.app.exec_())
 
 

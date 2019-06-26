@@ -97,6 +97,11 @@ class DeviceManager(QtGui.QMainWindow, CustomWidget):
                 error_dialog(self, display_error)
         self.t.exception.connect(exception)
 
+        def connection_lost():
+            error_dialog(self, 'Lost connection to the server!')
+            self.app().close()
+        self.t.connection_lost.connect(connection_lost)
+
         self.t.start()
 
     def install_linien_server(self, device, version=None):

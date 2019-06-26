@@ -26,6 +26,7 @@ class ConnectionThread(QThread):
     authentication_exception = pyqtSignal()
     general_connection_error = pyqtSignal()
     exception = pyqtSignal()
+    connection_lost = pyqtSignal()
 
     def __init__(self, device):
         super().__init__()
@@ -34,7 +35,7 @@ class ConnectionThread(QThread):
 
     def run(self):
         try:
-            conn = Connection(self.device)
+            conn = Connection(self.device, self.on_connection_lost)
             self.connected.emit(conn)
 
         except ServerNotInstalledException:
@@ -53,9 +54,12 @@ class ConnectionThread(QThread):
             print_exc()
             return self.exception.emit()
 
+    def on_connection_lost(self):
+        self.connection_lost.emit()
+
 
 class Connection(BaseClient):
-    def __init__(self, device):
+    def __init__(self, device, on_connection_lost):
         self.device = device
         self.host = device['host']
         self.user = device.get('username')
@@ -68,11 +72,11 @@ class Connection(BaseClient):
         else:
             assert self.user and self.password
 
-        super().__init__(self.host, SERVER_PORT, True)
+        super().__init__(self.host, SERVER_PORT, True, call_on_error=on_connection_lost)
 
         self.control = self.connection.root
 
-    def connect(self, host, port, use_parameter_cache):
+    def connect(self, host, port, use_parameter_cache, call_on_error=None):
         self.connection = None
 
         i = -1
@@ -83,7 +87,7 @@ class Connection(BaseClient):
 
             try:
                 print('try to connect to %s:%s' % (host, port))
-                self._connect(host, port, use_parameter_cache)
+                self._connect(host, port, use_parameter_cache, call_on_error=call_on_error)
                 break
             except gaierror:
                 # host not found
