@@ -119,9 +119,60 @@
    <item>
     <widget class="QGroupBox" name="groupBox_9">
      <property name="title">
-      <string>Low pass filter</string>
+      <string>Filtering</string>
      </property>
     </widget>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="filter_enabled">
+     <property name="text">
+      <string>Enable filter</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QComboBox" name="filter_type">
+     <item>
+      <property name="text">
+       <string>Low pass</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>High pass</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QSpinBox" name="filter_frequency">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="maximum">
+        <number>50000000</number>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>Hz</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
    <item>
     <spacer name="verticalSpacer">

@@ -3,6 +3,10 @@ from time import time
 from scipy.signal import correlate, resample
 
 
+LOW_PASS_FILTER = 0
+HIGH_PASS_FILTER = 1
+
+
 def update_control_signal_history(history, to_plot, is_locked, max_time_diff):
     if not to_plot:
         return history

@@ -4,7 +4,8 @@ from time import sleep, time
 from csr import make_filter, PitayaLocal, PitayaSSH
 from utils import start_nginx, stop_nginx, twos_complement
 from linien.config import DEFAULT_RAMP_SPEED
-from linien.common import convert_channel_mixing_value
+from linien.common import convert_channel_mixing_value, \
+    LOW_PASS_FILTER, HIGH_PASS_FILTER
 from linien.server.acquisition import AcquisitionMaster
 
 
@@ -78,7 +79,7 @@ class Registers:
             fast_a_demod_multiplier=params['demodulation_multiplier_a'],
             fast_a_brk=0,
             fast_a_dx_sel=self.rp.signal('zero'),
-            fast_a_y_tap=0,
+            fast_a_y_tap=1,
             fast_a_dy_sel=self.rp.signal('zero'),
 
             fast_a_y_hold_en=self.rp.states(),
@@ -91,7 +92,7 @@ class Registers:
             fast_b_demod_multiplier=params['demodulation_multiplier_b'],
             fast_b_brk=0,
             fast_b_dx_sel=self.rp.signal('zero'),
-            fast_b_y_tap=0,
+            fast_b_y_tap=1,
             fast_b_dy_sel=self.rp.signal('zero'),
 
             fast_b_y_hold_en=self.rp.states(),
@@ -161,6 +162,26 @@ class Registers:
         kd = params['d']
         slope = params['target_slope_rising']
 
+        for chain in ('a', 'b'):
+            filter_enabled = params['filter_enabled_%s' % chain]
+            filter_type = params['filter_type_%s' % chain]
+            filter_frequency = params['filter_frequency_%s' % chain]
+            base_freq = 125e6 # FIXME: is this correct?
+
+            if not filter_enabled:
+                self.rp.set_iir('fast_%s_iir_c' % chain, *make_filter('P', k=1))
+            else:
+                if filter_type == LOW_PASS_FILTER:
+                    self.rp.set_iir('fast_%s_iir_c' % chain, *make_filter(
+                        'LP', f=filter_frequency / base_freq, k=1
+                    ))
+                elif filter_type == HIGH_PASS_FILTER:
+                    self.rp.set_iir('fast_%s_iir_c' % chain, *make_filter(
+                        'HP', f=filter_frequency / base_freq, k=1
+                    ))
+                else:
+                    raise Exception('unknown filter', filter_type)
+
         if lock_changed:
             if lock:
                 # set PI parameters
@@ -169,9 +190,7 @@ class Registers:
                 self.set_pid(0, 0, 0, slope, reset=1)
 
                 self.rp.set_iir("fast_a_iir_a", *make_filter('P', k=1))
-                self.rp.set_iir("fast_a_iir_c", *make_filter("P", k=0))
                 self.rp.set_iir("fast_b_iir_a", *make_filter('P', k=1))
-                self.rp.set_iir("fast_b_iir_c", *make_filter("P", k=0))
 
         else:
             if lock:
