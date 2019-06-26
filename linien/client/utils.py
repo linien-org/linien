@@ -119,7 +119,7 @@ def param2ui(parameter, element, process_value=lambda x: x):
 
         if isinstance(element, (QSlider, QSpinBox, QDoubleSpinBox)):
             element.setValue(value)
-        elif isinstance(element, (QCheckbox, QRadioButton)):
+        elif isinstance(element, (QCheckBox, QRadioButton)):
             element.setChecked(value)
         elif isinstance(element, (QTabWidget, QComboBox)):
             element.setCurrentIndex(value)

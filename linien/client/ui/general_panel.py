@@ -26,7 +26,7 @@ class GeneralPanel(QtGui.QWidget, CustomWidget):
             self.ids.explainNoSweepOnAnalog.setVisible(not value)
             return value
         param2ui(
-            params.ramp_slow,
+            params.ramp_on_slow,
             self.ids.rampOnSlow,
             ramp_on_slow_param_changed
         )

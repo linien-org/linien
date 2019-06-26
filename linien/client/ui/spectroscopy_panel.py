@@ -31,7 +31,7 @@ class SpectroscopyPanel(QtWidgets.QWidget, CustomWidget):
             self.ids.demodulation_phase
         )
         param2ui(
-            self.get_param('demodulation_multiplier')
+            self.get_param('demodulation_multiplier'),
             self.ids.demodulation_frequency,
             lambda value: value - 1
         )
