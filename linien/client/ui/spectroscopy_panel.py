@@ -74,7 +74,7 @@ class SpectroscopyPanel(QtWidgets.QWidget, CustomWidget):
         self.control.write_data()
 
     def change_filter_enabled(self):
-        filter_enabled = int(self.ids.rampOnSlow.checkState() > 0)
+        filter_enabled = int(self.ids.filter_enabled.checkState() > 0)
         self.get_param('filter_enabled').value = filter_enabled
         self.control.write_data()
 

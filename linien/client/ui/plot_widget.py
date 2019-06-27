@@ -187,6 +187,7 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
 
                 self.plot_data_locked(to_plot)
                 self.update_plot_scaling(to_plot)
+                self.plot_autolock_target_line(None)
             else:
                 self.signal1.setVisible(True)
                 self.signal2.setVisible(self.parameters.dual_channel.value)
@@ -220,22 +221,21 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         if self.autolock_ref_spectrum is not None and self.parameters.autolock_approaching.value:
             ramp_amplitude = self.parameters.ramp_amplitude.value
             zoom_factor = 1 / ramp_amplitude
-
+            initial_zoom_factor = 1 / self.parameters.autolock_initial_ramp_amplitude.value
 
             shift, _1, _2 = determine_shift_by_correlation(
-                zoom_factor,
+                zoom_factor / initial_zoom_factor,
                 self.autolock_ref_spectrum,
                 combined_error_signal
             )
-
+            shift *= zoom_factor / initial_zoom_factor
             length = len(combined_error_signal)
-            shift = (length / 2) - (shift / 2* length * zoom_factor)
+            shift = (length / 2) - (shift / 2* length)
 
             self.lock_target_line.setVisible(True)
             self.lock_target_line.setValue(shift)
         else:
             self.lock_target_line.setVisible(False)
-
 
     def update_plot_scaling(self, signals):
         if time() - self.last_plot_rescale > .5:

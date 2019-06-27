@@ -33,9 +33,16 @@ def update_control_signal_history(history, to_plot, is_locked, max_time_diff):
 
 
 def determine_shift_by_correlation(zoom_factor, reference_signal, error_signal):
+    """Compares two spectra and determines the shift by correlation.
+
+    `zoom_factor` is the zoom factor of `error_signal` with respect to
+    `reference_signal`, i.e. it states how much reference signal has to be
+    magnified in order to show the same region as the new error signal."""
     length = len(error_signal)
     center_idx = int(length / 2)
 
+    # crop the reference signal such that it shows the same region as the new
+    # error signal
     idx_shift = int(length * (1 / zoom_factor / 2))
     zoomed_ref = reference_signal[center_idx - idx_shift:center_idx + idx_shift]
 
@@ -43,8 +50,10 @@ def determine_shift_by_correlation(zoom_factor, reference_signal, error_signal):
     skip_factor = int(len(zoomed_ref) / 4096)
     if skip_factor < 1:
         skip_factor = 1
-
     zoomed_ref = zoomed_ref[::skip_factor]
+
+    # now sample the error signal down to the same length as the zoomed
+    # reference signal
     downsampled_error_signal = resample(error_signal, len(zoomed_ref))
 
     correlation = correlate(zoomed_ref, downsampled_error_signal)
@@ -63,25 +72,40 @@ def determine_shift_by_correlation(zoom_factor, reference_signal, error_signal):
 
 
 def get_lock_point(error_signal, x0, x1):
+    """Calculates parameters for the autolock based on the initial error signal.
+
+    Takes the `error_signal` and two points (`x0` and `x1`) as arguments. The
+    points are the points selected by the user, and we know that we want to
+    lock between them.
+    """
+    length = len(error_signal)
+
+    # the data that is between the user-selected bounds
     cropped_data = np.array(error_signal[x0:x1])
+
     min_idx = np.argmin(cropped_data)
     max_idx = np.argmax(cropped_data)
 
+    # the y value that is between minimum and maximum
     mean_signal = np.mean([cropped_data[min_idx], cropped_data[max_idx]])
     idxs = sorted([min_idx, max_idx])
     slope_data = np.array(cropped_data[idxs[0]:idxs[1]]) - mean_signal
 
     zero_idx = x0 + np.min(idxs) + np.argmin(np.abs(slope_data))
-    target_slope_rising = max_idx > min_idx
-    target_zoom = 16384 / (idxs[1] - idxs[0]) / 1.5
 
-    length = len(error_signal)
+    # roll the error signal such that the target lock point is exactly in the
+    # center
     roll = -int(zero_idx - (length/2))
     rolled_error_signal = np.roll(error_signal, roll)
+    # set all the rolled points to zero such that they don't contribute
+    # in the correlation
     if roll < 0:
         rolled_error_signal[roll:] = 0
     else:
         rolled_error_signal[:roll] = 0
+
+    target_slope_rising = max_idx > min_idx
+    target_zoom = 16384 / (idxs[1] - idxs[0]) / 1.5
 
     return mean_signal, target_slope_rising, target_zoom, rolled_error_signal
 

@@ -11,6 +11,9 @@ class Parameters(BaseParameters):
             'modulation_amplitude', 'modulation_frequency', 'ramp_speed',
             'demodulation_phase_a', 'demodulation_multiplier_a',
             'demodulation_phase_b', 'demodulation_multiplier_b',
+            'offset_a', 'offset_b', 'filter_enabled_a', 'filter_enabled_b',
+            'filter_frequency_a', 'filter_frequency_b',
+            'filter_type_a', 'filter_type_b',
             'p', 'i', 'd', 'watch_lock', 'ramp_on_slow', 'dual_channel',
             'channel_mixing'
         )
@@ -85,6 +88,7 @@ class Parameters(BaseParameters):
         self.autolock_failed = Parameter(start=False)
         self.autolock_locked = Parameter(start=False)
         self.autolock_determine_offset = Parameter(start=True)
+        self.autolock_initial_ramp_amplitude = Parameter(start=1)
 
         self.watch_lock = Parameter(start=True)
         self.control_signal_history = Parameter(start={

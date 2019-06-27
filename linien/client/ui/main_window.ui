@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1024</width>
+    <width>1131</width>
     <height>768</height>
    </rect>
   </property>
@@ -17,6 +17,12 @@
    <layout class="QHBoxLayout" name="horizontalLayout">
     <item>
      <widget class="QWidget" name="centralPanel" native="true">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+        <horstretch>5</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
       <layout class="QHBoxLayout" name="horizontalLayout_8">
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_17">
@@ -59,7 +65,7 @@
                   </size>
                  </property>
                  <property name="maximum">
-                  <number>10</number>
+                  <number>50</number>
                  </property>
                  <property name="orientation">
                   <enum>Qt::Horizontal</enum>
@@ -247,25 +253,49 @@
     </item>
     <item>
      <widget class="RightPanel" name="rightPanel" native="true">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
       <property name="minimumSize">
        <size>
-        <width>250</width>
+        <width>350</width>
         <height>0</height>
        </size>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_11">
        <item>
-        <widget class="QPushButton" name="openDeviceManagerButton">
-         <property name="text">
-          <string>Device manager</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="closeButton">
-         <property name="text">
-          <string>Close client</string>
-         </property>
+        <widget class="QWidget" name="widget_2" native="true">
+         <layout class="QHBoxLayout" name="horizontalLayout_23">
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QPushButton" name="openDeviceManagerButton">
+            <property name="text">
+             <string>Devices</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="closeButton">
+            <property name="text">
+             <string>Close client</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </widget>
        </item>
        <item>
@@ -721,9 +751,9 @@
         </widget>
        </item>
        <item>
-        <widget class="QToolBox" name="toolBox">
+        <widget class="QToolBox" name="settings_toolbox">
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
@@ -742,8 +772,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>236</width>
-            <height>542</height>
+            <width>324</width>
+            <height>506</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1135,8 +1165,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>250</width>
-            <height>432</height>
+            <width>338</width>
+            <height>473</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1313,8 +1343,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>250</width>
-            <height>432</height>
+            <width>338</width>
+            <height>473</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -1328,22 +1358,7 @@
           </attribute>
           <layout class="QVBoxLayout" name="verticalLayout">
            <item>
-            <widget class="QScrollArea" name="scrollArea_2">
-             <property name="widgetResizable">
-              <bool>true</bool>
-             </property>
-             <widget class="SpectroscopyChannelAPanel" name="spectroscopyPanel">
-              <property name="geometry">
-               <rect>
-                <x>0</x>
-                <y>0</y>
-                <width>234</width>
-                <height>416</height>
-               </rect>
-              </property>
-              <layout class="QVBoxLayout" name="verticalLayout_9"/>
-             </widget>
-            </widget>
+            <widget class="SpectroscopyChannelAPanel" name="widget_4" native="true"/>
            </item>
           </layout>
          </widget>
@@ -1352,8 +1367,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>250</width>
-            <height>432</height>
+            <width>338</width>
+            <height>473</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1370,8 +1385,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>250</width>
-            <height>432</height>
+            <width>338</width>
+            <height>473</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -1385,22 +1400,7 @@
           </attribute>
           <layout class="QVBoxLayout" name="verticalLayout_7">
            <item>
-            <widget class="QScrollArea" name="scrollArea">
-             <property name="widgetResizable">
-              <bool>true</bool>
-             </property>
-             <widget class="LockingPanel" name="scrollAreaWidgetContents">
-              <property name="geometry">
-               <rect>
-                <x>0</x>
-                <y>0</y>
-                <width>234</width>
-                <height>416</height>
-               </rect>
-              </property>
-              <layout class="QVBoxLayout" name="verticalLayout_8"/>
-             </widget>
-            </widget>
+            <widget class="LockingPanel" name="widget_3" native="true"/>
            </item>
           </layout>
          </widget>
@@ -1469,54 +1469,5 @@
   </customwidget>
  </customwidgets>
  <resources/>
- <connections>
-  <connection>
-   <sender>closeButton</sender>
-   <signal>clicked()</signal>
-   <receiver>rightPanel</receiver>
-   <slot>close_app()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>1011</x>
-     <y>87</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>1017</x>
-     <y>307</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>shutdownButton</sender>
-   <signal>clicked()</signal>
-   <receiver>rightPanel</receiver>
-   <slot>shutdown_server()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>1011</x>
-     <y>128</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>1017</x>
-     <y>307</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>openDeviceManagerButton</sender>
-   <signal>clicked()</signal>
-   <receiver>rightPanel</receiver>
-   <slot>open_device_manager()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>1011</x>
-     <y>46</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>1017</x>
-     <y>307</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
 </ui>

@@ -50,7 +50,7 @@ class QTApp(QtCore.QObject):
         self.call_listeners()
 
     def call_listeners(self):
-        if self.connection.connected:
+        if hasattr(self, 'connection') and self.connection and self.connection.connected:
             self.parameters.call_listeners()
             QtCore.QTimer.singleShot(100, self.call_listeners)
 

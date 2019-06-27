@@ -147,6 +147,9 @@ class Registers:
         if 'root_sweep_step' in new:
             self.acquisition.set_ramp_speed(params['ramp_speed'])
 
+        if 'root_sweep_step' in new or 'root_sweep_max' in new or 'root_out_offset' in new:
+            self.acquisition.skip_next_data()
+
         for k, v in new.items():
             self.rp.set(k, int(v))
 
@@ -166,7 +169,7 @@ class Registers:
             filter_enabled = params['filter_enabled_%s' % chain]
             filter_type = params['filter_type_%s' % chain]
             filter_frequency = params['filter_frequency_%s' % chain]
-            base_freq = 125e6 # FIXME: is this correct?
+            base_freq = 125e6
 
             if not filter_enabled:
                 self.rp.set_iir('fast_%s_iir_c' % chain, *make_filter('P', k=1))
@@ -183,6 +186,8 @@ class Registers:
                     raise Exception('unknown filter', filter_type)
 
         if lock_changed:
+            self.acquisition.skip_next_data()
+
             if lock:
                 # set PI parameters
                 self.set_pid(kp, ki, kd, slope, reset=0)
@@ -194,8 +199,6 @@ class Registers:
 
         else:
             if lock:
-                # FIXME: check that this is not called without the need to do so
-
                 # hold PID value
                 self.hold_pid(True)
 

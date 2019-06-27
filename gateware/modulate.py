@@ -27,7 +27,6 @@ class Demodulate(Filter):
         Filter.__init__(self, **kwargs)
 
         width = len(self.y)
-        # FIXME: check whether this is right
         self.delay = CSRStorage(freq_width)
         self.multiplier = CSRStorage(4, reset=1)
         self.phase = Signal(width)

@@ -43,6 +43,10 @@ class Autolock:
         self.parameters.autolock_approaching.value = True
         self.record_first_error_signal(spectrum)
 
+        self.initial_ramp_amplitude = self.parameters.ramp_amplitude.value
+        self.parameters.autolock_initial_ramp_amplitude.value = self.initial_ramp_amplitude
+        self.initial_ramp_center = self.parameters.center.value
+
         self.add_data_listener()
 
     def add_data_listener(self):
@@ -123,13 +127,12 @@ class Autolock:
             self.exposed_stop()
 
     def record_first_error_signal(self, error_signal):
-        # FIXME: Should this only be allowed when fully zoomed out?
         mean_signal, target_slope_rising, target_zoom, rolled_error_signal = \
             get_lock_point(error_signal, self.x0, self.x1)
 
         if self.auto_offset:
             self.parameters.combined_offset.value = -1 * mean_signal
-            print('SET COMBINED OFFSET', -1 * mean_signal)
+
         self.parameters.target_slope_rising.value = target_slope_rising
         self.control.exposed_write_data()
 
@@ -140,8 +143,8 @@ class Autolock:
         shift, zoomed_ref, zoomed_err = determine_shift_by_correlation(
             self.zoom_factor, self.first_error_signal, error_signal
         )
+        shift *= self.initial_ramp_amplitude
         self.history.append((zoomed_ref, zoomed_err))
-        print('N', self.N_at_this_zoom, 'SHIFT', shift)
 
         self.control.exposed_write_data()
         self.history.append('shift %f' % (-1 * shift))
@@ -216,8 +219,8 @@ class Autolock:
         self.parameters.autolock_running.value = True
         self.parameters.autolock_approaching.value = True
 
-        self.parameters.center.value = 0
-        self.parameters.ramp_amplitude.value = 1
+        self.parameters.center.value = self.initial_ramp_center
+        self.parameters.ramp_amplitude.value = self.initial_ramp_amplitude
         self.control.exposed_start_ramp()
 
         # add a listener that listens for new spectrum data and consequently

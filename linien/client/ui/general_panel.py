@@ -47,6 +47,8 @@ class GeneralPanel(QtGui.QWidget, CustomWidget):
             self.ids.channel_mixing_slider,
             lambda value: value + 128
         )
+        # this is required to update the descriptive labels in the beginning
+        self.channel_mixing_changed()
 
     def ramp_on_slow_changed(self):
         self.parameters.ramp_on_slow.value = int(self.ids.rampOnSlow.checkState() > 0)

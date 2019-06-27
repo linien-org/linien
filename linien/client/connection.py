@@ -74,8 +74,6 @@ class Connection(BaseClient):
 
         super().__init__(self.host, SERVER_PORT, True, call_on_error=on_connection_lost)
 
-        self.control = self.connection.root
-
     def connect(self, host, port, use_parameter_cache, call_on_error=None):
         self.connection = None
 
@@ -88,6 +86,7 @@ class Connection(BaseClient):
             try:
                 print('try to connect to %s:%s' % (host, port))
                 self._connect(host, port, use_parameter_cache, call_on_error=call_on_error)
+                self.control = self.connection.root
                 break
             except gaierror:
                 # host not found
@@ -141,12 +140,10 @@ class Connection(BaseClient):
             getattr(self.parameters, param).change(on_change)
 
     def restore_parameters(self):
-        # FIXME: disabled
-        print('NOT RESTORING!')
-        return
         params = get_saved_parameters(self.device['key']).items()
+        print('restoring parameters')
 
         for k, v in params:
             getattr(self.parameters, k).value = v
 
-        print('restored parameters: ', params)
+        self.control.write_data()

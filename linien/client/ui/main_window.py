@@ -86,7 +86,6 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
 
     def update_std(self, to_plot):
         if self.parameters.lock.value and to_plot:
-            # FIXME: no double unpickling
             to_plot = pickle.loads(to_plot)
             if to_plot:
                 error_signal, control_signal = to_plot
