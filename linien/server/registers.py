@@ -103,10 +103,10 @@ class Registers:
             scopegen_external_trigger=1,
 
             gpio_p_oes=0,
-            gpio_n_oes=0,
+            gpio_n_oes=0b1,
 
             gpio_p_outs=0,
-            gpio_n_outs=0,
+            gpio_n_outs=0b1 if params['lock'] else 0b0,
 
             gpio_n_do0_en=self.rp.signal('zero'),
             gpio_n_do1_en=self.rp.signal('zero'),
