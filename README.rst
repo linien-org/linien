@@ -22,7 +22,7 @@ Features
 Getting started
 ###############
 
-Linien is written in python 3 and can be installed using python's package manager pip:
+Linien runs on Windows and Linux. It is written for python 3 and can be installed using python's package manager pip:
 
 ..  code-block:: bash
 
@@ -76,6 +76,19 @@ As linien uses a git submodule, you have to check it out like this:
     git clone https://github.com/hermitdemschoenenleben/linien.git --recursive
 
 To simplify development of the server component, its source code is automatically uploaded to the RedPitaya. For that, edit the `VERSION` file and replace it's content with `dev`. Check that no server is running on the RedPitaya and start the client. Your development code should be uploaded to /linien and the linien server is started from that directory.
+
+Fake server for testing the GUI:
+
+..  code-block:: bash
+
+    python3 server/server.py --fake
+
+Run server locally and control:
+
+    python3 server/server.py --remote-rp=root:password@rp-f0xxxx.local
+
+For this, `acquisition_process.py` has to be started on the RedPitaya.
+
 
 In order to build the FPGA image, use `scripts/build_gateware.sh`.
 
