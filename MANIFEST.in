@@ -1,4 +1,2 @@
-include linien/VERSION
-
 recursive-exclude test *
 recursive-exclude gateware *

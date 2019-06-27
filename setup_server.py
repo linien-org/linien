@@ -28,6 +28,6 @@ setuptools.setup(
         'linien/server/linien_install_requirements'
     ],
     package_data={
-        '': ['redpid.bin', 'linien_start_server', 'linien_install_requirements']
+        '': ['redpid.bin', 'linien_start_server', 'linien_install_requirements', 'VERSION']
     }
 )

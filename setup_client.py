@@ -31,6 +31,6 @@ setuptools.setup(
         'pyqtgraph>=0.10.0', 'paramiko>=2.5.0', 'plumbum>=1.6.7', 'uuid'
     ],
     package_data={
-        '': ['*.ui']
+        '': ['*.ui', 'VERSION']
     }
 )
