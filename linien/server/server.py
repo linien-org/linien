@@ -1,6 +1,7 @@
 import os
 import sys
 sys.path += ['../../']
+import click
 import _thread
 import pickle
 
@@ -16,16 +17,14 @@ from linien.communication.server import BaseService
 
 
 class RedPitayaControlService(BaseService):
-    def __init__(self):
+    def __init__(self, **kwargs):
         self._cached_data = {}
         self.exposed_is_locked = None
 
         super().__init__(Parameters)
 
-        #self.registers = Registers(host='rp-f0685a.local', user='root', password='zeilinger')
         from registers import Registers
-        self.registers = Registers()
-        #self.registers = Registers(host='rp-f0685a.local', user='root', password='zeilinger')
+        self.registers = Registers(**kwargs)
         self.registers.connect(self, self.parameters)
 
     def run_acquiry_loop(self):
@@ -123,9 +122,32 @@ class FakeRedPitayaControl(BaseService):
         return linien.__version__
 
 
-def run_server():
-    control = RedPitayaControlService()
-    #control = FakeRedPitayaControl()
+@click.command()
+@click.option('--fake', is_flag=True,
+              help='Runs a fake server that just returns random data')
+@click.option('--remote-rp',
+              help='Allows to run the server locally for development and '
+                   'connects to a RedPitaya. Specify the RP\'s credentials '
+                    'as follows: '
+                    '--remote-rp=root:myPassword@rp-f0xxxx.local')
+def run_server(fake, remote_rp):
+    if fake:
+        print('starting fake server')
+        control = FakeRedPitayaControl()
+    else:
+        if remote_rp is not None:
+            assert '@' in remote_rp and ':' in remote_rp, 'invalid format, should be root:myPassword@rp-f0xxxx.local'
+
+            username, tmp = remote_rp.split(':', 1)
+            r_host, r_password = ''.join(reversed(tmp)).split('@', 1)
+            host = ''.join(reversed(r_host))
+            password = ''.join(reversed(r_password))
+            control = RedPitayaControlService(
+                host=host, user=username, password=password
+            )
+        else:
+            control = RedPitayaControlService()
+
     control.run_acquiry_loop()
     control.exposed_write_data()
 
