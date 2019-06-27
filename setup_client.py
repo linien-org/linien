@@ -30,5 +30,7 @@ setuptools.setup(
         'numpy', 'scipy', 'PyQt5>=5.12.2', 'rpyc>=4.1.0', 'appdirs>=1.4.3',
         'pyqtgraph>=0.10.0', 'paramiko>=2.5.0', 'plumbum>=1.6.7', 'uuid'
     ],
-    include_package_data=True
+    package_data={
+        '': ['*.ui']
+    }
 )

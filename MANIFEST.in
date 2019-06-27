@@ -1,6 +1,3 @@
-include linien/server/redpid.bin
-include linien/server/linien_start_server
-include linien/server/linien_install_requirements
 include linien/VERSION
 
 recursive-exclude test *
