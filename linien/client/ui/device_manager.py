@@ -65,12 +65,21 @@ class DeviceManager(QtGui.QMainWindow, CustomWidget):
         def invalid_server_version(remote_version, client_version):
             loading_dialog.hide()
             if not aborted:
-                display_question = \
-                    "The server version (%s) does not match the client (%s) version." \
-                    "Should the corresponding server version be installed?" \
-                    % (remote_version, client_version)
-                if question_dialog(self, display_question):
-                    self.install_linien_server(device, version=client_version)
+                if client_version != 'dev':
+                    display_question = \
+                        "The server version (%s) does not match the client (%s) version." \
+                        "Should the corresponding server version be installed?" \
+                        % (remote_version, client_version)
+                    if question_dialog(self, display_question):
+                        self.install_linien_server(device, version=client_version)
+                else:
+                    display_error = \
+                        "A production version is installed on the RedPitaya, " \
+                        "but the client uses a development version. Stop the " \
+                        "server and uninstall the version on the RedPitaya using\n" \
+                        "    pip3 uninstall linien-server\n" \
+                        "before trying it again."
+                    error_dialog(self, display_error)
         self.t.invalid_server_version.connect(invalid_server_version)
 
         def authentication_exception():
