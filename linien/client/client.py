@@ -5,7 +5,9 @@ import threading
 
 from plumbum import colors
 
-sys.path += ['../', '../../']
+# it may seem odd to include '.', but for some reason this is needed for
+# standalone windows executable
+sys.path += ['../', os.path.join('..', '..'), '.']
 
 import linien
 from linien.client.gui import QTApp
