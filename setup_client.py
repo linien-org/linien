@@ -31,6 +31,8 @@ setuptools.setup(
         'pyqtgraph>=0.10.0', 'paramiko>=2.5.0', 'plumbum>=1.6.7', 'uuid'
     ],
     package_data={
+        # IMPORTANT: any changes have to be made in client.spec, too
+        # (for the standalone installer)
         '': ['*.ui', 'VERSION']
     }
 )
