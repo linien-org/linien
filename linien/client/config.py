@@ -16,7 +16,7 @@ def get_data_folder():
     folder_name = appdirs.user_data_dir('linien')
 
     if not os.path.exists(folder_name):
-        os.mkdir(folder_name)
+        os.makedirs(folder_name)
 
     return folder_name
 
