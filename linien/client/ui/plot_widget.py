@@ -166,6 +166,9 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         self.control.write_data()
 
     def replot(self, to_plot):
+        if self.parameters.pause_acquisition.value:
+            return
+
         if to_plot is not None and not self.touch_start:
             to_plot = pickle.loads(to_plot)
 

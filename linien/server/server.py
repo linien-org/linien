@@ -27,16 +27,22 @@ class RedPitayaControlService(BaseService):
         self.registers = Registers(**kwargs)
         self.registers.connect(self, self.parameters)
 
+        self._skip_next_data = 0
+
     def run_acquiry_loop(self):
         def on_change(plot_data):
-            self.parameters.to_plot.value = plot_data
-            self.parameters.control_signal_history.value = \
-                update_control_signal_history(
-                    self.parameters.control_signal_history.value,
-                    pickle.loads(plot_data),
-                    self.exposed_is_locked,
-                    self.parameters.control_signal_history_length.value
-                )
+            if not self.parameters.pause_acquisition.value:
+                if self._skip_next_data > 1:
+                    self._skip_next_data -= 1
+                else:
+                    self.parameters.to_plot.value = plot_data
+                    self.parameters.control_signal_history.value = \
+                        update_control_signal_history(
+                            self.parameters.control_signal_history.value,
+                            pickle.loads(plot_data),
+                            self.exposed_is_locked,
+                            self.parameters.control_signal_history_length.value
+                        )
 
         self.registers.run_data_acquisition(on_change)
 
@@ -55,19 +61,31 @@ class RedPitayaControlService(BaseService):
                          auto_offset=auto_offset)
 
     def exposed_start_ramp(self):
+        self.pause_acquisition()
+
         self.parameters.combined_offset.value = 0
         self.parameters.lock.value = False
         self.exposed_write_data()
 
+        self.continue_acquisition()
+
     def exposed_start_lock(self):
+        self.pause_acquisition()
+
         self.parameters.lock.value = True
         self.exposed_write_data()
 
+        self.continue_acquisition()
+
     def exposed_reset(self):
+        self.pause_acquisition()
+
         self.parameters.ramp_amplitude.value = 1
         self.parameters.center.value = 0
         self.exposed_start_ramp()
         self.exposed_write_data()
+
+        self.continue_acquisition()
 
     def exposed_shutdown(self):
         self.registers.acquisition.shutdown()
@@ -80,6 +98,13 @@ class RedPitayaControlService(BaseService):
 
     def exposed_get_restorable_parameters(self):
         return self.parameters.restorable_parameters
+
+    def pause_acquisition(self):
+        self.parameters.pause_acquisition.value = True
+
+    def continue_acquisition(self):
+        self.parameters.pause_acquisition.value = False
+        self._skip_next_data = 2
 
 
 class FakeRedPitayaControl(BaseService):
@@ -121,6 +146,12 @@ class FakeRedPitayaControl(BaseService):
         import linien
         return linien.__version__
 
+    def pause_acquisition(self):
+        pass
+
+    def continue_acquisition(self):
+        pass
+
 
 @click.command()
 @click.option('--fake', is_flag=True,
@@ -128,8 +159,8 @@ class FakeRedPitayaControl(BaseService):
 @click.option('--remote-rp',
               help='Allows to run the server locally for development and '
                    'connects to a RedPitaya. Specify the RP\'s credentials '
-                    'as follows: '
-                    '--remote-rp=root:myPassword@rp-f0xxxx.local')
+                   'as follows: '
+                   '--remote-rp=root:myPassword@rp-f0xxxx.local')
 def run_server(fake, remote_rp):
     if fake:
         print('starting fake server')

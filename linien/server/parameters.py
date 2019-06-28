@@ -89,6 +89,7 @@ class Parameters(BaseParameters):
         self.autolock_locked = Parameter(start=False)
         self.autolock_determine_offset = Parameter(start=True)
         self.autolock_initial_ramp_amplitude = Parameter(start=1)
+        self.pause_acquisition = Parameter(start=False)
 
         self.watch_lock = Parameter(start=True)
         self.control_signal_history = Parameter(start={

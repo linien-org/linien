@@ -71,6 +71,9 @@ class Autolock:
         If automatic relocking is desired, the control and error signals are
         continuously monitored after locking.
         """
+        if self.parameters.pause_acquisition.value:
+            return
+
         if plot_data is None or not self.parameters.autolock_running.value:
             return
 
@@ -132,6 +135,7 @@ class Autolock:
 
         if self.auto_offset:
             self.parameters.combined_offset.value = -1 * mean_signal
+            rolled_error_signal -= mean_signal
 
         self.parameters.target_slope_rising.value = target_slope_rising
         self.control.exposed_write_data()
@@ -159,12 +163,17 @@ class Autolock:
 
             zoom_step = 2
             self.zoom_factor *= zoom_step
+
+            self.control.pause_acquisition()
+
             self.parameters.ramp_amplitude.value /= zoom_step
             self.control.exposed_write_data()
 
             if self.zoom_factor >= self.target_zoom:
                 self.parameters.autolock_approaching.value = False
                 self.control.exposed_start_lock()
+
+            self.control.continue_acquisition()
 
     def after_lock(self, control_signal):
         """After locking, this method checks whether the laser really is locked.
@@ -216,12 +225,16 @@ class Autolock:
         locking approach.
         """
         self.reset_properties()
+        self.control.pause_acquisition()
+
         self.parameters.autolock_running.value = True
         self.parameters.autolock_approaching.value = True
 
         self.parameters.center.value = self.initial_ramp_center
         self.parameters.ramp_amplitude.value = self.initial_ramp_amplitude
         self.control.exposed_start_ramp()
+
+        self.control.continue_acquisition()
 
         # add a listener that listens for new spectrum data and consequently
         # tries to relock.

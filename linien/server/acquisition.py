@@ -17,7 +17,6 @@ class AcquisitionConnectionError(Exception):
 
 class AcquisitionProcessSignals(Enum):
     SHUTDOWN = 0
-    SKIP_NEXT_DATA = 1
     SET_RAMP_SPEED = 2
     SET_LOCK_STATUS = 3
 
@@ -67,8 +66,6 @@ class AcquisitionMaster:
                 data = pipe.recv()
                 if data[0] == AcquisitionProcessSignals.SHUTDOWN:
                     break
-                elif data[0] == AcquisitionProcessSignals.SKIP_NEXT_DATA:
-                    acquisition.exposed_skip_next_data()
                 elif data[0] == AcquisitionProcessSignals.SET_RAMP_SPEED:
                     speed = data[1]
                     acquisition.exposed_set_ramp_speed(speed)
@@ -98,6 +95,3 @@ class AcquisitionMaster:
     def lock_status_changed(self, status):
         if self.acq_process:
             self.acq_process.send((AcquisitionProcessSignals.SET_LOCK_STATUS, status))
-
-    def skip_next_data(self):
-        self.acq_process.send((AcquisitionProcessSignals.SKIP_NEXT_DATA,))

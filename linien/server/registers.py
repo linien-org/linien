@@ -39,12 +39,7 @@ class Registers:
         params = dict(self.parameters)
 
         _max = lambda val: val if np.abs(val) <= 8191 else (8191 * val / np.abs(val))
-        sweep_min = -1 * _max(params['ramp_amplitude'] * 8191)
-        sweep_max = _max(params['ramp_amplitude'] * 8191)
-
-        phase_to_delay = lambda phase: int(
-            phase / 360 * (1<<14)
-        )
+        phase_to_delay = lambda phase: int(phase / 360 * (1<<14))
 
         if not params['dual_channel']:
             factor_a = 256
@@ -53,14 +48,18 @@ class Registers:
             value = params['channel_mixing']
             factor_a, factor_b = convert_channel_mixing_value(value)
 
+        lock = params['lock']
+        lock_changed = lock != self.control.exposed_is_locked
+        self.control.exposed_is_locked = lock
+
         new = dict(
-            root_sweep_run=1,
+            root_sweep_run=0 if lock else 1,
             root_sweep_step=int(
                 DEFAULT_RAMP_SPEED * params['ramp_amplitude']
                 / (2 ** params['ramp_speed'])
             ),
-            root_sweep_min=sweep_min,
-            root_sweep_max=sweep_max,
+            root_sweep_min=-1 * _max(params['ramp_amplitude'] * 8191),
+            root_sweep_max=_max(params['ramp_amplitude'] * 8191),
             root_ramp_on_slow=params['ramp_on_slow'],
 
             root_mod_freq=params['modulation_frequency'],
@@ -112,12 +111,6 @@ class Registers:
             gpio_n_do1_en=self.rp.signal('zero'),
         )
 
-        lock_changed = params['lock'] != self.control.exposed_is_locked
-        lock = params['lock']
-        self.control.exposed_is_locked = lock
-
-        new['root_sweep_run'] = 0 if lock else 1
-
         if lock:
             # display combined error signal and control signal
             new.update({
@@ -146,9 +139,6 @@ class Registers:
         # pass ramp speed changes to acquisition process
         if 'root_sweep_step' in new:
             self.acquisition.set_ramp_speed(params['ramp_speed'])
-
-        if 'root_sweep_step' in new or 'root_sweep_max' in new or 'root_out_offset' in new:
-            self.acquisition.skip_next_data()
 
         for k, v in new.items():
             self.rp.set(k, int(v))
@@ -186,8 +176,6 @@ class Registers:
                     raise Exception('unknown filter', filter_type)
 
         if lock_changed:
-            self.acquisition.skip_next_data()
-
             if lock:
                 # set PI parameters
                 self.set_pid(kp, ki, kd, slope, reset=0)

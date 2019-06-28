@@ -29,7 +29,6 @@ class DataAcquisitionService(Service):
 
         self.exposed_set_ramp_speed(9)
         self.locked = False
-        self.skip_next_data_count = 0
 
         self.run()
 
@@ -51,10 +50,6 @@ class DataAcquisitionService(Service):
                 self.r.scope.data_decimation = 2 ** self.ramp_speed
                 self.r.scope.trigger_delay = trigger_delay - 1
 
-                if self.skip_next_data_count > 0:
-                    self.skip_next_data_count -= 1
-                    continue
-
                 self.data = pickle.dumps(data)
                 self.data_hash = random()
 
@@ -73,11 +68,6 @@ class DataAcquisitionService(Service):
 
     def exposed_set_lock_status(self, locked):
         self.locked = locked
-
-    def exposed_skip_next_data(self):
-        self.data = pickle.dumps(None)
-        self.data_hash = None
-        self.skip_next_data_count = 2
 
 
 if __name__ == '__main__':
