@@ -22,9 +22,9 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     entry_points={
-        'gui_scripts': [
-            'linien=linien.client.client:run_application',
-        ],
+        'console_scripts': [
+            'linien=linien.client.client:run_application'
+        ]
     },
     install_requires=[
         'numpy', 'scipy', 'PyQt5>=5.12.2', 'rpyc>=4.1.0', 'appdirs>=1.4.3',
