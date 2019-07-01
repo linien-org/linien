@@ -78,7 +78,7 @@ class Registers:
             fast_a_demod_multiplier=params['demodulation_multiplier_a'],
             fast_a_brk=0,
             fast_a_dx_sel=self.rp.signal('zero'),
-            fast_a_y_tap=1,
+            fast_a_y_tap=2,
             fast_a_dy_sel=self.rp.signal('zero'),
 
             fast_a_y_hold_en=self.rp.states(),
@@ -156,24 +156,27 @@ class Registers:
         slope = params['target_slope_rising']
 
         for chain in ('a', 'b'):
-            filter_enabled = params['filter_enabled_%s' % chain]
-            filter_type = params['filter_type_%s' % chain]
-            filter_frequency = params['filter_frequency_%s' % chain]
-            base_freq = 125e6
+            for iir_idx in range(2):
+                iir_name = 'fast_%s_iir_%d' % (chain, ('c', 'd')[iir_idx])
 
-            if not filter_enabled:
-                self.rp.set_iir('fast_%s_iir_c' % chain, *make_filter('P', k=1))
-            else:
-                if filter_type == LOW_PASS_FILTER:
-                    self.rp.set_iir('fast_%s_iir_c' % chain, *make_filter(
-                        'LP', f=filter_frequency / base_freq, k=1
-                    ))
-                elif filter_type == HIGH_PASS_FILTER:
-                    self.rp.set_iir('fast_%s_iir_c' % chain, *make_filter(
-                        'HP', f=filter_frequency / base_freq, k=1
-                    ))
+                filter_enabled = params['filter_%d_enabled_%s' % (iir_idx, chain)]
+                filter_type = params['filter_%d_type_%s' % (iir_idx, chain)]
+                filter_frequency = params['filter_%d_frequency_%s' % (iir_idx, chain)]
+                base_freq = 125e6
+
+                if not filter_enabled:
+                    self.rp.set_iir(iir_name, *make_filter('P', k=1))
                 else:
-                    raise Exception('unknown filter', filter_type)
+                    if filter_type == LOW_PASS_FILTER:
+                        self.rp.set_iir(iir_name, *make_filter(
+                            'LP', f=filter_frequency / base_freq, k=1
+                        ))
+                    elif filter_type == HIGH_PASS_FILTER:
+                        self.rp.set_iir(iir_name, *make_filter(
+                            'HP', f=filter_frequency / base_freq, k=1
+                        ))
+                    else:
+                        raise Exception('unknown filter %s for %s' (filter_type, iir_name))
 
         if lock_changed:
             if lock:

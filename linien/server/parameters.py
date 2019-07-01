@@ -11,9 +11,13 @@ class Parameters(BaseParameters):
             'modulation_amplitude', 'modulation_frequency', 'ramp_speed',
             'demodulation_phase_a', 'demodulation_multiplier_a',
             'demodulation_phase_b', 'demodulation_multiplier_b',
-            'offset_a', 'offset_b', 'filter_enabled_a', 'filter_enabled_b',
-            'filter_frequency_a', 'filter_frequency_b',
-            'filter_type_a', 'filter_type_b',
+            'offset_a', 'offset_b',
+            'filter_1_enabled_a', 'filter_1_enabled_b',
+            'filter_1_frequency_a', 'filter_1_frequency_b',
+            'filter_1_type_a', 'filter_1_type_b',
+            'filter_2_enabled_a', 'filter_2_enabled_b',
+            'filter_2_frequency_a', 'filter_2_frequency_b',
+            'filter_2_type_a', 'filter_2_type_b',
             'p', 'i', 'd', 'watch_lock', 'ramp_on_slow', 'dual_channel',
             'channel_mixing'
         )
@@ -63,9 +67,10 @@ class Parameters(BaseParameters):
                 max_=8191,
                 start=0
             ))
-            setattr(self, 'filter_enabled_%s' % channel, Parameter(start=False))
-            setattr(self, 'filter_type_%s' % channel, Parameter(start=0))
-            setattr(self, 'filter_frequency_%s' % channel, Parameter(start=0))
+            for filter_i in range(2):
+                setattr(self, 'filter_%d_enabled_%s' % (filter_i, channel), Parameter(start=False))
+                setattr(self, 'filter_%d_type_%s' % (filter_i, channel), Parameter(start=0))
+                setattr(self, 'filter_%d_frequency_%s' % (filter_i, channel), Parameter(start=0))
 
         self.combined_offset = Parameter(
             min_=-8191,

@@ -9,6 +9,32 @@ class SpectroscopyPanel(QtWidgets.QWidget, CustomWidget):
         super().__init__(*args)
         self.load_ui('spectroscopy_panel.ui')
 
+        def change_filter_frequency(self, filter_i):
+            self.get_param('filter_%d_frequency' % filter_i).value = \
+                getattr(self.ids, 'filter_%d_frequency' % filter_i).value()
+            self.control.write_data()
+
+        def change_filter_enabled(self, filter_i):
+            filter_enabled = int(
+                getattr(self.ids, 'filter_%d_enabled' % filter_i).checkState() > 0
+            )
+            self.get_param('filter_%d_enabled' % filter_i).value = filter_enabled
+            self.control.write_data()
+
+        def change_filter_type(self, _, filter_idx):
+            param = self.get_param('filter_%d_type' % filter_i)
+            current_idx = getattr(self.ids, 'filter_%d_type' % filter_i).currentIndex()
+            param.value = (LOW_PASS_FILTER, HIGH_PASS_FILTER)[current_idx]
+            self.control.write_data()
+
+        for filter_i in range(2):
+            for key, fct in {
+                'change_filter_%d_frequency': change_filter_frequency,
+                'change_filter_%d_enabled': change_filter_enabled,
+                'change_filter_%d_type': change_filter_type
+            }.items():
+                setattr(self, key % filter_i, lambda *args: fct(*(args + [filter_i])))
+
     def get_param(self, name):
         return getattr(self.parameters, '%s_%s' % (name, 'a' if self.channel == 0 else 'b'))
 
@@ -18,9 +44,14 @@ class SpectroscopyPanel(QtWidgets.QWidget, CustomWidget):
         self.ids.demodulation_phase.setKeyboardTracking(False)
         self.ids.demodulation_phase.valueChanged.connect(self.change_demod_phase)
         self.ids.demodulation_frequency.currentIndexChanged.connect(self.change_demod_multiplier)
-        self.ids.filter_enabled.stateChanged.connect(self.change_filter_enabled)
-        self.ids.filter_frequency.valueChanged.connect(self.change_filter_frequency)
-        self.ids.filter_type.currentIndexChanged.connect(self.change_filter_type)
+        for filter_i in range(2):
+            _get = lambda parent, attr, filter_i=filter_i: return getattr(parent, attr % filter_i)
+            _get(self.ids, 'filter_%d_enabled') \
+                .stateChanged.connect(_get(self, 'change_filter_%d_enabled'))
+            _get(self.ids, 'filter_%d_frequency') \
+                .stateChanged.connect(_get(self, 'change_filter_%d_frequency'))
+            _get(self.ids, 'filter_%d_type') \
+                .stateChanged.connect(_get(self, 'change_filter_%d_type'))
 
     def connection_established(self):
         params = self.app().parameters
@@ -43,19 +74,23 @@ class SpectroscopyPanel(QtWidgets.QWidget, CustomWidget):
             self.get_param('offset'),
             self.ids.signal_offset
         )
-        param2ui(self.get_param('filter_enabled'), self.ids.filter_enabled)
-        param2ui(
-            self.get_param('filter_frequency'),
-            self.ids.filter_frequency
-        )
-        param2ui(
-            self.get_param('filter_type'),
-            self.ids.filter_type,
-            lambda type_: {
-                LOW_PASS_FILTER: 0,
-                HIGH_PASS_FILTER: 1
-            }[type_]
-        )
+        for filter_i in range(2):
+            param2ui(
+                self.get_param('filter_%d_enabled' % filter_i),
+                getattr(self.ids, 'filter_%d_enabled' % filter_i)
+            )
+            param2ui(
+                self.get_param('filter_%d_frequency' % filter_i),
+                getattr(self.ids, 'filter_%d_frequency' % filter_i)
+            )
+            param2ui(
+                self.get_param('filter_%d_type' % filter_i),
+                getattr(self.ids, 'filter_%d_type' % filter_i),
+                lambda type_: {
+                    LOW_PASS_FILTER: 0,
+                    HIGH_PASS_FILTER: 1
+                }[type_]
+            )
 
     def change_signal_offset(self):
         self.get_param('offset').value = self.ids.signal_offset.value()
@@ -67,21 +102,6 @@ class SpectroscopyPanel(QtWidgets.QWidget, CustomWidget):
 
     def change_demod_multiplier(self, idx):
         self.get_param('demodulation_multiplier').value = idx + 1
-        self.control.write_data()
-
-    def change_filter_frequency(self):
-        self.get_param('filter_frequency').value = self.ids.filter_frequency.value()
-        self.control.write_data()
-
-    def change_filter_enabled(self):
-        filter_enabled = int(self.ids.filter_enabled.checkState() > 0)
-        self.get_param('filter_enabled').value = filter_enabled
-        self.control.write_data()
-
-    def change_filter_type(self, *args):
-        param = self.get_param('filter_type')
-        param.value = (LOW_PASS_FILTER, HIGH_PASS_FILTER) \
-                        [self.ids.filter_type.currentIndex()]
         self.control.write_data()
 
 

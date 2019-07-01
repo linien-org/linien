@@ -765,7 +765,7 @@
           </size>
          </property>
          <property name="currentIndex">
-          <number>4</number>
+          <number>0</number>
          </property>
          <widget class="GeneralPanel" name="page_2">
           <property name="geometry">
@@ -1165,8 +1165,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>338</width>
-            <height>473</height>
+            <width>208</width>
+            <height>261</height>
            </rect>
           </property>
           <attribute name="label">
