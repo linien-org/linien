@@ -22,6 +22,7 @@ class Autolock:
         self.history = []
         self.zoom_factor = 1
         self.N_at_this_zoom = 0
+        self.last_shift_at_this_zoom = None
         self.skipped = 0
         self.parameters.autolock_failed.value = False
         self.parameters.autolock_locked.value = False
@@ -156,24 +157,36 @@ class Autolock:
         self.parameters.center.value -= shift
         self.control.exposed_write_data()
 
+        if self.N_at_this_zoom > 50:
+            raise Exception('max number of N_at_this_zoom exceeded: %d' % self.N_at_this_zoom)
+
+        if self.last_shift_at_this_zoom is not None:
+            # check that the drift is slow
+            # this is needed for systems that only react slowly to changes in
+            # input parameters. In this case, we have to wait until the reaction
+            # to the last input is done.
+            drift_is_slow = (np.abs(shift - self.last_shift_at_this_zoom)) \
+                            < (0.05 * self.parameters.ramp_amplitude.value)
+            if drift_is_slow:
+                self.N_at_this_zoom = 0
+                self.last_shift_at_this_zoom = None
+
+                zoom_step = 2
+                self.zoom_factor *= zoom_step
+
+                self.control.pause_acquisition()
+
+                self.parameters.ramp_amplitude.value /= zoom_step
+                self.control.exposed_write_data()
+
+                if self.zoom_factor >= self.target_zoom:
+                    self.parameters.autolock_approaching.value = False
+                    self.control.exposed_start_lock()
+
+                self.control.continue_acquisition()
+
         self.N_at_this_zoom += 1
-
-        if self.N_at_this_zoom > 1:
-            self.N_at_this_zoom = 0
-
-            zoom_step = 2
-            self.zoom_factor *= zoom_step
-
-            self.control.pause_acquisition()
-
-            self.parameters.ramp_amplitude.value /= zoom_step
-            self.control.exposed_write_data()
-
-            if self.zoom_factor >= self.target_zoom:
-                self.parameters.autolock_approaching.value = False
-                self.control.exposed_start_lock()
-
-            self.control.continue_acquisition()
+        self.last_shift_at_this_zoom = shift
 
     def after_lock(self, control_signal):
         """After locking, this method checks whether the laser really is locked.
