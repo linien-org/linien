@@ -2,28 +2,34 @@
 
 block_cipher = None
 
-import os
+import platform
 
-qt_bin_folder = 'C:\\Users\\Ben\\AppData\\Local\\Programs\\Python\\Python37\\Lib\\site-packages\\PyQt5\\Qt\\bin'
-if not os.path.exists(qt_bin_folder):
-    print('')
-    print('============================================')
-    print('client.spec was customized due to a pyinstaller bug that lead to Qt5Core.dll not being bundled.')
-    print('see also https://github.com/pyinstaller/pyinstaller/issues/2152')
-    print('therefore, qt_bin_folder is set to')
-    print(qt_bin_folder)
-    print('However, on your machine this folder does not exist. You probably have to modify the spec file.')
-    input('Proceed anyway? [press enter]')
+datas= [
+    ('linien/VERSION', 'linien'),
+    ('linien/client/ui/*', 'linien/client/ui'),
+]
+
+if platform.system().lower() != 'linux':
+    import os
+
+    qt_bin_folder = 'C:\\Users\\Ben\\AppData\\Local\\Programs\\Python\\Python37\\Lib\\site-packages\\PyQt5\\Qt\\bin'
+    if not os.path.exists(qt_bin_folder):
+        print('')
+        print('============================================')
+        print('client.spec was customized due to a pyinstaller bug that lead to Qt5Core.dll not being bundled.')
+        print('see also https://github.com/pyinstaller/pyinstaller/issues/2152')
+        print('therefore, qt_bin_folder is set to')
+        print(qt_bin_folder)
+        print('However, on your machine this folder does not exist. You probably have to modify the spec file.')
+        input('Proceed anyway? [press enter]')
+
+    datas += [(qt_bin_folder + '\\Qt5Core.dll', 'PyQt5\\Qt\\bin')]
 
 
 a = Analysis(['linien/client/client.py'],
              pathex=[],
              binaries=[],
-             datas=[
-                 ('linien/VERSION', 'linien'),
-                 ('linien/client/ui/*', 'linien/client/ui'),
-                 (qt_bin_folder + '\\Qt5Core.dll', 'PyQt5\\Qt\\bin')
-             ],
+             datas=datas,
              hiddenimports=['linien', 'linien.common'],
              hookspath=[],
              runtime_hooks=[],
