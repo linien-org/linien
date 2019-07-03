@@ -27,7 +27,7 @@ class SpectroscopyPanel(QtWidgets.QWidget, CustomWidget):
             param.value = (LOW_PASS_FILTER, HIGH_PASS_FILTER)[current_idx]
             self.control.write_data()
 
-        for filter_i in range(2):
+        for filter_i in [1, 2]:
             for key, fct in {
                 'change_filter_%d_frequency': change_filter_frequency,
                 'change_filter_%d_enabled': change_filter_enabled,
@@ -44,14 +44,15 @@ class SpectroscopyPanel(QtWidgets.QWidget, CustomWidget):
         self.ids.demodulation_phase.setKeyboardTracking(False)
         self.ids.demodulation_phase.valueChanged.connect(self.change_demod_phase)
         self.ids.demodulation_frequency.currentIndexChanged.connect(self.change_demod_multiplier)
-        for filter_i in range(2):
-            _get = lambda parent, attr, filter_i=filter_i: return getattr(parent, attr % filter_i)
+        for filter_i in [1, 2]:
+            _get = lambda parent, attr, filter_i=filter_i: getattr(parent, attr % filter_i)
             _get(self.ids, 'filter_%d_enabled') \
                 .stateChanged.connect(_get(self, 'change_filter_%d_enabled'))
-            _get(self.ids, 'filter_%d_frequency') \
-                .stateChanged.connect(_get(self, 'change_filter_%d_frequency'))
+            freq_input = _get(self.ids, 'filter_%d_frequency')
+            freq_input.setKeyboardTracking(False)
+            freq_input.valueChanged.connect(_get(self, 'change_filter_%d_frequency'))
             _get(self.ids, 'filter_%d_type') \
-                .stateChanged.connect(_get(self, 'change_filter_%d_type'))
+                .currentIndexChanged.connect(_get(self, 'change_filter_%d_type'))
 
     def connection_established(self):
         params = self.app().parameters
@@ -74,7 +75,7 @@ class SpectroscopyPanel(QtWidgets.QWidget, CustomWidget):
             self.get_param('offset'),
             self.ids.signal_offset
         )
-        for filter_i in range(2):
+        for filter_i in [1, 2]:
             param2ui(
                 self.get_param('filter_%d_enabled' % filter_i),
                 getattr(self.ids, 'filter_%d_enabled' % filter_i)
