@@ -43,11 +43,19 @@ def load_device_data():
     return devices
 
 
-def save_parameter(device_key, param, value):
+def save_parameter(device_key, param, value, delete=False):
     devices = load_device_data()
     device = [d for d in devices if d['key'] == device_key][0]
     device.setdefault('params', {})
-    device['params'][param] = value
+
+    if not delete:
+        device['params'][param] = value
+    else:
+        try:
+            del device['params'][param]
+        except KeyError:
+            pass
+
     save_device_data(devices)
 
 

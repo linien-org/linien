@@ -140,10 +140,17 @@ class Connection(BaseClient):
             getattr(self.parameters, param).change(on_change)
 
     def restore_parameters(self):
-        params = get_saved_parameters(self.device['key']).items()
+        device_key = self.device['key']
+        params = get_saved_parameters(device_key)
         print('restoring parameters')
 
-        for k, v in params:
-            getattr(self.parameters, k).value = v
+        for k, v in params.items():
+            if hasattr(self.parameters, k):
+                getattr(self.parameters, k).value = v
+            else:
+                # this may happen if the settings were written with a different
+                # version of linien.
+                print('unable to restore parameter %s. Delete the cached value.' % k)
+                save_parameter(device_key, k, None, delete=True)
 
         self.control.write_data()
