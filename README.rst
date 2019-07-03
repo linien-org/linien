@@ -64,6 +64,17 @@ Linien running on RedPitaya can not only be controlled using the GUI but also by
     c.parameters.modulation_amplitude.value = 1 * Vpp
     c.connection.root.write_data()
 
+    import pickle
+    from matplotlib import pyplot as plt
+    plot_data = pickle.loads(c.parameters.to_plot.value)
+    signal1, signal2 = plot_data
+
+    # if unlocked, signal1 and signal2 contain the error signal of channel 1 and 2
+    # if the laser is locked, they contain error signal and control signal.
+    plt.plot(signal1)
+    plt.plot(signal2)
+    plt.show()
+
 For a full list of parameters that can be controlled have a look at `parameters.py <https://github.com/hermitdemschoenenleben/linien/blob/master/linien/server/parameters.py>`_.
 
 Development
