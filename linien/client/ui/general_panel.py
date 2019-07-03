@@ -15,6 +15,7 @@ class GeneralPanel(QtGui.QWidget, CustomWidget):
         self.ids.rampOnSlow.stateChanged.connect(self.ramp_on_slow_changed)
         self.ids.channel_mixing_slider.valueChanged.connect(self.channel_mixing_changed)
         self.ids.dual_channel.stateChanged.connect(self.dual_channel_changed)
+        self.ids.enable_slow_out.stateChanged.connect(self.enable_slow_changed)
 
     def connection_established(self):
         params = self.app().parameters
@@ -50,6 +51,15 @@ class GeneralPanel(QtGui.QWidget, CustomWidget):
         # this is required to update the descriptive labels in the beginning
         self.channel_mixing_changed()
 
+        def enable_slow_out_changed(value):
+            self.ids.slow_out_settings.setEnabled(value)
+            return value
+        param2ui(
+            params.enable_slow_out,
+            self.ids.enable_slow_out,
+            enable_slow_out_changed
+        )
+
     def ramp_on_slow_changed(self):
         self.parameters.ramp_on_slow.value = int(self.ids.rampOnSlow.checkState() > 0)
         self.control.write_data()
@@ -70,3 +80,7 @@ class GeneralPanel(QtGui.QWidget, CustomWidget):
 
         self.ids.chain_a_factor.setText('%d' % a_value)
         self.ids.chain_b_factor.setText('%d' % b_value)
+
+    def enable_slow_changed(self):
+        self.parameters.enable_slow_out.value = int(self.ids.enable_slow_out.checkState() > 0)
+        self.control.write_data()

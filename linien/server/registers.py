@@ -60,7 +60,7 @@ class Registers:
             ),
             root_sweep_min=-1 * _max(params['ramp_amplitude'] * 8191),
             root_sweep_max=_max(params['ramp_amplitude'] * 8191),
-            root_ramp_on_slow=params['ramp_on_slow'],
+            root_ramp_on_slow=params['enable_slow_out'] and params['ramp_on_slow'],
 
             root_mod_freq=params['modulation_frequency'],
             root_mod_amp=params['modulation_amplitude'],
@@ -157,11 +157,11 @@ class Registers:
 
         for chain in ('a', 'b'):
             for iir_idx in range(2):
-                iir_name = 'fast_%s_iir_%d' % (chain, ('c', 'd')[iir_idx])
+                iir_name = 'fast_%s_iir_%s' % (chain, ('c', 'd')[iir_idx])
 
-                filter_enabled = params['filter_%d_enabled_%s' % (iir_idx, chain)]
-                filter_type = params['filter_%d_type_%s' % (iir_idx, chain)]
-                filter_frequency = params['filter_%d_frequency_%s' % (iir_idx, chain)]
+                filter_enabled = params['filter_%d_enabled_%s' % (iir_idx + 1, chain)]
+                filter_type = params['filter_%d_type_%s' % (iir_idx + 1, chain)]
+                filter_frequency = params['filter_%d_frequency_%s' % (iir_idx + 1, chain)]
                 base_freq = 125e6
 
                 if not filter_enabled:

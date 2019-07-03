@@ -148,15 +148,15 @@ class PIDCSR(Module, AutoCSR):
 
         self.submodules.mod = Modulate(width=width)
         self.submodules.sweep = SweepCSR(width=width, step_width=24, step_shift=18)
-        self.submodules.limit1 = LimitCSR(width=width, guard=4)
-        self.submodules.limit = LimitCSR(width=width, guard=4)
+        self.submodules.limit_error_signal = LimitCSR(width=width, guard=4)
+        self.submodules.limit_control_signal = LimitCSR(width=width, guard=4)
         self.submodules.pid = PID()
 
         self.comb += [
             self.sweep.clear.eq(0),
             self.sweep.hold.eq(0),
-            combined_error_signal.eq(self.limit1.y << s),
-            control_signal.eq(self.limit.y << s)
+            combined_error_signal.eq(self.limit_error_signal.y << s),
+            control_signal.eq(self.limit_control_signal.y << s),
         ]
 
 
@@ -165,6 +165,7 @@ class Pid(Module, AutoCSR):
         csr_map = {
                 "dna": 28, "xadc": 29, "gpio_n": 30, "gpio_p": 31,
                 "fast_a": 0, "fast_b": 1,
+                "slow": 2,
                 #"slow_a": 2, "slow_b": 3, "slow_c": 4, "slow_d": 5,
                 "scopegen": 6, "noise": 7, 'root': 8
         }
@@ -199,23 +200,12 @@ class Pid(Module, AutoCSR):
         self.submodules.fast_a = FastChain(14, s, c, self.root.mod, offset_signal=self.root.chain_a_offset_signed)
         self.submodules.fast_b = FastChain(14, s, c, self.root.mod, offset_signal=self.root.chain_b_offset_signed)
         sys_slow = ClockDomainsRenamer("sys_slow")
-        #self.submodules.slow_a = sys_slow(SlowChain(16, s, c))
-        #self.slow_a.iir.interval.value.value *= 15
-        #self.submodules.slow_b = sys_slow(SlowChain(16, s, c))
-        #self.slow_b.iir.interval.value.value *= 15
-        #self.submodules.slow_c = sys_slow(SlowChain(16, s, c))
-        #self.slow_c.iir.interval.value.value *= 15
-        #self.submodules.slow_d = sys_slow(SlowChain(16, s, c))
-        #self.slow_d.iir.interval.value.value *= 15
+        self.submodules.slow = sys_slow(SlowChain())
         self.submodules.scopegen = ScopeGen(s)
-        #self.submodules.noise = LFSRGen(s)
-        #self.submodules.noise = XORSHIFTGen(s)
 
         self.state_names, self.signal_names = cross_connect(self.gpio_n, [
             ("fast_a", self.fast_a), ("fast_b", self.fast_b),
-            #("slow_a", self.slow_a), ("slow_b", self.slow_b),
-            #("slow_c", self.slow_c), ("slow_d", self.slow_d),
-            ("scopegen", self.scopegen), #("noise", self.noise),
+            ("slow", self.slow), ("scopegen", self.scopegen),
             ("root", self.root)
         ])
 
@@ -238,8 +228,8 @@ class Pid(Module, AutoCSR):
 
         mixed_limited = Signal((width, True))
         self.comb += [
-            self.root.limit1.x.eq(mixed >> chain_factor_bits),
-            mixed_limited.eq(self.root.limit1.y)
+            self.root.limit_error_signal.x.eq(mixed >> chain_factor_bits),
+            mixed_limited.eq(self.root.limit_error_signal.y)
         ]
 
         pid_out = Signal((width, True))
@@ -251,7 +241,16 @@ class Pid(Module, AutoCSR):
         self.sync += out.eq(
             pid_out
             + Mux(self.root.ramp_on_slow.storage, 0, self.root.sweep.y)
-            + self.root.out_offset_signed
+            + Mux(self.root.ramp_on_slow.storage, 0, self.root.out_offset_signed)
+        )
+
+        slow_pid_out = Signal((width, True))
+        self.comb += slow_pid_out.eq(self.slow.output)
+        slow_out = Signal((width + 2, True))
+        self.sync += slow_out.eq(
+            slow_pid_out
+            + Mux(self.root.ramp_on_slow.storage, self.root.sweep.y, 0)
+            + Mux(self.root.ramp_on_slow.storage, self.root.out_offset_signed, 0)
         )
 
         self.comb += [
@@ -261,19 +260,22 @@ class Pid(Module, AutoCSR):
                 self.fast_a.adc.eq(self.analog.adc_a),
                 self.fast_b.adc.eq(self.analog.adc_b),
 
+                # FAST OUT 0
                 self.analog.dac_a.eq(self.root.mod.y),
-                self.root.limit.x.eq(out),
-                self.analog.dac_b.eq(self.root.limit.y),
 
-                #self.slow_a.adc.eq(self.xadc.adc[0] << 4),
-                #self.ds0.data.eq(self.slow_a.dac),
+                # FAST OUT 1
+                self.root.limit_control_signal.x.eq(out),
+                self.analog.dac_b.eq(self.root.limit_control_signal.y),
+
+                # SLOW OUT
+                self.slow.input.eq(mixed_limited),
+                self.slow.limit.x.eq(slow_out),
                 self.ds0.data.eq(
-                    Mux(
-                        self.root.ramp_on_slow.storage,
-                        (self.root.sweep.y << 1) + (1<<14),
-                        0
-                    )
+                    # ds0 apparently has 16 bit, but only allowing positive
+                    # values --> "15 bit"?
+                    (self.slow.limit.y << 1) + (1<<14)
                 ),
+
                 #self.slow_b.adc.eq(self.xadc.adc[1] << 4),
                 #self.ds1.data.eq(self.slow_b.dac),
                 #self.slow_c.adc.eq(self.xadc.adc[2] << 4),

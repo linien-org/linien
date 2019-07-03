@@ -19,6 +19,7 @@ from migen import *
 from misoc.interconnect.csr import AutoCSR, CSRStorage, CSRStatus, CSR
 
 from .iir import Iir
+from .pid import PID
 from .limit import LimitCSR
 from .modulate import Modulate, Demodulate
 
@@ -145,53 +146,27 @@ class FastChain(Module, AutoCSR):
 
 
 class SlowChain(Module, AutoCSR):
-    def __init__(self, width=16, signal_width=25, coeff_width=18):
-        self.adc = Signal((width, True))
-        self.dac = Signal((width, True))
-
-        hold = Signal()
-        clear = Signal()
-        sat = Signal()
-        railed = Signal()
-
-        self.brk = CSRStorage(1)
-
-        x = Signal((signal_width, True))
-        dx = Signal((signal_width, True))
-        y = Signal((signal_width, True))
-        dy = Signal((signal_width, True))
-
-        self.state_in = hold, clear
-        self.state_out = sat, railed
-        self.signal_in = dx,
-        self.signal_out = x, y
-
-        ###
-
-        self.submodules.x_limit = LimitCSR(width=signal_width, guard=1)
-        self.submodules.iir = Iir(
-            width=2*coeff_width, coeff_width=signal_width, order=2,
-            shift=signal_width-2, mode="iterative")
-        #self.submodules.sweep = SweepCSR(width=width, step_width=24,
-        #        step_shift=18)
-        self.submodules.y_limit = LimitCSR(width=width, guard=1)
-
-        ###
-
+    def __init__(self, width=14, signal_width=25):
         s = signal_width - width
-        s1 = 2*coeff_width - signal_width
-        s2 = 2*coeff_width - width
+
+        self.input = Signal((width, True))
+        self.output = Signal((width, True))
+
+        out = Signal((signal_width, True))
+
+        self.state_in = []
+        self.state_out = []
+        self.signal_in = []
+        self.signal_out = [out]
+
+        self.submodules.pid = PID()
+        self.submodules.limit = LimitCSR(width=width, guard=4)
+
         self.comb += [
-            x.eq(self.adc << s),
-            self.x_limit.x.eq(Mux(self.brk.storage, 0, x) + dx),
-            self.iir.x.eq(self.x_limit.y << s1),
-            self.iir.hold.eq(hold),
-            self.iir.clear.eq(clear),
-            sat.eq(self.iir.error),
-            self.y_limit.x.eq((self.iir.y >> s2) + (dy >> s)),
-            railed.eq(self.y_limit.error),
-            y.eq(self.y_limit.y << s),
-            self.dac.eq(y >> s)
+            self.pid.input.eq(self.input),
+            self.output.eq(self.pid.pid_out),
+
+            out.eq(self.limit.y << s)
         ]
 
 

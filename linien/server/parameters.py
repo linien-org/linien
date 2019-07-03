@@ -19,7 +19,8 @@ class Parameters(BaseParameters):
             'filter_2_frequency_a', 'filter_2_frequency_b',
             'filter_2_type_a', 'filter_2_type_b',
             'p', 'i', 'd', 'watch_lock', 'ramp_on_slow', 'dual_channel',
-            'channel_mixing'
+            'channel_mixing', 'enable_slow_out', 'slow_polarity',
+            'pid_on_slow_enabled', 'pid_on_slow_strength'
         )
 
         self.modulation_amplitude = Parameter(
@@ -67,7 +68,7 @@ class Parameters(BaseParameters):
                 max_=8191,
                 start=0
             ))
-            for filter_i in range(2):
+            for filter_i in [1, 2]:
                 setattr(self, 'filter_%d_enabled_%s' % (filter_i, channel), Parameter(start=False))
                 setattr(self, 'filter_%d_type_%s' % (filter_i, channel), Parameter(start=0))
                 setattr(self, 'filter_%d_frequency_%s' % (filter_i, channel), Parameter(start=0))
@@ -104,6 +105,10 @@ class Parameters(BaseParameters):
         # in seconds
         self.control_signal_history_length = Parameter(start=600)
 
+        self.enable_slow_out = Parameter(start=False)
         self.ramp_on_slow = Parameter(start=False)
+        self.slow_polarity = Parameter(start=1)
+        self.pid_on_slow_enabled = Parameter(start=False)
+        self.pid_on_slow_strength = Parameter(start=0)
         self.dual_channel = Parameter(start=False)
         self.channel_mixing = Parameter(start=0)

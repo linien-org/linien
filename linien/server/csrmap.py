@@ -189,10 +189,10 @@ csr = {
     'root_sweep_min': (8, 0x016, 14, True),
     'root_sweep_max': (8, 0x018, 14, True),
     'root_sweep_run': (8, 0x01a, 1, True),
-    'root_limit1_min': (8, 0x01b, 14, True),
-    'root_limit1_max': (8, 0x01d, 14, True),
-    'root_limit_min': (8, 0x01f, 14, True),
-    'root_limit_max': (8, 0x021, 14, True),
+    'root_limit_error_signal_min': (8, 0x01b, 14, True),
+    'root_limit_error_signal_max': (8, 0x01d, 14, True),
+    'root_limit_control_signal_min': (8, 0x01f, 14, True),
+    'root_limit_control_signal_max': (8, 0x021, 14, True),
     'root_pid_setpoint': (8, 0x023, 14, True),
     'root_pid_kp': (8, 0x025, 14, True),
     'root_pid_ki': (8, 0x027, 14, True),
@@ -213,6 +213,16 @@ csr = {
     'scopegen_dac_b_min': (6, 0x00f, 25, False),
     'scopegen_adc_a_sel': (6, 0x013, 4, True),
     'scopegen_adc_b_sel': (6, 0x014, 4, True),
+    'slow_pid_setpoint': (2, 0x000, 14, True),
+    'slow_pid_kp': (2, 0x002, 14, True),
+    'slow_pid_ki': (2, 0x004, 14, True),
+    'slow_pid_reset': (2, 0x006, 1, True),
+    'slow_pid_kd': (2, 0x007, 14, True),
+    'slow_limit_min': (2, 0x009, 14, True),
+    'slow_limit_max': (2, 0x00b, 14, True),
+    'slow_out_clr': (2, 0x00d, 1, True),
+    'slow_out_max': (2, 0x00e, 25, False),
+    'slow_out_min': (2, 0x012, 25, False),
     'xadc_temp': (29, 0x000, 12, False),
     'xadc_v': (29, 0x002, 12, False),
     'xadc_a': (29, 0x004, 12, False),
@@ -221,4 +231,4 @@ csr = {
     'xadc_d': (29, 0x00a, 12, False),
 }
 states = ['force', 'di0', 'di1', 'di2', 'di3', 'di4', 'di5', 'di6', 'di7', 'fast_a_x_sat', 'fast_a_x_railed', 'fast_a_y_sat', 'fast_a_y_railed', 'fast_b_x_sat', 'fast_b_x_railed', 'fast_b_y_sat', 'fast_b_y_railed']
-signals = ['zero', 'fast_a_x', 'fast_a_y', 'fast_b_x', 'fast_b_y', 'scopegen_dac_a', 'scopegen_dac_b', 'root_control_signal', 'root_combined_error_signal']
+signals = ['zero', 'fast_a_x', 'fast_a_y', 'fast_b_x', 'fast_b_y', 'slow_out', 'scopegen_dac_a', 'scopegen_dac_b', 'root_control_signal', 'root_combined_error_signal']
