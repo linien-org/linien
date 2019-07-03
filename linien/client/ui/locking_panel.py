@@ -43,10 +43,9 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
         )
         param2ui(params.pid_on_slow_enabled, self.ids.pid_on_slow_enabled)
         param2ui(params.pid_on_slow_strength, self.ids.pid_on_slow_strength)
-        def pid_on_slow_changed(*args):
-            self.ids.slow_pid_group.setEnabled(self.parameters.enable_slow_out.value)
-        params.pid_on_slow_enabled.change(pid_on_slow_changed)
-        params.pid_on_slow_strength.change(pid_on_slow_changed)
+        def slow_pid_visibility(*args):
+            self.ids.slow_pid_group.setVisible(self.parameters.enable_slow_out.value)
+        params.enable_slow_out.change(slow_pid_visibility)
 
         def lock_status_changed(_):
             locked = params.lock.value

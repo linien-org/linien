@@ -22,15 +22,13 @@ class GeneralPanel(QtGui.QWidget, CustomWidget):
         self.control = self.app().control
         self.parameters = params
 
-        def ramp_on_slow_param_changed(value):
+        param2ui(params.ramp_on_slow, self.ids.rampOnSlow)
+        def ramp_on_slow_param_changed(*args):
+            value = params.ramp_on_slow.value and params.enable_slow_out.value
             self.ids.explainSweepOnAnalog.setVisible(value)
             self.ids.explainNoSweepOnAnalog.setVisible(not value)
-            return value
-        param2ui(
-            params.ramp_on_slow,
-            self.ids.rampOnSlow,
-            ramp_on_slow_param_changed
-        )
+        params.ramp_on_slow.change(ramp_on_slow_param_changed)
+        params.enable_slow_out.change(ramp_on_slow_param_changed)
 
         def dual_channel_changed(value):
             self.ids.dual_channel_mixing.setVisible(value)
