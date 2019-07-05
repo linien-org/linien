@@ -7,27 +7,59 @@ LOW_PASS_FILTER = 0
 HIGH_PASS_FILTER = 1
 
 
+def downsample(times, values, max_time_diff, max_N=16384):
+    last_time = None
+
+    for idx in reversed(range(len(times))):
+        current_time = times[idx]
+        remove = False
+
+        if last_time is not None:
+            if np.abs(last_time - current_time) < max_time_diff / max_N:
+                remove = True
+
+        if remove:
+            times.pop(idx)
+            values.pop(idx)
+        else:
+            last_time = current_time
+
+
+def truncate(times, values, max_time_diff):
+    while len(values) > 0:
+        if time() - times[0] > max_time_diff:
+            times.pop(0)
+            values.pop(0)
+            continue
+        break
+
+
 def update_control_signal_history(history, to_plot, is_locked, max_time_diff):
     if not to_plot:
         return history
 
-    error_signal, control_signal = to_plot
     now = time()
 
     if is_locked:
-        history['values'].append(np.mean(control_signal))
+        history['values'].append(np.mean(to_plot['control_signal']))
         history['times'].append(time())
+
+        if 'slow' in to_plot:
+            history['slow_values'].append(to_plot['slow'])
+            history['slow_times'].append(time())
     else:
         history['values'] = []
         history['times'] = []
+        history['slow_values'] = []
+        history['slow_times'] = []
 
     # truncate
-    while len(history['values']) > 0:
-        if time() - history['times'][0] > max_time_diff:
-            history['times'].pop(0)
-            history['values'].pop(0)
-            continue
-        break
+    truncate(history['times'], history['values'], max_time_diff)
+    truncate(history['slow_times'], history['slow_values'], max_time_diff)
+
+    # downsample
+    downsample(history['times'], history['values'], max_time_diff)
+    downsample(history['slow_times'], history['slow_values'], max_time_diff)
 
     return history
 
