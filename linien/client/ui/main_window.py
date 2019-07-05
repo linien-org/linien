@@ -32,6 +32,7 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
         set_color(self.ids.legend_error_signal, 'spectroscopy_combined')
         set_color(self.ids.legend_control_signal, 'control_signal')
         set_color(self.ids.legend_control_signal_history, 'control_signal_history')
+        set_color(self.ids.legend_slow_signal_history, 'slow_history')
 
         self.ids.zoom_slider.valueChanged.connect(self.change_zoom)
         self.ids.go_left_btn.clicked.connect(self.go_left)
@@ -61,6 +62,10 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
         params.autolock_running.change(change_manual_navigation_visibility)
 
         params.to_plot.change(self.update_std)
+
+        params.enable_slow_out.change(
+            lambda v: self.ids.legend_slow_signal_history.setVisible(v)
+        )
 
     def go_right(self):
         self.change_center(True)
