@@ -35,12 +35,28 @@ class RedPitayaControlService(BaseService):
                 if self._skip_next_data > 1:
                     self._skip_next_data -= 1
                 else:
-                    self.parameters.to_plot.value = plot_data
+                    s1, s2 = pickle.loads(plot_data)
+
+                    if self.parameters.lock.value:
+                        data = {
+                            'error_signal': s1,
+                            'control_signal': s2
+                        }
+                        if self.parameters.pid_on_slow_enabled.value:
+                            data['slow'] = self.registers.get_slow_value()
+                    else:
+                        data = {
+                            'error_signal_1': s1,
+                            'error_signal_2': s2
+                        }
+
+                    self.parameters.to_plot.value = pickle.dumps(data)
+
                     self.parameters.control_signal_history.value = \
                         update_control_signal_history(
                             self.parameters.control_signal_history.value,
-                            pickle.loads(plot_data),
-                            self.exposed_is_locked,
+                            data,
+                            self.parameters.lock.value,
                             self.parameters.control_signal_history_length.value
                         )
 

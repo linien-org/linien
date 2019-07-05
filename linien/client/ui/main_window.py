@@ -88,6 +88,8 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
         if self.parameters.lock.value and to_plot:
             to_plot = pickle.loads(to_plot)
             if to_plot:
-                error_signal, control_signal = to_plot
-                self.ids.error_std.setText('%.2f' % np.std(error_signal))
-                self.ids.control_std.setText('%.2f' % np.std(control_signal))
+                error_signal = to_plot.get('error_signal')
+                control_signal = to_plot.get('control_signal')
+                if error_signal and control_signal:
+                    self.ids.error_std.setText('%.2f' % np.std(error_signal))
+                    self.ids.control_std.setText('%.2f' % np.std(control_signal))

@@ -16,6 +16,7 @@ class GeneralPanel(QtGui.QWidget, CustomWidget):
         self.ids.channel_mixing_slider.valueChanged.connect(self.channel_mixing_changed)
         self.ids.dual_channel.stateChanged.connect(self.dual_channel_changed)
         self.ids.enable_slow_out.stateChanged.connect(self.enable_slow_changed)
+        self.ids.slow_polarity.currentIndexChanged(self.change_slow_polarity)
 
     def connection_established(self):
         params = self.app().parameters
@@ -58,6 +59,11 @@ class GeneralPanel(QtGui.QWidget, CustomWidget):
             enable_slow_out_changed
         )
 
+        param2ui(
+            params.slow_polarity_inverted,
+            self.ids.slow_polarity
+        )
+
     def ramp_on_slow_changed(self):
         self.parameters.ramp_on_slow.value = int(self.ids.rampOnSlow.checkState() > 0)
         self.control.write_data()
@@ -81,4 +87,8 @@ class GeneralPanel(QtGui.QWidget, CustomWidget):
 
     def enable_slow_changed(self):
         self.parameters.enable_slow_out.value = int(self.ids.enable_slow_out.checkState() > 0)
+        self.control.write_data()
+
+    def change_slow_polarity(self, idx):
+        self.parameters.slow_polarity_inverted.value = idx != 0
         self.control.write_data()

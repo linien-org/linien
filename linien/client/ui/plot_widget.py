@@ -41,6 +41,8 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         self.addItem(self.control_signal)
         self.control_signal_history = pg.PlotCurveItem(pen=pg.mkPen(COLORS['control_signal_history'], width=pen_width))
         self.addItem(self.control_signal_history)
+        self.slow_history = pg.PlotCurveItem(pen=pg.mkPen(COLORS['slow_history'], width=pen_width))
+        self.addItem(self.slow_history)
 
         self.zero_line.setData([0, 16383], [0, 0])
         self.signal1.setData([0, 16383], [1, 1])
@@ -186,10 +188,11 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
                 self.signal2.setVisible(False)
                 self.control_signal.setVisible(True)
                 self.control_signal_history.setVisible(True)
+                self.slow_history.setVisible(self.parameters.pid_on_slow_enabled.value)
                 self.combined_signal.setVisible(True)
 
                 self.plot_data_locked(to_plot)
-                self.update_plot_scaling(to_plot)
+                self.update_plot_scaling(to_plot.values())
                 self.plot_autolock_target_line(None)
             else:
                 self.signal1.setVisible(True)
@@ -197,17 +200,20 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
                 self.combined_signal.setVisible(self.parameters.dual_channel.value)
                 self.control_signal.setVisible(False)
                 self.control_signal_history.setVisible(False)
+                self.slow_history.setVisible(False)
 
+                s1, s2 = to_plot['error_signal_1'], to_plot['error_signal_2']
                 combined_error_signal = combine_error_signal(
-                    to_plot,
+                    (s1, s2),
                     self.parameters.dual_channel.value,
                     self.parameters.channel_mixing.value
                 )
-                self.last_plot_data = list(to_plot) + [combined_error_signal]
+                all_signals = [s1, s2] + [combined_error_signal]
+                self.last_plot_data = all_signals
 
-                self.plot_data_unlocked(to_plot, combined_error_signal)
+                self.plot_data_unlocked((s1, s2), combined_error_signal)
                 self.plot_autolock_target_line(combined_error_signal)
-                self.update_plot_scaling(list(to_plot) + [combined_error_signal])
+                self.update_plot_scaling(all_signals)
 
     def plot_data_unlocked(self, error_signals, combined_signal):
         error_signal1, error_signal2 = error_signals
@@ -216,7 +222,8 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         self.combined_signal.setData(list(range(len(combined_signal))), combined_signal)
 
     def plot_data_locked(self, signals):
-        error_signal, control_signal = signals
+        error_signal = signals['error_signal']
+        control_signal = signals['control_signal']
         self.combined_signal.setData(list(range(len(error_signal))), error_signal)
         self.control_signal.setData(list(range(len(error_signal))), control_signal)
 
@@ -264,14 +271,20 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         )
         if self.parameters.lock.value:
             x_axis_length = 16384
-            timescale = self.parameters.control_signal_history_length.value
-            times = np.array(self.control_signal_history_data['times'])
-            times -= times[0]
-            times *= 1 / timescale * x_axis_length
+
+            def scale(arr):
+                timescale = self.parameters.control_signal_history_length.value
+                arr = np.array(arr)
+                arr -= arr[0]
+                arr *= 1 / timescale * x_axis_length
+                return arr
+
             self.control_signal_history.setData(
-                times,
-                [
-                    point
-                    for point in self.control_signal_history_data['values']
-                ]
+                scale(self.control_signal_history_data['times']),
+                self.control_signal_history_data['values']
+            )
+
+            self.slow_history.setData(
+                scale(self.control_signal_history_data['slow_times']),
+                self.control_signal_history_data['slow_values']
             )

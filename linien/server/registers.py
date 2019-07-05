@@ -154,6 +154,9 @@ class Registers:
         ki = params['i']
         kd = params['d']
         slope = params['target_slope_rising']
+        invert = params['ramp_on_slow'] and params['slow_polarity_inverted']
+        if invert:
+            slope = not slope
 
         for chain in ('a', 'b'):
             for iir_idx in range(2):
@@ -223,3 +226,6 @@ class Registers:
             'fast_a_y_hold_en',
             self.rp.states('force') if hold else self.rp.states()
         )
+
+    def get_slow_value(self):
+        return self.rp.get('slow_value')

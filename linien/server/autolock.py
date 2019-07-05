@@ -83,10 +83,11 @@ class Autolock:
             return
 
         if self.parameters.lock.value:
-            error_signal, control_signal = plot_data
+            error_signal = plot_data['error_signal']
+            control_signal = plot_data['control_signal']
         else:
             combined_error_signal = combine_error_signal(
-                plot_data,
+                (plot_data['error_signal_1'], plot_data['error_signal_2']),
                 self.parameters.dual_channel.value,
                 self.parameters.channel_mixing.value
             )

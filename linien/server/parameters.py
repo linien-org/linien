@@ -19,7 +19,7 @@ class Parameters(BaseParameters):
             'filter_2_frequency_a', 'filter_2_frequency_b',
             'filter_2_type_a', 'filter_2_type_b',
             'p', 'i', 'd', 'watch_lock', 'ramp_on_slow', 'dual_channel',
-            'channel_mixing', 'enable_slow_out', 'slow_polarity',
+            'channel_mixing', 'enable_slow_out', 'slow_polarity_inverted',
             'pid_on_slow_enabled', 'pid_on_slow_strength'
         )
 
@@ -107,7 +107,7 @@ class Parameters(BaseParameters):
 
         self.enable_slow_out = Parameter(start=False)
         self.ramp_on_slow = Parameter(start=False)
-        self.slow_polarity = Parameter(start=1)
+        self.slow_polarity_inverted = Parameter(start=False)
         self.pid_on_slow_enabled = Parameter(start=False)
         self.pid_on_slow_strength = Parameter(start=0)
         self.dual_channel = Parameter(start=False)

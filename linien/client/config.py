@@ -9,6 +9,7 @@ COLORS = {
     'spectroscopy_combined': (0, 0, 200, 200),
     'control_signal': (200, 0, 0, 200),
     'control_signal_history': (0, 200, 0, 200),
+    'slow_history': (200, 200, 200, 200)
 }
 
 
