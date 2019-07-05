@@ -254,6 +254,13 @@
                  </property>
                 </widget>
                </item>
+               <item>
+                <widget class="QLabel" name="legend_slow_signal_history">
+                 <property name="text">
+                  <string>slow out history</string>
+                 </property>
+                </widget>
+               </item>
               </layout>
              </widget>
             </item>

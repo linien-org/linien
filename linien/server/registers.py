@@ -72,6 +72,8 @@ class Registers:
             root_out_offset=int(params['center'] * 8191),
             root_combined_offset=twos_complement(params['combined_offset'], 14),
 
+            slow_pid_reset=not (params['enable_slow_out'] and params['pid_on_slow_enabled']),
+
             # channel A
             fast_a_x_tap=2,
             fast_a_demod_delay=phase_to_delay(params['demodulation_phase_a']),
@@ -157,6 +159,10 @@ class Registers:
         invert = params['ramp_on_slow'] and params['slow_polarity_inverted']
         if invert:
             slope = not slope
+        slow_strength = params['pid_on_slow_strength']
+        slow_slope = slope
+        if params['slow_polarity_inverted']:
+            slow_slope = not slow_slope
 
         for chain in ('a', 'b'):
             for iir_idx in range(2):
@@ -185,8 +191,10 @@ class Registers:
             if lock:
                 # set PI parameters
                 self.set_pid(kp, ki, kd, slope, reset=0)
+                self.set_slow_pid(slow_strength, slow_slope, reset=0)
             else:
                 self.set_pid(0, 0, 0, slope, reset=1)
+                self.set_slow_pid(0, slow_slope, reset=1)
 
                 self.rp.set_iir("fast_a_iir_a", *make_filter('P', k=1))
                 self.rp.set_iir("fast_b_iir_a", *make_filter('P', k=1))
@@ -198,6 +206,7 @@ class Registers:
 
                 # set new PI parameters
                 self.set_pid(kp, ki, kd, slope)
+                self.set_slow_pid(slow_strength, slow_slope)
 
                 # reset "hold"
                 self.hold_pid(False)
@@ -216,6 +225,13 @@ class Registers:
         if reset is not None:
             self.rp.set('root_pid_reset', reset)
 
+    def set_slow_pid(self, strength, slope, reset=None):
+        sign = -1 if slope else 1
+        self.rp.set('slow_pid_ki', strength * sign)
+
+        if reset is not None:
+            self.rp.set('slow_pid_reset', reset)
+
     def hold_pid(self, hold):
         # FIXME: root?
         self.rp.set(
@@ -228,4 +244,5 @@ class Registers:
         )
 
     def get_slow_value(self):
-        return self.rp.get('slow_value')
+        v = self.rp.get('slow_value')
+        return v if (v <= 8191) else (v - 16384)

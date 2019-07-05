@@ -178,6 +178,9 @@
              </item>
              <item>
               <widget class="QSpinBox" name="pid_on_slow_strength">
+               <property name="minimum">
+                <number>0</number>
+               </property>
                <property name="maximum">
                 <number>8191</number>
                </property>

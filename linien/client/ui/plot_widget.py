@@ -179,7 +179,7 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
 
             # we also call this if the laser is not locked because it resets
             # the history in this case
-            self.update_control_signal_history(to_plot)
+            history, slow_history = self.update_control_signal_history(to_plot)
 
             if self.parameters.lock.value:
                 self.last_plot_data = to_plot
@@ -191,8 +191,11 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
                 self.slow_history.setVisible(self.parameters.pid_on_slow_enabled.value)
                 self.combined_signal.setVisible(True)
 
+                error_signal, control_signal = to_plot['error_signal'], to_plot['control_signal']
+                all_signals = (error_signal, control_signal, history, slow_history)
+
                 self.plot_data_locked(to_plot)
-                self.update_plot_scaling(to_plot.values())
+                self.update_plot_scaling(all_signals)
                 self.plot_autolock_target_line(None)
             else:
                 self.signal1.setVisible(True)
@@ -274,17 +277,23 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
 
             def scale(arr):
                 timescale = self.parameters.control_signal_history_length.value
-                arr = np.array(arr)
-                arr -= arr[0]
-                arr *= 1 / timescale * x_axis_length
+                if arr:
+                    arr = np.array(arr)
+                    arr -= arr[0]
+                    arr *= 1 / timescale * x_axis_length
                 return arr
 
+            history = self.control_signal_history_data['values']
             self.control_signal_history.setData(
                 scale(self.control_signal_history_data['times']),
-                self.control_signal_history_data['values']
+                history
             )
 
+            slow_values = self.control_signal_history_data['slow_values']
             self.slow_history.setData(
                 scale(self.control_signal_history_data['slow_times']),
-                self.control_signal_history_data['slow_values']
+                slow_values
             )
+
+            return history, slow_values
+        return [], []

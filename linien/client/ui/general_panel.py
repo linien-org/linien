@@ -16,7 +16,7 @@ class GeneralPanel(QtGui.QWidget, CustomWidget):
         self.ids.channel_mixing_slider.valueChanged.connect(self.channel_mixing_changed)
         self.ids.dual_channel.stateChanged.connect(self.dual_channel_changed)
         self.ids.enable_slow_out.stateChanged.connect(self.enable_slow_changed)
-        self.ids.slow_polarity.currentIndexChanged(self.change_slow_polarity)
+        self.ids.slow_polarity.currentIndexChanged.connect(self.change_slow_polarity)
 
     def connection_established(self):
         params = self.app().parameters
