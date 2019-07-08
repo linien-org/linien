@@ -42,8 +42,9 @@ class RedPitayaControlService(BaseService):
                     self._skip_next_data -= 1
                 else:
                     s1, s2 = pickle.loads(plot_data)
+                    is_locked = self.parameters.lock.value
 
-                    if self.parameters.lock.value:
+                    if is_locked:
                         data = {
                             'error_signal': s1,
                             'control_signal': s2
@@ -62,7 +63,7 @@ class RedPitayaControlService(BaseService):
                         update_control_signal_history(
                             self.parameters.control_signal_history.value,
                             data,
-                            self.parameters.lock.value,
+                            is_locked,
                             self.parameters.control_signal_history_length.value
                         )
 

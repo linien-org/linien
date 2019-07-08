@@ -175,3 +175,13 @@ def combine_error_signal(error_signals, dual_channel, channel_mixing, chain_fact
         (a_factor * a + b_factor * b) >> chain_factor_width
         for a, b in zip(*error_signals)
     ]
+
+
+def check_plot_data(is_locked, plot_data):
+    if is_locked:
+        if 'error_signal' not in plot_data or 'control_signal' not in plot_data:
+            return False
+    else:
+        if 'error_signal_1' not in plot_data:
+            return False
+    return True

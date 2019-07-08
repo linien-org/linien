@@ -3,7 +3,8 @@ import traceback
 import numpy as np
 from time import sleep, time
 from linien.common import determine_shift_by_correlation, get_lock_point, \
-    control_signal_has_correct_amplitude, combine_error_signal
+    control_signal_has_correct_amplitude, combine_error_signal, \
+    check_plot_data
 
 
 class Autolock:
@@ -82,7 +83,10 @@ class Autolock:
         if plot_data is None:
             return
 
-        if self.parameters.lock.value:
+        if not check_plot_data(is_locked, plot_data):
+            return
+
+        if is_locked:
             error_signal = plot_data['error_signal']
             control_signal = plot_data['control_signal']
         else:
@@ -98,7 +102,7 @@ class Autolock:
                 # the line by decreasing the scan range and adapting the
                 # center current multiple times.
 
-                if self.skipped < 3:
+                if self.skipped < 1:
                     # after every step, we skip some data in order to let
                     # the laser equilibrate
                     self.skipped += 1

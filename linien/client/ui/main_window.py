@@ -3,6 +3,7 @@ import numpy as np
 from math import log
 from PyQt5 import QtGui, QtWidgets, QtCore
 
+from linien.common import check_plot_data
 from linien.client.utils import param2ui
 from linien.client.config import COLORS
 from linien.client.widgets import CustomWidget
@@ -92,7 +93,7 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
     def update_std(self, to_plot):
         if self.parameters.lock.value and to_plot:
             to_plot = pickle.loads(to_plot)
-            if to_plot:
+            if to_plot and check_plot_data(True, to_plot):
                 error_signal = to_plot.get('error_signal')
                 control_signal = to_plot.get('control_signal')
                 if error_signal and control_signal:

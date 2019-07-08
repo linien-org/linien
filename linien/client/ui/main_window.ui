@@ -796,15 +796,15 @@
           </size>
          </property>
          <property name="currentIndex">
-          <number>4</number>
+          <number>0</number>
          </property>
          <widget class="GeneralPanel" name="page_2">
           <property name="geometry">
            <rect>
             <x>0</x>
-            <y>-221</y>
+            <y>-153</y>
             <width>345</width>
-            <height>694</height>
+            <height>703</height>
            </rect>
           </property>
           <attribute name="label">
@@ -821,7 +821,7 @@
            <item>
             <widget class="QLabel" name="label_10">
              <property name="text">
-              <string>enable it if your laser has a second control parameter (e.g. a piezo)</string>
+              <string>enable if your laser has a second control parameter (e.g. a piezo)</string>
              </property>
              <property name="wordWrap">
               <bool>true</bool>
@@ -961,7 +961,7 @@
            </item>
            <item>
             <widget class="QWidget" name="explain_second_channel" native="true">
-             <layout class="QHBoxLayout" name="horizontalLayout_4">
+             <layout class="QVBoxLayout" name="verticalLayout_9">
               <property name="leftMargin">
                <number>0</number>
               </property>
@@ -975,33 +975,51 @@
                <number>0</number>
               </property>
               <item>
-               <widget class="QLabel" name="label_3">
-                <property name="text">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;FAST IN 2:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                </property>
-                <property name="wordWrap">
-                 <bool>true</bool>
-                </property>
+               <widget class="QWidget" name="explain_second_channel_inner" native="true">
+                <layout class="QHBoxLayout" name="horizontalLayout_4">
+                 <property name="leftMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>0</number>
+                 </property>
+                 <item>
+                  <widget class="QLabel" name="label_3">
+                   <property name="text">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;FAST IN 2:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="wordWrap">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="label_4">
+                   <property name="text">
+                    <string>spectroscopy signal 2</string>
+                   </property>
+                   <property name="wordWrap">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
                </widget>
               </item>
               <item>
-               <widget class="QLabel" name="label_4">
-                <property name="text">
-                 <string>spectroscopy signal 2</string>
-                </property>
-                <property name="wordWrap">
-                 <bool>true</bool>
+               <widget class="Line" name="line">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
                 </property>
                </widget>
               </item>
              </layout>
-            </widget>
-           </item>
-           <item>
-            <widget class="Line" name="line">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
             </widget>
            </item>
            <item>
@@ -1035,11 +1053,15 @@
             </layout>
            </item>
            <item>
+            <widget class="Line" name="line_7">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
             <widget class="QWidget" name="explainSweepOnAnalog" native="true">
-             <layout class="QVBoxLayout" name="verticalLayout_16">
-              <property name="spacing">
-               <number>6</number>
-              </property>
+             <layout class="QVBoxLayout" name="verticalLayout_14">
               <property name="leftMargin">
                <number>0</number>
               </property>
@@ -1113,19 +1135,19 @@
                 </item>
                </layout>
               </item>
+              <item>
+               <widget class="Line" name="line_3">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+               </widget>
+              </item>
              </layout>
             </widget>
            </item>
            <item>
-            <widget class="Line" name="line_3">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-            </widget>
-           </item>
-           <item>
             <widget class="QWidget" name="explainNoSweepOnAnalog" native="true">
-             <layout class="QHBoxLayout" name="horizontalLayout_18">
+             <layout class="QVBoxLayout" name="verticalLayout_16">
               <property name="leftMargin">
                <number>0</number>
               </property>
@@ -1139,40 +1161,58 @@
                <number>0</number>
               </property>
               <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_17">
-                <item>
-                 <widget class="QLabel" name="label_25">
-                  <property name="text">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;FAST OUT2:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                  </property>
-                  <property name="wordWrap">
-                   <bool>true</bool>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLabel" name="label_26">
-                  <property name="text">
-                   <string>control signal and sweep</string>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                  </property>
-                  <property name="wordWrap">
-                   <bool>true</bool>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
+               <widget class="QWidget" name="explainNoSweepOnAnalogInner" native="true">
+                <layout class="QHBoxLayout" name="horizontalLayout_18">
+                 <property name="leftMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>0</number>
+                 </property>
+                 <item>
+                  <layout class="QHBoxLayout" name="horizontalLayout_17">
+                   <item>
+                    <widget class="QLabel" name="label_25">
+                     <property name="text">
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;FAST OUT2:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     </property>
+                     <property name="wordWrap">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_26">
+                     <property name="text">
+                      <string>control signal and sweep</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                     </property>
+                     <property name="wordWrap">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+              <item>
+               <widget class="Line" name="line_6">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+               </widget>
               </item>
              </layout>
-            </widget>
-           </item>
-           <item>
-            <widget class="Line" name="line_6">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
             </widget>
            </item>
            <item>

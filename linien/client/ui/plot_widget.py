@@ -10,7 +10,8 @@ from pyqtgraph.Qt import QtCore, QtGui
 from linien.client.config import COLORS
 from linien.client.widgets import CustomWidget
 from linien.common import update_control_signal_history, determine_shift_by_correlation, \
-    get_lock_point, control_signal_has_correct_amplitude, combine_error_signal
+    get_lock_point, control_signal_has_correct_amplitude, combine_error_signal, \
+    check_plot_data
 
 
 class PlotWidget(pg.PlotWidget, CustomWidget):
@@ -177,6 +178,9 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
             if to_plot is None:
                 return
 
+            if not check_plot_data(self.parameters.lock.value, to_plot):
+                return
+
             # we also call this if the laser is not locked because it resets
             # the history in this case
             history, slow_history = self.update_control_signal_history(to_plot)
@@ -190,6 +194,7 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
                 self.control_signal_history.setVisible(True)
                 self.slow_history.setVisible(self.parameters.pid_on_slow_enabled.value)
                 self.combined_signal.setVisible(True)
+
 
                 error_signal, control_signal = to_plot['error_signal'], to_plot['control_signal']
                 all_signals = (error_signal, control_signal, history, slow_history)
