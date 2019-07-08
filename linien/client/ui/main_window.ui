@@ -147,7 +147,7 @@
                   <string>spectrum 1</string>
                  </property>
                  <property name="wordWrap">
-                  <bool>true</bool>
+                  <bool>false</bool>
                  </property>
                 </widget>
                </item>
@@ -157,7 +157,7 @@
                   <string>spectrum 2</string>
                  </property>
                  <property name="wordWrap">
-                  <bool>true</bool>
+                  <bool>false</bool>
                  </property>
                 </widget>
                </item>
@@ -803,8 +803,8 @@
            <rect>
             <x>0</x>
             <y>-153</y>
-            <width>345</width>
-            <height>703</height>
+            <width>333</width>
+            <height>720</height>
            </rect>
           </property>
           <attribute name="label">
@@ -916,11 +916,20 @@
             </widget>
            </item>
            <item>
-            <widget class="Line" name="line_2">
+            <spacer name="verticalSpacer_2">
              <property name="orientation">
-              <enum>Qt::Horizontal</enum>
+              <enum>Qt::Vertical</enum>
              </property>
-            </widget>
+             <property name="sizeType">
+              <enum>QSizePolicy::Fixed</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
            </item>
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_10">

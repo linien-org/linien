@@ -82,6 +82,9 @@
              </property>
              <item>
               <widget class="QLabel" name="label_5">
+               <property name="enabled">
+                <bool>true</bool>
+               </property>
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
                  <horstretch>0</horstretch>
@@ -102,6 +105,9 @@
                </property>
                <property name="text">
                 <string>P</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
                </property>
               </widget>
              </item>
@@ -174,6 +180,9 @@
                </property>
                <property name="text">
                 <string>I</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
                </property>
               </widget>
              </item>
@@ -250,6 +259,9 @@
                <property name="text">
                 <string>D</string>
                </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
               </widget>
              </item>
              <item>
@@ -314,6 +326,12 @@
           </item>
           <item>
            <widget class="QLabel" name="label">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="text">
              <string>Integrator from current output signal to piezo</string>
             </property>
@@ -330,6 +348,12 @@
             <layout class="QHBoxLayout" name="horizontalLayout">
              <property name="leftMargin">
               <number>30</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
              </property>
              <item>
               <widget class="QLabel" name="label_3">

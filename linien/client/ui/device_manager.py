@@ -18,6 +18,11 @@ class DeviceManager(QtGui.QMainWindow, CustomWidget):
     def ready(self):
         self.load_device_data(autoload=True)
 
+    def keyPressEvent(self, event):
+        key = event.key()
+        if key in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return):
+            self.connect()
+
     def load_device_data(self, autoload=False):
         devices = load_device_data()
         lst = self.ids.deviceList
@@ -77,6 +82,7 @@ class DeviceManager(QtGui.QMainWindow, CustomWidget):
                         "A production version is installed on the RedPitaya, " \
                         "but the client uses a development version. Stop the " \
                         "server and uninstall the version on the RedPitaya using\n" \
+                        "    linien_stop_server;\n" \
                         "    pip3 uninstall linien-server\n" \
                         "before trying it again."
                     error_dialog(self, display_error)

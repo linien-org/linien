@@ -195,7 +195,6 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
                 self.slow_history.setVisible(self.parameters.pid_on_slow_enabled.value)
                 self.combined_signal.setVisible(True)
 
-
                 error_signal, control_signal = to_plot['error_signal'], to_plot['control_signal']
                 all_signals = (error_signal, control_signal, history, slow_history)
 

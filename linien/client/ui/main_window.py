@@ -68,6 +68,8 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
             lambda v: self.ids.legend_slow_signal_history.setVisible(v)
         )
 
+        self.ids.settings_toolbox.setCurrentIndex(0)
+
     def go_right(self):
         self.change_center(True)
 

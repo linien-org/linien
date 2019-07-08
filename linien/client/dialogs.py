@@ -88,6 +88,11 @@ class LoadingDialog(QMessageBox):
     def closeEvent(self, *args):
         self.aborted.emit()
 
+    def keyPressEvent(self, event):
+        key = event.key()
+        if key == QtCore.Qt.Key_Escape:
+            self.close()
+
 
 def error_dialog(parent, error):
     return QMessageBox.question(

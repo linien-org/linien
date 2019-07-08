@@ -9,19 +9,19 @@ class SpectroscopyPanel(QtWidgets.QWidget, CustomWidget):
         super().__init__(*args)
         self.load_ui('spectroscopy_panel.ui')
 
-        def change_filter_frequency(self, filter_i):
+        def change_filter_frequency(filter_i):
             self.get_param('filter_%d_frequency' % filter_i).value = \
                 getattr(self.ids, 'filter_%d_frequency' % filter_i).value()
             self.control.write_data()
 
-        def change_filter_enabled(self, filter_i):
+        def change_filter_enabled(filter_i):
             filter_enabled = int(
                 getattr(self.ids, 'filter_%d_enabled' % filter_i).checkState() > 0
             )
             self.get_param('filter_%d_enabled' % filter_i).value = filter_enabled
             self.control.write_data()
 
-        def change_filter_type(self, _, filter_idx):
+        def change_filter_type(filter_idx):
             param = self.get_param('filter_%d_type' % filter_i)
             current_idx = getattr(self.ids, 'filter_%d_type' % filter_i).currentIndex()
             param.value = (LOW_PASS_FILTER, HIGH_PASS_FILTER)[current_idx]
@@ -33,7 +33,7 @@ class SpectroscopyPanel(QtWidgets.QWidget, CustomWidget):
                 'change_filter_%d_enabled': change_filter_enabled,
                 'change_filter_%d_type': change_filter_type
             }.items():
-                setattr(self, key % filter_i, lambda *args: fct(*(args + [filter_i])))
+                setattr(self, key % filter_i, lambda *args, fct=fct, filter_i=filter_i: fct(filter_i))
 
     def get_param(self, name):
         return getattr(self.parameters, '%s_%s' % (name, 'a' if self.channel == 0 else 'b'))
@@ -44,6 +44,7 @@ class SpectroscopyPanel(QtWidgets.QWidget, CustomWidget):
         self.ids.demodulation_phase.setKeyboardTracking(False)
         self.ids.demodulation_phase.valueChanged.connect(self.change_demod_phase)
         self.ids.demodulation_frequency.currentIndexChanged.connect(self.change_demod_multiplier)
+
         for filter_i in [1, 2]:
             _get = lambda parent, attr, filter_i=filter_i: getattr(parent, attr % filter_i)
             _get(self.ids, 'filter_%d_enabled') \

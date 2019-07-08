@@ -83,6 +83,8 @@ class Autolock:
         if plot_data is None:
             return
 
+        is_locked = self.parameters.lock.value
+
         if not check_plot_data(is_locked, plot_data):
             return
 

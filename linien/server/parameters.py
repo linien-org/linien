@@ -71,7 +71,7 @@ class Parameters(BaseParameters):
             for filter_i in [1, 2]:
                 setattr(self, 'filter_%d_enabled_%s' % (filter_i, channel), Parameter(start=False))
                 setattr(self, 'filter_%d_type_%s' % (filter_i, channel), Parameter(start=0))
-                setattr(self, 'filter_%d_frequency_%s' % (filter_i, channel), Parameter(start=0))
+                setattr(self, 'filter_%d_frequency_%s' % (filter_i, channel), Parameter(start=10000))
 
         self.combined_offset = Parameter(
             min_=-8191,
