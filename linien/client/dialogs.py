@@ -17,7 +17,7 @@ class SSHCommandOutputWidget(QListWidget):
         self.setSelectionMode(self.NoSelection)
 
     def execute(self, ssh, command):
-        self.stdin, self.stdout, self.stderr = ssh.exec_command(command)
+        self.stdin, self.stdout, self.stderr = ssh.exec_command(command, bufsize=0, get_pty=True)
         self.addItem('>>> %s' % command)
         self.show_output()
 
@@ -26,18 +26,21 @@ class SSHCommandOutputWidget(QListWidget):
             return self.command_ended.emit()
         else:
             for output in (self.stdout, self.stderr):
-                buf = b''
-                while output.channel.recv_ready():
-                    buf += output.read(1)
+                toread = len(output.channel.in_buffer)
+                if toread == 0:
+                    continue
+                buf = output.read(toread).decode('utf8').rstrip('\n')
 
-                if buf:
-                    buf = buf.decode('utf8').rstrip('\n')
-                    print(
-                        (colors.red if output == self.stderr else colors.reset)
-                        | buf
-                    )
-                    self.addItem(buf)
-                    self.scrollToBottom()
+                for part in buf.split('\n'):
+                    for subpart in part.split('\r'):
+                        subpart = subpart.strip('\n').strip('\r').strip('\r\n')
+                        if subpart:
+                            print(
+                                (colors.red if output == self.stderr else colors.reset)
+                                | subpart
+                            )
+                            self.addItem(subpart)
+                self.scrollToBottom()
 
         QtCore.QTimer.singleShot(1000, lambda: self.show_output())
 
