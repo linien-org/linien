@@ -120,12 +120,12 @@ class DeviceManager(QtGui.QMainWindow, CustomWidget):
         if version is not None:
             version_string = '==' + version
             # stop server if another version of linien is installed
-            stop_server_command = 'linien_stop_server'
+            stop_server_command = 'linien_stop_server;'
 
         self.ssh_command = execute_command(
             self, device['host'], device['username'], device['password'],
             (
-                '%s; '
+                '%s '
                 'pip3 install linien-server%s --no-cache-dir; '
                 'linien_install_requirements; '
             ) % (stop_server_command, version_string),

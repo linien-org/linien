@@ -17,6 +17,7 @@ from linien.communication.server import BaseService
 
 
 class RedPitayaControlService(BaseService):
+    """Control server that runs on the RP that provides high-level methods."""
     def __init__(self, **kwargs):
         self._cached_data = {}
         self.exposed_is_locked = None
@@ -30,7 +31,12 @@ class RedPitayaControlService(BaseService):
         self._skip_next_data = 0
 
     def run_acquiry_loop(self):
-        def on_change(plot_data):
+        """Starts a background process that keeps polling control and error
+        signal. Every received value is pushed to `parameters.to_plot`."""
+        def data_received(plot_data):
+            # When a parameter is changed, `pause_acquisition` is set.
+            # This means that the we should skip new data until we are sure that
+            # it was recorded with the new settings.
             if not self.parameters.pause_acquisition.value:
                 if self._skip_next_data > 1:
                     self._skip_next_data -= 1
@@ -60,9 +66,10 @@ class RedPitayaControlService(BaseService):
                             self.parameters.control_signal_history_length.value
                         )
 
-        self.registers.run_data_acquisition(on_change)
+        self.registers.run_data_acquisition(data_received)
 
     def exposed_write_data(self):
+        """Syncs the parameters with the FPGA registers."""
         self.registers.write_registers()
 
     def exposed_start_autolock(self, x0, x1, spectrum, auto_offset=True):
@@ -93,7 +100,8 @@ class RedPitayaControlService(BaseService):
 
         self.continue_acquisition()
 
-    def exposed_reset(self):
+    def exposed_reset_scan(self):
+        """Resets scan mode."""
         self.pause_acquisition()
 
         self.parameters.ramp_amplitude.value = 1
@@ -104,6 +112,7 @@ class RedPitayaControlService(BaseService):
         self.continue_acquisition()
 
     def exposed_shutdown(self):
+        """Kills the server."""
         self.registers.acquisition.shutdown()
         _thread.interrupt_main()
         os._exit(0)
@@ -116,9 +125,16 @@ class RedPitayaControlService(BaseService):
         return self.parameters.restorable_parameters
 
     def pause_acquisition(self):
+        """Pause continuous acquisition. Call this before changing a parameter
+        that alters the error / control signal. This way, no inconsistent signals
+        reach the application. After setting the new parameter values, call
+        `continue_acquisition`."""
         self.parameters.pause_acquisition.value = True
 
     def continue_acquisition(self):
+        """Continus acquisition after a short delay, when we are sure that the
+        new parameters values have been written to the FPGA and that data that
+        is now recorded is recorded with the correct parameters."""
         self.parameters.pause_acquisition.value = False
         self._skip_next_data = 2
 

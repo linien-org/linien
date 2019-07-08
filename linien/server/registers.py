@@ -10,6 +10,7 @@ from linien.server.acquisition import AcquisitionMaster
 
 
 class Registers:
+    """This class provides low-level access to the FPGA registers."""
     def __init__(self, host=None, user=None, password=None):
         self.host = host
         self.user = user
@@ -17,6 +18,7 @@ class Registers:
         self.acquisition = None
 
     def connect(self, control, parameters):
+        """Starts a process that can be used to control FPGA registers."""
         self.control = control
         self.parameters = parameters
 
@@ -36,6 +38,7 @@ class Registers:
         self.parameters.lock.change(lock_status_changed)
 
     def write_registers(self):
+        """Writes data from `parameters` to the FPGA."""
         params = dict(self.parameters)
 
         _max = lambda val: val if np.abs(val) <= 8191 else (8191 * val / np.abs(val))
@@ -212,6 +215,8 @@ class Registers:
                 self.hold_pid(False)
 
     def run_data_acquisition(self, on_change):
+        """Starts a background process that continuously reads out error /
+        control signal of the FPGA. For every result, `on_change` is called."""
         self.acquisition = AcquisitionMaster(
             on_change, self.use_ssh, self.host
         )

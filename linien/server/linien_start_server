@@ -8,7 +8,7 @@
 pth=`python3 -c 'import linien; print(linien.__path__[0]);'`
 
 # quit any remaining screen session
-# FIXME: this should use linien_stop_server, but it may not be in PATH when on dev
+linien_stop_server
 screen -X -S spectrolockserver quit
 # start a new one
 screen -S spectrolockserver -d -m

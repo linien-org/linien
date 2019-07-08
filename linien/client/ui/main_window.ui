@@ -802,7 +802,7 @@
           <property name="geometry">
            <rect>
             <x>0</x>
-            <y>0</y>
+            <y>-221</y>
             <width>345</width>
             <height>694</height>
            </rect>
@@ -814,7 +814,7 @@
            <item>
             <widget class="QCheckBox" name="enable_slow_out">
              <property name="text">
-              <string>Enable (slow) ANALOG OUT 0</string>
+              <string>Enable ANALOG OUT 0 (piezo)</string>
              </property>
             </widget>
            </item>
@@ -882,7 +882,7 @@
               <item>
                <widget class="QLabel" name="explain_slow_polarity">
                 <property name="text">
-                 <string>Has tuning this parameter up the same effect as tuning the current in the same direction?</string>
+                 <string>Has tuning the piezo the same effect as tuning the current in the same direction?</string>
                 </property>
                 <property name="wordWrap">
                  <bool>true</bool>

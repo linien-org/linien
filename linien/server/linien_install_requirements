@@ -9,21 +9,24 @@ echo 'installing dependencies...'
 # the server is started in a screen session
 apt-get install screen
 
+echo 'installing monitoradvanced...'
 # monitoradvanced is required for manipulating FPGA registers
 cd /tmp
 # git clone is very slow for this repo, therefore we download the .zip
 wget https://github.com/RedPitaya/RedPitaya/archive/master.zip
-unzip master.zip
+unzip -o -q master.zip -x "*.png" "*.jpg" "*.PNG" "*.JPG" "*/doc" "*/doc/*" "*/Test" "*/Test/*" "*/Examples" "*/Examples/*"
 cd RedPitaya-master/Test/monitoradvanced
 make
 cp monitoradvanced /usr/bin
 
+echo 'installing pyrp3...'
 # install pyrp3
 cd /tmp
 git clone https://github.com/hermitdemschoenenleben/pyrp3.git
 cd pyrp3
 python3 setup.py install
 
+echo 'building monitor...'
 # build monitor shared library
 cd monitor
 make

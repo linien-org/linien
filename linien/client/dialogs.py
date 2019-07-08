@@ -1,4 +1,5 @@
 import paramiko
+from plumbum import colors
 
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QApplication, QWidget, QListWidget, QVBoxLayout, QLabel, QPushButton, QListWidgetItem, \
@@ -30,13 +31,20 @@ class SSHCommandOutputWidget(QListWidget):
                     buf += output.read(1)
 
                 if buf:
-                    self.addItem(buf.decode('utf8').rstrip('\n'))
+                    buf = buf.decode('utf8').rstrip('\n')
+                    print(
+                        (colors.red if output == self.stderr else colors.reset)
+                        | buf
+                    )
+                    self.addItem(buf)
                     self.scrollToBottom()
 
-        QtCore.QTimer.singleShot(100, lambda: self.show_output())
+        QtCore.QTimer.singleShot(1000, lambda: self.show_output())
 
 
 def execute_command(parent, host, user, password, command, callback):
+    print((colors.bold | 'Execute command: ') + command)
+
     ssh = connect_ssh(host, user, password)
 
     window = QDialog(parent)

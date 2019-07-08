@@ -62,25 +62,36 @@ Linien running on RedPitaya can not only be controlled using the GUI but also by
 
     # set modulation amplitude
     c.parameters.modulation_amplitude.value = 1 * Vpp
+    # in the line above, we set a parameter. This is not written directly to the
+    # FPGA, though. In order to do this, we have to call write_data():
     c.connection.root.write_data()
 
+    # plot control and error signal
     import pickle
     from matplotlib import pyplot as plt
     plot_data = pickle.loads(c.parameters.to_plot.value)
-    signal1, signal2 = plot_data
+
+    # depending on the status (locked / unlocked), different signals are available
+    print(plot_data.keys())
 
     # if unlocked, signal1 and signal2 contain the error signal of channel 1 and 2
     # if the laser is locked, they contain error signal and control signal.
-    plt.plot(signal1)
-    plt.plot(signal2)
+    if c.parameters.locked.value:
+        plt.plot(plot_data['control_signal'], label='control')
+        plt.plot(plot_data['error_signal'], label='error')
+    else:
+        plt.plot(plot_data['error_signal_1'], label='error 1')
+        plt.plot(plot_data['error_signal_2'], label='error 2')
+
+    plt.legend()
     plt.show()
 
-For a full list of parameters that can be controlled have a look at `parameters.py <https://github.com/hermitdemschoenenleben/linien/blob/master/linien/server/parameters.py>`_.
+For a full list of parameters that can be controlled or accessed have a look at `parameters.py <https://github.com/hermitdemschoenenleben/linien/blob/master/linien/server/parameters.py>`_.
 
 Development
 ###########
 
-As linien uses a git submodule, you have to check it out like this:
+As linien uses a git submodule, you should check it out like this:
 
 ..  code-block:: bash
 

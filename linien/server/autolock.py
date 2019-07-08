@@ -220,7 +220,7 @@ class Autolock:
                 if self.should_watch_lock:
                     return self.relock()
 
-                self.control.exposed_reset()
+                self.control.exposed_reset_scan()
                 self.parameters.autolock_failed.value = True
                 self.remove_data_listener()
 
@@ -264,4 +264,4 @@ class Autolock:
         self.parameters.autolock_watching.value = False
         self.remove_data_listener()
 
-        self.control.exposed_reset()
+        self.control.exposed_reset_scan()

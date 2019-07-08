@@ -66,48 +66,228 @@
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_6">
           <item>
-           <widget class="QSpinBox" name="kp">
-            <property name="minimum">
-             <number>0</number>
-            </property>
-            <property name="maximum">
-             <number>8191</number>
-            </property>
-            <property name="singleStep">
-             <number>50</number>
-            </property>
+           <widget class="QWidget" name="widget_2" native="true">
+            <layout class="QHBoxLayout" name="horizontalLayout_2">
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="label_5">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>15</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <weight>75</weight>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>P</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QSpinBox" name="kp">
+               <property name="minimum">
+                <number>0</number>
+               </property>
+               <property name="maximum">
+                <number>8191</number>
+               </property>
+               <property name="singleStep">
+                <number>50</number>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_7">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#888a85;&quot;&gt;0-8191&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="textFormat">
+                <enum>Qt::RichText</enum>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </widget>
           </item>
           <item>
-           <widget class="QSpinBox" name="ki">
-            <property name="minimum">
-             <number>0</number>
-            </property>
-            <property name="maximum">
-             <number>8191</number>
-            </property>
-            <property name="singleStep">
-             <number>50</number>
-            </property>
+           <widget class="QWidget" name="widget_3" native="true">
+            <layout class="QHBoxLayout" name="horizontalLayout_3">
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="label_10">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>15</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <weight>75</weight>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>I</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QSpinBox" name="ki">
+               <property name="minimum">
+                <number>0</number>
+               </property>
+               <property name="maximum">
+                <number>8191</number>
+               </property>
+               <property name="singleStep">
+                <number>50</number>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_11">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#888a85;&quot;&gt;0-8191&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="textFormat">
+                <enum>Qt::RichText</enum>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </widget>
           </item>
           <item>
-           <widget class="QSpinBox" name="kd">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimum">
-             <number>0</number>
-            </property>
-            <property name="maximum">
-             <number>8191</number>
-            </property>
-            <property name="singleStep">
-             <number>50</number>
-            </property>
+           <widget class="QWidget" name="widget_4" native="true">
+            <layout class="QHBoxLayout" name="horizontalLayout_4">
+             <property name="spacing">
+              <number>6</number>
+             </property>
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="label_12">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>15</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <weight>75</weight>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>D</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QSpinBox" name="kd">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimum">
+                <number>0</number>
+               </property>
+               <property name="maximum">
+                <number>8191</number>
+               </property>
+               <property name="singleStep">
+                <number>50</number>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_13">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#888a85;&quot;&gt;0-8191&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="textFormat">
+                <enum>Qt::RichText</enum>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </widget>
           </item>
          </layout>
@@ -122,20 +302,20 @@
           </sizepolicy>
          </property>
          <property name="title">
-          <string>Additional PID on slow analog output</string>
+          <string>Additional PID (piezo)</string>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_4">
           <item>
            <widget class="QCheckBox" name="pid_on_slow_enabled">
             <property name="text">
-             <string>Enable</string>
+             <string>Enable piezo on ANALOG OUT 0</string>
             </property>
            </widget>
           </item>
           <item>
            <widget class="QLabel" name="label">
             <property name="text">
-             <string>Integrator from control signal to (slow) ANALOG OUT 0</string>
+             <string>Integrator from current output signal to piezo</string>
             </property>
             <property name="wordWrap">
              <bool>true</bool>
@@ -150,12 +330,6 @@
             <layout class="QHBoxLayout" name="horizontalLayout">
              <property name="leftMargin">
               <number>30</number>
-             </property>
-             <property name="topMargin">
-              <number>0</number>
-             </property>
-             <property name="rightMargin">
-              <number>0</number>
              </property>
              <item>
               <widget class="QLabel" name="label_3">
@@ -183,6 +357,22 @@
                </property>
                <property name="maximum">
                 <number>8191</number>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_14">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#888a85;&quot;&gt;0-8191&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="textFormat">
+                <enum>Qt::RichText</enum>
                </property>
               </widget>
              </item>
@@ -294,20 +484,7 @@
            <item>
             <widget class="QCheckBox" name="checkBox_4">
              <property name="text">
-              <string>Emit TTL when locked</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="label_10">
-             <property name="text">
-              <string>DIO0_N high when locked</string>
-             </property>
-             <property name="wordWrap">
-              <bool>true</bool>
-             </property>
-             <property name="indent">
-              <number>30</number>
+              <string>Emit TTL when locked (on DIO0_N)</string>
              </property>
             </widget>
            </item>
