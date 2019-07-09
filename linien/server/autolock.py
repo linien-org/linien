@@ -208,10 +208,23 @@ class Autolock:
             signal is within the boundaries of the smalles current ramp we had
             before turning on the lock.
             """
-            mean = np.mean(control_signal) / 8192
             center = self.parameters.center.value
             ampl = self.parameters.ramp_amplitude.value
-            return (center - ampl) <= mean <= (center + ampl)
+
+            slow = self.parameters.enable_slow_out.value
+            slow_ramp = self.parameters.ramp_on_slow.value
+            slow_pid = self.parameters.pid_on_slow_enabled.value
+
+            if not slow or (not slow_ramp and not slow_pid):
+                mean = np.mean(control_signal) / 8192
+                return (center - ampl) <= mean <= (center + ampl)
+            else:
+                if slow_pid and not slow_ramp:
+                    # we cannot handle this case. Just assume the laser is locked.
+                    return True
+
+                slow_out = self.control.registers.get_slow_value()
+                return  (center - ampl) <= slow_out / 8192 <= (center + ampl)
 
         self.parameters.autolock_locked.value = check_whether_in_lock(control_signal)
 

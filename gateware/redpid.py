@@ -146,6 +146,8 @@ class PIDCSR(Module, AutoCSR):
             control_signal, combined_error_signal
         ]
 
+        self.slow_value = CSRStatus(width)
+
         self.submodules.mod = Modulate(width=width)
         self.submodules.sweep = SweepCSR(width=width, step_width=24, step_shift=18)
         self.submodules.limit_error_signal = LimitCSR(width=width, guard=4)
@@ -268,13 +270,14 @@ class Pid(Module, AutoCSR):
                 self.analog.dac_b.eq(self.root.limit_control_signal.y),
 
                 # SLOW OUT
-                self.slow.input.eq(mixed_limited),
+                self.slow.input.eq(self.root.limit_control_signal.y),
                 self.slow.limit.x.eq(slow_out),
                 self.ds0.data.eq(
                     # ds0 apparently has 16 bit, but only allowing positive
                     # values --> "15 bit"?
                     (self.slow.limit.y << 1) + (1<<14)
                 ),
+                self.root.slow_value.status.eq(self.slow.limit.y),
 
                 #self.slow_b.adc.eq(self.xadc.adc[1] << 4),
                 #self.ds1.data.eq(self.slow_b.dac),

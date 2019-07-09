@@ -49,7 +49,7 @@ class RedPitayaControlService(BaseService):
                             'error_signal': s1,
                             'control_signal': s2
                         }
-                        if self.parameters.pid_on_slow_enabled.value:
+                        if self.parameters.enable_slow_out.value:
                             data['slow'] = self.registers.get_slow_value()
                     else:
                         data = {

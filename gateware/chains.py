@@ -151,7 +151,6 @@ class SlowChain(Module, AutoCSR):
 
         self.input = Signal((width, True))
         self.output = Signal((width, True))
-        self.value = CSRStatus(width)
 
         out = Signal((signal_width, True))
 
@@ -167,8 +166,7 @@ class SlowChain(Module, AutoCSR):
             self.pid.input.eq(self.input),
             self.output.eq(self.pid.pid_out),
 
-            out.eq(self.limit.y << s),
-            self.value.status.eq(self.limit.y)
+            out.eq(self.limit.y << s)
         ]
 
 

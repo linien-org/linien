@@ -249,5 +249,5 @@ class Registers:
         )
 
     def get_slow_value(self):
-        v = self.rp.get('slow_value')
+        v = self.rp.get('root_slow_value')
         return v if (v <= 8191) else (v - 16384)
