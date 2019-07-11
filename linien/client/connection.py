@@ -120,6 +120,8 @@ class Connection(BaseClient):
         print(colors.green | 'connected established!')
 
         if server_was_started:
+            # without this sleep, parameter restoring sometimes crashed the sever
+            sleep(1)
             self.restore_parameters()
         self.prepare_parameter_restoring()
 

@@ -202,7 +202,7 @@ class Pid(Module, AutoCSR):
         self.submodules.fast_a = FastChain(14, s, c, self.root.mod, offset_signal=self.root.chain_a_offset_signed)
         self.submodules.fast_b = FastChain(14, s, c, self.root.mod, offset_signal=self.root.chain_b_offset_signed)
         sys_slow = ClockDomainsRenamer("sys_slow")
-        self.submodules.slow = sys_slow(SlowChain())
+        self.submodules.slow = SlowChain()
         self.submodules.scopegen = ScopeGen(s)
 
         self.state_names, self.signal_names = cross_connect(self.gpio_n, [
@@ -254,6 +254,12 @@ class Pid(Module, AutoCSR):
             + Mux(self.root.ramp_on_slow.storage, self.root.sweep.y, 0)
             + Mux(self.root.ramp_on_slow.storage, self.root.out_offset_signed, 0)
         )
+        slow_out_shifted = Signal(15)
+        self.sync += slow_out_shifted.eq(
+            # ds0 apparently has 16 bit, but only allowing positive
+            # values --> "15 bit"?
+            (self.slow.limit.y << 1) + (1<<14)
+        )
 
         self.comb += [
                 self.scopegen.gpio_trigger.eq(self.gpio_p.i[0]),
@@ -272,11 +278,7 @@ class Pid(Module, AutoCSR):
                 # SLOW OUT
                 self.slow.input.eq(self.root.limit_control_signal.y),
                 self.slow.limit.x.eq(slow_out),
-                self.ds0.data.eq(
-                    # ds0 apparently has 16 bit, but only allowing positive
-                    # values --> "15 bit"?
-                    (self.slow.limit.y << 1) + (1<<14)
-                ),
+                self.ds0.data.eq(slow_out_shifted),
                 self.root.slow_value.status.eq(self.slow.limit.y),
 
                 #self.slow_b.adc.eq(self.xadc.adc[1] << 4),

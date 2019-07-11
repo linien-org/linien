@@ -42,7 +42,7 @@ class SSHCommandOutputWidget(QListWidget):
                             self.addItem(subpart)
                 self.scrollToBottom()
 
-        QtCore.QTimer.singleShot(1000, lambda: self.show_output())
+        QtCore.QTimer.singleShot(1000, lambda: self.show_output)
 
 
 def execute_command(parent, host, user, password, command, callback):

@@ -3,9 +3,8 @@ from misoc.interconnect.csr import CSRStorage, AutoCSR
 
 
 class PID(Module, AutoCSR):
-    def __init__(self, width=14, signal_width=28):
+    def __init__(self, width=14):
         self.width = width
-        self.signal_width = signal_width
 
         self.input = Signal((width, True))
 

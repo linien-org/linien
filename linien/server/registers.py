@@ -162,7 +162,9 @@ class Registers:
         invert = params['ramp_on_slow'] and params['slow_polarity_inverted']
         if invert:
             slope = not slope
-        slow_strength = params['pid_on_slow_strength']
+        slow_strength = params['pid_on_slow_strength'] \
+            if params['pid_on_slow_enabled'] \
+            else 0
         slow_slope = slope
         if params['slow_polarity_inverted']:
             slow_slope = not slow_slope
@@ -204,15 +206,9 @@ class Registers:
 
         else:
             if lock:
-                # hold PID value
-                self.hold_pid(True)
-
                 # set new PI parameters
                 self.set_pid(kp, ki, kd, slope)
                 self.set_slow_pid(slow_strength, slow_slope)
-
-                # reset "hold"
-                self.hold_pid(False)
 
     def run_data_acquisition(self, on_change):
         """Starts a background process that continuously reads out error /
@@ -236,17 +232,6 @@ class Registers:
 
         if reset is not None:
             self.rp.set('slow_pid_reset', reset)
-
-    def hold_pid(self, hold):
-        # FIXME: root?
-        self.rp.set(
-            'fast_b_y_hold_en',
-            self.rp.states('force') if hold else self.rp.states()
-        )
-        self.rp.set(
-            'fast_a_y_hold_en',
-            self.rp.states('force') if hold else self.rp.states()
-        )
 
     def get_slow_value(self):
         v = self.rp.get('root_slow_value')
