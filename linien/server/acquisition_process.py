@@ -53,8 +53,6 @@ class DataAcquisitionService(Service):
                     sleep(.05)
                     continue
 
-                print('start')
-
                 data = [
                     [int(i) for i in channel[:]]
                     for channel in
@@ -71,8 +69,6 @@ class DataAcquisitionService(Service):
 
                 self.data = pickle.dumps(data)
                 self.data_hash = random()
-
-                print('send')
 
         self.t = threading.Thread(target=run_acquiry_loop, args=())
         self.t.daemon = True

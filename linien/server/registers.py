@@ -114,6 +114,8 @@ class Registers:
 
             gpio_n_do0_en=self.csr.signal('zero'),
             gpio_n_do1_en=self.csr.signal('zero'),
+
+            root_slow_decimation=16
         )
 
         if lock:
