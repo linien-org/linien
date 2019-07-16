@@ -38,6 +38,7 @@ class AcquisitionMaster:
             target=self.connect_acquisition_process,
             args=(child_pipe, use_ssh, host)
         )
+        p.daemon = True
         p.start()
 
         # wait until connection is established
@@ -74,7 +75,7 @@ class AcquisitionMaster:
             while pipe.poll():
                 data = pipe.recv()
                 if data[0] == AcquisitionProcessSignals.SHUTDOWN:
-                    break
+                    raise SystemExit()
                 elif data[0] == AcquisitionProcessSignals.SET_RAMP_SPEED:
                     speed = data[1]
                     acquisition.exposed_set_ramp_speed(speed)
