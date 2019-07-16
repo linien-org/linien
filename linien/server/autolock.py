@@ -143,8 +143,7 @@ class Autolock:
 
         if self.auto_offset:
             self.parameters.combined_offset.value = -1 * mean_signal
-            # FIXME: disabled due to problem with conversion
-            # rolled_error_signal -= mean_signal
+            rolled_error_signal -= int(mean_signal)
 
         self.parameters.target_slope_rising.value = target_slope_rising
         self.control.exposed_write_data()
