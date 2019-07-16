@@ -22,7 +22,28 @@ Features
 Getting started
 ###############
 
-Linien runs on Windows and Linux. It is written for python 3 and can be installed using python's package manager pip:
+Linien runs on Windows and Linux. For most users, the `standalone binaries <standalone-binary>`_ containing the graphical user interface are recommended. If you want to control linien using the python interface you should `install it using pip <pip-install>`_.
+
+
+.. _standalone-binary:
+
+Standalone binary
+-----------------
+
+You can download standalone binaries for windows and linux on `the releases page <https://github.com/hermitdemschoenenleben/linien/releases>`_.
+On linux, before executing the binary you have to mark it as executable using
+
+..  code-block:: bash
+
+    chmod +x linien-client-linux*
+
+.. _pip-install:
+
+Installation with pip
+---------------------
+
+
+It is written for python 3 and can be installed using python's package manager pip:
 
 ..  code-block:: bash
 
@@ -46,6 +67,10 @@ Then, you can enter your RedPitaya's credentials and connect. If you agree, lini
 
 Physical setup
 ##############
+
+Linien aims to be self-explaining. The right panel's first tab displays the physical setup, depending on the settings. `See here <https://redpitaya.readthedocs.io/en/latest/_images/Extension_connector.png>`_ for an overview of RP's pins.
+
+.. image:: explain-pins.png
 
 Scriptable interface
 ####################
