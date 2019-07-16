@@ -1,7 +1,7 @@
 import numpy as np
 from time import sleep, time
 
-from csr import make_filter, PitayaLocal, PitayaSSH
+from csr import PitayaCSR, make_filter
 from utils import start_nginx, stop_nginx, twos_complement
 from linien.config import DEFAULT_RAMP_SPEED
 from linien.common import convert_channel_mixing_value, \
@@ -22,20 +22,20 @@ class Registers:
         self.control = control
         self.parameters = parameters
 
-        self.use_ssh = self.host is not None and self.host not in ('localhost', '127.0.0.1')
-
-        if self.use_ssh:
-            self.rp = PitayaSSH(
-                ssh_cmd="sshpass -p %s ssh %s@%s" % (self.password, self.user, self.host)
-            )
-        else:
-            self.rp = PitayaLocal()
+        self.csr = PitayaCSR()
 
         def lock_status_changed(v):
             if self.acquisition is not None:
                 self.acquisition.lock_status_changed(v)
 
         self.parameters.lock.change(lock_status_changed)
+        use_ssh = self.host is not None and self.host not in ('localhost', '127.0.0.1')
+        self.acquisition = AcquisitionMaster(use_ssh, self.host)
+
+    def run_data_acquisition(self, on_change):
+        """Starts a background process that continuously reads out error /
+        control signal of the FPGA. For every result, `on_change` is called."""
+        self.acquisition.run_data_acquisition(on_change)
 
     def write_registers(self):
         """Writes data from `parameters` to the FPGA."""
@@ -82,26 +82,26 @@ class Registers:
             fast_a_demod_delay=phase_to_delay(params['demodulation_phase_a']),
             fast_a_demod_multiplier=params['demodulation_multiplier_a'],
             fast_a_brk=0,
-            fast_a_dx_sel=self.rp.signal('zero'),
+            fast_a_dx_sel=self.csr.signal('zero'),
             fast_a_y_tap=2,
-            fast_a_dy_sel=self.rp.signal('zero'),
+            fast_a_dy_sel=self.csr.signal('zero'),
 
-            fast_a_y_hold_en=self.rp.states(),
-            fast_a_y_clear_en=self.rp.states(),
-            fast_a_rx_sel=self.rp.signal('zero'),
+            fast_a_y_hold_en=self.csr.states(),
+            fast_a_y_clear_en=self.csr.states(),
+            fast_a_rx_sel=self.csr.signal('zero'),
 
             # channel B
             fast_b_x_tap=2,
             fast_b_demod_delay=phase_to_delay(params['demodulation_phase_b']),
             fast_b_demod_multiplier=params['demodulation_multiplier_b'],
             fast_b_brk=0,
-            fast_b_dx_sel=self.rp.signal('zero'),
+            fast_b_dx_sel=self.csr.signal('zero'),
             fast_b_y_tap=1,
-            fast_b_dy_sel=self.rp.signal('zero'),
+            fast_b_dy_sel=self.csr.signal('zero'),
 
-            fast_b_y_hold_en=self.rp.states(),
-            fast_b_y_clear_en=self.rp.states(),
-            fast_b_rx_sel=self.rp.signal('zero'),
+            fast_b_y_hold_en=self.csr.states(),
+            fast_b_y_clear_en=self.csr.states(),
+            fast_b_rx_sel=self.csr.signal('zero'),
 
             # trigger on ramp
             scopegen_external_trigger=1,
@@ -112,21 +112,21 @@ class Registers:
             gpio_p_outs=0,
             gpio_n_outs=0b1 if params['lock'] else 0b0,
 
-            gpio_n_do0_en=self.rp.signal('zero'),
-            gpio_n_do1_en=self.rp.signal('zero'),
+            gpio_n_do0_en=self.csr.signal('zero'),
+            gpio_n_do1_en=self.csr.signal('zero'),
         )
 
         if lock:
             # display combined error signal and control signal
             new.update({
-                'scopegen_adc_a_sel': self.rp.signal('root_combined_error_signal'),
-                'scopegen_adc_b_sel': self.rp.signal('root_control_signal')
+                'scopegen_adc_a_sel': self.csr.signal('root_combined_error_signal'),
+                'scopegen_adc_b_sel': self.csr.signal('root_control_signal')
             })
         else:
             # display both demodulated error signals
             new.update({
-                'scopegen_adc_a_sel': self.rp.signal("fast_a_y"),
-                'scopegen_adc_b_sel': self.rp.signal("fast_b_y")
+                'scopegen_adc_a_sel': self.csr.signal("fast_a_y"),
+                'scopegen_adc_b_sel': self.csr.signal("fast_b_y")
             })
 
 
@@ -146,14 +146,14 @@ class Registers:
             self.acquisition.set_ramp_speed(params['ramp_speed'])
 
         for k, v in new.items():
-            self.rp.set(k, int(v))
+            self.set(k, int(v))
 
         if 'root_sweep_step' in new:
             # reset sweep for a short time if the scan range was changed
             # this is needed because otherwise it may take too long before
             # the new scan range is reached --> no scope trigger is sent
-            self.rp.set('root_sweep_run', 0)
-            self.rp.set('root_sweep_run', 1)
+            self.set('root_sweep_run', 0)
+            self.set('root_sweep_run', 1)
 
         kp = params['p']
         ki = params['i']
@@ -179,14 +179,14 @@ class Registers:
                 base_freq = 125e6
 
                 if not filter_enabled:
-                    self.rp.set_iir(iir_name, *make_filter('P', k=1))
+                    self.set_iir(iir_name, *make_filter('P', k=1))
                 else:
                     if filter_type == LOW_PASS_FILTER:
-                        self.rp.set_iir(iir_name, *make_filter(
+                        self.set_iir(iir_name, *make_filter(
                             'LP', f=filter_frequency / base_freq, k=1
                         ))
                     elif filter_type == HIGH_PASS_FILTER:
-                        self.rp.set_iir(iir_name, *make_filter(
+                        self.set_iir(iir_name, *make_filter(
                             'HP', f=filter_frequency / base_freq, k=1
                         ))
                     else:
@@ -201,8 +201,8 @@ class Registers:
                 self.set_pid(0, 0, 0, slope, reset=1)
                 self.set_slow_pid(0, slow_slope, reset=1)
 
-                self.rp.set_iir("fast_a_iir_a", *make_filter('P', k=1))
-                self.rp.set_iir("fast_b_iir_a", *make_filter('P', k=1))
+                self.set_iir("fast_a_iir_a", *make_filter('P', k=1))
+                self.set_iir("fast_b_iir_a", *make_filter('P', k=1))
 
         else:
             if lock:
@@ -210,29 +210,24 @@ class Registers:
                 self.set_pid(kp, ki, kd, slope)
                 self.set_slow_pid(slow_strength, slow_slope)
 
-    def run_data_acquisition(self, on_change):
-        """Starts a background process that continuously reads out error /
-        control signal of the FPGA. For every result, `on_change` is called."""
-        self.acquisition = AcquisitionMaster(
-            on_change, self.use_ssh, self.host
-        )
-
     def set_pid(self, p, i, d, slope, reset=None):
         sign = -1 if slope else 1
-        self.rp.set('root_pid_kp', p * sign)
-        self.rp.set('root_pid_ki', i * sign)
-        self.rp.set('root_pid_kd', d * sign)
+        self.set('root_pid_kp', p * sign)
+        self.set('root_pid_ki', i * sign)
+        self.set('root_pid_kd', d * sign)
 
         if reset is not None:
-            self.rp.set('root_pid_reset', reset)
+            self.set('root_pid_reset', reset)
 
     def set_slow_pid(self, strength, slope, reset=None):
         sign = -1 if slope else 1
-        self.rp.set('slow_pid_ki', strength * sign)
+        self.set('slow_pid_ki', strength * sign)
 
         if reset is not None:
-            self.rp.set('slow_pid_reset', reset)
+            self.set('slow_pid_reset', reset)
 
-    def get_slow_value(self):
-        v = self.rp.get('root_slow_value')
-        return v if (v <= 8191) else (v - 16384)
+    def set(self, key, value):
+        self.acquisition.set_csr(key, value)
+
+    def set_iir(self, *args):
+        self.acquisition.set_iir_csr(*args)

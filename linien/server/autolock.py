@@ -131,7 +131,7 @@ class Autolock:
 
                 self.skipped = 0
 
-                return self.after_lock(control_signal)
+                return self.after_lock(control_signal, plot_data['slow'])
 
         except Exception:
             traceback.print_exc()
@@ -196,7 +196,7 @@ class Autolock:
         self.N_at_this_zoom += 1
         self.last_shift_at_this_zoom = shift
 
-    def after_lock(self, control_signal):
+    def after_lock(self, control_signal, slow_out):
         """After locking, this method checks whether the laser really is locked.
 
         If desired, it automatically tries to relock if locking failed, or
@@ -223,7 +223,6 @@ class Autolock:
                     # we cannot handle this case. Just assume the laser is locked.
                     return True
 
-                slow_out = self.control.registers.get_slow_value()
                 return  (center - ampl) <= slow_out / 8192 <= (center + ampl)
 
         self.parameters.autolock_locked.value = check_whether_in_lock(control_signal)

@@ -41,7 +41,7 @@ class RedPitayaControlService(BaseService):
                 if self._skip_next_data > 1:
                     self._skip_next_data -= 1
                 else:
-                    s1, s2 = pickle.loads(plot_data)
+                    s1, s2, slow_out = pickle.loads(plot_data)
                     is_locked = self.parameters.lock.value
 
                     if is_locked:
@@ -50,7 +50,7 @@ class RedPitayaControlService(BaseService):
                             'control_signal': s2
                         }
                         if self.parameters.enable_slow_out.value:
-                            data['slow'] = self.registers.get_slow_value()
+                            data['slow'] = slow_out
                     else:
                         data = {
                             'error_signal_1': s1,

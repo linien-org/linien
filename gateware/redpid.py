@@ -34,6 +34,7 @@ from .modulate import Modulate
 from .sweep import SweepCSR
 from .limit import LimitCSR
 from .pid import PID
+from .decimation import Decimate
 
 
 class ScopeGen(Module, AutoCSR):
@@ -154,6 +155,9 @@ class PIDCSR(Module, AutoCSR):
         self.submodules.limit_control_signal = LimitCSR(width=width, guard=4)
         self.submodules.pid = PID()
 
+        max_decimation = 16
+        self.slow_decimation = CSRStorage(bits_for(max_decimation))
+
         self.comb += [
             self.sweep.clear.eq(0),
             self.sweep.hold.eq(0),
@@ -201,8 +205,15 @@ class Pid(Module, AutoCSR):
         s, c = 25, 18
         self.submodules.fast_a = FastChain(14, s, c, self.root.mod, offset_signal=self.root.chain_a_offset_signed)
         self.submodules.fast_b = FastChain(14, s, c, self.root.mod, offset_signal=self.root.chain_b_offset_signed)
+
         sys_slow = ClockDomainsRenamer("sys_slow")
-        self.submodules.slow = SlowChain()
+        sys_double = ClockDomainsRenamer("sys_double")
+        max_decimation = 16
+        self.submodules.decimate = sys_double(Decimate(max_decimation))
+        self.clock_domains.cd_decimated_clock = ClockDomain()
+        decimated_clock = ClockDomainsRenamer('decimated_clock')
+        self.submodules.slow = decimated_clock(SlowChain())
+
         self.submodules.scopegen = ScopeGen(s)
 
         self.state_names, self.signal_names = cross_connect(self.gpio_n, [
@@ -277,6 +288,8 @@ class Pid(Module, AutoCSR):
 
                 # SLOW OUT
                 self.slow.input.eq(self.root.limit_control_signal.y),
+                self.decimate.decimation.eq(self.root.slow_decimation.storage),
+                self.cd_decimated_clock.clk.eq(self.decimate.output),
                 self.slow.limit.x.eq(slow_out),
                 self.ds0.data.eq(slow_out_shifted),
                 self.root.slow_value.status.eq(self.slow.limit.y),
