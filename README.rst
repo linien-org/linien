@@ -8,7 +8,7 @@ It is built with Python and `Migen <https://github.com/m-labs/migen>`_ and is ba
 Features
 ########
 
-* **All inclusive**: Modulation (up to 50 MHz), demodulation, filtering and servo implemented on the FPGA.
+* **All included**: Modulation (up to 50 MHz), demodulation, filtering and servo implemented on the FPGA.
 * **Client-server architecture**: Autonomous operation on RedPitaya. One or multiple GUI clients can connect to the server.
 * **Autolock**: Click and drag over a line, and linien will automatically approach it and lock to it.
 * **Lock detection**: linien is capable of detecting loss of lock.
@@ -22,7 +22,7 @@ Features
 Getting started
 ###############
 
-Linien runs on Windows and Linux. For most users, the `standalone binaries <standalone-binary>`_ containing the graphical user interface are recommended. If you want to control linien using the python interface you should `install it using pip <pip-install>`_.
+Linien runs on Windows and Linux. For most users, the :ref:`standalone-binary` `standalone binaries <standalone-binary>`_ is recommended. If you want to control linien using the python interface you should `install it using pip <pip-install>`_.
 
 
 .. _standalone-binary:
@@ -31,7 +31,7 @@ Standalone binary
 -----------------
 
 You can download standalone binaries for windows and linux on `the releases page <https://github.com/hermitdemschoenenleben/linien/releases>`_.
-On linux, before executing the binary you have to mark it as executable using
+On linux you have to mark it as executable before executing:
 
 ..  code-block:: bash
 
@@ -42,8 +42,7 @@ On linux, before executing the binary you have to mark it as executable using
 Installation with pip
 ---------------------
 
-
-It is written for python 3 and can be installed using python's package manager pip:
+Linien is written for python 3 and can be installed using python's package manager pip:
 
 ..  code-block:: bash
 
@@ -68,14 +67,15 @@ Then, you can enter your RedPitaya's credentials and connect. If you agree, lini
 Physical setup
 ##############
 
-Linien aims to be self-explaining. The right panel's first tab displays the physical setup, depending on the settings. `See here <https://redpitaya.readthedocs.io/en/latest/_images/Extension_connector.png>`_ for an overview of RP's pins.
+Linien aims to be self-explanatory. The first tab of the right panel displays the physical setup, depending on the settings. `See here <https://redpitaya.readthedocs.io/en/latest/_images/Extension_connector.png>`_ for an overview of RP's pins.
 
 .. image:: explain-pins.png
 
 Scriptable interface
 ####################
 
-Linien running on RedPitaya can not only be controlled using the GUI but also by python scripts.
+In addition to the GUI, Linien can also be controlled using python scripts.
+For that purpose, installation via pip is required (see above).
 
 ..  code-block:: python
 
@@ -122,22 +122,44 @@ As linien uses a git submodule, you should check it out like this:
 
     git clone https://github.com/hermitdemschoenenleben/linien.git --recursive
 
-To simplify development of the server component, its source code is automatically uploaded to the RedPitaya. For that, edit the `VERSION` file and replace it's content with `dev`. Check that no server is running on the RedPitaya and start the client. Your development code should be uploaded to /linien and the linien server is started from that directory.
+Then edit the `VERSION` file and replace it's content with
 
-Fake server for testing the GUI:
+..  code-block::
+
+    dev
+
+When starting a development version of the client, the latest server code is automatically uploaded to the RedPitaya which should simplify development of the server component.
+For that, check that no server is running on the RedPitaya (execute `linien_stop_server` on the RedPitaya) before launching the client. Your development code is then uploaded to the /linien directory of the RedPitaya and the linien server is started from there.
+
+Fake server
+-----------
+
+For testing the GUI, there is also a fake server that you can run locally on your machine:
 
 ..  code-block:: bash
 
     python3 server/server.py --fake
 
-Run server locally and control:
+Then you can connect to "localhost" using the client.
+
+Run server locally
+------------------
+
+For debugging it may also be helpful to execute the server component on your machine (e.g. if you want to work on the autolock). In order to provide access to the FPGA registers, you have to start `server/acquisition_process.py` on the RedPitaya. Then you can run the server locally and connect to the FPGA registers:
 
     python3 server/server.py --remote-rp=root:password@rp-f0xxxx.local
 
-For this, `acquisition_process.py` has to be started on the RedPitaya.
-
+Building the FPGA image
+-----------------------
 
 In order to build the FPGA image, use `scripts/build_gateware.sh`.
+
+Releasing a new version
+-----------------------
+
+First, update the version number in the `VERSION` file.
+Then you can build and upload the package to pypi using `scripts/upload_pypi.sh`.
+Finally, build the standalone client using `build_standalone_client.sh` (you have to do this on the platform you want to build the standalone client for). The standalone client should be uploaded to a github release.
 
 See Also
 ########
