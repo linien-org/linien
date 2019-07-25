@@ -1,4 +1,14 @@
 #!/bin/bash
+
+while true; do
+    read -p "Have you built a new gateware? [y/n]" yn
+    case $yn in
+        [Yy]* ) break;;
+        [Nn]* ) exit;;
+        * ) echo "Please answer yes or no.";;
+    esac
+done
+
 SCRIPT=`realpath $0`
 SCRIPTPATH=`dirname $SCRIPT`
 cd $SCRIPTPATH/../
