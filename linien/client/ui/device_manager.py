@@ -2,6 +2,7 @@ from PyQt5 import QtGui, QtWidgets, QtCore
 from threading import Thread
 from traceback import print_exc
 
+import linien
 from linien.client.config import load_device_data, save_device_data
 from linien.client.widgets import CustomWidget
 from linien.client.connection import ConnectionThread
@@ -14,6 +15,7 @@ class DeviceManager(QtGui.QMainWindow, CustomWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.load_ui('device_manager.ui')
+        self.setWindowTitle('Linien spectroscopy lock %s' % linien.__version__)
 
     def ready(self):
         self.load_device_data(autoload=True)

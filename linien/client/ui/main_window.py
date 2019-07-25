@@ -3,6 +3,7 @@ import numpy as np
 from math import log
 from PyQt5 import QtGui, QtWidgets, QtCore
 
+import linien
 from linien.common import check_plot_data
 from linien.client.utils import param2ui
 from linien.client.config import COLORS
@@ -16,6 +17,7 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.load_ui('main_window.ui')
+        self.setWindowTitle('Linien spectroscopy lock %s' % linien.__version__)
 
     def ready(self):
         def color_to_hex(color):
