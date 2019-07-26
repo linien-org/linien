@@ -66,7 +66,7 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
 
         params.to_plot.change(self.update_std)
 
-        params.enable_slow_out.change(
+        params.pid_on_slow_enabled.change(
             lambda v: self.ids.legend_slow_signal_history.setVisible(v)
         )
 

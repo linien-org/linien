@@ -5,7 +5,7 @@ from csr import PitayaCSR, make_filter
 from utils import start_nginx, stop_nginx, twos_complement
 from linien.config import DEFAULT_RAMP_SPEED
 from linien.common import convert_channel_mixing_value, \
-    LOW_PASS_FILTER, HIGH_PASS_FILTER
+    LOW_PASS_FILTER, HIGH_PASS_FILTER, ANALOG_OUT0
 from linien.server.acquisition import AcquisitionMaster
 
 
@@ -63,7 +63,6 @@ class Registers:
             ),
             root_sweep_min=-1 * _max(params['ramp_amplitude'] * 8191),
             root_sweep_max=_max(params['ramp_amplitude'] * 8191),
-            root_ramp_on_slow=params['enable_slow_out'] and params['ramp_on_slow'],
 
             root_mod_freq=params['modulation_frequency'],
             root_mod_amp=params['modulation_amplitude'],
@@ -75,7 +74,11 @@ class Registers:
             root_out_offset=int(params['center'] * 8191),
             root_combined_offset=twos_complement(params['combined_offset'], 14),
 
-            slow_pid_reset=not (params['enable_slow_out'] and params['pid_on_slow_enabled']),
+            root_control_channel=params['control_channel'],
+            root_mod_channel=params['mod_channel'],
+            root_sweep_channel=params['sweep_channel'],
+
+            slow_pid_reset=not params['pid_on_slow_enabled'],
 
             # channel A
             fast_a_x_tap=2,
@@ -161,14 +164,23 @@ class Registers:
         ki = params['i']
         kd = params['d']
         slope = params['target_slope_rising']
-        invert = params['ramp_on_slow'] and params['slow_polarity_inverted']
-        if invert:
-            slope = not slope
+        control_channel, sweep_channel = params['control_channel'], params['sweep_channel']
+
+        def channel_polarity(channel):
+            return (
+                params['polarity_fast_out1'], params['polarity_fast_out2'],
+                params['polarity_analog_out0']
+            )[channel]
+
+        if control_channel != sweep_channel:
+            if channel_polarity(control_channel) != channel_polarity(sweep_channel):
+                slope = not slope
+
         slow_strength = params['pid_on_slow_strength'] \
             if params['pid_on_slow_enabled'] \
             else 0
         slow_slope = slope
-        if params['slow_polarity_inverted']:
+        if channel_polarity(ANALOG_OUT0) != channel_polarity(control_channel):
             slow_slope = not slow_slope
 
         for chain in ('a', 'b'):

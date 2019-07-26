@@ -4,7 +4,7 @@ import numpy as np
 from time import sleep, time
 from linien.common import determine_shift_by_correlation, get_lock_point, \
     control_signal_has_correct_amplitude, combine_error_signal, \
-    check_plot_data
+    check_plot_data, ANALOG_OUT0
 
 
 class Autolock:
@@ -131,7 +131,7 @@ class Autolock:
 
                 self.skipped = 0
 
-                return self.after_lock(control_signal, plot_data['slow'])
+                return self.after_lock(control_signal, plot_data.get('slow'))
 
         except Exception:
             traceback.print_exc()
@@ -210,11 +210,10 @@ class Autolock:
             center = self.parameters.center.value
             ampl = self.parameters.ramp_amplitude.value
 
-            slow = self.parameters.enable_slow_out.value
-            slow_ramp = self.parameters.ramp_on_slow.value
+            slow_ramp = self.parameters.sweep_channel.value == ANALOG_OUT0
             slow_pid = self.parameters.pid_on_slow_enabled.value
 
-            if not slow or (not slow_ramp and not slow_pid):
+            if not slow_ramp and not slow_pid:
                 mean = np.mean(control_signal) / 8192
                 return (center - ampl) <= mean <= (center + ampl)
             else:
@@ -222,7 +221,7 @@ class Autolock:
                     # we cannot handle this case. Just assume the laser is locked.
                     return True
 
-                return  (center - ampl) <= slow_out / 8192 <= (center + ampl)
+                return (center - ampl) <= slow_out / 8192 <= (center + ampl)
 
         self.parameters.autolock_locked.value = check_whether_in_lock(control_signal)
 

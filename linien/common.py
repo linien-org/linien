@@ -6,6 +6,9 @@ from scipy.signal import correlate, resample
 LOW_PASS_FILTER = 0
 HIGH_PASS_FILTER = 1
 
+FAST_OUT1 = 0
+FAST_OUT2 = 1
+ANALOG_OUT0 = 2
 
 def downsample(times, values, max_time_diff, max_N=16384):
     last_time = None

@@ -36,6 +36,8 @@ from .limit import LimitCSR
 from .pid import PID
 from .decimation import Decimate
 
+from linien.common import ANALOG_OUT0
+
 
 class ScopeGen(Module, AutoCSR):
     def __init__(self, width=25):
@@ -114,11 +116,10 @@ class ScopeGen(Module, AutoCSR):
 class PIDCSR(Module, AutoCSR):
     def __init__(self, width=14, signal_width=25, chain_factor_width=8):
         combined_error_signal = Signal((signal_width, True))
-        control_signal = Signal((signal_width, True))
+        self.control_signal = Signal((signal_width, True))
 
         s = signal_width - width
 
-        self.ramp_on_slow = CSRStorage()
         factor_reset = 1 << (chain_factor_width - 1)
         # we use chain_factor_width + 1 for the single channel mode
         self.chain_a_factor = CSRStorage(chain_factor_width + 1, reset=factor_reset)
@@ -133,6 +134,10 @@ class PIDCSR(Module, AutoCSR):
         self.out_offset = CSRStorage(width)
         self.out_offset_signed = Signal((width, True))
 
+        self.mod_channel = CSRStorage(1)
+        self.control_channel = CSRStorage(1)
+        self.sweep_channel = CSRStorage(2)
+
         self.sync += [
             self.chain_a_offset_signed.eq(self.chain_a_offset.storage),
             self.chain_b_offset_signed.eq(self.chain_b_offset.storage),
@@ -144,7 +149,7 @@ class PIDCSR(Module, AutoCSR):
         self.signal_in = []
         self.state_out = []
         self.signal_out = [
-            control_signal, combined_error_signal
+            self.control_signal, combined_error_signal
         ]
 
         self.slow_value = CSRStatus(width)
@@ -152,7 +157,8 @@ class PIDCSR(Module, AutoCSR):
         self.submodules.mod = Modulate(width=width)
         self.submodules.sweep = SweepCSR(width=width, step_width=24, step_shift=18)
         self.submodules.limit_error_signal = LimitCSR(width=width, guard=4)
-        self.submodules.limit_control_signal = LimitCSR(width=width, guard=4)
+        self.submodules.limit_fast1 = LimitCSR(width=width, guard=5)
+        self.submodules.limit_fast2 = LimitCSR(width=width, guard=5)
         self.submodules.pid = PID()
 
         max_decimation = 16
@@ -161,8 +167,14 @@ class PIDCSR(Module, AutoCSR):
         self.comb += [
             self.sweep.clear.eq(0),
             self.sweep.hold.eq(0),
+        ]
+
+        self.sync += [
             combined_error_signal.eq(self.limit_error_signal.y << s),
-            control_signal.eq(self.limit_control_signal.y << s),
+            self.control_signal.eq(Array([
+                self.limit_fast1.y,
+                self.limit_fast2.y
+            ])[self.control_channel.storage] << s),
         ]
 
 
@@ -202,9 +214,12 @@ class Pid(Module, AutoCSR):
 
         self.submodules.dna = DNA(version=2)
 
-        s, c = 25, 18
-        self.submodules.fast_a = FastChain(14, s, c, self.root.mod, offset_signal=self.root.chain_a_offset_signed)
-        self.submodules.fast_b = FastChain(14, s, c, self.root.mod, offset_signal=self.root.chain_b_offset_signed)
+        signal_width, coeff_width = 25, 18
+        width = 14
+        s = signal_width - width
+
+        self.submodules.fast_a = FastChain(width, signal_width, coeff_width, self.root.mod, offset_signal=self.root.chain_a_offset_signed)
+        self.submodules.fast_b = FastChain(width, signal_width, coeff_width, self.root.mod, offset_signal=self.root.chain_b_offset_signed)
 
         sys_slow = ClockDomainsRenamer("sys_slow")
         sys_double = ClockDomainsRenamer("sys_double")
@@ -214,15 +229,13 @@ class Pid(Module, AutoCSR):
         decimated_clock = ClockDomainsRenamer('decimated_clock')
         self.submodules.slow = decimated_clock(SlowChain())
 
-        self.submodules.scopegen = ScopeGen(s)
+        self.submodules.scopegen = ScopeGen(signal_width)
 
         self.state_names, self.signal_names = cross_connect(self.gpio_n, [
             ("fast_a", self.fast_a), ("fast_b", self.fast_b),
             ("slow", self.slow), ("scopegen", self.scopegen),
             ("root", self.root)
         ])
-
-        width = 14
 
         # now, we combine the output of the two paths, with a variable
         # factor each.
@@ -250,20 +263,24 @@ class Pid(Module, AutoCSR):
             self.root.pid.input.eq(mixed_limited),
             pid_out.eq(self.root.pid.pid_out)
         ]
-        out = Signal((width + 2, True))
-        self.sync += out.eq(
-            pid_out
-            + Mux(self.root.ramp_on_slow.storage, 0, self.root.sweep.y)
-            + Mux(self.root.ramp_on_slow.storage, 0, self.root.out_offset_signed)
-        )
+
+        fast_outs = list(Signal((width + 4, True)) for channel in (0, 1))
+
+        for channel, fast_out in enumerate(fast_outs):
+            self.sync += fast_out.eq(
+                Mux(self.root.control_channel.storage == channel, pid_out, 0)
+                + Mux(self.root.mod_channel.storage == channel, self.root.mod.y, 0)
+                + Mux(self.root.sweep_channel.storage == channel, self.root.sweep.y, 0)
+                + Mux(self.root.sweep_channel.storage == channel, self.root.out_offset_signed, 0)
+            )
 
         slow_pid_out = Signal((width, True))
         self.comb += slow_pid_out.eq(self.slow.output)
         slow_out = Signal((width + 2, True))
         self.sync += slow_out.eq(
             slow_pid_out
-            + Mux(self.root.ramp_on_slow.storage, self.root.sweep.y, 0)
-            + Mux(self.root.ramp_on_slow.storage, self.root.out_offset_signed, 0)
+            + Mux(self.root.sweep_channel.storage == ANALOG_OUT0, self.root.sweep.y, 0)
+            + Mux(self.root.sweep_channel.storage == ANALOG_OUT0, self.root.out_offset_signed, 0)
         )
         slow_out_shifted = Signal(15)
         self.sync += slow_out_shifted.eq(
@@ -279,15 +296,14 @@ class Pid(Module, AutoCSR):
                 self.fast_a.adc.eq(self.analog.adc_a),
                 self.fast_b.adc.eq(self.analog.adc_b),
 
-                # FAST OUT 0
-                self.analog.dac_a.eq(self.root.mod.y),
+                self.root.limit_fast1.x.eq(fast_outs[0]),
+                self.root.limit_fast2.x.eq(fast_outs[1]),
 
-                # FAST OUT 1
-                self.root.limit_control_signal.x.eq(out),
-                self.analog.dac_b.eq(self.root.limit_control_signal.y),
+                self.analog.dac_a.eq(self.root.limit_fast1.y),
+                self.analog.dac_b.eq(self.root.limit_fast2.y),
 
                 # SLOW OUT
-                self.slow.input.eq(self.root.limit_control_signal.y),
+                self.slow.input.eq(self.root.control_signal >> s),
                 self.decimate.decimation.eq(self.root.slow_decimation.storage),
                 self.cd_decimated_clock.clk.eq(self.decimate.output),
                 self.slow.limit.x.eq(slow_out),

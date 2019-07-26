@@ -21,7 +21,6 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
         self.ids.manualLockButton.clicked.connect(self.start_manual_lock)
         self.ids.autoOffsetCheckbox.stateChanged.connect(self.auto_offset_changed)
 
-        self.ids.pid_on_slow_enabled.stateChanged.connect(self.pid_on_slow_enabled_changed)
         self.ids.pid_on_slow_strength.setKeyboardTracking(False)
         self.ids.pid_on_slow_strength.valueChanged.connect(self.pid_on_slow_strength_changed)
 
@@ -41,11 +40,10 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
             self.ids.lock_control_container,
             lambda value: 0 if value else 1
         )
-        param2ui(params.pid_on_slow_enabled, self.ids.pid_on_slow_enabled)
         param2ui(params.pid_on_slow_strength, self.ids.pid_on_slow_strength)
         def slow_pid_visibility(*args):
-            self.ids.slow_pid_group.setVisible(self.parameters.enable_slow_out.value)
-        params.enable_slow_out.change(slow_pid_visibility)
+            self.ids.slow_pid_group.setVisible(self.parameters.pid_on_slow_enabled.value)
+        params.pid_on_slow_enabled.change(slow_pid_visibility)
 
         def lock_status_changed(_):
             locked = params.lock.value
@@ -97,9 +95,4 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
 
     def pid_on_slow_strength_changed(self):
         self.parameters.pid_on_slow_strength.value = self.ids.pid_on_slow_strength.value()
-        self.control.write_data()
-
-    def pid_on_slow_enabled_changed(self):
-        self.parameters.pid_on_slow_enabled.value = \
-            int(self.ids.pid_on_slow_enabled.checkState()) > 0
         self.control.write_data()

@@ -122,7 +122,7 @@ def param2ui(parameter, element, process_value=lambda x: x):
         elif isinstance(element, (QCheckBox, QRadioButton)):
             element.setChecked(value)
         elif isinstance(element, (QTabWidget, QComboBox)):
-            element.setCurrentIndex(value)
+            element.setCurrentIndex(int(value))
         else:
             raise Exception('unsupported element type %s' % type(element))
 

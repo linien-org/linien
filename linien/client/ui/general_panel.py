@@ -1,7 +1,8 @@
 import numpy as np
 from PyQt5 import QtGui
 
-from linien.common import convert_channel_mixing_value
+from linien.common import convert_channel_mixing_value, FAST_OUT1, FAST_OUT2, \
+    ANALOG_OUT0
 from linien.client.utils import param2ui
 from linien.client.widgets import CustomWidget
 from linien.client.connection import MHz, Vpp
@@ -12,28 +13,25 @@ class GeneralPanel(QtGui.QWidget, CustomWidget):
         super().__init__(*args, **kwargs)
 
     def ready(self):
-        self.ids.rampOnSlow.stateChanged.connect(self.ramp_on_slow_changed)
         self.ids.channel_mixing_slider.valueChanged.connect(self.channel_mixing_changed)
         self.ids.dual_channel.stateChanged.connect(self.dual_channel_changed)
-        self.ids.enable_slow_out.stateChanged.connect(self.enable_slow_changed)
-        self.ids.slow_polarity.currentIndexChanged.connect(self.change_slow_polarity)
+
+        self.ids.mod_channel.currentIndexChanged.connect(self.mod_channel_changed)
+        self.ids.control_channel.currentIndexChanged.connect(self.control_channel_changed)
+        self.ids.sweep_channel.currentIndexChanged.connect(self.sweep_channel_changed)
+        self.ids.slow_control_channel.currentIndexChanged.connect(self.slow_control_channel_changed)
+
+        self.ids.polarity_fast_out1.currentIndexChanged.connect(self.polarity_fast_out1_changed)
+        self.ids.polarity_fast_out2.currentIndexChanged.connect(self.polarity_fast_out2_changed)
+        self.ids.polarity_analog_out0.currentIndexChanged.connect(self.polarity_analog_out0_changed)
 
     def connection_established(self):
         params = self.app().parameters
         self.control = self.app().control
         self.parameters = params
 
-        param2ui(params.ramp_on_slow, self.ids.rampOnSlow)
-        def ramp_on_slow_param_changed(*args):
-            value = params.ramp_on_slow.value and params.enable_slow_out.value
-            self.ids.explainSweepOnAnalog.setVisible(value)
-            self.ids.explainNoSweepOnAnalog.setVisible(not value)
-        params.ramp_on_slow.change(ramp_on_slow_param_changed)
-        params.enable_slow_out.change(ramp_on_slow_param_changed)
-
         def dual_channel_changed(value):
             self.ids.dual_channel_mixing.setVisible(value)
-            self.ids.explain_second_channel.setVisible(value)
             self.app().main_window.ids.spectroscopy_channel_2_page.setEnabled(value)
             return value
         param2ui(
@@ -50,23 +48,35 @@ class GeneralPanel(QtGui.QWidget, CustomWidget):
         # this is required to update the descriptive labels in the beginning
         self.channel_mixing_changed()
 
-        def enable_slow_out_changed(value):
-            self.ids.slow_out_settings.setEnabled(value)
-            return value
-        param2ui(
-            params.enable_slow_out,
-            self.ids.enable_slow_out,
-            enable_slow_out_changed
-        )
+        param2ui(params.mod_channel, self.ids.mod_channel)
+        param2ui(params.control_channel, self.ids.control_channel)
+        param2ui(params.sweep_channel, self.ids.sweep_channel)
+        param2ui(params.pid_on_slow_enabled, self.ids.slow_control_channel)
 
-        param2ui(
-            params.slow_polarity_inverted,
-            self.ids.slow_polarity
-        )
+        param2ui(params.polarity_fast_out1, self.ids.polarity_fast_out1)
+        param2ui(params.polarity_fast_out2, self.ids.polarity_fast_out2)
+        param2ui(params.polarity_analog_out0, self.ids.polarity_analog_out0)
 
-    def ramp_on_slow_changed(self):
-        self.parameters.ramp_on_slow.value = int(self.ids.rampOnSlow.checkState() > 0)
-        self.control.write_data()
+        def show_polarity_settings(*args):
+            used_channels = set((
+                params.control_channel.value,
+                params.sweep_channel.value,
+                params.mod_channel.value
+            ))
+
+            if params.pid_on_slow_enabled.value:
+                used_channels.add(ANALOG_OUT0)
+
+            def set_visibility(element, channel_id):
+                element.setVisible(channel_id in used_channels)
+
+            set_visibility(self.ids.polarity_container_fast_out1, FAST_OUT1)
+            set_visibility(self.ids.polarity_container_fast_out2, FAST_OUT2)
+            set_visibility(self.ids.polarity_container_analog_out0, ANALOG_OUT0)
+        params.control_channel.change(show_polarity_settings)
+        params.sweep_channel.change(show_polarity_settings)
+        params.mod_channel.change(show_polarity_settings)
+        params.pid_on_slow_enabled.change(show_polarity_settings)
 
     def channel_mixing_changed(self):
         value = int(self.ids.channel_mixing_slider.value()) - 128
@@ -85,10 +95,30 @@ class GeneralPanel(QtGui.QWidget, CustomWidget):
         self.ids.chain_a_factor.setText('%d' % a_value)
         self.ids.chain_b_factor.setText('%d' % b_value)
 
-    def enable_slow_changed(self):
-        self.parameters.enable_slow_out.value = int(self.ids.enable_slow_out.checkState() > 0)
+    def mod_channel_changed(self, channel):
+        self.parameters.mod_channel.value = channel
         self.control.write_data()
 
-    def change_slow_polarity(self, idx):
-        self.parameters.slow_polarity_inverted.value = idx != 0
+    def control_channel_changed(self, channel):
+        self.parameters.control_channel.value = channel
+        self.control.write_data()
+
+    def slow_control_channel_changed(self, channel):
+        self.parameters.pid_on_slow_enabled.value = bool(channel)
+        self.control.write_data()
+
+    def sweep_channel_changed(self, channel):
+        self.parameters.sweep_channel.value = channel
+        self.control.write_data()
+
+    def polarity_fast_out1_changed(self, polarity):
+        self.parameters.polarity_fast_out1.value = bool(polarity)
+        self.control.write_data()
+
+    def polarity_fast_out2_changed(self, polarity):
+        self.parameters.polarity_fast_out2.value = bool(polarity)
+        self.control.write_data()
+
+    def polarity_analog_out0_changed(self, polarity):
+        self.parameters.polarity_analog_out0.value = bool(polarity)
         self.control.write_data()

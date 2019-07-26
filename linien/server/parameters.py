@@ -18,9 +18,12 @@ class Parameters(BaseParameters):
             'filter_2_enabled_a', 'filter_2_enabled_b',
             'filter_2_frequency_a', 'filter_2_frequency_b',
             'filter_2_type_a', 'filter_2_type_b',
-            'p', 'i', 'd', 'watch_lock', 'ramp_on_slow', 'dual_channel',
-            'channel_mixing', 'enable_slow_out', 'slow_polarity_inverted',
-            'pid_on_slow_enabled', 'pid_on_slow_strength'
+            'p', 'i', 'd', 'watch_lock', 'dual_channel',
+            'channel_mixing',
+            'pid_on_slow_enabled', 'pid_on_slow_strength',
+            'mod_channel', 'control_channel', 'sweep_channel',
+            'polarity_fast_out1', 'polarity_fast_out2',
+            'polarity_analog_out0'
         )
 
         self.modulation_amplitude = Parameter(
@@ -105,10 +108,15 @@ class Parameters(BaseParameters):
         # in seconds
         self.control_signal_history_length = Parameter(start=600)
 
-        self.enable_slow_out = Parameter(start=False)
-        self.ramp_on_slow = Parameter(start=False)
-        self.slow_polarity_inverted = Parameter(start=False)
         self.pid_on_slow_enabled = Parameter(start=False)
         self.pid_on_slow_strength = Parameter(start=0)
         self.dual_channel = Parameter(start=False)
         self.channel_mixing = Parameter(start=0)
+
+        self.mod_channel = Parameter(start=0, min_=0, max_=1)
+        self.control_channel = Parameter(start=1, min_=0, max_=1)
+        self.sweep_channel = Parameter(start=1, min_=0, max_=2)
+
+        self.polarity_fast_out1 = Parameter(start=False)
+        self.polarity_fast_out2 = Parameter(start=False)
+        self.polarity_analog_out0 = Parameter(start=False)

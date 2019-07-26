@@ -62,7 +62,7 @@
           </sizepolicy>
          </property>
          <property name="title">
-          <string>P,I and D</string>
+          <string>P,I and D  of fast control</string>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_6">
           <item>
@@ -314,16 +314,9 @@
           </sizepolicy>
          </property>
          <property name="title">
-          <string>Additional PID (piezo)</string>
+          <string>Strength of slow control</string>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_4">
-          <item>
-           <widget class="QCheckBox" name="pid_on_slow_enabled">
-            <property name="text">
-             <string>Enable piezo on ANALOG OUT 0</string>
-            </property>
-           </widget>
-          </item>
           <item>
            <widget class="QLabel" name="label">
             <property name="sizePolicy">
@@ -339,7 +332,7 @@
              <bool>true</bool>
             </property>
             <property name="indent">
-             <number>30</number>
+             <number>0</number>
             </property>
            </widget>
           </item>
@@ -347,7 +340,7 @@
            <widget class="QWidget" name="widget" native="true">
             <layout class="QHBoxLayout" name="horizontalLayout">
              <property name="leftMargin">
-              <number>30</number>
+              <number>0</number>
              </property>
              <property name="topMargin">
               <number>0</number>
