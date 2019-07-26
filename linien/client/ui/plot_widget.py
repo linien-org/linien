@@ -99,6 +99,10 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
 
     def mousePressEvent(self, event):
         super().mousePressEvent(event)
+
+        if event.button() == QtCore.Qt.RightButton:
+            return
+
         x, y = self._to_data_coords(event)
 
         self.touch_start = x, y
