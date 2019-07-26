@@ -23,7 +23,7 @@ class Parameters(BaseParameters):
             'pid_on_slow_enabled', 'pid_on_slow_strength',
             'mod_channel', 'control_channel', 'sweep_channel',
             'polarity_fast_out1', 'polarity_fast_out2',
-            'polarity_analog_out0'
+            'polarity_analog_out0', 'autoscale_y', 'y_axis_limits'
         )
 
         self.modulation_amplitude = Parameter(
@@ -120,3 +120,6 @@ class Parameters(BaseParameters):
         self.polarity_fast_out1 = Parameter(start=False)
         self.polarity_fast_out2 = Parameter(start=False)
         self.polarity_analog_out0 = Parameter(start=False)
+
+        self.autoscale_y = Parameter(start=True)
+        self.y_axis_limits = Parameter(start=((-1000, 1000)))

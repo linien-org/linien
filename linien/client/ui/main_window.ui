@@ -788,7 +788,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QToolBox" name="settings_toolbox">
+        <widget class="ViewPanel" name="settings_toolbox">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
            <horstretch>0</horstretch>
@@ -808,7 +808,7 @@
           <property name="geometry">
            <rect>
             <x>0</x>
-            <y>-113</y>
+            <y>0</y>
             <width>340</width>
             <height>679</height>
            </rect>
@@ -1328,7 +1328,7 @@
             <x>0</x>
             <y>0</y>
             <width>338</width>
-            <height>471</height>
+            <height>438</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1506,7 +1506,7 @@
             <x>0</x>
             <y>0</y>
             <width>338</width>
-            <height>471</height>
+            <height>438</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -1530,7 +1530,7 @@
             <x>0</x>
             <y>0</y>
             <width>338</width>
-            <height>471</height>
+            <height>438</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1542,13 +1542,139 @@
            </item>
           </layout>
          </widget>
+         <widget class="QWidget" name="page">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>338</width>
+            <height>438</height>
+           </rect>
+          </property>
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <attribute name="label">
+           <string>View</string>
+          </attribute>
+          <layout class="QVBoxLayout" name="verticalLayout_16">
+           <item>
+            <widget class="QGroupBox" name="groupBox_10">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="title">
+              <string>Scaling</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_14">
+              <item>
+               <widget class="QCheckBox" name="autoscale_y_axis">
+                <property name="text">
+                 <string>Autoscale y-axis</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_14">
+                <item>
+                 <widget class="QLabel" name="label_12">
+                  <property name="text">
+                   <string>minimum</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QSpinBox" name="y_axis_minimum">
+                  <property name="minimum">
+                   <number>-8192</number>
+                  </property>
+                  <property name="maximum">
+                   <number>8192</number>
+                  </property>
+                  <property name="singleStep">
+                   <number>100</number>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_15">
+                <item>
+                 <widget class="QLabel" name="label_13">
+                  <property name="text">
+                   <string>maximum</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QSpinBox" name="y_axis_maximum">
+                  <property name="minimum">
+                   <number>-8192</number>
+                  </property>
+                  <property name="maximum">
+                   <number>8192</number>
+                  </property>
+                  <property name="singleStep">
+                   <number>100</number>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBox_12">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="title">
+              <string>Export data</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_18">
+              <item>
+               <widget class="QPushButton" name="pushButton">
+                <property name="text">
+                 <string>Export to JSON file</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_3">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
          <widget class="QWidget" name="lockingPanel">
           <property name="geometry">
            <rect>
             <x>0</x>
             <y>0</y>
             <width>338</width>
-            <height>471</height>
+            <height>438</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -1627,6 +1753,12 @@
    <class>ModulationAndRampPanel</class>
    <extends>QWidget</extends>
    <header location="global">modulation_ramp_panel.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ViewPanel</class>
+   <extends>QToolBox</extends>
+   <header location="global">view_panel.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
