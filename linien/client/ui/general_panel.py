@@ -61,11 +61,12 @@ class GeneralPanel(QtGui.QWidget, CustomWidget):
             used_channels = set((
                 params.control_channel.value,
                 params.sweep_channel.value,
-                params.mod_channel.value
             ))
 
             if params.pid_on_slow_enabled.value:
                 used_channels.add(ANALOG_OUT0)
+
+            self.ids.polarity_selector.setVisible(len(used_channels) > 1)
 
             def set_visibility(element, channel_id):
                 element.setVisible(channel_id in used_channels)

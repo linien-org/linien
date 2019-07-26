@@ -808,7 +808,7 @@
           <property name="geometry">
            <rect>
             <x>0</x>
-            <y>0</y>
+            <y>-113</y>
             <width>340</width>
             <height>679</height>
            </rect>
@@ -977,14 +977,10 @@
             </layout>
            </item>
            <item>
-            <widget class="Line" name="line">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
+            <widget class="QGroupBox" name="polarity_selector">
+             <property name="styleSheet">
+              <string notr="true">background: #ffe7b5</string>
              </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QGroupBox" name="groupBox_12">
              <property name="title">
               <string>Polarity of outputs</string>
              </property>
@@ -1156,6 +1152,13 @@
                </widget>
               </item>
              </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="Line" name="line">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
             </widget>
            </item>
            <item>
