@@ -98,15 +98,32 @@ class PitayaSSH(PitayaCSR):
 
 class PitayaLocal(PitayaCSR):
     def __init__(self, monitor_cmd="/usr/bin/monitoradvanced"):
-        self.p = subprocess.Popen([monitor_cmd, '-'],
+        self.monitor_cmd = monitor_cmd
+        self.start_process()
+
+    def start_process(self):
+        self.command_counter = 0
+        self.p = subprocess.Popen([self.monitor_cmd, '-'],
             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
+    def check_for_process_restart(self):
+        """monitoradvanced has a memory leak. Therefore, we restart it from time
+        to time (not elegant but works)."""
+        if self.command_counter > 1000:
+            self.command_counter = 0
+            self.p.kill()
+            self.start_process()
+
     def set_one(self, addr, value):
+        self.command_counter += 1
+        self.check_for_process_restart()
         cmd = "0x{:08x} w 0x{:02x}\n\n".format(addr, value)
         self.p.stdin.write(cmd.encode("ascii"))
         self.p.stdin.flush()
 
     def get_one(self, addr):
+        self.command_counter += 1
+        self.check_for_process_restart()
         cmd = "0x{:08x} w\n\n".format(addr)
         self.p.stdin.write(cmd.encode("ascii"))
         self.p.stdin.flush()
