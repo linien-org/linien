@@ -214,7 +214,7 @@ class Pid(Module, AutoCSR):
 
         self.submodules.dna = DNA(version=2)
 
-        signal_width, coeff_width = 25, 18
+        signal_width, coeff_width = 25, 25
         width = 14
         s = signal_width - width
 
