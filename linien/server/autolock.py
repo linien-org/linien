@@ -23,7 +23,7 @@ class Autolock:
         self.history = []
         self.zoom_factor = 1
         self.N_at_this_zoom = 0
-        self.last_shift_at_this_zoom = None
+        self.last_shifts_at_this_zoom = None
         self.skipped = 0
         self.parameters.autolock_failed.value = False
         self.parameters.autolock_locked.value = False
@@ -167,16 +167,25 @@ class Autolock:
         if self.N_at_this_zoom > 50:
             raise Exception('max number of N_at_this_zoom exceeded: %d' % self.N_at_this_zoom)
 
-        if self.last_shift_at_this_zoom is not None:
+        if self.last_shifts_at_this_zoom is not None:
             # check that the drift is slow
             # this is needed for systems that only react slowly to changes in
             # input parameters. In this case, we have to wait until the reaction
             # to the last input is done.
-            drift_is_slow = (np.abs(shift - self.last_shift_at_this_zoom)) \
+            drift_is_slow = (np.abs(shift - self.last_shifts_at_this_zoom[-1])) \
                             < (0.05 * self.parameters.ramp_amplitude.value)
-            if drift_is_slow:
+
+            # if the drift changed sign, it is no drift but noise... This means
+            # that we should go on
+            if len(self.last_shifts_at_this_zoom) < 2:
+                drift_changed_sign = False
+            else:
+                drift_changed_sign = np.sign(shift - self.last_shifts_at_this_zoom[-1]) \
+                    != np.sign(self.last_shifts_at_this_zoom[-1] - self.last_shifts_at_this_zoom[-2])
+
+            if drift_is_slow or drift_changed_sign:
                 self.N_at_this_zoom = 0
-                self.last_shift_at_this_zoom = None
+                self.last_shifts_at_this_zoom = None
 
                 zoom_step = 2
                 self.zoom_factor *= zoom_step
@@ -193,7 +202,8 @@ class Autolock:
                 self.control.continue_acquisition()
 
         self.N_at_this_zoom += 1
-        self.last_shift_at_this_zoom = shift
+        self.last_shifts_at_this_zoom = self.last_shifts_at_this_zoom or []
+        self.last_shifts_at_this_zoom.append(shift)
 
     def after_lock(self, control_signal, slow_out):
         """After locking, this method checks whether the laser really is locked.
@@ -215,6 +225,7 @@ class Autolock:
 
             if not slow_ramp and not slow_pid:
                 mean = np.mean(control_signal) / 8192
+
                 return (center - ampl) <= mean <= (center + ampl)
             else:
                 if slow_pid and not slow_ramp:
