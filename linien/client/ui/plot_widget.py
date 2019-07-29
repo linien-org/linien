@@ -264,7 +264,7 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
             for signal in signals:
                 all_ += signal
 
-            if self.parameters.autoscale_y_axis.value:
+            if self.parameters.autoscale_y.value:
                 self.plot_min = math.floor(np.min(all_))
                 self.plot_max = math.ceil(np.max(all_))
             else:
