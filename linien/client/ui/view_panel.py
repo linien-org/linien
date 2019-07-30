@@ -14,7 +14,9 @@ class ViewPanel(QtGui.QWidget, CustomWidget):
 
     def ready(self):
         self.ids.autoscale_y_axis.stateChanged.connect(self.autoscale_changed)
+        self.ids.y_axis_minimum.setKeyboardTracking(False)
         self.ids.y_axis_minimum.valueChanged.connect(self.y_limits_changed)
+        self.ids.y_axis_minimum.setKeyboardTracking(False)
         self.ids.y_axis_maximum.valueChanged.connect(self.y_limits_changed)
 
         self.ids.export_select_file.clicked.connect(self.export_select_file)
@@ -25,22 +27,21 @@ class ViewPanel(QtGui.QWidget, CustomWidget):
         self.control = self.app().control
         self.parameters = params
 
+        def set_y_limit_inputs_enabled(autoscale):
+            self.ids.y_axis_minimum.setEnabled(not autoscale)
+            self.ids.y_axis_maximum.setEnabled(not autoscale)
+        params.autoscale_y.change(set_y_limit_inputs_enabled)
         param2ui(params.autoscale_y, self.ids.autoscale_y_axis)
 
-        def y_axis_limits_changed(value):
-            min_, max_ = list(sorted(value))
-            self.ids.y_axis_minimum.setValue(min_)
-            self.ids.y_axis_maximum.setValue(max_)
-        params.y_axis_limits.change(y_axis_limits_changed)
+        param2ui(params.y_axis_limits, self.ids.y_axis_minimum, lambda v: v[0])
+        param2ui(params.y_axis_limits, self.ids.y_axis_maximum, lambda v: v[1])
 
     def autoscale_changed(self):
         self.parameters.autoscale_y.value = int(self.ids.autoscale_y_axis.checkState())
 
     def y_limits_changed(self):
-        self.parameters.y_axis_limits.value = (
-            self.ids.y_axis_minimum.value(),
-            self.ids.y_axis_maximum.value()
-        )
+        values = tuple(sorted((self.ids.y_axis_minimum.value(), self.ids.y_axis_maximum.value())))
+        self.parameters.y_axis_limits.value = values
 
     def export_select_file(self):
         options = QtWidgets.QFileDialog.Options()

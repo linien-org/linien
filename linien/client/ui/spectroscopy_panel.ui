@@ -38,9 +38,9 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>-53</y>
+        <y>-6</y>
         <width>266</width>
-        <height>541</height>
+        <height>575</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -141,6 +141,9 @@
             <property name="singleStep">
              <number>100</number>
             </property>
+            <property name="stepType">
+             <enum>QAbstractSpinBox::AdaptiveDecimalStepType</enum>
+            </property>
            </widget>
           </item>
          </layout>
@@ -185,6 +188,9 @@
               </property>
               <property name="maximum">
                <number>50000000</number>
+              </property>
+              <property name="stepType">
+               <enum>QAbstractSpinBox::AdaptiveDecimalStepType</enum>
               </property>
               <property name="value">
                <number>100000</number>
@@ -255,6 +261,9 @@
               </property>
               <property name="maximum">
                <number>50000000</number>
+              </property>
+              <property name="stepType">
+               <enum>QAbstractSpinBox::AdaptiveDecimalStepType</enum>
               </property>
               <property name="value">
                <number>100000</number>

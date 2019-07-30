@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 while true; do
     read -p "Have you built a new gateware? [y/n]" yn
     case $yn in
@@ -29,6 +31,7 @@ rm -R dist
 python3 setup_client.py sdist bdist_wheel
 echo 'enter pypi password'
 # python3 -m twine upload --repository-url https://test.pypi.org/legacy/ dist/* -u hermitdemschoenenleben
+python3 -m twine check dist/*
 python3 -m twine upload dist/* -u hermitdemschoenenleben
 
 # build server
@@ -37,4 +40,5 @@ rm -R dist
 python3 setup_server.py sdist bdist_wheel
 echo 'enter pypi password'
 #python3 -m twine upload --repository-url https://test.pypi.org/legacy/ dist/* -u hermitdemschoenenleben
+python3 -m twine check dist/*
 python3 -m twine upload dist/* -u hermitdemschoenenleben

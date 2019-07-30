@@ -22,7 +22,9 @@ Features
 Getting started
 ###############
 .. _standalone binaries: `standalone-binary`_
+
 .. _install it using pip: `pip-install`_
+
 Linien runs on Windows and Linux. For most users the `standalone binaries`_ containing the graphical user interface are recommended. If you want to control linien using the python interface you should `install it using pip`_.
 
 

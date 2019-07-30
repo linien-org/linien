@@ -64,7 +64,7 @@ class DeviceManager(QtGui.QMainWindow, CustomWidget):
         def server_not_installed():
             loading_dialog.hide()
             if not aborted:
-                display_question = """The server is not yet installed on the device. Should it be installed?"""
+                display_question = """The server is not yet installed on the device. Should it be installed? (Requires internet connection on RedPitaya)"""
                 if question_dialog(self, display_question):
                     self.install_linien_server(device)
         self.t.server_not_installed.connect(server_not_installed)
