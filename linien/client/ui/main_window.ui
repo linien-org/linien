@@ -802,7 +802,7 @@
           </size>
          </property>
          <property name="currentIndex">
-          <number>4</number>
+          <number>0</number>
          </property>
          <widget class="GeneralPanel" name="page_2">
           <property name="geometry">
@@ -1344,7 +1344,11 @@
               <item>
                <layout class="QHBoxLayout" name="horizontalLayout_6">
                 <item>
-                 <widget class="QDoubleSpinBox" name="modulation_frequency"/>
+                 <widget class="QDoubleSpinBox" name="modulation_frequency">
+                  <property name="stepType">
+                   <enum>QAbstractSpinBox::AdaptiveDecimalStepType</enum>
+                  </property>
+                 </widget>
                 </item>
                 <item>
                  <widget class="QLabel" name="label_5">
@@ -1373,6 +1377,9 @@
                   </property>
                   <property name="singleStep">
                    <double>0.100000000000000</double>
+                  </property>
+                  <property name="stepType">
+                   <enum>QAbstractSpinBox::AdaptiveDecimalStepType</enum>
                   </property>
                  </widget>
                 </item>
@@ -1600,6 +1607,9 @@
                   <property name="singleStep">
                    <number>100</number>
                   </property>
+                  <property name="stepType">
+                   <enum>QAbstractSpinBox::AdaptiveDecimalStepType</enum>
+                  </property>
                  </widget>
                 </item>
                </layout>
@@ -1623,6 +1633,9 @@
                   </property>
                   <property name="singleStep">
                    <number>100</number>
+                  </property>
+                  <property name="stepType">
+                   <enum>QAbstractSpinBox::AdaptiveDecimalStepType</enum>
                   </property>
                  </widget>
                 </item>
