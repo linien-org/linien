@@ -167,6 +167,9 @@ class Autolock:
         if self.N_at_this_zoom > 50:
             raise Exception('max number of N_at_this_zoom exceeded: %d' % self.N_at_this_zoom)
 
+        low_recording_rate = self.parameters.ramp_speed.value > 10
+
+        drift_finished = False
         if self.last_shifts_at_this_zoom is not None:
             # check that the drift is slow
             # this is needed for systems that only react slowly to changes in
@@ -184,22 +187,25 @@ class Autolock:
                     != np.sign(self.last_shifts_at_this_zoom[-1] - self.last_shifts_at_this_zoom[-2])
 
             if drift_is_slow or drift_changed_sign:
-                self.N_at_this_zoom = 0
-                self.last_shifts_at_this_zoom = None
+                drift_finished = True
 
-                zoom_step = 2
-                self.zoom_factor *= zoom_step
+        if low_recording_rate or drift_finished:
+            self.N_at_this_zoom = 0
+            self.last_shifts_at_this_zoom = None
 
-                self.control.pause_acquisition()
+            zoom_step = 2
+            self.zoom_factor *= zoom_step
 
-                self.parameters.ramp_amplitude.value /= zoom_step
-                self.control.exposed_write_data()
+            self.control.pause_acquisition()
 
-                if self.zoom_factor >= self.target_zoom:
-                    self.parameters.autolock_approaching.value = False
-                    self.control.exposed_start_lock()
+            self.parameters.ramp_amplitude.value /= zoom_step
+            self.control.exposed_write_data()
 
-                self.control.continue_acquisition()
+            if self.zoom_factor >= self.target_zoom:
+                self.parameters.autolock_approaching.value = False
+                self.control.exposed_start_lock()
+
+            self.control.continue_acquisition()
 
         self.N_at_this_zoom += 1
         self.last_shifts_at_this_zoom = self.last_shifts_at_this_zoom or []
