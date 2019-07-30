@@ -15,12 +15,14 @@ cd /tmp
 mkdir linien
 cd linien
 
+if ! [ -x "$(command -v monitoradvanced)" ]; then
 # git clone is very slow for this repo, therefore we download the .zip
 wget https://github.com/RedPitaya/RedPitaya/archive/master.zip
 unzip -o -q master.zip -x "*.png" "*.jpg" "*.PNG" "*.JPG" "*/doc" "*/doc/*" "*/Examples" "*/Examples/*" "*.pdf"
 cd RedPitaya-master/Test/monitoradvanced
 make
 cp monitoradvanced /usr/bin
+fi
 
 echo 'installing pyrp3...'
 # install pyrp3
