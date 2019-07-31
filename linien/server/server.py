@@ -133,7 +133,7 @@ class RedPitayaControlService(BaseService):
         self.parameters.pause_acquisition.value = True
 
     def continue_acquisition(self):
-        """Continus acquisition after a short delay, when we are sure that the
+        """Continue acquisition after a short delay, when we are sure that the
         new parameters values have been written to the FPGA and that data that
         is now recorded is recorded with the correct parameters."""
         self.parameters.pause_acquisition.value = False

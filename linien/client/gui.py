@@ -34,7 +34,7 @@ class QTApp(QtCore.QObject):
 
     def connected(self, connection, parameters, control):
         self.device_manager.hide()
-        self.main_window.show()
+        self.main_window.show(connection.host, connection.device['name'])
 
         self.connection = connection
         self.control = control

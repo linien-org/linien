@@ -17,7 +17,12 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.load_ui('main_window.ui')
-        self.setWindowTitle('Linien spectroscopy lock %s' % linien.__version__)
+
+    def show(self, host, name):
+        self.setWindowTitle('Linien spectroscopy lock %s: %s (%s)' % (
+            linien.__version__, name, host
+        ))
+        super().show()
 
     def ready(self):
         def color_to_hex(color):
