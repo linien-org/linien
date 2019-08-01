@@ -46,13 +46,15 @@ class Sweep(Module):
                     up.eq(dir)
                 )
             ).Else(
-                If(self.y < 0,
-                    up.eq(1)
-                ).Elif(self.y > self.step,
-                    up.eq(0)
-                ).Else(
-                    zero.eq(1)
-                )
+                up.eq(1),
+                zero.eq(1),
+                # If(self.y < 0,
+                #    up.eq(1)
+                #).Elif(self.y > self.step,
+                #    up.eq(0)
+                #).Else(
+                #    zero.eq(1)
+                #)
             )
         ]
         self.sync += [
@@ -105,6 +107,7 @@ class SweepCSR(Filter):
         ]
 
 
+
 def main():
     from migen.fhdl import verilog
     import matplotlib.pyplot as plt
@@ -117,16 +120,27 @@ def main():
         yield sweep.max.storage.eq(1 << 10)
         yield sweep.min.storage.eq(0xffff & (-(1 << 10)))
         yield sweep.run.storage.eq(1)
-        for i in range(n):
+        for i in range(3 * n):
             yield
+
+            if i == 1.5 * n:
+                yield sweep.run.storage.eq(0)
+            if i == 1.5 * n + 10:
+                yield sweep.run.storage.eq(1)
+
             out.append((yield sweep.y))
+            trig.append((yield sweep.sweep.trigger))
 
     n = 200
     out = []
+    trig = []
     dut = SweepCSR(width=16)
     run_simulation(dut, tb(dut, out, n), vcd_name="sweep.vcd")
-    plt.plot(out)
+    plt.plot(out, label='ramp output')
+    plt.plot([v * max(out) for v in trig], label='trigger_signal')
+    plt.legend()
     plt.show()
+
 
 
 if __name__ == "__main__":
