@@ -134,10 +134,10 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
                     pickle.dumps(last_combined_error_signal)
                 )
                 mean_signal, target_slope_rising, target_zoom, rolled_error_signal = \
-                    get_lock_point(last_combined_error_signal, int(x0), int(x))
+                    get_lock_point(last_combined_error_signal, *sorted((int(x0), int(x))))
                 self.autolock_ref_spectrum = rolled_error_signal
             else:
-                self.graph_on_selection(x0, x)
+                self.graph_on_selection(*sorted([x0, x]))
 
         self.overlay.setVisible(False)
         self.touch_start = None
