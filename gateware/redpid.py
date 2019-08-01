@@ -155,7 +155,7 @@ class PIDCSR(Module, AutoCSR):
         self.slow_value = CSRStatus(width)
 
         self.submodules.mod = Modulate(width=width)
-        self.submodules.sweep = SweepCSR(width=width, step_width=24, step_shift=18)
+        self.submodules.sweep = SweepCSR(width=width, step_width=30, step_shift=24)
         self.submodules.limit_error_signal = LimitCSR(width=width, guard=4)
         self.submodules.limit_fast1 = LimitCSR(width=width, guard=5)
         self.submodules.limit_fast2 = LimitCSR(width=width, guard=5)
