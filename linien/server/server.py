@@ -126,7 +126,8 @@ class RedPitayaControlService(BaseService):
         new parameters values have been written to the FPGA and that data that
         is now recorded is recorded with the correct parameters."""
         self.parameters.pause_acquisition.value = False
-        self._skip_next_data = 1
+        # FIXME: can this be less when slow?
+        self._skip_next_data = 3
 
 
 class FakeRedPitayaControl(BaseService):

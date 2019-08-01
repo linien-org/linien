@@ -152,14 +152,15 @@ class Autolock:
         self.history.append('shift %f' % (-1 * shift))
 
         if self.N_at_this_zoom == 0:
-            self._correct_current(shift)
 
             # if we are at the final zoom, we should be very quick.
             # Therefore, we just correct the current and turn the lock on
             # immediately. We skip the rest of this method (drift detection etc.)
-            next_step_is_lock = self.zoom_factor * ZOOM_STEP >= self.target_zoom
+            next_step_is_lock = self.zoom_factor >= self.target_zoom
             if next_step_is_lock:
                 return self._lock()
+            else:
+                self._correct_current(shift)
         else:
             # wait for some time after the last current correction
             if time() - self.time_last_current_correction < 1:
@@ -200,14 +201,13 @@ class Autolock:
             before turning on the lock.
             """
             center = self.parameters.center.value
-            ampl = self.parameters.ramp_amplitude.value
+            ampl = self.initial_ramp_amplitude / self.target_zoom
 
             slow_ramp = self.parameters.sweep_channel.value == ANALOG_OUT0
             slow_pid = self.parameters.pid_on_slow_enabled.value
 
             if not slow_ramp and not slow_pid:
                 mean = np.mean(control_signal) / 8192
-
                 return (center - ampl) <= mean <= (center + ampl)
             else:
                 if slow_pid and not slow_ramp:
@@ -288,9 +288,6 @@ class Autolock:
 
         self.parameters.autolock_approaching.value = False
 
-        self.parameters.ramp_amplitude.value = 0
-        self.control.exposed_write_data()
-        sleep(.1)
         self.control.exposed_start_lock()
 
         self.control.continue_acquisition()
