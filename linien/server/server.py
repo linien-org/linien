@@ -146,10 +146,11 @@ class FakeRedPitayaControl(BaseService):
         def run():
             while True:
                 max_ = randint(0, 8191)
-                self.parameters.to_plot.value = pickle.dumps((
-                    [randint(-max_, max_) for _ in range(16384)],
-                    list(_ - 8192 for _ in range(16384))
-                ))
+                gen = lambda: [randint(-max_, max_) for _ in range(16384)]
+                self.parameters.to_plot.value = pickle.dumps({
+                    'error_signal_1': gen(),
+                    'error_signal_2': gen()
+                })
                 sleep(.1)
         t = threading.Thread(target=run)
         t.daemon = True
