@@ -7,6 +7,9 @@ from linien.common import determine_shift_by_correlation, get_lock_point, \
     check_plot_data, ANALOG_OUT0
 
 
+ZOOM_STEP = 2
+
+
 class Autolock:
     """Spectroscopy autolock based on correlation."""
     def __init__(self, control, parameters):
@@ -24,7 +27,8 @@ class Autolock:
         self.zoom_factor = 1
         self.N_at_this_zoom = 0
         self.last_shifts_at_this_zoom = None
-        self.skipped = 0
+        self.time_last_current_correction = None
+        self.time_last_zoom = time()
         self.parameters.autolock_failed.value = False
         self.parameters.autolock_locked.value = False
         self.parameters.autolock_watching.value = False
@@ -85,6 +89,8 @@ class Autolock:
 
         is_locked = self.parameters.lock.value
 
+        # check that `plot_data` contains the information we need
+        # otherwise skip this round
         if not check_plot_data(is_locked, plot_data):
             return
 
@@ -103,34 +109,17 @@ class Autolock:
                 # we have already recorded a spectrum and are now approaching
                 # the line by decreasing the scan range and adapting the
                 # center current multiple times.
-
-                if self.skipped < 1:
-                    # after every step, we skip some data in order to let
-                    # the laser equilibrate
-                    self.skipped += 1
-                    return
-
-                self.skipped = 0
-
                 return self.approach_line(combined_error_signal)
 
             elif self.parameters.autolock_watching.value:
                 # the laser was locked successfully before. Now we check
                 # periodically whether the laser is still in lock
-
                 return self.watch_lock(error_signal, control_signal)
 
             else:
                 # we are done with approaching and have started the lock.
                 # skip some data and check whether we really are in lock
                 # afterwards.
-
-                if self.skipped < 3:
-                    self.skipped += 1
-                    return
-
-                self.skipped = 0
-
                 return self.after_lock(control_signal, plot_data.get('slow'))
 
         except Exception:
@@ -152,60 +141,47 @@ class Autolock:
         self.first_error_signal = rolled_error_signal
 
     def approach_line(self, error_signal):
+        if time() - self.time_last_zoom > 15:
+            raise Exception('autolock took too long')
+
         shift, zoomed_ref, zoomed_err = determine_shift_by_correlation(
             self.zoom_factor, self.first_error_signal, error_signal
         )
         shift *= self.initial_ramp_amplitude
         self.history.append((zoomed_ref, zoomed_err))
-
-        self.control.exposed_write_data()
         self.history.append('shift %f' % (-1 * shift))
 
-        self.parameters.center.value -= shift
-        self.control.exposed_write_data()
+        if self.N_at_this_zoom == 0:
+            self._correct_current(shift)
 
-        if self.N_at_this_zoom > 50:
-            raise Exception('max number of N_at_this_zoom exceeded: %d' % self.N_at_this_zoom)
+            # if we are at the final zoom, we should be very quick.
+            # Therefore, we just correct the current and turn the lock on
+            # immediately. We skip the rest of this method (drift detection etc.)
+            next_step_is_lock = self.zoom_factor * ZOOM_STEP >= self.target_zoom
+            if next_step_is_lock:
+                return self._lock()
+        else:
+            # wait for some time after the last current correction
+            if time() - self.time_last_current_correction < 1:
+                return
 
-        low_recording_rate = self.parameters.ramp_speed.value > 10
-
-        drift_finished = False
-        if self.last_shifts_at_this_zoom is not None:
             # check that the drift is slow
             # this is needed for systems that only react slowly to changes in
             # input parameters. In this case, we have to wait until the reaction
             # to the last input is done.
-            drift_is_slow = (np.abs(shift - self.last_shifts_at_this_zoom[-1])) \
-                            < (0.05 * self.parameters.ramp_amplitude.value)
+            shift_diff = np.abs(shift - self.last_shifts_at_this_zoom[-1])
+            drift_slow = shift_diff < self.initial_ramp_amplitude / self.target_zoom / 8
 
-            # if the drift changed sign, it is no drift but noise... This means
-            # that we should go on
-            if len(self.last_shifts_at_this_zoom) < 2:
-                drift_changed_sign = False
-            else:
-                drift_changed_sign = np.sign(shift - self.last_shifts_at_this_zoom[-1]) \
-                    != np.sign(self.last_shifts_at_this_zoom[-1] - self.last_shifts_at_this_zoom[-2])
+            # if data comes in very slowly (<1 Hz), we skip the drift analysis
+            # because it would take too much time
+            low_recording_rate = self.parameters.ramp_speed.value > 10
 
-            if drift_is_slow or drift_changed_sign:
-                drift_finished = True
-
-        if low_recording_rate or drift_finished:
-            self.N_at_this_zoom = 0
-            self.last_shifts_at_this_zoom = None
-
-            zoom_step = 2
-            self.zoom_factor *= zoom_step
-
-            self.control.pause_acquisition()
-
-            self.parameters.ramp_amplitude.value /= zoom_step
-            self.control.exposed_write_data()
-
-            if self.zoom_factor >= self.target_zoom:
-                self.parameters.autolock_approaching.value = False
-                self.control.exposed_start_lock()
-
-            self.control.continue_acquisition()
+            if low_recording_rate or drift_slow:
+                is_close_to_target = shift < self.parameters.ramp_amplitude.value / 8
+                if is_close_to_target:
+                    return self._decrease_scan_range()
+                else:
+                    self._correct_current(shift)
 
         self.N_at_this_zoom += 1
         self.last_shifts_at_this_zoom = self.last_shifts_at_this_zoom or []
@@ -220,7 +196,7 @@ class Autolock:
         def check_whether_in_lock(control_signal):
             """
             The laser is considered in lock if the mean value of the control
-            signal is within the boundaries of the smalles current ramp we had
+            signal is within the boundaries of the smallest current ramp we had
             before turning on the lock.
             """
             center = self.parameters.center.value
@@ -253,7 +229,7 @@ class Autolock:
                 if self.should_watch_lock:
                     return self.relock()
 
-                self.control.exposed_reset_scan()
+                self._reset_scan()
                 self.parameters.autolock_failed.value = True
                 self.remove_data_listener()
 
@@ -272,17 +248,11 @@ class Autolock:
         Relock the laser using the reference spectrum recorded in the first
         locking approach.
         """
-        self.reset_properties()
-        self.control.pause_acquisition()
-
         self.parameters.autolock_running.value = True
         self.parameters.autolock_approaching.value = True
 
-        self.parameters.center.value = self.initial_ramp_center
-        self.parameters.ramp_amplitude.value = self.initial_ramp_amplitude
-        self.control.exposed_start_ramp()
-
-        self.control.continue_acquisition()
+        self.reset_properties()
+        self._reset_scan()
 
         # add a listener that listens for new spectrum data and consequently
         # tries to relock.
@@ -297,4 +267,47 @@ class Autolock:
         self.parameters.autolock_watching.value = False
         self.remove_data_listener()
 
-        self.control.exposed_reset_scan()
+        self._reset_scan()
+
+    def _decrease_scan_range(self):
+        self.N_at_this_zoom = 0
+        self.last_shifts_at_this_zoom = None
+
+        self.zoom_factor *= ZOOM_STEP
+        self.time_last_zoom = time()
+
+        self.control.pause_acquisition()
+
+        self.parameters.ramp_amplitude.value /= ZOOM_STEP
+        self.control.exposed_write_data()
+
+        self.control.continue_acquisition()
+
+    def _lock(self):
+        self.control.pause_acquisition()
+
+        self.parameters.autolock_approaching.value = False
+
+        self.parameters.ramp_amplitude.value = 0
+        self.control.exposed_write_data()
+        sleep(.1)
+        self.control.exposed_start_lock()
+
+        self.control.continue_acquisition()
+
+    def _correct_current(self, shift):
+        self.control.pause_acquisition()
+        self.time_last_current_correction = time()
+
+        self.parameters.center.value -= shift
+        self.control.exposed_write_data()
+        self.control.continue_acquisition()
+
+    def _reset_scan(self):
+        self.control.pause_acquisition()
+
+        self.parameters.center.value = self.initial_ramp_center
+        self.parameters.ramp_amplitude.value = self.initial_ramp_amplitude
+        self.control.exposed_start_ramp()
+
+        self.control.continue_acquisition()

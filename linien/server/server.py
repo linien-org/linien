@@ -101,17 +101,6 @@ class RedPitayaControlService(BaseService):
 
         self.continue_acquisition()
 
-    def exposed_reset_scan(self):
-        """Resets scan mode."""
-        self.pause_acquisition()
-
-        self.parameters.ramp_amplitude.value = 1
-        self.parameters.center.value = 0
-        self.exposed_start_ramp()
-        self.exposed_write_data()
-
-        self.continue_acquisition()
-
     def exposed_shutdown(self):
         """Kills the server."""
         self.registers.acquisition.shutdown()
@@ -137,7 +126,7 @@ class RedPitayaControlService(BaseService):
         new parameters values have been written to the FPGA and that data that
         is now recorded is recorded with the correct parameters."""
         self.parameters.pause_acquisition.value = False
-        self._skip_next_data = 3
+        self._skip_next_data = 1
 
 
 class FakeRedPitayaControl(BaseService):
