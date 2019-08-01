@@ -13,6 +13,7 @@ from linien.common import update_control_signal_history, determine_shift_by_corr
     get_lock_point, control_signal_has_correct_amplitude, combine_error_signal, \
     check_plot_data
 
+pg.setConfigOptions(useOpenGL=True)
 
 class PlotWidget(pg.PlotWidget, CustomWidget):
     def __init__(self, *args, **kwargs):
@@ -27,7 +28,7 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         # important: increasing pen width makes plotting much slower!
         # alternative: pg.setConfigOptions(useOpenGL=True)
         # see: https://github.com/pyqtgraph/pyqtgraph/issues/533
-        pen_width = 1
+        pen_width = 2
 
         self.zero_line = pg.PlotCurveItem(pen=pg.mkPen('w', width=1))
         self.addItem(self.zero_line)
