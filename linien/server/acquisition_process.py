@@ -28,6 +28,8 @@ class DataAcquisitionService(Service):
 
         self.data = pickle.dumps(None)
         self.data_hash = None
+        self.skip_next_data = 0
+        self.data_uuid = None
 
         super(DataAcquisitionService, self).__init__()
 
@@ -67,18 +69,21 @@ class DataAcquisitionService(Service):
                 self.r.scope.data_decimation = 2 ** self.ramp_speed
                 self.r.scope.trigger_delay = trigger_delay - 1
 
-                self.data = pickle.dumps(data)
-                self.data_hash = random()
+                if self.skip_next_data:
+                    self.skip_next_data -= 1
+                else:
+                    self.data = pickle.dumps(data)
+                    self.data_hash = random()
 
         self.t = threading.Thread(target=run_acquiry_loop, args=())
         self.t.daemon = True
         self.t.start()
 
-    def exposed_get_data_hash(self):
-        return self.data_hash
-
-    def exposed_return_data(self):
-        return self.data[:]
+    def exposed_return_data(self, hash_):
+        if hash_ == self.data_hash or self.data_hash is None:
+            return False, None, None, None
+        else:
+            return True, self.data_hash, self.data[:], self.data_uuid
 
     def exposed_set_ramp_speed(self, speed):
         self.ramp_speed = speed
@@ -92,6 +97,11 @@ class DataAcquisitionService(Service):
     def exposed_set_iir_csr(self, *args):
         self.csr_iir_queue.append(args)
 
+    def exposed_clear_data_cache(self, uuid):
+        self.skip_next_data = 2
+        self.data_hash = None
+        self.data = None
+        self.data_uuid = uuid
 
 
 if __name__ == '__main__':

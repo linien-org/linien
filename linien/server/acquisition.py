@@ -21,6 +21,7 @@ class AcquisitionProcessSignals(Enum):
     SET_LOCK_STATUS = 3
     SET_CSR = 4
     SET_IIR_CSR = 5
+    CLEAR_DATA_CACHE = 6
 
 
 class AcquisitionMaster:
@@ -29,9 +30,9 @@ class AcquisitionMaster:
 
         def receive_acquired_data(conn):
             while True:
-                received = conn.recv()
+                received_data, data_uuid = conn.recv()
                 if self.on_acquisition is not None:
-                    self.on_acquisition(received)
+                    self.on_acquisition(received_data, data_uuid)
 
         self.acq_process, child_pipe = Pipe()
         p = Process(
@@ -85,15 +86,14 @@ class AcquisitionMaster:
                     acquisition.exposed_set_csr(*data[1])
                 elif data[0] == AcquisitionProcessSignals.SET_IIR_CSR:
                     acquisition.exposed_set_iir_csr(*data[1])
+                elif data[0] == AcquisitionProcessSignals.CLEAR_DATA_CACHE:
+                    acquisition.exposed_clear_data_cache(data[1])
 
             # load acquired data and send it to the main thread
-            current_hash = acquisition.exposed_get_data_hash()
-
-            if current_hash != last_hash:
-                last_hash = current_hash
-
-                data = acquisition.exposed_return_data()
-                pipe.send(data)
+            new_data_returned, new_hash, new_data, data_uuid = acquisition.exposed_return_data(last_hash)
+            if new_data_returned:
+                last_hash = new_hash
+                pipe.send((new_data, data_uuid))
 
             sleep(0.05)
 
@@ -118,4 +118,9 @@ class AcquisitionMaster:
     def set_iir_csr(self, *args):
         self.acq_process.send(
             (AcquisitionProcessSignals.SET_IIR_CSR, args)
+        )
+
+    def clear_data_cache(self, uuid):
+        self.acq_process.send(
+            (AcquisitionProcessSignals.CLEAR_DATA_CACHE, uuid)
         )

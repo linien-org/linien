@@ -7,6 +7,7 @@ import pickle
 
 import rpyc
 from rpyc.utils.server import ThreadedServer
+from random import random
 
 from autolock import Autolock
 from parameters import Parameters
@@ -28,46 +29,45 @@ class RedPitayaControlService(BaseService):
         self.registers = Registers(**kwargs)
         self.registers.connect(self, self.parameters)
 
-        self._skip_next_data = 0
-
     def run_acquiry_loop(self):
         """Starts a background process that keeps polling control and error
         signal. Every received value is pushed to `parameters.to_plot`."""
-        def data_received(plot_data):
+        def data_received(plot_data, data_uuid):
             # When a parameter is changed, `pause_acquisition` is set.
             # This means that the we should skip new data until we are sure that
             # it was recorded with the new settings.
             if not self.parameters.pause_acquisition.value:
-                if self._skip_next_data > 1:
-                    self._skip_next_data -= 1
+                if data_uuid != self.data_uuid:
+                    return
+
+                s1, s2, slow_out = pickle.loads(plot_data)
+                is_locked = self.parameters.lock.value
+
+                if is_locked:
+                    data = {
+                        'error_signal': s1,
+                        'control_signal': s2
+                    }
+                    if self.parameters.pid_on_slow_enabled.value:
+                        data['slow'] = slow_out
                 else:
-                    s1, s2, slow_out = pickle.loads(plot_data)
-                    is_locked = self.parameters.lock.value
+                    data = {
+                        'error_signal_1': s1,
+                        'error_signal_2': s2
+                    }
 
-                    if is_locked:
-                        data = {
-                            'error_signal': s1,
-                            'control_signal': s2
-                        }
-                        if self.parameters.pid_on_slow_enabled.value:
-                            data['slow'] = slow_out
-                    else:
-                        data = {
-                            'error_signal_1': s1,
-                            'error_signal_2': s2
-                        }
+                self.parameters.to_plot.value = pickle.dumps(data)
 
-                    self.parameters.to_plot.value = pickle.dumps(data)
-
-                    self.parameters.control_signal_history.value = \
-                        update_control_signal_history(
-                            self.parameters.control_signal_history.value,
-                            data,
-                            is_locked,
-                            self.parameters.control_signal_history_length.value
-                        )
+                self.parameters.control_signal_history.value = \
+                    update_control_signal_history(
+                        self.parameters.control_signal_history.value,
+                        data,
+                        is_locked,
+                        self.parameters.control_signal_history_length.value
+                    )
 
         self.registers.run_data_acquisition(data_received)
+        self.continue_acquisition()
 
     def exposed_write_data(self):
         """Syncs the parameters with the FPGA registers."""
@@ -126,8 +126,8 @@ class RedPitayaControlService(BaseService):
         new parameters values have been written to the FPGA and that data that
         is now recorded is recorded with the correct parameters."""
         self.parameters.pause_acquisition.value = False
-        # FIXME: can this be less when slow?
-        self._skip_next_data = 3
+        self.data_uuid = random()
+        self.registers.acquisition.clear_data_cache(self.data_uuid)
 
 
 class FakeRedPitayaControl(BaseService):

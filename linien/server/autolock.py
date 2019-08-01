@@ -152,7 +152,6 @@ class Autolock:
         self.history.append('shift %f' % (-1 * shift))
 
         if self.N_at_this_zoom == 0:
-
             # if we are at the final zoom, we should be very quick.
             # Therefore, we just correct the current and turn the lock on
             # immediately. We skip the rest of this method (drift detection etc.)
