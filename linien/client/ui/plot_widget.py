@@ -269,7 +269,8 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
                 self.plot_min = math.floor(np.min(all_))
                 self.plot_max = math.ceil(np.max(all_))
             else:
-                self.plot_min, self.plot_max = self.parameters.y_axis_limits.value
+                limit = self.parameters.y_axis_limits.value
+                self.plot_min, self.plot_max = -limit, limit
 
             if self.plot_min == self.plot_max:
                 self.plot_max += 1

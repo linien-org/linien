@@ -1327,8 +1327,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>228</width>
-            <height>277</height>
+            <width>338</width>
+            <height>438</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1512,8 +1512,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>100</width>
-            <height>30</height>
+            <width>338</width>
+            <height>438</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -1592,41 +1592,14 @@
                 <item>
                  <widget class="QLabel" name="label_13">
                   <property name="text">
-                   <string>maximum</string>
+                   <string>Y-axis range (±)</string>
                   </property>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QSpinBox" name="y_axis_maximum">
+                 <widget class="QSpinBox" name="y_axis_limit">
                   <property name="minimum">
-                   <number>-8192</number>
-                  </property>
-                  <property name="maximum">
-                   <number>8192</number>
-                  </property>
-                  <property name="singleStep">
-                   <number>100</number>
-                  </property>
-                  <property name="stepType">
-                   <enum>QAbstractSpinBox::AdaptiveDecimalStepType</enum>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-              <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_14">
-                <item>
-                 <widget class="QLabel" name="label_12">
-                  <property name="text">
-                   <string>minimum</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QSpinBox" name="y_axis_minimum">
-                  <property name="minimum">
-                   <number>-8192</number>
+                   <number>0</number>
                   </property>
                   <property name="maximum">
                    <number>8192</number>
@@ -1706,8 +1679,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>100</width>
-            <height>30</height>
+            <width>338</width>
+            <height>438</height>
            </rect>
           </property>
           <property name="sizePolicy">
