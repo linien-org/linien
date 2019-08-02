@@ -114,6 +114,12 @@ class RedPitayaControlService(BaseService):
     def exposed_get_restorable_parameters(self):
         return self.parameters.restorable_parameters
 
+    def exposed_pause_acquisition(self):
+        self.pause_acquisition()
+    
+    def exposed_continue_acquisition(self):
+        self.continue_acquisition()
+
     def pause_acquisition(self):
         """Pause continuous acquisition. Call this before changing a parameter
         that alters the error / control signal. This way, no inconsistent signals
