@@ -114,27 +114,18 @@ class PID(Module, AutoCSR):
             self.kd_reg_s.eq(kd_reg - kd_reg_r)
         ]
 
-
     def calculate_sum(self):
         self.pid_sum = Signal((33, True))
         self.pid_out = Signal((self.width, True))
 
-        _or = self.pid_sum[13:32-1] > 0
-        _and = 1
-        bits = list(n + 13 for n in range(33-13))
-        for bit in bits:
-            _and = _and & self.pid_sum[bit]
-        _and = _and == 0
-
         self.sync += [
-            If((self.pid_sum[-1] == 0) & (_or), # positive overflow
+            If(self.pid_sum > self.max_pos, # positive overflow
                 self.pid_out.eq(self.max_pos)
-            ).Elif((self.pid_sum[-1] == 1) & (_and), # negative overflow
+            ).Elif(self.pid_sum < self.max_neg, # negative overflow
                 self.pid_out.eq(self.max_neg)
             ).Else(
                 self.pid_out.eq(self.pid_sum[:14])
             )
-            #self.pid_out.eq(pid_sum[:self.width])
         ]
 
         self.comb += [

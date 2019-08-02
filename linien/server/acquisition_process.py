@@ -55,10 +55,14 @@ class DataAcquisitionService(Service):
                     sleep(.05)
                     continue
 
+                def correct_value(v):
+                    """For some reason, -8191 ends up as 8192. This is a
+                    (dirty) fix for that."""
+                    return int(v) if int(v) != 8192 else -8191
+
                 data = [
-                    [int(i) for i in channel[:]]
-                    for channel in
-                    (self.r.scope.data_ch1, self.r.scope.data_ch2)
+                    [correct_value(v) for v in channel[:]]
+                    for channel in (self.r.scope.data_ch1, self.r.scope.data_ch2)
                 ]
 
                 slow_out = self.csr.get('root_slow_value')
