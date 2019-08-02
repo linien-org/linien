@@ -13,7 +13,11 @@ from linien.common import update_control_signal_history, determine_shift_by_corr
     get_lock_point, control_signal_has_correct_amplitude, combine_error_signal, \
     check_plot_data
 
+# NOTE: this is required for using a pen_width > 1.
+# There is a bug though that causes the plot to be way too small. Therefore,
+# we call PlotWidget.resize() after a while
 pg.setConfigOptions(useOpenGL=True)
+
 
 class PlotWidget(pg.PlotWidget, CustomWidget):
     def __init__(self, *args, **kwargs):
@@ -25,9 +29,12 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         self.setMouseEnabled(x=False, y=False)
         self.setMenuEnabled(False)
 
-        # important: increasing pen width makes plotting much slower!
-        # alternative: pg.setConfigOptions(useOpenGL=True)
-        # see: https://github.com/pyqtgraph/pyqtgraph/issues/533
+        # NOTE: increasing the pen width requires OpenGL, otherwise painting
+        # gets horribly slow.
+        # See: https://github.com/pyqtgraph/pyqtgraph/issues/533
+        # OpenGL is enabled in the beginning of thils file.
+        # NOTE: OpenGL has a bug that causes the plot to be way too small.
+        # Therefore, self.resize() is called below.
         pen_width = 2
 
         self.zero_line = pg.PlotCurveItem(pen=pg.mkPen('w', width=1))
@@ -75,6 +82,11 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         self.control_signal_history_data = self.parameters.control_signal_history.value
 
         self.parameters.to_plot.change(self.replot)
+
+        # NOTE: this is necessary if OpenGL is activated. Otherwise, the
+        # plot is way too small. This command apparently causes a repaint
+        # and works fine even though the values are nonsense.
+        self.resize(100, 100)
 
     def mouseMoveEvent(self, event):
         if self.touch_start is None:
