@@ -15,6 +15,7 @@ from parameters import Parameters
 from linien.config import SERVER_PORT
 from linien.common import update_control_signal_history
 from linien.communication.server import BaseService
+from linien.server.optimization.optimization import OptimizeSpectroscopy
 
 
 class RedPitayaControlService(BaseService):
@@ -73,16 +74,26 @@ class RedPitayaControlService(BaseService):
         """Syncs the parameters with the FPGA registers."""
         self.registers.write_registers()
 
+    def task_running(self):
+        return self.parameters.autolock_running.value or \
+            self.parameters.optimization_running.value
+
     def exposed_start_autolock(self, x0, x1, spectrum, auto_offset=True):
         spectrum = pickle.loads(spectrum)
         start_watching = self.parameters.watch_lock.value
         auto_offset = self.parameters.autolock_determine_offset.value
 
-        if not self.parameters.autolock_running.value:
+        if not self.task_running():
             autolock = Autolock(self, self.parameters)
             self.parameters.task.value = autolock
             autolock.run(x0, x1, spectrum, should_watch_lock=start_watching,
                          auto_offset=auto_offset)
+
+    def exposed_start_optimization(self, xmin, xmax):
+        if not self.task_running():
+            optim = OptimizeSpectroscopy(self, self.parameters)
+            self.parameters.task.value = optim
+            optim.run(xmin, xmax)
 
     def exposed_start_ramp(self):
         self.pause_acquisition()
@@ -116,7 +127,7 @@ class RedPitayaControlService(BaseService):
 
     def exposed_pause_acquisition(self):
         self.pause_acquisition()
-    
+
     def exposed_continue_acquisition(self):
         self.continue_acquisition()
 
@@ -168,6 +179,10 @@ class FakeRedPitayaControl(BaseService):
 
     def exposed_start_autolock(self, x0, x1, spectrum):
         print('start autolock', x0, x1)
+
+    def exposed_start_optimization(self, xmin, xmax):
+        print('start optimization')
+        self.parameters.optimization_running.value = True
 
     def exposed_get_restorable_parameters(self):
         return self.parameters.restorable_parameters
