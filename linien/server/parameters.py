@@ -26,6 +26,7 @@ class Parameters(BaseParameters):
             'polarity_analog_out0', 'autoscale_y', 'y_axis_limits'
         )
 
+        # FIXME: use Vpp und MHz from common as start parameters
         self.modulation_amplitude = Parameter(
             min_=0,
             max_=(1<<14) - 1,
@@ -123,3 +124,6 @@ class Parameters(BaseParameters):
 
         self.autoscale_y = Parameter(start=True)
         self.y_axis_limits = Parameter(start=1000)
+
+        self.watch_lock_reset = Parameter(start=False)
+        self.watch_lock_time_constant = Parameter(start=int(1e5))

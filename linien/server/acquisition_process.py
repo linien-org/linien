@@ -65,6 +65,10 @@ class DataAcquisitionService(Service):
                     for channel in (self.r.scope.data_ch1, self.r.scope.data_ch2)
                 ]
 
+                # FIXME: remove
+                lost = self.csr.get('root_watcher_lock_lost')
+                print('LOCK_LOST', lost)
+
                 slow_out = self.csr.get('root_slow_value')
                 slow_out = slow_out if slow_out <= 8191 else slow_out - 16384
                 data += [slow_out]
