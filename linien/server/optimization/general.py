@@ -8,39 +8,39 @@ Params = NewType('Params', List[float])
 class Optimizer:
     """Interface for the "Optimizer" type classes."""
 
-    def __init__(self) -> None:
-        self._generation: int = 0
+    def __init__(self):
+        self._generation = 0
         """Generation counter."""
 
-        self._upper_limits: List[Optional[float]] = []
+        self._upper_limits = []
         """Upper parameter limit for each dimension."""
 
-        self._lower_limits: List[Optional[float]] = []
+        self._lower_limits = []
         """Lower parameter limit for each dimension."""
 
         self._boundary_conditions = []
         """Complex boundary conditions list"""
 
-    def request_parameter_set(self) -> Params:
+    def request_parameter_set(self):
         """Ask the engine for a new param set to try out."""
 
         raise NotImplementedError("request_parameter_set is not implemented.")
         return []
 
-    def insert_fitness_value(self, fitness: float, set: Params) -> None:
+    def insert_fitness_value(self, fitness, set):
         """Tell the engine about our experiment result."""
         raise NotImplementedError("insert_fitness_value not implemented")
 
-    def request_results(self) -> List[Params]:
+    def request_results(self):
         """Return a list of promising results."""
         raise NotImplementedError("request_results not implemented")
         return []
 
     @property
-    def generation(self) -> int:
+    def generation(self):
         return self._generation
 
-    def _truncate_parameters(self, params: Params) -> Params:
+    def _truncate_parameters(self, params):
         """Make sure the passed list of parameters is within [min, max] if available respectively."""
 
         if self._lower_limits != []:
@@ -59,7 +59,7 @@ class Optimizer:
 class Individual:
     """A parameter set of an optimization algorithm."""
 
-    def __init__(self, param_set: Params, fitness: float):
+    def __init__(self, param_set, fitness):
         self.param_set = param_set
         self.fitness = fitness
         self.generation = 0
@@ -69,7 +69,7 @@ class Individual:
 
     def __gt__(self, other):
         return self.fitness > other.fitness
-    
+
     def __copy__(self):
         ind = Individual(self.param_set.copy(), self.fitness)
         ind.generation = self.generation

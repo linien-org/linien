@@ -6,9 +6,7 @@ from time import sleep, time
 from scipy.signal import resample
 
 from linien.communication.client import BaseClient
-from linien.client.connection import MHz, Vpp
-from linien.common import determine_shift_by_correlation
-from matplotlib import pyplot as plt
+from linien.common import determine_shift_by_correlation, MHz, Vpp
 
 from .cma_es import CMAES
 
@@ -79,8 +77,10 @@ class OptimizeSpectroscopy:
         self.set_parameters(new_params)
 
     def react_to_new_spectrum(self, spectrum):
+        params = self.parameters
+
         self.iteration += 1
-        pickle.loads(spectrum)['error_signal_1']
+        spectrum = pickle.loads(spectrum)['error_signal_1']
 
         if self.initial_spectrum is None:
             params = self.parameters
@@ -92,41 +92,41 @@ class OptimizeSpectroscopy:
             self.last_parameters = self.initial_params
             self.initial_diff = get_max_diff(spectrum)
 
-        print('iteration', self.iteration)
-
         center_line = is_centering_iteration(self.iteration)
         center_line_next_time = is_centering_iteration(self.iteration + 1)
 
-        if center_line:
-            # center the line again
-            shift, _, _2 = determine_shift_by_correlation(
-                1, self.initial_spectrum, spectrum
-            )
-            shift *= params.ramp_amplitude.value
-            params.center.value -= shift
-            self.control.connection.root.write_data()
-        else:
-            max_diff = get_max_diff(spectrum)
-            improvement = (max_diff - self.initial_diff) / self.initial_diff
-            if improvement > 0 and improvement > self.parameters.optimization_improvement.value:
-                self.parameters.optimization_improvement.value = improvement
+        if self.iteration > 1:
+            if center_line:
+                # center the line again
+                shift, _, _2 = determine_shift_by_correlation(
+                    1, self.initial_spectrum, spectrum
+                )
+                shift *= params.ramp_amplitude.value
+                params.center.value -= shift
+                self.control.exposed_write_data()
+            else:
+                max_diff = get_max_diff(spectrum)
+                improvement = (max_diff - self.initial_diff) / self.initial_diff
+                if improvement > 0 and improvement > params.optimization_improvement.value:
+                    params.optimization_improvement.value = improvement
 
-            fitness = math.log(1 / max_diff)
-            print('fitness', fitness)
+                fitness = math.log(1 / max_diff)
+                print('fitness', fitness)
 
-            self.fitness_arr.append(fitness)
-            self.opt.insert_fitness_value(fitness, self.last_parameters)
+                self.fitness_arr.append(fitness)
+                self.opt.insert_fitness_value(fitness, self.last_parameters)
 
         self.request_new_parameters(use_initial_parameters=center_line_next_time)
 
-    def stop(self, use_new_parameters):
+    def exposed_stop(self, use_new_parameters):
         if use_new_parameters:
             optimized_parameters = convert_params(
                 self.opt.request_results()[0], self.xmin, self.xmax
             )
             self.set_parameters(optimized_parameters)
 
-        self.parameters.optimization_running.value = True
+        self.parameters.optimization_running.value = False
+        self.parameters.to_plot.remove_listener(self.react_to_new_spectrum)
 
     def set_parameters(self, new_params):
         params = self.parameters

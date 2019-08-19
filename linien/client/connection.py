@@ -8,15 +8,12 @@ from PyQt5.QtCore import QThread, pyqtSignal
 from paramiko.ssh_exception import AuthenticationException
 
 from linien.config import SERVER_PORT
+from linien.common import MHz, Vpp
 from linien.client.utils import run_server
 from linien.client.config import save_parameter, get_saved_parameters
 from linien.client.exceptions import GeneralConnectionErrorException, \
     InvalidServerVersionException, ServerNotInstalledException
 from linien.communication.client import BaseClient
-
-
-MHz = 0x10000000 / 8
-Vpp = ((1<<14) - 1) / 4
 
 
 class ConnectionThread(QThread):

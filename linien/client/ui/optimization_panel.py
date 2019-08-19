@@ -40,7 +40,7 @@ class OptimizationPanel(QtGui.QWidget, CustomWidget):
             p.change(mod_param_changed)
 
         def improvement_changed(improvement):
-            self.ids.optimization_improvement.setText('%d %%' % improvement)
+            self.ids.optimization_improvement.setText('%d %%' % (improvement * 100))
         params.optimization_improvement.change(improvement_changed)
 
     def start_optimization(self):
