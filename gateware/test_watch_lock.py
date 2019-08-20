@@ -1,3 +1,5 @@
+import random
+
 from migen import *
 from migen.fhdl import verilog
 from migen.sim import Simulator
@@ -6,44 +8,36 @@ from misoc.interconnect.csr import CSRStorage
 from watch_lock import WatchLock
 
 def testbench(watcher: WatchLock):
-    time_constant = 10
+    time_constant = 1000
     yield from watcher.time_constant.write(time_constant)
+    yield from watcher.threshold.write(int(.1 * time_constant))
     yield from watcher.reset.write(1)
     yield from watcher.reset.write(0)
 
     for reset_on in (0, 1, 0):
         yield from watcher.reset.write(reset_on)
 
-        for iteration in range(5):
-            for sign in (1, -1):
-                yield watcher.error_signal.eq(sign)
-
-                for counter1 in range(time_constant - 1):
+        for even in (True, False):
+            for iteration in range(5):
+                for t in range(time_constant):
+                    if even:
+                        yield watcher.error_signal.eq(random.choice([-1, 1]))
+                    else:
+                        yield watcher.error_signal.eq(random.choice(
+                            ([-1] * 12) + [1] * 10
+                        ))
                     yield
 
-                    counter2 = yield watcher.counter
+                    lock_lost_status = yield watcher.lock_lost.status
 
-                    if counter1 > 3:
-                        if reset_on:
-                            assert counter2 == 0
-                        else:
-                            assert counter2 == counter1 - 2
-                            lock_lost_status = yield watcher.lock_lost.status
-                            assert not lock_lost_status
+                    if even:
+                        assert not lock_lost_status
 
-    yield from watcher.reset.write(1)
-    yield from watcher.reset.write(0)
-
-    for i in range(time_constant):
-        yield
-
-    lock_lost = yield watcher.lock_lost.status
-    assert lock_lost == 0
-
-    for i in range(1000):
-        yield
-        lock_lost = yield watcher.lock_lost.status
-        assert lock_lost == 1
+            if reset_on:
+                assert not lock_lost_status
+            else:
+                if not even:
+                    assert lock_lost_status
 
     yield from watcher.reset.write(1)
     yield
