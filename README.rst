@@ -70,7 +70,11 @@ Then, you can enter your RedPitaya's credentials and connect. If you agree, lini
 Physical setup
 ##############
 
-Linien aims to be self-explanatory. The first tab of the right panel displays the physical setup, depending on the settings. `See here <https://redpitaya.readthedocs.io/en/latest/_images/Extension_connector.png>`_ for an overview of RP's pins.
+The default setup looks like this:
+
+.. image:: setup.png
+
+You can also configure linien for different setups, e.g. if you want to have the modulation frequency and the control on the same output.
 
 .. image:: explain-pins.png
 
@@ -163,6 +167,22 @@ Releasing a new version
 First, update the version number in the `VERSION` file.
 Then you can build and upload the package to pypi using `scripts/upload_pypi.sh`.
 Finally, build the standalone client using `build_standalone_client.sh` (you have to do this on the platform you want to build the standalone client for). The standalone client should be uploaded to a github release.
+
+Troubleshooting
+###############
+
+Connection problems
+-------------------
+
+If the client fails to connect to a RedPitaya, first check whether you can ping it by executing
+
+..  code-block:: bash
+
+    ping rp-f0xxxx.local
+
+in a command line.
+
+
 
 See Also
 ########
