@@ -94,9 +94,8 @@ class DeviceManager(QtGui.QMainWindow, CustomWidget):
             loading_dialog.hide()
             if not aborted:
                 display_error = 'Error at SSH authentication. ' \
-                        'Check username and password and verify that you ' \
-                        'don\'t have any offending SSH keys in your known ' \
-                        'hosts file.'
+                        'Check username and password (by default both are "root") and verify that you ' \
+                        'don\'t have any offending SSH keys in your known hosts file.'
                 error_dialog(self, display_error)
         self.t.authentication_exception.connect(authentication_exception)
 
