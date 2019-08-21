@@ -116,7 +116,7 @@ class RedPitayaControlService(BaseService):
 
     def exposed_pause_acquisition(self):
         self.pause_acquisition()
-    
+
     def exposed_continue_acquisition(self):
         self.continue_acquisition()
 

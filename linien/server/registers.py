@@ -122,7 +122,6 @@ class Registers:
 
             root_watcher_reset=int(params['watch_lock_reset']),
             root_watcher_time_constant=params['watch_lock_time_constant'],
-            root_watcher_threshold=params['watch_lock_threshold'],
         )
 
         if lock:

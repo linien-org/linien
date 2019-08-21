@@ -120,7 +120,7 @@ class Autolock:
                 # we are done with approaching and have started the lock.
                 # skip some data and check whether we really are in lock
                 # afterwards.
-                return self.after_lock(control_signal, plot_data.get('slow'))
+                return self.after_lock(error_signal, control_signal, plot_data.get('slow'))
 
         except Exception:
             traceback.print_exc()
@@ -187,7 +187,7 @@ class Autolock:
         self.last_shifts_at_this_zoom = self.last_shifts_at_this_zoom or []
         self.last_shifts_at_this_zoom.append(shift)
 
-    def after_lock(self, control_signal, slow_out):
+    def after_lock(self, error_signal, control_signal, slow_out):
         """After locking, this method checks whether the laser really is locked.
 
         If desired, it automatically tries to relock if locking failed, or
@@ -215,6 +215,34 @@ class Autolock:
 
                 return (center - ampl) <= slow_out / 8192 <= (center + ampl)
 
+        def program_watcher(error_signal):
+            def determine_longest(data):
+                last_sign = 0
+                counter = 0
+                max_counter = 0
+
+                for i, d in enumerate(data):
+                    sign = np.sign(d)
+                    if sign != last_sign:
+                        counter = 0
+                        last_sign = sign
+                    else:
+                        counter += 1
+                        if counter > max_counter:
+                            max_counter = counter
+
+                return max_counter
+
+            max_counter = determine_longest(error_signal)
+            self.parameters.watch_lock_reset.value = 1
+            self.parameters.watch_lock_time_constant.value = max_counter * 2
+            print('MAX', max_counter)
+            self.control.exposed_write_data()
+            self.parameters.watch_lock_reset.value = 0
+            self.control.exposed_write_data()
+
+
+        program_watcher(error_signal)
         self.parameters.autolock_locked.value = check_whether_in_lock(control_signal)
 
         if self.parameters.autolock_locked.value and self.should_watch_lock:

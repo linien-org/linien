@@ -127,4 +127,3 @@ class Parameters(BaseParameters):
 
         self.watch_lock_reset = Parameter(start=False)
         self.watch_lock_time_constant = Parameter(start=int(1e5))
-        self.watch_lock_threshold = Parameter(start=int(.5 * 1e5))
