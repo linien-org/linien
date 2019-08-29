@@ -809,7 +809,7 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>340</width>
+            <width>328</width>
             <height>679</height>
            </rect>
           </property>
@@ -1327,8 +1327,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>338</width>
-            <height>438</height>
+            <width>228</width>
+            <height>277</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1512,8 +1512,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>338</width>
-            <height>438</height>
+            <width>96</width>
+            <height>26</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -1536,8 +1536,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>338</width>
-            <height>438</height>
+            <width>96</width>
+            <height>26</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1597,18 +1597,28 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QSpinBox" name="y_axis_limit">
-                  <property name="minimum">
-                   <number>0</number>
-                  </property>
+                 <widget class="QDoubleSpinBox" name="y_axis_limit">
                   <property name="maximum">
-                   <number>8192</number>
+                   <double>1.000000000000000</double>
                   </property>
                   <property name="singleStep">
-                   <number>100</number>
+                   <double>0.100000000000000</double>
                   </property>
                   <property name="stepType">
                    <enum>QAbstractSpinBox::AdaptiveDecimalStepType</enum>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label_12">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="text">
+                   <string>V</string>
                   </property>
                  </widget>
                 </item>
@@ -1679,8 +1689,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>338</width>
-            <height>438</height>
+            <width>96</width>
+            <height>26</height>
            </rect>
           </property>
           <property name="sizePolicy">

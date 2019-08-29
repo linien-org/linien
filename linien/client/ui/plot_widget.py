@@ -18,6 +18,9 @@ from linien.common import update_control_signal_history, determine_shift_by_corr
 # we call PlotWidget.resize() after a while
 pg.setConfigOptions(useOpenGL=True)
 
+# relation between counts and 1V
+V = 8192
+
 
 class PlotWidget(pg.PlotWidget, CustomWidget):
     def __init__(self, *args, **kwargs):
@@ -241,15 +244,15 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
 
     def plot_data_unlocked(self, error_signals, combined_signal):
         error_signal1, error_signal2 = error_signals
-        self.signal1.setData(list(range(len(error_signal1))), error_signal1)
-        self.signal2.setData(list(range(len(error_signal2))), error_signal2)
-        self.combined_signal.setData(list(range(len(combined_signal))), combined_signal)
+        self.signal1.setData(list(range(len(error_signal1))), np.array(error_signal1) / V)
+        self.signal2.setData(list(range(len(error_signal2))), np.array(error_signal2) / V)
+        self.combined_signal.setData(list(range(len(combined_signal))), np.array(combined_signal) / V)
 
     def plot_data_locked(self, signals):
         error_signal = signals['error_signal']
         control_signal = signals['control_signal']
-        self.combined_signal.setData(list(range(len(error_signal))), error_signal)
-        self.control_signal.setData(list(range(len(error_signal))), control_signal)
+        self.combined_signal.setData(list(range(len(error_signal))), np.array(error_signal) / V)
+        self.control_signal.setData(list(range(len(error_signal))), np.array(control_signal) / V)
 
     def plot_autolock_target_line(self, combined_error_signal):
         if self.autolock_ref_spectrum is not None and self.parameters.autolock_approaching.value:
@@ -278,14 +281,14 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
                 all_ += signal
 
             if self.parameters.autoscale_y.value:
-                self.plot_min = math.floor(np.min(all_))
-                self.plot_max = math.ceil(np.max(all_))
+                self.plot_min = np.min(all_) / V
+                self.plot_max = np.max(all_) / V
             else:
                 limit = self.parameters.y_axis_limits.value
                 self.plot_min, self.plot_max = -limit, limit
 
             if self.plot_min == self.plot_max:
-                self.plot_max += 1
+                self.plot_max += 0.1
 
             self.setYRange(self.plot_min, self.plot_max)
 
@@ -312,13 +315,13 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
             history = self.control_signal_history_data['values']
             self.control_signal_history.setData(
                 scale(self.control_signal_history_data['times']),
-                history
+                np.array(history) / V
             )
 
             slow_values = self.control_signal_history_data['slow_values']
             self.slow_history.setData(
                 scale(self.control_signal_history_data['slow_times']),
-                slow_values
+                np.array(slow_values) / V
             )
 
             return history, slow_values

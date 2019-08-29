@@ -123,7 +123,7 @@ class Parameters(BaseParameters):
         self.polarity_analog_out0 = Parameter(start=False)
 
         self.autoscale_y = Parameter(start=True)
-        self.y_axis_limits = Parameter(start=1000)
+        self.y_axis_limits = Parameter(start=1)
 
         self.watch_lock_reset = Parameter(start=False)
         self.watch_lock_time_constant = Parameter(start=int(1e5))

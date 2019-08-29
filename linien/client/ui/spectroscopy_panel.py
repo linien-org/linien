@@ -95,7 +95,7 @@ class SpectroscopyPanel(QtWidgets.QWidget, CustomWidget):
             )
 
     def change_signal_offset(self):
-        self.get_param('offset').value = self.ids.signal_offset.value()
+        self.get_param('offset').value = self.ids.signal_offset.value() * 8191
         self.control.write_data()
 
     def change_demod_phase(self):
