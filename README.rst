@@ -180,7 +180,14 @@ If the client fails to connect to a RedPitaya, first check whether you can ping 
 
     ping rp-f0xxxx.local
 
-in a command line.
+in a command line. If this works, check whether you can connect via SSH.
+On Windows, you have to `install a SSH client <https://www.putty.org>`_, on linux you can execute
+
+..  code-block:: bash
+
+    ssh rp-f0xxxx.local
+
+on the command line.
 
 
 
