@@ -35,7 +35,7 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         # NOTE: increasing the pen width requires OpenGL, otherwise painting
         # gets horribly slow.
         # See: https://github.com/pyqtgraph/pyqtgraph/issues/533
-        # OpenGL is enabled in the beginning of thils file.
+        # OpenGL is enabled in the beginning of this file.
         # NOTE: OpenGL has a bug that causes the plot to be way too small.
         # Therefore, self.resize() is called below.
         pen_width = 2
@@ -73,6 +73,8 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         self.init_overlay()
         self.init_lock_target_line()
 
+        self._fixed_opengl_bug = False
+
     def _to_data_coords(self, event):
         pos = self.plotItem.vb.mapSceneToView(event.pos())
         x, y = pos.x(), pos.y()
@@ -85,11 +87,6 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         self.control_signal_history_data = self.parameters.control_signal_history.value
 
         self.parameters.to_plot.change(self.replot)
-
-        # NOTE: this is necessary if OpenGL is activated. Otherwise, the
-        # plot is way too small. This command apparently causes a repaint
-        # and works fine even though the values are nonsense.
-        self.resize(100, 100)
 
     def mouseMoveEvent(self, event):
         if self.touch_start is None:
@@ -189,6 +186,16 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         self.control.write_data()
 
     def replot(self, to_plot):
+        # NOTE: this is necessary if OpenGL is activated. Otherwise, the
+        # plot is way too small. This command apparently causes a repaint
+        # and works fine even though the values are nonsense.
+        if not self._fixed_opengl_bug:
+            self._fixed_opengl_bug = True
+            self.resize(
+                self.parent().frameGeometry().width(),
+                self.parent().frameGeometry().height()
+            )
+
         if self.parameters.pause_acquisition.value:
             return
 
