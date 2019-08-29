@@ -16,7 +16,13 @@ from linien.common import update_control_signal_history, determine_shift_by_corr
 # NOTE: this is required for using a pen_width > 1.
 # There is a bug though that causes the plot to be way too small. Therefore,
 # we call PlotWidget.resize() after a while
-pg.setConfigOptions(useOpenGL=True)
+pg.setConfigOptions(
+    useOpenGL=True,
+    # by default, pyqtgraph tries to clean some things up using atexit.
+    # This causes problems with rpyc objects as their connection is already
+    # closed. Therefore, we disable this cleanup.
+    exitCleanup=False
+)
 
 # relation between counts and 1V
 V = 8192
