@@ -77,6 +77,15 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
 
         self.ids.settings_toolbox.setCurrentIndex(0)
 
+        def center_or_amplitude_changed(_):
+            center = params.center.value
+            amplitude = params.ramp_amplitude.value
+
+            self.ids.go_right_btn.setEnabled(center + amplitude < 1)
+            self.ids.go_left_btn.setEnabled(center - amplitude > -1)
+        params.ramp_amplitude.change(center_or_amplitude_changed)
+        params.center.change(center_or_amplitude_changed)
+
     def go_right(self):
         self.change_center(True)
 
