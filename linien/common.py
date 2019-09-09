@@ -2,6 +2,8 @@ import numpy as np
 from time import time
 from scipy.signal import correlate, resample
 
+MHz = 0x10000000 / 8
+Vpp = ((1<<14) - 1) / 4
 
 LOW_PASS_FILTER = 0
 HIGH_PASS_FILTER = 1
