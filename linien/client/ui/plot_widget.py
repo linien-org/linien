@@ -76,10 +76,15 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         self.touch_start = None
         self.autolock_ref_spectrum = None
 
-        self.init_overlay()
+        self.selection_running = False
+        self.selection_boundaries = None
+
+        self.init_overlays()
         self.init_lock_target_line()
 
         self._fixed_opengl_bug = False
+
+        self.enable_area_selection()
 
     def _to_data_coords(self, event):
         pos = self.plotItem.vb.mapSceneToView(event.pos())
@@ -94,6 +99,13 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
 
         self.parameters.to_plot.change(self.replot)
 
+        def autolock_selection_changed(value):
+            if value:
+                self.enable_area_selection(selectable_width=.5)
+            else:
+                self.disable_area_selection()
+        self.parameters.autolock_selection.change(autolock_selection_changed)
+
     def mouseMoveEvent(self, event):
         if self.touch_start is None:
             return
@@ -101,12 +113,28 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         x0, y0 = self.touch_start
 
         x, y = self._to_data_coords(event)
+        x = self._within_boundaries(x)
         self.set_selection_overlay(x0, x - x0)
 
-    def init_overlay(self):
-        self.overlay = pg.LinearRegionItem(values=(-1000, -1000), movable=False)
+    def init_overlays(self):
+        self.overlay = pg.LinearRegionItem(values=(0, 0), movable=False)
         self.overlay.setVisible(False)
         self.addItem(self.overlay)
+
+        self.boundary_overlays = [
+            pg.LinearRegionItem(
+                values=(0, 0),
+                movable=False,
+                brush=(0, 0, 0, 200),
+            )
+            for i in range(2)
+        ]
+        for i, overlay in enumerate(self.boundary_overlays):
+            overlay.setVisible(False)
+            # make outer borders invisible, see
+            # https://github.com/pyqtgraph/pyqtgraph/issues/462
+            overlay.lines[i].setPen((0, 0, 0, 0))
+            self.addItem(overlay)
 
     def init_lock_target_line(self):
         self.lock_target_line = pg.InfiniteLine(movable=False)
@@ -124,9 +152,19 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
 
         x, y = self._to_data_coords(event)
 
+        if x < self.selection_boundaries[0] or x > self.selection_boundaries[1]:
+            return
+
         self.touch_start = x, y
         self.set_selection_overlay(x, 0)
         self.overlay.setVisible(True)
+
+    def _within_boundaries(self, x):
+        if x < self.selection_boundaries[0]:
+            return self.selection_boundaries[0]
+        if x > self.selection_boundaries[1]:
+            return self.selection_boundaries[1]
+        return x
 
     def mouseReleaseEvent(self, event):
         super().mouseReleaseEvent(event)
@@ -135,26 +173,30 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
             return
 
         x, y = self._to_data_coords(event)
+        x = self._within_boundaries(x)
         x0, y0 = self.touch_start
         xdiff = np.abs(x0 - x)
 
         if xdiff / self.xmax < 0.01:
             # it was a click
-            if not self.parameters.automatic_mode.value:
+            if not self.selection_running:
                 self.graph_on_click(x0, y0)
         else:
             # it was a selection
-            if self.parameters.automatic_mode.value:
-                last_combined_error_signal = self.last_plot_data[2]
-                self.control.start_autolock(
-                    *sorted([x0, x]),
-                    # we pickle it here because otherwise a netref is
-                    # transmitted which blocks the autolock
-                    pickle.dumps(last_combined_error_signal)
-                )
-                mean_signal, target_slope_rising, target_zoom, rolled_error_signal = \
-                    get_lock_point(last_combined_error_signal, *sorted((int(x0), int(x))))
-                self.autolock_ref_spectrum = rolled_error_signal
+            if self.selection_running:
+                if self.parameters.autolock_selection.value:
+                    self.parameters.autolock_selection.value = False
+
+                    last_combined_error_signal = self.last_plot_data[2]
+                    self.control.start_autolock(
+                        *sorted([x0, x]),
+                        # we pickle it here because otherwise a netref is
+                        # transmitted which blocks the autolock
+                        pickle.dumps(last_combined_error_signal)
+                    )
+                    mean_signal, target_slope_rising, target_zoom, rolled_error_signal = \
+                        get_lock_point(last_combined_error_signal, *sorted((int(x0), int(x))))
+                    self.autolock_ref_spectrum = rolled_error_signal
             else:
                 self.graph_on_selection(*sorted([x0, x]))
 
@@ -339,3 +381,26 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
 
             return history, slow_values
         return [], []
+
+    def enable_area_selection(self, selectable_width=0.5):
+        self.selection_running = True
+
+        # there are some glitches if the width of the overlay is exactly right.
+        # Therefore we make it a little wider.
+        extra_width = 100
+        x_axis_length = 16384
+        boundary_width = (x_axis_length * (1 - selectable_width)) / 2.0
+
+        self.selection_boundaries = (boundary_width, x_axis_length - boundary_width)
+
+        self.boundary_overlays[0].setRegion((-extra_width, boundary_width))
+        self.boundary_overlays[1].setRegion((x_axis_length - boundary_width, x_axis_length + extra_width))
+
+        for overlay in self.boundary_overlays:
+            overlay.setVisible(True)
+
+    def disable_area_selection(self):
+        self.selection_running = False
+
+        for overlay in self.boundary_overlays:
+            overlay.setVisible(False)

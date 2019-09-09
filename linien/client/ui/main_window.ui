@@ -809,7 +809,7 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>328</width>
+            <width>340</width>
             <height>679</height>
            </rect>
           </property>
@@ -1327,8 +1327,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>228</width>
-            <height>277</height>
+            <width>338</width>
+            <height>438</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1512,8 +1512,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>96</width>
-            <height>26</height>
+            <width>338</width>
+            <height>438</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -1536,8 +1536,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>96</width>
-            <height>26</height>
+            <width>338</width>
+            <height>438</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1555,7 +1555,7 @@
             <x>0</x>
             <y>0</y>
             <width>338</width>
-            <height>438</height>
+            <height>462</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -1689,8 +1689,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>96</width>
-            <height>26</height>
+            <width>338</width>
+            <height>438</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -1715,7 +1715,6 @@
     </item>
    </layout>
   </widget>
-  <widget class="QStatusBar" name="statusbar"/>
  </widget>
  <customwidgets>
   <customwidget>

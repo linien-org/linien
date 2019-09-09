@@ -18,6 +18,9 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
         self.ids.watchLockCheckbox.stateChanged.connect(self.watch_lock_changed)
         self.ids.lock_control_container.currentChanged.connect(self.lock_mode_changed)
 
+        self.ids.selectLineToLock.clicked.connect(self.start_autolock_selection)
+        self.ids.abortLineSelection.clicked.connect(self.stop_autolock_selection)
+
         self.ids.manualLockButton.clicked.connect(self.start_manual_lock)
         self.ids.autoOffsetCheckbox.stateChanged.connect(self.auto_offset_changed)
 
@@ -67,6 +70,11 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
             lambda value: not value
         )
 
+        def autolock_selection_status_changed(value):
+            self.ids.auto_mode_activated.setVisible(value)
+            self.ids.auto_mode_not_activated.setVisible(not value)
+        params.autolock_selection.change(autolock_selection_status_changed)
+
     def kp_changed(self):
         self.parameters.p.value = self.ids.kp.value()
         self.control.write_data()
@@ -96,3 +104,9 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
     def pid_on_slow_strength_changed(self):
         self.parameters.pid_on_slow_strength.value = self.ids.pid_on_slow_strength.value()
         self.control.write_data()
+
+    def start_autolock_selection(self):
+        self.parameters.autolock_selection.value = True
+
+    def stop_autolock_selection(self):
+        self.parameters.autolock_selection.value = False

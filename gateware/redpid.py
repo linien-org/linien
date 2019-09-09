@@ -179,10 +179,10 @@ class PIDCSR(Module, AutoCSR):
         ]
 
         # watch lock
-        self.submodules.watcher = WatchLock(signal_width)
+        self.submodules.watcher = WatchLock(width)
 
-        self.comb += [
-            self.watcher.error_signal.eq(combined_error_signal)
+        self.sync += [
+            self.watcher.error_signal.eq(combined_error_signal >> s)
         ]
 
 

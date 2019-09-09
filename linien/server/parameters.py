@@ -92,6 +92,7 @@ class Parameters(BaseParameters):
         self.task = Parameter(start=None, sync=False)
         self.automatic_mode = Parameter(start=True)
         self.target_slope_rising = Parameter(start=True)
+        self.autolock_selection = Parameter(start=False)
         self.autolock_running = Parameter(start=False)
         self.autolock_approaching = Parameter(start=False)
         self.autolock_watching = Parameter(start=False)
@@ -127,3 +128,4 @@ class Parameters(BaseParameters):
 
         self.watch_lock_reset = Parameter(start=False)
         self.watch_lock_time_constant = Parameter(start=int(1e5))
+        self.watch_lock_threshold = Parameter(start=1000)
