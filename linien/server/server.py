@@ -13,7 +13,7 @@ from autolock import Autolock
 from parameters import Parameters
 
 from linien.config import SERVER_PORT
-from linien.common import update_control_signal_history
+from linien.common import update_control_signal_history, N_POINTS
 from linien.communication.server import BaseService
 
 
@@ -152,7 +152,7 @@ class FakeRedPitayaControl(BaseService):
         def run():
             while True:
                 max_ = randint(0, 8191)
-                gen = lambda: [randint(-max_, max_) for _ in range(16384)]
+                gen = lambda: [randint(-max_, max_) for _ in range(N_POINTS)]
                 self.parameters.to_plot.value = pickle.dumps({
                     'error_signal_1': gen(),
                     'error_signal_2': gen()

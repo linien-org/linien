@@ -10,7 +10,13 @@ FAST_OUT1 = 0
 FAST_OUT2 = 1
 ANALOG_OUT0 = 2
 
-def downsample(times, values, max_time_diff, max_N=16384):
+N_POINTS = int(16384 / 1)
+
+
+def downsample_history(times, values, max_time_diff, max_N=N_POINTS):
+    """The history should not grow too much. When recording for long intervals,
+    we want to throw away some datapoints that were recorded with a sampling rate
+    that is too high. This function takes care of this."""
     last_time = None
 
     for idx in reversed(range(len(times))):
@@ -61,8 +67,8 @@ def update_control_signal_history(history, to_plot, is_locked, max_time_diff):
     truncate(history['slow_times'], history['slow_values'], max_time_diff)
 
     # downsample
-    downsample(history['times'], history['values'], max_time_diff)
-    downsample(history['slow_times'], history['slow_values'], max_time_diff)
+    downsample_history(history['times'], history['values'], max_time_diff)
+    downsample_history(history['slow_times'], history['slow_values'], max_time_diff)
 
     return history
 
@@ -140,7 +146,7 @@ def get_lock_point(error_signal, x0, x1):
         rolled_error_signal[:roll] = 0
 
     target_slope_rising = max_idx > min_idx
-    target_zoom = 16384 / (idxs[1] - idxs[0]) / 1.5
+    target_zoom = N_POINTS / (idxs[1] - idxs[0]) / 1.5
 
     return mean_signal, target_slope_rising, target_zoom, rolled_error_signal
 

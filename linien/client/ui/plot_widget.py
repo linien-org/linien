@@ -11,7 +11,7 @@ from linien.client.config import COLORS
 from linien.client.widgets import CustomWidget
 from linien.common import update_control_signal_history, determine_shift_by_correlation, \
     get_lock_point, control_signal_has_correct_amplitude, combine_error_signal, \
-    check_plot_data
+    check_plot_data, N_POINTS
 
 # NOTE: this is required for using a pen_width > 1.
 # There is a bug though that causes the plot to be way too small. Therefore,
@@ -62,10 +62,10 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         self.slow_history = pg.PlotCurveItem(pen=pg.mkPen(COLORS['slow_history'], width=pen_width))
         self.addItem(self.slow_history)
 
-        self.zero_line.setData([0, 16383], [0, 0])
-        self.signal1.setData([0, 16383], [1, 1])
-        self.signal1.setData([0, 16383], [1, 1])
-        self.combined_signal.setData([0, 16383], [1, 1])
+        self.zero_line.setData([0, N_POINTS - 1], [0, 0])
+        self.signal1.setData([0, N_POINTS - 1], [1, 1])
+        self.signal1.setData([0, N_POINTS - 1], [1, 1])
+        self.combined_signal.setData([0, N_POINTS - 1], [1, 1])
 
         self.connection = None
         self.parameters = None
@@ -357,7 +357,7 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
             self.parameters.control_signal_history_length.value
         )
         if self.parameters.lock.value:
-            x_axis_length = 16384
+            x_axis_length = N_POINTS
 
             def scale(arr):
                 timescale = self.parameters.control_signal_history_length.value
@@ -388,7 +388,7 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         # there are some glitches if the width of the overlay is exactly right.
         # Therefore we make it a little wider.
         extra_width = 100
-        x_axis_length = 16384
+        x_axis_length = N_POINTS
         boundary_width = (x_axis_length * (1 - selectable_width)) / 2.0
 
         self.selection_boundaries = (boundary_width, x_axis_length - boundary_width)
