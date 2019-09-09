@@ -17,6 +17,8 @@ class Registers:
         self.password = password
         self.acquisition = None
 
+        self._last_sweep_speed = None
+
     def connect(self, control, parameters):
         """Starts a process that can be used to control FPGA registers."""
         self.control = control
@@ -151,13 +153,15 @@ class Registers:
         self.control._cached_data.update(new)
 
         # pass ramp speed changes to acquisition process
-        if 'root_sweep_step' in new:
+        sweep_changed = params['ramp_speed'] != self._last_sweep_speed
+        if sweep_changed:
+            self._last_sweep_speed = params['ramp_speed']
             self.acquisition.set_ramp_speed(params['ramp_speed'])
 
         for k, v in new.items():
             self.set(k, int(v))
 
-        if 'root_sweep_step' in new:
+        if sweep_changed:
             # reset sweep for a short time if the scan range was changed
             # this is needed because otherwise it may take too long before
             # the new scan range is reached --> no scope trigger is sent

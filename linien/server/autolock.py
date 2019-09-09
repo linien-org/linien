@@ -50,6 +50,7 @@ class Autolock:
         self.record_first_error_signal(spectrum)
 
         self.initial_ramp_amplitude = self.parameters.ramp_amplitude.value
+        self.initial_ramp_speed = self.parameters.ramp_speed.value
         self.parameters.autolock_initial_ramp_amplitude.value = self.initial_ramp_amplitude
         self.initial_ramp_center = self.parameters.center.value
 
@@ -306,8 +307,11 @@ class Autolock:
         self.control.pause_acquisition()
 
         self.parameters.ramp_amplitude.value /= ZOOM_STEP
+        new_ramp_speed = self.parameters.ramp_speed.value - 1 \
+            if self.parameters.ramp_speed.value > 5 \
+            else self.parameters.ramp_speed.value
+        self.parameters.ramp_speed.value = new_ramp_speed
         self.control.exposed_write_data()
-
         self.control.continue_acquisition()
 
     def _lock(self):
@@ -332,6 +336,7 @@ class Autolock:
 
         self.parameters.center.value = self.initial_ramp_center
         self.parameters.ramp_amplitude.value = self.initial_ramp_amplitude
+        self.parameters.ramp_speed.value = self.initial_ramp_speed
         self.control.exposed_start_ramp()
 
         self.control.continue_acquisition()
