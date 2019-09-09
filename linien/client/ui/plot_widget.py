@@ -152,18 +152,22 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
 
         x, y = self._to_data_coords(event)
 
-        if x < self.selection_boundaries[0] or x > self.selection_boundaries[1]:
-            return
+        if self.selection_running:
+            if x < self.selection_boundaries[0] or x > self.selection_boundaries[1]:
+                return
 
         self.touch_start = x, y
         self.set_selection_overlay(x, 0)
         self.overlay.setVisible(True)
 
     def _within_boundaries(self, x):
-        if x < self.selection_boundaries[0]:
-            return self.selection_boundaries[0]
-        if x > self.selection_boundaries[1]:
-            return self.selection_boundaries[1]
+        boundaries = self.selection_boundaries if self.selection_running \
+            else [0, 16383]
+
+        if x < boundaries[0]:
+            return boundaries[0]
+        if x > boundaries[1]:
+            return boundaries[1]
         return x
 
     def mouseReleaseEvent(self, event):
