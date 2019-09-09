@@ -96,7 +96,13 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
         self.control.write_data()
 
     def change_zoom(self, zoom):
-        self.parameters.ramp_amplitude.value = ZOOM_STEP ** zoom
+        amplitude = ZOOM_STEP ** zoom
+        self.parameters.ramp_amplitude.value = amplitude
+        center = self.parameters.center.value
+        if center + amplitude > 1:
+            self.parameters.center.value = 1 - amplitude
+        elif center - amplitude < -1:
+            self.parameters.center.value = -1 + amplitude
         self.control.write_data()
 
     def update_std(self, to_plot):
