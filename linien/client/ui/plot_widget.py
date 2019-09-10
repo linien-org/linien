@@ -162,6 +162,11 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
 
         x, y = self._to_data_coords(event)
 
+        if not self.selection_running:
+            # FIXME: check whether this is really a good idea. If yes, we can remove
+            # the functionality for zooming on mouseReleaseEvent
+            return
+
         if self.selection_running:
             if x < self.selection_boundaries[0] or x > self.selection_boundaries[1]:
                 return
@@ -172,7 +177,7 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
 
     def _within_boundaries(self, x):
         boundaries = self.selection_boundaries if self.selection_running \
-            else [0, 16383]
+            else [0, N_POINTS]
 
         if x < boundaries[0]:
             return boundaries[0]
@@ -403,7 +408,7 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
 
         # there are some glitches if the width of the overlay is exactly right.
         # Therefore we make it a little wider.
-        extra_width = 100
+        extra_width = N_POINTS / 100
         x_axis_length = N_POINTS
         boundary_width = (x_axis_length * (1 - selectable_width)) / 2.0
 

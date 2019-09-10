@@ -160,11 +160,7 @@ class Autolock:
             if next_step_is_lock:
                 return self._lock()
             else:
-                did_zoom = self._correct_current(shift, allow_ramp_amplitude_decrease=True)
-                if did_zoom:
-                    # _correct_current() zoomed in. This means that we don't want
-                    # to increase N_at_this_zoom etc. but abort before that.
-                    return
+                self._correct_current(shift, allow_ramp_amplitude_decrease=True)
         else:
             # wait for some time after the last current correction
             if time() - self.time_last_current_correction < 1:
@@ -344,7 +340,6 @@ class Autolock:
                 self.parameters.ramp_amplitude.value = max_allowed_amplitude
                 self.zoom_factor *= amplitude / max_allowed_amplitude
                 did_zoom = True
-                print('decrease ramp', self.zoom_factor, max_allowed_amplitude)
 
         self.control.exposed_write_data()
         self.control.continue_acquisition()

@@ -68,6 +68,7 @@ class RedPitayaControlService(BaseService):
                     )
 
         self.registers.run_data_acquisition(data_received)
+        self.pause_acquisition()
         self.continue_acquisition()
 
     def exposed_write_data(self):
@@ -137,13 +138,13 @@ class RedPitayaControlService(BaseService):
         reach the application. After setting the new parameter values, call
         `continue_acquisition`."""
         self.parameters.pause_acquisition.value = True
+        self.data_uuid = random()
 
     def continue_acquisition(self):
         """Continue acquisition after a short delay, when we are sure that the
         new parameters values have been written to the FPGA and that data that
         is now recorded is recorded with the correct parameters."""
         self.parameters.pause_acquisition.value = False
-        self.data_uuid = random()
         self.registers.acquisition.clear_data_cache(self.data_uuid)
 
 
