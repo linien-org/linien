@@ -1,4 +1,5 @@
 from linien.communication.server import Parameter, BaseParameters
+from linien.common import Vpp, MHz
 
 
 class Parameters(BaseParameters):
@@ -26,17 +27,15 @@ class Parameters(BaseParameters):
             'polarity_analog_out0', 'autoscale_y', 'y_axis_limits'
         )
 
-        # FIXME: use Vpp und MHz from common as start parameters
         self.modulation_amplitude = Parameter(
             min_=0,
             max_=(1<<14) - 1,
-            start=4046
+            start=1 * Vpp
         )
         self.modulation_frequency = Parameter(
             min_=0,
             max_=0xffffffff,
-            # 0x10000000 ~= 8 MHzs
-            start=0x10000000/8*15
+            start=15 * MHz
         )
         self.center = Parameter(
             min_=-1,
@@ -52,7 +51,7 @@ class Parameters(BaseParameters):
         self.ramp_speed = Parameter(
             min_=0,
             max_=16,
-            start=9
+            start=8
         )
 
         for channel in ('a', 'b'):

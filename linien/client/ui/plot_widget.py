@@ -99,7 +99,6 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
 
         self.parameters.to_plot.change(self.replot)
 
-        # FIXME: when zoomed in and not at the edges, selectable width is bigger
         def autolock_selection_changed(value):
             if value:
                 self.parameters.optimization_selection.value = False
@@ -163,8 +162,6 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         x, y = self._to_data_coords(event)
 
         if not self.selection_running:
-            # FIXME: check whether this is really a good idea. If yes, we can remove
-            # the functionality for zooming on mouseReleaseEvent
             return
 
         if self.selection_running:
@@ -198,8 +195,7 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
 
         if xdiff / self.xmax < 0.01:
             # it was a click
-            if not self.selection_running:
-                self.graph_on_click(x0, y0)
+            pass
         else:
             # it was a selection
             if self.selection_running:
@@ -218,8 +214,6 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
                     self.parameters.optimization_selection.value = False
                     points = sorted([int(x0), int(x)])
                     self.control.start_optimization(*points, pickle.dumps(last_combined_error_signal))
-            else:
-                self.graph_on_selection(*sorted([x0, x]))
 
         self.overlay.setVisible(False)
         self.touch_start = None
@@ -227,32 +221,6 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
     @property
     def xmax(self):
         return len(self.last_plot_data[0]) - 1
-
-    def graph_on_selection(self, x0, x):
-        x0 /= self.xmax
-        x /= self.xmax
-
-        center = np.mean([x, x0])
-        amplitude = np.abs(center - x) * 2
-        center = (center - 0.5) * 2
-
-        amplitude *= self.parameters.ramp_amplitude.value
-        center = self.parameters.center.value + \
-            (center * self.parameters.ramp_amplitude.value)
-
-        self.parameters.ramp_amplitude.value = amplitude
-        self.parameters.center.value = center
-        self.control.write_data()
-
-    def graph_on_click(self, x, y):
-        center = x / self.xmax
-        center = (center - 0.5) * 2
-        center = self.parameters.center.value + \
-            (center * self.parameters.ramp_amplitude.value)
-
-        self.parameters.ramp_amplitude.value /= 2
-        self.parameters.center.value = center
-        self.control.write_data()
 
     def replot(self, to_plot):
         # NOTE: this is necessary if OpenGL is activated. Otherwise, the

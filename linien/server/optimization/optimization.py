@@ -130,6 +130,8 @@ class OptimizeSpectroscopy:
                 self.opt.request_results()[0], self.xmin, self.xmax
             )
             self.set_parameters(optimized_parameters)
+        else:
+            self.request_new_parameters(use_initial_parameters=True)
 
         self.parameters.optimization_running.value = False
         self.parameters.to_plot.remove_listener(self.react_to_new_spectrum)
