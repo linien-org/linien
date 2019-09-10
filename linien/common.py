@@ -23,7 +23,9 @@ def downsample_history(times, values, max_time_diff, max_N=N_POINTS):
     that is too high. This function takes care of this."""
     last_time = None
 
-    for idx in reversed(range(len(times))):
+    to_remove = []
+
+    for idx in range(len(times)):
         current_time = times[idx]
         remove = False
 
@@ -32,10 +34,13 @@ def downsample_history(times, values, max_time_diff, max_N=N_POINTS):
                 remove = True
 
         if remove:
-            times.pop(idx)
-            values.pop(idx)
+            to_remove.append(idx)
         else:
             last_time = current_time
+
+    for idx in reversed(to_remove):
+        times.pop(idx)
+        values.pop(idx)
 
 
 def truncate(times, values, max_time_diff):
