@@ -12,7 +12,9 @@ FAST_OUT1 = 0
 FAST_OUT2 = 1
 ANALOG_OUT0 = 2
 
-N_POINTS = int(16384 / 1)
+DECIMATION = 8
+assert DECIMATION % 2 == 0 or DECIMATION == 1
+N_POINTS = int(16384 / DECIMATION)
 
 
 def downsample_history(times, values, max_time_diff, max_N=N_POINTS):

@@ -2,6 +2,7 @@ import os
 import sys
 import pickle
 import _thread
+import numpy as np
 import threading
 from rpyc import Service
 from time import sleep, time
@@ -12,11 +13,25 @@ from PyRedPitaya.board import RedPitaya
 sys.path += ['../../']
 from csr import make_filter, PitayaLocal
 from linien.config import ACQUISITION_PORT
+from linien.common import DECIMATION, N_POINTS
+
+
+# the maximum decimation supported by the FPGA image
+MAX_FPGA_DECIMATION = 65536
 
 
 def shutdown():
     _thread.interrupt_main()
     os._exit(0)
+
+
+def decimate(array, factor):
+    if factor == 1:
+        return array
+
+    array = np.array(array)
+    array = list(array.reshape(-1, factor).mean(axis=1))
+    return array
 
 
 class DataAcquisitionService(Service):
@@ -30,6 +45,7 @@ class DataAcquisitionService(Service):
         self.data_hash = None
         self.skip_next_data = 0
         self.data_uuid = None
+        self.additional_decimation = 1
 
         super(DataAcquisitionService, self).__init__()
 
@@ -55,15 +71,7 @@ class DataAcquisitionService(Service):
                     sleep(.05)
                     continue
 
-                def correct_value(v):
-                    """For some reason, -8191 ends up as 8192. This is a
-                    (dirty) fix for that."""
-                    return int(v) if int(v) != 8192 else -8191
-
-                data = [
-                    [correct_value(v) for v in channel[:]]
-                    for channel in (self.r.scope.data_ch1, self.r.scope.data_ch2)
-                ]
+                data = self.read_data()
 
                 # FIXME: remove
                 lost = self.csr.get('root_watcher_lock_lost')
@@ -74,8 +82,27 @@ class DataAcquisitionService(Service):
                 data += [slow_out]
 
                 self.r.scope.rearm(trigger_source=6)
-                self.r.scope.data_decimation = 2 ** self.ramp_speed
-                self.r.scope.trigger_delay = trigger_delay - 1
+
+                # we use decimation of the FPGA scope for two reasons:
+                # - we want to record at lower scan rates
+                # - we want to record less data points than 16384 data points.
+                #   We could do this by additionally averaging in software, but
+                #   this turned out to be too slow on the RP. Therefore, we
+                #   let the FPGA do this.
+                # With high values of DECIMATION and low scan rates, the required
+                # decimation value exceeds the maximum value supported by the FPGA
+                # image. Therefore, we perform additional software averaging in
+                # these cases. As this happens for slow ramps only, the performance
+                # hit doesn't matter.
+                target_decimation = 2 ** (self.ramp_speed + int(np.log2(DECIMATION)))
+                if target_decimation > MAX_FPGA_DECIMATION:
+                    self.additional_decimation = int(target_decimation / MAX_FPGA_DECIMATION)
+                    target_decimation = MAX_FPGA_DECIMATION
+                else:
+                    self.additional_decimation = 1
+
+                self.r.scope.data_decimation = target_decimation
+                self.r.scope.trigger_delay = int(trigger_delay / DECIMATION * self.additional_decimation)- 1
 
                 if self.skip_next_data:
                     self.skip_next_data -= 1
@@ -110,6 +137,44 @@ class DataAcquisitionService(Service):
         self.data_hash = None
         self.data = None
         self.data_uuid = uuid
+
+    def read_data(self):
+        def correct_value(v):
+            """For some reason, -8191 ends up as 8192. This is a
+            (dirty) fix for that."""
+            return int(v)
+            #return int(v) if int(v) != 8192 else -8191
+
+        channel_offsets = (0x10000, 0x20000)
+        write_pointer = self.r.scope.write_pointer_trigger
+
+        def get_data(offset, addr, data_length):
+            max_data_length = 16383
+            if data_length + addr > max_data_length:
+                to_read_later = data_length + addr - max_data_length
+                data_length -= to_read_later
+            else:
+                to_read_later = 0
+
+            x = self.r.scope.reads(offset+(4*addr), data_length)
+            y = x.copy()
+            y.dtype = np.int32
+            y[y>=2**13] -= 2**14
+
+            if to_read_later > 0:
+                y = np.append(y, get_data(offset, 0, to_read_later))
+
+            # IMPORTANT: leave this list comprehension, it is important for
+            #            performance when sending the data via rpyc
+            return [int(v) for v in y]
+
+        return [
+            decimate(
+                get_data(channel_offset, write_pointer, N_POINTS * self.additional_decimation),
+                self.additional_decimation
+            )
+            for channel_offset in channel_offsets
+        ]
 
 
 if __name__ == '__main__':
