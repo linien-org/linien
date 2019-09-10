@@ -1328,7 +1328,7 @@
             <x>0</x>
             <y>0</y>
             <width>338</width>
-            <height>471</height>
+            <height>495</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1539,8 +1539,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>355</width>
-            <height>549</height>
+            <width>367</width>
+            <height>696</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1550,60 +1550,121 @@
            <item>
             <widget class="QWidget" name="optimization_not_running_container" native="true">
              <layout class="QVBoxLayout" name="verticalLayout">
-              <property name="leftMargin">
-               <number>0</number>
-              </property>
-              <property name="topMargin">
-               <number>0</number>
-              </property>
-              <property name="rightMargin">
-               <number>0</number>
-              </property>
-              <property name="bottomMargin">
-               <number>0</number>
-              </property>
               <item>
-               <widget class="QLabel" name="label_12">
-                <property name="text">
-                 <string>Use machine learning to maximize the steepness of a slope.</string>
-                </property>
-                <property name="wordWrap">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QGroupBox" name="groupBox_14">
-                <property name="title">
-                 <string>Modulation frequency (MHz)</string>
-                </property>
-                <layout class="QHBoxLayout" name="horizontalLayout_14">
+               <widget class="QWidget" name="optimization_not_selecting" native="true">
+                <layout class="QVBoxLayout" name="verticalLayout_22">
+                 <property name="leftMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>0</number>
+                 </property>
                  <item>
-                  <widget class="QDoubleSpinBox" name="optimization_mod_freq_min"/>
-                 </item>
-                 <item>
-                  <widget class="QLabel" name="label_24">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
+                  <widget class="QLabel" name="label_19">
                    <property name="text">
-                    <string>-</string>
+                    <string>Use machine learning to maximize the steepness of a slope.</string>
+                   </property>
+                   <property name="wordWrap">
+                    <bool>true</bool>
                    </property>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QDoubleSpinBox" name="optimization_mod_freq_max">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
+                  <widget class="QGroupBox" name="groupBox_14">
+                   <property name="title">
+                    <string>Modulation frequency (MHz)</string>
                    </property>
-                   <property name="value">
-                    <double>10.000000000000000</double>
+                   <layout class="QHBoxLayout" name="horizontalLayout_14">
+                    <item>
+                     <widget class="QDoubleSpinBox" name="optimization_mod_freq_min"/>
+                    </item>
+                    <item>
+                     <widget class="QLabel" name="label_24">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="text">
+                       <string>-</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QDoubleSpinBox" name="optimization_mod_freq_max">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="value">
+                       <double>10.000000000000000</double>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QGroupBox" name="groupBox_15">
+                   <property name="title">
+                    <string>Modulation amplitude (Vpp)</string>
+                   </property>
+                   <layout class="QHBoxLayout" name="horizontalLayout_17">
+                    <item>
+                     <widget class="QDoubleSpinBox" name="optimization_mod_amp_min">
+                      <property name="maximum">
+                       <double>2.000000000000000</double>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLabel" name="label_18">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="text">
+                       <string>-</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QDoubleSpinBox" name="optimization_mod_amp_max">
+                      <property name="maximum">
+                       <double>2.000000000000000</double>
+                      </property>
+                      <property name="value">
+                       <double>2.000000000000000</double>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="start_optimization_btn">
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>50</height>
+                    </size>
+                   </property>
+                   <property name="styleSheet">
+                    <string notr="true">background: #00aa00</string>
+                   </property>
+                   <property name="text">
+                    <string>Select line that should be optimized</string>
                    </property>
                   </widget>
                  </item>
@@ -1611,49 +1672,35 @@
                </widget>
               </item>
               <item>
-               <widget class="QGroupBox" name="groupBox_15">
-                <property name="title">
-                 <string>Modulation amplitude (Vpp)</string>
-                </property>
-                <layout class="QHBoxLayout" name="horizontalLayout_17">
+               <widget class="QWidget" name="optimization_selecting" native="true">
+                <layout class="QVBoxLayout" name="verticalLayout_23">
                  <item>
-                  <widget class="QDoubleSpinBox" name="optimization_mod_amp_min">
-                   <property name="maximum">
-                    <double>2.000000000000000</double>
+                  <widget class="QLabel" name="label_20">
+                   <property name="text">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:14pt; font-weight:600;&quot;&gt;Click and drag over the line you want to optimize&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="scaledContents">
+                    <bool>false</bool>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                   </property>
+                   <property name="wordWrap">
+                    <bool>true</bool>
                    </property>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QLabel" name="label_18">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
+                  <widget class="QPushButton" name="abortOptimizationLineSelection">
+                   <property name="styleSheet">
+                    <string notr="true">background-color: #d40000;</string>
                    </property>
                    <property name="text">
-                    <string>-</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QDoubleSpinBox" name="optimization_mod_amp_max">
-                   <property name="maximum">
-                    <double>2.000000000000000</double>
-                   </property>
-                   <property name="value">
-                    <double>2.000000000000000</double>
+                    <string>Abort</string>
                    </property>
                   </widget>
                  </item>
                 </layout>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="start_optimization_btn">
-                <property name="text">
-                 <string>Start optimization</string>
-                </property>
                </widget>
               </item>
              </layout>
@@ -1719,6 +1766,12 @@
               </item>
               <item>
                <widget class="QPushButton" name="optimization_use_new_parameters">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>50</height>
+                 </size>
+                </property>
                 <property name="styleSheet">
                  <string notr="true">background-color: #00a400;</string>
                 </property>
@@ -1761,7 +1814,7 @@
             <x>0</x>
             <y>0</y>
             <width>338</width>
-            <height>471</height>
+            <height>495</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -1896,7 +1949,7 @@
             <x>0</x>
             <y>0</y>
             <width>338</width>
-            <height>471</height>
+            <height>495</height>
            </rect>
           </property>
           <property name="sizePolicy">

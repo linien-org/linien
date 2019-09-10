@@ -460,7 +460,7 @@
                  <string notr="true">background: #00aa00</string>
                 </property>
                 <property name="text">
-                 <string>Select line to lock</string>
+                 <string>Select target line</string>
                 </property>
                </widget>
               </item>

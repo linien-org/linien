@@ -89,11 +89,11 @@ class RedPitayaControlService(BaseService):
             autolock.run(x0, x1, spectrum, should_watch_lock=start_watching,
                          auto_offset=auto_offset)
 
-    def exposed_start_optimization(self, xmin, xmax):
+    def exposed_start_optimization(self, x0, x1, spectrum):
         if not self.task_running():
             optim = OptimizeSpectroscopy(self, self.parameters)
             self.parameters.task.value = optim
-            optim.run(xmin, xmax)
+            optim.run(x0, x1, spectrum)
 
     def exposed_start_ramp(self):
         self.pause_acquisition()
@@ -180,7 +180,7 @@ class FakeRedPitayaControl(BaseService):
     def exposed_start_autolock(self, x0, x1, spectrum):
         print('start autolock', x0, x1)
 
-    def exposed_start_optimization(self, xmin, xmax):
+    def exposed_start_optimization(self, x0, x1, spectrum):
         print('start optimization')
         self.parameters.optimization_running.value = True
 

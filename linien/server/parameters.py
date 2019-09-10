@@ -101,8 +101,13 @@ class Parameters(BaseParameters):
         self.autolock_determine_offset = Parameter(start=True)
         self.autolock_initial_ramp_amplitude = Parameter(start=1)
 
+        self.optimization_selection = Parameter(start=False)
         self.optimization_running = Parameter(start=False)
         self.optimization_improvement = Parameter(start=0)
+        self.optimization_mod_freq_min = Parameter(start=0.0)
+        self.optimization_mod_freq_max = Parameter(start=10.0)
+        self.optimization_mod_amp_min = Parameter(start=0.0)
+        self.optimization_mod_amp_max = Parameter(start=2.0)
 
         self.pause_acquisition = Parameter(start=False)
 

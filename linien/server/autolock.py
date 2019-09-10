@@ -160,7 +160,11 @@ class Autolock:
             if next_step_is_lock:
                 return self._lock()
             else:
-                self._correct_current(shift)
+                did_zoom = self._correct_current(shift, allow_ramp_amplitude_decrease=True)
+                if did_zoom:
+                    # _correct_current() zoomed in. This means that we don't want
+                    # to increase N_at_this_zoom etc. but abort before that.
+                    return
         else:
             # wait for some time after the last current correction
             if time() - self.time_last_current_correction < 1:
@@ -237,7 +241,6 @@ class Autolock:
             max_counter = determine_longest(error_signal)
             self.parameters.watch_lock_reset.value = 1
             self.parameters.watch_lock_time_constant.value = max_counter * 2
-            print('MAX', max_counter)
             self.control.exposed_write_data()
             self.parameters.watch_lock_reset.value = 0
             self.control.exposed_write_data()
@@ -323,13 +326,30 @@ class Autolock:
 
         self.control.continue_acquisition()
 
-    def _correct_current(self, shift):
+    def _correct_current(self, shift, allow_ramp_amplitude_decrease=False):
         self.control.pause_acquisition()
         self.time_last_current_correction = time()
 
         self.parameters.center.value -= shift
+
+        did_zoom = False
+        if allow_ramp_amplitude_decrease:
+            # we check whether at this shift the ramp goes beyond the maximum
+            # because this is something we want to avoid
+            # in this case, we decrease the ramp amplitude
+            center = self.parameters.center.value
+            amplitude = self.parameters.ramp_amplitude.value
+            max_allowed_amplitude = 1 - abs(center)
+            if amplitude > max_allowed_amplitude:
+                self.parameters.ramp_amplitude.value = max_allowed_amplitude
+                self.zoom_factor *= amplitude / max_allowed_amplitude
+                did_zoom = True
+                print('decrease ramp', self.zoom_factor, max_allowed_amplitude)
+
         self.control.exposed_write_data()
         self.control.continue_acquisition()
+
+        return did_zoom
 
     def _reset_scan(self):
         self.control.pause_acquisition()

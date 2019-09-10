@@ -99,12 +99,22 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
 
         self.parameters.to_plot.change(self.replot)
 
+        # FIXME: when zoomed in and not at the edges, selectable width is bigger
         def autolock_selection_changed(value):
             if value:
-                self.enable_area_selection(selectable_width=.5)
-            else:
+                self.parameters.optimization_selection.value = False
+                self.enable_area_selection(selectable_width=.75)
+            elif not self.parameters.optimization_selection.value:
                 self.disable_area_selection()
         self.parameters.autolock_selection.change(autolock_selection_changed)
+
+        def optimization_selection_changed(value):
+            if value:
+                self.parameters.autolock_selection.value = False
+                self.enable_area_selection(selectable_width=.75)
+            elif not self.parameters.autolock_selection.value:
+                self.disable_area_selection()
+        self.parameters.optimization_selection.change(optimization_selection_changed)
 
     def mouseMoveEvent(self, event):
         if self.touch_start is None:
@@ -188,19 +198,21 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         else:
             # it was a selection
             if self.selection_running:
+                # we pickle it here because otherwise a netref is
+                # transmitted which blocks the autolock
+                last_combined_error_signal = self.last_plot_data[2]
                 if self.parameters.autolock_selection.value:
                     self.parameters.autolock_selection.value = False
 
-                    last_combined_error_signal = self.last_plot_data[2]
-                    self.control.start_autolock(
-                        *sorted([x0, x]),
-                        # we pickle it here because otherwise a netref is
-                        # transmitted which blocks the autolock
-                        pickle.dumps(last_combined_error_signal)
-                    )
+                    self.control.start_autolock(*sorted([x0, x]), pickle.dumps(last_combined_error_signal))
+
                     mean_signal, target_slope_rising, target_zoom, rolled_error_signal = \
                         get_lock_point(last_combined_error_signal, *sorted((int(x0), int(x))))
                     self.autolock_ref_spectrum = rolled_error_signal
+                elif self.parameters.optimization_selection.value:
+                    self.parameters.optimization_selection.value = False
+                    points = sorted([int(x0), int(x)])
+                    self.control.start_optimization(*points, pickle.dumps(last_combined_error_signal))
             else:
                 self.graph_on_selection(*sorted([x0, x]))
 
