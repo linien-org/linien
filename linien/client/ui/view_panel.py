@@ -74,4 +74,12 @@ class ViewPanel(QtGui.QWidget, CustomWidget):
         with open(fn_with_suffix, 'w') as f:
             data = dict(self.parameters)
             data['to_plot'] = pickle.loads(data['to_plot'])
+
+            # filter out keys that are not json-able
+            for k, v in data.items():
+                try:
+                    json.dumps(v)
+                except:
+                    del data[k]
+
             json.dump(data, f)

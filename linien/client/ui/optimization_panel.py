@@ -14,6 +14,17 @@ class OptimizationPanel(QtGui.QWidget, CustomWidget):
         self.ids.optimization_abort.clicked.connect(self.abort)
         self.ids.abortOptimizationLineSelection.clicked.connect(self.abort_selection)
 
+        for param_name in (
+            'optimization_mod_freq_min', 'optimization_mod_freq_max',
+            'optimization_mod_amp_min', 'optimization_mod_amp_max',
+            'optimization_min_line_width'
+        ):
+            element = getattr(self.ids, param_name)
+            element.setKeyboardTracking(False)
+            def write_parameter(*args, param_name=param_name, element=element):
+                getattr(self.parameters, param_name).value = element.value()
+            element.valueChanged.connect(write_parameter)
+
     def connection_established(self):
         params = self.app().parameters
         self.parameters = params
@@ -52,6 +63,7 @@ class OptimizationPanel(QtGui.QWidget, CustomWidget):
         param2ui(params.optimization_mod_freq_max, self.ids.optimization_mod_freq_max)
         param2ui(params.optimization_mod_amp_min, self.ids.optimization_mod_amp_min)
         param2ui(params.optimization_mod_amp_max, self.ids.optimization_mod_amp_max)
+        param2ui(params.optimization_min_line_width, self.ids.optimization_min_line_width)
 
     def start_optimization(self):
         self.parameters.optimization_selection.value = True

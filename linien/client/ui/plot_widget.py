@@ -10,8 +10,7 @@ from pyqtgraph.Qt import QtCore, QtGui
 from linien.client.config import COLORS
 from linien.client.widgets import CustomWidget
 from linien.common import update_control_signal_history, determine_shift_by_correlation, \
-    get_lock_point, control_signal_has_correct_amplitude, combine_error_signal, \
-    check_plot_data, N_POINTS
+    get_lock_point, combine_error_signal, check_plot_data, N_POINTS
 
 # NOTE: this is required for using a pen_width > 1.
 # There is a bug though that causes the plot to be way too small. Therefore,

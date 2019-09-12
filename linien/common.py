@@ -121,12 +121,16 @@ def determine_shift_by_correlation(zoom_factor, reference_signal, error_signal):
     return shift, zoomed_ref, downsampled_error_signal
 
 
-def get_lock_point(error_signal, x0, x1):
+def get_lock_point(error_signal, x0, x1, final_zoom_factor=1.5):
     """Calculates parameters for the autolock based on the initial error signal.
 
     Takes the `error_signal` and two points (`x0` and `x1`) as arguments. The
     points are the points selected by the user, and we know that we want to
     lock between them.
+
+    Use `final_zoom_factor` to specify how wide the line should be in the end:
+    - 1: in the end, only the line should be visible
+    - 5: an area of 5 times the linewidth should be visible
     """
     length = len(error_signal)
 
@@ -155,21 +159,9 @@ def get_lock_point(error_signal, x0, x1):
         rolled_error_signal[:roll] = 0
 
     target_slope_rising = max_idx > min_idx
-    target_zoom = N_POINTS / (idxs[1] - idxs[0]) / 1.5
+    target_zoom = N_POINTS / (idxs[1] - idxs[0]) / final_zoom_factor
 
     return mean_signal, target_slope_rising, target_zoom, rolled_error_signal
-
-
-def control_signal_has_correct_amplitude(control_signal, amplitude_target):
-    # we ignore some points as sometimes the triggering is not 100%ly
-    # correct, i.e. at the beginning or end of the sample we have a glitch
-    edge = int(0.4 * len(control_signal))
-    control_signal_center = control_signal[edge:-edge]
-    control_signal_amplitude = (
-        np.max(control_signal_center) - np.min(control_signal_center)
-    ) / len(control_signal_center) * len(control_signal) / 16384
-
-    return np.abs(control_signal_amplitude - amplitude_target) / control_signal_amplitude < 0.1
 
 
 def convert_channel_mixing_value(value):
