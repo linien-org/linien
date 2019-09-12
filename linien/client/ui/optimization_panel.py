@@ -30,10 +30,14 @@ class OptimizationPanel(QtGui.QWidget, CustomWidget):
         self.parameters = params
         self.control = self.app().control
 
-        def opt_running_changed(running):
+        def opt_running_changed(_):
+            running = params.optimization_running.value
+            approaching = params.optimization_approaching.value
             self.ids.optimization_not_running_container.setVisible(not running)
-            self.ids.optimization_running_container.setVisible(running)
+            self.ids.optimization_running_container.setVisible(running and not approaching)
+            self.ids.optimization_preparing.setVisible(running and approaching)
         params.optimization_running.change(opt_running_changed)
+        params.optimization_approaching.change(opt_running_changed)
 
         def opt_selection_changed(value):
             self.ids.optimization_selecting.setVisible(value)

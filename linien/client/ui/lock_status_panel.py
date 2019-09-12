@@ -23,6 +23,7 @@ class LockStatusPanel(QtGui.QWidget, CustomWidget):
             task = params.task.value
             al_failed = params.autolock_failed.value
             running = params.autolock_running.value
+            retrying = params.autolock_retrying.value
 
             if locked or (task is not None and not al_failed):
                 self.show()
@@ -49,10 +50,13 @@ class LockStatusPanel(QtGui.QWidget, CustomWidget):
             if task and not running and failed:
                 set_text('Autolock failed!')
             if running and not watching:
-                set_text('Autolock is running...')
+                if not retrying:
+                    set_text('Autolock is running...')
+                else:
+                    set_text('Trying again to lock...')
 
         for param in (params.lock, params.autolock_approaching, params.autolock_watching,
-                params.autolock_failed, params.autolock_locked):
+                params.autolock_failed, params.autolock_locked, params.autolock_retrying):
             param.change(update_status)
 
         param2ui(

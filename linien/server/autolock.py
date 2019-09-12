@@ -14,6 +14,8 @@ class Autolock:
 
         self.first_error_signal = None
         self.parameters.autolock_running.value = False
+        self.parameters.autolock_retrying.value = False
+
         self.should_watch_lock = False
 
         self.approacher = None
@@ -209,6 +211,7 @@ class Autolock:
 
             if not self.parameters.autolock_locked.value:
                 if self.should_watch_lock:
+                    self.parameters.autolock_retrying.value = True
                     return self.relock()
 
                 self._reset_scan()
@@ -223,6 +226,7 @@ class Autolock:
         still_in_lock = mean < 0.9
 
         if not still_in_lock:
+            self.parameters.autolock_retrying.value = True
             self.relock()
 
     def relock(self):

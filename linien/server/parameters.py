@@ -97,6 +97,7 @@ class Parameters(BaseParameters):
         self.autolock_watching = Parameter(start=False)
         self.autolock_failed = Parameter(start=False)
         self.autolock_locked = Parameter(start=False)
+        self.autolock_retrying = Parameter(start=False)
         self.autolock_determine_offset = Parameter(start=True)
         self.autolock_initial_ramp_amplitude = Parameter(start=1)
 
