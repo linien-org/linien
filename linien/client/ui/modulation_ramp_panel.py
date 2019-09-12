@@ -8,6 +8,7 @@ from linien.client.utils import param2ui
 class ModulationAndRampPanel(QtGui.QWidget, CustomWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.load_ui('modulation_ramp_panel.ui')
 
     def ready(self):
         self.ids.modulation_frequency.setKeyboardTracking(False)

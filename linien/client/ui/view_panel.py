@@ -11,14 +11,15 @@ from linien.client.widgets import CustomWidget
 class ViewPanel(QtGui.QWidget, CustomWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.load_ui('view_panel.ui')
 
     def ready(self):
         self.ids.autoscale_y_axis.stateChanged.connect(self.autoscale_changed)
         self.ids.y_axis_limit.setKeyboardTracking(False)
         self.ids.y_axis_limit.valueChanged.connect(self.y_limits_changed)
 
-        self.ids.export_select_file.clicked.connect(self.export_select_file)
-        self.ids.export_data.clicked.connect(self.export_data)
+        self.ids.export_select_file.clicked.connect(self.do_export_select_file)
+        self.ids.export_data.clicked.connect(self.do_export_data)
 
     def connection_established(self):
         params = self.app().parameters
@@ -37,7 +38,7 @@ class ViewPanel(QtGui.QWidget, CustomWidget):
     def y_limits_changed(self):
         self.parameters.y_axis_limits.value = self.ids.y_axis_limit.value()
 
-    def export_select_file(self):
+    def do_export_select_file(self):
         options = QtWidgets.QFileDialog.Options()
         #options |= QtWidgets.QFileDialog.DontUseNativeDialog
         default_ext = '.json'
@@ -49,7 +50,7 @@ class ViewPanel(QtGui.QWidget, CustomWidget):
             self.ids.export_select_file.setText('File selected: %s' % path.split(fn)[-1])
             self.ids.export_data.setEnabled(True)
 
-    def export_data(self):
+    def do_export_data(self):
         fn = self.export_fn
         counter = 0
 

@@ -11,6 +11,7 @@ from linien.client.connection import MHz, Vpp
 class GeneralPanel(QtGui.QWidget, CustomWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.load_ui('general_panel.ui')
 
     def ready(self):
         self.ids.channel_mixing_slider.valueChanged.connect(self.channel_mixing_changed)

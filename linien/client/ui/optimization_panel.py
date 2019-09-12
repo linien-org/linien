@@ -7,6 +7,7 @@ from linien.client.connection import MHz, Vpp
 class OptimizationPanel(QtGui.QWidget, CustomWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.load_ui('optimization_panel.ui')
 
     def ready(self):
         self.ids.start_optimization_btn.clicked.connect(self.start_optimization)
