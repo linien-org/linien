@@ -59,15 +59,17 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
 
         def change_manual_navigation_visibility(*args):
             al_running = params.autolock_running.value
+            optimization = params.optimization_running.value
             locked = params.lock.value
 
             self.get_widget('manual_navigation').setVisible(
-                not al_running and not locked
+                not al_running and not locked and not optimization
             )
             self.get_widget('top_lock_panel').setVisible(locked)
 
         params.lock.change(change_manual_navigation_visibility)
         params.autolock_running.change(change_manual_navigation_visibility)
+        params.optimization_running.change(change_manual_navigation_visibility)
 
         params.to_plot.change(self.update_std)
 

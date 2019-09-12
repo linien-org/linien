@@ -1,4 +1,6 @@
-# FIXME: give credit to the authors
+# License: MIT
+# the following code was translated from pseudocode on
+# https://www.wikiwand.com/en/CMA-ES to python by Julien Kluge.
 import numpy as np
 from math import floor, log, sqrt, exp
 from random import uniform

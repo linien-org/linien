@@ -9,7 +9,7 @@ class LockStatusPanel(QtGui.QWidget, CustomWidget):
         super().__init__(*args, **kwargs)
 
     def ready(self):
-        self.ids.stop_lock.clicked.connect(self.stop_autolock)
+        self.ids.stop_lock.clicked.connect(self.stop_lock)
         self.ids.control_signal_history_length.setKeyboardTracking(False)
         self.ids.control_signal_history_length.valueChanged.connect(self.control_signal_history_length_changed)
 
@@ -64,7 +64,7 @@ class LockStatusPanel(QtGui.QWidget, CustomWidget):
             self.ids.control_signal_history_length
         )
 
-    def stop_autolock(self):
+    def stop_lock(self):
         if self.parameters.task.value is not None:
             self.parameters.task.value.stop()
         else:

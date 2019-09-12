@@ -105,11 +105,16 @@ class Parameters(BaseParameters):
         self.optimization_running = Parameter(start=False)
         self.optimization_approaching = Parameter(start=False)
         self.optimization_improvement = Parameter(start=0)
+        self.optimization_mod_freq_enabled = Parameter(start=1)
         self.optimization_mod_freq_min = Parameter(start=0.0)
         self.optimization_mod_freq_max = Parameter(start=10.0)
+        self.optimization_mod_amp_enabled = Parameter(start=1)
         self.optimization_mod_amp_min = Parameter(start=0.0)
         self.optimization_mod_amp_max = Parameter(start=2.0)
         self.optimization_min_line_width = Parameter(start=25)
+        # FIXME: bei algo-start auf die current werte setzen
+        self.optimization_optimized_parameters = Parameter(start=(0, 0, 0))
+        self.optimization_channel = Parameter(start=0)
 
         self.pause_acquisition = Parameter(start=False)
 

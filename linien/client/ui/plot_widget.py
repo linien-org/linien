@@ -200,8 +200,8 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
             if self.selection_running:
                 # we pickle it here because otherwise a netref is
                 # transmitted which blocks the autolock
-                last_combined_error_signal = self.last_plot_data[2]
                 if self.parameters.autolock_selection.value:
+                    last_combined_error_signal = self.last_plot_data[2]
                     self.parameters.autolock_selection.value = False
 
                     self.control.start_autolock(*sorted([x0, x]), pickle.dumps(last_combined_error_signal))
@@ -210,9 +210,14 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
                         get_lock_point(last_combined_error_signal, *sorted((int(x0), int(x))))
                     self.autolock_ref_spectrum = rolled_error_signal
                 elif self.parameters.optimization_selection.value:
+                    dual_channel = self.parameters.dual_channel.value
+                    channel = self.parameters.optimization_channel.value
+                    spectrum = self.last_plot_data[
+                        0 if not dual_channel else (0, 1)[channel]
+                    ]
                     self.parameters.optimization_selection.value = False
                     points = sorted([int(x0), int(x)])
-                    self.control.start_optimization(*points, pickle.dumps(last_combined_error_signal))
+                    self.control.start_optimization(*points, pickle.dumps(spectrum))
 
         self.overlay.setVisible(False)
         self.touch_start = None

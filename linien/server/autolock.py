@@ -109,7 +109,7 @@ class Autolock:
                 if self.approacher is None:
                     self.approacher = Approacher(
                         self.control, self.parameters, self.first_error_signal,
-                        self.target_zoom
+                        self.target_zoom, allow_ramp_speed_change=True
                     )
                 approaching_finished = self.approacher.approach_line(combined_error_signal)
                 if approaching_finished:
@@ -254,6 +254,7 @@ class Autolock:
         self.remove_data_listener()
 
         self._reset_scan()
+        self.parameters.task.value = None
 
     def _lock(self):
         self.control.pause_acquisition()

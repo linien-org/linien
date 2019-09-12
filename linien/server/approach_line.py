@@ -6,11 +6,13 @@ ZOOM_STEP = 2
 
 
 class Approacher:
-    def __init__(self, control, parameters, first_error_signal, target_zoom):
+    def __init__(self, control, parameters, first_error_signal, target_zoom,
+                 allow_ramp_speed_change=False):
         self.control = control
         self.parameters = parameters
         self.first_error_signal = first_error_signal
         self.target_zoom = target_zoom
+        self.allow_ramp_speed_change = allow_ramp_speed_change
 
         self.reset_properties()
 
@@ -81,10 +83,11 @@ class Approacher:
         self.control.pause_acquisition()
 
         self.parameters.ramp_amplitude.value /= ZOOM_STEP
-        new_ramp_speed = self.parameters.ramp_speed.value - 1 \
-            if self.parameters.ramp_speed.value > 5 \
-            else self.parameters.ramp_speed.value
-        self.parameters.ramp_speed.value = new_ramp_speed
+        if self.allow_ramp_speed_change:
+            new_ramp_speed = self.parameters.ramp_speed.value - 1 \
+                if self.parameters.ramp_speed.value > 5 \
+                else self.parameters.ramp_speed.value
+            self.parameters.ramp_speed.value = new_ramp_speed
         self.control.exposed_write_data()
         self.control.continue_acquisition()
 

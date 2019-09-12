@@ -94,9 +94,11 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
         self.parameters.automatic_mode.value = idx == 0
 
     def start_manual_lock(self):
+        self.control.pause_acquisition()
         self.parameters.target_slope_rising.value = self.ids.button_slope_rising.isChecked()
         self.control.write_data()
         self.control.start_lock()
+        self.control.continue_acquisition()
 
     def auto_offset_changed(self):
         self.parameters.autolock_determine_offset.value = int(self.ids.autoOffsetCheckbox.checkState())

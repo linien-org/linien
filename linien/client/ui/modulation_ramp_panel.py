@@ -16,6 +16,8 @@ class ModulationAndRampPanel(QtGui.QWidget, CustomWidget):
         self.ids.modulation_amplitude.valueChanged.connect(self.change_modulation_amplitude)
         self.ids.ramp_speed.currentIndexChanged.connect(self.change_ramp_speed)
 
+        self.ids.spectroscopyTabs.setCurrentIndex(0)
+
     def connection_established(self):
         params = self.app().parameters
         self.control = self.app().control
@@ -36,6 +38,8 @@ class ModulationAndRampPanel(QtGui.QWidget, CustomWidget):
             self.ids.ramp_speed
         )
 
+        params.dual_channel.change(self.dual_channel_changed)
+
     def change_modulation_frequency(self):
         self.parameters.modulation_frequency.value = self.ids.modulation_frequency.value() * MHz
         self.control.write_data()
@@ -47,3 +51,7 @@ class ModulationAndRampPanel(QtGui.QWidget, CustomWidget):
     def change_ramp_speed(self, decimation):
         self.parameters.ramp_speed.value = decimation
         self.control.write_data()
+
+    def dual_channel_changed(self, value):
+        self.ids.spectroscopyBPanel.setVisible(value)
+        self.ids.spectroscopyBPanelDisabled.setVisible(not value)

@@ -11,6 +11,8 @@ from linien.server.autolock import Approacher
 
 from .cma_es import CMAES
 
+# FIXME: mention optimization in README once the next version is published
+
 
 # after the line was centered, its width will be 1/FINAL_ZOOM_FACTOR of the
 # view.
@@ -67,6 +69,11 @@ class OptimizeSpectroscopy:
         self.xmin = [freqs[0], ampls[0], 0]
         self.xmax = [freqs[1], ampls[1], 360]
 
+        if not params.optimization_mod_freq_enabled.value:
+            self.xmin[0] = self.xmax[0] = 0
+        if not params.optimization_mod_amp_enabled.value:
+            self.xmin[1] = self.xmax[1] = 0
+
         self.opt = CMAES()
         self.opt.lamb = 10
         self.opt.sigma = .6
@@ -92,14 +99,15 @@ class OptimizeSpectroscopy:
 
         self.approacher = Approacher(
             self.control, self.parameters, self.first_error_signal,
-            self.target_zoom
+            self.target_zoom, allow_ramp_speed_change=False
         )
 
         params = self.parameters
         self.initial_params = (
             params.modulation_frequency.value, params.modulation_amplitude.value,
-            params.demodulation_phase_a.value
+            self.get_demod_phase_param().value
         )
+        self.parameters.optimization_optimized_parameters.value = self.initial_params
 
     def request_new_parameters(self, use_initial_parameters=False):
         new_params = convert_params(self.opt.request_parameter_set(), self.xmin, self.xmax) \
@@ -111,16 +119,19 @@ class OptimizeSpectroscopy:
         # FIXME: try exept wie in autolock
         params = self.parameters
 
-        # FIXME: hardcoded error_signal_1
-        spectrum = pickle.loads(spectrum)['error_signal_1']
+        dual_channel = params.dual_channel.value
+        channel = params.optimization_channel.value
+        spectrum = pickle.loads(spectrum)[
+            'error_signal_%d' % (
+                1 if not dual_channel else (1, 2)[channel]
+            )
+        ]
 
         if self.parameters.optimization_approaching.value:
             approaching_finished = self.approacher.approach_line(spectrum)
             if approaching_finished:
                 self.parameters.optimization_approaching.value = False
         else:
-            print(self.get_max_slope(spectrum))
-            return
             self.iteration += 1
 
             if self.initial_spectrum is None:
@@ -153,6 +164,7 @@ class OptimizeSpectroscopy:
                     improvement = (max_diff - self.initial_diff) / self.initial_diff
                     if improvement > 0 and improvement > params.optimization_improvement.value:
                         params.optimization_improvement.value = improvement
+                        params.optimization_optimized_parameters.value = self.last_parameters
 
                     print('improvement %d' % (improvement * 100))
 
@@ -175,15 +187,19 @@ class OptimizeSpectroscopy:
 
         self.parameters.optimization_running.value = False
         self.parameters.to_plot.remove_listener(self.react_to_new_spectrum)
+        self.parameters.task.value = None
 
     def set_parameters(self, new_params):
         params = self.parameters
         frequency, amplitude, phase = new_params
         #print('%.2f MHz, %.2f Vpp, %d deg' % (frequency / MHz, amplitude / Vpp, phase))
         self.control.pause_acquisition()
-        params.modulation_frequency.value = frequency
-        params.modulation_amplitude.value = amplitude
-        params.demodulation_phase_a.value = phase
+
+        if params.optimization_mod_freq_enabled.value:
+            params.modulation_frequency.value = frequency
+        if params.optimization_mod_amp_enabled.value:
+            params.modulation_amplitude.value = amplitude
+        self.get_demod_phase_param().value = phase
         self.control.exposed_write_data()
         self.control.continue_acquisition()
         self.last_parameters = new_params
@@ -229,3 +245,15 @@ class OptimizeSpectroscopy:
             slopes.append(np.max(np.abs(np.gradient(filtered))))
 
         return np.max(slopes)
+
+    def get_demod_phase_param(self):
+        params = self.parameters
+        dual_channel = params.dual_channel.value
+        channel = params.optimization_channel.value
+
+        return (
+            self.parameters.demodulation_phase_a,
+            self.parameters.demodulation_phase_b
+        )[
+            0 if not dual_channel else (0, 1)[channel]
+        ]
