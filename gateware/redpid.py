@@ -35,7 +35,6 @@ from .sweep import SweepCSR
 from .limit import LimitCSR
 from .pid import PID
 from .decimation import Decimate
-from .watch_lock import WatchLock
 
 from linien.common import ANALOG_OUT0
 
@@ -176,13 +175,6 @@ class PIDCSR(Module, AutoCSR):
                 self.limit_fast1.y,
                 self.limit_fast2.y
             ])[self.control_channel.storage] << s),
-        ]
-
-        # watch lock
-        self.submodules.watcher = WatchLock(width)
-
-        self.sync += [
-            self.watcher.error_signal.eq(combined_error_signal >> s)
         ]
 
 

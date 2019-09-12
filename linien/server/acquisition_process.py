@@ -73,36 +73,37 @@ class DataAcquisitionService(Service):
 
                 data = self.read_data()
 
-                # FIXME: remove
-                lost = self.csr.get('root_watcher_lock_lost')
-                #print('LOCK_LOST', lost)
-
                 slow_out = self.csr.get('root_slow_value')
                 slow_out = slow_out if slow_out <= 8191 else slow_out - 16384
                 data += [slow_out]
 
                 self.r.scope.rearm(trigger_source=6)
 
-                # we use decimation of the FPGA scope for two reasons:
-                # - we want to record at lower scan rates
-                # - we want to record less data points than 16384 data points.
-                #   We could do this by additionally averaging in software, but
-                #   this turned out to be too slow on the RP. Therefore, we
-                #   let the FPGA do this.
-                # With high values of DECIMATION and low scan rates, the required
-                # decimation value exceeds the maximum value supported by the FPGA
-                # image. Therefore, we perform additional software averaging in
-                # these cases. As this happens for slow ramps only, the performance
-                # hit doesn't matter.
-                target_decimation = 2 ** (self.ramp_speed + int(np.log2(DECIMATION)))
-                if target_decimation > MAX_FPGA_DECIMATION:
-                    self.additional_decimation = int(target_decimation / MAX_FPGA_DECIMATION)
-                    target_decimation = MAX_FPGA_DECIMATION
-                else:
-                    self.additional_decimation = 1
+                if not self.locked:
+                    # we use decimation of the FPGA scope for two reasons:
+                    # - we want to record at lower scan rates
+                    # - we want to record less data points than 16384 data points.
+                    #   We could do this by additionally averaging in software, but
+                    #   this turned out to be too slow on the RP. Therefore, we
+                    #   let the FPGA do this.
+                    # With high values of DECIMATION and low scan rates, the required
+                    # decimation value exceeds the maximum value supported by the FPGA
+                    # image. Therefore, we perform additional software averaging in
+                    # these cases. As this happens for slow ramps only, the performance
+                    # hit doesn't matter.
+                    target_decimation = 2 ** (self.ramp_speed + int(np.log2(DECIMATION)))
+                    if target_decimation > MAX_FPGA_DECIMATION:
+                        self.additional_decimation = int(target_decimation / MAX_FPGA_DECIMATION)
+                        target_decimation = MAX_FPGA_DECIMATION
+                    else:
+                        self.additional_decimation = 1
 
-                self.r.scope.data_decimation = target_decimation
-                self.r.scope.trigger_delay = int(trigger_delay / DECIMATION * self.additional_decimation)- 1
+                    self.r.scope.data_decimation = target_decimation
+                    self.r.scope.trigger_delay = int(trigger_delay / DECIMATION * self.additional_decimation)- 1
+                else:
+                    self.r.scope.data_decimation = 1
+                    self.additional_decimation = 1
+                    self.r.scope.trigger_delay = int(trigger_delay / DECIMATION)- 1
 
                 if self.skip_next_data:
                     self.skip_next_data -= 1

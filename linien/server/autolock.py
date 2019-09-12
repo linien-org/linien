@@ -2,7 +2,7 @@ import pickle
 import traceback
 import numpy as np
 from linien.common import get_lock_point, combine_error_signal, \
-    check_plot_data, ANALOG_OUT0
+    check_plot_data, ANALOG_OUT0, SpectrumUncorrelatedException
 from linien.server.approach_line import Approacher
 
 
@@ -17,8 +17,8 @@ class Autolock:
         self.parameters.autolock_retrying.value = False
 
         self.should_watch_lock = False
-
         self.approacher = None
+        self._data_listener_added = False
 
         self.reset_properties()
 
@@ -53,9 +53,12 @@ class Autolock:
         self.add_data_listener()
 
     def add_data_listener(self):
-        self.parameters.to_plot.change(self.react_to_new_spectrum)
+        if not self._data_listener_added:
+            self.parameters.to_plot.change(self.react_to_new_spectrum)
+            self._data_listener_added = True
 
     def remove_data_listener(self):
+        self._data_listener_added = False
         self.parameters.to_plot.remove_listener(self.react_to_new_spectrum)
 
     def react_to_new_spectrum(self, plot_data):
@@ -126,6 +129,14 @@ class Autolock:
                 # afterwards.
                 return self.after_lock(error_signal, control_signal, plot_data.get('slow'))
 
+        except SpectrumUncorrelatedException:
+            print('spectrum uncorrelated')
+            if self.parameters.watch_lock.value:
+                print('retry')
+                self.relock()
+            else:
+                self.exposed_stop()
+
         except Exception:
             traceback.print_exc()
             self.exposed_stop()
@@ -173,38 +184,12 @@ class Autolock:
 
                 return (center - ampl) <= slow_out / 8192 <= (center + ampl)
 
-        def program_watcher(error_signal):
-            def determine_longest(data):
-                last_sign = 0
-                counter = 0
-                max_counter = 0
-
-                for i, d in enumerate(data):
-                    sign = np.sign(d)
-                    if sign != last_sign:
-                        counter = 0
-                        last_sign = sign
-                    else:
-                        counter += 1
-                        if counter > max_counter:
-                            max_counter = counter
-
-                return max_counter
-
-            max_counter = determine_longest(error_signal)
-            self.parameters.watch_lock_reset.value = 1
-            self.parameters.watch_lock_time_constant.value = max_counter * 2
-            self.control.exposed_write_data()
-            self.parameters.watch_lock_reset.value = 0
-            self.control.exposed_write_data()
-
-
-        program_watcher(error_signal)
         self.parameters.autolock_locked.value = check_whether_in_lock(control_signal)
 
         if self.parameters.autolock_locked.value and self.should_watch_lock:
             # we start watching the lock status from now on.
             # this is done in `react_to_new_spectrum()` which is called regularly.
+            self.watcher_last_value = np.mean(control_signal) / 8192
             self.parameters.autolock_watching.value = True
         else:
             self.remove_data_listener()
@@ -222,12 +207,18 @@ class Autolock:
 
     def watch_lock(self, error_signal, control_signal):
         """Check whether the laser is still in lock and init a relock if not."""
-        mean = np.abs(np.mean(control_signal) / 8192)
-        still_in_lock = mean < 0.9
+        mean = np.mean(control_signal) / 8192
 
-        if not still_in_lock:
+        diff = np.abs(mean - self.watcher_last_value)
+        lock_lost = diff > self.parameters.watch_lock_threshold.value
+
+        too_close_to_edge = np.abs(mean) > 0.95
+
+        if too_close_to_edge or lock_lost:
             self.parameters.autolock_retrying.value = True
             self.relock()
+
+        self.watcher_last_value = mean
 
     def relock(self):
         """

@@ -54,6 +54,7 @@ class CMAES(Optimizer):
             self.initializeAlgorithm()
 
         self.counteval += 1 #increase evaluation counter
+        # FIXME: uniform? Or use the fix of automatix code?
         xd = np.matmul(self.B, [dd * uniform(-1, 1) for dd in self.D])
         xc = [xm + self.sigma * xgd for xm, xgd in zip(self.xmean, xd)]
         xc = self._truncate_parameters(xc)

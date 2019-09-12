@@ -2,6 +2,7 @@ import math
 import pickle
 import random
 import numpy as np
+import traceback
 from time import sleep, time
 from scipy.signal import resample
 
@@ -88,6 +89,10 @@ class OptimizeSpectroscopy:
         params.optimization_running.value = True
         params.optimization_improvement.value = 0
 
+        self.initial_ramp_speed = self.parameters.ramp_speed.value
+        self.initial_ramp_amplitude = self.parameters.ramp_amplitude.value
+        self.initial_ramp_center = self.parameters.center.value
+
     def record_first_error_signal(self, error_signal):
         _, _2, target_zoom, rolled_error_signal = get_lock_point(
             error_signal, *list(sorted([self.x0, self.x1])),
@@ -116,68 +121,70 @@ class OptimizeSpectroscopy:
         self.set_parameters(new_params)
 
     def react_to_new_spectrum(self, spectrum):
-        # FIXME: try exept wie in autolock
-        params = self.parameters
+        try:
+            params = self.parameters
 
-        dual_channel = params.dual_channel.value
-        channel = params.optimization_channel.value
-        spectrum = pickle.loads(spectrum)[
-            'error_signal_%d' % (
-                1 if not dual_channel else (1, 2)[channel]
-            )
-        ]
+            dual_channel = params.dual_channel.value
+            channel = params.optimization_channel.value
+            spectrum = pickle.loads(spectrum)[
+                'error_signal_%d' % (
+                    1 if not dual_channel else (1, 2)[channel]
+                )
+            ]
 
-        if self.parameters.optimization_approaching.value:
-            approaching_finished = self.approacher.approach_line(spectrum)
-            if approaching_finished:
-                self.parameters.optimization_approaching.value = False
-        else:
-            self.iteration += 1
+            if self.parameters.optimization_approaching.value:
+                approaching_finished = self.approacher.approach_line(spectrum)
+                if approaching_finished:
+                    self.parameters.optimization_approaching.value = False
+            else:
+                self.iteration += 1
 
-            if self.initial_spectrum is None:
-                params = self.parameters
-                self.initial_spectrum = spectrum
-                self.last_parameters = self.initial_params
-                self.initial_diff = self.get_max_slope(spectrum)
+                if self.initial_spectrum is None:
+                    params = self.parameters
+                    self.initial_spectrum = spectrum
+                    self.last_parameters = self.initial_params
+                    self.initial_diff = self.get_max_slope(spectrum)
 
-            center_line = self.iteration == self.next_recentering_iteration
-            center_line_next_time = self.iteration + 1 == self.next_recentering_iteration
+                center_line = self.iteration == self.next_recentering_iteration
+                center_line_next_time = self.iteration + 1 == self.next_recentering_iteration
 
-            if self.iteration > 1:
-                if center_line:
-                    # center the line again
-                    shift, _, _2 = determine_shift_by_correlation(
-                        1, self.initial_spectrum, spectrum
-                    )
-                    params.center.value -= shift * params.ramp_amplitude.value
-                    self.control.exposed_write_data()
+                if self.iteration > 1:
+                    if center_line:
+                        # center the line again
+                        shift, _, _2 = determine_shift_by_correlation(
+                            1, self.initial_spectrum, spectrum
+                        )
+                        params.center.value -= shift * params.ramp_amplitude.value
+                        self.control.exposed_write_data()
 
-                    if self.allow_increase_of_recentering_interval and \
-                            abs(shift) < 2 / FINAL_ZOOM_FACTOR:
-                        self.recenter_after *= 2
+                        if self.allow_increase_of_recentering_interval and \
+                                abs(shift) < 2 / FINAL_ZOOM_FACTOR:
+                            self.recenter_after *= 2
+                        else:
+                            self.allow_increase_of_recentering_interval = False
+
+                        self.next_recentering_iteration += self.recenter_after
                     else:
-                        self.allow_increase_of_recentering_interval = False
+                        max_diff = self.get_max_slope(spectrum)
+                        improvement = (max_diff - self.initial_diff) / self.initial_diff
+                        if improvement > 0 and improvement > params.optimization_improvement.value:
+                            params.optimization_improvement.value = improvement
+                            params.optimization_optimized_parameters.value = self.last_parameters
 
-                    self.next_recentering_iteration += self.recenter_after
-                else:
-                    max_diff = self.get_max_slope(spectrum)
-                    improvement = (max_diff - self.initial_diff) / self.initial_diff
-                    if improvement > 0 and improvement > params.optimization_improvement.value:
-                        params.optimization_improvement.value = improvement
-                        params.optimization_optimized_parameters.value = self.last_parameters
+                        print('improvement %d' % (improvement * 100))
 
-                    print('improvement %d' % (improvement * 100))
+                        fitness = math.log(1 / max_diff)
 
-                    fitness = math.log(1 / max_diff)
-                    #print('fitness', fitness)
+                        self.fitness_arr.append(fitness)
+                        self.opt.insert_fitness_value(fitness, self.last_parameters)
 
-                    self.fitness_arr.append(fitness)
-                    self.opt.insert_fitness_value(fitness, self.last_parameters)
-
-            self.request_new_parameters(use_initial_parameters=center_line_next_time)
+                self.request_new_parameters(use_initial_parameters=center_line_next_time)
+        except:
+            traceback.print_exc()
+            self.exposed_stop(False)
 
     def exposed_stop(self, use_new_parameters):
-        if use_new_parameters:
+        if use_new_parameters and self.parameters.optimization_improvement.value > 0:
             optimized_parameters = convert_params(
                 self.opt.request_results()[0], self.xmin, self.xmax
             )
@@ -189,10 +196,11 @@ class OptimizeSpectroscopy:
         self.parameters.to_plot.remove_listener(self.react_to_new_spectrum)
         self.parameters.task.value = None
 
+        self.reset_scan()
+
     def set_parameters(self, new_params):
         params = self.parameters
         frequency, amplitude, phase = new_params
-        #print('%.2f MHz, %.2f Vpp, %d deg' % (frequency / MHz, amplitude / Vpp, phase))
         self.control.pause_acquisition()
 
         if params.optimization_mod_freq_enabled.value:
@@ -200,6 +208,7 @@ class OptimizeSpectroscopy:
         if params.optimization_mod_amp_enabled.value:
             params.modulation_amplitude.value = amplitude
         self.get_demod_phase_param().value = phase
+
         self.control.exposed_write_data()
         self.control.continue_acquisition()
         self.last_parameters = new_params
@@ -257,3 +266,13 @@ class OptimizeSpectroscopy:
         )[
             0 if not dual_channel else (0, 1)[channel]
         ]
+
+    def reset_scan(self):
+        self.control.pause_acquisition()
+
+        self.parameters.ramp_speed.value = self.initial_ramp_speed
+        self.parameters.ramp_amplitude.value = self.initial_ramp_amplitude
+        self.parameters.center.value = self.initial_ramp_center
+        self.control.exposed_write_data()
+
+        self.control.continue_acquisition()

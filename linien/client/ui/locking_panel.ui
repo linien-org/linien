@@ -465,9 +465,12 @@
                </widget>
               </item>
               <item>
-               <widget class="QCheckBox" name="checkBox_4">
+               <widget class="QCheckBox" name="autoOffsetCheckbox">
                 <property name="text">
-                 <string>Emit TTL when locked (on DIO0_N)</string>
+                 <string>Determine signal offset</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
                 </property>
                </widget>
               </item>
@@ -503,9 +506,9 @@
                </widget>
               </item>
               <item>
-               <widget class="QCheckBox" name="autoOffsetCheckbox">
+               <widget class="QCheckBox" name="watchLockCheckbox">
                 <property name="text">
-                 <string>Determine signal offset</string>
+                 <string>Watch lock</string>
                 </property>
                 <property name="checked">
                  <bool>true</bool>
@@ -529,12 +532,9 @@
                </widget>
               </item>
               <item>
-               <widget class="QCheckBox" name="watchLockCheckbox">
+               <widget class="QCheckBox" name="checkBox_4">
                 <property name="text">
-                 <string>Watch lock</string>
-                </property>
-                <property name="checked">
-                 <bool>true</bool>
+                 <string>Emit TTL when locked (on DIO0_N)</string>
                 </property>
                </widget>
               </item>

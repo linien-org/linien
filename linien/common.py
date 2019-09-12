@@ -17,6 +17,10 @@ assert DECIMATION % 2 == 0 or DECIMATION == 1
 N_POINTS = int(16384 / DECIMATION)
 
 
+class SpectrumUncorrelatedException(Exception):
+    pass
+
+
 def downsample_history(times, values, max_time_diff, max_N=N_POINTS):
     """The history should not grow too much. When recording for long intervals,
     we want to throw away some datapoints that were recorded with a sampling rate
@@ -107,13 +111,9 @@ def determine_shift_by_correlation(zoom_factor, reference_signal, error_signal):
     downsampled_error_signal = resample(error_signal, len(zoomed_ref))
 
     correlation = correlate(zoomed_ref, downsampled_error_signal)
-    """plt.plot(downsampled_error_signal)
-    plt.plot(zoomed_ref)
-    plt.show()"""
 
-
-    """plt.plot(correlation)
-    plt.show()"""
+    if np.max(correlation) < 100 * len(zoomed_ref):
+        raise SpectrumUncorrelatedException()
 
     shift = np.argmax(correlation)
     shift = (shift - len(zoomed_ref)) / len(zoomed_ref) * 2 / zoom_factor

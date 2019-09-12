@@ -112,13 +112,14 @@ class Parameters(BaseParameters):
         self.optimization_mod_amp_min = Parameter(start=0.0)
         self.optimization_mod_amp_max = Parameter(start=2.0)
         self.optimization_min_line_width = Parameter(start=25)
-        # FIXME: bei algo-start auf die current werte setzen
         self.optimization_optimized_parameters = Parameter(start=(0, 0, 0))
         self.optimization_channel = Parameter(start=0)
 
         self.pause_acquisition = Parameter(start=False)
 
         self.watch_lock = Parameter(start=True)
+        self.watch_lock_threshold = Parameter(start=0.01)
+
         self.control_signal_history = Parameter(start={
             'times': [],
             'values': []
@@ -141,7 +142,3 @@ class Parameters(BaseParameters):
 
         self.autoscale_y = Parameter(start=True)
         self.y_axis_limits = Parameter(start=1)
-
-        self.watch_lock_reset = Parameter(start=False)
-        self.watch_lock_time_constant = Parameter(start=int(1e5))
-        self.watch_lock_threshold = Parameter(start=1000)

@@ -10,7 +10,8 @@ from pyqtgraph.Qt import QtCore, QtGui
 from linien.client.config import COLORS
 from linien.client.widgets import CustomWidget
 from linien.common import update_control_signal_history, determine_shift_by_correlation, \
-    get_lock_point, combine_error_signal, check_plot_data, N_POINTS
+    get_lock_point, combine_error_signal, check_plot_data, N_POINTS, \
+    SpectrumUncorrelatedException
 
 # NOTE: this is required for using a pen_width > 1.
 # There is a bug though that causes the plot to be way too small. Therefore,
@@ -308,17 +309,21 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
             zoom_factor = 1 / ramp_amplitude
             initial_zoom_factor = 1 / self.parameters.autolock_initial_ramp_amplitude.value
 
-            shift, _1, _2 = determine_shift_by_correlation(
-                zoom_factor / initial_zoom_factor,
-                self.autolock_ref_spectrum,
-                combined_error_signal
-            )
-            shift *= zoom_factor / initial_zoom_factor
-            length = len(combined_error_signal)
-            shift = (length / 2) - (shift / 2* length)
+            try:
+                shift, _1, _2 = determine_shift_by_correlation(
+                    zoom_factor / initial_zoom_factor,
+                    self.autolock_ref_spectrum,
+                    combined_error_signal
+                )
+                shift *= zoom_factor / initial_zoom_factor
+                length = len(combined_error_signal)
+                shift = (length / 2) - (shift / 2* length)
 
-            self.lock_target_line.setVisible(True)
-            self.lock_target_line.setValue(shift)
+                self.lock_target_line.setVisible(True)
+                self.lock_target_line.setValue(shift)
+
+            except SpectrumUncorrelatedException:
+                self.lock_target_line.setVisible(False)
         else:
             self.lock_target_line.setVisible(False)
 

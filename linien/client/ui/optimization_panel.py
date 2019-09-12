@@ -104,7 +104,6 @@ class OptimizationPanel(QtGui.QWidget, CustomWidget):
         self.parameters.optimization_selection.value = False
 
     def abort_preparation(self):
-        # FIXME: go back to initial view
         self.parameters.task.value.stop(False)
 
     def abort(self):
