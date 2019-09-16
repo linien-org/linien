@@ -13,6 +13,7 @@ Features
 * **Autolock**: Click and drag over a line, and linien will automatically approach it and lock to it.
 * **Lock detection**: linien is capable of detecting loss of lock.
 * **Automatic relocking**: in that case, it can relock automatically using the autolock.
+* **Automatic Optimization**: linien uses machine learning to optimize spectroscopy parameters
 * **Remote-controllable**: The client libraries can be used to control or monitor the spectroscopy lock with python.
 * **Combined FMS+MTS**: Supports dual-channel spectroscopy that can be used to implement `combined FMS+MTS <https://arxiv.org/pdf/1701.01918.pdf>`_
 * **Logging**: Use `linien-influxdb <https://github.com/hermitdemschoenenleben/linien-influxdb>`_ to log the lock status to influxdb.

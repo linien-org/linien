@@ -12,8 +12,6 @@ from linien.server.autolock import Approacher
 
 from .cma_es import CMAES
 
-# FIXME: mention optimization in README once the next version is published
-
 
 # after the line was centered, its width will be 1/FINAL_ZOOM_FACTOR of the
 # view.
