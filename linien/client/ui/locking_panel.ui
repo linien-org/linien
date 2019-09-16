@@ -36,8 +36,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>393</width>
-        <height>878</height>
+        <width>379</width>
+        <height>953</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -518,13 +518,47 @@
               <item>
                <widget class="QLabel" name="label_8">
                 <property name="text">
-                 <string>Detects glitches and automatically relocks</string>
+                 <string>Automatically relocks if a quick control signal change of more than</string>
                 </property>
                 <property name="wordWrap">
                  <bool>true</bool>
                 </property>
                 <property name="margin">
                  <number>0</number>
+                </property>
+                <property name="indent">
+                 <number>30</number>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_5">
+                <property name="leftMargin">
+                 <number>30</number>
+                </property>
+                <item>
+                 <widget class="QDoubleSpinBox" name="watch_lock_threshold">
+                  <property name="maximum">
+                   <double>50.000000000000000</double>
+                  </property>
+                  <property name="value">
+                   <double>1.000000000000000</double>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label_15">
+                  <property name="text">
+                   <string>%</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <widget class="QLabel" name="label_16">
+                <property name="text">
+                 <string>is detected.</string>
                 </property>
                 <property name="indent">
                  <number>30</number>

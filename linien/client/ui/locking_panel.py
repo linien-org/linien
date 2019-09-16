@@ -16,6 +16,8 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
         self.ids.kd.setKeyboardTracking(False)
         self.ids.kd.valueChanged.connect(self.kd_changed)
         self.ids.watchLockCheckbox.stateChanged.connect(self.watch_lock_changed)
+        self.ids.kd.setKeyboardTracking(False)
+        self.ids.watch_lock_threshold.valueChanged.connect(self.watch_lock_threshold_changed)
         self.ids.lock_control_container.currentChanged.connect(self.lock_mode_changed)
 
         self.ids.selectLineToLock.clicked.connect(self.start_autolock_selection)
@@ -37,6 +39,11 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
         param2ui(params.d, self.ids.kd)
 
         param2ui(params.watch_lock, self.ids.watchLockCheckbox)
+        param2ui(
+            params.watch_lock_threshold,
+            self.ids.watch_lock_threshold,
+            lambda v: v * 100
+        )
         param2ui(params.autolock_determine_offset, self.ids.autoOffsetCheckbox)
         param2ui(
             params.automatic_mode,
@@ -112,3 +119,6 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
 
     def stop_autolock_selection(self):
         self.parameters.autolock_selection.value = False
+
+    def watch_lock_threshold_changed(self):
+        self.parameters.watch_lock_threshold.value = self.ids.watch_lock_threshold.value() / 100.0
