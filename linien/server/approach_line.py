@@ -30,6 +30,19 @@ class Approacher:
 
         initial_ramp_amplitude = self.parameters.autolock_initial_ramp_amplitude.value
 
+        # the autolock tries to center a line by changing the ramp center.
+        # If a line was selected that is close to the edges, this can lead to
+        # a situation where ramp center + ramp_amplitude > output limits of RP.
+        # in this case, we want to ignore the error signal that was recorded at
+        # these points as it may contain a distorted version of the spectrum that
+        # disturbs the correlation.
+        ramp_amplitude = self.parameters.ramp_amplitude.value
+        center = self.parameters.center.value
+        ramp = np.linspace(-ramp_amplitude, ramp_amplitude, len(error_signal)) + center
+        error_signal = np.array(error_signal)
+        error_signal[np.abs(ramp) > 1] = 0
+
+        # now, we calculate the correlation to find the shift
         shift, zoomed_ref, zoomed_err = determine_shift_by_correlation(
             self.zoom_factor, self.first_error_signal, error_signal
         )
@@ -45,7 +58,7 @@ class Approacher:
             if next_step_is_lock:
                 return True
             else:
-                self._correct_current(shift, allow_ramp_amplitude_decrease=True)
+                self._correct_current(shift)
         else:
             # wait for some time after the last current correction
             if time() - self.time_last_current_correction < 1:
@@ -91,26 +104,11 @@ class Approacher:
         self.control.exposed_write_data()
         self.control.continue_acquisition()
 
-    def _correct_current(self, shift, allow_ramp_amplitude_decrease=False):
+    def _correct_current(self, shift):
         self.control.pause_acquisition()
         self.time_last_current_correction = time()
 
         self.parameters.center.value -= shift
 
-        did_zoom = False
-        if allow_ramp_amplitude_decrease:
-            # we check whether at this shift the ramp goes beyond the maximum
-            # because this is something we want to avoid
-            # in this case, we decrease the ramp amplitude
-            center = self.parameters.center.value
-            amplitude = self.parameters.ramp_amplitude.value
-            max_allowed_amplitude = 1 - abs(center)
-            if amplitude > max_allowed_amplitude:
-                self.parameters.ramp_amplitude.value = max_allowed_amplitude
-                self.zoom_factor *= amplitude / max_allowed_amplitude
-                did_zoom = True
-
         self.control.exposed_write_data()
         self.control.continue_acquisition()
-
-        return did_zoom
