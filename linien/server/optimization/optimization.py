@@ -43,6 +43,10 @@ class OptimizeSpectroscopy:
         self.next_recentering_iteration = self.recenter_after
         self.allow_increase_of_recentering_interval = True
 
+        self.initial_ramp_speed = self.parameters.ramp_speed.value
+        self.initial_ramp_amplitude = self.parameters.ramp_amplitude.value
+        self.initial_ramp_center = self.parameters.center.value
+
     def run(self, x0, x1, spectrum):
         self.parameters.optimization_approaching.value = True
 
@@ -86,10 +90,6 @@ class OptimizeSpectroscopy:
         params.to_plot.change(self.react_to_new_spectrum)
         params.optimization_running.value = True
         params.optimization_improvement.value = 0
-
-        self.initial_ramp_speed = self.parameters.ramp_speed.value
-        self.initial_ramp_amplitude = self.parameters.ramp_amplitude.value
-        self.initial_ramp_center = self.parameters.center.value
 
     def record_first_error_signal(self, error_signal):
         _, _2, target_zoom, rolled_error_signal = get_lock_point(
