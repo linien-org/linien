@@ -18,6 +18,7 @@ Features
 * **Logging**: Use `linien-influxdb <https://github.com/hermitdemschoenenleben/linien-influxdb>`_ to log the lock status to influxdb.
 * **TTL status**: Outputs the lock status via TTL
 
+.. image:: screencast.gif
 
 Getting started
 ###############
