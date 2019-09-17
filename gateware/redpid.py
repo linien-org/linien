@@ -122,6 +122,7 @@ class PIDCSR(Module, AutoCSR):
 
         factor_reset = 1 << (chain_factor_width - 1)
         # we use chain_factor_width + 1 for the single channel mode
+        self.dual_channel = CSRStorage(1)
         self.chain_a_factor = CSRStorage(chain_factor_width + 1, reset=factor_reset)
         self.chain_b_factor = CSRStorage(chain_factor_width + 1, reset=factor_reset)
 
@@ -240,17 +241,19 @@ class Pid(Module, AutoCSR):
         # now, we combine the output of the two paths, with a variable
         # factor each.
         mixed = Signal((2 + ((signal_width + 1) + self.root.chain_a_factor.size), True))
-        self.sync += mixed.eq(
-            (
-                # FIXME: wenn dual_channel an ist und und z.B. beide Werte auf 128
-                # sind, geht damit jeweils ein bit verloren. Nicht schlimm,
-                # vermutlich, aber eventuell kann man die weitere Kette mit
-                # mehr Bits rechnen lassen?
-                (self.root.chain_a_factor.storage * self.fast_a.dac)
-                + (self.root.chain_b_factor.storage * self.fast_b.dac)
-                + (self.root.combined_offset_signed << (chain_factor_bits + s))
+        self.sync += [
+            If(self.root.dual_channel.storage,
+                mixed.eq(
+                    (self.root.chain_a_factor.storage * self.fast_a.dac)
+                    + (self.root.chain_b_factor.storage * self.fast_b.dac)
+                    + (self.root.combined_offset_signed << (chain_factor_bits + s))
+                )
+            ).Else(
+                mixed.eq(
+                    self.fast_a.dac << chain_factor_bits
+                )
             )
-        )
+        ]
 
         mixed_limited = Signal((signal_width, True))
         self.comb += [

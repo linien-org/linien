@@ -69,6 +69,7 @@ class Registers:
             root_mod_freq=params['modulation_frequency'],
             root_mod_amp=params['modulation_amplitude'],
 
+            root_dual_channel=int(params['dual_channel']),
             root_chain_a_factor=factor_a,
             root_chain_b_factor=factor_b,
             root_chain_a_offset=twos_complement(int(params['offset_a']), 14),
