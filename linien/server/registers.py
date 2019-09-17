@@ -83,7 +83,6 @@ class Registers:
             slow_pid_reset=not params['pid_on_slow_enabled'],
 
             # channel A
-            fast_a_x_tap=2,
             fast_a_demod_delay=phase_to_delay(params['demodulation_phase_a']),
             fast_a_demod_multiplier=params['demodulation_multiplier_a'],
             fast_a_brk=0,
@@ -96,7 +95,6 @@ class Registers:
             fast_a_rx_sel=self.csr.signal('zero'),
 
             # channel B
-            fast_b_x_tap=2,
             fast_b_demod_delay=phase_to_delay(params['demodulation_phase_b']),
             fast_b_demod_multiplier=params['demodulation_multiplier_b'],
             fast_b_brk=0,
@@ -218,10 +216,6 @@ class Registers:
             else:
                 self.set_pid(0, 0, 0, slope, reset=1)
                 self.set_slow_pid(0, slow_slope, reset=1)
-
-                self.set_iir("fast_a_iir_a", *make_filter('P', k=1))
-                self.set_iir("fast_b_iir_a", *make_filter('P', k=1))
-
         else:
             if lock:
                 # set new PI parameters

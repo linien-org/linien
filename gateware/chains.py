@@ -29,13 +29,11 @@ class FastChain(Module, AutoCSR):
         self.adc = Signal((width, True))
         self.dac = Signal((width, True))
 
-        self.x_tap = CSRStorage(2)
         self.brk = CSRStorage(1)
         self.y_tap = CSRStorage(2)
 
         x_hold = Signal()
         x_clear = Signal()
-        x_sat = Signal()
         x_railed = Signal()
         y_hold = Signal()
         y_clear = Signal()
@@ -43,7 +41,7 @@ class FastChain(Module, AutoCSR):
         y_railed = Signal()
 
         self.state_in = x_hold, x_clear, y_hold, y_clear
-        self.state_out = x_sat, x_railed, y_sat, y_railed
+        self.state_out = x_railed, y_sat, y_railed
 
         x = Signal((signal_width, True))
         dx = Signal((signal_width, True))
@@ -56,13 +54,7 @@ class FastChain(Module, AutoCSR):
 
         ###
 
-        self.submodules.iir_a = Iir(
-            width=signal_width, coeff_width=coeff_width, shift=coeff_width-2,
-            order=1)
         self.submodules.demod = Demodulate(width=width)
-        self.submodules.iir_b = Iir(
-            width=2*coeff_width, coeff_width=signal_width,
-            shift=signal_width-2, order=2, mode="iterative")
         self.submodules.x_limit = LimitCSR(width=signal_width, guard=1)
         self.submodules.iir_c = Iir(
             width=signal_width, coeff_width=coeff_width, shift=coeff_width-2,
@@ -83,30 +75,18 @@ class FastChain(Module, AutoCSR):
         ###
 
         s = signal_width - width
-        s1 = 2*coeff_width - width
         s2 = 2*coeff_width - signal_width
 
         self.comb += [
-            self.iir_a.x.eq(self.adc << s),
-            self.iir_a.hold.eq(x_hold),
-            self.iir_a.clear.eq(x_clear),
-
-            self.demod.x.eq(self.iir_a.y >> s),
+            self.demod.x.eq(self.adc),
             self.demod.phase.eq(mod.phase),
-
-            self.iir_b.x.eq(self.demod.y << s1),
-            self.iir_b.hold.eq(x_hold),
-            self.iir_b.clear.eq(x_clear),
-
-            x_sat.eq(
-                (self.iir_a.error & (self.x_tap.storage > 0)) |
-                (self.iir_b.error & (self.x_tap.storage > 2))
-            ),
         ]
-        xs = Array([self.iir_a.x, self.iir_a.y,
-                    self.iir_b.x >> s2, self.iir_b.y >> s2])
         self.sync += x.eq(
-            Mux(self.brk.storage, 0, xs[self.x_tap.storage]) + dx
+            Mux(
+                self.brk.storage,
+                0,
+                self.demod.y << s
+            ) + dx
         )
 
         self.comb += [
