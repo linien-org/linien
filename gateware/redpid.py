@@ -159,7 +159,7 @@ class PIDCSR(Module, AutoCSR):
         self.submodules.limit_error_signal = LimitCSR(width=width, guard=4)
         self.submodules.limit_fast1 = LimitCSR(width=width, guard=5)
         self.submodules.limit_fast2 = LimitCSR(width=width, guard=5)
-        self.submodules.pid = PID()
+        self.submodules.pid = PID(width=signal_width)
 
         max_decimation = 16
         self.slow_decimation = CSRStorage(bits_for(max_decimation))
@@ -239,7 +239,7 @@ class Pid(Module, AutoCSR):
 
         # now, we combine the output of the two paths, with a variable
         # factor each.
-        mixed = Signal((2 + ((width + 1) + self.root.chain_a_factor.size), True))
+        mixed = Signal((2 + ((signal_width + 1) + self.root.chain_a_factor.size), True))
         self.sync += mixed.eq(
             (
                 # FIXME: wenn dual_channel an ist und und z.B. beide Werte auf 128
@@ -248,11 +248,11 @@ class Pid(Module, AutoCSR):
                 # mehr Bits rechnen lassen?
                 (self.root.chain_a_factor.storage * self.fast_a.dac)
                 + (self.root.chain_b_factor.storage * self.fast_b.dac)
-                + (self.root.combined_offset_signed << chain_factor_bits)
+                + (self.root.combined_offset_signed << (chain_factor_bits + s))
             )
         )
 
-        mixed_limited = Signal((width, True))
+        mixed_limited = Signal((signal_width, True))
         self.comb += [
             self.root.limit_error_signal.x.eq(mixed >> chain_factor_bits),
             mixed_limited.eq(self.root.limit_error_signal.y)
@@ -261,7 +261,7 @@ class Pid(Module, AutoCSR):
         pid_out = Signal((width, True))
         self.comb += [
             self.root.pid.input.eq(mixed_limited),
-            pid_out.eq(self.root.pid.pid_out)
+            pid_out.eq(self.root.pid.pid_out >> s)
         ]
 
         fast_outs = list(Signal((width + 4, True)) for channel in (0, 1))
