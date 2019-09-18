@@ -182,9 +182,9 @@ class Registers:
         slow_strength = params['pid_on_slow_strength'] \
             if params['pid_on_slow_enabled'] \
             else 0
-        slow_slope = slope
-        if channel_polarity(ANALOG_OUT0) != channel_polarity(control_channel):
-            slow_slope = not slow_slope
+        slow_slope = 1 \
+            if channel_polarity(ANALOG_OUT0) == channel_polarity(control_channel) \
+            else -1
 
         for chain in ('a', 'b'):
             automatic = params['filter_automatic_%s' % chain]
@@ -240,7 +240,7 @@ class Registers:
             self.set('root_pid_reset', reset)
 
     def set_slow_pid(self, strength, slope, reset=None):
-        sign = -1 if slope else 1
+        sign = slope
         self.set('slow_pid_ki', strength * sign)
 
         if reset is not None:
