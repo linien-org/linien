@@ -67,7 +67,7 @@ class PID(Module, AutoCSR):
 
         self.sync += [
             self.ki_mult.eq(
-                self.error * ki_signed
+                (self.error * ki_signed) >> 4
             )
         ]
 
