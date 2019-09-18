@@ -62,9 +62,6 @@ class FastChain(Module, AutoCSR):
         self.submodules.iir_d = Iir(
             width=signal_width, coeff_width=coeff_width, shift=coeff_width-2,
             order=2)
-        self.submodules.iir_e = Iir(
-            width=2*coeff_width, coeff_width=signal_width,
-            shift=signal_width-2, order=2, mode="iterative")
 
         if mod is None:
             self.submodules.mod = Modulate(width=width)
@@ -75,7 +72,6 @@ class FastChain(Module, AutoCSR):
         ###
 
         s = signal_width - width
-        s2 = 2*coeff_width - signal_width
 
         self.comb += [
             self.demod.x.eq(self.adc),
@@ -101,19 +97,14 @@ class FastChain(Module, AutoCSR):
             self.iir_d.hold.eq(y_hold),
             self.iir_d.clear.eq(y_clear),
 
-            self.iir_e.x.eq(self.iir_d.y << s2),
-            self.iir_e.hold.eq(y_hold),
-            self.iir_e.clear.eq(y_clear),
-
             y_sat.eq(
                 (self.iir_c.error & (self.y_tap.storage > 1)) |
-                (self.iir_d.error & (self.y_tap.storage > 2)) |
-                (self.iir_e.error & (self.y_tap.storage > 3))
+                (self.iir_d.error & (self.y_tap.storage > 2))
             ),
         ]
         ya = Signal((width + 3, True))
         ys = Array([self.iir_c.x, self.iir_c.y,
-                    self.iir_d.y, self.iir_e.y >> s2])
+                    self.iir_d.y])
 
         self.sync += ya.eq(((dy >> s))),
         self.comb += [
