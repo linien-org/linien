@@ -54,5 +54,5 @@ class ModulationAndRampPanel(QtGui.QWidget, CustomWidget):
         self.control.write_data()
 
     def dual_channel_changed(self, value):
-        self.ids.spectroscopyBPanel.setVisible(value)
+        self.ids.spectroscopyBPanel.setEnabled(value)
         self.ids.spectroscopyBPanelDisabled.setVisible(not value)

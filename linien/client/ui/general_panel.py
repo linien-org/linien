@@ -33,7 +33,6 @@ class GeneralPanel(QtGui.QWidget, CustomWidget):
 
         def dual_channel_changed(value):
             self.ids.dual_channel_mixing.setVisible(value)
-            self.app().main_window.ids.spectroscopy_channel_2_page.setEnabled(value)
             return value
         param2ui(
             params.dual_channel,
