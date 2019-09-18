@@ -194,8 +194,7 @@ class Registers:
                 if automatic:
                     filter_enabled = True
                     filter_type = LOW_PASS_FILTER
-                    # FIXME: lower frequency for better filtering?
-                    filter_frequency = params['modulation_frequency'] / MHz * 1e6
+                    filter_frequency = params['modulation_frequency'] / MHz * 1e6 / 2
                 else:
                     filter_enabled = params['filter_%d_enabled_%s' % (iir_idx + 1, chain)]
                     filter_type = params['filter_%d_type_%s' % (iir_idx + 1, chain)]
