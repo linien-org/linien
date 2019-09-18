@@ -38,6 +38,16 @@
         </item>
        </layout>
       </item>
+      <item>
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>Set modulation frequency to 0 to display the DC signal.</string>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>

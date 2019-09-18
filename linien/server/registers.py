@@ -195,6 +195,14 @@ class Registers:
                     filter_enabled = True
                     filter_type = LOW_PASS_FILTER
                     filter_frequency = params['modulation_frequency'] / MHz * 1e6 / 2
+
+                    # if the filter frequency is too low (< 10Hz), the IIR doesn't
+                    # work properly anymore. In that case, don't filter.
+                    # This is also helpful if the raw (not demodulated) signal
+                    # should be displayed which can be achieved by setting
+                    # modulation frequency to 0.
+                    if filter_frequency < 10:
+                        filter_enabled = False
                 else:
                     filter_enabled = params['filter_%d_enabled_%s' % (iir_idx + 1, chain)]
                     filter_type = params['filter_%d_type_%s' % (iir_idx + 1, chain)]
