@@ -157,7 +157,7 @@ class PIDCSR(Module, AutoCSR):
 
         self.submodules.mod = Modulate(width=width)
         self.submodules.sweep = SweepCSR(width=width, step_width=30, step_shift=24)
-        self.submodules.limit_error_signal = LimitCSR(width=width, guard=4)
+        self.submodules.limit_error_signal = LimitCSR(width=signal_width, guard=4)
         self.submodules.limit_fast1 = LimitCSR(width=width, guard=5)
         self.submodules.limit_fast2 = LimitCSR(width=width, guard=5)
         self.submodules.pid = PID(width=signal_width)
@@ -171,7 +171,7 @@ class PIDCSR(Module, AutoCSR):
         ]
 
         self.sync += [
-            combined_error_signal.eq(self.limit_error_signal.y << s),
+            combined_error_signal.eq(self.limit_error_signal.y),
             self.control_signal.eq(Array([
                 self.limit_fast1.y,
                 self.limit_fast2.y
