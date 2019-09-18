@@ -271,9 +271,10 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
                 self.update_plot_scaling(all_signals)
                 self.plot_autolock_target_line(None)
             else:
+                dual_channel = self.parameters.dual_channel.value
                 self.signal1.setVisible(True)
-                self.signal2.setVisible(self.parameters.dual_channel.value)
-                self.combined_signal.setVisible(self.parameters.dual_channel.value)
+                self.signal2.setVisible(dual_channel)
+                self.combined_signal.setVisible(dual_channel)
                 self.control_signal.setVisible(False)
                 self.control_signal_history.setVisible(False)
                 self.slow_history.setVisible(False)
@@ -281,7 +282,7 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
                 s1, s2 = to_plot['error_signal_1'], to_plot['error_signal_2']
                 combined_error_signal = combine_error_signal(
                     (s1, s2),
-                    self.parameters.dual_channel.value,
+                    dual_channel,
                     self.parameters.channel_mixing.value
                 )
                 all_signals = [s1, s2] + [combined_error_signal]
@@ -289,7 +290,7 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
 
                 self.plot_data_unlocked((s1, s2), combined_error_signal)
                 self.plot_autolock_target_line(combined_error_signal)
-                self.update_plot_scaling(all_signals)
+                self.update_plot_scaling(all_signals if dual_channel else [s1])
 
     def plot_data_unlocked(self, error_signals, combined_signal):
         error_signal1, error_signal2 = error_signals
