@@ -21,7 +21,7 @@ class SpectroscopyPanel(QtWidgets.QWidget, CustomWidget):
             self.get_param('filter_%d_enabled' % filter_i).value = filter_enabled
             self.control.write_data()
 
-        def change_filter_type(filter_idx):
+        def change_filter_type(filter_i):
             param = self.get_param('filter_%d_type' % filter_i)
             current_idx = getattr(self.ids, 'filter_%d_type' % filter_i).currentIndex()
             param.value = (LOW_PASS_FILTER, HIGH_PASS_FILTER)[current_idx]
