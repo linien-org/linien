@@ -55,6 +55,11 @@ class SpectroscopyPanel(QtWidgets.QWidget, CustomWidget):
             _get(self.ids, 'filter_%d_type') \
                 .currentIndexChanged.connect(_get(self, 'change_filter_%d_type'))
 
+        def automatic_changed(value):
+            self.get_param('filter_automatic').value = value
+            self.control.write_data()
+        self.ids.filter_automatic.stateChanged.connect(automatic_changed)
+
     def connection_established(self):
         params = self.app().parameters
         self.control = self.app().control
@@ -76,6 +81,15 @@ class SpectroscopyPanel(QtWidgets.QWidget, CustomWidget):
             self.get_param('offset'),
             self.ids.signal_offset
         )
+        param2ui(
+            self.get_param('filter_automatic'),
+            self.ids.filter_automatic
+        )
+        def filter_automatic_changed(value):
+            self.ids.automatic_filtering_enabled.setVisible(value)
+            self.ids.automatic_filtering_disabled.setVisible(not value)
+        self.get_param('filter_automatic').change(filter_automatic_changed)
+
         for filter_i in [1, 2]:
             param2ui(
                 self.get_param('filter_%d_enabled' % filter_i),

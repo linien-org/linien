@@ -19,6 +19,7 @@ class Parameters(BaseParameters):
             'filter_2_enabled_a', 'filter_2_enabled_b',
             'filter_2_frequency_a', 'filter_2_frequency_b',
             'filter_2_type_a', 'filter_2_type_b',
+            'filter_automatic_a', 'filter_automatic_b',
             'p', 'i', 'd', 'watch_lock', 'watch_lock_threshold',
             'dual_channel', 'channel_mixing',
             'pid_on_slow_enabled', 'pid_on_slow_strength',
@@ -71,6 +72,7 @@ class Parameters(BaseParameters):
                 max_=8191,
                 start=0
             ))
+            setattr(self, 'filter_automatic_%s' % channel, Parameter(start=True))
             for filter_i in [1, 2]:
                 setattr(self, 'filter_%d_enabled_%s' % (filter_i, channel), Parameter(start=False))
                 setattr(self, 'filter_%d_type_%s' % (filter_i, channel), Parameter(start=0))

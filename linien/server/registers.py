@@ -5,7 +5,7 @@ from csr import PitayaCSR, make_filter
 from utils import start_nginx, stop_nginx, twos_complement
 from linien.config import DEFAULT_RAMP_SPEED
 from linien.common import convert_channel_mixing_value, \
-    LOW_PASS_FILTER, HIGH_PASS_FILTER, ANALOG_OUT0
+    LOW_PASS_FILTER, HIGH_PASS_FILTER, ANALOG_OUT0, MHz
 from linien.server.acquisition import AcquisitionMaster
 
 
@@ -187,12 +187,20 @@ class Registers:
             slow_slope = not slow_slope
 
         for chain in ('a', 'b'):
+            automatic = params['filter_automatic_%s' % chain]
             for iir_idx in range(2):
                 iir_name = 'fast_%s_iir_%s' % (chain, ('c', 'd')[iir_idx])
 
-                filter_enabled = params['filter_%d_enabled_%s' % (iir_idx + 1, chain)]
-                filter_type = params['filter_%d_type_%s' % (iir_idx + 1, chain)]
-                filter_frequency = params['filter_%d_frequency_%s' % (iir_idx + 1, chain)]
+                if automatic:
+                    filter_enabled = True
+                    filter_type = LOW_PASS_FILTER
+                    # FIXME: lower frequency for better filtering?
+                    filter_frequency = params['modulation_frequency'] / MHz * 1e6
+                else:
+                    filter_enabled = params['filter_%d_enabled_%s' % (iir_idx + 1, chain)]
+                    filter_type = params['filter_%d_type_%s' % (iir_idx + 1, chain)]
+                    filter_frequency = params['filter_%d_frequency_%s' % (iir_idx + 1, chain)]
+
                 base_freq = 125e6
 
                 if not filter_enabled:
