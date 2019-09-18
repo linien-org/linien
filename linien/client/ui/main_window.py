@@ -18,6 +18,8 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
         super().__init__(*args, **kwargs)
         self.load_ui('main_window.ui')
 
+        self.reset_std_history()
+
     def show(self, host, name):
         self.setWindowTitle('Linien spectroscopy lock %s: %s (%s)' % (
             linien.__version__, name, host
@@ -88,6 +90,8 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
         params.ramp_amplitude.change(center_or_amplitude_changed)
         params.center.change(center_or_amplitude_changed)
 
+        params.lock.change(lambda *args: self.reset_std_history())
+
     def go_right(self):
         self.change_center(True)
 
@@ -116,12 +120,23 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
             self.parameters.center.value = -1 + amplitude
         self.control.write_data()
 
-    def update_std(self, to_plot):
+    def update_std(self, to_plot, max_std_history_length=10):
         if self.parameters.lock.value and to_plot:
             to_plot = pickle.loads(to_plot)
             if to_plot and check_plot_data(True, to_plot):
                 error_signal = to_plot.get('error_signal')
                 control_signal = to_plot.get('control_signal')
+
+                self.error_std_history.append(np.std(error_signal))
+                self.control_std_history.append(np.std(control_signal))
+
+                self.error_std_history = self.error_std_history[-max_std_history_length:]
+                self.control_std_history = self.control_std_history[-max_std_history_length:]
+
                 if error_signal and control_signal:
-                    self.ids.error_std.setText('%.2f' % np.std(error_signal))
-                    self.ids.control_std.setText('%.2f' % np.std(control_signal))
+                    self.ids.error_std.setText('%.2f' % np.mean(self.error_std_history))
+                    self.ids.control_std.setText('%.2f' % np.mean(self.control_std_history))
+
+    def reset_std_history(self):
+        self.error_std_history = []
+        self.control_std_history = []
