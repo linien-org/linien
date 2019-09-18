@@ -37,7 +37,7 @@
         <x>0</x>
         <y>0</y>
         <width>379</width>
-        <height>953</height>
+        <height>922</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -562,13 +562,6 @@
                 </property>
                 <property name="indent">
                  <number>30</number>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QCheckBox" name="checkBox_4">
-                <property name="text">
-                 <string>Emit TTL when locked (on DIO0_N)</string>
                 </property>
                </widget>
               </item>
