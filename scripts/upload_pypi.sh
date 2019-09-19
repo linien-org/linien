@@ -3,7 +3,7 @@
 set -e
 
 while true; do
-    read -p "Have you built a new gateware? [y/n]" yn
+    read -p "Did you remember to build a new gateware (if required)? [y/n]" yn
     case $yn in
         [Yy]* ) break;;
         [Nn]* ) exit;;
@@ -25,20 +25,22 @@ fi
 cp $FILE linien/server/redpid.bin
 
 # build client
+set +e
 rm -R build
 rm -R dist
+set -e
 
 python3 setup_client.py sdist bdist_wheel
-echo 'enter pypi password'
-# python3 -m twine upload --repository-url https://test.pypi.org/legacy/ dist/* -u hermitdemschoenenleben
+read -s -p "Enter your pypi password: " password
+# python3 -m twine upload --repository-url https://test.pypi.org/legacy/ dist/* -u hermitdemschoenenleben -p $password
 python3 -m twine check dist/*
-python3 -m twine upload dist/* -u hermitdemschoenenleben
+python3 -m twine upload dist/* -u hermitdemschoenenleben -p $password
 
 # build server
 rm -R build
 rm -R dist
 python3 setup_server.py sdist bdist_wheel
 echo 'enter pypi password'
-#python3 -m twine upload --repository-url https://test.pypi.org/legacy/ dist/* -u hermitdemschoenenleben
+# #python3 -m twine upload --repository-url https://test.pypi.org/legacy/ dist/* -u hermitdemschoenenleben -p $password
 python3 -m twine check dist/*
-python3 -m twine upload dist/* -u hermitdemschoenenleben
+python3 -m twine upload dist/* -u hermitdemschoenenleben -p $password

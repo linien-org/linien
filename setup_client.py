@@ -3,7 +3,7 @@ import setuptools
 import linien
 assert linien.__version__ != 'dev'
 
-with open("README.rst", "r") as fh:
+with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
@@ -13,7 +13,7 @@ setuptools.setup(
     author_email="highwaychile@posteo.de",
     description="Spectroscopy lock application using RedPitaya",
     long_description=long_description,
-    long_description_content_type="text/x-rst",
+    long_description_content_type="text/markdown",
     url="https://github.com/hermitdemschoenenleben/linien",
     packages=['linien', 'linien.communication', 'linien.client', 'linien.client.ui'],
     classifiers=[

@@ -1,7 +1,7 @@
 LINIEN
 ======
 
-<img align="right" src="icon.png" width="20%">
+<img align="right" src="https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/icon.png" width="20%">
 
 Spectroscopy locking of lasers using RedPitaya (STEMlab 125-14) that
 just works. Linien aims to follow the UNIX philosophy of doing one thing
@@ -33,7 +33,7 @@ Features
     to log the lock status to influxdb.
 -   **TTL status**: Outputs the lock status via TTL
 
-![image](screencast.gif)
+![image](https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/screencast.gif)
 
 Getting started
 ---------------
@@ -50,7 +50,7 @@ releases
 page](https://github.com/hermitdemschoenenleben/linien/releases). On
 linux you have to mark it as executable before executing:
 
-``` {.sourceCode .bash}
+```bash
 chmod +x linien-client-linux*
 ```
 
@@ -59,13 +59,13 @@ chmod +x linien-client-linux*
 Linien is written for python 3 and can be installed using python\'s
 package manager pip:
 
-``` {.sourceCode .bash}
+```bash
 pip3 install linien
 ```
 
 Run the application by calling
 
-``` {.sourceCode .bash}
+```bash
 linien
 ```
 
@@ -73,7 +73,7 @@ If this doesn\'t work, your local bin directory (e.g. \~/.local/bin) is
 probably missing in your PATH. Alternatively you can open linien using
 python:
 
-``` {.sourceCode .python}
+```python
 from linien.client.client import run_application
 run_application()
 ```
@@ -86,12 +86,12 @@ Physical setup
 
 The default setup looks like this:
 
-![image](setup.png)
+![image](https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/setup.png)
 
 You can also configure linien for different setups, e.g. if you want to
 have the modulation frequency and the control on the same output.
 
-![image](explain-pins.png)
+![image](https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/explain-pins.png)
 
 Scriptable interface
 --------------------
@@ -99,7 +99,7 @@ Scriptable interface
 In addition to the GUI, Linien can also be controlled using python
 scripts. For that purpose, installation via pip is required (see above).
 
-``` {.sourceCode .python}
+```python
 from linien.client.connection import BaseClient, MHz, Vpp
 c = BaseClient(host, 18862, False)
 
@@ -142,7 +142,7 @@ Development
 
 As linien uses a git submodule, you should check it out like this:
 
-``` {.sourceCode .bash}
+```bash
 git clone https://github.com/hermitdemschoenenleben/linien.git --recursive
 ```
 
@@ -165,7 +165,7 @@ from there.
 For testing the GUI, there is also a fake server that you can run
 locally on your machine:
 
-``` {.sourceCode .bash}
+```bash
 python3 server/server.py --fake
 ```
 
@@ -201,7 +201,7 @@ Troubleshooting
 If the client fails to connect to a RedPitaya, first check whether you
 can ping it by executing
 
-``` {.sourceCode .bash}
+```bash
 ping rp-f0xxxx.local
 ```
 
@@ -209,7 +209,7 @@ in a command line. If this works, check whether you can connect via SSH.
 On Windows, you have to [install a SSH client](https://www.putty.org),
 on linux you can execute
 
-``` {.sourceCode .bash}
+```bash
 ssh rp-f0xxxx.local
 ```
 
