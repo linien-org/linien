@@ -126,7 +126,7 @@ print(plot_data.keys())
 
 # if unlocked, signal1 and signal2 contain the error signal of channel 1 and 2
 # if the laser is locked, they contain error signal and control signal.
-if c.parameters.locked.value:
+if c.parameters.lock.value:
     plt.plot(plot_data['control_signal'], label='control')
     plt.plot(plot_data['error_signal'], label='error')
 else:
