@@ -27,7 +27,7 @@ class PID(Module, AutoCSR):
 
         self.error = Signal((self.width + 1, True))
 
-        self.sync += [
+        self.comb += [
             self.error.eq(
                 self.input - self.setpoint.storage
             )
@@ -46,7 +46,7 @@ class PID(Module, AutoCSR):
         ]
 
         self.output_p = Signal((self.width, True))
-        self.sync += [
+        self.comb += [
             self.output_p.eq(
                 kp_mult >> (self.coeff_width - 2)
             )
@@ -65,7 +65,7 @@ class PID(Module, AutoCSR):
 
         self.ki_mult = Signal((1 + self.width + self.coeff_width, True))
 
-        self.sync += [
+        self.comb += [
             self.ki_mult.eq(
                 (self.error * ki_signed) >> 4
             )
@@ -124,7 +124,7 @@ class PID(Module, AutoCSR):
         self.pid_sum = Signal((self.width + 3, True))
         self.pid_out = Signal((self.width, True))
 
-        self.sync += [
+        self.comb += [
             If(self.pid_sum > self.max_pos, # positive overflow
                 self.pid_out.eq(self.max_pos)
             ).Elif(self.pid_sum < self.max_neg, # negative overflow

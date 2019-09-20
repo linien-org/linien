@@ -12,7 +12,6 @@ class FastChain(Module, AutoCSR):
         self.adc = Signal((width, True))
         self.dac = Signal((signal_width, True))
 
-        self.brk = CSRStorage(1)
         self.y_tap = CSRStorage(2)
 
         x_hold = Signal()
@@ -59,17 +58,7 @@ class FastChain(Module, AutoCSR):
         self.comb += [
             self.demod.x.eq(self.adc),
             self.demod.phase.eq(mod.phase),
-        ]
-        self.sync += x.eq(
-            Mux(
-                self.brk.storage,
-                0,
-                self.demod.y << s
-            ) + dx
-        )
-
-        self.comb += [
-            self.x_limit.x.eq(x),
+            self.x_limit.x.eq((self.demod.y << s) + dx),
             x_railed.eq(self.x_limit.error),
 
             self.iir_c.x.eq(self.x_limit.y),

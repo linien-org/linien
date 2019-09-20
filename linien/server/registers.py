@@ -86,7 +86,6 @@ class Registers:
             # channel A
             fast_a_demod_delay=phase_to_delay(params['demodulation_phase_a']),
             fast_a_demod_multiplier=params['demodulation_multiplier_a'],
-            fast_a_brk=0,
             fast_a_dx_sel=self.csr.signal('zero'),
             fast_a_y_tap=2,
             fast_a_dy_sel=self.csr.signal('zero'),
@@ -98,7 +97,6 @@ class Registers:
             # channel B
             fast_b_demod_delay=phase_to_delay(params['demodulation_phase_b']),
             fast_b_demod_multiplier=params['demodulation_multiplier_b'],
-            fast_b_brk=0,
             fast_b_dx_sel=self.csr.signal('zero'),
             fast_b_y_tap=1,
             fast_b_dy_sel=self.csr.signal('zero'),

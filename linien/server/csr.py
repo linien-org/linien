@@ -170,7 +170,6 @@ if __name__ == "__main__":
         fast_a_x_tap=2,
         fast_a_demod_delay=0xc00,
         fast_a_x_clear_en=0, #p.states("fast_a_x_sat"),
-        fast_a_brk=1,
         fast_a_dx_sel=p.signal("scopegen_dac_a"),#p.signal("zero"),
         fast_a_y_tap=1,
         fast_a_rx_sel=p.signal('zero'),#p.signal("fast_b_x"),
@@ -198,7 +197,6 @@ if __name__ == "__main__":
         # 50uV rms / sqrt(Hz), 550mV rms/sqrt(125MHz)
         #
         fast_b_x_tap=1,
-        fast_b_brk=1,
         fast_b_dx_sel=p.signal("zero"),
         fast_b_y_tap=1,
         fast_b_y_clear_en=p.states("fast_b_y_railed"),

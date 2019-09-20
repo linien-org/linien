@@ -151,7 +151,7 @@ class PIDCSR(Module, AutoCSR):
             self.sweep.hold.eq(0),
         ]
 
-        self.sync += [
+        self.comb += [
             combined_error_signal.eq(self.limit_error_signal.y),
             self.control_signal.eq(Array([
                 self.limit_fast1.y,
@@ -222,7 +222,7 @@ class Pid(Module, AutoCSR):
         # now, we combine the output of the two paths, with a variable
         # factor each.
         mixed = Signal((2 + ((signal_width + 1) + self.root.chain_a_factor.size), True))
-        self.sync += [
+        self.comb += [
             If(self.root.dual_channel.storage,
                 mixed.eq(
                     (self.root.chain_a_factor.storage * self.fast_a.dac)
@@ -251,7 +251,7 @@ class Pid(Module, AutoCSR):
         fast_outs = list(Signal((width + 4, True)) for channel in (0, 1))
 
         for channel, fast_out in enumerate(fast_outs):
-            self.sync += fast_out.eq(
+            self.comb += fast_out.eq(
                 Mux(self.root.control_channel.storage == channel, pid_out, 0)
                 + Mux(self.root.mod_channel.storage == channel, self.root.mod.y, 0)
                 + Mux(self.root.sweep_channel.storage == channel, self.root.sweep.y, 0)
@@ -261,7 +261,7 @@ class Pid(Module, AutoCSR):
         slow_pid_out = Signal((width, True))
         self.comb += slow_pid_out.eq(self.slow.output)
         slow_out = Signal((width + 2, True))
-        self.sync += slow_out.eq(
+        self.comb += slow_out.eq(
             slow_pid_out
             + Mux(self.root.sweep_channel.storage == ANALOG_OUT0, self.root.sweep.y, 0)
             + Mux(self.root.sweep_channel.storage == ANALOG_OUT0, self.root.out_offset_signed, 0)
