@@ -35,7 +35,7 @@ if __name__ == "__main__":
     platform = Platform()
     linien = Linien(platform)
 
-    fil = open("test/csrmap.py", "w")
+    fil = open("linien/server/csrmap.py", "w")
     py_csrconstants(linien.pid.csrbanks.constants, fil)
     csr = get_csrmap(linien.pid.csrbanks.banks)
     py_csrmap(csr, fil)
