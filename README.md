@@ -1,7 +1,7 @@
 LINIEN
 ======
 
-<img align="right" src="https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/icon.png" width="20%">
+<img align="right" src="https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/docs/icon.png" width="20%">
 
 Spectroscopy locking of lasers using RedPitaya (STEMlab 125-14) that
 just works. Linien aims to follow the UNIX philosophy of doing one thing
@@ -33,15 +33,14 @@ Features
     to log the lock status to influxdb.
 -   **TTL status**: Outputs the lock status via TTL
 
-![image](https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/screencast.gif)
+![image](https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/dos/screencast.gif)
 
 Getting started
 ---------------
 
 Linien runs on Windows and Linux. For most users the [standalone
 binaries](#standalone-binary) containing the graphical user interface
-are recommended. If you want to control linien using the python
-interface you should [install it using pip](#pip-install).
+are recommended. If you want to use the python interface you should [install it using pip](#installation-with-pip).
 
 ### Standalone binary
 
@@ -54,7 +53,7 @@ linux you have to mark it as executable before executing:
 chmod +x linien-client-linux*
 ```
 
-### Installation with pip {#pip-install}
+### Installation with pip
 
 Linien is written for python 3 and can be installed using python\'s
 package manager pip:
@@ -86,15 +85,20 @@ Physical setup
 
 The default setup looks like this:
 
-![image](https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/setup.png)
+![image](https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/docs/setup.png)
 
 You can also configure linien for different setups, e.g. if you want to
-have the modulation frequency and the control on the same output.
+have the modulation frequency and the control on the same output. Additionally, it is possible to set up a slow integrator on ANALOG OUT 0 (0 V to 1.8 V).
 
-![image](https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/explain-pins.png)
+![image](https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/docs/explain-pins.png)
 
-Scriptable interface
---------------------
+Using the application
+---------------------
+
+# FIXME: missing
+
+Scripting interface
+-------------------
 
 In addition to the GUI, Linien can also be controlled using python
 scripts. For that purpose, installation via pip is required (see above).
@@ -146,50 +150,75 @@ As linien uses a git submodule, you should check it out like this:
 git clone https://github.com/hermitdemschoenenleben/linien.git --recursive
 ```
 
-Then edit the VERSION file and replace it\'s content with
+Then, create a file named `checked_out_repo/linien/VERSION` with contents
 
-``` {.sourceCode .}
+```
 dev
 ```
+(no newlines).
 
-When starting a development version of the client, the latest server
-code is automatically uploaded to the RedPitaya which should simplify
-development of the server component. For that, check that no server is
-running on the RedPitaya (execute linien\_stop\_server on the RedPitaya)
-before launching the client. Your development code is then uploaded to
-the /linien directory of the RedPitaya and the linien server is started
-from there.
+This ensures that changes you made to the server component are automatically uploaded to the RedPitaya when you launch the client.
+
+### Architecture
+
+Linien contains three components:
+* The client: Connects to the server, runs the GUI, etc.
+* The server: Handles connections from the client, runs long-running tasks like the autolock or the optimization algorithm. Connects to the acquisition process for communication with the FPGA.
+* The acquisition process: Handles the low-level communication with the FPGA (reading / writing registers)
+
+The communication between the components takes place using [rpyc](https://rpyc.readthedocs.io/en/latest/).
+
+For development purposes, you can run the first two components on your local machine to simplify debugging. Only the acquisition process has to run on the RedPitaya. In a production version of linien, server and acquisition process run on RedPitaya.
+
+### Running the code
+
+Before running the development version check that no production version of the server is running on the RedPitaya by executing linien\_stop\_server on the RedPitaya. Now you need to have an FPGA bitstream at `linien/server/linien.bin`. You have two choices:
+* [Build the gateware](#building-the-fpga-image): this makes sense if you want to change the FPGA programming.
+* Use the gateware of the latest release: if you just want to work on the python client or server code without touching the FPGA gateware, this approach is right for you as it is way easier:
+    * Install linien-server using pip: `pip3 install linien-server`
+    * Find out where it was installed to: `python3 -c "import linien; print(linien.__path__)"`
+    * In that folder go to linien/server and copy this file to your development server folder.
+
+Now you can launch the client
+
+```
+python3 linien/client/client.py
+```
+
+and you can connect to your RedPitaya.
+If you have set `checked_out_repo/linien/VERSION` to dev ([see above](#development)), this automatically uploads your local code to the RedPitaya and starts the server.
+The FPGA bitstream will also be transferred to the RedPitaya and loaded on the FPGA.
+
+### Run server locally
+
+For debugging it may be helpful to execute the server component on
+your machine (e.g. if you want to work on the autolock and want to plot the spectra). In order to make this work, you have to start `/linien/server/acquisition_process.py` on your RedPitaya using SSH. This process provides remote access to the FPGA registers. Then, you can run the server locally and connect to the FPGA registers:
+
+```
+python3 server/server.py --remote-rp=root:password@rp-f0xxxx.local
+```
+
+Now, you can start the client. **Important**: Be sure not to connect your client to the RedPitaya, but to "localhost" instead.
 
 ### Fake server
 
-For testing the GUI, there is also a fake server that you can run
-locally on your machine:
+If you just want to test the GUI, there is also a fake server that you can run locally on your machine:
 
 ```bash
 python3 server/server.py --fake
 ```
 
-Then you can connect to \"localhost\" using the client.
-
-### Run server locally
-
-For debugging it may also be helpful to execute the server component on
-your machine (e.g. if you want to work on the autolock). In order to
-provide access to the FPGA registers, you have to start
-server/acquisition\_process.py on the RedPitaya. Then you can run the
-server locally and connect to the FPGA registers:
-
-> python3 server/server.py \--remote-rp=root:<password@rp-f0xxxx.local>
+This fake server just outputs random data. Then you can connect to \"localhost\" using the client.
 
 ### Building the FPGA image
 
-In order to build the FPGA image, use scripts/build\_gateware.sh.
+For building the FPGA image, you need to install Xilinx Vivado first. Then, call `scripts/build\_gateware.sh`. In the end, the bitstream should be located under `linien/server/linien.bin`.
+# FIXME: Windows?
 
 ### Releasing a new version
 
-First, update the version number in the VERSION file. Then you can build
-and upload the package to pypi using scripts/upload\_pypi.sh. Finally,
-build the standalone client using build\_standalone\_client.sh (you have
+# FIXME: windows?
+First, update the version number in the `checked_out_repo/linien/VERSION` file. Then you can build and upload the package to pypi using scripts/upload\_pypi.sh. Finally, build the standalone client using build\_standalone\_client.sh (you have
 to do this on the platform you want to build the standalone client for).
 The standalone client should be uploaded to a github release.
 
@@ -214,6 +243,13 @@ ssh rp-f0xxxx.local
 ```
 
 on the command line.
+
+FAQs
+----
+
+### Can I run linien and the RedPitaya web application / scpi interface at the same time
+
+No, this is not possible as linien relies on a customized FPGA bitstream.
 
 See Also
 --------

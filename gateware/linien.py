@@ -1,26 +1,7 @@
-# Copyright 2014-2015 Robert Jordens <jordens@gmail.com>
-#
-# This file is part of redpid.
-#
-# redpid is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# redpid is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with redpid.  If not, see <http://www.gnu.org/licenses/>.
-
+# this code is based on redpid. See LICENSE for details.
 from migen import *
 from misoc.interconnect import csr_bus
 from misoc.interconnect.csr import AutoCSR, CSRStatus, CSRStorage
-
-# https://github.com/RedPitaya/RedPitaya/blob/master/FPGA/release1/fpga/code/rtl/red_pitaya_daisy.v
-
 from .pitaya_ps import SysCDC, Sys2CSR, SysInterconnect, PitayaPS, sys_layout
 from .crg import CRG
 from .analog import PitayaAnalog
@@ -347,7 +328,7 @@ class DummyHK(Module, AutoCSR):
         self.sys = self.sys2csr.sys
 
 
-class RedPid(Module):
+class Linien(Module):
     def __init__(self, platform):
         self.submodules.ps = PitayaPS(platform.request("cpu"))
         self.submodules.crg = CRG(platform.request("clk125"),

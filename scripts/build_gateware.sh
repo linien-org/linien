@@ -5,5 +5,5 @@ cd $SCRIPTPATH/../
 
 python3 make.py
 
-rm linien/server/redpid.bin
-cp fpga_build/redpid.bin linien/server
+rm linien/server/linien.bin
+cp fpga_build/linien.bin linien/server

@@ -15,14 +15,12 @@ SCRIPT=`realpath $0`
 SCRIPTPATH=`dirname $SCRIPT`
 cd $SCRIPTPATH/../
 
-FILE=fpga_build/redpid.bin
+FILE=linien/server/linien.bin
 
 if [ ! -f "$FILE" ]; then
     echo "FPGA binary is missing. Run build_gateware.sh to build it."
     exit
 fi
-
-cp $FILE linien/server/redpid.bin
 
 # build client
 set +e

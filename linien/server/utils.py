@@ -14,7 +14,7 @@ def start_nginx():
 
 
 def flash_fpga():
-    shutil.copyfile('redpid.bin', '/dev/xdevcfg')
+    shutil.copyfile('linien.bin', '/dev/xdevcfg')
 
 
 def twos_complement(num, N_bits):
