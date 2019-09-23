@@ -4,7 +4,7 @@ import numpy as np
 from os import path
 from PyQt5 import QtGui, QtWidgets
 
-from linien.client.utils import param2ui
+from linien.client.utils_gui import param2ui
 from linien.client.widgets import CustomWidget
 
 

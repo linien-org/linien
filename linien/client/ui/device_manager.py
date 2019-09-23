@@ -1,15 +1,19 @@
 from PyQt5 import QtGui, QtWidgets, QtCore
+from PyQt5.QtCore import QThread, pyqtSignal
 from threading import Thread
 from traceback import print_exc
+from paramiko.ssh_exception import AuthenticationException
 
 import linien
 from linien.client.config import load_device_data, save_device_data
 from linien.client.widgets import CustomWidget
-from linien.client.connection import ConnectionThread
+from linien.client.connection import Connection
 from linien.client.dialogs import LoadingDialog, error_dialog, execute_command, \
     question_dialog
 from linien.client.ui.new_device_dialog import NewDeviceDialog
-from linien.client.utils import set_window_icon
+from linien.client.utils_gui import set_window_icon
+from linien.client.exceptions import GeneralConnectionErrorException, \
+    InvalidServerVersionException, ServerNotInstalledException
 
 
 class DeviceManager(QtGui.QMainWindow, CustomWidget):
@@ -178,3 +182,43 @@ class DeviceManager(QtGui.QMainWindow, CustomWidget):
 
         for btn in [self.ids.connectButton, self.ids.removeButton]:
             btn.setEnabled(not disable_buttons)
+
+
+class ConnectionThread(QThread):
+    connected = pyqtSignal(object)
+    server_not_installed = pyqtSignal()
+    invalid_server_version = pyqtSignal(str, str)
+    authentication_exception = pyqtSignal()
+    general_connection_error = pyqtSignal()
+    exception = pyqtSignal()
+    connection_lost = pyqtSignal()
+
+    def __init__(self, device):
+        super().__init__()
+
+        self.device = device
+
+    def run(self):
+        try:
+            conn = Connection(self.device, self.on_connection_lost)
+            self.connected.emit(conn)
+
+        except ServerNotInstalledException:
+            return self.server_not_installed.emit()
+
+        except InvalidServerVersionException as e:
+            return self.invalid_server_version.emit(e.remote_version, e.client_version)
+
+        except AuthenticationException:
+            return self.authentication_exception.emit()
+
+        except GeneralConnectionErrorException:
+            return self.general_connection_error.emit()
+
+        except Exception as e:
+            print_exc()
+            return self.exception.emit()
+
+    def on_connection_lost(self):
+        self.connection_lost.emit()
+

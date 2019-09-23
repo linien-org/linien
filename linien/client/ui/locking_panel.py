@@ -1,6 +1,6 @@
 from PyQt5 import QtGui
 from linien.client.widgets import CustomWidget
-from linien.client.utils import param2ui
+from linien.client.utils_gui import param2ui
 
 
 class LockingPanel(QtGui.QWidget, CustomWidget):

@@ -5,7 +5,7 @@ from PyQt5 import QtGui, QtWidgets, QtCore
 
 import linien
 from linien.common import check_plot_data
-from linien.client.utils import param2ui
+from linien.client.utils_gui import param2ui
 from linien.client.config import COLORS
 from linien.client.widgets import CustomWidget
 
