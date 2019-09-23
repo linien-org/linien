@@ -39,6 +39,6 @@ rm -R build
 rm -R dist
 python3 setup_server.py sdist bdist_wheel
 echo 'enter pypi password'
-# #python3 -m twine upload --repository-url https://test.pypi.org/legacy/ dist/* -u hermitdemschoenenleben -p $password
+# python3 -m twine upload --repository-url https://test.pypi.org/legacy/ dist/* -u hermitdemschoenenleben -p $password
 python3 -m twine check dist/*
 python3 -m twine upload dist/* -u hermitdemschoenenleben -p $password

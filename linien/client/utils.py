@@ -3,6 +3,7 @@ import paramiko
 from plumbum import colors
 from PyQt5.QtWidgets import QSlider, QCheckBox, QSpinBox, QDoubleSpinBox, \
     QTabWidget, QRadioButton, QComboBox
+from pyqtgraph.Qt import QtGui
 
 import linien
 from linien.config import REMOTE_BASE_PATH
@@ -135,3 +136,9 @@ def param2ui(parameter, element, process_value=lambda x: x):
         element.blockSignals(False)
 
     parameter.change(on_change)
+
+
+def set_window_icon(window):
+    icon_name = os.path.join(*os.path.split(__file__)[:-1], 'icon.ico')
+    print(icon_name)
+    window.setWindowIcon(QtGui.QIcon(icon_name))

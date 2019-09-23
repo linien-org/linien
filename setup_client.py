@@ -33,6 +33,6 @@ setuptools.setup(
     package_data={
         # IMPORTANT: any changes have to be made in client.spec, too
         # (for the standalone installer)
-        '': ['*.ui', 'VERSION']
+        '': ['*.ui', 'VERSION', '*.ico']
     }
 )

@@ -9,6 +9,7 @@ from linien.client.connection import ConnectionThread
 from linien.client.dialogs import LoadingDialog, error_dialog, execute_command, \
     question_dialog
 from linien.client.ui.new_device_dialog import NewDeviceDialog
+from linien.client.utils import set_window_icon
 
 
 class DeviceManager(QtGui.QMainWindow, CustomWidget):
@@ -16,6 +17,7 @@ class DeviceManager(QtGui.QMainWindow, CustomWidget):
         super().__init__(*args, **kwargs)
         self.load_ui('device_manager.ui')
         self.setWindowTitle('Linien spectroscopy lock %s' % linien.__version__)
+        set_window_icon(self)
 
     def ready(self):
         self.load_device_data(autoload=True)

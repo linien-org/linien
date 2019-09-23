@@ -7,6 +7,7 @@ import platform
 datas= [
     ('linien/VERSION', 'linien'),
     ('linien/client/ui/*', 'linien/client/ui'),
+    ('linien/client/icon.ico', 'linien/client')
 ]
 
 if platform.system().lower() != 'linux':
@@ -52,4 +53,5 @@ exe = EXE(pyz,
           strip=False,
           upx=True,
           runtime_tmpdir=None,
-          console=False )
+          console=False,
+          icon="linien/client/icon.ico")

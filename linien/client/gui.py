@@ -13,6 +13,7 @@ sys.path += [ui_path]
 from linien.client.widgets import CustomWidget
 from linien.client.ui.main_window import MainWindow
 from linien.client.ui.device_manager import DeviceManager
+from linien.client.utils import set_window_icon
 
 
 class QTApp(QtCore.QObject):
@@ -23,12 +24,14 @@ class QTApp(QtCore.QObject):
 
         self.main_window = MainWindow()
         self.main_window.app = self
+        set_window_icon(self.main_window)
 
         self.device_manager = DeviceManager()
         self.device_manager.app = self
         self.device_manager.show()
 
         self.app.aboutToQuit.connect(lambda: self.app.quit())
+
 
         super().__init__()
 
