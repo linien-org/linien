@@ -77,6 +77,7 @@ class DataAcquisitionService(Service):
                 slow_out = slow_out if slow_out <= 8191 else slow_out - 16384
                 data += [slow_out]
 
+                # trigger_source=6 means external trigger positive edge
                 self.r.scope.rearm(trigger_source=6)
 
                 if not self.locked:

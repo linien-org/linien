@@ -33,7 +33,7 @@ Features
     to log the lock status to influxdb.
 -   **TTL status**: Outputs the lock status via TTL
 
-![image](https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/dos/screencast.gif)
+![image](https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/docs/screencast.gif)
 
 Getting started
 ---------------
@@ -250,6 +250,10 @@ FAQs
 ### Can I run linien and the RedPitaya web application / scpi interface at the same time
 
 No, this is not possible as linien relies on a customized FPGA bitstream.
+
+### What control bandwidth is achievable with linien?
+
+The propagation delay is roughly 300 ns, thus approximately 3 MHz bandwidth are possible.
 
 See Also
 --------
