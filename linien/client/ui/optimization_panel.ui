@@ -297,11 +297,17 @@
              <height>50</height>
             </size>
            </property>
+           <property name="font">
+            <font>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
            <property name="styleSheet">
             <string notr="true">background: #00aa00</string>
            </property>
            <property name="text">
-            <string>Select line that should be optimized</string>
+            <string>Select line to optimize</string>
            </property>
           </widget>
          </item>
