@@ -34,11 +34,9 @@ class LockStatusPanel(QtGui.QWidget, CustomWidget):
 
             if task:
                 watching = params.autolock_watching.value
-                failed = al_failed
             else:
                 running = False
                 watching = False
-                failed = False
 
             def set_text(text):
                 self.ids.lock_status.setText(text)
@@ -47,8 +45,6 @@ class LockStatusPanel(QtGui.QWidget, CustomWidget):
                 set_text('Locked!')
             if running and watching:
                 set_text('Locked! Watching continuously...')
-            if task and not running and failed:
-                set_text('Autolock failed!')
             if running and not watching:
                 if not retrying:
                     set_text('Autolock is running...')
@@ -67,6 +63,7 @@ class LockStatusPanel(QtGui.QWidget, CustomWidget):
     def stop_lock(self):
         if self.parameters.task.value is not None:
             self.parameters.task.value.stop()
+            self.parameters.task.value = None
         else:
             self.control.exposed_start_ramp()
 

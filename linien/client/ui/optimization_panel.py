@@ -16,6 +16,7 @@ class OptimizationPanel(QtGui.QWidget, CustomWidget):
         self.ids.abortOptimizationLineSelection.clicked.connect(self.abort_selection)
         self.ids.abortOptimizationPreparing.clicked.connect(self.abort_preparation)
         self.ids.optimization_channel_selector.currentIndexChanged.connect(self.channel_changed)
+        self.ids.optimization_reset_failed_state.clicked.connect(self.reset_failed_state)
 
         for param_name in (
             'optimization_mod_freq_min', 'optimization_mod_freq_max',
@@ -42,11 +43,15 @@ class OptimizationPanel(QtGui.QWidget, CustomWidget):
         def opt_running_changed(_):
             running = params.optimization_running.value
             approaching = params.optimization_approaching.value
-            self.ids.optimization_not_running_container.setVisible(not running)
-            self.ids.optimization_running_container.setVisible(running and not approaching)
-            self.ids.optimization_preparing.setVisible(running and approaching)
+            failed = params.optimization_failed.value
+
+            self.ids.optimization_not_running_container.setVisible(not failed and not running)
+            self.ids.optimization_running_container.setVisible(not failed and running and not approaching)
+            self.ids.optimization_preparing.setVisible(not failed and running and approaching)
+            self.ids.optimization_failed.setVisible(failed)
         params.optimization_running.change(opt_running_changed)
         params.optimization_approaching.change(opt_running_changed)
+        params.optimization_failed.change(opt_running_changed)
 
         def opt_selection_changed(value):
             self.ids.optimization_selecting.setVisible(value)
@@ -114,3 +119,6 @@ class OptimizationPanel(QtGui.QWidget, CustomWidget):
 
     def channel_changed(self, channel):
         self.parameters.optimization_channel.value = channel
+
+    def reset_failed_state(self):
+        self.parameters.optimization_failed.value = False

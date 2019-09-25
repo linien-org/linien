@@ -15,8 +15,9 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
         self.ids.ki.valueChanged.connect(self.ki_changed)
         self.ids.kd.setKeyboardTracking(False)
         self.ids.kd.valueChanged.connect(self.kd_changed)
-        self.ids.watchLockCheckbox.stateChanged.connect(self.watch_lock_changed)
         self.ids.kd.setKeyboardTracking(False)
+        self.ids.checkLockCheckbox.stateChanged.connect(self.check_lock_changed)
+        self.ids.watchLockCheckbox.stateChanged.connect(self.watch_lock_changed)
         self.ids.watch_lock_threshold.valueChanged.connect(self.watch_lock_threshold_changed)
         self.ids.lock_control_container.currentChanged.connect(self.lock_mode_changed)
 
@@ -29,6 +30,8 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
         self.ids.pid_on_slow_strength.setKeyboardTracking(False)
         self.ids.pid_on_slow_strength.valueChanged.connect(self.pid_on_slow_strength_changed)
 
+        self.ids.reset_lock_failed_state.clicked.connect(self.reset_lock_failed)
+
     def connection_established(self):
         params = self.app().parameters
         self.parameters = params
@@ -38,6 +41,7 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
         param2ui(params.i, self.ids.ki)
         param2ui(params.d, self.ids.kd)
 
+        param2ui(params.check_lock, self.ids.checkLockCheckbox)
         param2ui(params.watch_lock, self.ids.watchLockCheckbox)
         param2ui(
             params.watch_lock_threshold,
@@ -61,10 +65,12 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
             al_failed = params.autolock_failed.value
             task_running = (task is not None) and (not al_failed)
 
-            if locked or task_running:
+            if locked or task_running or al_failed:
                 self.ids.lock_control_container.hide()
             else:
                 self.ids.lock_control_container.show()
+
+            self.ids.lock_failed.setVisible(al_failed)
 
         for param in (params.lock, params.autolock_approaching, params.autolock_watching,
                       params.autolock_failed, params.autolock_locked):
@@ -94,6 +100,9 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
         self.parameters.d.value = self.ids.kd.value()
         self.control.write_data()
 
+    def check_lock_changed(self):
+        self.parameters.check_lock.value = int(self.ids.checkLockCheckbox.checkState())
+
     def watch_lock_changed(self):
         self.parameters.watch_lock.value = int(self.ids.watchLockCheckbox.checkState())
 
@@ -122,3 +131,6 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
 
     def watch_lock_threshold_changed(self):
         self.parameters.watch_lock_threshold.value = self.ids.watch_lock_threshold.value() / 100.0
+
+    def reset_lock_failed(self):
+        self.parameters.autolock_failed.value = False

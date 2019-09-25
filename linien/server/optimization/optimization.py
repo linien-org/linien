@@ -48,6 +48,7 @@ class OptimizeSpectroscopy:
         self.initial_ramp_center = self.parameters.center.value
 
     def run(self, x0, x1, spectrum):
+        self.parameters.optimization_failed.value = False
         self.parameters.optimization_approaching.value = True
 
         spectrum = pickle.loads(spectrum)
@@ -119,6 +120,9 @@ class OptimizeSpectroscopy:
         self.set_parameters(new_params)
 
     def react_to_new_spectrum(self, spectrum):
+        if not self.parameters.optimization_running.value:
+            return
+
         try:
             params = self.parameters
 
@@ -178,7 +182,9 @@ class OptimizeSpectroscopy:
 
                 self.request_new_parameters(use_initial_parameters=center_line_next_time)
         except:
+            print('exception at optimization task')
             traceback.print_exc()
+            self.parameters.optimization_failed.value = True
             self.exposed_stop(False)
 
     def exposed_stop(self, use_new_parameters):

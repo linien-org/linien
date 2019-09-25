@@ -25,7 +25,8 @@ class Parameters(BaseParameters):
             'pid_on_slow_enabled', 'pid_on_slow_strength',
             'mod_channel', 'control_channel', 'sweep_channel',
             'polarity_fast_out1', 'polarity_fast_out2',
-            'polarity_analog_out0', 'autoscale_y', 'y_axis_limits'
+            'polarity_analog_out0', 'autoscale_y', 'y_axis_limits',
+            'check_lock'
         )
 
         self.modulation_amplitude = Parameter(
@@ -116,9 +117,11 @@ class Parameters(BaseParameters):
         self.optimization_min_line_width = Parameter(start=25)
         self.optimization_optimized_parameters = Parameter(start=(0, 0, 0))
         self.optimization_channel = Parameter(start=0)
+        self.optimization_failed = Parameter(start=False)
 
         self.pause_acquisition = Parameter(start=False)
 
+        self.check_lock = Parameter(start=True)
         self.watch_lock = Parameter(start=True)
         self.watch_lock_threshold = Parameter(start=0.01)
 

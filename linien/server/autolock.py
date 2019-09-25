@@ -54,8 +54,8 @@ class Autolock:
 
     def add_data_listener(self):
         if not self._data_listener_added:
-            self.parameters.to_plot.change(self.react_to_new_spectrum)
             self._data_listener_added = True
+            self.parameters.to_plot.change(self.react_to_new_spectrum)
 
     def remove_data_listener(self):
         self._data_listener_added = False
@@ -136,6 +136,7 @@ class Autolock:
                 self.relock()
             else:
                 self.exposed_stop()
+                self.parameters.autolock_failed.value = True
 
         except Exception:
             traceback.print_exc()
@@ -184,7 +185,9 @@ class Autolock:
 
                 return (center - ampl) <= slow_out / 8192 <= (center + ampl)
 
-        self.parameters.autolock_locked.value = check_whether_in_lock(control_signal)
+        self.parameters.autolock_locked.value = check_whether_in_lock(control_signal) \
+            if self.parameters.check_lock.value \
+            else True
 
         if self.parameters.autolock_locked.value and self.should_watch_lock:
             # we start watching the lock status from now on.
@@ -196,12 +199,10 @@ class Autolock:
 
             if not self.parameters.autolock_locked.value:
                 if self.should_watch_lock:
-                    self.parameters.autolock_retrying.value = True
                     return self.relock()
 
-                self._reset_scan()
+                self.exposed_stop()
                 self.parameters.autolock_failed.value = True
-                self.remove_data_listener()
 
             self.parameters.autolock_running.value = False
 
@@ -215,7 +216,6 @@ class Autolock:
         too_close_to_edge = np.abs(mean) > 0.95
 
         if too_close_to_edge or lock_lost:
-            self.parameters.autolock_retrying.value = True
             self.relock()
 
         self.watcher_last_value = mean
@@ -227,6 +227,7 @@ class Autolock:
         """
         self.parameters.autolock_running.value = True
         self.parameters.autolock_approaching.value = True
+        self.parameters.autolock_retrying.value = True
 
         self.reset_properties()
         self._reset_scan()
@@ -237,7 +238,6 @@ class Autolock:
 
     def exposed_stop(self):
         """Abort any operation."""
-        self.parameters.autolock_failed.value = True
         self.parameters.autolock_running.value = False
         self.parameters.autolock_locked.value = False
         self.parameters.autolock_approaching.value = False
@@ -250,6 +250,9 @@ class Autolock:
     def _lock(self):
         self.control.pause_acquisition()
 
+        # acquisition in locked state doesn't care about ramp speed
+        # therefore, we can reset it here
+        self.parameters.ramp_speed.value = self.initial_ramp_speed
         self.parameters.autolock_approaching.value = False
 
         self.control.exposed_start_lock()
