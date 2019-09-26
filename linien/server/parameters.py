@@ -12,7 +12,7 @@ class Parameters(BaseParameters):
             'modulation_amplitude', 'modulation_frequency', 'ramp_speed',
             'demodulation_phase_a', 'demodulation_multiplier_a',
             'demodulation_phase_b', 'demodulation_multiplier_b',
-            'offset_a', 'offset_b',
+            'offset_a', 'offset_b', 'invert_a', 'invert_b',
             'filter_1_enabled_a', 'filter_1_enabled_b',
             'filter_1_frequency_a', 'filter_1_frequency_b',
             'filter_1_type_a', 'filter_1_type_b',
