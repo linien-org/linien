@@ -13,6 +13,7 @@ class FastChain(Module, AutoCSR):
         self.dac = Signal((signal_width, True))
 
         self.y_tap = CSRStorage(2)
+        self.invert = CSRStorage(1)
 
         x_hold = Signal()
         x_clear = Signal()
@@ -81,7 +82,9 @@ class FastChain(Module, AutoCSR):
         self.sync += ya.eq(((dy >> s))),
         self.comb += [
             self.y_limit.x.eq(
-                ys[self.y_tap.storage] + (ya << s) + (offset_signal << s)
+                Mux(self.invert.storage, -1, 1) * (
+                    ys[self.y_tap.storage] + (ya << s) + (offset_signal << s)
+                )
             ),
             y.eq(self.y_limit.y),
             y_railed.eq(self.y_limit.error),

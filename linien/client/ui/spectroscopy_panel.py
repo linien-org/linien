@@ -60,6 +60,11 @@ class SpectroscopyPanel(QtWidgets.QWidget, CustomWidget):
             self.control.write_data()
         self.ids.filter_automatic.stateChanged.connect(automatic_changed)
 
+        def invert_changed(value):
+            self.get_param('invert').value = bool(value)
+            self.control.write_data()
+        self.ids.invert.stateChanged.connect(invert_changed)
+
     def connection_established(self):
         params = self.app().parameters
         self.control = self.app().control
@@ -80,6 +85,10 @@ class SpectroscopyPanel(QtWidgets.QWidget, CustomWidget):
         param2ui(
             self.get_param('offset'),
             self.ids.signal_offset
+        )
+        param2ui(
+            self.get_param('invert'),
+            self.ids.invert
         )
         param2ui(
             self.get_param('filter_automatic'),

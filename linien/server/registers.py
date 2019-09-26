@@ -93,6 +93,7 @@ class Registers:
             fast_a_y_hold_en=self.csr.states(),
             fast_a_y_clear_en=self.csr.states(),
             fast_a_rx_sel=self.csr.signal('zero'),
+            fast_a_invert=int(params['invert_a']),
 
             # channel B
             fast_b_demod_delay=phase_to_delay(params['demodulation_phase_b']),
@@ -104,6 +105,7 @@ class Registers:
             fast_b_y_hold_en=self.csr.states(),
             fast_b_y_clear_en=self.csr.states(),
             fast_b_rx_sel=self.csr.signal('zero'),
+            fast_b_invert=int(params['invert_b']),
 
             # trigger on ramp
             scopegen_external_trigger=1,

@@ -73,6 +73,7 @@ class Parameters(BaseParameters):
                 max_=8191,
                 start=0
             ))
+            setattr(self, 'invert_%s' % channel, Parameter(start=False))
             setattr(self, 'filter_automatic_%s' % channel, Parameter(start=True))
             for filter_i in [1, 2]:
                 setattr(self, 'filter_%d_enabled_%s' % (filter_i, channel), Parameter(start=False))
