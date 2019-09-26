@@ -23,9 +23,15 @@ class Autolock:
         self.reset_properties()
 
     def reset_properties(self):
-        self.parameters.autolock_failed.value = False
-        self.parameters.autolock_locked.value = False
-        self.parameters.autolock_watching.value = False
+        # we check each parameter before setting it because otherwise
+        # this may crash the client if called very often (e.g.if the
+        # autolock continuously fails)
+        if self.parameters.autolock_failed.value:
+            self.parameters.autolock_failed.value = False
+        if self.parameters.autolock_locked.value:
+            self.parameters.autolock_locked.value = False
+        if self.parameters.autolock_watching.value:
+            self.parameters.autolock_watching.value = False
 
         if self.approacher:
             self.approacher.reset_properties()
@@ -225,9 +231,15 @@ class Autolock:
         Relock the laser using the reference spectrum recorded in the first
         locking approach.
         """
-        self.parameters.autolock_running.value = True
-        self.parameters.autolock_approaching.value = True
-        self.parameters.autolock_retrying.value = True
+        # we check each parameter before setting it because otherwise
+        # this may crash the client if called very often (e.g.if the
+        # autolock continuously fails)
+        if not self.parameters.autolock_running.value:
+            self.parameters.autolock_running.value = True
+        if not self.parameters.autolock_approaching.value:
+            self.parameters.autolock_approaching.value = True
+        if not self.parameters.autolock_retrying.value:
+            self.parameters.autolock_retrying.value = True
 
         self.reset_properties()
         self._reset_scan()
