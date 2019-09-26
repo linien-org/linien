@@ -77,7 +77,7 @@ class ViewPanel(QtGui.QWidget, CustomWidget):
             data['to_plot'] = pickle.loads(data['to_plot'])
 
             # filter out keys that are not json-able
-            for k, v in data.items():
+            for k, v in list(data.items()):
                 try:
                     json.dumps(v)
                 except:
