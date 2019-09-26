@@ -1,3 +1,4 @@
+import re
 import paramiko
 from plumbum import colors
 
@@ -32,14 +33,22 @@ class SSHCommandOutputWidget(QListWidget):
                 buf = output.read(toread).decode('utf8').rstrip('\n')
 
                 for part in buf.split('\n'):
-                    for subpart in part.split('\r'):
+                    for subpart_i, subpart in enumerate(part.split('\r')):
                         subpart = subpart.strip('\n').strip('\r').strip('\r\n')
                         if subpart:
                             print(
                                 (colors.red if output == self.stderr else colors.reset)
                                 | subpart
                             )
-                            self.addItem(subpart)
+                            if subpart_i > 0:
+                                # delete previous item if \r is found
+                                self.takeItem(self.count() - 1)
+
+                            self.addItem(
+                                # filter out special things like color codes etc.
+                                re.sub(r'\x1b(\[.*?[@-~]|\].*?(\x07|\x1b\\))', '', subpart)
+                            )
+
                 self.scrollToBottom()
 
         QtCore.QTimer.singleShot(1000, self.show_output)
