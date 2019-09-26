@@ -68,11 +68,14 @@ class DeviceManager(QtGui.QMainWindow, CustomWidget):
         self.t.connected.connect(connected)
 
         def server_not_installed():
+            client_version = linien.__version__
             loading_dialog.hide()
             if not aborted:
                 display_question = """The server is not yet installed on the device. Should it be installed? (Requires internet connection on RedPitaya)"""
                 if question_dialog(self, display_question):
-                    self.install_linien_server(device)
+                    self.install_linien_server(
+                        device, version=client_version if client_version != 'dev' else None
+                    )
         self.t.server_not_installed.connect(server_not_installed)
 
         def invalid_server_version(remote_version, client_version):
