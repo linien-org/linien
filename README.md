@@ -12,10 +12,10 @@ PID](https://github.com/quartiq/redpid).
 Features
 --------
 
--   **All included**: Modulation (up to 50 MHz), demodulation, filtering
+-   **All included**: Sinusoidal modulation (up to 50 MHz), demodulation, filtering
     and servo implemented on the FPGA.
 -   **Client-server architecture**: Autonomous operation on RedPitaya.
-    One or multiple GUI clients can connect to the server.
+    One or multiple GUI clients or scripts can connect to the server.
 -   **Autolock**: Click and drag over a line, and linien will
     automatically approach it and lock to it.
 -   **Lock detection**: linien is capable of detecting loss of lock.
@@ -49,8 +49,10 @@ releases
 page](https://github.com/hermitdemschoenenleben/linien/releases). On
 linux you have to mark it as executable before executing:
 
+# FIXME: ist das der richtige Dateiname?
 ```bash
 chmod +x linien-client-linux*
+./linien-client-linux*
 ```
 
 ### Installation with pip
@@ -95,7 +97,41 @@ have the modulation frequency and the control on the same output. Additionally, 
 Using the application
 ---------------------
 
-# FIXME: missing
+### Connecting to the RedPitaya
+
+After launching the application you have to set up a new device. The host address is given by <pre>rp-<b>XXXXXX.local</b></pre>, where **XXXXXX** are the last 6 digits of the device's MAC address. You will find them on a sticker on the ethernet port:
+
+![image](https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/docs/mac.jpg)
+
+Default value for user name and password is `root`.
+
+When connecting to a RedPitaya for the first time, the application will ask you whether you want to install the server component on the device. In order to do so, the RedPitaya has to have access to the internet.
+
+After installation of the server libraries, Linien will start the server and connect to it. You never need to start or stop anything on the server manually as the client automatically takes care of this.
+
+### Setting things up
+
+### Using the autolock
+
+In order to use the autolock, you should enter some PID parameters first. Note that the sign of the parameters is determined automatically. After clicking the green button, you can select the line you want to lock to by clicking and dragging over it. The autolock will then center this line, decrease the scan range and try to lock to the middle between minimum and maximum contained in your selection.
+
+![image](https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/docs/screencast.gif)
+
+The following options are available:
+ * **Determine signal offset**: If this checkbox is ticked, the autolock will adapt the y-offset of the signal such that the middle between minimum and maximum is at the zero crossing. This is especially useful if you have a large background signal (e.g. the Doppler background in FMS spectroscopy).
+ * **Check lock**: Directly after turning on the lock, the control signal is investigated. If it shifts too much, the lock is assumed to have failed.
+ * **Watch lock**: This option tells the Linien to continuously watch the control signal when the laser is locked. If steep changes are detected, a relock is initiated.
+
+If you experience trouble with the autolock, this is most likely due to a bad signal to noise ratio or strong laser jitter.
+
+### Using the manual lock
+
+If you have problems with the autolock, you can also lock manually. For that, use the manual controls in the top (`Zoom` and `Position`) to center the line you want to lock to. Then, select whether the target slope is rising or falling and click the green button.
+
+### Optimization of spectroscopy parameters using machine learning
+
+### Updating the application
+
 
 Scripting interface
 -------------------
