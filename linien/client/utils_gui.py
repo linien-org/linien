@@ -34,5 +34,4 @@ def param2ui(parameter, element, process_value=lambda x: x):
 
 def set_window_icon(window):
     icon_name = os.path.join(*os.path.split(__file__)[:-1], 'icon.ico')
-    print(icon_name)
     window.setWindowIcon(QtGui.QIcon(icon_name))

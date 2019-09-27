@@ -3,6 +3,8 @@ import sys
 import numpy as np
 
 from PyQt5 import QtWidgets
+from plumbum import colors
+from traceback import print_exc
 from pyqtgraph.Qt import QtCore, QtGui
 # add ui folder to path
 ui_path = os.path.join(*list(
@@ -54,7 +56,12 @@ class QTApp(QtCore.QObject):
 
     def call_listeners(self):
         if hasattr(self, 'connection') and self.connection and self.connection.connected:
-            self.parameters.call_listeners()
+            try:
+                self.parameters.call_listeners()
+            except:
+                print(colors.red | 'call_listeners() failed')
+                print_exc()
+
             QtCore.QTimer.singleShot(100, self.call_listeners)
 
     def get_widget(self, name, window=None):
