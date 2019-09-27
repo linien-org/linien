@@ -84,7 +84,8 @@ class SpectroscopyPanel(QtWidgets.QWidget, CustomWidget):
         )
         param2ui(
             self.get_param('offset'),
-            self.ids.signal_offset
+            self.ids.signal_offset,
+            lambda v: v / 8191.0
         )
         param2ui(
             self.get_param('invert'),
