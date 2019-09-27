@@ -49,10 +49,9 @@ releases
 page](https://github.com/hermitdemschoenenleben/linien/releases). On
 linux you have to mark it as executable before executing:
 
-# FIXME: ist das der richtige Dateiname?
 ```bash
-chmod +x linien-client-linux*
-./linien-client-linux*
+chmod +x linien-linux*
+./linien-linux*
 ```
 
 ### Installation with pip
