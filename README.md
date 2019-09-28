@@ -206,7 +206,7 @@ For development purposes, you can run the first two components on your local mac
 
 ### Running the code
 
-Before running the development version check that no production version of the server is running on the RedPitaya by executing linien\_stop\_server on the RedPitaya. Now you need to have an FPGA bitstream at `linien/server/linien.bin`. You have two choices:
+Before running the development version check that no production version of the server is running on the RedPitaya by executing `linien_stop_server` on the RedPitaya. Now you need to have an FPGA bitstream at `linien/server/linien.bin`. You have two choices:
 * [Build the gateware](#building-the-fpga-image): this makes sense if you want to change the FPGA programming.
 * Use the gateware of the latest release: if you just want to work on the python client or server code without touching the FPGA gateware, this approach is right for you as it is way easier:
     * Install linien-server using pip: `pip3 install linien-server`
@@ -246,11 +246,11 @@ This fake server just outputs random data. Then you can connect to \"localhost\"
 
 ### Building the FPGA image
 
-For building the FPGA image, you need to install Xilinx Vivado first. Then, call `scripts/build\_gateware.sh`. In the end, the bitstream should be located under `linien/server/linien.bin`. **Note**: So far, this was tested only with Linux. It should work on Windows 10, though, when calling the script inside Windows Powershell.
+For building the FPGA image, you need to install Xilinx Vivado first. Then, call `scripts/build_gateware.sh`. In the end, the bitstream is located at `linien/server/linien.bin`. **Note**: So far, this was tested only with Linux. It should work on Windows 10, though, when calling the script inside Windows Powershell.
 
 ### Releasing a new version
 
-First, update the version number in the `checked_out_repo/linien/VERSION` file. Then you can build and upload the package to pypi using `scripts/upload\_pypi.sh`. Finally, build the standalone client using `build\_standalone\_client.sh` (you have
+First, update the version number in the `checked_out_repo/linien/VERSION` file. Then you can build and upload the package to pypi using `scripts/upload_pypi.sh`. Finally, build the standalone client using `build_standalone_client.sh` (you have
 to do this on the platform you want to build the standalone client for). When on Windows 10, both scripts have to be started in Windows Powershell.
 In the end, the standalone client should be uploaded to a github release.
 
