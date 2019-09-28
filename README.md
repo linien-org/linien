@@ -129,8 +129,7 @@ If you have problems with the autolock, you can also lock manually. For that, us
 
 ### Optimization of spectroscopy parameters using machine learning
 
-### Updating the application
-
+Linien may use machine learning to maximize the slope of a line. As for the autolock, you have to click and drag over the line you want to optimize. Then, the line is centered and the optimization starts. Please note that this only works if initially a distinguished zero-crossing is visible.
 
 Scripting interface
 -------------------
@@ -247,15 +246,13 @@ This fake server just outputs random data. Then you can connect to \"localhost\"
 
 ### Building the FPGA image
 
-For building the FPGA image, you need to install Xilinx Vivado first. Then, call `scripts/build\_gateware.sh`. In the end, the bitstream should be located under `linien/server/linien.bin`.
-# FIXME: Windows?
+For building the FPGA image, you need to install Xilinx Vivado first. Then, call `scripts/build\_gateware.sh`. In the end, the bitstream should be located under `linien/server/linien.bin`. **Note**: So far, this was tested only with Linux. It should work on Windows 10, though, when calling the script inside Windows Powershell.
 
 ### Releasing a new version
 
-# FIXME: windows?
-First, update the version number in the `checked_out_repo/linien/VERSION` file. Then you can build and upload the package to pypi using scripts/upload\_pypi.sh. Finally, build the standalone client using build\_standalone\_client.sh (you have
-to do this on the platform you want to build the standalone client for).
-The standalone client should be uploaded to a github release.
+First, update the version number in the `checked_out_repo/linien/VERSION` file. Then you can build and upload the package to pypi using `scripts/upload\_pypi.sh`. Finally, build the standalone client using `build\_standalone\_client.sh` (you have
+to do this on the platform you want to build the standalone client for). When on Windows 10, both scripts have to be started in Windows Powershell.
+In the end, the standalone client should be uploaded to a github release.
 
 Troubleshooting
 ---------------
