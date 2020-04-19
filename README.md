@@ -137,6 +137,9 @@ Scripting interface
 In addition to the GUI, Linien can also be controlled using python
 scripts. For that purpose, installation via pip is required (see above).
 
+Then, you should start the Linien server on your RedPitaya. This can be done by running the client and connecting to the device (see above). Alternatively, you may connect via SSH and execute `linien_start_server` on the RedPitaya.
+
+Once the server is up and running, you can connect using python:
 ```python
 from linien.client.connection import BaseClient, MHz, Vpp
 c = BaseClient(host, 18862, False)
