@@ -15,7 +15,7 @@ done
 
 pwd
 requirements=$(cat client_requirements)
-python3 -m pip install $requirements --user
+python3.8 -m pip install $requirements --user
 
 pyinstaller client.spec
 FILE=/etc/resolv.conf
