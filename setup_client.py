@@ -6,6 +6,9 @@ assert linien.__version__ != 'dev'
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
+with open('client_requirements', 'r') as fh:
+    requirements = fh.read().split(' ')
+
 setuptools.setup(
     name="linien",
     version=linien.__version__,
@@ -27,8 +30,7 @@ setuptools.setup(
         ]
     },
     install_requires=[
-        'numpy', 'scipy', 'PyQt5>=5.12.2', 'rpyc>=4.1.0', 'appdirs>=1.4.3',
-        'pyqtgraph>=0.10.0', 'paramiko>=2.5.0', 'plumbum>=1.6.7', 'uuid'
+        requirements
     ],
     package_data={
         # IMPORTANT: any changes have to be made in client.spec, too
