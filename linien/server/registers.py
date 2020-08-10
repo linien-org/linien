@@ -222,7 +222,7 @@ class Registers:
                             'HP', f=filter_frequency / base_freq, k=1
                         ))
                     else:
-                        raise Exception('unknown filter %s for %s' (filter_type, iir_name))
+                        raise Exception('unknown filter %s for %s' % (filter_type, iir_name))
 
         if lock_changed:
             if lock:
