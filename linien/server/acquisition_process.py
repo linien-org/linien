@@ -141,12 +141,6 @@ class DataAcquisitionService(Service):
         self.data_uuid = uuid
 
     def read_data(self):
-        def correct_value(v):
-            """For some reason, -8191 ends up as 8192. This is a
-            (dirty) fix for that."""
-            return int(v)
-            #return int(v) if int(v) != 8192 else -8191
-
         channel_offsets = (0x10000, 0x20000)
         write_pointer = self.r.scope.write_pointer_trigger
 

@@ -34,7 +34,6 @@ class Sweep(Module):
         ###
 
         up = Signal()
-        zero = Signal()
         turning = Signal()
         dir = Signal()
 
@@ -46,22 +45,14 @@ class Sweep(Module):
                     up.eq(dir)
                 )
             ).Else(
-                up.eq(1),
-                zero.eq(1),
-                # If(self.y < 0,
-                #    up.eq(1)
-                #).Elif(self.y > self.step,
-                #    up.eq(0)
-                #).Else(
-                #    zero.eq(1)
-                #)
+                up.eq(1)
             )
         ]
         self.sync += [
             self.trigger.eq(self.turn & up),
             turning.eq(self.turn),
             dir.eq(up),
-            If(zero,
+            If(~self.run,
                 self.y.eq(0)
             ).Elif(~self.hold,
                 If(up,

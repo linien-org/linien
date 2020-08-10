@@ -1,4 +1,5 @@
-import uuid
+import random
+import string
 from PyQt5 import QtGui, QtWidgets
 from linien.client.config import load_device_data, save_device_data
 from linien.client.widgets import CustomWidget
@@ -11,7 +12,7 @@ class NewDeviceDialog(QtWidgets.QDialog, CustomWidget):
 
     def add_new_device(self):
         device = {
-            'key':  uuid.uuid4().hex,
+            'key':  ''.join(random.choice(string.ascii_lowercase) for i in range(10)),
             'name': self.ids.deviceName.text(),
             'host': self.ids.host.text(),
             'username': self.ids.username.text(),
