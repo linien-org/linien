@@ -7,5 +7,5 @@ cd $SCRIPTPATH/../
 
 python3 make.py
 
-rm linien/server/linien.bin
+rm linien/server/linien.bin -f
 cp fpga_build/linien.bin linien/server
