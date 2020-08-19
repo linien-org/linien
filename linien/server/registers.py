@@ -57,8 +57,9 @@ class Registers:
         lock_changed = lock != self.control.exposed_is_locked
         self.control.exposed_is_locked = lock
 
+        sweep_run = 0 if lock else 1
         new = dict(
-            root_sweep_run=0 if lock else 1,
+            root_sweep_run=sweep_run,
             root_sweep_step=int(
                 DEFAULT_RAMP_SPEED * params['ramp_amplitude']
                 / (2 ** params['ramp_speed'])
@@ -156,7 +157,7 @@ class Registers:
         for k, v in new.items():
             self.set(k, int(v))
 
-        if sweep_changed:
+        if sweep_run and sweep_changed:
             # reset sweep for a short time if the scan range was changed
             # this is needed because otherwise it may take too long before
             # the new scan range is reached --> no scope trigger is sent
