@@ -10,10 +10,15 @@ datas= [
     ('linien/client/icon.ico', 'linien/client')
 ]
 
+pathex = []
+
 if platform.system().lower() != 'linux':
     import os
 
-    qt_bin_folder = 'C:\\Users\\Ben\\AppData\\Local\\Programs\\Python\\Python37\\Lib\\site-packages\\PyQt5\\Qt\\bin'
+    # IMPORTANT: For some reason the app doesn't work if pyqt is not installed globally
+    # using powershell run with admin privileges.
+    qt_site_packages = 'C:\\Program Files\\Python38\\lib\\site-packages'
+    qt_bin_folder = qt_site_packages + '\\PyQt5\\Qt\\bin'
     if not os.path.exists(qt_bin_folder):
         print('')
         print('============================================')
@@ -25,10 +30,11 @@ if platform.system().lower() != 'linux':
         input('Proceed anyway? [press enter]')
 
     datas += [(qt_bin_folder + '\\Qt5Core.dll', 'PyQt5\\Qt\\bin')]
+    pathex.append(qt_site_packages)
 
 
 a = Analysis(['linien/client/client.py'],
-             pathex=[],
+             pathex=pathex,
              binaries=[],
              datas=datas,
              hiddenimports=['linien', 'linien.common'],
