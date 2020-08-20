@@ -46,13 +46,22 @@ are recommended. If you want to use the python interface you should [install it 
 
 You can download standalone binaries for windows and linux on [the
 releases
-page](https://github.com/hermitdemschoenenleben/linien/releases). On
+page](https://github.com/hermitdemschoenenleben/linien/releases) (download the corresponding binary in the assets section of the latest version). On
 linux you have to mark it as executable before executing:
 
 ```bash
 chmod +x linien-linux*
 ./linien-linux*
 ```
+
+As the linux world is highly heterogeneous, the standalone binary may not work on some systems. In this case flatpak installation (see below) is recommended.
+
+### Installation with Flatpak (linux only)
+
+1. [Install flatpak](https://flatpak.org/setup/)
+1. Run `flatpak install flathub io.github.hermitdemschoenenleben.linien`
+1. Linien should now have been installed to your applications menu. You can launch it from there.
+1. If this doesn't work, run `flatpak run io.github.hermitdemschoenenleben.linien`
 
 ### Installation with pip
 
@@ -70,16 +79,13 @@ linien
 ```
 
 If this doesn\'t work, your local bin directory (e.g. \~/.local/bin) is
-probably missing in your PATH. Alternatively you can open linien using
+probably missing in your PATH. In this case you can open Linien with
 python:
 
 ```python
 from linien.client.client import run_application
 run_application()
 ```
-
-Then, you can enter your RedPitaya\'s credentials and connect. If you
-agree, linien\'s server component is automatically installed.
 
 Physical setup
 --------------
