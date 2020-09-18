@@ -118,6 +118,9 @@
        <layout class="QHBoxLayout" name="horizontalLayout_3">
         <item>
          <widget class="QDoubleSpinBox" name="signal_offset">
+          <property name="decimals">
+           <number>3</number>
+          </property>
           <property name="minimum">
            <double>-1.000000000000000</double>
           </property>

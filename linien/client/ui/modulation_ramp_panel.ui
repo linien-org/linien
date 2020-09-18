@@ -24,6 +24,9 @@
        <layout class="QHBoxLayout" name="horizontalLayout_6">
         <item>
          <widget class="QDoubleSpinBox" name="modulation_frequency">
+          <property name="decimals">
+           <number>5</number>
+          </property>
           <property name="stepType">
            <enum>QAbstractSpinBox::AdaptiveDecimalStepType</enum>
           </property>
@@ -61,6 +64,9 @@
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
          <widget class="QDoubleSpinBox" name="modulation_amplitude">
+          <property name="decimals">
+           <number>3</number>
+          </property>
           <property name="maximum">
            <double>2.000000000000000</double>
           </property>
