@@ -6,13 +6,9 @@ from PyQt5 import QtWidgets
 from plumbum import colors
 from traceback import print_exc
 from pyqtgraph.Qt import QtCore, QtGui
-# add ui folder to path
-ui_path = os.path.join(*list(
-    os.path.split(os.path.abspath(__file__))[:-1]) + ['ui']
-)
-sys.path += [ui_path]
 
-from linien.client.widgets import CustomWidget
+from linien.client.widgets import CustomWidget, ui_path
+sys.path += [ui_path]
 from linien.client.ui.main_window import MainWindow
 from linien.client.ui.device_manager import DeviceManager
 from linien.client.utils_gui import set_window_icon

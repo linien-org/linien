@@ -1,8 +1,14 @@
+import os
 import weakref
 from os import path
 from PyQt5 import uic
 from pyqtgraph.Qt import QtCore, QtGui
-from linien.client.gui import ui_path
+
+
+# add ui folder to path
+ui_path = os.path.join(*list(
+    os.path.split(os.path.abspath(__file__))[:-1]) + ['ui']
+)
 
 
 class IDSelector:
