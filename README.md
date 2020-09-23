@@ -21,8 +21,8 @@ Features
 -   **Lock detection**: linien is capable of detecting loss of lock.
 -   **Automatic relocking**: in that case, it can relock automatically
     using the autolock.
--   **Automatic Optimization**: linien uses machine learning to optimize
-    spectroscopy parameters
+-   **Machine learning**: in order to optimize the signal, linien uses
+    machine learning to find the best spectroscopy parameters
 -   **Remote-controllable**: The client libraries can be used to control
     or monitor the spectroscopy lock with python.
 -   **Combined FMS+MTS**: Supports dual-channel spectroscopy that can be
