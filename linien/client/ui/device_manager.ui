@@ -52,6 +52,16 @@
          </widget>
         </item>
         <item>
+         <widget class="QPushButton" name="editButton">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+          <property name="text">
+           <string>Edit device</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QPushButton" name="removeButton">
           <property name="enabled">
            <bool>false</bool>
@@ -115,6 +125,22 @@
    <signal>clicked()</signal>
    <receiver>DeviceManager</receiver>
    <slot>new_device()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>427</x>
+     <y>145</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>254</x>
+     <y>165</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>editButton</sender>
+   <signal>clicked()</signal>
+   <receiver>DeviceManager</receiver>
+   <slot>edit_device()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>427</x>

@@ -159,6 +159,24 @@ class DeviceManager(QtGui.QMainWindow, CustomWidget):
 
         self.dialog.accepted.connect(reload_device_data)
 
+    def edit_device(self):
+        devices = load_device_data()
+
+        if not devices:
+            return
+
+        device = devices[self.get_list_index()]
+
+        self.dialog = NewDeviceDialog(device)
+        self.dialog.setModal(True)
+        self.dialog.show()
+
+        def reload_device_data():
+            # not very elegant...
+            QtCore.QTimer.singleShot(100, self.load_device_data)
+
+        self.dialog.accepted.connect(reload_device_data)
+
     def get_list_index(self):
         return self.ids.deviceList.currentIndex().row()
 
@@ -183,7 +201,7 @@ class DeviceManager(QtGui.QMainWindow, CustomWidget):
             if devices:
                 disable_buttons = False
 
-        for btn in [self.ids.connectButton, self.ids.removeButton]:
+        for btn in [self.ids.connectButton, self.ids.removeButton, self.ids.editButton]:
             btn.setEnabled(not disable_buttons)
 
 

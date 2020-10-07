@@ -45,7 +45,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QLabel" name="label_2">
+            <widget class="QLabel" name="explain_host">
              <property name="text">
               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;xxxxxx&lt;/span&gt; are the last 6 characters from MAC address of your RedPitaya. The MAC address is written on the Ethernet connector.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
