@@ -68,7 +68,7 @@ class Registers:
             root_sweep_max=_max(params['ramp_amplitude'] * 8191),
 
             root_mod_freq=params['modulation_frequency'],
-            root_mod_amp=params['modulation_amplitude'],
+            root_mod_amp=params['modulation_amplitude'] if params['modulation_frequency'] > 0 else 0,
 
             root_dual_channel=int(params['dual_channel']),
             root_chain_a_factor=factor_a,
