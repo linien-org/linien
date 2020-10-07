@@ -342,7 +342,7 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
                 self.plot_min, self.plot_max = -limit, limit
 
             if self.plot_min == self.plot_max:
-                self.plot_max += 0.1
+                self.plot_max += 0.0001
 
             self.setYRange(self.plot_min, self.plot_max)
 

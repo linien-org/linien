@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>300</height>
+    <height>318</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -44,6 +44,9 @@
         </item>
         <item>
          <widget class="QDoubleSpinBox" name="y_axis_limit">
+          <property name="decimals">
+           <number>4</number>
+          </property>
           <property name="maximum">
            <double>1.000000000000000</double>
           </property>
