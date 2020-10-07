@@ -190,7 +190,7 @@ class OptimizeSpectroscopy:
     def exposed_stop(self, use_new_parameters):
         if use_new_parameters and self.parameters.optimization_improvement.value > 0:
             optimized_parameters = convert_params(
-                self.opt.request_results()[0], self.xmin, self.xmax
+                self.opt.request_results(), self.xmin, self.xmax
             )
             self.set_parameters(optimized_parameters)
         else:

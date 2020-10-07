@@ -40,12 +40,10 @@ class CMAES(Optimizer):
         self.chiN = 0
         self.counteval = 0
         self.ar = []
-        self.currentX = None
 
         #state machine
         self.initialized = False
         self.stateIndex = 0
-
 
     #request method
     def request_parameter_set(self):
@@ -53,21 +51,20 @@ class CMAES(Optimizer):
             self.initialized = True
             self.initializeAlgorithm()
 
-        self.counteval += 1 #increase evaluation counter
-        # FIXME: uniform? Or use the fix of automatix code?
-        xd = np.matmul(self.B, [dd * uniform(-1, 1) for dd in self.D])
-        xc = [xm + self.sigma * xgd for xm, xgd in zip(self.xmean, xd)]
+        #xd = np.matmul(self.B, [dd * uniform(-1, 1) for dd in self.D])
+        #xc = [xm + self.sigma * xgd for xm, xgd in zip(self.xmean, xd)]
+        xc = np.random.multivariate_normal(self.xmean, np.dot(-self.sigma * self.sigma, self.C))
         xc = self._truncate_parameters(xc)
-        self.currentX = xc.copy()
         return xc
 
-
     #answer method
-    def insert_fitness_value(self, f, set):
-        self.ar[self.stateIndex].x = self.currentX
+    def insert_fitness_value(self, f, last_set, **kwargs):
+        self.ar[self.stateIndex].x = last_set
         self.ar[self.stateIndex].fitness = f
 
+        self.counteval += 1 #increase evaluation counter
         self.stateIndex += 1
+
         if self.stateIndex == self.lamb:
             self.advanceGeneration()
 
@@ -125,7 +122,7 @@ class CMAES(Optimizer):
 
 
     def request_results(self):
-        return [self.xmean]
+        return self.xmean
 
     def initializeAlgorithm(self):
         self.xmean = self.x0.copy()
@@ -136,7 +133,7 @@ class CMAES(Optimizer):
         self.xold = [0 for _ in range(0, self.n)]
 
         if self.lamb == 0: #if lambda is still default
-            self.lamb = 2 + floor(3 * log(self.n))
+            self.lamb = 2 + floor(4 * log(self.n))
         if self.lamb < 2:
             raise ValueError('Lambda ´lamb´ needs to be greater than 1')
         if self.mu == 0: #if mu is still default
