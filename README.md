@@ -296,6 +296,20 @@ No, this is not possible as linien relies on a customized FPGA bitstream.
 
 The propagation delay is roughly 300 ns, thus approximately 3 MHz bandwidth are possible.
 
+Citation
+----
+```
+@misc{linien,
+  author = {Benjamin Wiegand},
+  title = {Linien,
+  year = {2020},
+  publisher = {GitHub},
+  journal = {GitHub repository},
+  howpublished = {\url{https://github.com/hermitdemschoenenleben/linien}}
+}
+```
+
+
 See Also
 --------
 
