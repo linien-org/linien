@@ -2,7 +2,7 @@ import random
 import string
 from PyQt5 import QtGui, QtWidgets
 from linien.client.config import load_device_data, save_device_data
-from linien.client.widgets import CustomWidget
+from linien.gui.widgets import CustomWidget
 
 
 class NewDeviceDialog(QtWidgets.QDialog, CustomWidget):

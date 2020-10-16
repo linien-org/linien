@@ -1,8 +1,7 @@
 import numpy as np
-from time import sleep, time
 
 from csr import PitayaCSR, make_filter
-from utils import start_nginx, stop_nginx, twos_complement
+from utils import twos_complement
 from linien.config import DEFAULT_RAMP_SPEED
 from linien.common import convert_channel_mixing_value, \
     LOW_PASS_FILTER, HIGH_PASS_FILTER, ANALOG_OUT0, MHz

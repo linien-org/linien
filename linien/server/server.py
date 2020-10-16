@@ -1,11 +1,11 @@
 import os
 import sys
 sys.path += ['../../']
+import rpyc
 import click
 import _thread
 import pickle
 
-import rpyc
 from rpyc.utils.server import ThreadedServer
 from random import random
 
@@ -13,9 +13,38 @@ from autolock import Autolock
 from parameters import Parameters
 
 from linien.config import SERVER_PORT
-from linien.common import update_control_signal_history, N_POINTS
-from linien.communication.server import BaseService
+from linien.common import update_control_signal_history, N_POINTS, pack, unpack
 from linien.server.optimization.optimization import OptimizeSpectroscopy
+
+
+class BaseService(rpyc.Service):
+    """A service that provides functionality for seamless integration of
+    parameter access on the client."""
+    def __init__(self, parameter_cls):
+        self.parameters = parameter_cls()
+        self._uuid_mapping = {}
+
+    def on_connect(self, client):
+        self._uuid_mapping[client] = client.root.uuid
+
+    def on_disconnect(self, client):
+        uuid = self._uuid_mapping[client]
+        self.parameters.unregister_remote_listeners(uuid)
+
+    def exposed_get_param(self, param_name):
+        return pack(self.parameters._get_param(param_name).value)
+
+    def exposed_set_param(self, param_name, value):
+        self.parameters._get_param(param_name).value = unpack(value)
+
+    def exposed_get_all_parameters(self):
+        return self.parameters.get_all_parameters()
+
+    def exposed_register_remote_listener(self, uuid, param_name):
+        return self.parameters.register_remote_listener(uuid, param_name)
+
+    def exposed_get_listener_queue(self, uuid):
+        return self.parameters.get_listener_queue(uuid)
 
 
 class RedPitayaControlService(BaseService):

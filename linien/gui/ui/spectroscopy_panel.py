@@ -1,7 +1,7 @@
 from PyQt5 import QtGui, QtWidgets
 from linien.common import LOW_PASS_FILTER, HIGH_PASS_FILTER
-from linien.client.widgets import CustomWidget
-from linien.client.utils_gui import param2ui
+from linien.gui.widgets import CustomWidget
+from linien.gui.utils_gui import param2ui
 
 
 class SpectroscopyPanel(QtWidgets.QWidget, CustomWidget):

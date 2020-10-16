@@ -6,30 +6,37 @@ assert linien.__version__ != 'dev'
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-with open('requirements_client', 'r') as fh:
+with open('requirements_gui', 'r') as fh:
     requirements = fh.read().split(' ')
 
+requirements += ['linien-client==' + linien.__version__]
+
 setuptools.setup(
-    name="linien-client",
+    name="linien",
     version=linien.__version__,
     author="Benjamin Wiegand",
     author_email="highwaychile@posteo.de",
-    description="Python client for linien spectroscopy lock",
+    description="Spectroscopy lock application using RedPitaya",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/hermitdemschoenenleben/linien",
-    packages=['linien', 'linien.client'],
+    packages=['linien', 'linien.gui.ui'],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
         "Operating System :: OS Independent",
     ],
+    entry_points={
+        'console_scripts': [
+            'linien=linien.gui.app:run_application'
+        ]
+    },
     install_requires=[
         requirements
     ],
     package_data={
         # IMPORTANT: any changes have to be made in client.spec, too
         # (for the standalone installer)
-        '': ['VERSION']
+        '': ['*.ui', 'VERSION', '*.ico']
     }
 )

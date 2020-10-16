@@ -6,8 +6,8 @@ import platform
 
 datas= [
     ('linien/VERSION', 'linien'),
-    ('linien/client/ui/*', 'linien/client/ui'),
-    ('linien/client/icon.ico', 'linien/client')
+    ('linien/gui/ui/*', 'linien/gui/ui'),
+    ('linien/gui/icon.ico', 'linien/gui')
 ]
 
 pathex = []
@@ -33,7 +33,7 @@ if platform.system().lower() != 'linux':
     pathex.append(qt_site_packages)
 
 
-a = Analysis(['linien/client/client.py'],
+a = Analysis(['linien/gui/app.py'],
              pathex=pathex,
              binaries=[],
              datas=datas,
@@ -60,4 +60,4 @@ exe = EXE(pyz,
           upx=True,
           runtime_tmpdir=None,
           console=False,
-          icon="linien/client/icon.ico")
+          icon="linien/gui/icon.ico")

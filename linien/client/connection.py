@@ -1,17 +1,78 @@
-import linien
-
-from time import sleep
+import random
+import string
 from socket import gaierror
-from plumbum import colors
+from time import sleep
 from traceback import print_exc
 
-from linien.config import SERVER_PORT
-from linien.common import MHz, Vpp
+import linien
+import rpyc
+from linien.client.config import get_saved_parameters, save_parameter
+from linien.client.exceptions import (GeneralConnectionErrorException,
+                                      InvalidServerVersionException,
+                                      ServerNotInstalledException)
+from linien.client.remote_parameters import RemoteParameters
 from linien.client.utils import run_server
-from linien.client.config import save_parameter, get_saved_parameters
-from linien.client.exceptions import GeneralConnectionErrorException, \
-    InvalidServerVersionException, ServerNotInstalledException
-from linien.communication.client import BaseClient
+from linien.common import MHz, Vpp
+from linien.config import SERVER_PORT
+from plumbum import colors
+
+
+class ClientService(rpyc.Service):
+    def __init__(self, uuid):
+        super().__init__()
+
+        self.exposed_uuid = uuid
+
+
+class BaseClient:
+    def __init__(self, server, port, use_parameter_cache, call_on_error=None):
+        self.use_parameter_cache = use_parameter_cache
+        self.uuid = ''.join(random.choice(string.ascii_lowercase) for i in range(10))
+
+        self.client_service = ClientService(self.uuid)
+
+        self.connect(server, port, use_parameter_cache, call_on_error=call_on_error)
+        self.connected = True
+
+    def connect(self, server, port, use_parameter_cache, call_on_error=None):
+        return self._connect(server, port, use_parameter_cache, call_on_error=call_on_error)
+
+    def _connect(self, server, port, use_parameter_cache, call_on_error=None):
+        self.connection = rpyc.connect(server, port, service=self.client_service)
+
+        cls = RemoteParameters
+        if call_on_error:
+            cls = self.catch_network_errors(cls, call_on_error)
+
+        self.parameters = cls(
+            self.connection.root,
+            self.uuid,
+            use_parameter_cache
+        )
+
+    def catch_network_errors(self, cls, call_on_error):
+        function_type = type(lambda x: x)
+        for attr_name in dir(cls):
+            if not attr_name.startswith('__'):
+                attr = getattr(cls, attr_name)
+
+                if isinstance(attr, function_type):
+                    method = attr
+                    def wrapped(*args, method=method, **kwargs):
+                        try:
+                            return method(*args, **kwargs)
+                        except (EOFError,):
+                            print(colors.red | 'Connection lost')
+                            self.stop()
+                            call_on_error()
+                            raise
+
+                    setattr(cls, attr_name, wrapped)
+
+        return cls
+
+    def stop(self):
+        self.connected = False
 
 
 class Connection(BaseClient):

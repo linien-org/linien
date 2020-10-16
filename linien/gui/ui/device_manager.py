@@ -6,12 +6,12 @@ from paramiko.ssh_exception import AuthenticationException
 
 import linien
 from linien.client.config import load_device_data, save_device_data
-from linien.client.widgets import CustomWidget
+from linien.gui.widgets import CustomWidget
 from linien.client.connection import Connection
-from linien.client.dialogs import LoadingDialog, error_dialog, execute_command, \
+from linien.gui.dialogs import LoadingDialog, error_dialog, execute_command, \
     question_dialog
-from linien.client.ui.new_device_dialog import NewDeviceDialog
-from linien.client.utils_gui import set_window_icon
+from linien.gui.ui.new_device_dialog import NewDeviceDialog
+from linien.gui.utils_gui import set_window_icon
 from linien.client.exceptions import GeneralConnectionErrorException, \
     InvalidServerVersionException, ServerNotInstalledException
 

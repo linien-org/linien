@@ -1,5 +1,5 @@
 from PyQt5 import QtGui
-from linien.client.widgets import CustomWidget
+from linien.gui.widgets import CustomWidget
 
 
 class RightPanel(QtGui.QWidget, CustomWidget):

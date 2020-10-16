@@ -1,10 +1,9 @@
 import re
-import paramiko
 from plumbum import colors
 
 from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtWidgets import QApplication, QWidget, QListWidget, QVBoxLayout, QLabel, QPushButton, QListWidgetItem, \
-    QHBoxLayout, QDialog, QMessageBox
+from PyQt5.QtWidgets import QListWidget, QVBoxLayout, \
+    QDialog, QMessageBox
 from pyqtgraph import QtCore
 
 from linien.client.utils import connect_ssh

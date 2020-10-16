@@ -1,17 +1,26 @@
 import os
+import signal
 import sys
-import numpy as np
 
-from PyQt5 import QtWidgets
 from plumbum import colors
 from traceback import print_exc
+
+from PyQt5 import QtWidgets
 from pyqtgraph.Qt import QtCore, QtGui
 
-from linien.client.widgets import CustomWidget, ui_path
+
+# it may seem odd to include '.', but for some reason this is needed for
+# standalone windows executable
+sys.path += ['../', os.path.join('..', '..'), '.']
+
+import linien
+from linien.gui.widgets import CustomWidget, ui_path
+
 sys.path += [ui_path]
-from linien.client.ui.main_window import MainWindow
-from linien.client.ui.device_manager import DeviceManager
-from linien.client.utils_gui import set_window_icon
+
+from linien.gui.ui.device_manager import DeviceManager
+from linien.gui.ui.main_window import MainWindow
+from linien.gui.utils_gui import set_window_icon
 
 
 class QTApp(QtCore.QObject):
@@ -78,3 +87,16 @@ class QTApp(QtCore.QObject):
 
         self.connection.disconnect()
         del self.connection
+
+
+def run_application():
+    print('Linien spectroscopy lock version ' + (colors.bold | linien.__version__))
+    gui = QTApp()
+
+    # catch ctrl-c and shutdown
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
+    sys.exit(gui.app.exec_())
+
+
+if __name__ == '__main__':
+    run_application()

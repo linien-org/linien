@@ -1,12 +1,9 @@
 import math
 import pickle
-import random
 import numpy as np
 import traceback
-from time import sleep, time
 from scipy.signal import resample
 
-from linien.communication.client import BaseClient
 from linien.common import determine_shift_by_correlation, MHz, Vpp, get_lock_point
 from linien.server.autolock import Approacher
 

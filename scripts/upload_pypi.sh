@@ -36,12 +36,26 @@ rm -R build --force
 rm -R dist --force
 
 read -s -p "Enter your pypi password: " password
+
+
+#               CLIENT
+
 python3 setup_client.py sdist bdist_wheel
 # python3 -m twine upload --repository-url https://test.pypi.org/legacy/ dist/* -u hermitdemschoenenleben -p $password
 python3 -m twine check dist/*
 python3 -m twine upload dist/* -u hermitdemschoenenleben -p $password
 
-# build server
+#               GUI
+
+rm -R build --force
+rm -R dist --force
+python3 setup_gui.py sdist bdist_wheel
+# python3 -m twine upload --repository-url https://test.pypi.org/legacy/ dist/* -u hermitdemschoenenleben -p $password
+python3 -m twine check dist/*
+python3 -m twine upload dist/* -u hermitdemschoenenleben -p $password
+
+#               SERVER
+
 rm -R build --force
 rm -R dist --force
 python3 setup_server.py sdist bdist_wheel

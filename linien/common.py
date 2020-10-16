@@ -1,3 +1,4 @@
+import pickle
 import numpy as np
 from time import time
 from scipy.signal import correlate, resample
@@ -195,3 +196,20 @@ def check_plot_data(is_locked, plot_data):
         if 'error_signal_1' not in plot_data:
             return False
     return True
+
+
+def pack(value):
+    try:
+        return pickle.dumps(value)
+    except:
+        # this happens when un-pickleable objects (e.g. functions) are assigned
+        # to a parameter. In this case, we don't pickle it but transfer a netref
+        # instead
+        return value
+
+
+def unpack(value):
+    try:
+        return pickle.loads(value)
+    except:
+        return value
