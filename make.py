@@ -4,7 +4,7 @@
 from migen import *
 
 from gateware.platform import Platform
-from gateware.linien import Linien
+from gateware.linien import RootModule
 from bit2bin import bit2bin
 
 
@@ -33,7 +33,7 @@ def py_csrmap(it, fil):
 
 if __name__ == "__main__":
     platform = Platform()
-    linien = Linien(platform)
+    linien = RootModule(platform)
 
     fil = open("linien/server/csrmap.py", "w")
     py_csrconstants(linien.pid.csrbanks.constants, fil)
