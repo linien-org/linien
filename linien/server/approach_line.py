@@ -7,12 +7,14 @@ ZOOM_STEP = 2
 
 class Approacher:
     def __init__(self, control, parameters, first_error_signal, target_zoom,
-                 allow_ramp_speed_change=False):
+                 allow_ramp_speed_change=False, wait_time_between_current_corrections=1):
         self.control = control
         self.parameters = parameters
         self.first_error_signal = first_error_signal
         self.target_zoom = target_zoom
         self.allow_ramp_speed_change = allow_ramp_speed_change
+
+        self.wait_time_between_current_corrections = wait_time_between_current_corrections
 
         self.reset_properties()
 
@@ -61,7 +63,7 @@ class Approacher:
                 self._correct_current(shift)
         else:
             # wait for some time after the last current correction
-            if time() - self.time_last_current_correction < 1:
+            if time() - self.time_last_current_correction < self.wait_time_between_current_corrections:
                 return
 
             # check that the drift is slow
