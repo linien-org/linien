@@ -8,6 +8,7 @@ class PID(Module, AutoCSR):
         self.coeff_width = coeff_width
 
         self.input = Signal((width, True))
+        self.running = Signal()
 
         self.max_pos = (1 << (width - 1)) - 1
         self.max_neg = (-1 * self.max_pos) - 1
@@ -28,8 +29,12 @@ class PID(Module, AutoCSR):
         self.error = Signal((self.width + 1, True))
 
         self.comb += [
-            self.error.eq(
-                self.input - self.setpoint.storage
+            If(self.running,
+                self.error.eq(
+                    self.input - self.setpoint.storage
+                )
+            ).Else(
+                self.error.eq(0)
             )
         ]
 

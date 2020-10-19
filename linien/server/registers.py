@@ -56,30 +56,32 @@ class Registers:
         lock_changed = lock != self.control.exposed_is_locked
         self.control.exposed_is_locked = lock
 
-        sweep_run = 0 if lock else 1
         new = dict(
-            root_sweep_run=sweep_run,
-            root_sweep_step=int(
+            # sweep run is 1 by default. The gateware automatically takes care
+            # of stopping the sweep run after `request_lock` is set by setting
+            # `sweep.clear`
+            logic_sweep_run=1,
+            logic_sweep_step=int(
                 DEFAULT_RAMP_SPEED * params['ramp_amplitude']
                 / (2 ** params['ramp_speed'])
             ),
-            root_sweep_min=-1 * _max(params['ramp_amplitude'] * 8191),
-            root_sweep_max=_max(params['ramp_amplitude'] * 8191),
+            logic_sweep_min=-1 * _max(params['ramp_amplitude'] * 8191),
+            logic_sweep_max=_max(params['ramp_amplitude'] * 8191),
 
-            root_mod_freq=params['modulation_frequency'],
-            root_mod_amp=params['modulation_amplitude'] if params['modulation_frequency'] > 0 else 0,
+            logic_mod_freq=params['modulation_frequency'],
+            logic_mod_amp=params['modulation_amplitude'] if params['modulation_frequency'] > 0 else 0,
 
-            root_dual_channel=int(params['dual_channel']),
-            root_chain_a_factor=factor_a,
-            root_chain_b_factor=factor_b,
-            root_chain_a_offset=twos_complement(int(params['offset_a']), 14),
-            root_chain_b_offset=twos_complement(int(params['offset_b']), 14),
-            root_out_offset=int(params['center'] * 8191),
-            root_combined_offset=twos_complement(params['combined_offset'], 14),
+            logic_dual_channel=int(params['dual_channel']),
+            logic_chain_a_factor=factor_a,
+            logic_chain_b_factor=factor_b,
+            logic_chain_a_offset=twos_complement(int(params['offset_a']), 14),
+            logic_chain_b_offset=twos_complement(int(params['offset_b']), 14),
+            logic_out_offset=int(params['center'] * 8191),
+            logic_combined_offset=twos_complement(params['combined_offset'], 14),
 
-            root_control_channel=params['control_channel'],
-            root_mod_channel=params['mod_channel'],
-            root_sweep_channel=params['sweep_channel'],
+            logic_control_channel=params['control_channel'],
+            logic_mod_channel=params['mod_channel'],
+            logic_sweep_channel=params['sweep_channel'],
 
             slow_pid_reset=not params['pid_on_slow_enabled'],
 
@@ -119,14 +121,14 @@ class Registers:
             gpio_n_do0_en=self.csr.signal('zero'),
             gpio_n_do1_en=self.csr.signal('zero'),
 
-            root_slow_decimation=16,
+            logic_slow_decimation=16,
         )
 
         if lock:
             # display combined error signal and control signal
             new.update({
-                'scopegen_adc_a_sel': self.csr.signal('root_combined_error_signal'),
-                'scopegen_adc_b_sel': self.csr.signal('root_control_signal')
+                'scopegen_adc_a_sel': self.csr.signal('logic_combined_error_signal'),
+                'scopegen_adc_b_sel': self.csr.signal('logic_control_signal')
             })
         else:
             # display both demodulated error signals
@@ -156,12 +158,12 @@ class Registers:
         for k, v in new.items():
             self.set(k, int(v))
 
-        if sweep_run and sweep_changed:
+        if not lock and sweep_changed:
             # reset sweep for a short time if the scan range was changed
             # this is needed because otherwise it may take too long before
             # the new scan range is reached --> no scope trigger is sent
-            self.set('root_sweep_run', 0)
-            self.set('root_sweep_run', 1)
+            self.set('logic_sweep_run', 0)
+            self.set('logic_sweep_run', 1)
 
         kp = params['p']
         ki = params['i']
@@ -227,10 +229,10 @@ class Registers:
         if lock_changed:
             if lock:
                 # set PI parameters
-                self.set_pid(kp, ki, kd, slope, reset=0)
+                self.set_pid(kp, ki, kd, slope, reset=0, request_lock=1)
                 self.set_slow_pid(slow_strength, slow_slope, reset=0)
             else:
-                self.set_pid(0, 0, 0, slope, reset=1)
+                self.set_pid(0, 0, 0, slope, reset=1, request_lock=0)
                 self.set_slow_pid(0, slow_slope, reset=1)
         else:
             if lock:
@@ -238,14 +240,17 @@ class Registers:
                 self.set_pid(kp, ki, kd, slope)
                 self.set_slow_pid(slow_strength, slow_slope)
 
-    def set_pid(self, p, i, d, slope, reset=None):
+    def set_pid(self, p, i, d, slope, reset=None, request_lock=None):
+        if request_lock is not None:
+            self.set('logic_request_lock', request_lock)
+
         sign = -1 if slope else 1
-        self.set('root_pid_kp', p * sign)
-        self.set('root_pid_ki', i * sign)
-        self.set('root_pid_kd', d * sign)
+        self.set('logic_pid_kp', p * sign)
+        self.set('logic_pid_ki', i * sign)
+        self.set('logic_pid_kd', d * sign)
 
         if reset is not None:
-            self.set('root_pid_reset', reset)
+            self.set('logic_pid_reset', reset)
 
     def set_slow_pid(self, strength, slope, reset=None):
         sign = slope

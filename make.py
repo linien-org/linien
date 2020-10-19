@@ -10,7 +10,7 @@ from bit2bin import bit2bin
 
 def py_csrconstants(map, fil):
     fil.write("csr_constants = {\n")
-    for k, v in linien.pid.csrbanks.constants:
+    for k, v in root.linien.csrbanks.constants:
         fil.write("    '{}_{}': {},\n".format(k, v.name, v.value.value))
     fil.write("}\n\n")
 
@@ -33,17 +33,17 @@ def py_csrmap(it, fil):
 
 if __name__ == "__main__":
     platform = Platform()
-    linien = RootModule(platform)
+    root = RootModule(platform)
 
     fil = open("linien/server/csrmap.py", "w")
-    py_csrconstants(linien.pid.csrbanks.constants, fil)
-    csr = get_csrmap(linien.pid.csrbanks.banks)
+    py_csrconstants(root.linien.csrbanks.constants, fil)
+    csr = get_csrmap(root.linien.csrbanks.banks)
     py_csrmap(csr, fil)
-    fil.write("states = {}\n".format(repr(linien.pid.state_names)))
-    fil.write("signals = {}\n".format(repr(linien.pid.signal_names)))
+    fil.write("states = {}\n".format(repr(root.linien.state_names)))
+    fil.write("signals = {}\n".format(repr(root.linien.signal_names)))
     fil.close()
 
     platform.add_source_dir("verilog")
     build_dir = 'fpga_build'
-    platform.build(linien, build_name="top", build_dir=build_dir)
+    platform.build(root, build_name="top", build_dir=build_dir)
     bit2bin("%s/top.bit" % build_dir, "%s/linien.bin" % build_dir, flip=True)

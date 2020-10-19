@@ -73,7 +73,7 @@ class DataAcquisitionService(Service):
 
                 data = self.read_data()
 
-                slow_out = self.csr.get('root_slow_value')
+                slow_out = self.csr.get('logic_slow_value')
                 slow_out = slow_out if slow_out <= 8191 else slow_out - 16384
                 data += [slow_out]
 

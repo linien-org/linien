@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with redpid.  If not, see <http://www.gnu.org/licenses/>.
 
-from migen import *
+from migen import Signal, If, Cat, bits_for, Module
 from misoc.interconnect.csr import CSRStorage, CSRConstant
 
 from .filter import Filter
@@ -68,6 +68,9 @@ class SweepCSR(Filter):
     def __init__(self, step_width=None, step_shift=0, **kwargs):
         Filter.__init__(self, **kwargs)
 
+        # required by tests
+        self.step_shift = step_shift
+
         width = len(self.y)
         if step_width is None:
             step_width = width
@@ -96,43 +99,3 @@ class SweepCSR(Filter):
             self.sweep.turn.eq(self.limit.railed),
             self.y.eq(self.limit.y)
         ]
-
-
-
-def main():
-    from migen.fhdl import verilog
-    import matplotlib.pyplot as plt
-
-    s = Sweep(16)
-    print(verilog.convert(s, ios=set()))
-
-    def tb(sweep, out, n):
-        yield sweep.step.storage.eq(1 << 4)
-        yield sweep.max.storage.eq(1 << 10)
-        yield sweep.min.storage.eq(0xffff & (-(1 << 10)))
-        yield sweep.run.storage.eq(1)
-        for i in range(3 * n):
-            yield
-
-            if i == 1.5 * n:
-                yield sweep.run.storage.eq(0)
-            if i == 1.5 * n + 10:
-                yield sweep.run.storage.eq(1)
-
-            out.append((yield sweep.y))
-            trig.append((yield sweep.sweep.trigger))
-
-    n = 200
-    out = []
-    trig = []
-    dut = SweepCSR(width=16)
-    run_simulation(dut, tb(dut, out, n), vcd_name="sweep.vcd")
-    plt.plot(out, label='ramp output')
-    plt.plot([v * max(out) for v in trig], label='trigger_signal')
-    plt.legend()
-    plt.show()
-
-
-
-if __name__ == "__main__":
-    main()

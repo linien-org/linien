@@ -18,8 +18,6 @@ from linien.common import ANALOG_OUT0
 from .logic.chains import FastChain, SlowChain, cross_connect
 from .logic.decimation import Decimate
 from .logic.delta_sigma import DeltaSigma
-from .logic.filter import Filter
-from .logic.iir import Iir
 from .logic.limit import LimitCSR
 from .logic.modulate import Modulate
 from .logic.pid import PID
@@ -34,10 +32,11 @@ from .lowlevel.scopegen import ScopeGen
 from .lowlevel.xadc import XADC
 
 
-class PIDCSR(Module, AutoCSR):
+class LinienLogic(Module, AutoCSR):
     def __init__(self, width=14, signal_width=25, chain_factor_width=8):
         self.init_csr(width, signal_width, chain_factor_width)
         self.init_submodules(width, signal_width)
+        self.connect_pid()
         self.connect_everything(width, signal_width)
 
     def init_csr(self, width, signal_width, chain_factor_width):
@@ -73,6 +72,37 @@ class PIDCSR(Module, AutoCSR):
         self.submodules.limit_fast2 = LimitCSR(width=width, guard=5)
         self.submodules.pid = PID(width=signal_width)
 
+    def connect_pid(self):
+        # pid is not started directly by `request_lock` signal. Instead, `request_lock`
+        # queues a run that is then started when the ramp is at the zero crossing
+        self.request_lock = CSRStorage()
+        self.lock_running = Signal()
+        ready_for_lock = Signal()
+
+        self.comb += [
+            self.pid.running.eq(self.lock_running),
+            self.sweep.clear.eq(self.lock_running),
+            self.sweep.hold.eq(0),
+        ]
+
+        self.sync += [
+            If(~self.request_lock.storage,
+                self.lock_running.eq(0),
+                ready_for_lock.eq(0)
+            ),
+
+            If(self.request_lock.storage & ~ready_for_lock,
+                ready_for_lock.eq(
+                    # FIXME: also check for direction (up/down)
+                    (self.sweep.sweep.y > 0)
+                    & (self.sweep.sweep.y <= self.sweep.sweep.step)
+                )
+            ),
+            If(self.request_lock.storage & ready_for_lock,
+                self.lock_running.eq(1)
+            ),
+        ]
+
     def connect_everything(self, width, signal_width):
         s = signal_width - width
 
@@ -91,10 +121,6 @@ class PIDCSR(Module, AutoCSR):
         self.state_out = []
         self.signal_out = [self.control_signal, combined_error_signal]
 
-        self.comb += [
-            self.sweep.clear.eq(0),
-            self.sweep.hold.eq(0),
-        ]
 
         self.comb += [
             combined_error_signal.eq(self.limit_error_signal.y),
@@ -107,21 +133,8 @@ class PIDCSR(Module, AutoCSR):
         ]
 
 
-class Pid(Module, AutoCSR):
+class LinienModule(Module, AutoCSR):
     def __init__(self, platform):
-        csr_map = {
-            "dna": 28,
-            "xadc": 29,
-            "gpio_n": 30,
-            "gpio_p": 31,
-            "fast_a": 0,
-            "fast_b": 1,
-            "slow": 2,
-            "scopegen": 6,
-            "noise": 7,
-            "root": 8,
-        }
-
         width = 14
         signal_width, coeff_width = 25, 25
         chain_factor_bits = 8
@@ -132,7 +145,7 @@ class Pid(Module, AutoCSR):
     def init_submodules(self, width, signal_width, coeff_width, chain_factor_bits, platform):
         sys_double = ClockDomainsRenamer("sys_double")
 
-        self.submodules.root = PIDCSR(chain_factor_width=chain_factor_bits)
+        self.submodules.logic = LinienLogic(chain_factor_width=chain_factor_bits)
         self.submodules.analog = PitayaAnalog(
             platform.request("adc"), platform.request("dac")
         )
@@ -157,15 +170,15 @@ class Pid(Module, AutoCSR):
             width,
             signal_width,
             coeff_width,
-            self.root.mod,
-            offset_signal=self.root.chain_a_offset_signed,
+            self.logic.mod,
+            offset_signal=self.logic.chain_a_offset_signed,
         )
         self.submodules.fast_b = FastChain(
             width,
             signal_width,
             coeff_width,
-            self.root.mod,
-            offset_signal=self.root.chain_b_offset_signed,
+            self.logic.mod,
+            offset_signal=self.logic.chain_b_offset_signed,
         )
 
         sys_slow = ClockDomainsRenamer("sys_slow")
@@ -177,6 +190,19 @@ class Pid(Module, AutoCSR):
         self.submodules.slow = decimated_clock(SlowChain())
 
         self.submodules.scopegen = ScopeGen(signal_width)
+
+        csr_map = {
+            "dna": 28,
+            "xadc": 29,
+            "gpio_n": 30,
+            "gpio_p": 31,
+            "fast_a": 0,
+            "fast_b": 1,
+            "slow": 2,
+            "scopegen": 6,
+            "noise": 7,
+            "logic": 8,
+        }
 
         self.submodules.csrbanks = csr_bus.CSRBankArray(
             self,
@@ -198,7 +224,7 @@ class Pid(Module, AutoCSR):
                 ("fast_b", self.fast_b),
                 ("slow", self.slow),
                 ("scopegen", self.scopegen),
-                ("root", self.root),
+                ("logic", self.logic),
             ],
         )
 
@@ -212,40 +238,40 @@ class Pid(Module, AutoCSR):
 
         # now, we combine the output of the two paths, with a variable
         # factor each.
-        mixed = Signal((2 + ((signal_width + 1) + self.root.chain_a_factor.size), True))
+        mixed = Signal((2 + ((signal_width + 1) + self.logic.chain_a_factor.size), True))
         self.comb += [
             If(
-                self.root.dual_channel.storage,
+                self.logic.dual_channel.storage,
                 mixed.eq(
-                    (self.root.chain_a_factor.storage * self.fast_a.dac)
-                    + (self.root.chain_b_factor.storage * self.fast_b.dac)
-                    + (self.root.combined_offset_signed << (chain_factor_bits + s))
+                    (self.logic.chain_a_factor.storage * self.fast_a.dac)
+                    + (self.logic.chain_b_factor.storage * self.fast_b.dac)
+                    + (self.logic.combined_offset_signed << (chain_factor_bits + s))
                 ),
             ).Else(mixed.eq(self.fast_a.dac << chain_factor_bits))
         ]
 
         mixed_limited = Signal((signal_width, True))
         self.comb += [
-            self.root.limit_error_signal.x.eq(mixed >> chain_factor_bits),
-            mixed_limited.eq(self.root.limit_error_signal.y),
+            self.logic.limit_error_signal.x.eq(mixed >> chain_factor_bits),
+            mixed_limited.eq(self.logic.limit_error_signal.y),
         ]
 
         pid_out = Signal((width, True))
         self.comb += [
-            self.root.pid.input.eq(mixed_limited),
-            pid_out.eq(self.root.pid.pid_out >> s),
+            self.logic.pid.input.eq(mixed_limited),
+            pid_out.eq(self.logic.pid.pid_out >> s),
         ]
 
         fast_outs = list(Signal((width + 4, True)) for channel in (0, 1))
 
         for channel, fast_out in enumerate(fast_outs):
             self.comb += fast_out.eq(
-                Mux(self.root.control_channel.storage == channel, pid_out, 0)
-                + Mux(self.root.mod_channel.storage == channel, self.root.mod.y, 0)
-                + Mux(self.root.sweep_channel.storage == channel, self.root.sweep.y, 0)
+                Mux(self.logic.control_channel.storage == channel, pid_out, 0)
+                + Mux(self.logic.mod_channel.storage == channel, self.logic.mod.y, 0)
+                + Mux(self.logic.sweep_channel.storage == channel, self.logic.sweep.y, 0)
                 + Mux(
-                    self.root.sweep_channel.storage == channel,
-                    self.root.out_offset_signed,
+                    self.logic.sweep_channel.storage == channel,
+                    self.logic.out_offset_signed,
                     0,
                 )
             )
@@ -255,10 +281,10 @@ class Pid(Module, AutoCSR):
         slow_out = Signal((width + 2, True))
         self.comb += slow_out.eq(
             slow_pid_out
-            + Mux(self.root.sweep_channel.storage == ANALOG_OUT0, self.root.sweep.y, 0)
+            + Mux(self.logic.sweep_channel.storage == ANALOG_OUT0, self.logic.sweep.y, 0)
             + Mux(
-                self.root.sweep_channel.storage == ANALOG_OUT0,
-                self.root.out_offset_signed,
+                self.logic.sweep_channel.storage == ANALOG_OUT0,
+                self.logic.out_offset_signed,
                 0,
             )
         )
@@ -272,19 +298,19 @@ class Pid(Module, AutoCSR):
 
         self.comb += [
             self.scopegen.gpio_trigger.eq(self.gpio_p.i[0]),
-            self.scopegen.sweep_trigger.eq(self.root.sweep.sweep.trigger),
-            self.root.limit_fast1.x.eq(fast_outs[0]),
-            self.root.limit_fast2.x.eq(fast_outs[1]),
-            self.analog.dac_a.eq(self.root.limit_fast1.y),
-            self.analog.dac_b.eq(self.root.limit_fast2.y),
+            self.scopegen.sweep_trigger.eq(self.logic.sweep.sweep.trigger),
+            self.logic.limit_fast1.x.eq(fast_outs[0]),
+            self.logic.limit_fast2.x.eq(fast_outs[1]),
+            self.analog.dac_a.eq(self.logic.limit_fast1.y),
+            self.analog.dac_b.eq(self.logic.limit_fast2.y),
 
             # SLOW OUT
-            self.slow.input.eq(self.root.control_signal >> s),
-            self.decimate.decimation.eq(self.root.slow_decimation.storage),
+            self.slow.input.eq(self.logic.control_signal >> s),
+            self.decimate.decimation.eq(self.logic.slow_decimation.storage),
             self.cd_decimated_clock.clk.eq(self.decimate.output),
             self.slow.limit.x.eq(slow_out),
             self.ds0.data.eq(slow_out_shifted),
-            self.root.slow_value.status.eq(self.slow.limit.y),
+            self.logic.slow_value.status.eq(self.slow.limit.y),
         ]
 
 
@@ -311,15 +337,15 @@ class RootModule(Module):
         self.submodules.crg = CRG(
             platform.request("clk125"), self.ps.fclk[0], ~self.ps.frstn[0]
         )
-        self.submodules.pid = Pid(platform)
+        self.submodules.linien = LinienModule(platform)
 
         self.submodules.hk = ClockDomainsRenamer("sys_ps")(DummyHK())
 
         self.submodules.ic = SysInterconnect(
             self.ps.axi.sys,
             self.hk.sys,
-            self.pid.scopegen.scope_sys,
-            self.pid.scopegen.asg_sys,
-            self.pid.syscdc.source,
+            self.linien.scopegen.scope_sys,
+            self.linien.scopegen.asg_sys,
+            self.linien.syscdc.source,
         )
 

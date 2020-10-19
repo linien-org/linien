@@ -72,32 +72,3 @@ class LimitCSR(Filter):
             self.y.eq(self.limit.y),
             self.error.eq(self.limit.railed)
         ]
-
-
-def main():
-    from migen.fhdl import verilog
-    import matplotlib.pyplot as plt
-
-    s = Limit(16)
-    print(verilog.convert(s, ios=set()))
-
-    def tb(limit, x, y, n):
-        m = 1 << 10
-        yield limit.max.eq(m)
-        yield limit.min.eq(-m)
-        for i in range(n):
-            yield
-            yield limit.x.eq(-2*m + (i << 6))
-            x.append((yield limit.x))
-            y.append((yield limit.y))
-
-    dut = Limit(16)
-    n = 1 << 6
-    x, y = [], []
-    run_simulation(dut, tb(dut, x, y, n), vcd_name="limit.vcd")
-    plt.plot(x, y)
-    plt.show()
-
-
-if __name__ == "__main__":
-    main()
