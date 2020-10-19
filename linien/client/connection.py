@@ -7,9 +7,11 @@ from traceback import print_exc
 import linien
 import rpyc
 from linien.client.config import get_saved_parameters, save_parameter
-from linien.client.exceptions import (GeneralConnectionErrorException,
-                                      InvalidServerVersionException,
-                                      ServerNotInstalledException)
+from linien.client.exceptions import (
+    GeneralConnectionErrorException,
+    InvalidServerVersionException,
+    ServerNotRunningException,
+)
 from linien.client.remote_parameters import RemoteParameters
 from linien.client.utils import run_server
 from linien.common import MHz, Vpp
@@ -24,10 +26,10 @@ class ClientService(rpyc.Service):
         self.exposed_uuid = uuid
 
 
-class BaseClient:
-    def __init__(self, server, port, use_parameter_cache, call_on_error=None):
+class RawRPYCClient:
+    def __init__(self, server, port, use_parameter_cache=False, call_on_error=None):
         self.use_parameter_cache = use_parameter_cache
-        self.uuid = ''.join(random.choice(string.ascii_lowercase) for i in range(10))
+        self.uuid = "".join(random.choice(string.ascii_lowercase) for i in range(10))
 
         self.client_service = ClientService(self.uuid)
 
@@ -35,34 +37,33 @@ class BaseClient:
         self.connected = True
 
     def connect(self, server, port, use_parameter_cache, call_on_error=None):
-        return self._connect(server, port, use_parameter_cache, call_on_error=call_on_error)
+        return self.connect_rpyc(
+            server, port, use_parameter_cache, call_on_error=call_on_error
+        )
 
-    def _connect(self, server, port, use_parameter_cache, call_on_error=None):
+    def connect_rpyc(self, server, port, use_parameter_cache, call_on_error=None):
         self.connection = rpyc.connect(server, port, service=self.client_service)
 
         cls = RemoteParameters
         if call_on_error:
             cls = self.catch_network_errors(cls, call_on_error)
 
-        self.parameters = cls(
-            self.connection.root,
-            self.uuid,
-            use_parameter_cache
-        )
+        self.parameters = cls(self.connection.root, self.uuid, use_parameter_cache)
 
     def catch_network_errors(self, cls, call_on_error):
         function_type = type(lambda x: x)
         for attr_name in dir(cls):
-            if not attr_name.startswith('__'):
+            if not attr_name.startswith("__"):
                 attr = getattr(cls, attr_name)
 
                 if isinstance(attr, function_type):
                     method = attr
+
                     def wrapped(*args, method=method, **kwargs):
                         try:
                             return method(*args, **kwargs)
                         except (EOFError,):
-                            print(colors.red | 'Connection lost')
+                            print(colors.red | "Connection lost")
                             self.stop()
                             call_on_error()
                             raise
@@ -75,21 +76,36 @@ class BaseClient:
         self.connected = False
 
 
-class Connection(BaseClient):
-    def __init__(self, device, on_connection_lost):
+class LinienClient(RawRPYCClient):
+    def __init__(
+        self,
+        device,
+        autostart_server=True,
+        restore_parameters=False,
+        use_parameter_cache=False,
+        on_connection_lost=None,
+    ):
         self.device = device
-        self.host = device['host']
-        self.user = device.get('username')
-        self.password = device.get('password')
+        self.host = device["host"]
+        self.user = device.get("username")
+        self.password = device.get("password")
 
-        if self.host in ('localhost', '127.0.0.1'):
+        if self.host in ("localhost", "127.0.0.1"):
             # RP is configured such that "localhost" doesn't point to
             # 127.0.0.1 in all cases
-            self.host = '127.0.0.1'
+            self.host = "127.0.0.1"
         else:
             assert self.user and self.password
 
-        super().__init__(self.host, SERVER_PORT, True, call_on_error=on_connection_lost)
+        self.restore_parameters = restore_parameters
+        self.autostart_server = autostart_server
+
+        super().__init__(
+            self.host,
+            SERVER_PORT,
+            use_parameter_cache=use_parameter_cache,
+            call_on_error=on_connection_lost,
+        )
 
     def connect(self, host, port, use_parameter_cache, call_on_error=None):
         self.connection = None
@@ -101,27 +117,37 @@ class Connection(BaseClient):
             i += 1
 
             try:
-                print('try to connect to %s:%s' % (host, port))
-                self._connect(host, port, use_parameter_cache, call_on_error=call_on_error)
+                print("try to connect to %s:%s" % (host, port))
+                self.connect_rpyc(
+                    host, port, use_parameter_cache, call_on_error=call_on_error
+                )
                 self.control = self.connection.root
                 break
             except gaierror:
                 # host not found
-                print(colors.red | 'Error: host %s not found' % host)
+                print(colors.red | "Error: host %s not found" % host)
                 break
             except Exception as e:
+                if not self.autostart_server:
+                    raise ServerNotRunningException()
+
                 if i == 0:
-                    print('server is not running. Launching it!')
+                    print("server is not running. Launching it!")
                     server_was_started = True
                     run_server(host, self.user, self.password)
                     sleep(3)
                 else:
                     if i < 20:
-                        print('server still not running, waiting (this may take some time)...')
+                        print(
+                            "server still not running, waiting (this may take some time)..."
+                        )
                         sleep(1)
                     else:
                         print_exc()
-                        print(colors.red | 'Error: connection to the server could not be established')
+                        print(
+                            colors.red
+                            | "Error: connection to the server could not be established"
+                        )
                         break
 
         if self.connection is None:
@@ -134,13 +160,14 @@ class Connection(BaseClient):
         if remote_version != client_version:
             raise InvalidServerVersionException(client_version, remote_version)
 
-        print(colors.green | 'connected established!')
+        print(colors.green | "connected established!")
 
-        if server_was_started:
-            # without this sleep, parameter restoring sometimes crashed the sever
-            sleep(1)
-            self.restore_parameters()
-        self.prepare_parameter_restoring()
+        if self.restore_parameters:
+            if server_was_started:
+                # without this sleep, parameter restoring sometimes crashed the sever
+                sleep(1)
+                self.do_restore_parameters()
+            self.prepare_parameter_restoring()
 
     def disconnect(self):
         self.connection.close()
@@ -153,15 +180,16 @@ class Connection(BaseClient):
         params = self.parameters.remote.exposed_get_restorable_parameters()
 
         for param in params:
+
             def on_change(value, param=param):
-                save_parameter(self.device['key'], param, value)
+                save_parameter(self.device["key"], param, value)
 
             getattr(self.parameters, param).change(on_change)
 
-    def restore_parameters(self):
-        device_key = self.device['key']
+    def do_restore_parameters(self):
+        device_key = self.device["key"]
         params = get_saved_parameters(device_key)
-        print('restoring parameters')
+        print("restoring parameters")
 
         for k, v in params.items():
             if hasattr(self.parameters, k):
@@ -169,7 +197,7 @@ class Connection(BaseClient):
             else:
                 # this may happen if the settings were written with a different
                 # version of linien.
-                print('unable to restore parameter %s. Delete the cached value.' % k)
+                print("unable to restore parameter %s. Delete the cached value." % k)
                 save_parameter(device_key, k, None, delete=True)
 
         self.control.write_data()

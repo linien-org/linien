@@ -10,7 +10,7 @@ with open('requirements_client', 'r') as fh:
     requirements = fh.read().split(' ')
 
 setuptools.setup(
-    name="linien-client",
+    name="linien-python-client",
     version=linien.__version__,
     author="Benjamin Wiegand",
     author_email="highwaychile@posteo.de",

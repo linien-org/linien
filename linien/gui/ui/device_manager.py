@@ -7,7 +7,7 @@ from paramiko.ssh_exception import AuthenticationException
 import linien
 from linien.client.config import load_device_data, save_device_data
 from linien.gui.widgets import CustomWidget
-from linien.client.connection import Connection
+from linien.client.connection import LinienClient
 from linien.gui.dialogs import LoadingDialog, error_dialog, execute_command, \
     question_dialog
 from linien.gui.ui.new_device_dialog import NewDeviceDialog
@@ -221,7 +221,13 @@ class ConnectionThread(QThread):
 
     def run(self):
         try:
-            conn = Connection(self.device, self.on_connection_lost)
+            conn = LinienClient(
+                self.device,
+                autostart_server=True,
+                restore_parameters=True,
+                use_parameter_cache=True,
+                on_connection_lost=self.on_connection_lost
+            )
             self.connected.emit(conn)
 
         except ServerNotInstalledException:
