@@ -93,9 +93,12 @@ class LinienLogic(Module, AutoCSR):
 
             If(self.request_lock.storage & ~ready_for_lock,
                 ready_for_lock.eq(
-                    # FIXME: also check for direction (up/down)
+                    # set ready for lock if sweep is at zero crossing
                     (self.sweep.sweep.y > 0)
                     & (self.sweep.sweep.y <= self.sweep.sweep.step)
+                    # and if the ramp is going up (because this is when a
+                    # spectrum is recorded)
+                    & (self.sweep.sweep.up)
                 )
             ),
             If(self.request_lock.storage & ready_for_lock,
@@ -191,6 +194,17 @@ class LinienModule(Module, AutoCSR):
 
         self.submodules.scopegen = ScopeGen(signal_width)
 
+        self.state_names, self.signal_names = cross_connect(
+            self.gpio_n,
+            [
+                ("fast_a", self.fast_a),
+                ("fast_b", self.fast_b),
+                ("slow", self.slow),
+                ("scopegen", self.scopegen),
+                ("logic", self.logic),
+            ],
+        )
+
         csr_map = {
             "dna": 28,
             "xadc": 29,
@@ -216,17 +230,6 @@ class LinienModule(Module, AutoCSR):
         )
         self.submodules.syscdc = SysCDC()
         self.comb += self.syscdc.target.connect(self.sys2csr.sys)
-
-        self.state_names, self.signal_names = cross_connect(
-            self.gpio_n,
-            [
-                ("fast_a", self.fast_a),
-                ("fast_b", self.fast_b),
-                ("slow", self.slow),
-                ("scopegen", self.scopegen),
-                ("logic", self.logic),
-            ],
-        )
 
     def connect_everything(self, width, signal_width, coeff_width, chain_factor_bits):
         s = signal_width - width
