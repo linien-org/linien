@@ -76,18 +76,18 @@ class LinienLogic(Module, AutoCSR):
         # pid is not started directly by `request_lock` signal. Instead, `request_lock`
         # queues a run that is then started when the ramp is at the zero crossing
         self.request_lock = CSRStorage()
-        self.lock_running = Signal()
+        self.lock_running = CSRStatus()
         ready_for_lock = Signal()
 
         self.comb += [
-            self.pid.running.eq(self.lock_running),
-            self.sweep.clear.eq(self.lock_running),
+            self.pid.running.eq(self.lock_running.status),
+            self.sweep.clear.eq(self.lock_running.status),
             self.sweep.hold.eq(0),
         ]
 
         self.sync += [
             If(~self.request_lock.storage,
-                self.lock_running.eq(0),
+                self.lock_running.status.eq(0),
                 ready_for_lock.eq(0)
             ),
 
@@ -102,7 +102,7 @@ class LinienLogic(Module, AutoCSR):
                 )
             ),
             If(self.request_lock.storage & ready_for_lock,
-                self.lock_running.eq(1)
+                self.lock_running.status.eq(1)
             ),
         ]
 

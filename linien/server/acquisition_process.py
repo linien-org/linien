@@ -51,6 +51,12 @@ class DataAcquisitionService(Service):
 
         self.exposed_set_ramp_speed(9)
         self.locked = False
+        # when self.locked is set to True, this doesn't mean that the lock is
+        # really on. It just means that the lock is requested and that the
+        # gateware waits until the sweep is at the correct position for the lock.
+        # Therefore, when self.locked is set, the acquisition process waits for
+        # confirmation from the gateware that the lock is actually running.
+        self.confirmed_that_in_lock = False
 
         self.run()
 
@@ -64,6 +70,12 @@ class DataAcquisitionService(Service):
                 while self.csr_iir_queue:
                     args = self.csr_iir_queue.pop(0)
                     self.csr.set_iir(*args)
+
+                if self.locked and not self.confirmed_that_in_lock:
+                    self.confirmed_that_in_lock = self.csr.get('logic_lock_running')
+                    if not self.confirmed_that_in_lock:
+                        sleep(.05)
+                        continue
 
                 # copied from https://github.com/RedPitaya/RedPitaya/blob/14cca62dd58f29826ee89f4b28901602f5cdb1d8/api/src/oscilloscope.c#L115
                 # check whether scope was triggered
@@ -127,6 +139,7 @@ class DataAcquisitionService(Service):
 
     def exposed_set_lock_status(self, locked):
         self.locked = locked
+        self.confirmed_that_in_lock = False
 
     def exposed_set_csr(self, key, value):
         self.csr_queue.append((key, value))
