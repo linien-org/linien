@@ -176,16 +176,20 @@ def convert_channel_mixing_value(value):
     return a_value, b_value
 
 
-def combine_error_signal(error_signals, dual_channel, channel_mixing, chain_factor_width=8):
+def combine_error_signal(error_signals, dual_channel, channel_mixing,
+        combined_offset, chain_factor_width=8):
+
     if not dual_channel:
-        return error_signals[0]
+        signal = error_signals[0]
+    else:
+        a_factor, b_factor = convert_channel_mixing_value(channel_mixing)
 
-    a_factor, b_factor = convert_channel_mixing_value(channel_mixing)
+        signal = [
+            (a_factor * a + b_factor * b) >> chain_factor_width
+            for a, b in zip(*error_signals)
+        ]
 
-    return [
-        (a_factor * a + b_factor * b) >> chain_factor_width
-        for a, b in zip(*error_signals)
-    ]
+    return [v - combined_offset for v in signal]
 
 
 def check_plot_data(is_locked, plot_data):

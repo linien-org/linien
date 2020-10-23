@@ -283,7 +283,8 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
                 combined_error_signal = combine_error_signal(
                     (s1, s2),
                     dual_channel,
-                    self.parameters.channel_mixing.value
+                    self.parameters.channel_mixing.value,
+                    self.parameters.combined_offset.value
                 )
                 all_signals = [s1, s2] + [combined_error_signal]
                 self.last_plot_data = all_signals

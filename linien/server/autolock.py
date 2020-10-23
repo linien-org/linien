@@ -107,7 +107,8 @@ class Autolock:
             combined_error_signal = combine_error_signal(
                 (plot_data['error_signal_1'], plot_data['error_signal_2']),
                 self.parameters.dual_channel.value,
-                self.parameters.channel_mixing.value
+                self.parameters.channel_mixing.value,
+                self.parameters.combined_offset.value
             )
 
         try:
