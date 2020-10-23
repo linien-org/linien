@@ -12,7 +12,7 @@ from random import random
 from autolock import Autolock
 from parameters import Parameters
 
-from linien.config import SERVER_PORT
+from linien.config import DEFAULT_SERVER_PORT
 from linien.common import update_control_signal_history, N_POINTS, pack, unpack
 from linien.server.optimization.optimization import OptimizeSpectroscopy
 
@@ -229,6 +229,7 @@ class FakeRedPitayaControl(BaseService):
 
 
 @click.command()
+@click.argument('port', default=DEFAULT_SERVER_PORT, type=int, required=False)
 @click.option('--fake', is_flag=True,
               help='Runs a fake server that just returns random data')
 @click.option('--remote-rp',
@@ -236,7 +237,9 @@ class FakeRedPitayaControl(BaseService):
                    'connects to a RedPitaya. Specify the RP\'s credentials '
                    'as follows: '
                    '--remote-rp=root:myPassword@rp-f0xxxx.local')
-def run_server(fake, remote_rp):
+def run_server(port, fake=False, remote_rp=False):
+    print('start server at port', port)
+
     if fake:
         print('starting fake server')
         control = FakeRedPitayaControl()
@@ -257,7 +260,7 @@ def run_server(fake, remote_rp):
     control.run_acquiry_loop()
     control.exposed_write_data()
 
-    t = ThreadedServer(control, port=SERVER_PORT)
+    t = ThreadedServer(control, port=port)
     t.start()
 
 

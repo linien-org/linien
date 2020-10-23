@@ -17,4 +17,4 @@ screen -S spectrolockserver -d -m
 
 # start the server inside the screen session
 screen -r spectrolockserver -X stuff $"cd $pth/server;\n"
-screen -r spectrolockserver -X stuff $"python3 server.py;\n"
+screen -r spectrolockserver -X stuff $"python3 server.py $1;\n"

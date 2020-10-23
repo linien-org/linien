@@ -13,7 +13,7 @@ from linien.client.exceptions import (GeneralConnectionErrorException,
 from linien.client.remote_parameters import RemoteParameters
 from linien.client.utils import run_server
 from linien.common import MHz, Vpp
-from linien.config import SERVER_PORT
+from linien.config import DEFAULT_SERVER_PORT
 from plumbum import colors
 
 
@@ -89,7 +89,12 @@ class Connection(BaseClient):
         else:
             assert self.user and self.password
 
-        super().__init__(self.host, SERVER_PORT, True, call_on_error=on_connection_lost)
+        super().__init__(
+            self.host,
+            device.get('port', DEFAULT_SERVER_PORT),
+            True,
+            call_on_error=on_connection_lost
+        )
 
     def connect(self, host, port, use_parameter_cache, call_on_error=None):
         self.connection = None
@@ -113,7 +118,7 @@ class Connection(BaseClient):
                 if i == 0:
                     print('server is not running. Launching it!')
                     server_was_started = True
-                    run_server(host, self.user, self.password)
+                    run_server(host, self.user, self.password, port)
                     sleep(3)
                 else:
                     if i < 20:

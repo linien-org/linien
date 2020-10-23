@@ -15,7 +15,7 @@ def connect_ssh(host, user, password):
     return ssh
 
 
-def run_server(host, user, password):
+def run_server(host, user, password, port):
     ssh = connect_ssh(host, user, password)
 
     version = linien.__version__
@@ -31,7 +31,7 @@ def run_server(host, user, password):
         # version.
         stdin, stdout, stderr = ssh.exec_command(
             ('cd %s/../;' % REMOTE_BASE_PATH) +
-            ('bash %s/server/linien_start_server' % REMOTE_BASE_PATH)
+            ('bash %s/server/linien_start_server %d' % (REMOTE_BASE_PATH, port))
         )
         err = stderr.read()
         if err:

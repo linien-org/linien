@@ -15,6 +15,7 @@ class NewDeviceDialog(QtWidgets.QDialog, CustomWidget):
             self.ids.host.setText(initial_device['host'])
             self.ids.username.setText(initial_device['username'])
             self.ids.password.setText(initial_device['password'])
+            self.ids.port.setValue(initial_device['port'])
             self.ids.explain_host.setVisible(False)
             self.key = initial_device['key']
         else:
@@ -27,8 +28,10 @@ class NewDeviceDialog(QtWidgets.QDialog, CustomWidget):
             'host': self.ids.host.text(),
             'username': self.ids.username.text(),
             'password': self.ids.password.text(),
+            'port': self.ids.port.value(),
             'params': {}
         }
+
         old_devices = [
             device for device in load_device_data()
             if device['key'] != self.key
