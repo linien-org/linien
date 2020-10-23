@@ -5,7 +5,7 @@ from linien.server.parameters import Parameter, Parameters
 from matplotlib import pyplot as plt
 
 
-def test_function(x):
+def spectrum_for_testing(x):
     return np.exp(-np.abs(x)) * np.sin(x) * 2048
 
 
@@ -13,7 +13,7 @@ def get_signal(ramp_amplitude, center, shift):
     max_val = np.pi * 5 * ramp_amplitude
     new_center = center + shift
     x = np.linspace((-1 + new_center) * max_val, (1 + new_center) * max_val, 16384)
-    return test_function(x)
+    return spectrum_for_testing(x)
 
 
 class FakeControl:

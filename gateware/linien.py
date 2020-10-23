@@ -280,6 +280,7 @@ class LinienModule(Module, AutoCSR):
             )
 
         slow_pid_out = Signal((width, True))
+        self.comb += self.slow.pid.running.eq(self.logic.lock_running.status)
         self.comb += slow_pid_out.eq(self.slow.output)
         slow_out = Signal((width + 2, True))
         self.comb += slow_out.eq(
