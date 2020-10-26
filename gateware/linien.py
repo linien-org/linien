@@ -64,6 +64,12 @@ class LinienLogic(Module, AutoCSR):
         max_decimation = 16
         self.slow_decimation = CSRStorage(bits_for(max_decimation))
 
+        for i in range(4):
+            if i == 0:
+                continue
+            name = 'analog_out_%d' % i
+            setattr(self, name, CSRStorage(15, name=name))
+
     def init_submodules(self, width, signal_width):
         self.submodules.mod = Modulate(width=width)
         self.submodules.sweep = SweepCSR(width=width, step_width=30, step_shift=24)
@@ -279,26 +285,55 @@ class LinienModule(Module, AutoCSR):
                 )
             )
 
-        slow_pid_out = Signal((width, True))
-        self.comb += self.slow.pid.running.eq(self.logic.lock_running.status)
-        self.comb += slow_pid_out.eq(self.slow.output)
-        slow_out = Signal((width + 2, True))
-        self.comb += slow_out.eq(
-            slow_pid_out
-            + Mux(self.logic.sweep_channel.storage == ANALOG_OUT0, self.logic.sweep.y, 0)
-            + Mux(
-                self.logic.sweep_channel.storage == ANALOG_OUT0,
-                self.logic.out_offset_signed,
-                0,
-            )
-        )
-        slow_out_shifted = Signal(15)
-        self.sync += slow_out_shifted.eq(
-            # ds0 apparently has 16 bit, but only allowing positive
-            # values --> "15 bit"?
-            (self.slow.limit.y << 1)
-            + (1 << 14)
-        )
+        for analog_idx in range(4):
+            if analog_idx == 0:
+                # first analog out gets a special treatment bc it may
+                # contain signal of slow pid or sweep
+
+                self.comb += self.slow.pid.running.eq(self.logic.lock_running.status)
+
+                slow_pid_out = Signal((width, True))
+                self.comb += slow_pid_out.eq(self.slow.output)
+
+                slow_out = Signal((width + 3, True))
+                self.comb += [
+                    slow_out.eq(
+                        slow_pid_out
+                        + Mux(
+                            self.logic.sweep_channel.storage == ANALOG_OUT0,
+                            self.logic.sweep.y,
+                            0
+                        )
+                        + Mux(
+                            self.logic.sweep_channel.storage == ANALOG_OUT0,
+                            self.logic.out_offset_signed,
+                            0,
+                        )
+                    ),
+                    self.slow.limit.x.eq(slow_out),
+                ]
+
+                slow_out_shifted = Signal(15)
+                self.sync += slow_out_shifted.eq(
+                    # ds0 apparently has 16 bit, but only allowing positive
+                    # values --> "15 bit"?
+                    (self.slow.limit.y << 1)
+                    + (1 << 14)
+                )
+
+                analog_out = slow_out_shifted
+            else:
+                # 15 bit
+                dc_source = [
+                    None,
+                    self.logic.analog_out_1.storage,
+                    self.logic.analog_out_2.storage,
+                    self.logic.analog_out_3.storage,
+                ][analog_idx]
+                analog_out = dc_source
+
+            dss = [self.ds0, self.ds1, self.ds2, self.ds3]
+            self.comb += dss[analog_idx].data.eq(analog_out)
 
         self.comb += [
             self.scopegen.gpio_trigger.eq(self.gpio_p.i[0]),
@@ -312,8 +347,6 @@ class LinienModule(Module, AutoCSR):
             self.slow.input.eq(self.logic.control_signal >> s),
             self.decimate.decimation.eq(self.logic.slow_decimation.storage),
             self.cd_decimated_clock.clk.eq(self.decimate.output),
-            self.slow.limit.x.eq(slow_out),
-            self.ds0.data.eq(slow_out_shifted),
             self.logic.slow_value.status.eq(self.slow.limit.y),
         ]
 

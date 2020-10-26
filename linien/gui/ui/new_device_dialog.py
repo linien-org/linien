@@ -1,3 +1,4 @@
+from linien.config import DEFAULT_SERVER_PORT
 import random
 import string
 from PyQt5 import QtGui, QtWidgets
@@ -15,7 +16,7 @@ class NewDeviceDialog(QtWidgets.QDialog, CustomWidget):
             self.ids.host.setText(initial_device['host'])
             self.ids.username.setText(initial_device['username'])
             self.ids.password.setText(initial_device['password'])
-            self.ids.port.setValue(initial_device['port'])
+            self.ids.port.setValue(initial_device.get('port', DEFAULT_SERVER_PORT))
             self.ids.explain_host.setVisible(False)
             self.key = initial_device['key']
         else:

@@ -85,6 +85,10 @@ class Registers:
 
             slow_pid_reset=not params['pid_on_slow_enabled'],
 
+            logic_analog_out_1=params['analog_out_1'],
+            logic_analog_out_2=params['analog_out_2'],
+            logic_analog_out_3=params['analog_out_3'],
+
             # channel A
             fast_a_demod_delay=phase_to_delay(params['demodulation_phase_a']),
             fast_a_demod_multiplier=params['demodulation_multiplier_a'],

@@ -108,7 +108,7 @@ class SlowChain(Module, AutoCSR):
         self.signal_out = [out]
 
         self.submodules.pid = PID()
-        self.submodules.limit = LimitCSR(width=width, guard=4)
+        self.submodules.limit = LimitCSR(width=width, guard=5)
 
         self.comb += [
             self.pid.input.eq(self.input),

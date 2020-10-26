@@ -151,7 +151,7 @@ class Parameters(BaseParameters):
             'mod_channel', 'control_channel', 'sweep_channel',
             'polarity_fast_out1', 'polarity_fast_out2',
             'polarity_analog_out0', 'autoscale_y', 'y_axis_limits',
-            'check_lock'
+            'check_lock', 'analog_out_1', 'analog_out_2', 'analog_out_3'
         )
 
         self.modulation_amplitude = Parameter(
@@ -273,3 +273,8 @@ class Parameters(BaseParameters):
 
         self.autoscale_y = Parameter(start=True)
         self.y_axis_limits = Parameter(start=1)
+
+        for i in range(4):
+            if i == 0:
+                continue
+            setattr(self, 'analog_out_%d' % i, Parameter(start=0, min_=0, max_=(2**15) - 1))

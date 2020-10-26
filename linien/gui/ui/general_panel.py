@@ -7,6 +7,9 @@ from linien.gui.utils_gui import param2ui
 from linien.gui.widgets import CustomWidget
 from linien.client.connection import MHz, Vpp
 
+# conversion of bits to V
+ANALOG_OUT_V = 1.8 / ((2**15) - 1)
+
 
 class GeneralPanel(QtGui.QWidget, CustomWidget):
     def __init__(self, *args, **kwargs):
@@ -25,6 +28,20 @@ class GeneralPanel(QtGui.QWidget, CustomWidget):
         self.ids.polarity_fast_out1.currentIndexChanged.connect(self.polarity_fast_out1_changed)
         self.ids.polarity_fast_out2.currentIndexChanged.connect(self.polarity_fast_out2_changed)
         self.ids.polarity_analog_out0.currentIndexChanged.connect(self.polarity_analog_out0_changed)
+
+        for idx in range(4):
+            if idx == 0:
+                continue
+            element = getattr(self.ids, 'analog_out_%d' % idx)
+            element.setKeyboardTracking(False)
+            element.valueChanged.connect(
+                lambda value, idx=idx: self.change_analog_out(idx)
+            )
+
+    def change_analog_out(self, idx):
+        name = 'analog_out_%d' % idx
+        getattr(self.parameters, name).value = int(getattr(self.ids, name).value() / ANALOG_OUT_V)
+        self.control.write_data()
 
     def connection_established(self):
         params = self.app().parameters
@@ -78,6 +95,17 @@ class GeneralPanel(QtGui.QWidget, CustomWidget):
         params.sweep_channel.change(show_polarity_settings)
         params.mod_channel.change(show_polarity_settings)
         params.pid_on_slow_enabled.change(show_polarity_settings)
+
+        for idx in range(4):
+            if idx == 0:
+                continue
+            name = 'analog_out_%d' % idx
+            param2ui(
+                getattr(params, name),
+                getattr(self.ids, name),
+                process_value=lambda v: ANALOG_OUT_V * v
+            )
+
 
     def channel_mixing_changed(self):
         value = int(self.ids.channel_mixing_slider.value()) - 128
