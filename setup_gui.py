@@ -9,7 +9,7 @@ with open("README.md", "r") as fh:
 with open('requirements_gui', 'r') as fh:
     requirements = fh.read().split(' ')
 
-requirements += ['linien-client==' + linien.__version__]
+requirements += ['linien-python-client==' + linien.__version__]
 
 setuptools.setup(
     name="linien",
