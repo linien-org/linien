@@ -14,10 +14,14 @@ from linien.client.exceptions import (
 )
 from linien.client.remote_parameters import RemoteParameters
 from linien.client.utils import run_server
-from linien.common import MHz, Vpp
 from linien.config import DEFAULT_SERVER_PORT
 from plumbum import colors
 
+# IMPORTANT: keep this import, because it eases interfacing with the python client
+from linien.common import MHz, Vpp, ANALOG_OUT_V
+assert MHz
+assert Vpp
+assert ANALOG_OUT_V
 
 class ClientService(rpyc.Service):
     def __init__(self, uuid):

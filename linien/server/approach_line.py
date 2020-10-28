@@ -7,14 +7,20 @@ ZOOM_STEP = 2
 
 class Approacher:
     def __init__(self, control, parameters, first_error_signal, target_zoom,
-                 allow_ramp_speed_change=False, wait_time_between_current_corrections=1):
+                 central_y, allow_ramp_speed_change=False,
+                 wait_time_between_current_corrections=None):
         self.control = control
         self.parameters = parameters
-        self.first_error_signal = first_error_signal
+        # central_y is the y coordinate between maximum and minimum of the
+        # target line. We vertically center the target line with respect to the
+        # x axis because correlation doesn't work if the signal is only positive
+        self.first_error_signal = first_error_signal - central_y
         self.target_zoom = target_zoom
         self.allow_ramp_speed_change = allow_ramp_speed_change
 
         self.wait_time_between_current_corrections = wait_time_between_current_corrections
+
+        self.central_y = central_y
 
         self.reset_properties()
 
@@ -30,6 +36,8 @@ class Approacher:
         if time() - self.time_last_zoom > 15:
             raise Exception('approaching took too long')
 
+        error_signal = error_signal - self.central_y
+
         initial_ramp_amplitude = self.parameters.autolock_initial_ramp_amplitude.value
 
         # the autolock tries to center a line by changing the ramp center.
@@ -42,7 +50,7 @@ class Approacher:
         center = self.parameters.center.value
         ramp = np.linspace(-ramp_amplitude, ramp_amplitude, len(error_signal)) + center
         error_signal = np.array(error_signal)
-        error_signal[np.abs(ramp) > 1] = 0
+        error_signal[np.abs(ramp) > 1] = np.nan
 
         # now, we calculate the correlation to find the shift
         shift, zoomed_ref, zoomed_err = determine_shift_by_correlation(
@@ -63,7 +71,8 @@ class Approacher:
                 self._correct_current(shift)
         else:
             # wait for some time after the last current correction
-            if time() - self.time_last_current_correction < self.wait_time_between_current_corrections:
+            min_wait_time = 1 if self.wait_time_between_current_corrections is None else self.wait_time_between_current_corrections
+            if time() - self.time_last_current_correction < min_wait_time:
                 return
 
             # check that the drift is slow

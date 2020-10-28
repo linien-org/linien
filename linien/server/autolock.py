@@ -8,7 +8,7 @@ from linien.server.approach_line import Approacher
 
 class Autolock:
     """Spectroscopy autolock based on correlation."""
-    def __init__(self, control, parameters):
+    def __init__(self, control, parameters, wait_time_between_current_corrections=None):
         self.control = control
         self.parameters = parameters
 
@@ -21,6 +21,8 @@ class Autolock:
         self._data_listener_added = False
 
         self.reset_properties()
+
+        self.wait_time_between_current_corrections = wait_time_between_current_corrections
 
     def reset_properties(self):
         # we check each parameter before setting it because otherwise
@@ -119,7 +121,9 @@ class Autolock:
                 if self.approacher is None:
                     self.approacher = Approacher(
                         self.control, self.parameters, self.first_error_signal,
-                        self.target_zoom, allow_ramp_speed_change=True
+                        self.target_zoom, self.central_y,
+                        allow_ramp_speed_change=True,
+                        wait_time_between_current_corrections=self.wait_time_between_current_corrections
                     )
                 approaching_finished = self.approacher.approach_line(combined_error_signal)
                 if approaching_finished:
@@ -153,9 +157,7 @@ class Autolock:
         mean_signal, target_slope_rising, target_zoom, rolled_error_signal = \
             get_lock_point(error_signal, self.x0, self.x1)
 
-        if self.auto_offset:
-            self.parameters.combined_offset.value = -1 * mean_signal
-            rolled_error_signal -= int(mean_signal)
+        self.central_y = mean_signal
 
         self.parameters.target_slope_rising.value = target_slope_rising
         self.control.exposed_write_data()
@@ -267,6 +269,11 @@ class Autolock:
         # therefore, we can reset it here
         self.parameters.ramp_speed.value = self.initial_ramp_speed
         self.parameters.autolock_approaching.value = False
+
+        if self.auto_offset:
+            # note: we only set the offset directly before turning on the lock
+            # and not when approaching because this would cause problems in approacher
+            self.parameters.combined_offset.value = -1 * self.central_y
 
         self.control.exposed_start_lock()
 

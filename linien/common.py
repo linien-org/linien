@@ -1,3 +1,4 @@
+from os import error
 import pickle
 import numpy as np
 from time import time
@@ -5,6 +6,8 @@ from scipy.signal import correlate, resample
 
 MHz = 0x10000000 / 8
 Vpp = ((1<<14) - 1) / 4
+# conversion of bits to V
+ANALOG_OUT_V = 1.8 / ((2**15) - 1)
 
 LOW_PASS_FILTER = 0
 HIGH_PASS_FILTER = 1
@@ -93,6 +96,13 @@ def determine_shift_by_correlation(zoom_factor, reference_signal, error_signal):
     `zoom_factor` is the zoom factor of `error_signal` with respect to
     `reference_signal`, i.e. it states how much reference signal has to be
     magnified in order to show the same region as the new error signal."""
+
+    # values that should not be considered are np.nan
+    # but the correlation has problems with np.nans
+    # --> we set it to 0
+    reference_signal[np.isnan(reference_signal)] = 0
+    error_signal[np.isnan(error_signal)] = 0
+
     length = len(error_signal)
     center_idx = int(length / 2)
 
@@ -151,13 +161,20 @@ def get_lock_point(error_signal, x0, x1, final_zoom_factor=1.5):
     # roll the error signal such that the target lock point is exactly in the
     # center
     roll = -int(zero_idx - (length/2))
-    rolled_error_signal = np.roll(error_signal, roll)
-    # set all the rolled points to zero such that they don't contribute
+
+    # set all the rolled points to nan such that they don't contribute
     # in the correlation
+    filler = np.empty(abs(roll))
+    filler[:] = np.nan
+
     if roll < 0:
-        rolled_error_signal[roll:] = 0
+        rolled_error_signal = np.hstack(
+            (error_signal[-roll:], filler)
+        )
     else:
-        rolled_error_signal[:roll] = 0
+        rolled_error_signal = np.hstack(
+            (filler, error_signal[:-roll])
+        )
 
     target_slope_rising = max_idx > min_idx
     target_zoom = N_POINTS / (idxs[1] - idxs[0]) / final_zoom_factor
@@ -189,7 +206,7 @@ def combine_error_signal(error_signals, dual_channel, channel_mixing,
             for a, b in zip(*error_signals)
         ]
 
-    return [v - combined_offset for v in signal]
+    return [v + combined_offset for v in signal]
 
 
 def check_plot_data(is_locked, plot_data):

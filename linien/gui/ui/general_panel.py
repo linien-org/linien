@@ -1,14 +1,11 @@
 import numpy as np
 from PyQt5 import QtGui
 
-from linien.common import convert_channel_mixing_value, FAST_OUT1, FAST_OUT2, \
+from linien.common import ANALOG_OUT_V, convert_channel_mixing_value, FAST_OUT1, FAST_OUT2, \
     ANALOG_OUT0
 from linien.gui.utils_gui import param2ui
 from linien.gui.widgets import CustomWidget
 from linien.client.connection import MHz, Vpp
-
-# conversion of bits to V
-ANALOG_OUT_V = 1.8 / ((2**15) - 1)
 
 
 class GeneralPanel(QtGui.QWidget, CustomWidget):
