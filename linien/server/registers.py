@@ -116,11 +116,11 @@ class Registers:
             # trigger on ramp
             scopegen_external_trigger=1,
 
-            gpio_p_oes=0,
-            gpio_n_oes=0b1,
+            gpio_p_oes=0b11111111,
+            gpio_n_oes=0b11111111,
 
-            gpio_p_outs=0,
-            gpio_n_outs=0b1 if params['lock'] else 0b0,
+            gpio_p_outs=params['gpio_p_out'],
+            gpio_n_outs=params['gpio_n_out'],
 
             gpio_n_do0_en=self.csr.signal('zero'),
             gpio_n_do1_en=self.csr.signal('zero'),

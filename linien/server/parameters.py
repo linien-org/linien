@@ -274,7 +274,13 @@ class Parameters(BaseParameters):
         self.autoscale_y = Parameter(start=True)
         self.y_axis_limits = Parameter(start=1)
 
+        self.gpio_p_out = Parameter(start=0, min_=0, max_=0b11111111)
+        self.gpio_n_out = Parameter(start=0, min_=0, max_=0b11111111)
+
+        # parameters for ANALOG_OUTs
         for i in range(4):
             if i == 0:
+                # ANALOG_OUT0 is used for slow PID
                 continue
+
             setattr(self, 'analog_out_%d' % i, Parameter(start=0, min_=0, max_=(2**15) - 1))
