@@ -35,3 +35,11 @@ def param2ui(parameter, element, process_value=lambda x: x):
 def set_window_icon(window):
     icon_name = os.path.join(*os.path.split(__file__)[:-1], 'icon.ico')
     window.setWindowIcon(QtGui.QIcon(icon_name))
+
+
+def color_to_hex(color):
+    result = ''
+    for part_idx in range(3):
+        result += ('00' + hex(color[part_idx]).lstrip('0x'))[-2:]
+
+    return '#' + result

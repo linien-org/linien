@@ -1,12 +1,15 @@
+import json
+import linien
 import pickle
 import numpy as np
 from math import log
-from PyQt5 import QtGui, QtWidgets, QtCore
+from time import time
+from PyQt5 import QtGui, QtWidgets
 
 import linien
 from linien.common import check_plot_data
-from linien.gui.utils_gui import param2ui
-from linien.client.config import COLORS
+from linien.gui.utils_gui import color_to_hex, param2ui
+from linien.client.config import COLORS, N_COLORS
 from linien.gui.widgets import CustomWidget
 
 
@@ -27,26 +30,54 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
         super().show()
 
     def ready(self):
-        def color_to_hex(color):
-            result = ''
-            for part_idx in range(3):
-                result += ('00' + hex(color[part_idx]).lstrip('0x'))[-2:]
-
-            return '#' + result
-
-        set_color = lambda el, color: el.setStyleSheet('color: ' + color_to_hex(COLORS[color]))
-
-        set_color(self.ids.legend_spectrum_1, 'spectroscopy1')
-        set_color(self.ids.legend_spectrum_2, 'spectroscopy2')
-        set_color(self.ids.legend_spectrum_combined, 'spectroscopy_combined')
-        set_color(self.ids.legend_error_signal, 'spectroscopy_combined')
-        set_color(self.ids.legend_control_signal, 'control_signal')
-        set_color(self.ids.legend_control_signal_history, 'control_signal_history')
-        set_color(self.ids.legend_slow_signal_history, 'slow_history')
-
         self.ids.zoom_slider.valueChanged.connect(self.change_zoom)
         self.ids.go_left_btn.clicked.connect(self.go_left)
         self.ids.go_right_btn.clicked.connect(self.go_right)
+
+        self.ids.export_parameters_button.clicked.connect(self.export_parameters_select_file)
+        self.ids.import_parameters_button.clicked.connect(self.import_parameters)
+
+    def export_parameters_select_file(self):
+        options = QtWidgets.QFileDialog.Options()
+        #options |= QtWidgets.QFileDialog.DontUseNativeDialog
+        default_ext = '.json'
+        fn, _ = QtWidgets.QFileDialog.getSaveFileName(self,"QFileDialog.getSaveFileName()","","JSON (*%s)" % default_ext, options=options)
+        if fn:
+            if not fn.endswith(default_ext):
+                fn = fn + default_ext
+
+            with open(fn, 'w') as f:
+                json.dump({
+                    "linien-version": linien.__version__,
+                    "time": time(),
+                    "parameters": dict(
+                        (k, getattr(self.parameters, k).value)
+                        for k in self.parameters.remote.exposed_get_restorable_parameters()
+                    )
+                }, f)
+
+    def import_parameters(self):
+        options = QtWidgets.QFileDialog.Options()
+        #options |= QtWidgets.QFileDialog.DontUseNativeDialog
+        default_ext = '.json'
+        fn, _ = QtWidgets.QFileDialog.getOpenFileName(self,"QFileDialog.getSaveFileName()","","JSON (*%s)" % default_ext, options=options)
+        if fn:
+            with open(fn, 'r') as f:
+                data = json.load(f)
+
+            assert "linien-version" in data, 'invalid parameter file'
+
+            restorable = self.parameters.remote.exposed_get_restorable_parameters()
+            for k, v in data["parameters"].items():
+                if k not in restorable:
+                    print('ignore key', k)
+                    continue
+
+                print('restoring', k)
+                getattr(self.parameters, k).value = v
+
+            self.control.write_data()
+
 
     def connection_established(self):
         self.control = self.app.control
@@ -91,6 +122,24 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
         params.center.change(center_or_amplitude_changed)
 
         params.lock.change(lambda *args: self.reset_std_history())
+
+        def update_legend_color(*args):
+            set_color = lambda el, color_name: el.setStyleSheet(
+                'color: ' + color_to_hex(
+                    getattr(self.parameters, 'plot_color_%d' % COLORS[color_name]).value
+                )
+            )
+
+            set_color(self.ids.legend_spectrum_1, 'spectrum_1')
+            set_color(self.ids.legend_spectrum_2, 'spectrum_2')
+            set_color(self.ids.legend_spectrum_combined, 'spectrum_combined')
+            set_color(self.ids.legend_error_signal, 'spectrum_combined')
+            set_color(self.ids.legend_control_signal, 'control_signal')
+            set_color(self.ids.legend_control_signal_history, 'control_signal_history')
+            set_color(self.ids.legend_slow_signal_history, 'slow_history')
+
+        for color_idx in range(N_COLORS):
+            getattr(self.parameters, 'plot_color_%d' % color_idx).change(update_legend_color)
 
     def go_right(self):
         self.change_center(True)

@@ -3,13 +3,20 @@ import pickle
 import appdirs
 
 
+DEFAULT_COLORS = [
+    (200, 0, 0, 200),
+    (0, 200, 0, 200),
+    (0, 0, 200, 200),
+    (200, 200, 0, 200)
+]
+N_COLORS = len(DEFAULT_COLORS)
 COLORS = {
-    'spectroscopy1': (200, 0, 0, 200),
-    'spectroscopy2': (0, 200, 0, 200),
-    'spectroscopy_combined': (0, 0, 200, 200),
-    'control_signal': (200, 0, 0, 200),
-    'control_signal_history': (0, 200, 0, 200),
-    'slow_history': (200, 200, 0, 200)
+    'spectrum_1': 0,
+    'spectrum_2': 1,
+    'spectrum_combined': 2,
+    'control_signal': 0,
+    'control_signal_history': 1,
+    'slow_history': 3
 }
 
 

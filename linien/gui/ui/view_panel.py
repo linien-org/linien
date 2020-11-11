@@ -1,10 +1,11 @@
 import json
+from linien.client.config import N_COLORS
 import pickle
 import numpy as np
 from os import path
 from PyQt5 import QtGui, QtWidgets
 
-from linien.gui.utils_gui import param2ui
+from linien.gui.utils_gui import color_to_hex, param2ui
 from linien.gui.widgets import CustomWidget
 
 
@@ -21,6 +22,27 @@ class ViewPanel(QtGui.QWidget, CustomWidget):
         self.ids.export_select_file.clicked.connect(self.do_export_select_file)
         self.ids.export_data.clicked.connect(self.do_export_data)
 
+        self.ids.plot_line_width.setKeyboardTracking(False)
+        self.ids.plot_line_width.valueChanged.connect(self.plot_line_width_changed)
+
+        self.ids.plot_line_opacity.setKeyboardTracking(False)
+        self.ids.plot_line_opacity.valueChanged.connect(self.plot_line_opacity_changed)
+
+        for color_idx in range(N_COLORS):
+            getattr(self.ids, 'edit_color_%d' % color_idx).clicked.connect(
+                lambda *args, color_idx=color_idx: self.edit_color(color_idx)
+            )
+
+    def edit_color(self, color_idx):
+        param = getattr(self.parameters, 'plot_color_%d' % color_idx)
+
+        color = QtGui.QColorDialog.getColor(
+            QtGui.QColor.fromRgb(*param.value)
+        )
+        r, g, b, a = color.getRgb()
+        print('set color', color_idx, color.getRgb())
+        param.value = (r, g, b, a)
+
     def connection_established(self):
         params = self.app().parameters
         self.control = self.app().control
@@ -32,11 +54,29 @@ class ViewPanel(QtGui.QWidget, CustomWidget):
         param2ui(params.autoscale_y, self.ids.autoscale_y_axis)
         param2ui(params.y_axis_limits, self.ids.y_axis_limit)
 
+        param2ui(params.plot_line_width, self.ids.plot_line_width)
+        param2ui(params.plot_line_opacity, self.ids.plot_line_opacity)
+
+        def preview_colors(*args):
+            for color_idx in range(N_COLORS):
+                element = getattr(self.ids, 'display_color_%d' % color_idx)
+                param = getattr(self.parameters, 'plot_color_%d' % color_idx)
+                element.setStyleSheet('background-color: ' + color_to_hex(param.value))
+
+        for color_idx in range(N_COLORS):
+            getattr(self.parameters, 'plot_color_%d' % color_idx).change(preview_colors)
+
     def autoscale_changed(self):
         self.parameters.autoscale_y.value = int(self.ids.autoscale_y_axis.checkState())
 
     def y_limits_changed(self):
         self.parameters.y_axis_limits.value = self.ids.y_axis_limit.value()
+
+    def plot_line_width_changed(self):
+        self.parameters.plot_line_width.value = self.ids.plot_line_width.value()
+
+    def plot_line_opacity_changed(self):
+        self.parameters.plot_line_opacity.value = self.ids.plot_line_opacity.value()
 
     def do_export_select_file(self):
         options = QtWidgets.QFileDialog.Options()

@@ -1,3 +1,4 @@
+from linien.client.config import DEFAULT_COLORS, N_COLORS
 from linien.common import Vpp, MHz, pack
 
 
@@ -151,7 +152,9 @@ class Parameters(BaseParameters):
             'mod_channel', 'control_channel', 'sweep_channel',
             'polarity_fast_out1', 'polarity_fast_out2',
             'polarity_analog_out0', 'autoscale_y', 'y_axis_limits',
-            'check_lock', 'analog_out_1', 'analog_out_2', 'analog_out_3'
+            'check_lock', 'analog_out_1', 'analog_out_2', 'analog_out_3',
+            'plot_line_width', 'plot_color_0', 'plot_color_1', 'plot_color_2',
+            'plot_color_3', 'plot_line_opacity'
         )
 
         self.modulation_amplitude = Parameter(
@@ -273,6 +276,14 @@ class Parameters(BaseParameters):
 
         self.autoscale_y = Parameter(start=True)
         self.y_axis_limits = Parameter(start=1)
+        self.plot_line_width = Parameter(start=2, min_=0.1, max_=100)
+        self.plot_line_opacity = Parameter(start=200, min_=0, max_=255)
+        for color_idx in range(N_COLORS):
+            setattr(
+                self,
+                'plot_color_%d' % color_idx,
+                Parameter(start=DEFAULT_COLORS[color_idx])
+            )
 
         self.gpio_p_out = Parameter(start=0, min_=0, max_=0b11111111)
         self.gpio_n_out = Parameter(start=0, min_=0, max_=0b11111111)

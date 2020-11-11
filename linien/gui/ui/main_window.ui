@@ -333,6 +333,24 @@
         </widget>
        </item>
        <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <item>
+          <widget class="QPushButton" name="export_parameters_button">
+           <property name="text">
+            <string>Export settings</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="import_parameters_button">
+           <property name="text">
+            <string>Import settings</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
         <widget class="QPushButton" name="shutdownButton">
          <property name="palette">
           <palette>
@@ -815,8 +833,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>354</width>
-            <height>495</height>
+            <width>338</width>
+            <height>451</height>
            </rect>
           </property>
           <attribute name="label">
@@ -833,8 +851,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>354</width>
-            <height>495</height>
+            <width>338</width>
+            <height>451</height>
            </rect>
           </property>
           <attribute name="label">
@@ -851,8 +869,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>354</width>
-            <height>495</height>
+            <width>338</width>
+            <height>451</height>
            </rect>
           </property>
           <attribute name="label">
@@ -870,7 +888,7 @@
             <x>0</x>
             <y>0</y>
             <width>338</width>
-            <height>495</height>
+            <height>451</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -894,7 +912,7 @@
             <x>0</x>
             <y>0</y>
             <width>338</width>
-            <height>495</height>
+            <height>451</height>
            </rect>
           </property>
           <property name="sizePolicy">

@@ -7,7 +7,7 @@ from time import time
 from PyQt5 import QtGui, QtWidgets
 from pyqtgraph.Qt import QtCore, QtGui
 
-from linien.client.config import COLORS
+from linien.client.config import COLORS, DEFAULT_COLORS, N_COLORS
 from linien.gui.widgets import CustomWidget
 from linien.common import update_control_signal_history, determine_shift_by_correlation, \
     get_lock_point, combine_error_signal, check_plot_data, N_POINTS, \
@@ -44,22 +44,21 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         # OpenGL is enabled in the beginning of this file.
         # NOTE: OpenGL has a bug that causes the plot to be way too small.
         # Therefore, self.resize() is called below.
-        pen_width = 2
 
         self.zero_line = pg.PlotCurveItem(pen=pg.mkPen('w', width=1))
         self.addItem(self.zero_line)
-        self.signal1 = pg.PlotCurveItem(pen=pg.mkPen(COLORS['spectroscopy1'], width=pen_width))
+        self.signal1 = pg.PlotCurveItem()
         self.addItem(self.signal1)
-        self.signal2 = pg.PlotCurveItem(pen=pg.mkPen(COLORS['spectroscopy2'], width=pen_width))
+        self.signal2 = pg.PlotCurveItem()
         self.addItem(self.signal2)
-        self.combined_signal = pg.PlotCurveItem(pen=pg.mkPen(COLORS['spectroscopy_combined'], width=pen_width))
+        self.combined_signal = pg.PlotCurveItem()
         self.addItem(self.combined_signal)
 
-        self.control_signal = pg.PlotCurveItem(pen=pg.mkPen(COLORS['control_signal'], width=pen_width))
+        self.control_signal = pg.PlotCurveItem()
         self.addItem(self.control_signal)
-        self.control_signal_history = pg.PlotCurveItem(pen=pg.mkPen(COLORS['control_signal_history'], width=pen_width))
+        self.control_signal_history = pg.PlotCurveItem()
         self.addItem(self.control_signal_history)
-        self.slow_history = pg.PlotCurveItem(pen=pg.mkPen(COLORS['slow_history'], width=pen_width))
+        self.slow_history = pg.PlotCurveItem()
         self.addItem(self.slow_history)
 
         self.zero_line.setData([0, N_POINTS - 1], [0, 0])
@@ -94,6 +93,29 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
     def connection_established(self):
         self.control = self.app().control
         self.parameters = self.app().parameters
+
+        def set_pens(color):
+            pen_width = self.parameters.plot_line_width.value
+
+            for curve, name in {
+                self.signal1: 'spectrum_1',
+                self.signal2: 'spectrum_2',
+                self.combined_signal: 'spectrum_combined',
+                self.control_signal: 'control_signal',
+                self.control_signal_history: 'control_signal_history',
+                self.slow_history: 'slow_history',
+            }.items():
+                color_idx = COLORS[name]
+                r, g, b, *stuff = getattr(self.parameters, 'plot_color_%d' % color_idx).value
+                a = self.parameters.plot_line_opacity.value
+                curve.setPen(pg.mkPen(
+                    (r, g, b, a), width=pen_width
+                ))
+
+        for color_idx in range(N_COLORS):
+            getattr(self.parameters, 'plot_color_%d' % color_idx).change(set_pens)
+        self.parameters.plot_line_width.change(set_pens)
+        self.parameters.plot_line_opacity.change(set_pens)
 
         self.control_signal_history_data = self.parameters.control_signal_history.value
 
