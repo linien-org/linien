@@ -47,6 +47,8 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
 
         self.zero_line = pg.PlotCurveItem(pen=pg.mkPen('w', width=1))
         self.addItem(self.zero_line)
+        self.signal_strength = pg.PlotCurveItem()
+        self.addItem(self.signal_strength)
         self.signal1 = pg.PlotCurveItem()
         self.addItem(self.signal1)
         self.signal2 = pg.PlotCurveItem()
@@ -314,6 +316,13 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
                 self.plot_data_unlocked((s1, s2), combined_error_signal)
                 self.plot_autolock_target_line(combined_error_signal)
                 self.update_plot_scaling(all_signals if dual_channel else [s1])
+
+                s1q, s2q = to_plot['error_signal_1_quadrature'], to_plot['error_signal_2_quadrature']
+                signal_strength = np.sqrt(np.array(s1q)**2 + np.array(s2q)**2)
+                self.signal_strength.setData(
+                    list(range(len(signal_strength))), list(np.array(signal_strength) / V),
+                    fillLevel=0.0, brush=pg.mkBrush(255, 255, 255, 90)
+                )
 
     def plot_data_unlocked(self, error_signals, combined_signal):
         error_signal1, error_signal2 = error_signals

@@ -5,13 +5,13 @@ import _thread
 import numpy as np
 import threading
 from rpyc import Service
-from time import sleep, time
+from time import sleep
 from random import random
 from rpyc.utils.server import OneShotServer
 from PyRedPitaya.board import RedPitaya
 
 sys.path += ['../../']
-from csr import make_filter, PitayaLocal
+from csr import PitayaLocal
 from linien.config import ACQUISITION_PORT
 from linien.common import DECIMATION, N_POINTS
 
@@ -132,7 +132,7 @@ class DataAcquisitionService(Service):
         if hash_ == self.data_hash or self.data_hash is None:
             return False, None, None, None
         else:
-            return True, self.data_hash, self.data[:], self.data_uuid
+            return True, self.data_hash, self.data, self.data_uuid
 
     def exposed_set_ramp_speed(self, speed):
         self.ramp_speed = speed
@@ -165,25 +165,49 @@ class DataAcquisitionService(Service):
             else:
                 to_read_later = 0
 
-            x = self.r.scope.reads(offset+(4*addr), data_length)
-            y = x.copy()
-            y.dtype = np.int32
-            y[y>=2**13] -= 2**14
+            # raw data contains two signals:
+            #   2'h0,adc_a_q_rd,2'h0,adc_a_rd
+            #   i.e.: 2 zero bits, quadrature signal (14 bit), 2 zero bits, in-phase signal (14 bit)
+            # .copy() is required, because np.frombuffer returns a readonly array
+            raw_data = self.r.scope.reads(offset+(4*addr), data_length).copy()
+
+            # raw_data is an array of 32-bit ints
+            # we cast it to 16 bit --> each original int is split into two ints
+            raw_data.dtype = np.int16
+
+            # sign bit is at position 14, but we have 16 bit ints
+            raw_data[raw_data>=2**13] -= 2**14
+
+            # order is such that we have first the in-phase signal, then the quadrature signal
+            signals = tuple(raw_data[signal_idx::2] for signal_idx in (0, 1))
 
             if to_read_later > 0:
-                y = np.append(y, get_data(offset, 0, to_read_later))
+                additional_raw_data = get_data(offset, 0, to_read_later)
+                signals = tuple(
+                    np.append(signals[signal_idx], additional_raw_data[signal_idx])
+                    for signal_idx in range(2)
+                )
 
-            # IMPORTANT: leave this list comprehension, it is important for
-            #            performance when sending the data via rpyc
-            return [int(v) for v in y]
+            return signals
 
-        return [
-            decimate(
-                get_data(channel_offset, write_pointer, N_POINTS * self.additional_decimation),
-                self.additional_decimation
+        rv = []
+
+        for channel_offset in channel_offsets:
+            channel_data = get_data(
+                channel_offset,
+                write_pointer,
+                N_POINTS * self.additional_decimation
             )
-            for channel_offset in channel_offsets
-        ]
+
+            for sub_channel_idx in range(2):
+                rv.append(
+                        decimate(
+                        channel_data[sub_channel_idx],
+                        self.additional_decimation
+                    )
+                )
+
+        return rv
 
 
 if __name__ == '__main__':

@@ -70,7 +70,8 @@ class RedPitayaControlService(BaseService):
                 if data_uuid != self.data_uuid:
                     return
 
-                s1, s2, slow_out = pickle.loads(plot_data)
+                # TODO: acquisition_process pickles this data, server unpickles it again. Can everything be done in acquisition_process?
+                s1, s1q, s2, s2q, slow_out = pickle.loads(plot_data)
                 is_locked = self.parameters.lock.value
 
                 if is_locked:
@@ -83,7 +84,9 @@ class RedPitayaControlService(BaseService):
                 else:
                     data = {
                         'error_signal_1': s1,
-                        'error_signal_2': s2
+                        'error_signal_1_quadrature': s1q,
+                        'error_signal_2': s2,
+                        'error_signal_2_quadrature': s2q
                     }
 
                 self.parameters.to_plot.value = pickle.dumps(data)
@@ -196,7 +199,9 @@ class FakeRedPitayaControl(BaseService):
                 gen = lambda: [randint(-max_, max_) for _ in range(N_POINTS)]
                 self.parameters.to_plot.value = pickle.dumps({
                     'error_signal_1': gen(),
-                    'error_signal_2': gen()
+                    'error_signal_1_quadrature': gen(),
+                    'error_signal_2': gen(),
+                    'error_signal_2_quadrature': gen(),
                 })
                 sleep(.1)
         t = threading.Thread(target=run)

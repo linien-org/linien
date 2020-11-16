@@ -217,7 +217,6 @@ if __name__ == "__main__":
         slow_a_clear_en=p.states("slow_a_sat"),
         slow_a_y_limit_min=0,
 
-        noise_bits=25,
         #scopegen_adc_a_sel=p.signal("fast_a_x"),
         scopegen_adc_a_sel=p.signal("fast_a_x"),
         scopegen_adc_b_sel=p.signal("fast_a_y"),

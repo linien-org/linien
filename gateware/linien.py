@@ -252,11 +252,11 @@ class LinienModule(Module, AutoCSR):
             If(
                 self.logic.dual_channel.storage,
                 mixed.eq(
-                    (self.logic.chain_a_factor.storage * self.fast_a.dac)
-                    + (self.logic.chain_b_factor.storage * self.fast_b.dac)
+                    (self.logic.chain_a_factor.storage * self.fast_a.out_i)
+                    + (self.logic.chain_b_factor.storage * self.fast_b.out_i)
                     + (self.logic.combined_offset_signed << (chain_factor_bits + s))
                 ),
-            ).Else(mixed.eq(self.fast_a.dac << chain_factor_bits))
+            ).Else(mixed.eq(self.fast_a.out_i << chain_factor_bits))
         ]
 
         mixed_limited = Signal((signal_width, True))
