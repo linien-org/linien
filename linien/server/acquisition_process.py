@@ -11,7 +11,7 @@ from rpyc.utils.server import OneShotServer
 from PyRedPitaya.board import RedPitaya
 
 sys.path += ['../../']
-from csr import make_filter, PitayaLocal
+from csr import make_filter, PitayaLocal, PythonCSR
 from linien.config import ACQUISITION_PORT
 from linien.common import DECIMATION, N_POINTS
 
@@ -37,7 +37,7 @@ def decimate(array, factor):
 class DataAcquisitionService(Service):
     def __init__(self):
         self.r = RedPitaya()
-        self.csr = PitayaLocal()
+        self.csr = PythonCSR(self.r)
         self.csr_queue = []
         self.csr_iir_queue = []
 
