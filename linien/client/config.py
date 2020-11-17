@@ -3,13 +3,6 @@ import pickle
 import appdirs
 
 
-DEFAULT_COLORS = [
-    (200, 0, 0, 200),
-    (0, 200, 0, 200),
-    (0, 0, 200, 200),
-    (200, 200, 0, 200)
-]
-N_COLORS = len(DEFAULT_COLORS)
 COLORS = {
     'spectrum_1': 0,
     'spectrum_2': 1,

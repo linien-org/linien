@@ -24,7 +24,7 @@ class ScopeGen(Module, AutoCSR):
         dac_a = Signal((width, True))
         dac_b = Signal((width, True))
 
-        self.signal_in = adc_a, adc_b
+        self.signal_in = adc_a, adc_b, adc_a_q, adc_b_q
         self.signal_out = dac_a, dac_b
         self.state_in = ()
         self.state_out = ()

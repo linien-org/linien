@@ -7,7 +7,8 @@ from time import time
 from PyQt5 import QtGui, QtWidgets
 from pyqtgraph.Qt import QtCore, QtGui
 
-from linien.client.config import COLORS, DEFAULT_COLORS, N_COLORS
+from linien.config import DEFAULT_COLORS, N_COLORS
+from linien.client.config import COLORS
 from linien.gui.widgets import CustomWidget
 from linien.common import update_control_signal_history, determine_shift_by_correlation, \
     get_lock_point, combine_error_signal, check_plot_data, N_POINTS, \

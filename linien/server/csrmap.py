@@ -203,6 +203,8 @@ csr = {
     'scopegen_dac_b_min': (6, 0x00f, 25, False),
     'scopegen_adc_a_sel': (6, 0x013, 4, True),
     'scopegen_adc_b_sel': (6, 0x014, 4, True),
+    'scopegen_adc_a_q_sel': (6, 0x015, 4, True),
+    'scopegen_adc_b_q_sel': (6, 0x016, 4, True),
     'slow_pid_setpoint': (2, 0x000, 14, True),
     'slow_pid_kp': (2, 0x002, 14, True),
     'slow_pid_ki': (2, 0x004, 14, True),

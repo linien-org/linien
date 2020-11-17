@@ -1,4 +1,4 @@
-from linien.client.config import DEFAULT_COLORS, N_COLORS
+from linien.config import DEFAULT_COLORS, N_COLORS
 from linien.common import Vpp, MHz, pack
 
 

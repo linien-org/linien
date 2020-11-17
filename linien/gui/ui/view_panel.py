@@ -1,5 +1,5 @@
 import json
-from linien.client.config import N_COLORS
+from linien.config import N_COLORS
 import pickle
 import numpy as np
 from os import path

@@ -133,10 +133,10 @@ class Registers:
         else:
             # display both demodulated error signals
             new.update({
-                'scopegen_adc_a_sel': self.csr.signal("fast_a_i"),
-                'scopegen_adc_a_q_sel': self.csr.signal("fast_a_q"),
-                'scopegen_adc_b_sel': self.csr.signal("fast_b_i"),
-                'scopegen_adc_b_q_sel': self.csr.signal("fast_b_q"),
+                'scopegen_adc_a_sel': self.csr.signal("fast_a_out_i"),
+                'scopegen_adc_a_q_sel': self.csr.signal("fast_a_out_q"),
+                'scopegen_adc_b_sel': self.csr.signal("fast_b_out_i"),
+                'scopegen_adc_b_q_sel': self.csr.signal("fast_b_out_q"),
             })
 
 
