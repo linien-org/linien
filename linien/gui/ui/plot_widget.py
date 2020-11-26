@@ -34,6 +34,7 @@ V = 8192
 class PlotWidget(pg.PlotWidget, CustomWidget):
     signal_power1 = pyqtSignal(int)
     signal_power2 = pyqtSignal(int)
+    keyPressed = pyqtSignal(int)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -391,6 +392,12 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
                 self.lock_target_line.setVisible(False)
         else:
             self.lock_target_line.setVisible(False)
+
+
+    def keyPressEvent(self, event):
+        # we listen here in addition to the main window because some events
+        # are only caught here
+        self.keyPressed.emit(event.key())
 
     def update_plot_scaling(self, signals):
         if time() - self.last_plot_rescale > .5:

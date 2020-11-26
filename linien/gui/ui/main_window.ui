@@ -60,14 +60,20 @@
                 <height>0</height>
                </size>
               </property>
+              <property name="focusPolicy">
+               <enum>Qt::NoFocus</enum>
+              </property>
               <property name="maximum">
                <number>50</number>
               </property>
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
               </property>
+              <property name="tickPosition">
+               <enum>QSlider::TicksBothSides</enum>
+              </property>
               <property name="tickInterval">
-               <number>1</number>
+               <number>25</number>
               </property>
              </widget>
             </item>
