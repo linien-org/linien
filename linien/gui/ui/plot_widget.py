@@ -45,6 +45,9 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         # NOTE: OpenGL has a bug that causes the plot to be way too small.
         # Therefore, self.resize() is called below.
 
+        self.crosshair = pg.InfiniteLine(pos=N_POINTS / 2, pen=pg.mkPen('w', width=1))
+        self.addItem(self.crosshair)
+
         self.zero_line = pg.PlotCurveItem(pen=pg.mkPen('w', width=1))
         self.addItem(self.zero_line)
         self.signal1 = pg.PlotCurveItem()
@@ -136,6 +139,11 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
             elif not self.parameters.autolock_selection.value:
                 self.disable_area_selection()
         self.parameters.optimization_selection.change(optimization_selection_changed)
+
+        def show_or_hide_crosshair(automatic_mode):
+            self.crosshair.setVisible(not automatic_mode)
+        self.parameters.automatic_mode.change(show_or_hide_crosshair)
+
 
     def mouseMoveEvent(self, event):
         if self.touch_start is None:
