@@ -71,10 +71,11 @@ class RedPitayaControlService(BaseService):
                     return
 
                 # TODO: acquisition_process pickles this data, server unpickles it again. Can everything be done in acquisition_process?
-                s1, s1q, s2, s2q, slow_out = pickle.loads(plot_data)
+                data_loaded = pickle.loads(plot_data)
                 is_locked = self.parameters.lock.value
 
                 if is_locked:
+                    s1, s2, slow_out = data_loaded
                     data = {
                         'error_signal': s1,
                         'control_signal': s2
@@ -82,12 +83,18 @@ class RedPitayaControlService(BaseService):
                     if self.parameters.pid_on_slow_enabled.value:
                         data['slow'] = slow_out
                 else:
+                    s1, s2 = data_loaded[0], data_loaded[1]
+                    slow_out = data_loaded[-1]
                     data = {
                         'error_signal_1': s1,
-                        'error_signal_1_quadrature': s1q,
                         'error_signal_2': s2,
-                        'error_signal_2_quadrature': s2q
                     }
+                    if len(data_loaded) == 5:
+                        s1q, s2q = data_loaded[2], data_loaded[3]
+                        data.update({
+                        'error_signal_1_quadrature': s1q,
+                        'error_signal_2_quadrature': s2q
+                        })
 
                 self.parameters.to_plot.value = pickle.dumps(data)
 

@@ -22,6 +22,7 @@ class AcquisitionProcessSignals(Enum):
     SET_CSR = 4
     SET_IIR_CSR = 5
     CLEAR_DATA_CACHE = 6
+    FETCH_QUADRATURES = 7
 
 
 class AcquisitionMaster:
@@ -82,6 +83,8 @@ class AcquisitionMaster:
                     acquisition.exposed_set_ramp_speed(speed)
                 elif data[0] == AcquisitionProcessSignals.SET_LOCK_STATUS:
                     acquisition.exposed_set_lock_status(data[1])
+                elif data[0] == AcquisitionProcessSignals.FETCH_QUADRATURES:
+                    acquisition.exposed_set_fetch_quadratures(data[1])
                 elif data[0] == AcquisitionProcessSignals.SET_CSR:
                     acquisition.exposed_set_csr(*data[1])
                 elif data[0] == AcquisitionProcessSignals.SET_IIR_CSR:
@@ -109,6 +112,10 @@ class AcquisitionMaster:
     def lock_status_changed(self, status):
         if self.acq_process:
             self.acq_process.send((AcquisitionProcessSignals.SET_LOCK_STATUS, status))
+
+    def fetch_quadratures_changed(self, status):
+        if self.acq_process:
+            self.acq_process.send((AcquisitionProcessSignals.FETCH_QUADRATURES, status))
 
     def set_csr(self, key, value):
         self.acq_process.send(

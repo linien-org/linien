@@ -1,4 +1,5 @@
 import os
+import numpy as np
 import paramiko
 from plumbum import colors
 
@@ -105,3 +106,7 @@ def upload_source_code(ssh):
             ftp.put(local_path, remote_filepath)
 
     ftp.close()
+
+
+def peak_voltage_to_dBm(voltage):
+    return 10 + 20 * np.log10(voltage)

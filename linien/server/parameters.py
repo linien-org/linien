@@ -265,6 +265,9 @@ class Parameters(BaseParameters):
         self.pid_on_slow_strength = Parameter(start=0)
         self.dual_channel = Parameter(start=False)
         self.channel_mixing = Parameter(start=0)
+        # this parameter is not exposed to GUI. It is used by the autolock or
+        # normal lock to fetch less data if they are not needed.
+        self.fetch_quadratures = Parameter(start=True)
 
         self.mod_channel = Parameter(start=0, min_=0, max_=1)
         self.control_channel = Parameter(start=1, min_=0, max_=1)

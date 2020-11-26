@@ -61,6 +61,8 @@ class LockStatusPanel(QtGui.QWidget, CustomWidget):
         )
 
     def stop_lock(self):
+        self.parameters.fetch_quadratures.value = True
+
         if self.parameters.task.value is not None:
             self.parameters.task.value.stop()
             self.parameters.task.value = None

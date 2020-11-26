@@ -631,8 +631,8 @@ always @(*) begin
      20'h00048 : begin ack <= 1'b1;          rdata <= {{32-25{1'b0}}, set_b_filt_kk}      ; end
      20'h0004C : begin ack <= 1'b1;          rdata <= {{32-25{1'b0}}, set_b_filt_pp}      ; end
 
-     20'h1???? : begin ack <= adc_rd_dv;     rdata <= {2'h0,adc_a_q_rd,2'h0,adc_a_rd}              ; end
-     20'h2???? : begin ack <= adc_rd_dv;     rdata <= {2'h0,adc_b_q_rd,2'h0,adc_b_rd}              ; end
+     20'h1???? : begin ack <= adc_rd_dv;     rdata <= {2'h0,adc_b_rd,2'h0,adc_a_rd}              ; end
+     20'h2???? : begin ack <= adc_rd_dv;     rdata <= {2'h0,adc_b_q_rd,2'h0,adc_a_q_rd}          ; end
 
        default : begin ack <= 1'b1;          rdata <=  32'h0                              ; end
    endcase

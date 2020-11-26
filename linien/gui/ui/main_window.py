@@ -38,6 +38,20 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
         self.ids.export_parameters_button.clicked.connect(self.export_parameters_select_file)
         self.ids.import_parameters_button.clicked.connect(self.import_parameters)
 
+        def display_power(power, element):
+            if power != -1000:
+                text = "%.2f" % power
+            else:
+                text = "NaN"
+            element.setText(text)
+
+        def display_power_channel_1(power):
+            display_power(power, self.ids.power_channel_1)
+        def display_power_channel_2(power):
+            display_power(power, self.ids.power_channel_2)
+        self.ids.graphicsView.signal_power1.connect(display_power_channel_1)
+        self.ids.graphicsView.signal_power2.connect(display_power_channel_2)
+
     def export_parameters_select_file(self):
         options = QtWidgets.QFileDialog.Options()
         #options |= QtWidgets.QFileDialog.DontUseNativeDialog
@@ -100,6 +114,9 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
                 not al_running and not locked and not optimization
             )
             self.get_widget('top_lock_panel').setVisible(locked)
+            self.get_widget('statusbar_unlocked').setVisible(
+                not al_running and not locked and not optimization
+            )
 
         params.lock.change(change_manual_navigation_visibility)
         params.autolock_running.change(change_manual_navigation_visibility)

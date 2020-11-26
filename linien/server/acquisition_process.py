@@ -58,6 +58,8 @@ class DataAcquisitionService(Service):
         # confirmation from the gateware that the lock is actually running.
         self.confirmed_that_in_lock = False
 
+        self.fetch_quadratures = True
+
         self.run()
 
     def run(self, trigger_delay=16384):
@@ -141,6 +143,9 @@ class DataAcquisitionService(Service):
         self.locked = locked
         self.confirmed_that_in_lock = False
 
+    def exposed_set_fetch_quadratures(self, fetch):
+        self.fetch_quadratures = fetch
+
     def exposed_set_csr(self, key, value):
         self.csr_queue.append((key, value))
 
@@ -154,7 +159,10 @@ class DataAcquisitionService(Service):
         self.data_uuid = uuid
 
     def read_data(self):
-        channel_offsets = (0x10000, 0x20000)
+        channel_offsets = [0x10000]
+        if self.fetch_quadratures:
+            channel_offsets.append(0x20000)
+
         write_pointer = self.r.scope.write_pointer_trigger
 
         def get_data(offset, addr, data_length):
@@ -166,8 +174,8 @@ class DataAcquisitionService(Service):
                 to_read_later = 0
 
             # raw data contains two signals:
-            #   2'h0,adc_a_q_rd,2'h0,adc_a_rd
-            #   i.e.: 2 zero bits, quadrature signal (14 bit), 2 zero bits, in-phase signal (14 bit)
+            #   2'h0,adc_b_rd,2'h0,adc_a_rd
+            #   i.e.: 2 zero bits, channel b (14 bit), 2 zero bits, channel a (14 bit)
             # .copy() is required, because np.frombuffer returns a readonly array
             raw_data = self.r.scope.reads(offset+(4*addr), data_length).copy()
 
@@ -178,7 +186,7 @@ class DataAcquisitionService(Service):
             # sign bit is at position 14, but we have 16 bit ints
             raw_data[raw_data>=2**13] -= 2**14
 
-            # order is such that we have first the in-phase signal, then the quadrature signal
+            # order is such that we have first the signal a then signal b
             signals = tuple(raw_data[signal_idx::2] for signal_idx in (0, 1))
 
             if to_read_later > 0:

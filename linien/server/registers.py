@@ -30,6 +30,13 @@ class Registers:
                 self.acquisition.lock_status_changed(v)
 
         self.parameters.lock.change(lock_status_changed)
+
+        def fetch_quadratures_changed(v):
+            if self.acquisition is not None:
+                self.acquisition.fetch_quadratures_changed(v)
+
+        self.parameters.fetch_quadratures.change(fetch_quadratures_changed)
+
         use_ssh = self.host is not None and self.host not in ('localhost', '127.0.0.1')
         self.acquisition = AcquisitionMaster(use_ssh, self.host)
 
