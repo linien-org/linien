@@ -60,24 +60,3 @@ class ScopeGen(Module, AutoCSR):
                 o_sys_err_o=self.scope_sys.err,
                 o_sys_ack_o=self.scope_sys.ack,
         )
-
-        self.specials.asg = Instance("red_pitaya_asg",
-                o_dac_a_o=asg_a,
-                o_dac_b_o=asg_b,
-                i_dac_clk_i=ClockSignal(),
-                i_dac_rstn_i=~ResetSignal(),
-                i_trig_a_i=self.gpio_trigger,
-                i_trig_b_i=self.gpio_trigger,
-                o_trig_out_o=asg_trig,
-
-                i_sys_clk_i=self.asg_sys.clk,
-                i_sys_rstn_i=self.asg_sys.rstn,
-                i_sys_addr_i=self.asg_sys.addr,
-                i_sys_wdata_i=self.asg_sys.wdata,
-                i_sys_sel_i=self.asg_sys.sel,
-                i_sys_wen_i=self.asg_sys.wen,
-                i_sys_ren_i=self.asg_sys.ren,
-                o_sys_rdata_o=self.asg_sys.rdata,
-                o_sys_err_o=self.asg_sys.err,
-                o_sys_ack_o=self.asg_sys.ack,
-        )
