@@ -15,23 +15,22 @@ Features
 -   **All included**: Sinusoidal modulation (up to 50 MHz), demodulation, filtering
     and servo implemented on the FPGA.
 -   **Client-server architecture**: Autonomous operation on RedPitaya.
-    One or multiple GUI clients or scripts can connect to the server.
--   **Autolock**: Click and drag over a line, and linien will
+    One or multiple GUI clients or python clients can connect to the server.
+-   **Autolock**: Click and drag over a line, and Linien will
     automatically approach it and lock to it.
--   **Lock detection**: linien is capable of detecting loss of lock.
--   **Automatic relocking**: in that case, it can relock automatically
-    using the autolock.
--   **Machine learning**: in order to optimize the signal, linien uses
-    machine learning to find the best spectroscopy parameters
--   **Remote-controllable**: The client libraries can be used to control
-    or monitor the spectroscopy lock with python.
--   **Combined FMS+MTS**: Supports dual-channel spectroscopy that can be
+-   **Lock detection**: Linien is capable of detecting loss of lock.
+-   **Automatic relocking**: in that case, it relocks autonomously.
+-   **Machine learning** is used to tune the spectroscopy parameters in order to optimize the signal
+-   **Remote-controllable**: The client libraries can be used to control or monitor the spectroscopy lock with python.
+-   **Combined FMS+MTS**: Linien supports dual-channel spectroscopy that can be
     used to implement [combined
     FMS+MTS](https://arxiv.org/pdf/1701.01918.pdf)
 -   **Logging**: Use
     [linien-influxdb](https://github.com/hermitdemschoenenleben/linien-influxdb)
     to log the lock status to influxdb.
--   **TTL status**: Outputs the lock status via TTL
+-   **Second integrator** on (slow) analog output 0
+-   **Additional analog outputs** may be used using the GUI or python client (ANALOG_OUT 1, 2 and 3)
+-   **16 GPIO outputs** may be programmed (e.g. for controlling other devices)
 
 ![image](https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/docs/screencast.gif)
 
@@ -83,9 +82,16 @@ probably missing in your PATH. In this case you can open Linien with
 python:
 
 ```python
-from linien.client.client import run_application
+from linien.gui.app import run_application
 run_application()
 ```
+
+In case you're only interested in the python client and don't want to install the graphical application, you can use
+
+```bash
+pip3 install linien-python-client
+```
+
 
 Physical setup
 --------------
@@ -147,8 +153,11 @@ Then, you should start the Linien server on your RedPitaya. This can be done by 
 
 Once the server is up and running, you can connect using python:
 ```python
-from linien.client.connection import BaseClient, MHz, Vpp
-c = BaseClient(host, 18862, False)
+from linien.client.connection import LinienClient, MHz, Vpp
+c = LinienClient(
+    {'host': 'rp-XXXXXX.local', 'username': 'root', 'password': 'root'}, autostart_server=True,
+    restore_parameters=False
+)
 
 # read out the modulation frequency
 print(c.parameters.modulation_frequency.value / MHz)
@@ -157,6 +166,16 @@ print(c.parameters.modulation_frequency.value / MHz)
 c.parameters.modulation_amplitude.value = 1 * Vpp
 # in the line above, we set a parameter. This is not written directly to the
 # FPGA, though. In order to do this, we have to call write_data():
+c.connection.root.write_data()
+
+# additionally set ANALOG_OUT_1 to 1.2 volts DC (you can use this to control other devices of your experiment)
+c.parameters.analog_out_1.value = 1.2 * ANALOG_OUT_V
+
+# GPIO outputs can also be set
+c.parameters.gpio_p_out.value = 0b11110000 # 4 on, 4 off
+c.parameters.gpio_n_out.value = 0b01010101 # 4 on, 4 off
+
+# again, we have to call write_data in order to write the data to the FPGA
 c.connection.root.write_data()
 
 # plot control and error signal
@@ -170,11 +189,13 @@ print(plot_data.keys())
 # if unlocked, signal1 and signal2 contain the error signal of channel 1 and 2
 # if the laser is locked, they contain error signal and control signal.
 if c.parameters.lock.value:
-    plt.plot(plot_data['control_signal'], label='control')
-    plt.plot(plot_data['error_signal'], label='error')
+    plt.title('laser is locked!')
+    plt.plot(plot_data['control_signal'], label='control signal')
+    plt.plot(plot_data['error_signal'], label='error signal')
 else:
-    plt.plot(plot_data['error_signal_1'], label='error 1')
-    plt.plot(plot_data['error_signal_2'], label='error 2')
+    plt.title('laser is sweeping!')
+    plt.plot(plot_data['error_signal_1'], label='error signal channel 1')
+    plt.plot(plot_data['error_signal_2'], label='error signal channel 2')
 
 plt.legend()
 plt.show()
@@ -187,13 +208,11 @@ look at
 Development
 -----------
 
-As linien uses a git submodule, you should check it out like this:
-
 ```bash
-git clone https://github.com/hermitdemschoenenleben/linien.git --recursive
+git clone https://github.com/hermitdemschoenenleben/linien.git
 ```
 
-Then, create a file named `checked_out_repo/linien/VERSION` with contents
+Then, create a file named `checked_out_repo/linien/VERSION` which contains
 
 ```
 dev
