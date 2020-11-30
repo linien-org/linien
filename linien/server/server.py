@@ -92,8 +92,8 @@ class RedPitayaControlService(BaseService):
                     if len(data_loaded) == 5:
                         s1q, s2q = data_loaded[2], data_loaded[3]
                         data.update({
-                        'error_signal_1_quadrature': s1q,
-                        'error_signal_2_quadrature': s2q
+                            'error_signal_1_quadrature': s1q,
+                            'error_signal_2_quadrature': s2q
                         })
 
                 self.parameters.to_plot.value = pickle.dumps(data)

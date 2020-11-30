@@ -10,7 +10,7 @@ from pyqtgraph.Qt import QtCore, QtGui
 from PyQt5.QtCore import QThread, pyqtSignal
 
 from linien.config import DEFAULT_COLORS, N_COLORS
-from linien.client.config import COLORS
+from linien.client.config import COLORS, DEFAULT_PLOT_RATE_LIMIT
 from linien.gui.widgets import CustomWidget
 from linien.common import update_control_signal_history, determine_shift_by_correlation, \
     get_lock_point, combine_error_signal, check_plot_data, N_POINTS, \
@@ -95,6 +95,9 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         self._fixed_opengl_bug = False
 
         self.enable_area_selection()
+
+        self.last_plot_time = 0
+        self.plot_rate_limit = DEFAULT_PLOT_RATE_LIMIT
 
     def _to_data_coords(self, event):
         pos = self.plotItem.vb.mapSceneToView(event.pos())
@@ -261,6 +264,12 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         return len(self.last_plot_data[0]) - 1
 
     def replot(self, to_plot):
+        time_beginning = time()
+        if time_beginning - self.last_plot_time <= self.plot_rate_limit:
+            # don't plot too often at it only causes unnecessary load
+            return
+        self.last_plot_time = time_beginning
+
         # NOTE: this is necessary if OpenGL is activated. Otherwise, the
         # plot is way too small. This command apparently causes a repaint
         # and works fine even though the values are nonsense.
@@ -315,6 +324,7 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
                 self.slow_history.setVisible(False)
 
                 s1, s2 = to_plot['error_signal_1'], to_plot['error_signal_2']
+                print(to_plot['error_signal_1_quadrature'])
                 combined_error_signal = combine_error_signal(
                     (s1, s2),
                     dual_channel,
@@ -345,6 +355,15 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
                     self.signal_power1.emit(-1000)
                     self.signal_power2.emit(-1000)
 
+        time_end = time()
+        time_diff = time_end - time_beginning
+        new_rate_limit = 2 * time_diff
+
+        if new_rate_limit < DEFAULT_PLOT_RATE_LIMIT:
+            new_rate_limit = DEFAULT_PLOT_RATE_LIMIT
+
+        self.plot_rate_limit = new_rate_limit
+
     def plot_signal_strength(self, i, q, signal):
         i_squared = np.array(list(np.int64(v) for v in list(i)))**2
         q_squared = np.array(list(np.int64(v) for v in list(q)))**2
@@ -353,7 +372,7 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         signal.setData(
             list(range(len(signal_strength))), list(signal_strength / V),
             fillLevel=0.0, brush=pg.mkBrush(255, 255, 255, 90),
-            pen=pg.mkPen('b', width=0.00001)
+            pen=pg.mkPen('y', width=0.00001)
         )
         return np.max(signal_strength)
 
@@ -403,7 +422,7 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         if time() - self.last_plot_rescale > .5:
             all_ = []
             for signal in signals:
-                all_ += signal
+                all_ += list(signal)
 
             if self.parameters.autoscale_y.value:
                 self.plot_min = np.min(all_) / V
