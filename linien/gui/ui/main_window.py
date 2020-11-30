@@ -4,16 +4,21 @@ import pickle
 import numpy as np
 from math import log
 from time import time
-from PyQt5 import QtGui, QtWidgets
+from PyQt5 import QtGui, QtWidgets, QtCore
 
 import linien
 from linien.common import check_plot_data
 from linien.gui.utils_gui import color_to_hex, param2ui
-from linien.client.config import COLORS, N_COLORS
+from linien.config import N_COLORS
+from linien.client.config import COLORS
 from linien.gui.widgets import CustomWidget
 
 
 ZOOM_STEP = .9
+MAX_ZOOM = 50
+MIN_ZOOM = 0
+def ramp_amplitude_to_zoom_step(amplitude):
+    return round(log(amplitude, ZOOM_STEP))
 
 
 class MainWindow(QtGui.QMainWindow, CustomWidget):
@@ -30,12 +35,56 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
         super().show()
 
     def ready(self):
+        # handle keyboard events
+        self.setFocus()
+
         self.ids.zoom_slider.valueChanged.connect(self.change_zoom)
         self.ids.go_left_btn.clicked.connect(self.go_left)
         self.ids.go_right_btn.clicked.connect(self.go_right)
 
         self.ids.export_parameters_button.clicked.connect(self.export_parameters_select_file)
         self.ids.import_parameters_button.clicked.connect(self.import_parameters)
+
+        def display_power(power, element):
+            if power != -1000:
+                text = "%.2f" % power
+            else:
+                text = "NaN"
+            element.setText(text)
+
+        def display_power_channel_1(power):
+            display_power(power, self.ids.power_channel_1)
+        def display_power_channel_2(power):
+            display_power(power, self.ids.power_channel_2)
+        self.ids.graphicsView.signal_power1.connect(display_power_channel_1)
+        self.ids.graphicsView.signal_power2.connect(display_power_channel_2)
+        self.ids.graphicsView.keyPressed.connect(self.handle_key_press)
+
+    def keyPressEvent(self, event):
+        self.handle_key_press(event.key())
+
+    def handle_key_press(self, key):
+        print('key pressed', key)
+        def click_if_enabled(btn):
+            if btn.isEnabled():
+                btn.clicked.emit()
+
+        if key == ord('+'):
+            self.increase_or_decrease_zoom(+1)
+        elif key == ord('-'):
+            self.increase_or_decrease_zoom(-1)
+        elif key == QtCore.Qt.Key_Right:
+            click_if_enabled(self.ids.go_right_btn)
+        elif key == QtCore.Qt.Key_Left:
+            click_if_enabled(self.ids.go_left_btn)
+
+    def increase_or_decrease_zoom(self, direction):
+        amplitude = self.parameters.ramp_amplitude.value
+        zoom_level = ramp_amplitude_to_zoom_step(amplitude)
+        zoom_level += direction
+        if zoom_level < MIN_ZOOM or zoom_level > MAX_ZOOM:
+            return
+        self.change_zoom(zoom_level)
 
     def export_parameters_select_file(self):
         options = QtWidgets.QFileDialog.Options()
@@ -87,7 +136,7 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
         param2ui(
             params.ramp_amplitude,
             self.ids.zoom_slider,
-            lambda amplitude: int(log(amplitude, ZOOM_STEP))
+            ramp_amplitude_to_zoom_step
         )
 
         def change_manual_navigation_visibility(*args):
@@ -99,6 +148,9 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
                 not al_running and not locked and not optimization
             )
             self.get_widget('top_lock_panel').setVisible(locked)
+            self.get_widget('statusbar_unlocked').setVisible(
+                not al_running and not locked and not optimization
+            )
 
         params.lock.change(change_manual_navigation_visibility)
         params.autolock_running.change(change_manual_navigation_visibility)
@@ -156,11 +208,13 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
         if np.abs(new_center) + self.parameters.ramp_amplitude.value > 1:
             new_center = np.sign(new_center) * (1 - self.parameters.ramp_amplitude.value)
 
+        print('set center', new_center)
         self.parameters.center.value = new_center
         self.control.write_data()
 
     def change_zoom(self, zoom):
         amplitude = ZOOM_STEP ** zoom
+        print('change zoom', zoom, amplitude)
         self.parameters.ramp_amplitude.value = amplitude
         center = self.parameters.center.value
         if center + amplitude > 1:

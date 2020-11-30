@@ -1,4 +1,4 @@
-from migen import *
+from migen import Signal, Module, Instance, ClockSignal, ResetSignal, Array, Record
 from misoc.interconnect.csr import AutoCSR, CSRStorage
 from .pitaya_ps import sys_layout
 
@@ -18,11 +18,13 @@ class ScopeGen(Module, AutoCSR):
         self.asg_sys = Record(sys_layout)
 
         adc_a = Signal((width, True))
+        adc_a_q = Signal((width, True))
         adc_b = Signal((width, True))
+        adc_b_q = Signal((width, True))
         dac_a = Signal((width, True))
         dac_b = Signal((width, True))
 
-        self.signal_in = adc_a, adc_b
+        self.signal_in = adc_a, adc_b, adc_a_q, adc_b_q
         self.signal_out = dac_a, dac_b
         self.state_in = ()
         self.state_out = ()
@@ -37,6 +39,10 @@ class ScopeGen(Module, AutoCSR):
         self.specials.scope = Instance("red_pitaya_scope",
                 i_adc_a_i=adc_a >> s,
                 i_adc_b_i=adc_b >> s,
+                i_adc_a_q_i=adc_a_q >> s,
+                i_adc_b_q_i=adc_b_q >> s,
+                #i_adc_a_q_i=0b11111111111111,
+                #i_adc_b_q_i=0b11111111111111,
                 i_adc_clk_i=ClockSignal(),
                 i_adc_rstn_i=~ResetSignal(),
 

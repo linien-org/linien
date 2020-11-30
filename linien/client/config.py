@@ -3,13 +3,6 @@ import pickle
 import appdirs
 
 
-DEFAULT_COLORS = [
-    (200, 0, 0, 200),
-    (0, 200, 0, 200),
-    (0, 0, 200, 200),
-    (200, 200, 0, 200)
-]
-N_COLORS = len(DEFAULT_COLORS)
 COLORS = {
     'spectrum_1': 0,
     'spectrum_2': 1,
@@ -18,6 +11,8 @@ COLORS = {
     'control_signal_history': 1,
     'slow_history': 3
 }
+# don't plot more often than once per `DEFAULT_PLOT_RATE_LIMIT` seconds
+DEFAULT_PLOT_RATE_LIMIT = 0.1
 
 
 def get_data_folder():

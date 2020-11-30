@@ -112,6 +112,7 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
     def start_manual_lock(self):
         self.control.pause_acquisition()
         self.parameters.target_slope_rising.value = self.ids.button_slope_rising.isChecked()
+        self.parameters.fetch_quadratures.value = False
         self.control.write_data()
         self.control.start_lock()
         self.control.continue_acquisition()

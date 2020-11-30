@@ -15,18 +15,22 @@
 # You should have received a copy of the GNU General Public License
 # along with redpid.  If not, see <http://www.gnu.org/licenses/>.
 
-from migen import *
-from misoc.interconnect.csr import CSRStorage
+from migen import Module, Signal, If
+from misoc.interconnect.csr import CSRStorage, AutoCSR
 
 from .cordic import Cordic
 from .filter import Filter
 
 
-class Demodulate(Filter):
-    def __init__(self, freq_width=32, **kwargs):
-        Filter.__init__(self, **kwargs)
+class Demodulate(Module, AutoCSR):
+    def __init__(self, freq_width=32, width=14):
+        # input signal
+        self.x = Signal((width, True))
 
-        width = len(self.y)
+        # demodulated signals (i and q)
+        self.i = Signal((width, True))
+        self.q = Signal((width, True))
+
         self.delay = CSRStorage(freq_width)
         self.multiplier = CSRStorage(4, reset=1)
         self.phase = Signal(width)
@@ -36,9 +40,13 @@ class Demodulate(Filter):
             eval_mode="pipelined", cordic_mode="rotate",
             func_mode="circular")
         self.comb += [
+            # cordic input
             self.cordic.xi.eq(self.x),
             self.cordic.zi.eq(((self.phase * self.multiplier.storage) + self.delay.storage) << 1),
-            self.y.eq(self.cordic.xo >> 1)
+
+            # cordic output
+            self.i.eq(self.cordic.xo >> 1),
+            self.q.eq(self.cordic.yo >> 1)
         ]
 
 

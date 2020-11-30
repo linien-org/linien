@@ -56,6 +56,9 @@ module red_pitaya_scope
    // ADC
    input      [ 14-1: 0] adc_a_i         ,  //!< ADC data CHA
    input      [ 14-1: 0] adc_b_i         ,  //!< ADC data CHB
+   input      [ 14-1: 0] adc_a_q_i       ,  //!< Quadrature of ADC CHA
+   input      [ 14-1: 0] adc_b_q_i       ,  //!< Quadrature of ADC CHA
+
    input                 adc_clk_i       ,  //!< ADC clock
    input                 adc_rstn_i      ,  //!< ADC reset - active low
    input                 trig_ext_i      ,  //!< external trigger
@@ -95,6 +98,8 @@ wire [ 14-1: 0] adc_a_filt_in  ;
 wire [ 14-1: 0] adc_a_filt_out ;
 wire [ 14-1: 0] adc_b_filt_in  ;
 wire [ 14-1: 0] adc_b_filt_out ;
+wire [ 14-1: 0] adc_a_q_filt_out ;
+wire [ 14-1: 0] adc_b_q_filt_out ;
 reg  [ 18-1: 0] set_a_filt_aa  ;
 reg  [ 25-1: 0] set_a_filt_bb  ;
 reg  [ 25-1: 0] set_a_filt_kk  ;
@@ -107,7 +112,13 @@ reg  [ 25-1: 0] set_b_filt_pp  ;
 
 assign adc_a_filt_in = adc_a_i ;
 assign adc_b_filt_in = adc_b_i ;
+// this replaces the filtering by a simple assignment
+assign adc_a_filt_out = adc_a_filt_in ;
+assign adc_b_filt_out = adc_b_filt_in ;
+assign adc_a_q_filt_out = adc_a_q_i ;
+assign adc_b_q_filt_out = adc_b_q_i ;
 
+/*
 red_pitaya_dfilt1 i_dfilt1_cha
 (
    // ADC
@@ -136,7 +147,7 @@ red_pitaya_dfilt1 i_dfilt1_chb
   .cfg_bb_i    ( set_b_filt_bb   ),  // config BB coefficient
   .cfg_kk_i    ( set_b_filt_kk   ),  // config KK coefficient
   .cfg_pp_i    ( set_b_filt_pp   )   // config PP coefficient
-);
+);*/
 
 
 
@@ -147,8 +158,12 @@ red_pitaya_dfilt1 i_dfilt1_chb
 
 reg  [ 14-1: 0] adc_a_dat     ;
 reg  [ 14-1: 0] adc_b_dat     ;
+reg  [ 14-1: 0] adc_a_q_dat     ;
+reg  [ 14-1: 0] adc_b_q_dat     ;
 reg  [ 32-1: 0] adc_a_sum     ;
 reg  [ 32-1: 0] adc_b_sum     ;
+reg  [ 32-1: 0] adc_a_q_sum     ;
+reg  [ 32-1: 0] adc_b_q_sum     ;
 reg  [ 17-1: 0] set_dec       ;
 reg  [ 17-1: 0] adc_dec_cnt   ;
 reg             set_avg_en    ;
@@ -158,6 +173,8 @@ always @(posedge adc_clk_i) begin
    if (adc_rstn_i == 1'b0) begin
       adc_a_sum   <= 32'h0 ;
       adc_b_sum   <= 32'h0 ;
+      adc_a_q_sum   <= 32'h0 ;
+      adc_b_q_sum   <= 32'h0 ;
       adc_dec_cnt <= 17'h0 ;
       adc_dv      <=  1'b0 ;
    end
@@ -166,35 +183,39 @@ always @(posedge adc_clk_i) begin
          adc_dec_cnt <= 17'h1                   ;
          adc_a_sum   <= $signed(adc_a_filt_out) ;
          adc_b_sum   <= $signed(adc_b_filt_out) ;
+         adc_a_q_sum   <= $signed(adc_a_q_filt_out) ;
+         adc_b_q_sum   <= $signed(adc_b_q_filt_out) ;
       end
       else begin
          adc_dec_cnt <= adc_dec_cnt + 17'h1 ;
          adc_a_sum   <= $signed(adc_a_sum) + $signed(adc_a_filt_out) ;
          adc_b_sum   <= $signed(adc_b_sum) + $signed(adc_b_filt_out) ;
+         adc_a_q_sum   <= $signed(adc_a_q_sum) + $signed(adc_a_q_filt_out) ;
+         adc_b_q_sum   <= $signed(adc_b_q_sum) + $signed(adc_b_q_filt_out) ;
       end
 
       adc_dv <= (adc_dec_cnt >= set_dec) ;
 
       case (set_dec & {17{set_avg_en}})
-         17'h0     : begin adc_a_dat <= adc_a_filt_out;            adc_b_dat <= adc_b_filt_out;        end
-         17'h1     : begin adc_a_dat <= adc_a_sum[15+0 :  0];      adc_b_dat <= adc_b_sum[15+0 :  0];  end
-         17'h2     : begin adc_a_dat <= adc_a_sum[15+1 :  1];      adc_b_dat <= adc_b_sum[15+1 :  1];  end
-         17'h4     : begin adc_a_dat <= adc_a_sum[15+2 :  2];      adc_b_dat <= adc_b_sum[15+2 :  2];  end
-         17'h8     : begin adc_a_dat <= adc_a_sum[15+3 :  3];      adc_b_dat <= adc_b_sum[15+3 :  3];  end
-         17'h10    : begin adc_a_dat <= adc_a_sum[15+4 :  4];      adc_b_dat <= adc_b_sum[15+4 :  4];  end
-         17'h20    : begin adc_a_dat <= adc_a_sum[15+5 :  5];      adc_b_dat <= adc_b_sum[15+5 :  5];  end
-         17'h40    : begin adc_a_dat <= adc_a_sum[15+6 :  6];      adc_b_dat <= adc_b_sum[15+6 :  6];  end
-         17'h80    : begin adc_a_dat <= adc_a_sum[15+7 :  7];      adc_b_dat <= adc_b_sum[15+7 :  7];  end
-         17'h100   : begin adc_a_dat <= adc_a_sum[15+8 :  8];      adc_b_dat <= adc_b_sum[15+8 :  8];  end
-         17'h200   : begin adc_a_dat <= adc_a_sum[15+9 :  9];      adc_b_dat <= adc_b_sum[15+9 :  9];  end
-         17'h400   : begin adc_a_dat <= adc_a_sum[15+10: 10];      adc_b_dat <= adc_b_sum[15+10: 10];  end
-         17'h800   : begin adc_a_dat <= adc_a_sum[15+11: 11];      adc_b_dat <= adc_b_sum[15+11: 11];  end
-         17'h1000  : begin adc_a_dat <= adc_a_sum[15+12: 12];      adc_b_dat <= adc_b_sum[15+12: 12];  end
-         17'h2000  : begin adc_a_dat <= adc_a_sum[15+13: 13];      adc_b_dat <= adc_b_sum[15+13: 13];  end
-         17'h4000  : begin adc_a_dat <= adc_a_sum[15+14: 14];      adc_b_dat <= adc_b_sum[15+14: 14];  end
-         17'h8000  : begin adc_a_dat <= adc_a_sum[15+15: 15];      adc_b_dat <= adc_b_sum[15+15: 15];  end
-         17'h10000 : begin adc_a_dat <= adc_a_sum[15+16: 16];      adc_b_dat <= adc_b_sum[15+16: 16];  end
-         default   : begin adc_a_dat <= adc_a_sum[15+0 :  0];      adc_b_dat <= adc_b_sum[15+0 :  0];  end
+         17'h0     : begin adc_a_dat <= adc_a_filt_out;            adc_b_dat <= adc_b_filt_out;             adc_a_q_dat <= adc_a_q_filt_out;              adc_b_q_dat <= adc_b_q_filt_out;                  end
+         17'h1     : begin adc_a_dat <= adc_a_sum[15+0 :  0];      adc_b_dat <= adc_b_sum[15+0 :  0];       adc_a_q_dat <= adc_a_q_sum[15+0 :  0];        adc_b_q_dat <= adc_b_q_sum[15+0 :  0];            end
+         17'h2     : begin adc_a_dat <= adc_a_sum[15+1 :  1];      adc_b_dat <= adc_b_sum[15+1 :  1];       adc_a_q_dat <= adc_a_q_sum[15+1 :  1];        adc_b_q_dat <= adc_b_q_sum[15+1 :  1];            end
+         17'h4     : begin adc_a_dat <= adc_a_sum[15+2 :  2];      adc_b_dat <= adc_b_sum[15+2 :  2];       adc_a_q_dat <= adc_a_q_sum[15+2 :  2];        adc_b_q_dat <= adc_b_q_sum[15+2 :  2];            end
+         17'h8     : begin adc_a_dat <= adc_a_sum[15+3 :  3];      adc_b_dat <= adc_b_sum[15+3 :  3];       adc_a_q_dat <= adc_a_q_sum[15+3 :  3];        adc_b_q_dat <= adc_b_q_sum[15+3 :  3];            end
+         17'h10    : begin adc_a_dat <= adc_a_sum[15+4 :  4];      adc_b_dat <= adc_b_sum[15+4 :  4];       adc_a_q_dat <= adc_a_q_sum[15+4 :  4];        adc_b_q_dat <= adc_b_q_sum[15+4 :  4];            end
+         17'h20    : begin adc_a_dat <= adc_a_sum[15+5 :  5];      adc_b_dat <= adc_b_sum[15+5 :  5];       adc_a_q_dat <= adc_a_q_sum[15+5 :  5];        adc_b_q_dat <= adc_b_q_sum[15+5 :  5];            end
+         17'h40    : begin adc_a_dat <= adc_a_sum[15+6 :  6];      adc_b_dat <= adc_b_sum[15+6 :  6];       adc_a_q_dat <= adc_a_q_sum[15+6 :  6];        adc_b_q_dat <= adc_b_q_sum[15+6 :  6];            end
+         17'h80    : begin adc_a_dat <= adc_a_sum[15+7 :  7];      adc_b_dat <= adc_b_sum[15+7 :  7];       adc_a_q_dat <= adc_a_q_sum[15+7 :  7];        adc_b_q_dat <= adc_b_q_sum[15+7 :  7];            end
+         17'h100   : begin adc_a_dat <= adc_a_sum[15+8 :  8];      adc_b_dat <= adc_b_sum[15+8 :  8];       adc_a_q_dat <= adc_a_q_sum[15+8 :  8];        adc_b_q_dat <= adc_b_q_sum[15+8 :  8];            end
+         17'h200   : begin adc_a_dat <= adc_a_sum[15+9 :  9];      adc_b_dat <= adc_b_sum[15+9 :  9];       adc_a_q_dat <= adc_a_q_sum[15+9 :  9];        adc_b_q_dat <= adc_b_q_sum[15+9 :  9];            end
+         17'h400   : begin adc_a_dat <= adc_a_sum[15+10: 10];      adc_b_dat <= adc_b_sum[15+10: 10];       adc_a_q_dat <= adc_a_q_sum[15+10: 10];        adc_b_q_dat <= adc_b_q_sum[15+10: 10];            end
+         17'h800   : begin adc_a_dat <= adc_a_sum[15+11: 11];      adc_b_dat <= adc_b_sum[15+11: 11];       adc_a_q_dat <= adc_a_q_sum[15+11: 11];        adc_b_q_dat <= adc_b_q_sum[15+11: 11];            end
+         17'h1000  : begin adc_a_dat <= adc_a_sum[15+12: 12];      adc_b_dat <= adc_b_sum[15+12: 12];       adc_a_q_dat <= adc_a_q_sum[15+12: 12];        adc_b_q_dat <= adc_b_q_sum[15+12: 12];            end
+         17'h2000  : begin adc_a_dat <= adc_a_sum[15+13: 13];      adc_b_dat <= adc_b_sum[15+13: 13];       adc_a_q_dat <= adc_a_q_sum[15+13: 13];        adc_b_q_dat <= adc_b_q_sum[15+13: 13];            end
+         17'h4000  : begin adc_a_dat <= adc_a_sum[15+14: 14];      adc_b_dat <= adc_b_sum[15+14: 14];       adc_a_q_dat <= adc_a_q_sum[15+14: 14];        adc_b_q_dat <= adc_b_q_sum[15+14: 14];            end
+         17'h8000  : begin adc_a_dat <= adc_a_sum[15+15: 15];      adc_b_dat <= adc_b_sum[15+15: 15];       adc_a_q_dat <= adc_a_q_sum[15+15: 15];        adc_b_q_dat <= adc_b_q_sum[15+15: 15];            end
+         17'h10000 : begin adc_a_dat <= adc_a_sum[15+16: 16];      adc_b_dat <= adc_b_sum[15+16: 16];       adc_a_q_dat <= adc_a_q_sum[15+16: 16];        adc_b_q_dat <= adc_b_q_sum[15+16: 16];            end
+         default   : begin adc_a_dat <= adc_a_sum[15+0 :  0];      adc_b_dat <= adc_b_sum[15+0 :  0];       adc_a_q_dat <= adc_a_q_sum[15+0 :  0];        adc_b_q_dat <= adc_b_q_sum[15+0 :  0];            end
       endcase
 
    end
@@ -215,12 +236,18 @@ localparam RSZ = 14 ;  // RAM size 2^RSZ
 
 reg   [  14-1: 0] adc_a_buf [0:(1<<RSZ)-1] ;
 reg   [  14-1: 0] adc_b_buf [0:(1<<RSZ)-1] ;
+reg   [  14-1: 0] adc_a_q_buf [0:(1<<RSZ)-1] ;
+reg   [  14-1: 0] adc_b_q_buf [0:(1<<RSZ)-1] ;
 reg   [  14-1: 0] adc_a_rd      ;
 reg   [  14-1: 0] adc_b_rd      ;
+reg   [  14-1: 0] adc_a_q_rd      ;
+reg   [  14-1: 0] adc_b_q_rd      ;
 reg   [ RSZ-1: 0] adc_wp        ;
 reg   [ RSZ-1: 0] adc_raddr     ;
 reg   [ RSZ-1: 0] adc_a_raddr   ;
 reg   [ RSZ-1: 0] adc_b_raddr   ;
+reg   [ RSZ-1: 0] adc_a_q_raddr   ;
+reg   [ RSZ-1: 0] adc_b_q_raddr   ;
 reg   [   4-1: 0] adc_rval      ;
 wire              adc_rd_dv     ;
 reg               adc_we        ;
@@ -283,6 +310,8 @@ always @(posedge adc_clk_i) begin
    if (adc_we && adc_dv) begin
       adc_a_buf[adc_wp] <= adc_a_dat ;
       adc_b_buf[adc_wp] <= adc_b_dat ;
+      adc_a_q_buf[adc_wp] <= adc_a_q_dat ;
+      adc_b_q_buf[adc_wp] <= adc_b_q_dat ;
    end
 end
 
@@ -299,8 +328,12 @@ always @(posedge adc_clk_i) begin
    adc_raddr   <= addr[RSZ+1:2] ; // address synchronous to clock
    adc_a_raddr <= adc_raddr     ; // double register
    adc_b_raddr <= adc_raddr     ; // otherwise memory corruption at reading
+   adc_a_q_raddr <= adc_raddr     ; // double register
+   adc_b_q_raddr <= adc_raddr     ; // otherwise memory corruption at reading
    adc_a_rd    <= adc_a_buf[adc_a_raddr] ;
    adc_b_rd    <= adc_b_buf[adc_b_raddr] ;
+   adc_a_q_rd    <= adc_a_q_buf[adc_a_q_raddr] ;
+   adc_b_q_rd    <= adc_b_q_buf[adc_b_q_raddr] ;
 end
 
 
@@ -598,8 +631,8 @@ always @(*) begin
      20'h00048 : begin ack <= 1'b1;          rdata <= {{32-25{1'b0}}, set_b_filt_kk}      ; end
      20'h0004C : begin ack <= 1'b1;          rdata <= {{32-25{1'b0}}, set_b_filt_pp}      ; end
 
-     20'h1???? : begin ack <= adc_rd_dv;     rdata <= {16'h0, 2'h0,adc_a_rd}              ; end
-     20'h2???? : begin ack <= adc_rd_dv;     rdata <= {16'h0, 2'h0,adc_b_rd}              ; end
+     20'h1???? : begin ack <= adc_rd_dv;     rdata <= {2'h0,adc_b_rd,2'h0,adc_a_rd}              ; end
+     20'h2???? : begin ack <= adc_rd_dv;     rdata <= {2'h0,adc_b_q_rd,2'h0,adc_a_q_rd}          ; end
 
        default : begin ack <= 1'b1;          rdata <=  32'h0                              ; end
    endcase

@@ -47,6 +47,7 @@ class Autolock:
         run of the lock.
         """
         self.parameters.autolock_running.value = True
+        self.parameters.fetch_quadratures.value = False
         self.x0, self.x1 = int(x0), int(x1)
         self.should_watch_lock = should_watch_lock
         self.auto_offset = auto_offset
@@ -257,6 +258,7 @@ class Autolock:
         self.parameters.autolock_locked.value = False
         self.parameters.autolock_approaching.value = False
         self.parameters.autolock_watching.value = False
+        self.parameters.fetch_quadratures.value = True
         self.remove_data_listener()
 
         self._reset_scan()

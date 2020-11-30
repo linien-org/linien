@@ -1,3 +1,4 @@
+from linien.client.utils import peak_voltage_to_dBm
 import math
 import pickle
 import numpy as np
@@ -6,8 +7,10 @@ import pyqtgraph as pg
 from time import time
 from PyQt5 import QtGui, QtWidgets
 from pyqtgraph.Qt import QtCore, QtGui
+from PyQt5.QtCore import QThread, pyqtSignal
 
-from linien.client.config import COLORS, DEFAULT_COLORS, N_COLORS
+from linien.config import DEFAULT_COLORS, N_COLORS
+from linien.client.config import COLORS, DEFAULT_PLOT_RATE_LIMIT
 from linien.gui.widgets import CustomWidget
 from linien.common import update_control_signal_history, determine_shift_by_correlation, \
     get_lock_point, combine_error_signal, check_plot_data, N_POINTS, \
@@ -29,6 +32,10 @@ V = 8192
 
 
 class PlotWidget(pg.PlotWidget, CustomWidget):
+    signal_power1 = pyqtSignal(float)
+    signal_power2 = pyqtSignal(float)
+    keyPressed = pyqtSignal(int)
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -50,6 +57,10 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
 
         self.zero_line = pg.PlotCurveItem(pen=pg.mkPen('w', width=1))
         self.addItem(self.zero_line)
+        self.signal_strength = pg.PlotCurveItem()
+        self.addItem(self.signal_strength)
+        self.signal_strength2 = pg.PlotCurveItem()
+        self.addItem(self.signal_strength2)
         self.signal1 = pg.PlotCurveItem()
         self.addItem(self.signal1)
         self.signal2 = pg.PlotCurveItem()
@@ -87,6 +98,9 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         self._fixed_opengl_bug = False
 
         self.enable_area_selection()
+
+        self.last_plot_time = 0
+        self.plot_rate_limit = DEFAULT_PLOT_RATE_LIMIT
 
     def _to_data_coords(self, event):
         pos = self.plotItem.vb.mapSceneToView(event.pos())
@@ -258,6 +272,12 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         return len(self.last_plot_data[0]) - 1
 
     def replot(self, to_plot):
+        time_beginning = time()
+        if time_beginning - self.last_plot_time <= self.plot_rate_limit:
+            # don't plot too often at it only causes unnecessary load
+            return
+        self.last_plot_time = time_beginning
+
         # NOTE: this is necessary if OpenGL is activated. Otherwise, the
         # plot is way too small. This command apparently causes a repaint
         # and works fine even though the values are nonsense.
@@ -293,6 +313,8 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
                 self.control_signal_history.setVisible(True)
                 self.slow_history.setVisible(self.parameters.pid_on_slow_enabled.value)
                 self.combined_signal.setVisible(True)
+                self.signal_strength.setVisible(False)
+                self.signal_strength2.setVisible(False)
 
                 error_signal, control_signal = to_plot['error_signal'], to_plot['control_signal']
                 all_signals = (error_signal, control_signal, history, slow_history)
@@ -321,7 +343,48 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
 
                 self.plot_data_unlocked((s1, s2), combined_error_signal)
                 self.plot_autolock_target_line(combined_error_signal)
-                self.update_plot_scaling(all_signals if dual_channel else [s1])
+
+                if 'error_signal_1_quadrature' in to_plot:
+                    self.signal_strength.setVisible(True)
+                    self.signal_strength2.setVisible(dual_channel)
+                    s1q, s2q = to_plot['error_signal_1_quadrature'], to_plot['error_signal_2_quadrature']
+
+                    max_signal_strength_V = self.plot_signal_strength(s1, s1q, self.signal_strength) / V
+                    max_signal_strength2_V = self.plot_signal_strength(s2, s2q, self.signal_strength2) / V
+
+                    all_signals.append([max_signal_strength_V * V, max_signal_strength2_V * V])
+
+                    self.signal_power1.emit(peak_voltage_to_dBm(max_signal_strength_V))
+                    self.signal_power2.emit(peak_voltage_to_dBm(max_signal_strength2_V))
+                else:
+                    self.signal_strength.setVisible(False)
+                    self.signal_strength2.setVisible(False)
+
+                    self.signal_power1.emit(-1000)
+                    self.signal_power2.emit(-1000)
+
+                self.update_plot_scaling(all_signals)
+
+        time_end = time()
+        time_diff = time_end - time_beginning
+        new_rate_limit = 2 * time_diff
+
+        if new_rate_limit < DEFAULT_PLOT_RATE_LIMIT:
+            new_rate_limit = DEFAULT_PLOT_RATE_LIMIT
+
+        self.plot_rate_limit = new_rate_limit
+
+    def plot_signal_strength(self, i, q, signal):
+        i_squared = np.array(list(np.int64(v) for v in list(i)))**2
+        q_squared = np.array(list(np.int64(v) for v in list(q)))**2
+        signal_strength = np.sqrt(i_squared + q_squared)
+
+        signal.setData(
+            list(range(len(signal_strength))), list(signal_strength / V),
+            fillLevel=0.0, brush=pg.mkBrush(255, 255, 255, 90),
+            pen=pg.mkPen('y', width=0.00001)
+        )
+        return np.max(signal_strength)
 
     def plot_data_unlocked(self, error_signals, combined_signal):
         error_signal1, error_signal2 = error_signals
@@ -359,11 +422,17 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         else:
             self.lock_target_line.setVisible(False)
 
+
+    def keyPressEvent(self, event):
+        # we listen here in addition to the main window because some events
+        # are only caught here
+        self.keyPressed.emit(event.key())
+
     def update_plot_scaling(self, signals):
         if time() - self.last_plot_rescale > .5:
             all_ = []
             for signal in signals:
-                all_ += signal
+                all_ += list(signal)
 
             if self.parameters.autoscale_y.value:
                 self.plot_min = np.min(all_) / V

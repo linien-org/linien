@@ -30,6 +30,13 @@ class Registers:
                 self.acquisition.lock_status_changed(v)
 
         self.parameters.lock.change(lock_status_changed)
+
+        def fetch_quadratures_changed(v):
+            if self.acquisition is not None:
+                self.acquisition.fetch_quadratures_changed(v)
+
+        self.parameters.fetch_quadratures.change(fetch_quadratures_changed)
+
         use_ssh = self.host is not None and self.host not in ('localhost', '127.0.0.1')
         self.acquisition = AcquisitionMaster(use_ssh, self.host)
 
@@ -96,9 +103,6 @@ class Registers:
             fast_a_y_tap=2,
             fast_a_dy_sel=self.csr.signal('zero'),
 
-            fast_a_y_hold_en=self.csr.states(),
-            fast_a_y_clear_en=self.csr.states(),
-            fast_a_rx_sel=self.csr.signal('zero'),
             fast_a_invert=int(params['invert_a']),
 
             # channel B
@@ -108,9 +112,6 @@ class Registers:
             fast_b_y_tap=1,
             fast_b_dy_sel=self.csr.signal('zero'),
 
-            fast_b_y_hold_en=self.csr.states(),
-            fast_b_y_clear_en=self.csr.states(),
-            fast_b_rx_sel=self.csr.signal('zero'),
             fast_b_invert=int(params['invert_b']),
 
             # trigger on ramp
@@ -132,13 +133,17 @@ class Registers:
             # display combined error signal and control signal
             new.update({
                 'scopegen_adc_a_sel': self.csr.signal('logic_combined_error_signal'),
-                'scopegen_adc_b_sel': self.csr.signal('logic_control_signal')
+                'scopegen_adc_a_q_sel': self.csr.signal('zero'),
+                'scopegen_adc_b_sel': self.csr.signal('logic_control_signal'),
+                'scopegen_adc_b_q_sel': self.csr.signal('zero')
             })
         else:
             # display both demodulated error signals
             new.update({
-                'scopegen_adc_a_sel': self.csr.signal("fast_a_y"),
-                'scopegen_adc_b_sel': self.csr.signal("fast_b_y")
+                'scopegen_adc_a_sel': self.csr.signal("fast_a_out_i"),
+                'scopegen_adc_a_q_sel': self.csr.signal("fast_a_out_q"),
+                'scopegen_adc_b_sel': self.csr.signal("fast_b_out_i"),
+                'scopegen_adc_b_q_sel': self.csr.signal("fast_b_out_q"),
             })
 
 
@@ -194,41 +199,44 @@ class Registers:
 
         for chain in ('a', 'b'):
             automatic = params['filter_automatic_%s' % chain]
+            # iir_idx means iir_c or iir_d
             for iir_idx in range(2):
-                iir_name = 'fast_%s_iir_%s' % (chain, ('c', 'd')[iir_idx])
+                # iir_sub_idx means in-phase signal or quadrature signal
+                for iir_sub_idx in range(2):
+                    iir_name = 'fast_%s_iir_%s_%d' % (chain, ('c', 'd')[iir_idx], iir_sub_idx+1)
 
-                if automatic:
-                    filter_enabled = True
-                    filter_type = LOW_PASS_FILTER
-                    filter_frequency = params['modulation_frequency'] / MHz * 1e6 / 2
+                    if automatic:
+                        filter_enabled = True
+                        filter_type = LOW_PASS_FILTER
+                        filter_frequency = params['modulation_frequency'] / MHz * 1e6 / 2
 
-                    # if the filter frequency is too low (< 10Hz), the IIR doesn't
-                    # work properly anymore. In that case, don't filter.
-                    # This is also helpful if the raw (not demodulated) signal
-                    # should be displayed which can be achieved by setting
-                    # modulation frequency to 0.
-                    if filter_frequency < 10:
-                        filter_enabled = False
-                else:
-                    filter_enabled = params['filter_%d_enabled_%s' % (iir_idx + 1, chain)]
-                    filter_type = params['filter_%d_type_%s' % (iir_idx + 1, chain)]
-                    filter_frequency = params['filter_%d_frequency_%s' % (iir_idx + 1, chain)]
-
-                base_freq = 125e6
-
-                if not filter_enabled:
-                    self.set_iir(iir_name, *make_filter('P', k=1))
-                else:
-                    if filter_type == LOW_PASS_FILTER:
-                        self.set_iir(iir_name, *make_filter(
-                            'LP', f=filter_frequency / base_freq, k=1
-                        ))
-                    elif filter_type == HIGH_PASS_FILTER:
-                        self.set_iir(iir_name, *make_filter(
-                            'HP', f=filter_frequency / base_freq, k=1
-                        ))
+                        # if the filter frequency is too low (< 10Hz), the IIR doesn't
+                        # work properly anymore. In that case, don't filter.
+                        # This is also helpful if the raw (not demodulated) signal
+                        # should be displayed which can be achieved by setting
+                        # modulation frequency to 0.
+                        if filter_frequency < 10:
+                            filter_enabled = False
                     else:
-                        raise Exception('unknown filter %s for %s' % (filter_type, iir_name))
+                        filter_enabled = params['filter_%d_enabled_%s' % (iir_idx + 1, chain)]
+                        filter_type = params['filter_%d_type_%s' % (iir_idx + 1, chain)]
+                        filter_frequency = params['filter_%d_frequency_%s' % (iir_idx + 1, chain)]
+
+                    base_freq = 125e6
+
+                    if not filter_enabled:
+                        self.set_iir(iir_name, *make_filter('P', k=1))
+                    else:
+                        if filter_type == LOW_PASS_FILTER:
+                            self.set_iir(iir_name, *make_filter(
+                                'LP', f=filter_frequency / base_freq, k=1
+                            ))
+                        elif filter_type == HIGH_PASS_FILTER:
+                            self.set_iir(iir_name, *make_filter(
+                                'HP', f=filter_frequency / base_freq, k=1
+                            ))
+                        else:
+                            raise Exception('unknown filter %s for %s' % (filter_type, iir_name))
 
         if lock_changed:
             if lock:

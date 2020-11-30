@@ -1,56 +1,36 @@
-from migen import *
+from migen import Signal, Module, Array, Mux, Cat, If, bits_for
 from misoc.interconnect.csr import AutoCSR, CSRStorage, CSRStatus, CSR
 
 from .iir import Iir
 from .pid import PID
 from .limit import LimitCSR
-from .modulate import Modulate, Demodulate
+from .modulate import Demodulate
 
 
 class FastChain(Module, AutoCSR):
     def __init__(self, width=14, signal_width=25, coeff_width=18, mod=None, offset_signal=None):
         self.adc = Signal((width, True))
-        self.dac = Signal((signal_width, True))
+        # output of in-phase demodulated signal
+        self.out_i = Signal((signal_width, True))
+        # output of quadrature demodulated signal
+        self.out_q = Signal((signal_width, True))
 
         self.y_tap = CSRStorage(2)
         self.invert = CSRStorage(1)
 
-        x_hold = Signal()
-        x_clear = Signal()
-        x_railed = Signal()
-        y_hold = Signal()
-        y_clear = Signal()
-        y_sat = Signal()
-        y_railed = Signal()
-
-        self.state_in = x_hold, x_clear, y_hold, y_clear
-        self.state_out = x_railed, y_sat, y_railed
+        self.state_in = []
+        self.state_out = []
 
         x = Signal((signal_width, True))
         dx = Signal((signal_width, True))
-        y = Signal((signal_width, True))
         dy = Signal((signal_width, True))
-        rx = Signal((signal_width, True))
 
-        self.signal_in = dx, dy, rx
-        self.signal_out = x, y
+        self.signal_in = dx, dy
+        self.signal_out = x, self.out_i, self.out_q
 
         ###
 
         self.submodules.demod = Demodulate(width=width)
-        self.submodules.x_limit = LimitCSR(width=signal_width, guard=1)
-        self.submodules.iir_c = Iir(
-            width=signal_width, coeff_width=coeff_width, shift=coeff_width-2,
-            order=1)
-        self.submodules.iir_d = Iir(
-            width=signal_width, coeff_width=coeff_width, shift=coeff_width-2,
-            order=2)
-
-        if mod is None:
-            self.submodules.mod = Modulate(width=width)
-            mod = self.mod
-
-        self.submodules.y_limit = LimitCSR(width=signal_width, guard=3)
 
         ###
 
@@ -59,38 +39,61 @@ class FastChain(Module, AutoCSR):
         self.comb += [
             self.demod.x.eq(self.adc),
             self.demod.phase.eq(mod.phase),
-            self.x_limit.x.eq((self.demod.y << s) + dx),
-            x_railed.eq(self.x_limit.error),
-
-            self.iir_c.x.eq(self.x_limit.y),
-            self.iir_c.hold.eq(y_hold),
-            self.iir_c.clear.eq(y_clear),
-
-            self.iir_d.x.eq(self.iir_c.y),
-            self.iir_d.hold.eq(y_hold),
-            self.iir_d.clear.eq(y_clear),
-
-            y_sat.eq(
-                (self.iir_c.error & (self.y_tap.storage > 1)) |
-                (self.iir_d.error & (self.y_tap.storage > 2))
-            ),
         ]
         ya = Signal((width + 3, True))
-        ys = Array([self.iir_c.x, self.iir_c.y,
-                    self.iir_d.y])
-
         self.sync += ya.eq(((dy >> s))),
-        self.comb += [
-            self.y_limit.x.eq(
-                Mux(self.invert.storage, -1, 1) * (
-                    ys[self.y_tap.storage] + (ya << s) + (offset_signal << s)
-                )
-            ),
-            y.eq(self.y_limit.y),
-            y_railed.eq(self.y_limit.error),
 
-            self.dac.eq(self.y_limit.y)
-        ]
+
+        ###
+
+        def init_submodule(name, submodule):
+            setattr(self.submodules, name, submodule)
+
+        # iterate over in-phase and quadrature signal
+        # both have filters and limits
+        for sub_channel_idx in (0, 1):
+            x_limit = LimitCSR(width=signal_width, guard=1)
+            init_submodule('x_limit_%d' % (sub_channel_idx + 1), x_limit)
+            iir_c = Iir(
+                width=signal_width, coeff_width=coeff_width, shift=coeff_width-2,
+                order=1
+            )
+            init_submodule('iir_c_%d' % (sub_channel_idx + 1), iir_c)
+            iir_d = Iir(
+                width=signal_width, coeff_width=coeff_width, shift=coeff_width-2,
+                order=2
+            )
+            init_submodule('iir_d_%d' % (sub_channel_idx + 1), iir_d)
+            y_limit = LimitCSR(width=signal_width, guard=3)
+            init_submodule('y_limit_%d' % (sub_channel_idx + 1), y_limit)
+
+
+            self.comb += [
+                x_limit.x.eq(([self.demod.i, self.demod.q][sub_channel_idx] << s) + dx),
+
+                iir_c.x.eq(x_limit.y),
+                iir_c.hold.eq(0),
+                iir_c.clear.eq(0),
+
+                iir_d.x.eq(iir_c.y),
+                iir_d.hold.eq(0),
+                iir_d.clear.eq(0),
+            ]
+
+            ys = Array([iir_c.x, iir_c.y, iir_d.y])
+
+            self.comb += [
+                y_limit.x.eq(
+                    Mux(self.invert.storage, -1, 1) * (
+                        ys[self.y_tap.storage] + (ya << s) + (offset_signal << s)
+                    )
+                ),
+
+                (
+                    self.out_i,
+                    self.out_q
+                )[sub_channel_idx].eq(y_limit.y)
+            ]
 
 
 class SlowChain(Module, AutoCSR):
