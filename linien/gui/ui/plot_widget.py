@@ -32,8 +32,8 @@ V = 8192
 
 
 class PlotWidget(pg.PlotWidget, CustomWidget):
-    signal_power1 = pyqtSignal(int)
-    signal_power2 = pyqtSignal(int)
+    signal_power1 = pyqtSignal(float)
+    signal_power2 = pyqtSignal(float)
     keyPressed = pyqtSignal(int)
 
     def __init__(self, *args, **kwargs):
@@ -324,7 +324,6 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
                 self.slow_history.setVisible(False)
 
                 s1, s2 = to_plot['error_signal_1'], to_plot['error_signal_2']
-                print(to_plot['error_signal_1_quadrature'])
                 combined_error_signal = combine_error_signal(
                     (s1, s2),
                     dual_channel,
@@ -336,7 +335,6 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
 
                 self.plot_data_unlocked((s1, s2), combined_error_signal)
                 self.plot_autolock_target_line(combined_error_signal)
-                self.update_plot_scaling(all_signals if dual_channel else [s1])
 
                 if 'error_signal_1_quadrature' in to_plot:
                     self.signal_strength.setVisible(True)
@@ -346,6 +344,8 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
                     max_signal_strength_V = self.plot_signal_strength(s1, s1q, self.signal_strength) / V
                     max_signal_strength2_V = self.plot_signal_strength(s2, s2q, self.signal_strength2) / V
 
+                    all_signals.append([max_signal_strength_V * V, max_signal_strength2_V * V])
+
                     self.signal_power1.emit(peak_voltage_to_dBm(max_signal_strength_V))
                     self.signal_power2.emit(peak_voltage_to_dBm(max_signal_strength2_V))
                 else:
@@ -354,6 +354,8 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
 
                     self.signal_power1.emit(-1000)
                     self.signal_power2.emit(-1000)
+
+                self.update_plot_scaling(all_signals)
 
         time_end = time()
         time_diff = time_end - time_beginning
