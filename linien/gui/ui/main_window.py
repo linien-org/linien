@@ -236,7 +236,7 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
                 self.error_std_history = self.error_std_history[-max_std_history_length:]
                 self.control_std_history = self.control_std_history[-max_std_history_length:]
 
-                if error_signal and control_signal:
+                if error_signal is not None and control_signal is not None:
                     self.ids.error_std.setText('%.2f' % np.mean(self.error_std_history))
                     self.ids.control_std.setText('%.2f' % np.mean(self.control_std_history))
 
