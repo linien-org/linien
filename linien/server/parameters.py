@@ -5,7 +5,7 @@ from linien.common import Vpp, MHz, pack
 class Parameter:
     """Represents a single parameter and is used by `Parameters`."""
     def __init__(self, min_=None, max_=None, start=None, wrap=False, sync=True,
-                 collapsed_sync=False):
+                 collapsed_sync=True):
         self.min = min_
         self.max = max_
         self.wrap = wrap
@@ -108,6 +108,7 @@ class BaseParameters:
         already_has_value = []
         for idx in reversed(range(len(queue))):
             param_name, value = queue[idx]
+            print('collapse', self._get_param(param_name)._collapsed_sync)
             if self._get_param(param_name)._collapsed_sync:
                 if param_name in already_has_value:
                     del queue[idx]
