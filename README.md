@@ -108,7 +108,7 @@ have the modulation frequency and the control on the same output. Additionally, 
 Using the application
 ---------------------
 
-### Connecting to the RedPitaya
+### First run: connecting to the RedPitaya
 
 After launching the application you have to set up a new device. The host address is given by <pre>rp-<b>XXXXXX.local</b></pre>, where **XXXXXX** are the last 6 digits of the device's MAC address. You will find them on a sticker on the ethernet port:
 
@@ -116,9 +116,11 @@ After launching the application you have to set up a new device. The host addres
 
 Default value for user name and password is `root`.
 
-When connecting to a RedPitaya for the first time, the application will ask you whether you want to install the server component on the device. In order to do so, the RedPitaya has to have access to the internet.
+When connecting to a RedPitaya for the first time, the application offers you to install the server component on the device. Please note that this requires internet access on the RedPitaya (not only LAN access).
 
 After installation of the server libraries, Linien will start the server and connect to it. You never need to start or stop anything on the server manually as the client automatically takes care of this.
+
+The server operates autonomously: closing the client application doesn't have any influence on the lock status. You may also start multiple clients connecting to the same server.
 
 ### Setting things up
 
@@ -193,7 +195,7 @@ if c.parameters.lock.value:
     plt.plot(plot_data['control_signal'], label='control signal')
     plt.plot(plot_data['error_signal'], label='error signal')
 else:
-    plt.title('laser is sweeping!')
+    plt.title('laser is ramping!')
     plt.plot(plot_data['error_signal_1'], label='error signal channel 1')
     plt.plot(plot_data['error_signal_2'], label='error signal channel 2')
 
@@ -204,6 +206,12 @@ plt.show()
 For a full list of parameters that can be controlled or accessed have a
 look at
 [parameters.py](https://github.com/hermitdemschoenenleben/linien/blob/master/linien/server/parameters.py).
+
+Updating Linien
+---------------
+
+Before installing a new version of linien, open the previously installed client and click the "Shutdown server" button. Don't worry, your settings and parameters will be saved. Then you may install the latest client on your local PC as described in the [getting started](#getting-started) section above. The next time you connect to RedPitaya, Linien will install the matching server version.
+
 
 Development
 -----------
@@ -219,7 +227,7 @@ dev
 ```
 (no newlines).
 
-This ensures that changes you made to the server component are automatically uploaded to the RedPitaya when you launch the client.
+This ensures that local changes of the server's code are automatically uploaded to RedPitaya when you launch the client. Please note that this only h
 
 ### Architecture
 
@@ -314,6 +322,14 @@ No, this is not possible as linien relies on a customized FPGA bitstream.
 ### What control bandwidth is achievable with linien?
 
 The propagation delay is roughly 300 ns, thus approximately 3 MHz bandwidth are possible.
+
+Troubleshooting
+----
+
+### Updating or installing fails
+
+- make sure that your RedPitaya is connected to the internet
+- if the orange LED stops blinking and RedPitaya becomes unresponsive, your SD card is probably faulty
 
 Citation
 ----
