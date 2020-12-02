@@ -12,7 +12,7 @@ from PyQt5.QtCore import QThread, pyqtSignal
 from linien.config import DEFAULT_COLORS, N_COLORS
 from linien.client.config import COLORS, DEFAULT_PLOT_RATE_LIMIT
 from linien.gui.widgets import CustomWidget
-from linien.common import update_control_signal_history, determine_shift_by_correlation, \
+from linien.common import get_signal_strength_from_i_q, update_control_signal_history, determine_shift_by_correlation, \
     get_lock_point, combine_error_signal, check_plot_data, N_POINTS, \
     SpectrumUncorrelatedException
 
@@ -375,12 +375,10 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         self.plot_rate_limit = new_rate_limit
 
     def plot_signal_strength(self, i, q, signal):
-        i_squared = np.array(list(np.int64(v) for v in list(i)))**2
-        q_squared = np.array(list(np.int64(v) for v in list(q)))**2
-        signal_strength = np.sqrt(i_squared + q_squared)
+        signal_strength = get_signal_strength_from_i_q(i, q)
 
         signal.setData(
-            list(range(len(signal_strength))), list(signal_strength / V),
+            list(range(len(signal_strength))), signal_strength / V,
             fillLevel=0.0, brush=pg.mkBrush(255, 255, 255, 90),
             pen=pg.mkPen('y', width=0.00001)
         )
@@ -388,15 +386,15 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
 
     def plot_data_unlocked(self, error_signals, combined_signal):
         error_signal1, error_signal2 = error_signals
-        self.signal1.setData(list(range(len(error_signal1))), np.array(error_signal1) / V)
-        self.signal2.setData(list(range(len(error_signal2))), np.array(error_signal2) / V)
-        self.combined_signal.setData(list(range(len(combined_signal))), np.array(combined_signal) / V)
+        self.signal1.setData(list(range(len(error_signal1))), error_signal1 / V)
+        self.signal2.setData(list(range(len(error_signal2))), error_signal2 / V)
+        self.combined_signal.setData(list(range(len(combined_signal))), combined_signal / V)
 
     def plot_data_locked(self, signals):
         error_signal = signals['error_signal']
         control_signal = signals['control_signal']
-        self.combined_signal.setData(list(range(len(error_signal))), np.array(error_signal) / V)
-        self.control_signal.setData(list(range(len(error_signal))), np.array(control_signal) / V)
+        self.combined_signal.setData(list(range(len(error_signal))), error_signal / V)
+        self.control_signal.setData(list(range(len(error_signal))), control_signal / V)
 
     def plot_autolock_target_line(self, combined_error_signal):
         if self.autolock_ref_spectrum is not None and self.parameters.autolock_approaching.value:
@@ -430,9 +428,9 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
 
     def update_plot_scaling(self, signals):
         if time() - self.last_plot_rescale > .5:
-            all_ = []
+            all_ = np.array([])
             for signal in signals:
-                all_ += list(signal)
+                all_ = np.append(all_, signal)
 
             if self.parameters.autoscale_y.value:
                 self.plot_min = np.min(all_) / V

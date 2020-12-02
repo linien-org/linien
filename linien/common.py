@@ -206,7 +206,7 @@ def combine_error_signal(error_signals, dual_channel, channel_mixing,
             for a, b in zip(*error_signals)
         ]
 
-    return [v + combined_offset for v in signal]
+    return np.array([v + combined_offset for v in signal])
 
 
 def check_plot_data(is_locked, plot_data):
@@ -234,3 +234,12 @@ def unpack(value):
         return pickle.loads(value)
     except:
         return value
+
+
+def get_signal_strength_from_i_q(i, q):
+    i = i.astype(np.int64)
+    q = q.astype(np.int64)
+    i_squared = i**2
+    q_squared = q**2
+    signal_strength = np.sqrt(i_squared + q_squared)
+    return signal_strength

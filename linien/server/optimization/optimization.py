@@ -73,8 +73,9 @@ class OptimizeSpectroscopy:
             dual_channel = params.dual_channel.value
             channel = params.optimization_channel.value
             spectrum_idx = 1 if not dual_channel else (1, 2)[channel]
-            spectrum = pickle.loads(spectrum)['error_signal_%d' % spectrum_idx]
-            quadrature = pickle.loads(spectrum)['error_signal_%d_quadrature' % spectrum_idx]
+            unpickled = pickle.loads(spectrum)
+            spectrum = unpickled['error_signal_%d' % spectrum_idx]
+            quadrature = unpickled['error_signal_%d_quadrature' % spectrum_idx]
 
             if self.parameters.optimization_approaching.value:
                 approaching_finished = self.approacher.approach_line(spectrum)

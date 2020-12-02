@@ -19,7 +19,7 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     install_requires=[
-        'rpyc>=4.1.0', 'myhdl', 'click'
+        'rpyc>=4.1.0', 'myhdl', 'click', 'cma'
     ],
     scripts=[
         'linien/server/linien_start_server',

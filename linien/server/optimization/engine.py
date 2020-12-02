@@ -45,14 +45,6 @@ class MultiDimensionalOptimizationEngine:
 
     def ask(self):
         if not self._pending:
-            if self._results:
-                self.es.tell(
-                    self._done,
-                    self._results
-                )
-                self._results = []
-                self._done = []
-
             self._pending = self.es.ask()
 
         return self._pending.pop()
@@ -60,6 +52,14 @@ class MultiDimensionalOptimizationEngine:
     def tell(self, fitness, parameters):
         self._results.append(fitness)
         self._done.append(parameters)
+
+        if not self._pending:
+            self.es.tell(
+                self._done,
+                self._results
+            )
+            self._results = []
+            self._done = []
 
 
 class OptimizerEngine:
@@ -160,13 +160,19 @@ class OptimizerEngine:
             i, q, self.parameters.optimization_min_line_width.value / 100,
             FINAL_ZOOM_FACTOR
         )
+        old_phase_value = self.get_demod_phase_param().value
+        new_phase_value = old_phase_value - optimized_phase
+        if new_phase_value > 360:
+            new_phase_value -= 360
+        if new_phase_value < 0:
+            new_phase_value = 360 - abs(new_phase_value)
 
         improvement = (optimized_slope - self.initial_slope) / self.initial_slope
         params = self.parameters
         if improvement > 0 and improvement > params.optimization_improvement.value:
             params.optimization_improvement.value = improvement
             complete_parameter_set = self.params_before_start[:]
-            complete_parameter_set[2] = optimized_phase
+            complete_parameter_set[2] = new_phase_value
 
             if self.last_parameters:
                 for param, value in zip(self.to_optimize, self.last_parameters):
@@ -182,7 +188,8 @@ class OptimizerEngine:
 
         fitness = math.log(1 / optimized_slope)
 
-        self.opt.tell(fitness, self.last_parameters_internal)
+        if self.last_parameters_internal is not None:
+            self.opt.tell(fitness, self.last_parameters_internal)
 
     def use_best_parameters(self):
         optimized = self.parameters.optimization_optimized_parameters.value

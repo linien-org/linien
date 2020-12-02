@@ -108,7 +108,6 @@ class BaseParameters:
         already_has_value = []
         for idx in reversed(range(len(queue))):
             param_name, value = queue[idx]
-            print('collapse', self._get_param(param_name)._collapsed_sync)
             if self._get_param(param_name)._collapsed_sync:
                 if param_name in already_has_value:
                     del queue[idx]
