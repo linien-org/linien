@@ -382,6 +382,7 @@ class RootModule(Module):
             self.ps.axi.sys,
             self.hk.sys,
             self.linien.scopegen.scope_sys,
+            self.linien.scopegen.asg_sys,
             self.linien.syscdc.source,
         )
 
