@@ -75,6 +75,10 @@ class RedPitayaControlService(BaseService):
                 is_locked = self.parameters.lock.value
 
                 if is_locked:
+                    if len(data_loaded) != 3:
+                        print('warning: too much data received for is_locked state, ignoring!')
+                        return
+
                     s1, s2, slow_out = data_loaded
                     data = {
                         'error_signal': s1,
