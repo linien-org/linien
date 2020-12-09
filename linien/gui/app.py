@@ -67,7 +67,7 @@ class QTApp(QtCore.QObject):
                 print(colors.red | 'call_listeners() failed')
                 print_exc()
 
-            QtCore.QTimer.singleShot(100, self.call_listeners)
+            QtCore.QTimer.singleShot(50, self.call_listeners)
 
     def get_widget(self, name, window=None):
         """Queries a widget by name."""
