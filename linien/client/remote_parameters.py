@@ -1,3 +1,4 @@
+from rpyc import async_
 from linien.common import unpack, pack
 
 
@@ -59,6 +60,8 @@ class RemoteParameters:
         for name, param in remote.exposed_get_all_parameters():
             setattr(self, name, RemoteParameter(self, param, name, use_cache))
 
+        self.async_listener_queue = None
+
         self.call_listeners()
 
     def __iter__(self):
@@ -72,12 +75,21 @@ class RemoteParameters:
         self._listeners.setdefault(param.name, [])
         self._listeners[param.name].append(callback)
 
-    def call_listeners(self):
-        queue = unpack(self.remote.get_listener_queue(self.uuid))
+    def _get_listener_queue_async(self):
+        self.async_listener_queue = async_(self.remote.get_listener_queue)(self.uuid)
 
-        for param_name, value in queue:
-            for listener in self._listeners[param_name]:
-                listener(value)
+    def call_listeners(self):
+        if self.async_listener_queue is None:
+            return self._get_listener_queue_async()
+
+        if self.async_listener_queue.ready:
+            queue = unpack(self.async_listener_queue.value)
+
+            self._get_listener_queue_async()
+
+            for param_name, value in queue:
+                for listener in self._listeners[param_name]:
+                    listener(value)
 
     def _get_param(self, param_name):
         return unpack(self.remote.exposed_get_param(param_name))
