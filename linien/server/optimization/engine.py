@@ -152,13 +152,11 @@ class OptimizerEngine:
     def tell(self, i, q):
         if self.initial_slope is None:
             self.initial_slope = get_max_slope(
-                i, self.parameters.optimization_min_line_width.value / 100,
-                FINAL_ZOOM_FACTOR
+                i, FINAL_ZOOM_FACTOR
             )
 
         optimized_phase, optimized_slope = optimize_phase_from_iq(
-            i, q, self.parameters.optimization_min_line_width.value / 100,
-            FINAL_ZOOM_FACTOR
+            i, q, FINAL_ZOOM_FACTOR
         )
         old_phase_value = self.get_demod_phase_param().value
         new_phase_value = old_phase_value - optimized_phase

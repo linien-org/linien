@@ -20,8 +20,7 @@ class OptimizationPanel(QtGui.QWidget, CustomWidget):
 
         for param_name in (
             'optimization_mod_freq_min', 'optimization_mod_freq_max',
-            'optimization_mod_amp_min', 'optimization_mod_amp_max',
-            'optimization_min_line_width'
+            'optimization_mod_amp_min', 'optimization_mod_amp_max'
         ):
             element = getattr(self.ids, param_name)
             element.setKeyboardTracking(False)
@@ -96,7 +95,6 @@ class OptimizationPanel(QtGui.QWidget, CustomWidget):
         param2ui(params.optimization_mod_amp_enabled, self.ids.optimization_mod_amp)
         param2ui(params.optimization_mod_amp_min, self.ids.optimization_mod_amp_min)
         param2ui(params.optimization_mod_amp_max, self.ids.optimization_mod_amp_max)
-        param2ui(params.optimization_min_line_width, self.ids.optimization_min_line_width)
 
         def dual_channel_changed(value):
             self.ids.optimization_channel_selector_box.setVisible(value)

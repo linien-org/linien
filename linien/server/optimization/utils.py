@@ -8,7 +8,7 @@ from scipy import stats, optimize
 FINAL_ZOOM_FACTOR = 10
 
 
-def get_max_slope(signal, min_line_width_factor, final_zoom_factor):
+def get_max_slope(signal, final_zoom_factor):
     line_width = len(signal) / final_zoom_factor
     window_width = 1.5 * line_width
     center = len(signal) / 2
@@ -31,10 +31,10 @@ def calculate_spectrum_from_iq(i, q, phase):
         + np.array(q) * np.sin(phase / 360 * 2 * np.pi)
 
 
-def optimize_phase_from_iq(i, q, min_line_width_factor, final_zoom_factor):
+def optimize_phase_from_iq(i, q, final_zoom_factor):
     def iq2slope(phase):
         calculated = calculate_spectrum_from_iq(i, q, phase)
-        return get_max_slope(calculated, min_line_width_factor, final_zoom_factor)
+        return get_max_slope(calculated, final_zoom_factor)
 
     min_result = optimize.minimize_scalar(
         lambda phase: -1 * iq2slope(phase),
