@@ -28,6 +28,9 @@ class ViewPanel(QtGui.QWidget, CustomWidget):
         self.ids.plot_line_opacity.setKeyboardTracking(False)
         self.ids.plot_line_opacity.valueChanged.connect(self.plot_line_opacity_changed)
 
+        self.ids.plot_fill_opacity.setKeyboardTracking(False)
+        self.ids.plot_fill_opacity.valueChanged.connect(self.plot_fill_opacity_changed)
+
         for color_idx in range(N_COLORS):
             getattr(self.ids, 'edit_color_%d' % color_idx).clicked.connect(
                 lambda *args, color_idx=color_idx: self.edit_color(color_idx)
@@ -56,6 +59,8 @@ class ViewPanel(QtGui.QWidget, CustomWidget):
 
         param2ui(params.plot_line_width, self.ids.plot_line_width)
         param2ui(params.plot_line_opacity, self.ids.plot_line_opacity)
+        param2ui(params.plot_fill_opacity, self.ids.plot_fill_opacity)
+
 
         def preview_colors(*args):
             for color_idx in range(N_COLORS):
@@ -77,6 +82,9 @@ class ViewPanel(QtGui.QWidget, CustomWidget):
 
     def plot_line_opacity_changed(self):
         self.parameters.plot_line_opacity.value = self.ids.plot_line_opacity.value()
+
+    def plot_fill_opacity_changed(self):
+        self.parameters.plot_fill_opacity.value = self.ids.plot_fill_opacity.value()
 
     def do_export_select_file(self):
         options = QtWidgets.QFileDialog.Options()

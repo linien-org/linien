@@ -154,7 +154,7 @@ class Parameters(BaseParameters):
             'polarity_analog_out0', 'autoscale_y', 'y_axis_limits',
             'check_lock', 'analog_out_1', 'analog_out_2', 'analog_out_3',
             'plot_line_width', 'plot_color_0', 'plot_color_1', 'plot_color_2',
-            'plot_color_3', 'plot_line_opacity'
+            'plot_color_3', 'plot_line_opacity', 'plot_fill_opacity'
         )
 
         self.modulation_amplitude = Parameter(
@@ -243,7 +243,6 @@ class Parameters(BaseParameters):
         self.optimization_mod_amp_enabled = Parameter(start=1)
         self.optimization_mod_amp_min = Parameter(start=0.0)
         self.optimization_mod_amp_max = Parameter(start=2.0)
-        self.optimization_min_line_width = Parameter(start=25)
         self.optimization_optimized_parameters = Parameter(start=(0, 0, 0))
         self.optimization_channel = Parameter(start=0)
         self.optimization_failed = Parameter(start=False)
@@ -280,7 +279,9 @@ class Parameters(BaseParameters):
         self.autoscale_y = Parameter(start=True)
         self.y_axis_limits = Parameter(start=1)
         self.plot_line_width = Parameter(start=2, min_=0.1, max_=100)
-        self.plot_line_opacity = Parameter(start=200, min_=0, max_=255)
+        self.plot_line_opacity = Parameter(start=230, min_=0, max_=255)
+        self.plot_fill_opacity = Parameter(start=70, min_=0, max_=255)
+
         for color_idx in range(N_COLORS):
             setattr(
                 self,

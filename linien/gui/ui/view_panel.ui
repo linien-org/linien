@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>610</height>
+    <height>622</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -61,6 +61,27 @@
         </item>
         <item>
          <widget class="QSpinBox" name="plot_line_opacity">
+          <property name="maximum">
+           <number>255</number>
+          </property>
+          <property name="value">
+           <number>200</number>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_7">
+        <item>
+         <widget class="QLabel" name="label_5">
+          <property name="text">
+           <string>Fill opacity</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QSpinBox" name="plot_fill_opacity">
           <property name="maximum">
            <number>255</number>
           </property>

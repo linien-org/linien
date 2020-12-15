@@ -57,10 +57,14 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
 
         self.zero_line = pg.PlotCurveItem(pen=pg.mkPen('w', width=1))
         self.addItem(self.zero_line)
-        self.signal_strength = pg.PlotCurveItem()
-        self.addItem(self.signal_strength)
-        self.signal_strength2 = pg.PlotCurveItem()
-        self.addItem(self.signal_strength2)
+        self.signal_strength_a = pg.PlotCurveItem()
+        self.addItem(self.signal_strength_a)
+        self.signal_strength_a2 = pg.PlotCurveItem()
+        self.addItem(self.signal_strength_a2)
+        self.signal_strength_b = pg.PlotCurveItem()
+        self.addItem(self.signal_strength_b)
+        self.signal_strength_b2 = pg.PlotCurveItem()
+        self.addItem(self.signal_strength_b2)
         self.signal1 = pg.PlotCurveItem()
         self.addItem(self.signal1)
         self.signal2 = pg.PlotCurveItem()
@@ -116,6 +120,7 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
 
             for curve, name in {
                 self.signal1: 'spectrum_1',
+
                 self.signal2: 'spectrum_2',
                 self.combined_signal: 'spectrum_combined',
                 self.control_signal: 'control_signal',
@@ -313,8 +318,11 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
                 self.control_signal_history.setVisible(True)
                 self.slow_history.setVisible(self.parameters.pid_on_slow_enabled.value)
                 self.combined_signal.setVisible(True)
-                self.signal_strength.setVisible(False)
-                self.signal_strength2.setVisible(False)
+                self.signal_strength_a.setVisible(False)
+                self.signal_strength_b.setVisible(False)
+                self.signal_strength_a2.setVisible(False)
+                self.signal_strength_b2.setVisible(False)
+
 
                 error_signal, control_signal = to_plot['error_signal'], to_plot['control_signal']
                 all_signals = (error_signal, control_signal, history, slow_history)
@@ -345,20 +353,29 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
                 self.plot_autolock_target_line(combined_error_signal)
 
                 if 'error_signal_1_quadrature' in to_plot:
-                    self.signal_strength.setVisible(True)
-                    self.signal_strength2.setVisible(dual_channel)
+                    self.signal_strength_a.setVisible(True)
+                    self.signal_strength_b.setVisible(dual_channel)
+                    self.signal_strength_a2.setVisible(True)
+                    self.signal_strength_b2.setVisible(dual_channel)
+
                     s1q, s2q = to_plot['error_signal_1_quadrature'], to_plot['error_signal_2_quadrature']
 
-                    max_signal_strength_V = self.plot_signal_strength(s1, s1q, self.signal_strength) / V
-                    max_signal_strength2_V = self.plot_signal_strength(s2, s2q, self.signal_strength2) / V
+                    max_signal_strength_V = self.plot_signal_strength(s1, s1q, self.signal_strength_a, self.signal_strength_a2) / V
+                    max_signal_strength2_V = self.plot_signal_strength(s2, s2q, self.signal_strength_b, self.signal_strength_b2) / V
 
-                    all_signals.append([max_signal_strength_V * V, max_signal_strength2_V * V])
+                    all_signals.append([
+                        max_signal_strength_V * V, max_signal_strength2_V * V,
+                        -1 * max_signal_strength_V * V, -1 * max_signal_strength2_V * V,
+                    ])
 
                     self.signal_power1.emit(peak_voltage_to_dBm(max_signal_strength_V))
                     self.signal_power2.emit(peak_voltage_to_dBm(max_signal_strength2_V))
                 else:
-                    self.signal_strength.setVisible(False)
-                    self.signal_strength2.setVisible(False)
+                    self.signal_strength_a.setVisible(False)
+                    self.signal_strength_b.setVisible(False)
+                    self.signal_strength_a2.setVisible(False)
+                    self.signal_strength_b2.setVisible(False)
+
 
                     self.signal_power1.emit(-1000)
                     self.signal_power2.emit(-1000)
@@ -374,13 +391,22 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
 
         self.plot_rate_limit = new_rate_limit
 
-    def plot_signal_strength(self, i, q, signal):
+    def plot_signal_strength(self, i, q, signal, neg_signal):
         signal_strength = get_signal_strength_from_i_q(i, q)
 
+        r,g,b, *stuff = self.parameters.plot_color_0.value
+
+        x = list(range(len(signal_strength)))
+        signal_strength_scaled = signal_strength / V
+
+        brush = pg.mkBrush(r, g, b, self.parameters.plot_fill_opacity.value)
+        pen = pg.mkPen('y', width=0.00001)
+
         signal.setData(
-            list(range(len(signal_strength))), signal_strength / V,
-            fillLevel=0.0, brush=pg.mkBrush(255, 255, 255, 90),
-            pen=pg.mkPen('y', width=0.00001)
+            x, signal_strength_scaled, fillLevel=0.0, brush=brush, pen=pen
+        )
+        neg_signal.setData(
+            x, -1 * signal_strength_scaled, fillLevel=0.0, brush=brush, pen=pen
         )
         return np.max(signal_strength)
 
