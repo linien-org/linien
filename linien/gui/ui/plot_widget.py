@@ -381,9 +381,12 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
                     ) / V
 
                     all_signals.append([
-                        max_signal_strength_V * V, max_signal_strength2_V * V,
-                        -1 * max_signal_strength_V * V, -1 * max_signal_strength2_V * V,
+                        max_signal_strength_V * V, -1 * max_signal_strength_V * V,
                     ])
+                    if dual_channel:
+                        all_signals.append([
+                            max_signal_strength2_V * V, -1 * max_signal_strength2_V * V
+                        ])
 
                     self.signal_power1.emit(peak_voltage_to_dBm(max_signal_strength_V))
                     self.signal_power2.emit(peak_voltage_to_dBm(max_signal_strength2_V))
