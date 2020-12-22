@@ -55,7 +55,11 @@ class QTApp(QtCore.QObject):
 
     def init(self):
         for instance in CustomWidget.instances:
-            instance.connection_established()
+            try:
+                instance.connection_established()
+            except:
+                print('the error below happend when calling connection_established of a widget. This may happen if the widget was recently destroyed.')
+                print_exc()
 
         self.call_listeners()
 
