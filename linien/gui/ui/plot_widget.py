@@ -61,10 +61,14 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         self.addItem(self.signal_strength_a)
         self.signal_strength_a2 = pg.PlotCurveItem()
         self.addItem(self.signal_strength_a2)
+        self.signal_strength_a_fill = pg.FillBetweenItem(self.signal_strength_a, self.signal_strength_a2)
+        self.addItem(self.signal_strength_a_fill)
         self.signal_strength_b = pg.PlotCurveItem()
         self.addItem(self.signal_strength_b)
         self.signal_strength_b2 = pg.PlotCurveItem()
         self.addItem(self.signal_strength_b2)
+        self.signal_strength_b_fill = pg.FillBetweenItem(self.signal_strength_b, self.signal_strength_b2)
+        self.addItem(self.signal_strength_b_fill)
         self.signal1 = pg.PlotCurveItem()
         self.addItem(self.signal1)
         self.signal2 = pg.PlotCurveItem()
@@ -322,7 +326,8 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
                 self.signal_strength_b.setVisible(False)
                 self.signal_strength_a2.setVisible(False)
                 self.signal_strength_b2.setVisible(False)
-
+                self.signal_strength_a_fill.setVisible(False)
+                self.signal_strength_b_fill.setVisible(False)
 
                 error_signal, control_signal = to_plot['error_signal'], to_plot['control_signal']
                 all_signals = (error_signal, control_signal, history, slow_history)
@@ -357,11 +362,23 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
                     self.signal_strength_b.setVisible(dual_channel)
                     self.signal_strength_a2.setVisible(True)
                     self.signal_strength_b2.setVisible(dual_channel)
+                    self.signal_strength_a_fill.setVisible(True)
+                    self.signal_strength_b_fill.setVisible(dual_channel)
 
                     s1q, s2q = to_plot['error_signal_1_quadrature'], to_plot['error_signal_2_quadrature']
 
-                    max_signal_strength_V = self.plot_signal_strength(s1, s1q, self.signal_strength_a, self.signal_strength_a2) / V
-                    max_signal_strength2_V = self.plot_signal_strength(s2, s2q, self.signal_strength_b, self.signal_strength_b2) / V
+                    max_signal_strength_V = self.plot_signal_strength(
+                        s1, s1q, self.signal_strength_a, self.signal_strength_a2,
+                        self.signal_strength_a_fill,
+                        self.parameters.offset_a.value,
+                        self.parameters.plot_color_0.value
+                    ) / V
+                    max_signal_strength2_V = self.plot_signal_strength(
+                        s2, s2q, self.signal_strength_b, self.signal_strength_b2,
+                        self.signal_strength_b_fill,
+                        self.parameters.offset_b.value,
+                        self.parameters.plot_color_1.value
+                    ) / V
 
                     all_signals.append([
                         max_signal_strength_V * V, max_signal_strength2_V * V,
@@ -375,7 +392,8 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
                     self.signal_strength_b.setVisible(False)
                     self.signal_strength_a2.setVisible(False)
                     self.signal_strength_b2.setVisible(False)
-
+                    self.signal_strength_a_fill.setVisible(False)
+                    self.signal_strength_b_fill.setVisible(False)
 
                     self.signal_power1.emit(-1000)
                     self.signal_power2.emit(-1000)
@@ -391,24 +409,29 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
 
         self.plot_rate_limit = new_rate_limit
 
-    def plot_signal_strength(self, i, q, signal, neg_signal):
+    def plot_signal_strength(self, i, q, signal, neg_signal, fill, channel_offset, color):
+        # we have to subtract channel offset here and will add it back in the end
+        i -= int(round(channel_offset))
+        q -= int(round(channel_offset))
         signal_strength = get_signal_strength_from_i_q(i, q)
 
-        r,g,b, *stuff = self.parameters.plot_color_0.value
+        r,g,b, *stuff = color
 
         x = list(range(len(signal_strength)))
         signal_strength_scaled = signal_strength / V
+        upper = (channel_offset / V) + signal_strength_scaled
+        lower = (channel_offset / V) -1 * signal_strength_scaled
 
         brush = pg.mkBrush(r, g, b, self.parameters.plot_fill_opacity.value)
-        pen = pg.mkPen('y', width=0.00001)
+        fill.setBrush(brush)
 
-        signal.setData(
-            x, signal_strength_scaled, fillLevel=0.0, brush=brush, pen=pen
-        )
-        neg_signal.setData(
-            x, -1 * signal_strength_scaled, fillLevel=0.0, brush=brush, pen=pen
-        )
-        return np.max(signal_strength)
+        invisible_pen = pg.mkPen('k', width=0.00001)
+        signal.setData(x, upper, pen=invisible_pen)
+        neg_signal.setData(x, lower, pen=invisible_pen)
+        return np.max([
+            np.max(upper),
+            -1 * np.min(lower)
+        ]) * V
 
     def plot_data_unlocked(self, error_signals, combined_signal):
         error_signal1, error_signal2 = error_signals
