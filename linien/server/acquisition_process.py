@@ -29,9 +29,10 @@ def decimate(array, factor):
     if factor == 1:
         return array
 
-    array = np.array(array)
-    array = list(array.reshape(-1, factor).mean(axis=1))
-    return array
+    dtype = array.dtype
+    return np.round(
+        array.reshape(-1, factor).mean(axis=1)
+    ).astype(dtype)
 
 
 class DataAcquisitionService(Service):
@@ -209,7 +210,7 @@ class DataAcquisitionService(Service):
 
             for sub_channel_idx in range(2):
                 rv.append(
-                        decimate(
+                    decimate(
                         channel_data[sub_channel_idx],
                         self.additional_decimation
                     )
