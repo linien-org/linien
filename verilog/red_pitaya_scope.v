@@ -75,7 +75,11 @@ module red_pitaya_scope
    input                 sys_ren_i       ,  //!< bus read enable
    output     [ 32-1: 0] sys_rdata_o     ,  //!< bus read data
    output                sys_err_o       ,  //!< bus error indicator
-   output                sys_ack_o          //!< bus acknowledge signal
+   output                sys_ack_o       ,   //!< bus acknowledge signal
+
+   output reg   [ 14-1: 0] written_data,
+   output reg   [ 14-1: 0] scope_position,
+   output reg              scope_writing_now
 );
 
 
@@ -312,7 +316,11 @@ always @(posedge adc_clk_i) begin
       adc_b_buf[adc_wp] <= adc_b_dat ;
       adc_a_q_buf[adc_wp] <= adc_a_q_dat ;
       adc_b_q_buf[adc_wp] <= adc_b_q_dat ;
+
+      written_data <= adc_a_dat ;
    end
+   scope_position <= adc_wp;
+   scope_writing_now = adc_we && adc_dv;
 end
 
 // Read
