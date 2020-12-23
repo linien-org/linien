@@ -18,6 +18,8 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/hermitdemschoenenleben/linien",
+    # IMPORTANT: any changes have to be made in setup_client_and_gui.py
+    # of flathub repo as well
     packages=['linien', 'linien.client'],
     classifiers=[
         "Programming Language :: Python :: 3",
@@ -30,6 +32,8 @@ setuptools.setup(
     package_data={
         # IMPORTANT: any changes have to be made in client.spec, too
         # (for the standalone installer)
+        # IMPORTANT: any changes have to be made in setup_client_and_gui.py
+        # of flathub repo as well
         '': ['VERSION']
     }
 )
