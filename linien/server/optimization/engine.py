@@ -22,8 +22,24 @@ class NoOptimizationEngine:
 
 
 class OneDimensionalOptimizationEngine:
+    def __init__(self, bounds):
+        bounds = list(bounds)
+        bounds.append([0.0, 1.0])
+        self._multi = MultiDimensionalOptimizationEngine(bounds)
+        self._last_additional_param = 0.5
+
     def ask(self):
-        pass
+        params = self._multi.ask()
+        self._last_additional_param = params[1]
+        return [params[0]]
+
+    def finished(self):
+        return self._multi.finished()
+
+    def tell(self, fitness, parameters):
+        parameters = list(parameters)
+        parameters.append(self._last_additional_param)
+        self._multi.tell(fitness, parameters)
 
 
 class MultiDimensionalOptimizationEngine:

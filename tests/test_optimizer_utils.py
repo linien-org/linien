@@ -19,7 +19,7 @@ def test_get_max_slope():
     i = generate_slope()
 
     assert get_max_slope(
-        i, .5, 10
+        i, 10
     ) == 1
 
     i = join([
@@ -30,7 +30,7 @@ def test_get_max_slope():
     q = i
 
     assert get_max_slope(
-        i, .5, 10
+        i, 10
     ) == 2.0
 
 
@@ -82,16 +82,15 @@ def test_iq():
 
         return demodulated_data
 
-    min_line_width_factor = .5
     final_zoom_factor = 10
 
     ramp_amplitude = 1.0
     max_val = np.pi * 5 * ramp_amplitude
     x = np.linspace(-1 * max_val, 1 * max_val, 100)
 
-    for iteration in range(10):
+    for iteration in range(1):
         spectrum = spectrum_for_testing(x) * 2
-        data = generate_fake_data(spectrum, phase=randint(0, 360))
+        data = generate_fake_data(spectrum, phase=30)#phase=randint(0, 360))
 
         spectrum2 = spectrum_for_testing(x + random() * 3)
         data2 = generate_fake_data(spectrum2, phase=randint(0, 360))
@@ -99,11 +98,11 @@ def test_iq():
         spectrum3 = spectrum_for_testing(x + random() * 3)
         data3 = generate_fake_data(spectrum3, phase=randint(0, 360))
 
-        combined = data + data2 + data3
+        combined = data# + data2 + data3
 
         def get_slope(signal):
             return get_max_slope(
-                signal, min_line_width_factor, final_zoom_factor
+                signal, final_zoom_factor
             )
 
         min_result = minimize_scalar(
@@ -116,7 +115,7 @@ def test_iq():
         i = demod(combined)
         q = demod(combined, phase=90)
 
-        optimized_phase, optimized_slope = optimize_phase_from_iq(i, q, min_line_width_factor, final_zoom_factor)
+        optimized_phase, optimized_slope = optimize_phase_from_iq(i, q, final_zoom_factor)
 
         assert abs(min_result.x - optimized_phase) <= .1
         assert abs(abs(min_result.fun) - optimized_slope) / optimized_slope <= .001
