@@ -5,6 +5,7 @@ import rpyc
 import click
 import _thread
 import pickle
+import numpy as np
 
 from rpyc.utils.server import ThreadedServer
 from random import random
@@ -207,7 +208,7 @@ class FakeRedPitayaControl(BaseService):
         def run():
             while True:
                 max_ = randint(0, 8191)
-                gen = lambda: [randint(-max_, max_) for _ in range(N_POINTS)]
+                gen = lambda: np.array([randint(-max_, max_) for _ in range(N_POINTS)])
                 self.parameters.to_plot.value = pickle.dumps({
                     'error_signal_1': gen(),
                     'error_signal_1_quadrature': gen(),
