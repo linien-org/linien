@@ -1,0 +1,100 @@
+import numpy as np
+from migen import run_simulation
+from matplotlib import pyplot as plt
+
+from gateware.logic.pid import PID
+
+
+def test_pid_transfer():
+    def pid_testbench(pid):
+        np.random.seed(299792458)
+        amplitude = .01
+        samples = 1<<12
+
+        x = np.random.uniform(-amplitude, amplitude, samples)
+        scale = 2**(len(pid.input) - 1) - 1
+        x = (scale*np.array(x)).astype(np.int)
+        y = np.array([0] * len(x))
+
+
+        def plot_transfer(x, y, label=None):
+            sampling_frequency = 125e6
+            n = len(x)
+            w = np.hanning(n)
+            x *= w
+            y *= w
+            xf = np.fft.rfft(x)
+            t = (np.fft.rfft(y)/xf)[:-1]
+            f = (np.fft.fftfreq(n)[:n//2+1]*2)[:-1] * sampling_frequency
+            fmin = f[1]
+            p = plt.plot(f,  20*np.log10(np.abs(t)), label=label)
+            plot_color = p[0].get_color()
+            ax = plt.gca()
+            ax.set_ylim(-80, 10)
+            #ax.set_xlim(fmin/2, 1.)
+            ax.set_xscale("log")
+            ax.set_xlabel("frequency")
+            ax.set_ylabel("magnitude (dB)")
+            return f, plot_color
+
+        def plot_theory(f, p, i, d, plot_color):
+            plt.plot(f, 20*np.log10(np.abs(
+                p/4096
+                + 10 * i / f
+                + d * (f/125e6) / (2**6)
+            )), color=plot_color, linestyle='dashed')
+
+        def do_test(p=0, i=0, d=0):
+            label = f"p={p} i={i} d={d}"
+            print(f'calculate label={label}')
+            #unity_p = 4096
+            yield pid.kp.storage.eq(p)
+            yield pid.ki.storage.eq(i)
+            yield pid.kd.storage.eq(d)
+
+            yield pid.reset.storage.eq(1)
+
+            for _ in range(10):
+                yield
+
+            yield pid.reset.storage.eq(0)
+            yield pid.running.eq(1)
+
+
+
+            for _, value in enumerate(list(x)):
+                yield pid.input.eq(int(value))
+                yield
+                out = yield pid.pid_out
+                y[_] = out
+
+            f, plot_color = plot_transfer(x.astype(np.float), y.astype(np.float), label=label)
+            plot_theory(f, p, i, d, plot_color)
+
+        yield from do_test(p=1)
+        yield from do_test(p=500)
+        yield from do_test(p=8191)
+
+        yield from do_test(i=1)
+        yield from do_test(i=500)
+        yield from do_test(i=8191)
+
+        yield from do_test(d=1)
+        yield from do_test(d=500)
+        yield from do_test(d=8191)
+
+        yield from do_test(p=1, i=1, d=1)
+        yield from do_test(p=500, i=500, d=500)
+        yield from do_test(p=8191, i=8191, d=8191)
+
+        plt.legend()
+        plt.grid()
+        plt.show()
+
+
+    pid = PID(width=25)
+    run_simulation(pid, pid_testbench(pid), vcd_name="pid.vcd")
+
+
+if __name__ == '__main__':
+    test_pid_transfer()

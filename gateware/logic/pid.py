@@ -80,6 +80,7 @@ class PID(Module, AutoCSR):
         extra_width = int_reg_width - self.width
         self.int_reg = Signal((int_reg_width, True))
         self.int_sum = Signal((int_reg_width + 1, True))
+
         self.int_out = Signal((self.width, True))
 
         self.comb += [
@@ -107,26 +108,31 @@ class PID(Module, AutoCSR):
         ]
 
     def calculate_d(self):
+        self.d_shift = 6
+        mult_width = self.coeff_width + self.width + 2
+        out_width = mult_width - self.coeff_width + self.d_shift + 1
+
         self.kd = CSRStorage(self.coeff_width)
-        kd_mult = Signal((29, True))
-        kd_reg = Signal((19, True))
-        kd_reg_r = Signal((19, True))
-        self.kd_reg_s = Signal((20, True))
         kd_signed = Signal((self.coeff_width, True))
+        kd_mult = Signal((mult_width, True))
 
         self.comb += [
             kd_signed.eq(self.kd.storage),
             kd_mult.eq(self.error * kd_signed)
         ]
 
+        kd_reg = Signal((out_width, True))
+        kd_reg_r = Signal((out_width, True))
+
+        self.output_d = Signal((out_width, True))
         self.sync += [
-            kd_reg.eq(kd_mult[10:29]),
+            kd_reg.eq(kd_mult >> (self.coeff_width - self.d_shift)),
             kd_reg_r.eq(kd_reg),
-            self.kd_reg_s.eq(kd_reg - kd_reg_r)
+            self.output_d.eq(kd_reg - kd_reg_r)
         ]
 
     def calculate_sum(self):
-        self.pid_sum = Signal((self.width + 3, True))
+        self.pid_sum = Signal((len(self.output_p) + len(self.int_out) + len(self.output_d), True))
         self.pid_out = Signal((self.width, True))
 
         self.comb += [
@@ -139,8 +145,10 @@ class PID(Module, AutoCSR):
             )
         ]
 
-        self.comb += [
+        # sync is required here, otherwise we get artifacts when one of the
+        # signals changes sign
+        self.sync += [
             self.pid_sum.eq(
-                self.output_p + self.int_out # FIXME: kd disabled + self.kd_reg_s
+                self.output_p + self.int_out + self.output_d
             )
         ]
