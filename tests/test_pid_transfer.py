@@ -87,8 +87,9 @@ def test_pid_transfer():
         yield from do_test(p=500, i=500, d=500)
         yield from do_test(p=8191, i=8191, d=8191)
 
-        plt.legend()
+        plt.legend(loc=(1.04,0))
         plt.grid()
+        plt.tight_layout()
         plt.show()
 
 
