@@ -152,13 +152,13 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
                 not al_running and not locked and not optimization
             )
 
-        params.lock.change(change_manual_navigation_visibility)
-        params.autolock_running.change(change_manual_navigation_visibility)
-        params.optimization_running.change(change_manual_navigation_visibility)
+        params.lock.on_change(change_manual_navigation_visibility)
+        params.autolock_running.on_change(change_manual_navigation_visibility)
+        params.optimization_running.on_change(change_manual_navigation_visibility)
 
-        params.to_plot.change(self.update_std)
+        params.to_plot.on_change(self.update_std)
 
-        params.pid_on_slow_enabled.change(
+        params.pid_on_slow_enabled.on_change(
             lambda v: self.ids.legend_slow_signal_history.setVisible(v)
         )
 
@@ -170,10 +170,10 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
 
             self.ids.go_right_btn.setEnabled(center + amplitude < 1)
             self.ids.go_left_btn.setEnabled(center - amplitude > -1)
-        params.ramp_amplitude.change(center_or_amplitude_changed)
-        params.center.change(center_or_amplitude_changed)
+        params.ramp_amplitude.on_change(center_or_amplitude_changed)
+        params.center.on_change(center_or_amplitude_changed)
 
-        params.lock.change(lambda *args: self.reset_std_history())
+        params.lock.on_change(lambda *args: self.reset_std_history())
 
         def update_legend_color(*args):
             set_color = lambda el, color_name: el.setStyleSheet(
@@ -191,7 +191,7 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
             set_color(self.ids.legend_slow_signal_history, 'slow_history')
 
         for color_idx in range(N_COLORS):
-            getattr(self.parameters, 'plot_color_%d' % color_idx).change(update_legend_color)
+            getattr(self.parameters, 'plot_color_%d' % color_idx).on_change(update_legend_color)
 
     def go_right(self):
         self.change_center(True)

@@ -53,7 +53,7 @@ class ViewPanel(QtGui.QWidget, CustomWidget):
 
         def set_y_limit_inputs_enabled(autoscale):
             self.ids.y_axis_limit.setEnabled(not autoscale)
-        params.autoscale_y.change(set_y_limit_inputs_enabled)
+        params.autoscale_y.on_change(set_y_limit_inputs_enabled)
         param2ui(params.autoscale_y, self.ids.autoscale_y_axis)
         param2ui(params.y_axis_limits, self.ids.y_axis_limit)
 
@@ -69,7 +69,7 @@ class ViewPanel(QtGui.QWidget, CustomWidget):
                 element.setStyleSheet('background-color: ' + color_to_hex(param.value))
 
         for color_idx in range(N_COLORS):
-            getattr(self.parameters, 'plot_color_%d' % color_idx).change(preview_colors)
+            getattr(self.parameters, 'plot_color_%d' % color_idx).on_change(preview_colors)
 
     def autoscale_changed(self):
         self.parameters.autoscale_y.value = int(self.ids.autoscale_y_axis.checkState())

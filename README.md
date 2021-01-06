@@ -172,10 +172,9 @@ Note that this equation does not account for filtering before the PID (cf. *Modu
 Scripting interface
 -------------------
 
-In addition to the GUI, Linien can also be controlled using python
-scripts. For that purpose, installation via pip is required (see above).
+In addition to the GUI, Linien can also be controlled using python. For that purpose, installation via pip is required (see above).
 
-Then, you should start the Linien server on your RedPitaya. This can be done by running the client and connecting to the device (see above). Alternatively, you may connect via SSH and execute `linien_start_server` on the RedPitaya.
+Then, you should start the Linien server on your RedPitaya. This can be done by running the GUI client and connecting to the device (see above). Alternatively, `LinienClient` has the option `autostart_server`.
 
 Once the server is up and running, you can connect using python:
 ```python
@@ -187,6 +186,9 @@ c = LinienClient(
 
 # read out the modulation frequency
 print(c.parameters.modulation_frequency.value / MHz)
+
+# have a look at https://github.com/hermitdemschoenenleben/linien/blob/master/linien/server/parameters.py
+# for a documentation of all parameters that can be accessed and modified
 
 # set modulation amplitude
 c.parameters.modulation_amplitude.value = 1 * Vpp
@@ -229,7 +231,7 @@ plt.show()
 
 For a full list of parameters that can be controlled or accessed have a
 look at
-[parameters.py](https://github.com/hermitdemschoenenleben/linien/blob/master/linien/server/parameters.py).
+[parameters.py](https://github.com/hermitdemschoenenleben/linien/blob/master/linien/server/parameters.py). Remember that changed parameters are not written to the FPGA unless `c.connection.root.write_data()` is called.
 
 Updating Linien
 ---------------

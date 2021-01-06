@@ -53,7 +53,7 @@ class LockStatusPanel(QtGui.QWidget, CustomWidget):
 
         for param in (params.lock, params.autolock_approaching, params.autolock_watching,
                 params.autolock_failed, params.autolock_locked, params.autolock_retrying):
-            param.change(update_status)
+            param.on_change(update_status)
 
         param2ui(
             params.control_signal_history_length,

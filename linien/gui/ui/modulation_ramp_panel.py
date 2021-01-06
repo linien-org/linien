@@ -39,7 +39,7 @@ class ModulationAndRampPanel(QtGui.QWidget, CustomWidget):
             self.ids.ramp_speed
         )
 
-        params.dual_channel.change(self.dual_channel_changed)
+        params.dual_channel.on_change(self.dual_channel_changed)
 
     def change_modulation_frequency(self):
         self.parameters.modulation_frequency.value = self.ids.modulation_frequency.value() * MHz

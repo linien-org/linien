@@ -98,7 +98,7 @@ class SpectroscopyPanel(QtWidgets.QWidget, CustomWidget):
         def filter_automatic_changed(value):
             self.ids.automatic_filtering_enabled.setVisible(value)
             self.ids.automatic_filtering_disabled.setVisible(not value)
-        self.get_param('filter_automatic').change(filter_automatic_changed)
+        self.get_param('filter_automatic').on_change(filter_automatic_changed)
 
         for filter_i in [1, 2]:
             param2ui(

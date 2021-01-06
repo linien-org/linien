@@ -57,7 +57,7 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
         param2ui(params.pid_on_slow_strength, self.ids.pid_on_slow_strength)
         def slow_pid_visibility(*args):
             self.ids.slow_pid_group.setVisible(self.parameters.pid_on_slow_enabled.value)
-        params.pid_on_slow_enabled.change(slow_pid_visibility)
+        params.pid_on_slow_enabled.on_change(slow_pid_visibility)
 
         def lock_status_changed(_):
             locked = params.lock.value
@@ -74,7 +74,7 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
 
         for param in (params.lock, params.autolock_approaching, params.autolock_watching,
                       params.autolock_failed, params.autolock_locked):
-            param.change(lock_status_changed)
+            param.on_change(lock_status_changed)
 
         param2ui(params.target_slope_rising, self.ids.button_slope_rising)
         param2ui(
@@ -86,7 +86,7 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
         def autolock_selection_status_changed(value):
             self.ids.auto_mode_activated.setVisible(value)
             self.ids.auto_mode_not_activated.setVisible(not value)
-        params.autolock_selection.change(autolock_selection_status_changed)
+        params.autolock_selection.on_change(autolock_selection_status_changed)
 
     def kp_changed(self):
         self.parameters.p.value = self.ids.kp.value()

@@ -21,8 +21,8 @@ from linien.server.optimization.optimization import OptimizeSpectroscopy
 class BaseService(rpyc.Service):
     """A service that provides functionality for seamless integration of
     parameter access on the client."""
-    def __init__(self, parameter_cls):
-        self.parameters = parameter_cls()
+    def __init__(self):
+        self.parameters = Parameters()
         self._uuid_mapping = {}
 
     def on_connect(self, client):
@@ -54,7 +54,7 @@ class RedPitayaControlService(BaseService):
         self._cached_data = {}
         self.exposed_is_locked = None
 
-        super().__init__(Parameters)
+        super().__init__()
 
         from registers import Registers
         self.registers = Registers(**kwargs)
@@ -168,7 +168,7 @@ class RedPitayaControlService(BaseService):
         return linien.__version__
 
     def exposed_get_restorable_parameters(self):
-        return self.parameters.restorable_parameters
+        return self.parameters._restorable_parameters
 
     def exposed_pause_acquisition(self):
         self.pause_acquisition()
@@ -194,7 +194,7 @@ class RedPitayaControlService(BaseService):
 
 class FakeRedPitayaControl(BaseService):
     def __init__(self):
-        super().__init__(Parameters)
+        super().__init__()
         self.exposed_is_locked = None
 
     def exposed_write_data(self):
@@ -232,7 +232,7 @@ class FakeRedPitayaControl(BaseService):
         self.parameters.optimization_running.value = True
 
     def exposed_get_restorable_parameters(self):
-        return self.parameters.restorable_parameters
+        return self.parameters._restorable_parameters
 
     def exposed_get_server_version(self):
         import linien

@@ -48,14 +48,14 @@ class OptimizationPanel(QtGui.QWidget, CustomWidget):
             self.ids.optimization_running_container.setVisible(not failed and running and not approaching)
             self.ids.optimization_preparing.setVisible(not failed and running and approaching)
             self.ids.optimization_failed.setVisible(failed)
-        params.optimization_running.change(opt_running_changed)
-        params.optimization_approaching.change(opt_running_changed)
-        params.optimization_failed.change(opt_running_changed)
+        params.optimization_running.on_change(opt_running_changed)
+        params.optimization_approaching.on_change(opt_running_changed)
+        params.optimization_failed.on_change(opt_running_changed)
 
         def opt_selection_changed(value):
             self.ids.optimization_selecting.setVisible(value)
             self.ids.optimization_not_selecting.setVisible(not value)
-        params.optimization_selection.change(opt_selection_changed)
+        params.optimization_selection.on_change(opt_selection_changed)
 
         def mod_param_changed(_):
             dual_channel = params.dual_channel.value
@@ -83,11 +83,11 @@ class OptimizationPanel(QtGui.QWidget, CustomWidget):
             )
 
         for p in (params.modulation_amplitude, params.modulation_frequency, params.demodulation_phase_a):
-            p.change(mod_param_changed)
+            p.on_change(mod_param_changed)
 
         def improvement_changed(improvement):
             self.ids.optimization_improvement.setText('%d %%' % (improvement * 100))
-        params.optimization_improvement.change(improvement_changed)
+        params.optimization_improvement.on_change(improvement_changed)
 
         param2ui(params.optimization_mod_freq_enabled, self.ids.optimization_mod_freq)
         param2ui(params.optimization_mod_freq_min, self.ids.optimization_mod_freq_min)
@@ -98,7 +98,7 @@ class OptimizationPanel(QtGui.QWidget, CustomWidget):
 
         def dual_channel_changed(value):
             self.ids.optimization_channel_selector_box.setVisible(value)
-        params.dual_channel.change(dual_channel_changed)
+        params.dual_channel.on_change(dual_channel_changed)
 
     def start_optimization(self):
         self.parameters.optimization_selection.value = True

@@ -88,10 +88,10 @@ class GeneralPanel(QtGui.QWidget, CustomWidget):
             set_visibility(self.ids.polarity_container_fast_out1, FAST_OUT1)
             set_visibility(self.ids.polarity_container_fast_out2, FAST_OUT2)
             set_visibility(self.ids.polarity_container_analog_out0, ANALOG_OUT0)
-        params.control_channel.change(show_polarity_settings)
-        params.sweep_channel.change(show_polarity_settings)
-        params.mod_channel.change(show_polarity_settings)
-        params.pid_on_slow_enabled.change(show_polarity_settings)
+        params.control_channel.on_change(show_polarity_settings)
+        params.sweep_channel.on_change(show_polarity_settings)
+        params.mod_channel.on_change(show_polarity_settings)
+        params.pid_on_slow_enabled.on_change(show_polarity_settings)
 
         for idx in range(4):
             if idx == 0:

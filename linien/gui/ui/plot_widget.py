@@ -139,13 +139,13 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
                 ))
 
         for color_idx in range(N_COLORS):
-            getattr(self.parameters, 'plot_color_%d' % color_idx).change(set_pens)
-        self.parameters.plot_line_width.change(set_pens)
-        self.parameters.plot_line_opacity.change(set_pens)
+            getattr(self.parameters, 'plot_color_%d' % color_idx).on_change(set_pens)
+        self.parameters.plot_line_width.on_change(set_pens)
+        self.parameters.plot_line_opacity.on_change(set_pens)
 
         self.control_signal_history_data = self.parameters.control_signal_history.value
 
-        self.parameters.to_plot.change(self.replot)
+        self.parameters.to_plot.on_change(self.replot)
 
         def autolock_selection_changed(value):
             if value:
@@ -153,7 +153,7 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
                 self.enable_area_selection(selectable_width=.75)
             elif not self.parameters.optimization_selection.value:
                 self.disable_area_selection()
-        self.parameters.autolock_selection.change(autolock_selection_changed)
+        self.parameters.autolock_selection.on_change(autolock_selection_changed)
 
         def optimization_selection_changed(value):
             if value:
@@ -161,11 +161,11 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
                 self.enable_area_selection(selectable_width=.75)
             elif not self.parameters.autolock_selection.value:
                 self.disable_area_selection()
-        self.parameters.optimization_selection.change(optimization_selection_changed)
+        self.parameters.optimization_selection.on_change(optimization_selection_changed)
 
         def show_or_hide_crosshair(automatic_mode):
             self.crosshair.setVisible(not automatic_mode)
-        self.parameters.automatic_mode.change(show_or_hide_crosshair)
+        self.parameters.automatic_mode.on_change(show_or_hide_crosshair)
 
 
     def mouseMoveEvent(self, event):

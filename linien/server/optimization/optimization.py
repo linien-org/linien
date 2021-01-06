@@ -43,7 +43,7 @@ class OptimizeSpectroscopy:
         self.engine = OptimizerEngine(
             self.control, params
         )
-        params.to_plot.change(self.react_to_new_spectrum)
+        params.to_plot.on_change(self.react_to_new_spectrum)
         params.optimization_running.value = True
         params.optimization_improvement.value = 0
 
