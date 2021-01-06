@@ -9,8 +9,8 @@ class RemoteParameters:
     It clones the functionality of the remote `Parameters` instance. E.g.:
 
         # on the remote side
-        r = Parameters(...)
-        r.my_param.value = 123
+        p = Parameters(...)
+        p.my_param.value = 123
 
         # on the client side
         r = RemoteParameters(...)

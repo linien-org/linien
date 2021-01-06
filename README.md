@@ -206,6 +206,24 @@ c.parameters.gpio_n_out.value = 0b01010101 # 4 on, 4 off
 # again, we have to call write_data in order to write the data to the FPGA
 c.connection.root.write_data()
 
+# it is also possible to set up a callback function that is called whenever a
+# parameter changes (remember to call `call_listeners()` periodically)
+def on_change(value):
+    # this function is called whenever `my_param` changes on the server.
+    # note that this only works if `call_listeners` is called from
+    # time to time as this function is responsible for checking for
+    # changed parameters.
+    print('parameter arrived!', value)
+
+c.parameters.modulation_amplitude.on_change(on_change)
+
+from time import sleep
+for i in range(10):
+    c.parameters.call_listeners()
+    if i == 2:
+        c.parameters.modulation_amplitude.value = 0.1 * Vpp
+    sleep(.1)
+
 # plot control and error signal
 import pickle
 from matplotlib import pyplot as plt
