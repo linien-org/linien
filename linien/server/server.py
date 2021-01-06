@@ -8,6 +8,7 @@ import pickle
 import numpy as np
 
 from rpyc.utils.server import ThreadedServer
+from rpyc.utils.authenticators import AuthenticationError
 from random import random
 
 from autolock import Autolock
@@ -277,7 +278,40 @@ def run_server(port, fake=False, remote_rp=False):
     control.run_acquiry_loop()
     control.exposed_write_data()
 
-    t = ThreadedServer(control, port=port)
+    failed_auth_counter = {'c': 0}
+
+    def username_and_password_authenticator(sock):
+        # when a client starts the server, it supplies this hash via an environment
+        # variable
+        secret = os.environ.get('LINIEN_AUTH_HASH')
+
+        # client always sends auth hash, even if we run in non-auth mode
+        # --> always read 64 bytes, otherwise rpyc connection can't be established
+        received = sock.recv(64)
+
+        # as a protection against brute force, we don't accept requests after
+        # too many failed auth requests
+        if failed_auth_counter['c'] > 1000:
+            print('received too many failed auth requests!')
+            sys.exit(1)
+
+        if secret is None:
+            print('warning: no authentication set up')
+        else:
+
+            if received != secret.encode():
+                print('received invalid credentials: ', received)
+
+                failed_auth_counter['c'] += 1
+
+                raise AuthenticationError('invalid username / password')
+
+            print('authentication successful')
+
+        return sock, None
+
+
+    t = ThreadedServer(control, port=port, authenticator=username_and_password_authenticator)
     t.start()
 
 

@@ -1,3 +1,4 @@
+from linien.common import hash_username_and_password
 import os
 import numpy as np
 import paramiko
@@ -32,6 +33,7 @@ def run_server(host, user, password, port):
         # version.
         stdin, stdout, stderr = ssh.exec_command(
             ('cd %s/../;' % REMOTE_BASE_PATH) +
+            ('export LINIEN_AUTH_HASH=%s;' % hash_username_and_password(user, password)) +
             ('bash %s/server/linien_start_server %d' % (REMOTE_BASE_PATH, port))
         )
         err = stderr.read()

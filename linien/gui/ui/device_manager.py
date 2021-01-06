@@ -2,7 +2,7 @@ from PyQt5 import QtGui, QtWidgets, QtCore
 from PyQt5.QtCore import QThread, pyqtSignal
 from threading import Thread
 from traceback import print_exc
-from paramiko.ssh_exception import AuthenticationException
+from paramiko.ssh_exception import AuthenticationException as SSHAuthenticationException
 
 import linien
 from linien.client.config import load_device_data, save_device_data
@@ -13,7 +13,7 @@ from linien.gui.dialogs import LoadingDialog, error_dialog, execute_command, \
 from linien.gui.ui.new_device_dialog import NewDeviceDialog
 from linien.gui.utils_gui import set_window_icon
 from linien.client.exceptions import GeneralConnectionErrorException, \
-    InvalidServerVersionException, ServerNotInstalledException
+    InvalidServerVersionException, RPYCAuthenticationException, ServerNotInstalledException
 
 
 class DeviceManager(QtGui.QMainWindow, CustomWidget):
@@ -102,7 +102,7 @@ class DeviceManager(QtGui.QMainWindow, CustomWidget):
         def authentication_exception():
             loading_dialog.hide()
             if not aborted:
-                display_error = 'Error at SSH authentication. ' \
+                display_error = 'Error at authentication. ' \
                         'Check username and password (by default both are "root") and verify that you ' \
                         'don\'t have any offending SSH keys in your known hosts file.'
                 error_dialog(self, display_error)
@@ -236,7 +236,7 @@ class ConnectionThread(QThread):
         except InvalidServerVersionException as e:
             return self.invalid_server_version.emit(e.remote_version, e.client_version)
 
-        except AuthenticationException:
+        except (SSHAuthenticationException, RPYCAuthenticationException):
             return self.authentication_exception.emit()
 
         except GeneralConnectionErrorException:

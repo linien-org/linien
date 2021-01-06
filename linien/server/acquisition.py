@@ -57,9 +57,12 @@ class AcquisitionMaster:
 
     def connect_acquisition_process(self, pipe, use_ssh, host):
         if use_ssh:
+            # for debugging, acquisition process may be launched manually on the
+            # server and rpyc can be used to connect to it
             acquisition_rpyc = rpyc.connect(host, ACQUISITION_PORT)
             acquisition = acquisition_rpyc.root
         else:
+            # this is what happens in production mode
             from linien.server.acquisition_process import DataAcquisitionService
             stop_nginx()
             flash_fpga()

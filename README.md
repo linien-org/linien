@@ -114,7 +114,7 @@ After launching Linien you should supply details of your RedPitaya. Its host add
 
 ![image](https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/docs/mac.jpg)
 
-Default value for user name and password is `root`.
+Default value for user name and password is `root` (but you should probably change the password...).
 
 When connecting to a RedPitaya for the first time, the Linien offers you to install the server component. Please note that this requires internet access on the RedPitaya (LAN access is not sufficient).
 
@@ -180,7 +180,9 @@ Once the server is up and running, you can connect using python:
 ```python
 from linien.client.connection import LinienClient, MHz, Vpp
 c = LinienClient(
-    {'host': 'rp-XXXXXX.local', 'username': 'root', 'password': 'root'}, autostart_server=True,
+    {'host': 'rp-XXXXXX.local', 'username': 'root', 'password': 'change-it-to-something-else!'},
+    # starts the server if it is not running
+    autostart_server=True,
     restore_parameters=False
 )
 
