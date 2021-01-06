@@ -332,7 +332,7 @@ For building the FPGA image, you need to install Xilinx Vivado first. Then, call
 
 First, update the version number in the `checked_out_repo/linien/VERSION` file. Then you can build and upload the package to pypi using `scripts/upload_pypi.sh`. Finally, build the standalone client using `build_standalone_client.sh` (you have
 to do this on the platform you want to build the standalone client for). When on Windows 10, both scripts have to be started in Windows Powershell.
-In the end, the standalone client should be uploaded to a github release.
+Upload the standalone to a github release. Release the new version to flathub.
 
 Troubleshooting
 ---------------
