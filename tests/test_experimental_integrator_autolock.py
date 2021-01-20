@@ -68,7 +68,7 @@ def get_all_peaks(summed_xscaled, target_idxs):
 
     peaks = []
 
-    peaks.append(summed_xscaled[current_idx])
+    peaks.append((current_idx, summed_xscaled[current_idx]))
 
     while True:
         if current_idx == 0:
@@ -76,13 +76,13 @@ def get_all_peaks(summed_xscaled, target_idxs):
         current_idx -= 1
 
         value = summed_xscaled[current_idx]
-        last_peak = peaks[-1]
+        last_peak_position, last_peak_height = peaks[-1]
 
-        if sign(last_peak) == sign(value):
-            if np.abs(value) > np.abs(last_peak):
-                peaks[-1] = value
+        if sign(last_peak_height) == sign(value):
+            if np.abs(value) > np.abs(last_peak_height):
+                peaks[-1] = (current_idx, value)
         else:
-            peaks.append(value)
+            peaks.append((current_idx, value))
 
     return peaks
 
@@ -92,14 +92,21 @@ def get_lock_position_from_description(spectrum, description, x_scale):
     summed_xscaled = get_diff_at_x_scale(summed, x_scale)
 
     description_idx = 0
+    last_peak_idx = 0
+    previous_peak_position = 0
 
     for idx, value in enumerate(summed_xscaled):
-        current_threshold = description[description_idx]
+        peak_position, current_threshold = description[description_idx]
 
-        if sign(value) == sign(current_threshold) and abs(value) >= abs(
-            current_threshold
+        if (
+            sign(value) == sign(current_threshold)
+            and abs(value) >= abs(current_threshold)
+            # TODO: this /2 division is very arbitrary. Probably should be more than / 2 and depend on various things
+            and idx - last_peak_idx > (peak_position - previous_peak_position) * 0.5
         ):
             description_idx += 1
+            last_peak_idx = idx
+            previous_peak_position = peak_position
 
             if description_idx == len(description):
                 # this was the last peak!
@@ -125,7 +132,7 @@ def get_description(spectra, target_idxs):
         peaks = get_all_peaks(prepared_spectrum, target_idxs)
         all_peaks.append(peaks)
 
-    target_peaks = [peaks[0] for peaks in all_peaks]
+    target_peaks = [peaks[0][1] for peaks in all_peaks]
     # TODO: Think about it. sigma=2 should be 95 % confidence. Handle the case that the difference two lines below is negative
     sigma_factor = 4
     noise_level = sigma_factor * np.std(target_peaks)
@@ -134,16 +141,20 @@ def get_description(spectra, target_idxs):
 
     description = [
         # FIXME: take care that (1-XXX) is never negative (or even < .5)
-        peak * (1 - abs(noise_level / peak))
-        for peak in all_peaks[0]
+        (peak_position, peak_height * (1 - abs(noise_level / peak_height)))
+        for peak_position, peak_height in all_peaks[0]
     ]
     # it is important to do the filtering that happens here after the previous
     # line as the previous line shrinks the values
-    description = [peak for peak in description if abs(peak) > abs(noise_level)]
+    description = [
+        (peak_position, peak_height)
+        for peak_position, peak_height in description
+        if abs(peak_height) > abs(noise_level)
+    ]
 
     # now find out how much we have to wait in the end (because we detect the peak
     # too early because our threshold is too low)
-    target_peak_described_height = description[0]
+    target_peak_described_height = description[0][1]
     initial_spectrum = spectra[0]
     prepared_spectrum = get_diff_at_x_scale(sum_up_spectrum(initial_spectrum), x_scale)
     target_peak_idx = get_target_peak(prepared_spectrum, TARGET_IDXS)
@@ -167,6 +178,8 @@ def test_get_description():
 
     description, final_wait_time, x_scale = get_description(spectra, TARGET_IDXS)
 
+    print("DESCRIPTION", description)
+
     lock_positions = []
 
     for spectrum in spectra:
@@ -178,6 +191,7 @@ def test_get_description():
         plt.axvline(lock_positions[-1], color="green", alpha=0.5)
 
     plt.plot(spectra[0])
+    plt.plot(get_diff_at_x_scale(sum_up_spectrum(spectra[0]), x_scale))
     plt.axvspan(TARGET_IDXS[0], TARGET_IDXS[1], alpha=0.2, color="red")
 
     plt.legend()
