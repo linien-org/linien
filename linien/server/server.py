@@ -1,6 +1,7 @@
 import os
 import sys
-sys.path += ['../../']
+
+sys.path += ["../../"]
 import rpyc
 import click
 import _thread
@@ -22,6 +23,7 @@ from linien.server.optimization.optimization import OptimizeSpectroscopy
 class BaseService(rpyc.Service):
     """A service that provides functionality for seamless integration of
     parameter access on the client."""
+
     def __init__(self):
         self.parameters = Parameters()
         self._uuid_mapping = {}
@@ -51,6 +53,7 @@ class BaseService(rpyc.Service):
 
 class RedPitayaControlService(BaseService):
     """Control server that runs on the RP that provides high-level methods."""
+
     def __init__(self, **kwargs):
         self._cached_data = {}
         self.exposed_is_locked = None
@@ -58,12 +61,14 @@ class RedPitayaControlService(BaseService):
         super().__init__()
 
         from registers import Registers
+
         self.registers = Registers(**kwargs)
         self.registers.connect(self, self.parameters)
 
     def run_acquiry_loop(self):
         """Starts a background process that keeps polling control and error
         signal. Every received value is pushed to `parameters.to_plot`."""
+
         def data_received(plot_data, data_uuid):
             # When a parameter is changed, `pause_acquisition` is set.
             # This means that the we should skip new data until we are sure that
@@ -78,39 +83,41 @@ class RedPitayaControlService(BaseService):
 
                 if is_locked:
                     if len(data_loaded) != 3:
-                        print('warning: too much data received for is_locked state, ignoring!')
+                        print(
+                            "warning: too much data received for is_locked state, ignoring!"
+                        )
                         return
 
                     s1, s2, slow_out = data_loaded
-                    data = {
-                        'error_signal': s1,
-                        'control_signal': s2
-                    }
+                    data = {"error_signal": s1, "control_signal": s2}
                     if self.parameters.pid_on_slow_enabled.value:
-                        data['slow'] = slow_out
+                        data["slow"] = slow_out
                 else:
                     s1, s2 = data_loaded[0], data_loaded[1]
                     slow_out = data_loaded[-1]
                     data = {
-                        'error_signal_1': s1,
-                        'error_signal_2': s2,
+                        "error_signal_1": s1,
+                        "error_signal_2": s2,
                     }
                     if len(data_loaded) == 5:
                         s1q, s2q = data_loaded[2], data_loaded[3]
-                        data.update({
-                            'error_signal_1_quadrature': s1q,
-                            'error_signal_2_quadrature': s2q
-                        })
+                        data.update(
+                            {
+                                "error_signal_1_quadrature": s1q,
+                                "error_signal_2_quadrature": s2q,
+                            }
+                        )
 
                 self.parameters.to_plot.value = pickle.dumps(data)
 
-                self.parameters.control_signal_history.value = \
+                self.parameters.control_signal_history.value = (
                     update_control_signal_history(
                         self.parameters.control_signal_history.value,
                         data,
                         is_locked,
-                        self.parameters.control_signal_history_length.value
+                        self.parameters.control_signal_history_length.value,
                     )
+                )
 
         self.registers.run_data_acquisition(data_received)
         self.pause_acquisition()
@@ -121,8 +128,10 @@ class RedPitayaControlService(BaseService):
         self.registers.write_registers()
 
     def task_running(self):
-        return self.parameters.autolock_running.value or \
-            self.parameters.optimization_running.value
+        return (
+            self.parameters.autolock_running.value
+            or self.parameters.optimization_running.value
+        )
 
     def exposed_start_autolock(self, x0, x1, spectrum, auto_offset=True):
         spectrum = pickle.loads(spectrum)
@@ -132,8 +141,13 @@ class RedPitayaControlService(BaseService):
         if not self.task_running():
             autolock = Autolock(self, self.parameters)
             self.parameters.task.value = autolock
-            autolock.run(x0, x1, spectrum, should_watch_lock=start_watching,
-                         auto_offset=auto_offset)
+            autolock.run(
+                x0,
+                x1,
+                spectrum,
+                should_watch_lock=start_watching,
+                auto_offset=auto_offset,
+            )
 
     def exposed_start_optimization(self, x0, x1, spectrum):
         if not self.task_running():
@@ -166,6 +180,7 @@ class RedPitayaControlService(BaseService):
 
     def exposed_get_server_version(self):
         import linien
+
         return linien.__version__
 
     def exposed_get_restorable_parameters(self):
@@ -210,13 +225,16 @@ class FakeRedPitayaControl(BaseService):
             while True:
                 max_ = randint(0, 8191)
                 gen = lambda: np.array([randint(-max_, max_) for _ in range(N_POINTS)])
-                self.parameters.to_plot.value = pickle.dumps({
-                    'error_signal_1': gen(),
-                    'error_signal_1_quadrature': gen(),
-                    'error_signal_2': gen(),
-                    'error_signal_2_quadrature': gen(),
-                })
-                sleep(.1)
+                self.parameters.to_plot.value = pickle.dumps(
+                    {
+                        "error_signal_1": gen(),
+                        "error_signal_1_quadrature": gen(),
+                        "error_signal_2": gen(),
+                        "error_signal_2_quadrature": gen(),
+                    }
+                )
+                sleep(0.1)
+
         t = threading.Thread(target=run)
         t.daemon = True
         t.start()
@@ -226,10 +244,10 @@ class FakeRedPitayaControl(BaseService):
         os._exit(0)
 
     def exposed_start_autolock(self, x0, x1, spectrum):
-        print('start autolock', x0, x1)
+        print("start autolock", x0, x1)
 
     def exposed_start_optimization(self, x0, x1, spectrum):
-        print('start optimization')
+        print("start optimization")
         self.parameters.optimization_running.value = True
 
     def exposed_get_restorable_parameters(self):
@@ -237,6 +255,7 @@ class FakeRedPitayaControl(BaseService):
 
     def exposed_get_server_version(self):
         import linien
+
         return linien.__version__
 
     def pause_acquisition(self):
@@ -247,28 +266,33 @@ class FakeRedPitayaControl(BaseService):
 
 
 @click.command()
-@click.argument('port', default=DEFAULT_SERVER_PORT, type=int, required=False)
-@click.option('--fake', is_flag=True,
-              help='Runs a fake server that just returns random data')
-@click.option('--remote-rp',
-              help='Allows to run the server locally for development and '
-                   'connects to a RedPitaya. Specify the RP\'s credentials '
-                   'as follows: '
-                   '--remote-rp=root:myPassword@rp-f0xxxx.local')
+@click.argument("port", default=DEFAULT_SERVER_PORT, type=int, required=False)
+@click.option(
+    "--fake", is_flag=True, help="Runs a fake server that just returns random data"
+)
+@click.option(
+    "--remote-rp",
+    help="Allows to run the server locally for development and "
+    "connects to a RedPitaya. Specify the RP's credentials "
+    "as follows: "
+    "--remote-rp=root:myPassword@rp-f0xxxx.local",
+)
 def run_server(port, fake=False, remote_rp=False):
-    print('start server at port', port)
+    print("start server at port", port)
 
     if fake:
-        print('starting fake server')
+        print("starting fake server")
         control = FakeRedPitayaControl()
     else:
         if remote_rp is not None:
-            assert '@' in remote_rp and ':' in remote_rp, 'invalid format, should be root:myPassword@rp-f0xxxx.local'
+            assert (
+                "@" in remote_rp and ":" in remote_rp
+            ), "invalid format, should be root:myPassword@rp-f0xxxx.local"
 
-            username, tmp = remote_rp.split(':', 1)
-            r_host, r_password = ''.join(reversed(tmp)).split('@', 1)
-            host = ''.join(reversed(r_host))
-            password = ''.join(reversed(r_password))
+            username, tmp = remote_rp.split(":", 1)
+            r_host, r_password = "".join(reversed(tmp)).split("@", 1)
+            host = "".join(reversed(r_host))
+            password = "".join(reversed(r_password))
             control = RedPitayaControlService(
                 host=host, user=username, password=password
             )
@@ -278,12 +302,12 @@ def run_server(port, fake=False, remote_rp=False):
     control.run_acquiry_loop()
     control.exposed_write_data()
 
-    failed_auth_counter = {'c': 0}
+    failed_auth_counter = {"c": 0}
 
     def username_and_password_authenticator(sock):
         # when a client starts the server, it supplies this hash via an environment
         # variable
-        secret = os.environ.get('LINIEN_AUTH_HASH')
+        secret = os.environ.get("LINIEN_AUTH_HASH")
 
         # client always sends auth hash, even if we run in non-auth mode
         # --> always read 64 bytes, otherwise rpyc connection can't be established
@@ -291,29 +315,30 @@ def run_server(port, fake=False, remote_rp=False):
 
         # as a protection against brute force, we don't accept requests after
         # too many failed auth requests
-        if failed_auth_counter['c'] > 1000:
-            print('received too many failed auth requests!')
+        if failed_auth_counter["c"] > 1000:
+            print("received too many failed auth requests!")
             sys.exit(1)
 
         if secret is None:
-            print('warning: no authentication set up')
+            print("warning: no authentication set up")
         else:
 
             if received != secret.encode():
-                print('received invalid credentials: ', received)
+                print("received invalid credentials: ", received)
 
-                failed_auth_counter['c'] += 1
+                failed_auth_counter["c"] += 1
 
-                raise AuthenticationError('invalid username / password')
+                raise AuthenticationError("invalid username / password")
 
-            print('authentication successful')
+            print("authentication successful")
 
         return sock, None
 
-
-    t = ThreadedServer(control, port=port, authenticator=username_and_password_authenticator)
+    t = ThreadedServer(
+        control, port=port, authenticator=username_and_password_authenticator
+    )
     t.start()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     run_server()

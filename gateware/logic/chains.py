@@ -8,7 +8,9 @@ from .modulate import Demodulate
 
 
 class FastChain(Module, AutoCSR):
-    def __init__(self, width=14, signal_width=25, coeff_width=18, mod=None, offset_signal=None):
+    def __init__(
+        self, width=14, signal_width=25, coeff_width=18, mod=None, offset_signal=None
+    ):
         self.adc = Signal((width, True))
         # output of in-phase demodulated signal
         self.out_i = Signal((signal_width, True))
@@ -41,8 +43,7 @@ class FastChain(Module, AutoCSR):
             self.demod.phase.eq(mod.phase),
         ]
         ya = Signal((width + 3, True))
-        self.sync += ya.eq(((dy >> s))),
-
+        self.sync += (ya.eq(((dy >> s))),)
 
         ###
 
@@ -53,28 +54,29 @@ class FastChain(Module, AutoCSR):
         # both have filters and limits
         for sub_channel_idx in (0, 1):
             x_limit = LimitCSR(width=signal_width, guard=1)
-            init_submodule('x_limit_%d' % (sub_channel_idx + 1), x_limit)
+            init_submodule("x_limit_%d" % (sub_channel_idx + 1), x_limit)
             iir_c = Iir(
-                width=signal_width, coeff_width=coeff_width, shift=coeff_width-2,
-                order=1
+                width=signal_width,
+                coeff_width=coeff_width,
+                shift=coeff_width - 2,
+                order=1,
             )
-            init_submodule('iir_c_%d' % (sub_channel_idx + 1), iir_c)
+            init_submodule("iir_c_%d" % (sub_channel_idx + 1), iir_c)
             iir_d = Iir(
-                width=signal_width, coeff_width=coeff_width, shift=coeff_width-2,
-                order=2
+                width=signal_width,
+                coeff_width=coeff_width,
+                shift=coeff_width - 2,
+                order=2,
             )
-            init_submodule('iir_d_%d' % (sub_channel_idx + 1), iir_d)
+            init_submodule("iir_d_%d" % (sub_channel_idx + 1), iir_d)
             y_limit = LimitCSR(width=signal_width, guard=3)
-            init_submodule('y_limit_%d' % (sub_channel_idx + 1), y_limit)
-
+            init_submodule("y_limit_%d" % (sub_channel_idx + 1), y_limit)
 
             self.comb += [
                 x_limit.x.eq(([self.demod.i, self.demod.q][sub_channel_idx] << s) + dx),
-
                 iir_c.x.eq(x_limit.y),
                 iir_c.hold.eq(0),
                 iir_c.clear.eq(0),
-
                 iir_d.x.eq(iir_c.y),
                 iir_d.hold.eq(0),
                 iir_d.clear.eq(0),
@@ -84,15 +86,10 @@ class FastChain(Module, AutoCSR):
 
             self.comb += [
                 y_limit.x.eq(
-                    Mux(self.invert.storage, -1, 1) * (
-                        ys[self.y_tap.storage] + (ya << s) + (offset_signal << s)
-                    )
+                    Mux(self.invert.storage, -1, 1)
+                    * (ys[self.y_tap.storage] + (ya << s) + (offset_signal << s))
                 ),
-
-                (
-                    self.out_i,
-                    self.out_q
-                )[sub_channel_idx].eq(y_limit.y)
+                (self.out_i, self.out_q)[sub_channel_idx].eq(y_limit.y),
             ]
 
 
@@ -116,8 +113,7 @@ class SlowChain(Module, AutoCSR):
         self.comb += [
             self.pid.input.eq(self.input),
             self.output.eq(self.pid.pid_out),
-
-            out.eq(self.limit.y << s)
+            out.eq(self.limit.y << s),
         ]
 
 
@@ -147,16 +143,13 @@ def cross_connect(gpio, chains):
             c.sync += If(clr.re | (max.status < s), max.status.eq(s))
             c.sync += If(clr.re | (min.status > s), min.status.eq(s))
 
-
     states = Cat(states)
     state = Signal(len(states))
     gpio.comb += state.eq(states)
     gpio.state = CSRStatus(len(state))
     gpio.state_clr = CSR()
     gpio.sync += [
-        If(gpio.state_clr.re,
-            gpio.state.status.eq(0),
-        ).Else(
+        If(gpio.state_clr.re, gpio.state.status.eq(0),).Else(
             gpio.state.status.eq(gpio.state.status | state),
         )
     ]
@@ -175,8 +168,9 @@ def cross_connect(gpio, chains):
             c.sync += s.eq((state & csr.storage) != 0)
 
         for s in c.signal_in:
-            csr = CSRStorage(bits_for(len(signals) - 1),
-                             name="%s_sel" % s.backtrace[-1][0])
+            csr = CSRStorage(
+                bits_for(len(signals) - 1), name="%s_sel" % s.backtrace[-1][0]
+            )
             setattr(c, csr.name, csr)
             c.sync += s.eq(signals[csr.storage])
 

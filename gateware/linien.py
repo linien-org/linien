@@ -67,7 +67,7 @@ class LinienLogic(Module, AutoCSR):
         for i in range(4):
             if i == 0:
                 continue
-            name = 'analog_out_%d' % i
+            name = "analog_out_%d" % i
             setattr(self, name, CSRStorage(15, name=name))
 
     def init_submodules(self, width, signal_width):
@@ -92,12 +92,13 @@ class LinienLogic(Module, AutoCSR):
         ]
 
         self.sync += [
-            If(~self.request_lock.storage,
+            If(
+                ~self.request_lock.storage,
                 self.lock_running.status.eq(0),
-                ready_for_lock.eq(0)
+                ready_for_lock.eq(0),
             ),
-
-            If(self.request_lock.storage & ~ready_for_lock,
+            If(
+                self.request_lock.storage & ~ready_for_lock,
                 ready_for_lock.eq(
                     # set ready for lock if sweep is at zero crossing
                     (self.sweep.sweep.y > 0)
@@ -105,10 +106,11 @@ class LinienLogic(Module, AutoCSR):
                     # and if the ramp is going up (because this is when a
                     # spectrum is recorded)
                     & (self.sweep.sweep.up)
-                )
+                ),
             ),
-            If(self.request_lock.storage & ready_for_lock,
-                self.lock_running.status.eq(1)
+            If(
+                self.request_lock.storage & ready_for_lock,
+                self.lock_running.status.eq(1),
             ),
         ]
 
@@ -130,7 +132,6 @@ class LinienLogic(Module, AutoCSR):
         self.state_out = []
         self.signal_out = [self.control_signal, combined_error_signal]
 
-
         self.comb += [
             combined_error_signal.eq(self.limit_error_signal.y),
             self.control_signal.eq(
@@ -148,10 +149,14 @@ class LinienModule(Module, AutoCSR):
         signal_width, coeff_width = 25, 25
         chain_factor_bits = 8
 
-        self.init_submodules(width, signal_width, coeff_width, chain_factor_bits, platform)
+        self.init_submodules(
+            width, signal_width, coeff_width, chain_factor_bits, platform
+        )
         self.connect_everything(width, signal_width, coeff_width, chain_factor_bits)
 
-    def init_submodules(self, width, signal_width, coeff_width, chain_factor_bits, platform):
+    def init_submodules(
+        self, width, signal_width, coeff_width, chain_factor_bits, platform
+    ):
         sys_double = ClockDomainsRenamer("sys_double")
 
         self.submodules.logic = LinienLogic(chain_factor_width=chain_factor_bits)
@@ -242,12 +247,14 @@ class LinienModule(Module, AutoCSR):
 
         self.comb += [
             self.fast_a.adc.eq(self.analog.adc_a),
-            self.fast_b.adc.eq(self.analog.adc_b)
+            self.fast_b.adc.eq(self.analog.adc_b),
         ]
 
         # now, we combine the output of the two paths, with a variable
         # factor each.
-        mixed = Signal((2 + ((signal_width + 1) + self.logic.chain_a_factor.size), True))
+        mixed = Signal(
+            (2 + ((signal_width + 1) + self.logic.chain_a_factor.size), True)
+        )
         self.comb += [
             If(
                 self.logic.dual_channel.storage,
@@ -277,7 +284,9 @@ class LinienModule(Module, AutoCSR):
             self.comb += fast_out.eq(
                 Mux(self.logic.control_channel.storage == channel, pid_out, 0)
                 + Mux(self.logic.mod_channel.storage == channel, self.logic.mod.y, 0)
-                + Mux(self.logic.sweep_channel.storage == channel, self.logic.sweep.y, 0)
+                + Mux(
+                    self.logic.sweep_channel.storage == channel, self.logic.sweep.y, 0
+                )
                 + Mux(
                     self.logic.sweep_channel.storage == channel,
                     self.logic.out_offset_signed,
@@ -302,7 +311,7 @@ class LinienModule(Module, AutoCSR):
                         + Mux(
                             self.logic.sweep_channel.storage == ANALOG_OUT0,
                             self.logic.sweep.y,
-                            0
+                            0,
                         )
                         + Mux(
                             self.logic.sweep_channel.storage == ANALOG_OUT0,
@@ -342,14 +351,12 @@ class LinienModule(Module, AutoCSR):
             self.logic.limit_fast2.x.eq(fast_outs[1]),
             self.analog.dac_a.eq(self.logic.limit_fast1.y),
             self.analog.dac_b.eq(self.logic.limit_fast2.y),
-
             # SLOW OUT
             self.slow.input.eq(self.logic.control_signal >> s),
             self.decimate.decimation.eq(self.logic.slow_decimation.storage),
             self.cd_decimated_clock.clk.eq(self.decimate.output),
             self.logic.slow_value.status.eq(self.slow.limit.y),
         ]
-
 
 
 class DummyID(Module, AutoCSR):
@@ -385,4 +392,3 @@ class RootModule(Module):
             self.linien.scopegen.asg_sys,
             self.linien.syscdc.source,
         )
-

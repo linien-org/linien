@@ -48,33 +48,57 @@ class XADC(Module, AutoCSR):
         data = Signal(16)
         drdy = Signal()
 
-        vin = Cat(xadc.n[:2], Replicate(0, 6),
-                  xadc.n[2:4], Replicate(0, 6),
-                  xadc.n[4])
-        vip = Cat(xadc.p[:2], Replicate(0, 6),
-                  xadc.p[2:4], Replicate(0, 6),
-                  xadc.p[4])
+        vin = Cat(xadc.n[:2], Replicate(0, 6), xadc.n[2:4], Replicate(0, 6), xadc.n[4])
+        vip = Cat(xadc.p[:2], Replicate(0, 6), xadc.p[2:4], Replicate(0, 6), xadc.p[4])
         self.specials += Instance(
             "XADC",
-            p_INIT_40=0x0000, p_INIT_41=0x2f0f, p_INIT_42=0x0400,  # config
-            p_INIT_48=0x0900, p_INIT_49=0x0303,  # channels VpVn, Temp
-            p_INIT_4A=0x47e0, p_INIT_4B=0x0000,  # avg VpVn, temp
-            p_INIT_4C=0x0800, p_INIT_4D=0x0303,  # bipolar
-            p_INIT_4E=0x0000, p_INIT_4F=0x0000,  # acq time
-            p_INIT_50=0xb5ed, p_INIT_51=0x57e4,  # temp trigger, vccint upper alarms
-            p_INIT_52=0xa147, p_INIT_53=0xca33,  # vccaux upper, temp over upper
-            p_INIT_54=0xa93a, p_INIT_55=0x52c6,  # temp reset, vccint lower
-            p_INIT_56=0x9555, p_INIT_57=0xae4e,  # vccaux lower, temp over reset
-            p_INIT_58=0x5999, p_INIT_5C=0x5111,  # vbram uppper, vbram lower
-            p_INIT_59=0x5555, p_INIT_5D=0x5111,  # vccpint upper lower
-            p_INIT_5A=0x9999, p_INIT_5E=0x91eb,  # vccpaux upper lower
-            p_INIT_5B=0x6aaa, p_INIT_5F=0x6666,  # vccdro upper lower
-            o_ALM=self.alarm, o_OT=self.ot,
-            o_BUSY=busy, o_CHANNEL=channel, o_EOC=eoc, o_EOS=eos,
-            i_VAUXN=vin[:16], i_VAUXP=vip[:16], i_VN=vin[16], i_VP=vip[16],
-            i_CONVST=0, i_CONVSTCLK=0, i_RESET=ResetSignal(),
-            o_DO=data, o_DRDY=drdy, i_DADDR=channel, i_DCLK=ClockSignal(),
-            i_DEN=eoc, i_DI=0, i_DWE=0,
+            p_INIT_40=0x0000,
+            p_INIT_41=0x2F0F,
+            p_INIT_42=0x0400,  # config
+            p_INIT_48=0x0900,
+            p_INIT_49=0x0303,  # channels VpVn, Temp
+            p_INIT_4A=0x47E0,
+            p_INIT_4B=0x0000,  # avg VpVn, temp
+            p_INIT_4C=0x0800,
+            p_INIT_4D=0x0303,  # bipolar
+            p_INIT_4E=0x0000,
+            p_INIT_4F=0x0000,  # acq time
+            p_INIT_50=0xB5ED,
+            p_INIT_51=0x57E4,  # temp trigger, vccint upper alarms
+            p_INIT_52=0xA147,
+            p_INIT_53=0xCA33,  # vccaux upper, temp over upper
+            p_INIT_54=0xA93A,
+            p_INIT_55=0x52C6,  # temp reset, vccint lower
+            p_INIT_56=0x9555,
+            p_INIT_57=0xAE4E,  # vccaux lower, temp over reset
+            p_INIT_58=0x5999,
+            p_INIT_5C=0x5111,  # vbram uppper, vbram lower
+            p_INIT_59=0x5555,
+            p_INIT_5D=0x5111,  # vccpint upper lower
+            p_INIT_5A=0x9999,
+            p_INIT_5E=0x91EB,  # vccpaux upper lower
+            p_INIT_5B=0x6AAA,
+            p_INIT_5F=0x6666,  # vccdro upper lower
+            o_ALM=self.alarm,
+            o_OT=self.ot,
+            o_BUSY=busy,
+            o_CHANNEL=channel,
+            o_EOC=eoc,
+            o_EOS=eos,
+            i_VAUXN=vin[:16],
+            i_VAUXP=vip[:16],
+            i_VN=vin[16],
+            i_VP=vip[16],
+            i_CONVST=0,
+            i_CONVSTCLK=0,
+            i_RESET=ResetSignal(),
+            o_DO=data,
+            o_DRDY=drdy,
+            i_DADDR=channel,
+            i_DCLK=ClockSignal(),
+            i_DEN=eoc,
+            i_DI=0,
+            i_DWE=0,
             # o_JTAGBUSY=, o_JTAGLOCKED=, o_JTAGMODIFIED=, o_MUXADDR=,
         )
 
@@ -88,9 +112,11 @@ class XADC(Module, AutoCSR):
         }
 
         self.sync += [
-            If(drdy,
-                Case(channel, dict(
-                    (k, v.status.eq(data >> 4))
-                    for k, v in channels.items()))
+            If(
+                drdy,
+                Case(
+                    channel,
+                    dict((k, v.status.eq(data >> 4)) for k, v in channels.items()),
+                ),
             )
         ]

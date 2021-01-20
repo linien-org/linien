@@ -1,15 +1,16 @@
 import setuptools
 
 import linien
-assert linien.__version__ != 'dev'
+
+assert linien.__version__ != "dev"
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-with open('requirements_gui', 'r') as fh:
-    requirements = fh.read().split(' ')
+with open("requirements_gui", "r") as fh:
+    requirements = fh.read().split(" ")
 
-requirements += ['linien-python-client==' + linien.__version__]
+requirements += ["linien-python-client==" + linien.__version__]
 
 setuptools.setup(
     name="linien",
@@ -22,25 +23,19 @@ setuptools.setup(
     url="https://github.com/hermitdemschoenenleben/linien",
     # IMPORTANT: any changes have to be made in setup_client_and_gui.py
     # of flathub repo as well
-    packages=['linien', 'linien.gui', 'linien.gui.ui'],
+    packages=["linien", "linien.gui", "linien.gui.ui"],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
         "Operating System :: OS Independent",
     ],
-    entry_points={
-        'console_scripts': [
-            'linien=linien.gui.app:run_application'
-        ]
-    },
-    install_requires=[
-        requirements
-    ],
+    entry_points={"console_scripts": ["linien=linien.gui.app:run_application"]},
+    install_requires=[requirements],
     package_data={
         # IMPORTANT: any changes have to be made in client.spec, too
         # (for the standalone installer)
         # IMPORTANT: any changes have to be made in setup_client_and_gui.py
         # of flathub repo as well
-        '': ['*.ui', 'VERSION', '*.ico']
-    }
+        "": ["*.ui", "VERSION", "*.ico"]
+    },
 )

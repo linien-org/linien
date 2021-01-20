@@ -6,9 +6,16 @@ ZOOM_STEP = 2
 
 
 class Approacher:
-    def __init__(self, control, parameters, first_error_signal, target_zoom,
-                 central_y, allow_ramp_speed_change=False,
-                 wait_time_between_current_corrections=None):
+    def __init__(
+        self,
+        control,
+        parameters,
+        first_error_signal,
+        target_zoom,
+        central_y,
+        allow_ramp_speed_change=False,
+        wait_time_between_current_corrections=None,
+    ):
         self.control = control
         self.parameters = parameters
         # central_y is the y coordinate between maximum and minimum of the
@@ -18,7 +25,9 @@ class Approacher:
         self.target_zoom = target_zoom
         self.allow_ramp_speed_change = allow_ramp_speed_change
 
-        self.wait_time_between_current_corrections = wait_time_between_current_corrections
+        self.wait_time_between_current_corrections = (
+            wait_time_between_current_corrections
+        )
 
         self.central_y = central_y
 
@@ -34,7 +43,7 @@ class Approacher:
 
     def approach_line(self, error_signal):
         if time() - self.time_last_zoom > 15:
-            raise Exception('approaching took too long')
+            raise Exception("approaching took too long")
 
         error_signal = error_signal - self.central_y
 
@@ -58,7 +67,7 @@ class Approacher:
         )
         shift *= initial_ramp_amplitude
         self.history.append((zoomed_ref, zoomed_err))
-        self.history.append('shift %f' % (-1 * shift))
+        self.history.append("shift %f" % (-1 * shift))
 
         if self.N_at_this_zoom == 0:
             # if we are at the final zoom, we should be very quick.
@@ -71,7 +80,11 @@ class Approacher:
                 self._correct_current(shift)
         else:
             # wait for some time after the last current correction
-            min_wait_time = 1 if self.wait_time_between_current_corrections is None else self.wait_time_between_current_corrections
+            min_wait_time = (
+                1
+                if self.wait_time_between_current_corrections is None
+                else self.wait_time_between_current_corrections
+            )
             if time() - self.time_last_current_correction < min_wait_time:
                 return
 
@@ -108,9 +121,11 @@ class Approacher:
 
         self.parameters.ramp_amplitude.value /= ZOOM_STEP
         if self.allow_ramp_speed_change:
-            new_ramp_speed = self.parameters.ramp_speed.value - 1 \
-                if self.parameters.ramp_speed.value > 5 \
+            new_ramp_speed = (
+                self.parameters.ramp_speed.value - 1
+                if self.parameters.ramp_speed.value > 5
                 else self.parameters.ramp_speed.value
+            )
             self.parameters.ramp_speed.value = new_ramp_speed
         self.control.exposed_write_data()
         self.control.continue_acquisition()

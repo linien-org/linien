@@ -6,9 +6,9 @@ from time import time
 from scipy.signal import correlate, resample
 
 MHz = 0x10000000 / 8
-Vpp = ((1<<14) - 1) / 4
+Vpp = ((1 << 14) - 1) / 4
 # conversion of bits to V
-ANALOG_OUT_V = 1.8 / ((2**15) - 1)
+ANALOG_OUT_V = 1.8 / ((2 ** 15) - 1)
 
 LOW_PASS_FILTER = 0
 HIGH_PASS_FILTER = 1
@@ -68,25 +68,25 @@ def update_control_signal_history(history, to_plot, is_locked, max_time_diff):
     now = time()
 
     if is_locked:
-        history['values'].append(np.mean(to_plot['control_signal']))
-        history['times'].append(time())
+        history["values"].append(np.mean(to_plot["control_signal"]))
+        history["times"].append(time())
 
-        if 'slow' in to_plot:
-            history['slow_values'].append(to_plot['slow'])
-            history['slow_times'].append(time())
+        if "slow" in to_plot:
+            history["slow_values"].append(to_plot["slow"])
+            history["slow_times"].append(time())
     else:
-        history['values'] = []
-        history['times'] = []
-        history['slow_values'] = []
-        history['slow_times'] = []
+        history["values"] = []
+        history["times"] = []
+        history["slow_values"] = []
+        history["slow_times"] = []
 
     # truncate
-    truncate(history['times'], history['values'], max_time_diff)
-    truncate(history['slow_times'], history['slow_values'], max_time_diff)
+    truncate(history["times"], history["values"], max_time_diff)
+    truncate(history["slow_times"], history["slow_values"], max_time_diff)
 
     # downsample
-    downsample_history(history['times'], history['values'], max_time_diff)
-    downsample_history(history['slow_times'], history['slow_values'], max_time_diff)
+    downsample_history(history["times"], history["values"], max_time_diff)
+    downsample_history(history["slow_times"], history["slow_values"], max_time_diff)
 
     return history
 
@@ -110,7 +110,7 @@ def determine_shift_by_correlation(zoom_factor, reference_signal, error_signal):
     # crop the reference signal such that it shows the same region as the new
     # error signal
     idx_shift = int(length * (1 / zoom_factor / 2))
-    zoomed_ref = reference_signal[center_idx - idx_shift:center_idx + idx_shift]
+    zoomed_ref = reference_signal[center_idx - idx_shift : center_idx + idx_shift]
 
     # correlation is slow on red pitaya --> use at maximum 4096 points
     skip_factor = int(len(zoomed_ref) / 4096)
@@ -155,13 +155,13 @@ def get_lock_point(error_signal, x0, x1, final_zoom_factor=1.5):
     # the y value that is between minimum and maximum
     mean_signal = np.mean([cropped_data[min_idx], cropped_data[max_idx]])
     idxs = sorted([min_idx, max_idx])
-    slope_data = np.array(cropped_data[idxs[0]:idxs[1]]) - mean_signal
+    slope_data = np.array(cropped_data[idxs[0] : idxs[1]]) - mean_signal
 
     zero_idx = x0 + np.min(idxs) + np.argmin(np.abs(slope_data))
 
     # roll the error signal such that the target lock point is exactly in the
     # center
-    roll = -int(zero_idx - (length/2))
+    roll = -int(zero_idx - (length / 2))
 
     # set all the rolled points to nan such that they don't contribute
     # in the correlation
@@ -169,13 +169,9 @@ def get_lock_point(error_signal, x0, x1, final_zoom_factor=1.5):
     filler[:] = np.nan
 
     if roll < 0:
-        rolled_error_signal = np.hstack(
-            (error_signal[-roll:], filler)
-        )
+        rolled_error_signal = np.hstack((error_signal[-roll:], filler))
     else:
-        rolled_error_signal = np.hstack(
-            (filler, error_signal[:-roll])
-        )
+        rolled_error_signal = np.hstack((filler, error_signal[:-roll]))
 
     target_slope_rising = max_idx > min_idx
     target_zoom = N_POINTS / (idxs[1] - idxs[0]) / final_zoom_factor
@@ -194,8 +190,9 @@ def convert_channel_mixing_value(value):
     return a_value, b_value
 
 
-def combine_error_signal(error_signals, dual_channel, channel_mixing,
-        combined_offset, chain_factor_width=8):
+def combine_error_signal(
+    error_signals, dual_channel, channel_mixing, combined_offset, chain_factor_width=8
+):
 
     if not dual_channel:
         signal = error_signals[0]
@@ -212,10 +209,10 @@ def combine_error_signal(error_signals, dual_channel, channel_mixing,
 
 def check_plot_data(is_locked, plot_data):
     if is_locked:
-        if 'error_signal' not in plot_data or 'control_signal' not in plot_data:
+        if "error_signal" not in plot_data or "control_signal" not in plot_data:
             return False
     else:
-        if 'error_signal_1' not in plot_data:
+        if "error_signal_1" not in plot_data:
             return False
     return True
 
@@ -240,12 +237,12 @@ def unpack(value):
 def get_signal_strength_from_i_q(i, q):
     i = i.astype(np.int64)
     q = q.astype(np.int64)
-    i_squared = i**2
-    q_squared = q**2
+    i_squared = i ** 2
+    q_squared = q ** 2
     signal_strength = np.sqrt(i_squared + q_squared)
     return signal_strength
 
 
 def hash_username_and_password(username, password):
-    secret = hashlib.sha256((username + '/' + password).encode()).hexdigest()
+    secret = hashlib.sha256((username + "/" + password).encode()).hexdigest()
     return secret

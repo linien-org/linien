@@ -50,6 +50,7 @@ class RemoteParameters:
                      once (after it was changed).
                      Note that calling `call_listeners` is required for this.
     """
+
     def __init__(self, remote, uuid: str, use_cache: bool):
         self.remote = remote
         self.uuid = uuid
@@ -91,10 +92,13 @@ class RemoteParameters:
         In Linien GUI client, this function is called periodically.
         If you use the python client and want to use callbacks for changed
         parameters you have to call this method manually from time to time."""
+
         def _get_listener_queue_async():
             """Issues an asynchronous call (that does not block the GUI) to the
             server in order to retrieve a batch of changed parameters."""
-            self._async_listener_queue = async_(self.remote.get_listener_queue)(self.uuid)
+            self._async_listener_queue = async_(self.remote.get_listener_queue)(
+                self.uuid
+            )
 
         if self._async_listener_queue is None:
             # this means that the async call was not started yet --> start it
@@ -125,7 +129,10 @@ class RemoteParameters:
 class RemoteParameter:
     """A helper class for `RemoteParameters`, representing a single remote
     parameter."""
-    def __init__(self, parent: RemoteParameters, remote_param, name: str, use_cache: bool):
+
+    def __init__(
+        self, parent: RemoteParameters, remote_param, name: str, use_cache: bool
+    ):
         self._remote_param = remote_param
         self.name = name
         self.parent = parent
@@ -140,7 +147,7 @@ class RemoteParameter:
     def value(self):
         """Return the locally cached value (if it exists). Otherwise ask the
         server."""
-        if hasattr(self, '_cached_value'):
+        if hasattr(self, "_cached_value"):
             return self._cached_value
         return self.parent._get_param(self.name)
 

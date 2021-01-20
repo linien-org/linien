@@ -94,7 +94,9 @@ def test_pid():
         def test_d():
             ys = []
             for offset in (0, 2000):
-                x = offset + (np.sin(np.linspace(-np.pi, np.pi, 100)) * 4000).astype(np.int)
+                x = offset + (np.sin(np.linspace(-np.pi, np.pi, 100)) * 4000).astype(
+                    np.int
+                )
                 y = []
 
                 yield pid.ki.storage.eq(0)
@@ -107,11 +109,11 @@ def test_pid():
                     out = yield pid.pid_out
                     y.append(out)
 
-                #plt.plot(x)
-                #plt.plot(y)
+                # plt.plot(x)
+                # plt.plot(y)
 
                 ys.append(y)
-            #plt.show()
+            # plt.show()
 
             assert np.all(np.abs(np.array(ys[0][10:]) - np.array(ys[1][10:])) <= 1)
 
@@ -125,6 +127,5 @@ def test_pid():
     run_simulation(pid, pid_testbench(pid), vcd_name="pid.vcd")
 
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     test_pid()

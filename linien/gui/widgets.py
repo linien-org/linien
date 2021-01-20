@@ -6,9 +6,7 @@ from pyqtgraph.Qt import QtCore, QtGui
 
 
 # add ui folder to path
-ui_path = os.path.join(*list(
-    os.path.split(os.path.abspath(__file__))[:-1]) + ['ui']
-)
+ui_path = os.path.join(*list(os.path.split(os.path.abspath(__file__))[:-1]) + ["ui"])
 
 
 class IDSelector:
@@ -47,5 +45,5 @@ class CustomWidget:
         return self.window().app
 
     def load_ui(self, name):
-        assert name.endswith('.ui')
+        assert name.endswith(".ui")
         uic.loadUi(path.join(ui_path, name), self)

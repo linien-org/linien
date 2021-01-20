@@ -2,8 +2,9 @@
 
 from typing import List, NewType, Optional
 
-Params = NewType('Params', List[float])
+Params = NewType("Params", List[float])
 """A type alias for actual optmizer params. """
+
 
 class Optimizer:
     """Interface for the "Optimizer" type classes."""

@@ -1,6 +1,13 @@
 import os
-from PyQt5.QtWidgets import QSlider, QCheckBox, QSpinBox, QDoubleSpinBox, \
-    QTabWidget, QRadioButton, QComboBox
+from PyQt5.QtWidgets import (
+    QSlider,
+    QCheckBox,
+    QSpinBox,
+    QDoubleSpinBox,
+    QTabWidget,
+    QRadioButton,
+    QComboBox,
+)
 from pyqtgraph.Qt import QtGui
 
 
@@ -13,6 +20,7 @@ def param2ui(parameter, element, process_value=lambda x: x):
     emission from the target element; otherwise this can cause nasty
     endless loops when quickly changing a paramater multiple times.
     """
+
     def on_change(value, element=element):
         element.blockSignals(True)
 
@@ -25,7 +33,7 @@ def param2ui(parameter, element, process_value=lambda x: x):
         elif isinstance(element, (QTabWidget, QComboBox)):
             element.setCurrentIndex(int(value))
         else:
-            raise Exception('unsupported element type %s' % type(element))
+            raise Exception("unsupported element type %s" % type(element))
 
         element.blockSignals(False)
 
@@ -33,13 +41,13 @@ def param2ui(parameter, element, process_value=lambda x: x):
 
 
 def set_window_icon(window):
-    icon_name = os.path.join(*os.path.split(__file__)[:-1], 'icon.ico')
+    icon_name = os.path.join(*os.path.split(__file__)[:-1], "icon.ico")
     window.setWindowIcon(QtGui.QIcon(icon_name))
 
 
 def color_to_hex(color):
-    result = ''
+    result = ""
     for part_idx in range(3):
-        result += ('00' + hex(color[part_idx]).lstrip('0x'))[-2:]
+        result += ("00" + hex(color[part_idx]).lstrip("0x"))[-2:]
 
-    return '#' + result
+    return "#" + result

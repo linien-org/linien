@@ -164,9 +164,17 @@ class TwoQuadrantCordic(Module):
         * :math:`a_{m,i}`: elemetary rotation angle: :math:`a_{m,i} =
           \\tan^{-1}(\\sqrt{m} s_{m,i})/\\sqrt{m}`.
     """
-    def __init__(self, width=16, widthz=None, stages=None, guard=0,
-                 eval_mode="iterative", cordic_mode="rotate",
-                 func_mode="circular"):
+
+    def __init__(
+        self,
+        width=16,
+        widthz=None,
+        stages=None,
+        guard=0,
+        eval_mode="iterative",
+        cordic_mode="rotate",
+        func_mode="circular",
+    ):
         # validate parameters
         assert eval_mode in ("combinatorial", "pipelined", "iterative")
         assert cordic_mode in ("rotate", "vector")
@@ -175,7 +183,7 @@ class TwoQuadrantCordic(Module):
         self.func_mode = func_mode
         if guard is None:
             # guard bits to guarantee "width" accuracy
-            guard = int(log(width)/log(2))
+            guard = int(log(width) / log(2))
         if widthz is None:
             widthz = width
         if stages is None:
@@ -222,7 +230,7 @@ class TwoQuadrantCordic(Module):
             self.xo.eq(x[-1] >> guard),
             self.yo.eq(y[-1] >> guard),
             self.zo.eq(z[-1] >> guard),
-            ]
+        ]
 
         if eval_mode == "iterative":
             # We afford one additional iteration for in/out.
@@ -242,13 +250,19 @@ class TwoQuadrantCordic(Module):
             self.sync += [
                 self._stage(xi, yi, zi, xi, yi, zi, si, ai),
                 i.eq(i + 1),
-                If(i == stages,
-                   i.eq(0),
+                If(
+                    i == stages,
+                    i.eq(0),
                 ),
-                If(i == 0,
-                   x[2].eq(xi), y[2].eq(yi), z[2].eq(zi),
-                   xi.eq(x[0]), yi.eq(y[0]), zi.eq(z[0]),
-                )
+                If(
+                    i == 0,
+                    x[2].eq(xi),
+                    y[2].eq(yi),
+                    z[2].eq(zi),
+                    xi.eq(x[0]),
+                    yi.eq(y[0]),
+                    zi.eq(z[0]),
+                ),
             ]
         else:
             self.comb += [
@@ -256,9 +270,9 @@ class TwoQuadrantCordic(Module):
                 self.new_in.eq(1),
             ]
             for i, si in enumerate(s):
-                stmt = self._stage(x[i], y[i], z[i],
-                                   x[i + 1], y[i + 1], z[i + 1],
-                                   si, a[i])
+                stmt = self._stage(
+                    x[i], y[i], z[i], x[i + 1], y[i + 1], z[i + 1], si, a[i]
+                )
                 if eval_mode == "pipelined":
                     self.sync += stmt
                 else:  # combinatorial
@@ -267,19 +281,19 @@ class TwoQuadrantCordic(Module):
     def _constants(self, stages, bits):
         if self.func_mode == "circular":
             s = range(stages)
-            a = [atan(2**-i) for i in s]
-            g = [sqrt(1 + 2**(-2*i)) for i in s]
-            #zmax = sum(a)
+            a = [atan(2 ** -i) for i in s]
+            g = [sqrt(1 + 2 ** (-2 * i)) for i in s]
+            # zmax = sum(a)
             # use pi anyway as the input z can cause overflow
             # and we need the range for quadrant mapping
             zmax = pi
         elif self.func_mode == "linear":
             s = range(stages)
-            a = [2**-i for i in s]
+            a = [2 ** -i for i in s]
             g = [1 for i in s]
-            #zmax = sum(a)
+            # zmax = sum(a)
             # use 2 anyway as this simplifies a and scaling
-            zmax = 2.
+            zmax = 2.0
         else:  # hyperbolic
             s = []
             # need to repeat some stages:
@@ -287,18 +301,18 @@ class TwoQuadrantCordic(Module):
             for i in range(stages):
                 if i == j:
                     s.append(j)
-                    j = 3*j + 1
+                    j = 3 * j + 1
                 s.append(i + 1)
-            a = [atanh(2**-i) for i in s]
-            g = [sqrt(1 - 2**(-2*i)) for i in s]
-            zmax = sum(a)*2
+            a = [atanh(2 ** -i) for i in s]
+            g = [sqrt(1 - 2 ** (-2 * i)) for i in s]
+            zmax = sum(a) * 2
         # round here helps the width=2**i - 1 case but hurts the
         # important width=2**i case
         cast = int
-        if log(bits)/log(2) % 1:
+        if log(bits) / log(2) % 1:
             cast = round
-        a = [cast(ai*2**(bits - 1)/zmax) for ai in a]
-        gain = 1.
+        a = [cast(ai * 2 ** (bits - 1) / zmax) for ai in a]
+        gain = 1.0
         for gi in g:
             gain *= gi
         return a, s, zmax, gain
@@ -319,7 +333,7 @@ class TwoQuadrantCordic(Module):
         stmt = [
             xo.eq(xi + Mux(dir, dx, -dx)),
             yo.eq(yi + Mux(dir, -dy, dy)),
-            zo.eq(zi + Mux(dir, dz, -dz))
+            zo.eq(zi + Mux(dir, dz, -dz)),
         ]
         return stmt
 
@@ -331,6 +345,7 @@ class Cordic(TwoQuadrantCordic):
     for `abs(zi) > pi/2 in circular rotate mode or `xi < 0` in circular
     vector mode.
     """
+
     def __init__(self, **kwargs):
         TwoQuadrantCordic.__init__(self, **kwargs)
         if self.func_mode != "circular":
@@ -349,10 +364,7 @@ class Cordic(TwoQuadrantCordic):
         else:  # vector
             self.comb += q.eq(xi < 0)
         self.comb += [
-            If(q,
-                Cat(cxi, cyi, czi).eq(
-                    Cat(-xi, -yi, zi + (1 << len(zi) - 1)))
-            ).Else(
+            If(q, Cat(cxi, cyi, czi).eq(Cat(-xi, -yi, zi + (1 << len(zi) - 1)))).Else(
                 Cat(cxi, cyi, czi).eq(Cat(xi, yi, zi))
             )
         ]

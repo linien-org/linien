@@ -11,7 +11,9 @@ class LockStatusPanel(QtGui.QWidget, CustomWidget):
     def ready(self):
         self.ids.stop_lock.clicked.connect(self.stop_lock)
         self.ids.control_signal_history_length.setKeyboardTracking(False)
-        self.ids.control_signal_history_length.valueChanged.connect(self.control_signal_history_length_changed)
+        self.ids.control_signal_history_length.valueChanged.connect(
+            self.control_signal_history_length_changed
+        )
 
     def connection_established(self):
         self.control = self.app().control
@@ -42,22 +44,27 @@ class LockStatusPanel(QtGui.QWidget, CustomWidget):
                 self.ids.lock_status.setText(text)
 
             if not running and locked:
-                set_text('Locked!')
+                set_text("Locked!")
             if running and watching:
-                set_text('Locked! Watching continuously...')
+                set_text("Locked! Watching continuously...")
             if running and not watching:
                 if not retrying:
-                    set_text('Autolock is running...')
+                    set_text("Autolock is running...")
                 else:
-                    set_text('Trying again to lock...')
+                    set_text("Trying again to lock...")
 
-        for param in (params.lock, params.autolock_approaching, params.autolock_watching,
-                params.autolock_failed, params.autolock_locked, params.autolock_retrying):
+        for param in (
+            params.lock,
+            params.autolock_approaching,
+            params.autolock_watching,
+            params.autolock_failed,
+            params.autolock_locked,
+            params.autolock_retrying,
+        ):
             param.on_change(update_status)
 
         param2ui(
-            params.control_signal_history_length,
-            self.ids.control_signal_history_length
+            params.control_signal_history_length, self.ids.control_signal_history_length
         )
 
     def stop_lock(self):
@@ -70,5 +77,6 @@ class LockStatusPanel(QtGui.QWidget, CustomWidget):
             self.control.exposed_start_ramp()
 
     def control_signal_history_length_changed(self):
-        self.parameters.control_signal_history_length.value = \
+        self.parameters.control_signal_history_length.value = (
             self.ids.control_signal_history_length.value()
+        )

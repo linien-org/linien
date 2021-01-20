@@ -49,12 +49,8 @@ class RightPanel(QtGui.QWidget, CustomWidget):
             for panel_name in panel_names:
                 getattr(self.ids, panel_name).setEnabled(condition)
 
+        enable_panels(("generalPanel",), not autolock and not optimization and not lock)
         enable_panels(
-            ('generalPanel',), not autolock and not optimization and not lock
+            ("modSpectroscopyPanel", "viewPanel", "lockingPanel"), not optimization
         )
-        enable_panels(
-            ('modSpectroscopyPanel', 'viewPanel', 'lockingPanel'), not optimization
-        )
-        enable_panels(
-            ('optimizationPanel',), not autolock and not lock
-        )
+        enable_panels(("optimizationPanel",), not autolock and not lock)

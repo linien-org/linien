@@ -10,7 +10,8 @@ import rpyc
 from linien.client.config import get_saved_parameters, save_parameter
 from linien.client.exceptions import (
     GeneralConnectionErrorException,
-    InvalidServerVersionException, RPYCAuthenticationException,
+    InvalidServerVersionException,
+    RPYCAuthenticationException,
     ServerNotRunningException,
 )
 from linien.client.remote_parameters import RemoteParameters
@@ -20,10 +21,10 @@ from plumbum import colors
 
 # IMPORTANT: keep this import, because it eases interfacing with the python client
 from linien.common import MHz, Vpp, ANALOG_OUT_V, hash_username_and_password
+
 assert MHz
 assert Vpp
 assert ANALOG_OUT_V
-
 
 
 class RPYCClientWithAuthentication(rpyc.Service):
@@ -31,6 +32,7 @@ class RPYCClientWithAuthentication(rpyc.Service):
 
     This class is run on the client side and exposes the client's unique id
     to the server."""
+
     def __init__(self, uuid, user, password):
         super().__init__()
 
@@ -50,29 +52,55 @@ class RawRPYCClient:
 
     Once connected, communication between server and client mainly takes place
     using the `parameters` attribute."""
-    def __init__(self, server: str, port: int, user: str, password: str,
-            use_parameter_cache: bool=False, call_on_error: Callable =None):
+
+    def __init__(
+        self,
+        server: str,
+        port: int,
+        user: str,
+        password: str,
+        use_parameter_cache: bool = False,
+        call_on_error: Callable = None,
+    ):
         self.use_parameter_cache = use_parameter_cache
         self.uuid = "".join(random.choice(string.ascii_lowercase) for i in range(10))
 
         # for exposing client's uuid to server
         self.client_service = RPYCClientWithAuthentication(self.uuid, user, password)
 
-        self._connect(server, port, user, password, use_parameter_cache,
-            call_on_error=call_on_error)
+        self._connect(
+            server,
+            port,
+            user,
+            password,
+            use_parameter_cache,
+            call_on_error=call_on_error,
+        )
         self.connected = True
 
-    def _connect(self, server: str, port: int, user: str, password: str,
-            use_parameter_cache: bool, call_on_error: Callable=None):
+    def _connect(
+        self,
+        server: str,
+        port: int,
+        user: str,
+        password: str,
+        use_parameter_cache: bool,
+        call_on_error: Callable = None,
+    ):
         """This method just redirects to `connect_rpyc` and is intended to be
         overridden in inheriting classes."""
         return self._connect_rpyc(
-            server, port, user, password, use_parameter_cache,
-            call_on_error=call_on_error
+            server,
+            port,
+            user,
+            password,
+            use_parameter_cache,
+            call_on_error=call_on_error,
         )
 
-    def _connect_rpyc(self, server, port, user, password, use_parameter_cache,
-            call_on_error=None):
+    def _connect_rpyc(
+        self, server, port, user, password, use_parameter_cache, call_on_error=None
+    ):
         """Connect to the server using rpyc and instanciate `RemoteParameters`."""
         self.connection = rpyc.connect(server, port, service=self.client_service)
 
@@ -116,7 +144,7 @@ class LinienClient(RawRPYCClient):
         autostart_server=True,
         restore_parameters=False,
         use_parameter_cache=False,
-        on_connection_lost: Callable=None,
+        on_connection_lost: Callable = None,
     ):
         self.device = device
         self.host = device["host"]
@@ -135,14 +163,16 @@ class LinienClient(RawRPYCClient):
 
         super().__init__(
             self.host,
-            device.get('port', DEFAULT_SERVER_PORT),
+            device.get("port", DEFAULT_SERVER_PORT),
             user,
             password,
             use_parameter_cache=use_parameter_cache,
             call_on_error=on_connection_lost,
         )
 
-    def _connect(self, host, port, user, password, use_parameter_cache, call_on_error=None):
+    def _connect(
+        self, host, port, user, password, use_parameter_cache, call_on_error=None
+    ):
         self.connection = None
 
         i = -1
@@ -154,8 +184,12 @@ class LinienClient(RawRPYCClient):
             try:
                 print("try to connect to %s:%s" % (host, port))
                 self._connect_rpyc(
-                    host, port, user, password, use_parameter_cache,
-                    call_on_error=call_on_error
+                    host,
+                    port,
+                    user,
+                    password,
+                    use_parameter_cache,
+                    call_on_error=call_on_error,
                 )
                 self.control = self.connection.root
                 break
@@ -164,7 +198,7 @@ class LinienClient(RawRPYCClient):
                 print(colors.red | "Error: host %s not found" % host)
                 break
             except EOFError:
-                print('EOFError! Probably authentication failed')
+                print("EOFError! Probably authentication failed")
                 raise RPYCAuthenticationException()
             except Exception as e:
                 if not self.autostart_server:

@@ -3,8 +3,8 @@ from gateware.logic.pid import PID
 from migen import run_simulation
 from gateware.linien import LinienLogic
 
-def test_root():
 
+def test_root():
     def tb(root: LinienLogic):
         sweep: SweepCSR = root.sweep
         pid: PID = root.pid
@@ -65,7 +65,7 @@ def test_root():
                     assert pid_out > 0
 
                 yield root.request_lock.storage.eq(0)
-                print('turn on ramp again')
+                print("turn on ramp again")
                 yield
                 yield
             else:
@@ -74,15 +74,13 @@ def test_root():
                 for i in range(10):
                     yield
                     sweep_out = yield sweep.y
-                    print('!', sweep_out)
+                    print("!", sweep_out)
                     pid_running = yield pid.running
                     assert pid_running == 0
-
-
 
     dut = LinienLogic()
     run_simulation(dut, tb(dut), vcd_name="root.vcd")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     test_root()
