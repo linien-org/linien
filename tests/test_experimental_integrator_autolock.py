@@ -102,6 +102,7 @@ def get_lock_position_from_description(spectrum, description, x_scale):
             sign(value) == sign(current_threshold)
             and abs(value) >= abs(current_threshold)
             # TODO: this /2 division is very arbitrary. Probably should be more than / 2 and depend on various things
+            #       also: first peak should have special treatment bc of horizontal jitter
             and idx - last_peak_idx > (peak_position - previous_peak_position) * 0.5
         ):
             description_idx += 1
@@ -191,7 +192,7 @@ def test_get_description():
         plt.axvline(lock_positions[-1], color="green", alpha=0.5)
 
     plt.plot(spectra[0])
-    plt.plot(get_diff_at_x_scale(sum_up_spectrum(spectra[0]), x_scale))
+    # plt.plot(get_diff_at_x_scale(sum_up_spectrum(spectra[0]), x_scale))
     plt.axvspan(TARGET_IDXS[0], TARGET_IDXS[1], alpha=0.2, color="red")
 
     plt.legend()
