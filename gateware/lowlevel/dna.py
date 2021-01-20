@@ -27,18 +27,21 @@ class DNA(Module, AutoCSR):
         ###
 
         do = Signal()
-        cnt = Signal(max=2*n + 1)
+        cnt = Signal(max=2 * n + 1)
 
         self.specials += Instance(
             "DNA_PORT",
-            i_DIN=self.dna.status[-1], o_DOUT=do,
-            i_CLK=cnt[0], i_READ=cnt < 2, i_SHIFT=1)
+            i_DIN=self.dna.status[-1],
+            o_DOUT=do,
+            i_CLK=cnt[0],
+            i_READ=cnt < 2,
+            i_SHIFT=1,
+        )
 
         self.sync += [
-            If(cnt < 2*n,
+            If(
+                cnt < 2 * n,
                 cnt.eq(cnt + 1),
-                If(cnt[0],
-                    self.dna.status.eq(Cat(do, self.dna.status))
-                )
+                If(cnt[0], self.dna.status.eq(Cat(do, self.dna.status))),
             )
         ]

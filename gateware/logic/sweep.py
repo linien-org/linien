@@ -38,29 +38,21 @@ class Sweep(Module):
         dir = Signal()
 
         self.comb += [
-            If(self.run,
-                If(self.turn & ~turning,
-                    self.up.eq(~dir)
-                ).Else(
-                    self.up.eq(dir)
-                )
-            ).Else(
-                self.up.eq(1)
-            )
+            If(
+                self.run,
+                If(self.turn & ~turning, self.up.eq(~dir)).Else(self.up.eq(dir)),
+            ).Else(self.up.eq(1))
         ]
         self.sync += [
             self.trigger.eq(self.turn & self.up),
             turning.eq(self.turn),
             dir.eq(self.up),
-            If(~self.run,
-                self.y.eq(0)
-            ).Elif(~self.hold,
-                If(self.up,
-                    self.y.eq(self.y + self.step),
-                ).Else(
+            If(~self.run, self.y.eq(0)).Elif(
+                ~self.hold,
+                If(self.up, self.y.eq(self.y + self.step),).Else(
                     self.y.eq(self.y - self.step),
-                )
-            )
+                ),
+            ),
         ]
 
 
@@ -91,11 +83,11 @@ class SweepCSR(Filter):
             self.sweep.run.eq(~self.clear & self.run.storage),
             self.sweep.hold.eq(self.hold),
             self.limit.x.eq(self.sweep.y >> step_shift),
-            self.sweep.step.eq(self.step.storage)
+            self.sweep.step.eq(self.step.storage),
         ]
         self.sync += [
             self.limit.min.eq(Cat(min, min[-1])),
             self.limit.max.eq(Cat(max, max[-1])),
             self.sweep.turn.eq(self.limit.railed),
-            self.y.eq(self.limit.y)
+            self.y.eq(self.limit.y),
         ]

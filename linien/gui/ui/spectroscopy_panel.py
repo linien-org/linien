@@ -7,62 +7,77 @@ from linien.gui.utils_gui import param2ui
 class SpectroscopyPanel(QtWidgets.QWidget, CustomWidget):
     def __init__(self, *args):
         super().__init__(*args)
-        self.load_ui('spectroscopy_panel.ui')
+        self.load_ui("spectroscopy_panel.ui")
 
         def change_filter_frequency(filter_i):
-            self.get_param('filter_%d_frequency' % filter_i).value = \
-                getattr(self.ids, 'filter_%d_frequency' % filter_i).value()
+            self.get_param("filter_%d_frequency" % filter_i).value = getattr(
+                self.ids, "filter_%d_frequency" % filter_i
+            ).value()
             self.control.write_data()
 
         def change_filter_enabled(filter_i):
             filter_enabled = int(
-                getattr(self.ids, 'filter_%d_enabled' % filter_i).checkState() > 0
+                getattr(self.ids, "filter_%d_enabled" % filter_i).checkState() > 0
             )
-            self.get_param('filter_%d_enabled' % filter_i).value = filter_enabled
+            self.get_param("filter_%d_enabled" % filter_i).value = filter_enabled
             self.control.write_data()
 
         def change_filter_type(filter_i):
-            param = self.get_param('filter_%d_type' % filter_i)
-            current_idx = getattr(self.ids, 'filter_%d_type' % filter_i).currentIndex()
+            param = self.get_param("filter_%d_type" % filter_i)
+            current_idx = getattr(self.ids, "filter_%d_type" % filter_i).currentIndex()
             param.value = (LOW_PASS_FILTER, HIGH_PASS_FILTER)[current_idx]
             self.control.write_data()
 
         for filter_i in [1, 2]:
             for key, fct in {
-                'change_filter_%d_frequency': change_filter_frequency,
-                'change_filter_%d_enabled': change_filter_enabled,
-                'change_filter_%d_type': change_filter_type
+                "change_filter_%d_frequency": change_filter_frequency,
+                "change_filter_%d_enabled": change_filter_enabled,
+                "change_filter_%d_type": change_filter_type,
             }.items():
-                setattr(self, key % filter_i, lambda *args, fct=fct, filter_i=filter_i: fct(filter_i))
+                setattr(
+                    self,
+                    key % filter_i,
+                    lambda *args, fct=fct, filter_i=filter_i: fct(filter_i),
+                )
 
     def get_param(self, name):
-        return getattr(self.parameters, '%s_%s' % (name, 'a' if self.channel == 0 else 'b'))
+        return getattr(
+            self.parameters, "%s_%s" % (name, "a" if self.channel == 0 else "b")
+        )
 
     def ready(self):
         self.ids.signal_offset.setKeyboardTracking(False)
         self.ids.signal_offset.valueChanged.connect(self.change_signal_offset)
         self.ids.demodulation_phase.setKeyboardTracking(False)
         self.ids.demodulation_phase.valueChanged.connect(self.change_demod_phase)
-        self.ids.demodulation_frequency.currentIndexChanged.connect(self.change_demod_multiplier)
+        self.ids.demodulation_frequency.currentIndexChanged.connect(
+            self.change_demod_multiplier
+        )
 
         for filter_i in [1, 2]:
-            _get = lambda parent, attr, filter_i=filter_i: getattr(parent, attr % filter_i)
-            _get(self.ids, 'filter_%d_enabled') \
-                .stateChanged.connect(_get(self, 'change_filter_%d_enabled'))
-            freq_input = _get(self.ids, 'filter_%d_frequency')
+            _get = lambda parent, attr, filter_i=filter_i: getattr(
+                parent, attr % filter_i
+            )
+            _get(self.ids, "filter_%d_enabled").stateChanged.connect(
+                _get(self, "change_filter_%d_enabled")
+            )
+            freq_input = _get(self.ids, "filter_%d_frequency")
             freq_input.setKeyboardTracking(False)
-            freq_input.valueChanged.connect(_get(self, 'change_filter_%d_frequency'))
-            _get(self.ids, 'filter_%d_type') \
-                .currentIndexChanged.connect(_get(self, 'change_filter_%d_type'))
+            freq_input.valueChanged.connect(_get(self, "change_filter_%d_frequency"))
+            _get(self.ids, "filter_%d_type").currentIndexChanged.connect(
+                _get(self, "change_filter_%d_type")
+            )
 
         def automatic_changed(value):
-            self.get_param('filter_automatic').value = value
+            self.get_param("filter_automatic").value = value
             self.control.write_data()
+
         self.ids.filter_automatic.stateChanged.connect(automatic_changed)
 
         def invert_changed(value):
-            self.get_param('invert').value = bool(value)
+            self.get_param("invert").value = bool(value)
             self.control.write_data()
+
         self.ids.invert.stateChanged.connect(invert_changed)
 
     def connection_established(self):
@@ -70,64 +85,50 @@ class SpectroscopyPanel(QtWidgets.QWidget, CustomWidget):
         self.control = self.app().control
         self.parameters = params
 
-        #self.close_button.clicked.connect(self.close_app)
-        #self.shutdown_button.clicked.connect(self.shutdown_server)
+        # self.close_button.clicked.connect(self.close_app)
+        # self.shutdown_button.clicked.connect(self.shutdown_server)
 
+        param2ui(self.get_param("demodulation_phase"), self.ids.demodulation_phase)
         param2ui(
-            self.get_param('demodulation_phase'),
-            self.ids.demodulation_phase
-        )
-        param2ui(
-            self.get_param('demodulation_multiplier'),
+            self.get_param("demodulation_multiplier"),
             self.ids.demodulation_frequency,
-            lambda value: value - 1
+            lambda value: value - 1,
         )
-        param2ui(
-            self.get_param('offset'),
-            self.ids.signal_offset,
-            lambda v: v / 8191.0
-        )
-        param2ui(
-            self.get_param('invert'),
-            self.ids.invert
-        )
-        param2ui(
-            self.get_param('filter_automatic'),
-            self.ids.filter_automatic
-        )
+        param2ui(self.get_param("offset"), self.ids.signal_offset, lambda v: v / 8191.0)
+        param2ui(self.get_param("invert"), self.ids.invert)
+        param2ui(self.get_param("filter_automatic"), self.ids.filter_automatic)
+
         def filter_automatic_changed(value):
             self.ids.automatic_filtering_enabled.setVisible(value)
             self.ids.automatic_filtering_disabled.setVisible(not value)
-        self.get_param('filter_automatic').change(filter_automatic_changed)
+
+        self.get_param("filter_automatic").on_change(filter_automatic_changed)
 
         for filter_i in [1, 2]:
             param2ui(
-                self.get_param('filter_%d_enabled' % filter_i),
-                getattr(self.ids, 'filter_%d_enabled' % filter_i)
+                self.get_param("filter_%d_enabled" % filter_i),
+                getattr(self.ids, "filter_%d_enabled" % filter_i),
             )
             param2ui(
-                self.get_param('filter_%d_frequency' % filter_i),
-                getattr(self.ids, 'filter_%d_frequency' % filter_i)
+                self.get_param("filter_%d_frequency" % filter_i),
+                getattr(self.ids, "filter_%d_frequency" % filter_i),
             )
             param2ui(
-                self.get_param('filter_%d_type' % filter_i),
-                getattr(self.ids, 'filter_%d_type' % filter_i),
-                lambda type_: {
-                    LOW_PASS_FILTER: 0,
-                    HIGH_PASS_FILTER: 1
-                }[type_]
+                self.get_param("filter_%d_type" % filter_i),
+                getattr(self.ids, "filter_%d_type" % filter_i),
+                lambda type_: {LOW_PASS_FILTER: 0, HIGH_PASS_FILTER: 1}[type_],
             )
 
     def change_signal_offset(self):
-        self.get_param('offset').value = self.ids.signal_offset.value() * 8191
+        self.get_param("offset").value = self.ids.signal_offset.value() * 8191
         self.control.write_data()
 
     def change_demod_phase(self):
-        self.get_param('demodulation_phase').value = self.ids.demodulation_phase.value()
+        self.get_param("demodulation_phase").value = self.ids.demodulation_phase.value()
         self.control.write_data()
 
     def change_demod_multiplier(self, idx):
-        self.get_param('demodulation_multiplier').value = idx + 1
+        self.get_param("demodulation_multiplier").value = idx + 1
         self.control.write_data()
 
 

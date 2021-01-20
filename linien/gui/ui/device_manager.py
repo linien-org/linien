@@ -2,25 +2,33 @@ from PyQt5 import QtGui, QtWidgets, QtCore
 from PyQt5.QtCore import QThread, pyqtSignal
 from threading import Thread
 from traceback import print_exc
-from paramiko.ssh_exception import AuthenticationException
+from paramiko.ssh_exception import AuthenticationException as SSHAuthenticationException
 
 import linien
 from linien.client.config import load_device_data, save_device_data
 from linien.gui.widgets import CustomWidget
 from linien.client.connection import LinienClient
-from linien.gui.dialogs import LoadingDialog, error_dialog, execute_command, \
-    question_dialog
+from linien.gui.dialogs import (
+    LoadingDialog,
+    error_dialog,
+    execute_command,
+    question_dialog,
+)
 from linien.gui.ui.new_device_dialog import NewDeviceDialog
 from linien.gui.utils_gui import set_window_icon
-from linien.client.exceptions import GeneralConnectionErrorException, \
-    InvalidServerVersionException, ServerNotInstalledException
+from linien.client.exceptions import (
+    GeneralConnectionErrorException,
+    InvalidServerVersionException,
+    RPYCAuthenticationException,
+    ServerNotInstalledException,
+)
 
 
 class DeviceManager(QtGui.QMainWindow, CustomWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.load_ui('device_manager.ui')
-        self.setWindowTitle('Linien spectroscopy lock %s' % linien.__version__)
+        self.load_ui("device_manager.ui")
+        self.setWindowTitle("Linien spectroscopy lock %s" % linien.__version__)
         set_window_icon(self)
 
     def ready(self):
@@ -37,7 +45,7 @@ class DeviceManager(QtGui.QMainWindow, CustomWidget):
         lst.clear()
 
         for device in devices:
-            lst.addItem('%s (%s)' % (device['name'], device['host']))
+            lst.addItem("%s (%s)" % (device["name"], device["host"]))
 
         if autoload and len(devices) == 1:
             self.connect_to_device(devices[0])
@@ -51,12 +59,14 @@ class DeviceManager(QtGui.QMainWindow, CustomWidget):
         self.connect_to_device(devices[self.get_list_index()])
 
     def connect_to_device(self, device):
-        loading_dialog = LoadingDialog(self, device['host'])
+        loading_dialog = LoadingDialog(self, device["host"])
         loading_dialog.show()
 
         aborted = {}
+
         def was_aborted(*args):
-            aborted['aborted'] = True
+            aborted["aborted"] = True
+
         loading_dialog.aborted.connect(was_aborted)
 
         self.t = ConnectionThread(device)
@@ -65,6 +75,7 @@ class DeviceManager(QtGui.QMainWindow, CustomWidget):
             loading_dialog.hide()
             if not aborted:
                 self.app.connected(conn, conn.parameters, conn.control)
+
         self.t.connected.connect(connected)
 
         def server_not_installed():
@@ -74,38 +85,46 @@ class DeviceManager(QtGui.QMainWindow, CustomWidget):
                 display_question = """The server is not yet installed on the device. Should it be installed? (Requires internet connection on RedPitaya)"""
                 if question_dialog(self, display_question):
                     self.install_linien_server(
-                        device, version=client_version if client_version != 'dev' else None
+                        device,
+                        version=client_version if client_version != "dev" else None,
                     )
+
         self.t.server_not_installed.connect(server_not_installed)
 
         def invalid_server_version(remote_version, client_version):
             loading_dialog.hide()
             if not aborted:
-                if client_version != 'dev':
-                    display_question = \
-                        "The server version (%s) does not match the client (%s) version." \
-                        "Should the corresponding server version be installed?" \
+                if client_version != "dev":
+                    display_question = (
+                        "The server version (%s) does not match the client (%s) version."
+                        "Should the corresponding server version be installed?"
                         % (remote_version, client_version)
+                    )
                     if question_dialog(self, display_question):
                         self.install_linien_server(device, version=client_version)
                 else:
-                    display_error = \
-                        "A production version is installed on the RedPitaya, " \
-                        "but the client uses a development version. Stop the " \
-                        "server and uninstall the version on the RedPitaya using\n" \
-                        "    linien_stop_server;\n" \
-                        "    pip3 uninstall linien-server\n" \
+                    display_error = (
+                        "A production version is installed on the RedPitaya, "
+                        "but the client uses a development version. Stop the "
+                        "server and uninstall the version on the RedPitaya using\n"
+                        "    linien_stop_server;\n"
+                        "    pip3 uninstall linien-server\n"
                         "before trying it again."
+                    )
                     error_dialog(self, display_error)
+
         self.t.invalid_server_version.connect(invalid_server_version)
 
         def authentication_exception():
             loading_dialog.hide()
             if not aborted:
-                display_error = 'Error at SSH authentication. ' \
-                        'Check username and password (by default both are "root") and verify that you ' \
-                        'don\'t have any offending SSH keys in your known hosts file.'
+                display_error = (
+                    "Error at authentication. "
+                    'Check username and password (by default both are "root") and verify that you '
+                    "don't have any offending SSH keys in your known hosts file."
+                )
                 error_dialog(self, display_error)
+
         self.t.authentication_exception.connect(authentication_exception)
 
         def general_connection_error():
@@ -113,39 +132,46 @@ class DeviceManager(QtGui.QMainWindow, CustomWidget):
             if not aborted:
                 display_error = "Unable to connect to device."
                 error_dialog(self, display_error)
+
         self.t.general_connection_error.connect(general_connection_error)
 
         def exception():
             loading_dialog.hide()
             if not aborted:
-                display_error = 'Exception occured when connecting to the device.'
+                display_error = "Exception occured when connecting to the device."
                 error_dialog(self, display_error)
+
         self.t.exception.connect(exception)
 
         def connection_lost():
-            error_dialog(self, 'Lost connection to the server!')
+            error_dialog(self, "Lost connection to the server!")
             self.app.close()
+
         self.t.connection_lost.connect(connection_lost)
 
         self.t.start()
 
     def install_linien_server(self, device, version=None):
-        version_string = ''
-        stop_server_command = ''
+        version_string = ""
+        stop_server_command = ""
 
         if version is not None:
-            version_string = '==' + version
+            version_string = "==" + version
             # stop server if another version of linien is installed
-            stop_server_command = 'linien_stop_server;'
+            stop_server_command = "linien_stop_server;"
 
         self.ssh_command = execute_command(
-            self, device['host'], device['username'], device['password'],
+            self,
+            device["host"],
+            device["username"],
+            device["password"],
             (
-                '%s '
-                'pip3 install linien-server%s --no-cache-dir; '
-                'linien_install_requirements; '
-            ) % (stop_server_command, version_string),
-            lambda: self.connect_to_device(device)
+                "%s "
+                "pip3 install linien-server%s --no-cache-dir; "
+                "linien_install_requirements; "
+            )
+            % (stop_server_command, version_string),
+            lambda: self.connect_to_device(device),
         )
 
     def new_device(self):
@@ -226,7 +252,7 @@ class ConnectionThread(QThread):
                 autostart_server=True,
                 restore_parameters=True,
                 use_parameter_cache=True,
-                on_connection_lost=self.on_connection_lost
+                on_connection_lost=self.on_connection_lost,
             )
             self.connected.emit(conn)
 
@@ -236,7 +262,7 @@ class ConnectionThread(QThread):
         except InvalidServerVersionException as e:
             return self.invalid_server_version.emit(e.remote_version, e.client_version)
 
-        except AuthenticationException:
+        except (SSHAuthenticationException, RPYCAuthenticationException):
             return self.authentication_exception.emit()
 
         except GeneralConnectionErrorException:
@@ -248,4 +274,3 @@ class ConnectionThread(QThread):
 
     def on_connection_lost(self):
         self.connection_lost.emit()
-

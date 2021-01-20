@@ -27,14 +27,14 @@ def flip32(data):
     b = memoryview(data)
     d = bytearray(len(data))
     for offset in range(0, len(data), sl.size):
-         sb.pack_into(d, offset, *sl.unpack_from(b, offset))
+        sb.pack_into(d, offset, *sl.unpack_from(b, offset))
     return d
 
 
 def bit2bin(bit, bin, flip=False):
     bitfile = open(bit, "rb")
 
-    l, = struct.unpack(">H", bitfile.read(2))
+    (l,) = struct.unpack(">H", bitfile.read(2))
     if l != 9:
         raise ValueError("Missing <0009> header, not a bit file")
 
@@ -55,7 +55,7 @@ def bit2bin(bit, bin, flip=False):
             name = {b"b": "Partname", b"c": "Date", b"d": "Time"}[key]
             print(name, d)
         elif key == b"e":
-            l, = struct.unpack(">I", bitfile.read(4))
+            (l,) = struct.unpack(">I", bitfile.read(4))
             print("found binary data length:", l)
             d = bitfile.read(l)
             if flip:
@@ -68,10 +68,18 @@ def bit2bin(bit, bin, flip=False):
 
 if __name__ == "__main__":
     import argparse
+
     parser = argparse.ArgumentParser(
-            description="Convert FPGA bit files to raw bin format suitable for flashing")
-    parser.add_argument("-f", "--flip", dest="flip", action="store_true",
-            default=False, help="Flip 32-bit endianess (needed for Zynq)")
+        description="Convert FPGA bit files to raw bin format suitable for flashing"
+    )
+    parser.add_argument(
+        "-f",
+        "--flip",
+        dest="flip",
+        action="store_true",
+        default=False,
+        help="Flip 32-bit endianess (needed for Zynq)",
+    )
     parser.add_argument("bitfile", help="Input bit file name")
     parser.add_argument("binfile", help="Output bin file name")
     args = parser.parse_args()

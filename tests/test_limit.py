@@ -1,8 +1,8 @@
 from migen import run_simulation
 from gateware.logic.limit import Limit
 
-def test_limit():
 
+def test_limit():
     def tb(limit, n):
         m = 1 << 10
         yield limit.max.eq(m)

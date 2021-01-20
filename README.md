@@ -12,7 +12,7 @@ PID](https://github.com/quartiq/redpid).
 Features
 --------
 
--   **All included**: Sinusoidal modulation (up to 50 MHz), demodulation, filtering
+-   **All included**: Sinusoidal modulation (up to 50 MHz), demodulation (1f to 5f), filtering
     and servo implemented on the FPGA.
 -   **Client-server architecture**: Autonomous operation on RedPitaya.
     One or multiple GUI clients or python clients can connect to the server.
@@ -110,23 +110,39 @@ Using the application
 
 ### First run: connecting to the RedPitaya
 
-After launching the application you have to set up a new device. The host address is given by <pre>rp-<b>XXXXXX.local</b></pre>, where **XXXXXX** are the last 6 digits of the device's MAC address. You will find them on a sticker on the ethernet port:
+After launching Linien you should supply details of your RedPitaya. Its host address is usually given by <pre>rp-<b>XXXXXX.local</b></pre>, where **XXXXXX** are the last 6 digits of the device's MAC address. You will find them on a sticker on the ethernet port:
 
 ![image](https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/docs/mac.jpg)
 
-Default value for user name and password is `root`.
+Default value for user name and password is `root` (but you should probably change the password...).
 
-When connecting to a RedPitaya for the first time, the application offers you to install the server component on the device. Please note that this requires internet access on the RedPitaya (not only LAN access).
+When connecting to a RedPitaya for the first time, the Linien offers you to install the server component. Please note that this requires internet access on the RedPitaya (LAN access is not sufficient).
 
-After installation of the server libraries, Linien will start the server and connect to it. You never need to start or stop anything on the server manually as the client automatically takes care of this.
+Once server libraries are installed, Linien will automatically run the server and connect to it. There's no need ever to start or stop anything on the server manually as the client takes care of this.
 
-The server operates autonomously: closing the client application doesn't have any influence on the lock status. You may also start multiple clients connecting to the same server.
+The server now operates autonomously: closing the client application doesn't have any influence on the lock status. You may also start multiple clients connecting to the same server.
 
 ### Setting things up
 
+The first thing to set up is the configuration of input and output signals:
+
+![image](https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/docs/explain-pins.png)
+
+Head over to *Modulation, Ramp & Spectroscopy* and set modulation frequency and amplitude. Once your setup is working, you should see something like this:
+
+![image](https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/docs/spectrum.jpg)
+
+The bright red line is the demodulated spectroscopy signal. The dark red area is the signal strength obtained by [iq demodulation](https://en.wikipedia.org/wiki/In-phase_and_quadrature_components), i.e. the demodulation signal obtained when demodulating in phase at this point.
+
+### Optimization of spectroscopy parameters using machine learning
+
+Linien may use machine learning to maximize the slope of a line. As for the autolock, click and drag over the line you want to optimize. Then, the line is centered and the optimization starts. Please note that this only works if initially a distinguished zero-crossing is visible.
+
+![image](https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/docs/optimization.gif)
+
 ### Using the autolock
 
-In order to use the autolock, you should enter some PID parameters first. Note that the sign of the parameters is determined automatically. After clicking the green button, you can select the line you want to lock to by clicking and dragging over it. The autolock will then center this line, decrease the scan range and try to lock to the middle between minimum and maximum contained in your selection.
+In order to use the autolock, enter some PID parameters first. Note that the sign of the parameters is determined automatically. After clicking the green button, you can select the line you want to lock to by clicking and dragging over it. The autolock will then center this line, decrease the scan range and try to lock to the middle between minimum and maximum contained in your selection.
 
 ![image](https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/docs/screencast.gif)
 
@@ -139,30 +155,42 @@ If you experience trouble with the autolock, this is most likely due to a bad si
 
 ### Using the manual lock
 
-If you have problems with the autolock, you can also lock manually. For that, use the manual controls in the top (`Zoom` and `Position`) to center the line you want to lock to. Then, select whether the target slope is rising or falling and click the green button.
+If you have problems with the autolock, you may also lock manually. Activate the *Manual* tab and use the controls in the top (*Zoom* and *Position*) to center the line you want to lock to. Choose whether the target slope is rising or falling and click the green button.
 
-### Optimization of spectroscopy parameters using machine learning
+Transfer function
+-----------------
 
-Linien may use machine learning to maximize the slope of a line. As for the autolock, you have to click and drag over the line you want to optimize. Then, the line is centered and the optimization starts. Please note that this only works if initially a distinguished zero-crossing is visible.
+Transfer function of the PID is given by
+```
+L(f) = kp + ki / f + kd * f
+```
+with `kp=P/4096`, `ki=I/0.1s` and `kd=D / (2**6 * 125e6)`.
+Note that this equation does not account for filtering before the PID (cf. *Modulation, Ramp & Spectroscopy* tab).
+
+![image](https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/docs/transfer.png)
 
 Scripting interface
 -------------------
 
-In addition to the GUI, Linien can also be controlled using python
-scripts. For that purpose, installation via pip is required (see above).
+In addition to the GUI, Linien can also be controlled using python. For that purpose, installation via pip is required (see above).
 
-Then, you should start the Linien server on your RedPitaya. This can be done by running the client and connecting to the device (see above). Alternatively, you may connect via SSH and execute `linien_start_server` on the RedPitaya.
+Then, you should start the Linien server on your RedPitaya. This can be done by running the GUI client and connecting to the device (see above). Alternatively, `LinienClient` has the option `autostart_server`.
 
 Once the server is up and running, you can connect using python:
 ```python
 from linien.client.connection import LinienClient, MHz, Vpp
 c = LinienClient(
-    {'host': 'rp-XXXXXX.local', 'username': 'root', 'password': 'root'}, autostart_server=True,
+    {'host': 'rp-XXXXXX.local', 'username': 'root', 'password': 'change-it-to-something-else!'},
+    # starts the server if it is not running
+    autostart_server=True,
     restore_parameters=False
 )
 
 # read out the modulation frequency
 print(c.parameters.modulation_frequency.value / MHz)
+
+# have a look at https://github.com/hermitdemschoenenleben/linien/blob/master/linien/server/parameters.py
+# for a documentation of all parameters that can be accessed and modified
 
 # set modulation amplitude
 c.parameters.modulation_amplitude.value = 1 * Vpp
@@ -179,6 +207,24 @@ c.parameters.gpio_n_out.value = 0b01010101 # 4 on, 4 off
 
 # again, we have to call write_data in order to write the data to the FPGA
 c.connection.root.write_data()
+
+# it is also possible to set up a callback function that is called whenever a
+# parameter changes (remember to call `call_listeners()` periodically)
+def on_change(value):
+    # this function is called whenever `my_param` changes on the server.
+    # note that this only works if `call_listeners` is called from
+    # time to time as this function is responsible for checking for
+    # changed parameters.
+    print('parameter arrived!', value)
+
+c.parameters.modulation_amplitude.on_change(on_change)
+
+from time import sleep
+for i in range(10):
+    c.parameters.call_listeners()
+    if i == 2:
+        c.parameters.modulation_amplitude.value = 0.1 * Vpp
+    sleep(.1)
 
 # plot control and error signal
 import pickle
@@ -205,7 +251,7 @@ plt.show()
 
 For a full list of parameters that can be controlled or accessed have a
 look at
-[parameters.py](https://github.com/hermitdemschoenenleben/linien/blob/master/linien/server/parameters.py).
+[parameters.py](https://github.com/hermitdemschoenenleben/linien/blob/master/linien/server/parameters.py). Remember that changed parameters are not written to the FPGA unless `c.connection.root.write_data()` is called.
 
 Updating Linien
 ---------------
@@ -288,7 +334,7 @@ For building the FPGA image, you need to install Xilinx Vivado first. Then, call
 
 First, update the version number in the `checked_out_repo/linien/VERSION` file. Then you can build and upload the package to pypi using `scripts/upload_pypi.sh`. Finally, build the standalone client using `build_standalone_client.sh` (you have
 to do this on the platform you want to build the standalone client for). When on Windows 10, both scripts have to be started in Windows Powershell.
-In the end, the standalone client should be uploaded to a github release.
+Upload the standalone to a github release. Release the new version to flathub.
 
 Troubleshooting
 ---------------

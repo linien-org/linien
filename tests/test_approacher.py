@@ -13,8 +13,8 @@ def peak(x):
 
 
 def spectrum_for_testing(x):
-    central_peak = (peak(x) * 2048)
-    smaller_peaks = (peak(x-10) * 1024) - (peak(x+10) * 1024)
+    central_peak = peak(x) * 2048
+    smaller_peaks = (peak(x - 10) * 1024) - (peak(x + 10) * 1024)
     return central_peak + smaller_peaks + Y_SHIFT
 
 
@@ -36,16 +36,20 @@ class FakeControl:
         pass
 
     def exposed_write_data(self):
-        print(f'write: center={self.parameters.center.value} amp={self.parameters.ramp_amplitude.value}')
+        print(
+            f"write: center={self.parameters.center.value} amp={self.parameters.ramp_amplitude.value}"
+        )
 
 
 def test_approacher():
     def _get_signal(shift):
-        return get_signal(parameters.ramp_amplitude.value, parameters.center.value, shift)
+        return get_signal(
+            parameters.ramp_amplitude.value, parameters.center.value, shift
+        )
 
-    for ref_shift in (-.4, -.2, .3):
-        for target_shift in (-.3, .6):
-            print(f'----- ref_shift={ref_shift}, target_shift={target_shift} -----')
+    for ref_shift in (-0.4, -0.2, 0.3):
+        for target_shift in (-0.3, 0.6):
+            print(f"----- ref_shift={ref_shift}, target_shift={target_shift} -----")
             parameters = Parameters()
             control = FakeControl(parameters)
 
@@ -56,9 +60,7 @@ def test_approacher():
             reference_signal = _get_signal(ref_shift)
 
             central_y, target_slope_rising, _, rolled_reference_signal = get_lock_point(
-                reference_signal,
-                0,
-                len(reference_signal)
+                reference_signal, 0, len(reference_signal)
             )
 
             """plt.plot(reference_signal)
@@ -73,7 +75,8 @@ def test_approacher():
                 rolled_reference_signal,
                 100,
                 central_y,
-                wait_time_between_current_corrections=0)
+                wait_time_between_current_corrections=0,
+            )
 
             found = False
 
@@ -88,7 +91,8 @@ def test_approacher():
 
             assert found
             assert abs((-1 * target_shift) - parameters.center.value) < 0.1
-            print('found!')
+            print("found!")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     test_approacher()

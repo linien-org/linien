@@ -19,9 +19,15 @@ def get_csrmap(banks):
     for name, csrs, map_addr, rmap in banks:
         reg_addr = 0
         for csr in csrs:
-            yield [name, csr.name, map_addr, reg_addr, csr.size,
-                   not hasattr(csr, "status")]
-            reg_addr += (csr.size + 8 - 1)//8
+            yield [
+                name,
+                csr.name,
+                map_addr,
+                reg_addr,
+                csr.size,
+                not hasattr(csr, "status"),
+            ]
+            reg_addr += (csr.size + 8 - 1) // 8
 
 
 def py_csrmap(it, fil):
@@ -44,6 +50,6 @@ if __name__ == "__main__":
     fil.close()
 
     platform.add_source_dir("verilog")
-    build_dir = 'fpga_build'
+    build_dir = "fpga_build"
     platform.build(root, build_name="top", build_dir=build_dir)
     bit2bin("%s/top.bit" % build_dir, "%s/linien.bin" % build_dir, flip=True)

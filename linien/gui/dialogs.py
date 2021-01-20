@@ -2,8 +2,7 @@ import re
 from plumbum import colors
 
 from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtWidgets import QListWidget, QVBoxLayout, \
-    QDialog, QMessageBox
+from PyQt5.QtWidgets import QListWidget, QVBoxLayout, QDialog, QMessageBox
 from pyqtgraph import QtCore
 
 from linien.client.utils import connect_ssh
@@ -17,8 +16,10 @@ class SSHCommandOutputWidget(QListWidget):
         self.setSelectionMode(self.NoSelection)
 
     def execute(self, ssh, command):
-        self.stdin, self.stdout, self.stderr = ssh.exec_command(command, bufsize=0, get_pty=True)
-        self.addItem('>>> %s' % command)
+        self.stdin, self.stdout, self.stderr = ssh.exec_command(
+            command, bufsize=0, get_pty=True
+        )
+        self.addItem(">>> %s" % command)
         self.show_output()
 
     def show_output(self):
@@ -29,11 +30,11 @@ class SSHCommandOutputWidget(QListWidget):
                 toread = len(output.channel.in_buffer)
                 if toread == 0:
                     continue
-                buf = output.read(toread).decode('utf8').rstrip('\n')
+                buf = output.read(toread).decode("utf8").rstrip("\n")
 
-                for part in buf.split('\n'):
-                    for subpart_i, subpart in enumerate(part.split('\r')):
-                        subpart = subpart.strip('\n').strip('\r').strip('\r\n')
+                for part in buf.split("\n"):
+                    for subpart_i, subpart in enumerate(part.split("\r")):
+                        subpart = subpart.strip("\n").strip("\r").strip("\r\n")
                         if subpart:
                             print(
                                 (colors.red if output == self.stderr else colors.reset)
@@ -45,7 +46,9 @@ class SSHCommandOutputWidget(QListWidget):
 
                             self.addItem(
                                 # filter out special things like color codes etc.
-                                re.sub(r'\x1b(\[.*?[@-~]|\].*?(\x07|\x1b\\))', '', subpart)
+                                re.sub(
+                                    r"\x1b(\[.*?[@-~]|\].*?(\x07|\x1b\\))", "", subpart
+                                )
                             )
 
                 self.scrollToBottom()
@@ -54,7 +57,7 @@ class SSHCommandOutputWidget(QListWidget):
 
 
 def execute_command(parent, host, user, password, command, callback):
-    print((colors.bold | 'Execute command: ') + command)
+    print((colors.bold | "Execute command: ") + command)
 
     ssh = connect_ssh(host, user, password)
 
@@ -72,6 +75,7 @@ def execute_command(parent, host, user, password, command, callback):
     def after_command():
         window.hide()
         callback()
+
     widget.command_ended.connect(after_command)
 
     widget.execute(ssh, command)
@@ -86,8 +90,8 @@ class LoadingDialog(QMessageBox):
         super().__init__(parent)
 
         self.setIcon(QMessageBox.Information)
-        self.setText('Connecting to %s' % host)
-        self.setWindowTitle('Connecting')
+        self.setText("Connecting to %s" % host)
+        self.setWindowTitle("Connecting")
         self.setModal(True)
         self.setWindowModality(QtCore.Qt.WindowModal)
         self.setStandardButtons(QMessageBox.NoButton)
@@ -103,18 +107,12 @@ class LoadingDialog(QMessageBox):
 
 
 def error_dialog(parent, error):
-    return QMessageBox.question(
-        parent, 'Error', error,
-        QMessageBox.Ok,
-        QMessageBox.Ok
-    )
+    return QMessageBox.question(parent, "Error", error, QMessageBox.Ok, QMessageBox.Ok)
 
 
 def question_dialog(parent, question):
     reply = QMessageBox.question(
-        parent, 'Error', question,
-        QMessageBox.Yes | QMessageBox.No,
-        QMessageBox.Yes
+        parent, "Error", question, QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes
     )
 
     return reply == QMessageBox.Yes

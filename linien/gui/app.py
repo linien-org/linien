@@ -11,7 +11,7 @@ from pyqtgraph.Qt import QtCore, QtGui
 
 # it may seem odd to include '.', but for some reason this is needed for
 # standalone windows executable
-sys.path += ['../', os.path.join('..', '..'), '.']
+sys.path += ["../", os.path.join("..", ".."), "."]
 
 import linien
 from linien.gui.widgets import CustomWidget, ui_path
@@ -39,12 +39,11 @@ class QTApp(QtCore.QObject):
 
         self.app.aboutToQuit.connect(lambda: self.app.quit())
 
-
         super().__init__()
 
     def connected(self, connection, parameters, control):
         self.device_manager.hide()
-        self.main_window.show(connection.host, connection.device['name'])
+        self.main_window.show(connection.host, connection.device["name"])
 
         self.connection = connection
         self.control = control
@@ -58,17 +57,23 @@ class QTApp(QtCore.QObject):
             try:
                 instance.connection_established()
             except:
-                print('the error below happend when calling connection_established of a widget. This may happen if the widget was recently destroyed.')
+                print(
+                    "the error below happend when calling connection_established of a widget. This may happen if the widget was recently destroyed."
+                )
                 print_exc()
 
         self.call_listeners()
 
     def call_listeners(self):
-        if hasattr(self, 'connection') and self.connection and self.connection.connected:
+        if (
+            hasattr(self, "connection")
+            and self.connection
+            and self.connection.connected
+        ):
             try:
                 self.parameters.call_listeners()
             except:
-                print(colors.red | 'call_listeners() failed')
+                print(colors.red | "call_listeners() failed")
                 print_exc()
 
             QtCore.QTimer.singleShot(50, self.call_listeners)
@@ -94,7 +99,7 @@ class QTApp(QtCore.QObject):
 
 
 def run_application():
-    print('Linien spectroscopy lock version ' + (colors.bold | linien.__version__))
+    print("Linien spectroscopy lock version " + (colors.bold | linien.__version__))
     gui = QTApp()
 
     # catch ctrl-c and shutdown
@@ -102,5 +107,5 @@ def run_application():
     sys.exit(gui.app.exec_())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     run_application()

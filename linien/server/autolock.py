@@ -1,13 +1,19 @@
 import pickle
 import traceback
 import numpy as np
-from linien.common import get_lock_point, combine_error_signal, \
-    check_plot_data, ANALOG_OUT0, SpectrumUncorrelatedException
+from linien.common import (
+    get_lock_point,
+    combine_error_signal,
+    check_plot_data,
+    ANALOG_OUT0,
+    SpectrumUncorrelatedException,
+)
 from linien.server.approach_line import Approacher
 
 
 class Autolock:
     """Spectroscopy autolock based on correlation."""
+
     def __init__(self, control, parameters, wait_time_between_current_corrections=None):
         self.control = control
         self.parameters = parameters
@@ -22,7 +28,9 @@ class Autolock:
 
         self.reset_properties()
 
-        self.wait_time_between_current_corrections = wait_time_between_current_corrections
+        self.wait_time_between_current_corrections = (
+            wait_time_between_current_corrections
+        )
 
     def reset_properties(self):
         # we check each parameter before setting it because otherwise
@@ -56,7 +64,9 @@ class Autolock:
         self.record_first_error_signal(spectrum)
 
         self.initial_ramp_speed = self.parameters.ramp_speed.value
-        self.parameters.autolock_initial_ramp_amplitude.value = self.parameters.ramp_amplitude.value
+        self.parameters.autolock_initial_ramp_amplitude.value = (
+            self.parameters.ramp_amplitude.value
+        )
         self.initial_ramp_center = self.parameters.center.value
 
         self.add_data_listener()
@@ -64,7 +74,7 @@ class Autolock:
     def add_data_listener(self):
         if not self._data_listener_added:
             self._data_listener_added = True
-            self.parameters.to_plot.change(self.react_to_new_spectrum)
+            self.parameters.to_plot.on_change(self.react_to_new_spectrum)
 
     def remove_data_listener(self):
         self._data_listener_added = False
@@ -104,14 +114,14 @@ class Autolock:
             return
 
         if is_locked:
-            error_signal = plot_data['error_signal']
-            control_signal = plot_data['control_signal']
+            error_signal = plot_data["error_signal"]
+            control_signal = plot_data["control_signal"]
         else:
             combined_error_signal = combine_error_signal(
-                (plot_data['error_signal_1'], plot_data['error_signal_2']),
+                (plot_data["error_signal_1"], plot_data["error_signal_2"]),
                 self.parameters.dual_channel.value,
                 self.parameters.channel_mixing.value,
-                self.parameters.combined_offset.value
+                self.parameters.combined_offset.value,
             )
 
         try:
@@ -121,12 +131,17 @@ class Autolock:
                 # center current multiple times.
                 if self.approacher is None:
                     self.approacher = Approacher(
-                        self.control, self.parameters, self.first_error_signal,
-                        self.target_zoom, self.central_y,
+                        self.control,
+                        self.parameters,
+                        self.first_error_signal,
+                        self.target_zoom,
+                        self.central_y,
                         allow_ramp_speed_change=True,
-                        wait_time_between_current_corrections=self.wait_time_between_current_corrections
+                        wait_time_between_current_corrections=self.wait_time_between_current_corrections,
                     )
-                approaching_finished = self.approacher.approach_line(combined_error_signal)
+                approaching_finished = self.approacher.approach_line(
+                    combined_error_signal
+                )
                 if approaching_finished:
                     self._lock()
 
@@ -139,12 +154,14 @@ class Autolock:
                 # we are done with approaching and have started the lock.
                 # skip some data and check whether we really are in lock
                 # afterwards.
-                return self.after_lock(error_signal, control_signal, plot_data.get('slow'))
+                return self.after_lock(
+                    error_signal, control_signal, plot_data.get("slow")
+                )
 
         except SpectrumUncorrelatedException:
-            print('spectrum uncorrelated')
+            print("spectrum uncorrelated")
             if self.parameters.watch_lock.value:
-                print('retry')
+                print("retry")
                 self.relock()
             else:
                 self.exposed_stop()
@@ -155,8 +172,12 @@ class Autolock:
             self.exposed_stop()
 
     def record_first_error_signal(self, error_signal):
-        mean_signal, target_slope_rising, target_zoom, rolled_error_signal = \
-            get_lock_point(error_signal, self.x0, self.x1)
+        (
+            mean_signal,
+            target_slope_rising,
+            target_zoom,
+            rolled_error_signal,
+        ) = get_lock_point(error_signal, self.x0, self.x1)
 
         self.central_y = mean_signal
 
@@ -172,6 +193,7 @@ class Autolock:
         If desired, it automatically tries to relock if locking failed, or
         starts a watcher that does so over and over again.
         """
+
         def check_whether_in_lock(control_signal):
             """
             The laser is considered in lock if the mean value of the control
@@ -195,9 +217,11 @@ class Autolock:
 
                 return (center - ampl) <= slow_out / 8192 <= (center + ampl)
 
-        self.parameters.autolock_locked.value = check_whether_in_lock(control_signal) \
-            if self.parameters.check_lock.value \
+        self.parameters.autolock_locked.value = (
+            check_whether_in_lock(control_signal)
+            if self.parameters.check_lock.value
             else True
+        )
 
         if self.parameters.autolock_locked.value and self.should_watch_lock:
             # we start watching the lock status from now on.
@@ -285,7 +309,9 @@ class Autolock:
         self.control.pause_acquisition()
 
         self.parameters.center.value = self.initial_ramp_center
-        self.parameters.ramp_amplitude.value = self.parameters.autolock_initial_ramp_amplitude.value
+        self.parameters.ramp_amplitude.value = (
+            self.parameters.autolock_initial_ramp_amplitude.value
+        )
         self.parameters.ramp_speed.value = self.initial_ramp_speed
         self.control.exposed_start_ramp()
 

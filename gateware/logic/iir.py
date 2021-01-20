@@ -23,9 +23,15 @@ from .filter import Filter
 
 
 class Iir(Filter):
-    def __init__(self, order=1, mode="pipelined",
-                 width=25, coeff_width=18,
-                 shift=16, intermediate_width=None):
+    def __init__(
+        self,
+        order=1,
+        mode="pipelined",
+        width=25,
+        coeff_width=18,
+        shift=16,
+        intermediate_width=None,
+    ):
         Filter.__init__(self, width)
         assert mode in ("pipelined", "iterative")
         if intermediate_width is None:
@@ -59,27 +65,19 @@ class Iir(Filter):
 
         y_lim = Signal.like(self.y)
         y_next = Signal.like(z)
-        skip = shift+width-1
+        skip = shift + width - 1
         y_over = y_next[skip:]
-        y_pat = Signal.like(y_over, reset=2**(intermediate_width - skip) - 1)
+        y_pat = Signal.like(y_over, reset=2 ** (intermediate_width - skip) - 1)
         y = Signal.like(self.y)
         railed = Signal()
         self.comb += [
             railed.eq(~((y_over == y_pat) | (y_over == ~y_pat))),
-            If(railed,
-                y_lim.eq(self.y)
-            ).Else(
-                y_lim.eq(y_next[shift:])
-            )
+            If(railed, y_lim.eq(self.y)).Else(y_lim.eq(y_next[shift:])),
         ]
         self.sync += [
             self.error.eq(railed),
             self.y.eq(y_lim),
-            If(self.clear,
-                y.eq(0)
-            ).Elif(~self.hold,
-                y.eq(y_lim)
-            )
+            If(self.clear, y.eq(0)).Elif(~self.hold, y.eq(y_lim)),
         ]
 
         if mode == "pipelined":
@@ -89,7 +87,7 @@ class Iir(Filter):
                 zr = Signal.like(z)
                 self.sync += zr.eq(z)
                 z = Signal.like(zr)
-                self.comb += z.eq(zr + signal*c[coeff])
+                self.comb += z.eq(zr + signal * c[coeff])
             self.comb += y_next.eq(z)
             self.latency.value = Constant(order + 1)
             self.interval.value = Constant(1)
@@ -100,19 +98,15 @@ class Iir(Filter):
             mm = Signal.like(z)
             mc = Signal.like(z)
             mp = Signal.like(z)
-            self.sync += mm.eq(ma*mb), mc.eq(mp)
+            self.sync += mm.eq(ma * mb), mc.eq(mp)
             self.comb += mp.eq(mm + mc)
             steps = []
             x = [self.x] + [Signal.like(self.x) for i in range(order + 1)]
             for i in reversed(range(order + 1)):
-                steps.append([
-                    x[i + 1].eq(x[i]), ma.eq(x[i]), mb.eq(c["b%i" % i])
-                ])
+                steps.append([x[i + 1].eq(x[i]), ma.eq(x[i]), mb.eq(c["b%i" % i])])
             y = [None, y] + [Signal.like(y) for i in range(1, order + 1)]
             for i in reversed(range(1, order + 1)):
-                steps.append([
-                    y[i + 1].eq(y[i]), ma.eq(y[i]), mb.eq(c["a%i" % i])
-                ])
+                steps.append([y[i + 1].eq(y[i]), ma.eq(y[i]), mb.eq(c["a%i" % i])])
             steps[1].append(mc.eq(z))
             latency = order + 4
             if order == 1:

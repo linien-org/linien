@@ -1,8 +1,13 @@
 import numpy as np
 from PyQt5 import QtGui
 
-from linien.common import ANALOG_OUT_V, convert_channel_mixing_value, FAST_OUT1, FAST_OUT2, \
-    ANALOG_OUT0
+from linien.common import (
+    ANALOG_OUT_V,
+    convert_channel_mixing_value,
+    FAST_OUT1,
+    FAST_OUT2,
+    ANALOG_OUT0,
+)
 from linien.gui.utils_gui import param2ui
 from linien.gui.widgets import CustomWidget
 from linien.client.connection import MHz, Vpp
@@ -11,33 +16,45 @@ from linien.client.connection import MHz, Vpp
 class GeneralPanel(QtGui.QWidget, CustomWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.load_ui('general_panel.ui')
+        self.load_ui("general_panel.ui")
 
     def ready(self):
         self.ids.channel_mixing_slider.valueChanged.connect(self.channel_mixing_changed)
         self.ids.dual_channel.stateChanged.connect(self.dual_channel_changed)
 
         self.ids.mod_channel.currentIndexChanged.connect(self.mod_channel_changed)
-        self.ids.control_channel.currentIndexChanged.connect(self.control_channel_changed)
+        self.ids.control_channel.currentIndexChanged.connect(
+            self.control_channel_changed
+        )
         self.ids.sweep_channel.currentIndexChanged.connect(self.sweep_channel_changed)
-        self.ids.slow_control_channel.currentIndexChanged.connect(self.slow_control_channel_changed)
+        self.ids.slow_control_channel.currentIndexChanged.connect(
+            self.slow_control_channel_changed
+        )
 
-        self.ids.polarity_fast_out1.currentIndexChanged.connect(self.polarity_fast_out1_changed)
-        self.ids.polarity_fast_out2.currentIndexChanged.connect(self.polarity_fast_out2_changed)
-        self.ids.polarity_analog_out0.currentIndexChanged.connect(self.polarity_analog_out0_changed)
+        self.ids.polarity_fast_out1.currentIndexChanged.connect(
+            self.polarity_fast_out1_changed
+        )
+        self.ids.polarity_fast_out2.currentIndexChanged.connect(
+            self.polarity_fast_out2_changed
+        )
+        self.ids.polarity_analog_out0.currentIndexChanged.connect(
+            self.polarity_analog_out0_changed
+        )
 
         for idx in range(4):
             if idx == 0:
                 continue
-            element = getattr(self.ids, 'analog_out_%d' % idx)
+            element = getattr(self.ids, "analog_out_%d" % idx)
             element.setKeyboardTracking(False)
             element.valueChanged.connect(
                 lambda value, idx=idx: self.change_analog_out(idx)
             )
 
     def change_analog_out(self, idx):
-        name = 'analog_out_%d' % idx
-        getattr(self.parameters, name).value = int(getattr(self.ids, name).value() / ANALOG_OUT_V)
+        name = "analog_out_%d" % idx
+        getattr(self.parameters, name).value = int(
+            getattr(self.ids, name).value() / ANALOG_OUT_V
+        )
         self.control.write_data()
 
     def connection_established(self):
@@ -48,16 +65,13 @@ class GeneralPanel(QtGui.QWidget, CustomWidget):
         def dual_channel_changed(value):
             self.ids.dual_channel_mixing.setVisible(value)
             return value
-        param2ui(
-            params.dual_channel,
-            self.ids.dual_channel,
-            dual_channel_changed
-        )
+
+        param2ui(params.dual_channel, self.ids.dual_channel, dual_channel_changed)
 
         param2ui(
             params.channel_mixing,
             self.ids.channel_mixing_slider,
-            lambda value: value + 128
+            lambda value: value + 128,
         )
         # this is required to update the descriptive labels in the beginning
         self.channel_mixing_changed()
@@ -72,10 +86,12 @@ class GeneralPanel(QtGui.QWidget, CustomWidget):
         param2ui(params.polarity_analog_out0, self.ids.polarity_analog_out0)
 
         def show_polarity_settings(*args):
-            used_channels = set((
-                params.control_channel.value,
-                params.sweep_channel.value,
-            ))
+            used_channels = set(
+                (
+                    params.control_channel.value,
+                    params.sweep_channel.value,
+                )
+            )
 
             if params.pid_on_slow_enabled.value:
                 used_channels.add(ANALOG_OUT0)
@@ -88,21 +104,21 @@ class GeneralPanel(QtGui.QWidget, CustomWidget):
             set_visibility(self.ids.polarity_container_fast_out1, FAST_OUT1)
             set_visibility(self.ids.polarity_container_fast_out2, FAST_OUT2)
             set_visibility(self.ids.polarity_container_analog_out0, ANALOG_OUT0)
-        params.control_channel.change(show_polarity_settings)
-        params.sweep_channel.change(show_polarity_settings)
-        params.mod_channel.change(show_polarity_settings)
-        params.pid_on_slow_enabled.change(show_polarity_settings)
+
+        params.control_channel.on_change(show_polarity_settings)
+        params.sweep_channel.on_change(show_polarity_settings)
+        params.mod_channel.on_change(show_polarity_settings)
+        params.pid_on_slow_enabled.on_change(show_polarity_settings)
 
         for idx in range(4):
             if idx == 0:
                 continue
-            name = 'analog_out_%d' % idx
+            name = "analog_out_%d" % idx
             param2ui(
                 getattr(params, name),
                 getattr(self.ids, name),
-                process_value=lambda v: ANALOG_OUT_V * v
+                process_value=lambda v: ANALOG_OUT_V * v,
             )
-
 
     def channel_mixing_changed(self):
         value = int(self.ids.channel_mixing_slider.value()) - 128
@@ -118,8 +134,8 @@ class GeneralPanel(QtGui.QWidget, CustomWidget):
     def update_channel_mixing_slider(self, value):
         a_value, b_value = convert_channel_mixing_value(value)
 
-        self.ids.chain_a_factor.setText('%d' % a_value)
-        self.ids.chain_b_factor.setText('%d' % b_value)
+        self.ids.chain_a_factor.setText("%d" % a_value)
+        self.ids.chain_b_factor.setText("%d" % b_value)
 
     def mod_channel_changed(self, channel):
         self.parameters.mod_channel.value = channel

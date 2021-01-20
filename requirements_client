@@ -1,1 +1,1 @@
-numpy scipy==1.4.1 rpyc>=4.1.0 appdirs>=1.4.3 paramiko>=2.5.0 plumbum>=1.6.7 uuid
+numpy scipy>=1.5.0 rpyc==4.1.5 appdirs>=1.4.3 paramiko>=2.5.0 plumbum>=1.6.7 uuid

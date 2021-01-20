@@ -10,7 +10,7 @@ from random import random
 from rpyc.utils.server import OneShotServer
 from PyRedPitaya.board import RedPitaya
 
-sys.path += ['../../']
+sys.path += ["../../"]
 from csr import PythonCSR
 from linien.config import ACQUISITION_PORT
 from linien.common import DECIMATION, N_POINTS
@@ -30,9 +30,7 @@ def decimate(array, factor):
         return array
 
     dtype = array.dtype
-    return np.round(
-        array.reshape(-1, factor).mean(axis=1)
-    ).astype(dtype)
+    return np.round(array.reshape(-1, factor).mean(axis=1)).astype(dtype)
 
 
 class DataAcquisitionService(Service):
@@ -75,20 +73,20 @@ class DataAcquisitionService(Service):
                     self.csr.set_iir(*args)
 
                 if self.locked and not self.confirmed_that_in_lock:
-                    self.confirmed_that_in_lock = self.csr.get('logic_lock_running')
+                    self.confirmed_that_in_lock = self.csr.get("logic_lock_running")
                     if not self.confirmed_that_in_lock:
-                        sleep(.05)
+                        sleep(0.05)
                         continue
 
                 # copied from https://github.com/RedPitaya/RedPitaya/blob/14cca62dd58f29826ee89f4b28901602f5cdb1d8/api/src/oscilloscope.c#L115
                 # check whether scope was triggered
-                if (self.r.scope.read(0x1<<2) & 0x4) > 0 and not self.locked:
-                    sleep(.05)
+                if (self.r.scope.read(0x1 << 2) & 0x4) > 0 and not self.locked:
+                    sleep(0.05)
                     continue
 
                 data = self.read_data()
 
-                slow_out = self.csr.get('logic_slow_value')
+                slow_out = self.csr.get("logic_slow_value")
                 slow_out = slow_out if slow_out <= 8191 else slow_out - 16384
                 data += [slow_out]
 
@@ -107,19 +105,25 @@ class DataAcquisitionService(Service):
                     # image. Therefore, we perform additional software averaging in
                     # these cases. As this happens for slow ramps only, the performance
                     # hit doesn't matter.
-                    target_decimation = 2 ** (self.ramp_speed + int(np.log2(DECIMATION)))
+                    target_decimation = 2 ** (
+                        self.ramp_speed + int(np.log2(DECIMATION))
+                    )
                     if target_decimation > MAX_FPGA_DECIMATION:
-                        self.additional_decimation = int(target_decimation / MAX_FPGA_DECIMATION)
+                        self.additional_decimation = int(
+                            target_decimation / MAX_FPGA_DECIMATION
+                        )
                         target_decimation = MAX_FPGA_DECIMATION
                     else:
                         self.additional_decimation = 1
 
                     self.r.scope.data_decimation = target_decimation
-                    self.r.scope.trigger_delay = int(trigger_delay / DECIMATION * self.additional_decimation)- 1
+                    self.r.scope.trigger_delay = (
+                        int(trigger_delay / DECIMATION * self.additional_decimation) - 1
+                    )
                 else:
                     self.r.scope.data_decimation = 1
                     self.additional_decimation = 1
-                    self.r.scope.trigger_delay = int(trigger_delay / DECIMATION)- 1
+                    self.r.scope.trigger_delay = int(trigger_delay / DECIMATION) - 1
 
                 if self.skip_next_data:
                     self.skip_next_data -= 1
@@ -178,14 +182,14 @@ class DataAcquisitionService(Service):
             #   2'h0,adc_b_rd,2'h0,adc_a_rd
             #   i.e.: 2 zero bits, channel b (14 bit), 2 zero bits, channel a (14 bit)
             # .copy() is required, because np.frombuffer returns a readonly array
-            raw_data = self.r.scope.reads(offset+(4*addr), data_length).copy()
+            raw_data = self.r.scope.reads(offset + (4 * addr), data_length).copy()
 
             # raw_data is an array of 32-bit ints
             # we cast it to 16 bit --> each original int is split into two ints
             raw_data.dtype = np.int16
 
             # sign bit is at position 14, but we have 16 bit ints
-            raw_data[raw_data>=2**13] -= 2**14
+            raw_data[raw_data >= 2 ** 13] -= 2 ** 14
 
             # order is such that we have first the signal a then signal b
             signals = tuple(raw_data[signal_idx::2] for signal_idx in (0, 1))
@@ -203,22 +207,17 @@ class DataAcquisitionService(Service):
 
         for channel_offset in channel_offsets:
             channel_data = get_data(
-                channel_offset,
-                write_pointer,
-                N_POINTS * self.additional_decimation
+                channel_offset, write_pointer, N_POINTS * self.additional_decimation
             )
 
             for sub_channel_idx in range(2):
                 rv.append(
-                    decimate(
-                        channel_data[sub_channel_idx],
-                        self.additional_decimation
-                    )
+                    decimate(channel_data[sub_channel_idx], self.additional_decimation)
                 )
 
         return rv
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     t = OneShotServer(DataAcquisitionService(), port=ACQUISITION_PORT)
     t.start()

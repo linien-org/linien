@@ -2,23 +2,21 @@ import cma
 import numpy as np
 from linien.common import MHz, Vpp
 from linien.server.parameters import Parameters
-from linien.server.optimization.engine import MultiDimensionalOptimizationEngine, OptimizerEngine
+from linien.server.optimization.engine import (
+    MultiDimensionalOptimizationEngine,
+    OptimizerEngine,
+)
 
 
 def test_multi():
-    e = MultiDimensionalOptimizationEngine(
-        [
-            [0, 10],
-            [0, 10]
-        ]
-    )
+    e = MultiDimensionalOptimizationEngine([[0, 10], [0, 10]])
 
     while not e.finished():
         solution = e.ask()
         result = cma.ff.rosen(solution)
         e.tell(result, solution)
 
-    print('done', e.es.result_pretty())
+    print("done", e.es.result_pretty())
 
 
 class FakeControl:
@@ -32,7 +30,9 @@ class FakeControl:
         pass
 
     def exposed_write_data(self):
-        print(f'write: freq={self.parameters.modulation_frequency.value / MHz} amp={self.parameters.modulation_amplitude.value / Vpp}')
+        print(
+            f"write: freq={self.parameters.modulation_frequency.value / MHz} amp={self.parameters.modulation_amplitude.value / Vpp}"
+        )
 
 
 def test_optimization():
@@ -41,7 +41,6 @@ def test_optimization():
 
     def generate_slope(N=1024, slope=1):
         return np.array([v * slope for v in range(N)])
-
 
     ### -------------------------------------------------------
     #  check that 0D optimization only optimizes phase
@@ -65,9 +64,9 @@ def test_optimization():
 
     # check that demodulation phase was correctly optimized
     demod_phase = params.demodulation_phase_a.value
-    assert abs(demod_phase - iq_phase) < .1 or (abs(180 - demod_phase - iq_phase)) < .1
-
-
+    assert (
+        abs(demod_phase - iq_phase) < 0.1 or (abs(180 - demod_phase - iq_phase)) < 0.1
+    )
 
     ### -------------------------------------------------------
     # test 1D optimization
@@ -90,7 +89,7 @@ def test_optimization():
         f = params.modulation_frequency.value / MHz
         a = params.modulation_amplitude.value / Vpp
 
-        fitness = (2**2 - (a-0.5)**2)
+        fitness = 2 ** 2 - (a - 0.5) ** 2
 
         generated_slope = generate_slope(slope=fitness)
         i = np.cos(iq_phase / 360 * 2 * np.pi) * generated_slope
@@ -99,13 +98,15 @@ def test_optimization():
 
         idx += 1
         if idx == 1000:
-            raise Exception('did not finish!')
+            raise Exception("did not finish!")
 
     engine.use_best_parameters()
-    assert params.modulation_amplitude.value / Vpp - .5 < 0.1
-    #assert params.modulation_frequency.value / MHz - 5 < 0.1
+    assert params.modulation_amplitude.value / Vpp - 0.5 < 0.1
+    # assert params.modulation_frequency.value / MHz - 5 < 0.1
     demod_phase = params.demodulation_phase_a.value
-    assert abs(demod_phase - iq_phase) < .1 or (abs(180 - demod_phase - iq_phase)) < .1
+    assert (
+        abs(demod_phase - iq_phase) < 0.1 or (abs(180 - demod_phase - iq_phase)) < 0.1
+    )
 
     ### -------------------------------------------------------
     # test 2D optimization
@@ -129,7 +130,7 @@ def test_optimization():
         f = params.modulation_frequency.value / MHz
         a = params.modulation_amplitude.value / Vpp
 
-        fitness = (5**2 - (f-5)**2) + (2**2 - (a-0.5)**2)
+        fitness = (5 ** 2 - (f - 5) ** 2) + (2 ** 2 - (a - 0.5) ** 2)
 
         generated_slope = generate_slope(slope=fitness)
         i = np.cos(iq_phase / 360 * 2 * np.pi) * generated_slope
@@ -138,15 +139,17 @@ def test_optimization():
 
         idx += 1
         if idx == 1000:
-            raise Exception('did not finish!')
+            raise Exception("did not finish!")
 
     engine.use_best_parameters()
-    assert params.modulation_amplitude.value / Vpp - .5 < 0.1
+    assert params.modulation_amplitude.value / Vpp - 0.5 < 0.1
     assert params.modulation_frequency.value / MHz - 5 < 0.1
     demod_phase = params.demodulation_phase_a.value
-    assert abs(demod_phase - iq_phase) < .1 or (abs(180 - demod_phase - iq_phase)) < .1
+    assert (
+        abs(demod_phase - iq_phase) < 0.1 or (abs(180 - demod_phase - iq_phase)) < 0.1
+    )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     test_multi()
     test_optimization()

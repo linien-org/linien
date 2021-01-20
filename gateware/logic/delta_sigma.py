@@ -43,14 +43,8 @@ class DeltaSigma2(Module):
         sigma1 = Signal(width + 3)
         sigma2 = Signal(width + 3)
         o = Signal(width + 3)
-        self.comb += [
-            o.eq(self.data - sigma1 + (sigma2 << 1)),
-            self.out.eq(o[-1])
-        ]
-        self.sync += [
-            sigma1.eq(sigma2),
-            sigma2.eq(o - (self.out << width))
-        ]
+        self.comb += [o.eq(self.data - sigma1 + (sigma2 << 1)), self.out.eq(o[-1])]
+        self.sync += [sigma1.eq(sigma2), sigma2.eq(o - (self.out << width))]
 
 
 class DeltaSigmaCSR(Module, AutoCSR):
@@ -77,14 +71,14 @@ if __name__ == "__main__":
 
     for dut in DeltaSigma2(15), DeltaSigma(15):
         n = 1 << len(dut.data)
-        #x = [j for j in range(n) for i in range(n)]
-        x = (.5+.2*np.cos(.001*2*np.pi*np.arange(1 << 17)))*(n-1)
+        # x = [j for j in range(n) for i in range(n)]
+        x = (0.5 + 0.2 * np.cos(0.001 * 2 * np.pi * np.arange(1 << 17))) * (n - 1)
         y = []
         run_simulation(dut, tb(dut, x, y))
-        #x = np.array(tb.x).reshape(-1, n)
-        #y = np.array(tb.y).reshape(-1, n)
-        #plt.plot(x[:, 0], x[:, 0] - y.sum(1))
-        #plt.plot(y.ravel())
-        plt.psd(np.array(y), detrend=plt.mlab.detrend_mean, NFFT=4096*2)
+        # x = np.array(tb.x).reshape(-1, n)
+        # y = np.array(tb.y).reshape(-1, n)
+        # plt.plot(x[:, 0], x[:, 0] - y.sum(1))
+        # plt.plot(y.ravel())
+        plt.psd(np.array(y), detrend=plt.mlab.detrend_mean, NFFT=4096 * 2)
         plt.xscale("log")
     plt.show()

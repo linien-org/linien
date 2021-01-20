@@ -32,16 +32,9 @@ class Limit(Module):
         ###
 
         self.comb += [
-            If(self.x >= self.max,
-                self.y.eq(self.max),
-                self.railed.eq(1)
-            ).Elif(self.x <= self.min,
-                self.y.eq(self.min),
-                self.railed.eq(1)
-            ).Else(
-                self.y.eq(self.x),
-                self.railed.eq(0)
-            )
+            If(self.x >= self.max, self.y.eq(self.max), self.railed.eq(1))
+            .Elif(self.x <= self.min, self.y.eq(self.min), self.railed.eq(1))
+            .Else(self.y.eq(self.x), self.railed.eq(0))
         ]
 
 
@@ -63,12 +56,10 @@ class LimitCSR(Filter):
         if guard:
             min = Cat(min, Replicate(min[-1], guard))
             max = Cat(max, Replicate(max[-1], guard))
-        self.comb += [
-            self.limit.x.eq(self.x)
-        ]
+        self.comb += [self.limit.x.eq(self.x)]
         self.sync += [
             self.limit.min.eq(min),
             self.limit.max.eq(max),
             self.y.eq(self.limit.y),
-            self.error.eq(self.limit.railed)
+            self.error.eq(self.limit.railed),
         ]

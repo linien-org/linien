@@ -1,228 +1,281 @@
+from linien.server.parameters_base import BaseParameters, Parameter
 from linien.config import DEFAULT_COLORS, N_COLORS
-from linien.common import Vpp, MHz, pack
-
-
-class Parameter:
-    """Represents a single parameter and is used by `Parameters`."""
-    def __init__(self, min_=None, max_=None, start=None, wrap=False, sync=True,
-                 collapsed_sync=True):
-        self.min = min_
-        self.max = max_
-        self.wrap = wrap
-        self._value = start
-        self._start = start
-        self._listeners = set()
-        self._collapsed_sync = collapsed_sync
-        self.exposed_sync = sync
-
-    @property
-    def value(self):
-        return self._value
-
-    @value.setter
-    def value(self, value):
-        # check bounds
-        if self.min is not None and value < self.min:
-            value = self.min if not self.wrap else self.max
-        if self.max is not None and value > self.max:
-            value = self.max if not self.wrap else self.min
-
-        self._value = value
-
-        # we copy it because a listener could remove a listener --> this would
-        # cause an error in this loop
-        for listener in self._listeners.copy():
-            listener(value)
-
-    def change(self, function):
-        self._listeners.add(function)
-
-        if self._value is not None:
-            function(self._value)
-
-    def remove_listener(self, function):
-        if function in self._listeners:
-            self._listeners.remove(function)
-
-    def exposed_reset(self):
-        self.value = self._start
-
-    def register_remote_listener(self, remote_uuid):
-        pass
-
-
-class BaseParameters:
-    """Represents a set of parameters. In an actual program, it should be
-    sub-classed like this:
-
-        class MyParameters(BaseParameters):
-            def __init__(self):
-                self.param1 = Parameter(min_=12, max_=24)
-
-    Parameters can be changed like this:
-
-        p = MyParameters(...)
-        p.param1.value = 123
-
-    You can register callback functions like this:
-
-        def on_change(value):
-            # do something
-
-        p.param1.change(on_change)
-    """
-    def __init__(self):
-        self._remote_listener_queue = {}
-        self._remote_listener_callbacks = {}
-
-    def get_all_parameters(self):
-        for name, element in self.__dict__.items():
-            if isinstance(element, Parameter):
-                yield name, element
-
-    def register_remote_listener(self, uuid, param_name):
-        self._remote_listener_queue.setdefault(uuid, [])
-        self._remote_listener_callbacks.setdefault(uuid, [])
-
-        def on_change(value, uuid=uuid, param_name=param_name):
-            if uuid in self._remote_listener_queue:
-                self._remote_listener_queue[uuid].append((param_name, value))
-
-        param = getattr(self, param_name)
-        param.change(on_change)
-
-        self._remote_listener_callbacks[uuid].append((param, on_change))
-
-    def unregister_remote_listeners(self, uuid):
-        for param, callback in self._remote_listener_callbacks[uuid]:
-            param.remove_listener(callback)
-
-        del self._remote_listener_queue[uuid]
-        del self._remote_listener_callbacks[uuid]
-
-    def get_listener_queue(self, uuid):
-        queue = self._remote_listener_queue.get(uuid, [])
-        self._remote_listener_queue[uuid] = []
-
-        # filter out multiple values for collapsible parameters
-        already_has_value = []
-        for idx in reversed(range(len(queue))):
-            param_name, value = queue[idx]
-            if self._get_param(param_name)._collapsed_sync:
-                if param_name in already_has_value:
-                    del queue[idx]
-                else:
-                    already_has_value.append(param_name)
-
-        return pack(queue)
-
-    def __iter__(self):
-        for name, param in self.get_all_parameters():
-            yield name, param.value
-
-    def _get_param(self, param_name):
-        param = getattr(self, param_name)
-        assert isinstance(param, Parameter)
-        return param
-
-
+from linien.common import Vpp, MHz
 
 
 class Parameters(BaseParameters):
+    """This class defines the parameters of the Linien server. They represent
+    the public interface and can be used to control the behavior of the server.
+
+    Access on the server takes place like this:
+
+        # retrieve a parameter
+        foo(parameters.modulation_amplitude.value)
+
+        # set a parameter
+        parameters.modulation_amplitude.value = 0.5 * Vpp
+
+        # if a parameter influences the behavior of the FPGA, it has to be
+        # written to the FPGA as well (`control` is an instance of
+        # `RedPitayaControlService`):
+        control.exposed_write_data()
+
+    On the client side, access happens through `RemoteParameters` which
+    transparently mimics the behavior of this class. Have a look at the comments
+    below for a description of each parameter.
+    """
+
     def __init__(self):
         super().__init__()
 
-        # parameters whose values are saved on the client and restored if no
-        # server is running
-        self.restorable_parameters = (
-            'modulation_amplitude', 'modulation_frequency', 'ramp_speed',
-            'demodulation_phase_a', 'demodulation_multiplier_a',
-            'demodulation_phase_b', 'demodulation_multiplier_b',
-            'offset_a', 'offset_b', 'invert_a', 'invert_b',
-            'filter_1_enabled_a', 'filter_1_enabled_b',
-            'filter_1_frequency_a', 'filter_1_frequency_b',
-            'filter_1_type_a', 'filter_1_type_b',
-            'filter_2_enabled_a', 'filter_2_enabled_b',
-            'filter_2_frequency_a', 'filter_2_frequency_b',
-            'filter_2_type_a', 'filter_2_type_b',
-            'filter_automatic_a', 'filter_automatic_b',
-            'p', 'i', 'd', 'watch_lock', 'watch_lock_threshold',
-            'dual_channel', 'channel_mixing',
-            'pid_on_slow_enabled', 'pid_on_slow_strength',
-            'mod_channel', 'control_channel', 'sweep_channel',
-            'polarity_fast_out1', 'polarity_fast_out2',
-            'polarity_analog_out0', 'autoscale_y', 'y_axis_limits',
-            'check_lock', 'analog_out_1', 'analog_out_2', 'analog_out_3',
-            'plot_line_width', 'plot_color_0', 'plot_color_1', 'plot_color_2',
-            'plot_color_3', 'plot_line_opacity', 'plot_fill_opacity'
+        # parameters whose values are saved by the client and restored if the
+        # client connects to the RedPitaya with no server running.
+        self._restorable_parameters = (
+            "modulation_amplitude",
+            "modulation_frequency",
+            "ramp_speed",
+            "demodulation_phase_a",
+            "demodulation_multiplier_a",
+            "demodulation_phase_b",
+            "demodulation_multiplier_b",
+            "offset_a",
+            "offset_b",
+            "invert_a",
+            "invert_b",
+            "filter_1_enabled_a",
+            "filter_1_enabled_b",
+            "filter_1_frequency_a",
+            "filter_1_frequency_b",
+            "filter_1_type_a",
+            "filter_1_type_b",
+            "filter_2_enabled_a",
+            "filter_2_enabled_b",
+            "filter_2_frequency_a",
+            "filter_2_frequency_b",
+            "filter_2_type_a",
+            "filter_2_type_b",
+            "filter_automatic_a",
+            "filter_automatic_b",
+            "p",
+            "i",
+            "d",
+            "watch_lock",
+            "watch_lock_threshold",
+            "dual_channel",
+            "channel_mixing",
+            "pid_on_slow_enabled",
+            "pid_on_slow_strength",
+            "mod_channel",
+            "control_channel",
+            "sweep_channel",
+            "polarity_fast_out1",
+            "polarity_fast_out2",
+            "polarity_analog_out0",
+            "autoscale_y",
+            "y_axis_limits",
+            "check_lock",
+            "analog_out_1",
+            "analog_out_2",
+            "analog_out_3",
+            "plot_line_width",
+            "plot_color_0",
+            "plot_color_1",
+            "plot_color_2",
+            "plot_color_3",
+            "plot_line_opacity",
+            "plot_fill_opacity",
         )
 
-        self.modulation_amplitude = Parameter(
-            min_=0,
-            max_=(1<<14) - 1,
-            start=1 * Vpp
-        )
-        self.modulation_frequency = Parameter(
-            min_=0,
-            max_=0xffffffff,
-            start=15 * MHz
-        )
-        self.center = Parameter(
-            min_=-1,
-            max_=1,
-            start=0
-        )
-
-        self.ramp_amplitude = Parameter(
-            min_=0.001,
-            max_=1,
-            start=1
-        )
-        self.ramp_speed = Parameter(
-            min_=0,
-            max_=16,
-            start=8
-        )
-
-        for channel in ('a', 'b'):
-            setattr(self, 'demodulation_phase_%s' % channel, Parameter(
-                min_=0,
-                max_=360,
-                start=0x0,
-                wrap=True
-            ))
-            setattr(self, 'demodulation_multiplier_%s' % channel, Parameter(
-                min_=0,
-                max_=15,
-                start=1
-            ))
-            setattr(self, 'offset_%s' % channel, Parameter(
-                min_=-8191,
-                max_=8191,
-                start=0
-            ))
-            setattr(self, 'invert_%s' % channel, Parameter(start=False))
-            setattr(self, 'filter_automatic_%s' % channel, Parameter(start=True))
-            for filter_i in [1, 2]:
-                setattr(self, 'filter_%d_enabled_%s' % (filter_i, channel), Parameter(start=False))
-                setattr(self, 'filter_%d_type_%s' % (filter_i, channel), Parameter(start=0))
-                setattr(self, 'filter_%d_frequency_%s' % (filter_i, channel), Parameter(start=10000))
-
-        self.combined_offset = Parameter(
-            min_=-8191,
-            max_=8191,
-            start=0
-        )
-
-        self.lock = Parameter(start=False)
         self.to_plot = Parameter()
 
-        self.p = Parameter(start=50)
-        self.i = Parameter(start=5)
-        self.d = Parameter(start=0)
+        #           --------- GENERAL PARAMETERS ---------
+        # configures the output of the modulation frequency. A value of 0 means
+        # FAST OUT 1 and a value of 1 corresponds to FAST OUT 2
+        self.mod_channel = Parameter(start=0, min_=0, max_=1)
+        # configures the output of the scan ramp:
+        #       0 --> FAST OUT 1
+        #       1 --> FAST OUT 2
+        #       2 --> ANALOG OUT 0 (slow channel)
+        self.sweep_channel = Parameter(start=1, min_=0, max_=2)
+        # configures the output of the lock signal. A value of 0 means
+        # FAST OUT 1 and a value of 1 corresponds to FAST OUT 2
+        self.control_channel = Parameter(start=1, min_=0, max_=1)
+
+        # set the output of GPIO pins. Each bit corresponds to one pin, i.e.:
+        #       parameters.gpio_p_out.value = 0b11110000
+        # turns on the first 4 pins and turns off the other ones.
+        self.gpio_p_out = Parameter(start=0, min_=0, max_=0b11111111)
+        self.gpio_n_out = Parameter(start=0, min_=0, max_=0b11111111)
+
+        # parameters for setting ANALOG_OUT voltage
+        # usage:
+        #       parameters.analog_out_1.value = 1.2 * ANALOG_OUT_V
+        # Minimum value is 0 and maximum 1.8 * ANALOG_OUT_V
+        # note that ANALOG_OUT_0 ís used for the slow PID and thus can't be
+        for i in range(4):
+            if i == 0:
+                # ANALOG_OUT0 is used for slow PID --> it can't be controlled
+                # manually
+                continue
+
+            setattr(
+                self,
+                "analog_out_%d" % i,
+                Parameter(start=0, min_=0, max_=(2 ** 15) - 1),
+            )
+
+        # If `True`, this parameter turns off the ramp and starts the PID
+        self.lock = Parameter(start=False)
+
+        # for both fast outputs and the analog out, define whether tuning the
+        # voltage up correspond to tuning the laser frequency up or down. Setting
+        # these values correctly is only required when using both, a fast out and
+        # a the slow analog output for PID
+        self.polarity_fast_out1 = Parameter(start=False)
+        self.polarity_fast_out2 = Parameter(start=False)
+        self.polarity_analog_out0 = Parameter(start=False)
+
+        # record of control signal should be kept for how long?
+        self.control_signal_history_length = Parameter(start=600)
+        self.control_signal_history = Parameter(
+            start={"times": [], "values": []}, sync=False
+        )
+        # if this boolean is `True`, no new spectroscopy data is sent to the
+        # clients. This parameter is used when writing data to FPGA that would
+        # result in cropped / distorted signals being displayed.
+        self.pause_acquisition = Parameter(start=False)
+
+        # this parameter is not exposed to GUI. It is used by the autolock or
+        # normal lock to fetch less data if they are not needed.
+        self.fetch_quadratures = Parameter(start=True)
+
+        #           --------- RAMP PARAMETERS ---------
+
+        # how big should the ramp amplitude be relative to the full output range
+        # of RedPitaya? An amplitude of 1 corresponds to a ramp from -1V to 1V,
+        # an amplitude 0f .1 to a ramp from -.1 to .1V (assuming that `center`
+        # is 0, see below)
+        self.ramp_amplitude = Parameter(min_=0.001, max_=1, start=1)
+        # The center position of the ramp in volts. As the output range of
+        # RedPitaya is [-1, 1], `center` has the same limits.
+        self.center = Parameter(min_=-1, max_=1, start=0)
+        # The ramp speed in internal units. The actual speed is given by
+        #       f_real = 3.8 kHz / (2 ** ramp_speed)
+        # Allowed values are [0, ..., 16]
+        self.ramp_speed = Parameter(min_=0, max_=16, start=8)
+
+        #           --------- MODULATION PARAMETERS ---------
+
+        # The amplitude of the modulation in internal units. Use Vpp for
+        # conversion to volts peak-peak, e.g:
+        #       parameters.modulation_amplitude.value = 0.5 * Vpp
+        # Values between 0 and 2 * Vpp are allowed.
+        self.modulation_amplitude = Parameter(min_=0, max_=(1 << 14) - 1, start=1 * Vpp)
+
+        # Frequency of the modulation in internal units. Use MHz for conversion
+        # to human-readable frequency, e.g:
+        #       parameters.modulation_frequency.value = 6.6 * MHz
+        # By design, values up to 128 * MHz = 0xffffffff are allowed although in
+        # practice values of more than 50 MHz don't make sense due to the limited
+        # sampling rate of the DAC.
+        self.modulation_frequency = Parameter(min_=0, max_=0xFFFFFFFF, start=15 * MHz)
+
+        #           --------- DEMODULATION AND FILTER PARAMETERS ---------
+        # Linien allows for two simulataneous demodulation channels. By default,
+        # only one is enabled. This is controlled by `dual_channel`.
+        self.dual_channel = Parameter(start=False)
+        # If in dual channel mode, what is the mixing ratio between them?
+        # A value of 0 corresponds to equal ratio
+        #            -128             only channel A being active
+        #            128              only channel B being active
+        # Integer values [-128, ..., 128] are allowed.
+        self.channel_mixing = Parameter(start=0)
+
+        # The following parameters exist twice, i.e. once per channel
+        for channel in ("a", "b"):
+            # The demodulation phase in degree (0-360)
+            setattr(
+                self,
+                "demodulation_phase_%s" % channel,
+                Parameter(min_=0, max_=360, start=0x0, wrap=True),
+            )
+            # This parameter allows for multi-f (e.g. 3f or 5f) demodulation.
+            # Default value is 1, indicating that 1f demodulation is used.
+            setattr(
+                self,
+                "demodulation_multiplier_%s" % channel,
+                Parameter(min_=0, max_=15, start=1),
+            )
+            # The vertical offset for a channel. A value of -8191 shifts the data
+            # down by 1V, a value of +8191 moves it up.
+            setattr(
+                self, "offset_%s" % channel, Parameter(min_=-8191, max_=8191, start=0)
+            )
+            # A boolean indicating whether the channel data should be inverted.
+            setattr(self, "invert_%s" % channel, Parameter(start=False))
+
+            # - -----   FILTER PARAMETERS   -----
+            # after demodulation of the signal, Linien may apply up to two IIR
+            # filters.
+            # `filter_automatic` is a boolean indicating whether Linien should
+            # automatically determine suitable filter for a given modulation
+            # frequency or whether the user may configure the filters himself.
+            # If automatic mode is enabled, two low pass filters are installed
+            # with a frequency of half the modulation frequency.
+            setattr(self, "filter_automatic_%s" % channel, Parameter(start=True))
+
+            for filter_i in [1, 2]:
+                # should this filter be enabled? Note that disabling a filter
+                # does not bypass it as this would change the propagation time
+                # of the signal through the FPGA which is unfavorable as it leads
+                # to a mismatch of the demodulation phase. Instead, a filter
+                # with unity gain is installed.
+                setattr(
+                    self,
+                    "filter_%d_enabled_%s" % (filter_i, channel),
+                    Parameter(start=False),
+                )
+                # Either `LOW_PASS_FILTER` or `HIGH_PASS_FILTER` from
+                # `linien.common` module.
+                setattr(
+                    self, "filter_%d_type_%s" % (filter_i, channel), Parameter(start=0)
+                )
+                # The filter frequency in units of Hz
+                setattr(
+                    self,
+                    "filter_%d_frequency_%s" % (filter_i, channel),
+                    Parameter(start=10000),
+                )
+
+        #           --------- LOCK AND PID PARAMETERS ---------
+        # after combining channels A and B and before passing the result to the
+        # PID, `combined_offset` is added. It uses the same units as the channel
+        # offsets, i.e. a value of -8191 shifts the data down by 1V, a value
+        # of +8191 moves it up.
+        self.combined_offset = Parameter(min_=-8191, max_=8191, start=0)
+        # PID parameters. Range is [0, 8191]. In order to change sign of PID
+        # parameters, use `target_slope_rising`
+        self.p = Parameter(start=50, max_=8191)
+        self.i = Parameter(start=5, max_=8191)
+        self.d = Parameter(start=0, max_=8191)
+        # A boolean that inverts the sign of the PID parameters
+        self.target_slope_rising = Parameter(start=True)
+
+        # Whether the PID on ANALOG_OUT 0 is enabled
+        self.pid_on_slow_enabled = Parameter(start=False)
+        # Strength of the (slow) PID on ANALOG_OUT 0. This strength corresponds
+        # to the strength of the integrator. Maximum value is 8191.
+        self.pid_on_slow_strength = Parameter(start=0)
+
+        self.check_lock = Parameter(start=True)
+        self.watch_lock = Parameter(start=True)
+        self.watch_lock_threshold = Parameter(start=0.01)
+
+        #           --------- AUTOLOCK PARAMETERS ---------
+        # these are used internally by the autolock and usually should not be
+        # manipulated
         self.task = Parameter(start=None, sync=False)
         self.automatic_mode = Parameter(start=True)
-        self.target_slope_rising = Parameter(start=True)
         self.autolock_selection = Parameter(start=False)
         self.autolock_running = Parameter(start=False)
         self.autolock_approaching = Parameter(start=False)
@@ -233,6 +286,9 @@ class Parameters(BaseParameters):
         self.autolock_determine_offset = Parameter(start=True)
         self.autolock_initial_ramp_amplitude = Parameter(start=1)
 
+        #           --------- OPTIMIZATION PARAMETERS ---------
+        # these are used internally by the optimization algorithm and usually
+        # should not be manipulated
         self.optimization_selection = Parameter(start=False)
         self.optimization_running = Parameter(start=False)
         self.optimization_approaching = Parameter(start=False)
@@ -247,35 +303,7 @@ class Parameters(BaseParameters):
         self.optimization_channel = Parameter(start=0)
         self.optimization_failed = Parameter(start=False)
 
-        self.pause_acquisition = Parameter(start=False)
-
-        self.check_lock = Parameter(start=True)
-        self.watch_lock = Parameter(start=True)
-        self.watch_lock_threshold = Parameter(start=0.01)
-
-        self.control_signal_history = Parameter(start={
-            'times': [],
-            'values': []
-        }, sync=False)
-        # in seconds
-        self.control_signal_history_length = Parameter(start=600)
-
-        self.pid_on_slow_enabled = Parameter(start=False)
-        self.pid_on_slow_strength = Parameter(start=0)
-        self.dual_channel = Parameter(start=False)
-        self.channel_mixing = Parameter(start=0)
-        # this parameter is not exposed to GUI. It is used by the autolock or
-        # normal lock to fetch less data if they are not needed.
-        self.fetch_quadratures = Parameter(start=True)
-
-        self.mod_channel = Parameter(start=0, min_=0, max_=1)
-        self.control_channel = Parameter(start=1, min_=0, max_=1)
-        self.sweep_channel = Parameter(start=1, min_=0, max_=2)
-
-        self.polarity_fast_out1 = Parameter(start=False)
-        self.polarity_fast_out2 = Parameter(start=False)
-        self.polarity_analog_out0 = Parameter(start=False)
-
+        #           --------- PARAMETERS OF GUI ---------
         self.autoscale_y = Parameter(start=True)
         self.y_axis_limits = Parameter(start=1)
         self.plot_line_width = Parameter(start=2, min_=0.1, max_=100)
@@ -285,17 +313,6 @@ class Parameters(BaseParameters):
         for color_idx in range(N_COLORS):
             setattr(
                 self,
-                'plot_color_%d' % color_idx,
-                Parameter(start=DEFAULT_COLORS[color_idx])
+                "plot_color_%d" % color_idx,
+                Parameter(start=DEFAULT_COLORS[color_idx]),
             )
-
-        self.gpio_p_out = Parameter(start=0, min_=0, max_=0b11111111)
-        self.gpio_n_out = Parameter(start=0, min_=0, max_=0b11111111)
-
-        # parameters for ANALOG_OUTs
-        for i in range(4):
-            if i == 0:
-                # ANALOG_OUT0 is used for slow PID
-                continue
-
-            setattr(self, 'analog_out_%d' % i, Parameter(start=0, min_=0, max_=(2**15) - 1))

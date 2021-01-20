@@ -33,13 +33,14 @@ class PitayaCSR:
         bit_mask = ma - 1
         val = value & bit_mask
         assert value == val or ma + value == val, (
-            'value for %s out of range' % name, (value, val, ma)
+            "value for %s out of range" % name,
+            (value, val, ma),
         )
 
         b = (width + 8 - 1) // 8
         for i in range(b):
-            v = (val >> (8*(b - i - 1))) & 0xff
-            self.set_one(self.offset + (map << 11) + ((addr + i)<<2), v)
+            v = (val >> (8 * (b - i - 1))) & 0xFF
+            self.set_one(self.offset + (map << 11) + ((addr + i) << 2), v)
 
     def get(self, name):
         if name in self.constants:
@@ -47,10 +48,11 @@ class PitayaCSR:
 
         map, addr, nr, wr = self.map[name]
         v = 0
-        b = (nr + 8 - 1)//8
+        b = (nr + 8 - 1) // 8
         for i in range(b):
-            v |= self.get_one(self.offset + (map << 11) + ((addr + i)<<2)
-                    ) << 8*(b - i - 1)
+            v |= self.get_one(self.offset + (map << 11) + ((addr + i) << 2)) << 8 * (
+                b - i - 1
+            )
         return v
 
     def set_iir(self, prefix, b, a, z=0):
@@ -72,7 +74,7 @@ class PitayaCSR:
         return csrmap.signals.index(name)
 
     def states(self, *names):
-        return sum(1<<csrmap.states.index(name) for name in names)
+        return sum(1 << csrmap.states.index(name) for name in names)
 
 
 class PythonCSR(PitayaCSR):
@@ -84,4 +86,3 @@ class PythonCSR(PitayaCSR):
 
     def get_one(self, addr):
         return int(self.rp.read(addr))
-

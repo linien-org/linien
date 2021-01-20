@@ -1,5 +1,6 @@
 import sys
-sys.path += ['../../']
+
+sys.path += ["../../"]
 import rpyc
 import atexit
 import threading
@@ -10,6 +11,7 @@ from multiprocessing import Process, Pipe
 
 from linien.config import ACQUISITION_PORT
 from linien.server.utils import stop_nginx, start_nginx, flash_fpga
+
 
 class AcquisitionConnectionError(Exception):
     pass
@@ -37,8 +39,7 @@ class AcquisitionMaster:
 
         self.acq_process, child_pipe = Pipe()
         p = Process(
-            target=self.connect_acquisition_process,
-            args=(child_pipe, use_ssh, host)
+            target=self.connect_acquisition_process, args=(child_pipe, use_ssh, host)
         )
         p.daemon = True
         p.start()
@@ -57,10 +58,14 @@ class AcquisitionMaster:
 
     def connect_acquisition_process(self, pipe, use_ssh, host):
         if use_ssh:
+            # for debugging, acquisition process may be launched manually on the
+            # server and rpyc can be used to connect to it
             acquisition_rpyc = rpyc.connect(host, ACQUISITION_PORT)
             acquisition = acquisition_rpyc.root
         else:
+            # this is what happens in production mode
             from linien.server.acquisition_process import DataAcquisitionService
+
             stop_nginx()
             flash_fpga()
             acquisition = DataAcquisitionService()
@@ -93,7 +98,12 @@ class AcquisitionMaster:
                     acquisition.exposed_clear_data_cache(data[1])
 
             # load acquired data and send it to the main thread
-            new_data_returned, new_hash, new_data, data_uuid = acquisition.exposed_return_data(last_hash)
+            (
+                new_data_returned,
+                new_hash,
+                new_data,
+                data_uuid,
+            ) = acquisition.exposed_return_data(last_hash)
             if new_data_returned:
                 last_hash = new_hash
                 pipe.send((new_data, data_uuid))
@@ -118,16 +128,10 @@ class AcquisitionMaster:
             self.acq_process.send((AcquisitionProcessSignals.FETCH_QUADRATURES, status))
 
     def set_csr(self, key, value):
-        self.acq_process.send(
-            (AcquisitionProcessSignals.SET_CSR, (key, value))
-        )
+        self.acq_process.send((AcquisitionProcessSignals.SET_CSR, (key, value)))
 
     def set_iir_csr(self, *args):
-        self.acq_process.send(
-            (AcquisitionProcessSignals.SET_IIR_CSR, args)
-        )
+        self.acq_process.send((AcquisitionProcessSignals.SET_IIR_CSR, args))
 
     def clear_data_cache(self, uuid):
-        self.acq_process.send(
-            (AcquisitionProcessSignals.CLEAR_DATA_CACHE, uuid)
-        )
+        self.acq_process.send((AcquisitionProcessSignals.CLEAR_DATA_CACHE, uuid))

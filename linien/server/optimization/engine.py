@@ -3,8 +3,11 @@ import math
 import numpy as np
 
 from linien.common import MHz, Vpp
-from linien.server.optimization.utils import get_max_slope, optimize_phase_from_iq, \
-    FINAL_ZOOM_FACTOR
+from linien.server.optimization.utils import (
+    get_max_slope,
+    optimize_phase_from_iq,
+    FINAL_ZOOM_FACTOR,
+)
 
 
 class NoOptimizationEngine:
@@ -47,9 +50,7 @@ class MultiDimensionalOptimizationEngine:
         self.es = cma.CMAEvolutionStrategy(
             [np.mean(v) for v in bounds],
             0.5,
-            {
-                'bounds': [[v[0] for v in bounds], [v[1] for v in bounds]]
-            }
+            {"bounds": [[v[0] for v in bounds], [v[1] for v in bounds]]},
         )
 
         self._pending = []
@@ -70,10 +71,7 @@ class MultiDimensionalOptimizationEngine:
         self._done.append(parameters)
 
         if not self._pending:
-            self.es.tell(
-                self._done,
-                self._results
-            )
+            self.es.tell(self._done, self._results)
             self._results = []
             self._done = []
 
@@ -88,13 +86,13 @@ class OptimizerEngine:
         self.all_params = [
             params.modulation_frequency,
             params.modulation_amplitude,
-            self.get_demod_phase_param()
+            self.get_demod_phase_param(),
         ]
-        self.params_before_start = [
-            p.value for p in self.all_params
-        ]
+        self.params_before_start = [p.value for p in self.all_params]
 
-        self.parameters.optimization_optimized_parameters.value = self.params_before_start
+        self.parameters.optimization_optimized_parameters.value = (
+            self.params_before_start
+        )
 
         self.initial_slope = None
         self.last_parameters = None
@@ -108,24 +106,32 @@ class OptimizerEngine:
 
         if params.optimization_mod_freq_enabled.value:
             self.to_optimize.append(params.modulation_frequency)
-            freqs = list(sorted([
-                params.optimization_mod_freq_min.value * MHz,
-                params.optimization_mod_freq_max.value * MHz
-            ]))
+            freqs = list(
+                sorted(
+                    [
+                        params.optimization_mod_freq_min.value * MHz,
+                        params.optimization_mod_freq_max.value * MHz,
+                    ]
+                )
+            )
             self.bounds.append(freqs)
 
         if params.optimization_mod_amp_enabled.value:
             self.to_optimize.append(params.modulation_amplitude)
-            ampls = list(sorted([
-                params.optimization_mod_amp_min.value * Vpp,
-                params.optimization_mod_amp_max.value * Vpp
-            ]))
+            ampls = list(
+                sorted(
+                    [
+                        params.optimization_mod_amp_min.value * Vpp,
+                        params.optimization_mod_amp_max.value * Vpp,
+                    ]
+                )
+            )
             self.bounds.append(ampls)
 
         self.opt = [
             NoOptimizationEngine,
             OneDimensionalOptimizationEngine,
-            MultiDimensionalOptimizationEngine
+            MultiDimensionalOptimizationEngine,
         ][len(self.bounds)]([[0, 1]] * len(self.bounds))
 
     def request_and_set_new_parameters(self, use_initial_parameters=False):
@@ -160,16 +166,12 @@ class OptimizerEngine:
 
         return (
             self.parameters.demodulation_phase_a,
-            self.parameters.demodulation_phase_b
-        )[
-            0 if not dual_channel else (0, 1)[channel]
-        ]
+            self.parameters.demodulation_phase_b,
+        )[0 if not dual_channel else (0, 1)[channel]]
 
     def tell(self, i, q):
         if self.initial_slope is None:
-            self.initial_slope = get_max_slope(
-                i, FINAL_ZOOM_FACTOR
-            )
+            self.initial_slope = get_max_slope(i, FINAL_ZOOM_FACTOR)
 
         optimized_phase, optimized_slope = optimize_phase_from_iq(
             i, q, FINAL_ZOOM_FACTOR
@@ -192,13 +194,13 @@ class OptimizerEngine:
                 for param, value in zip(self.to_optimize, self.last_parameters):
                     idx = {
                         self.parameters.modulation_frequency: 0,
-                        self.parameters.modulation_amplitude: 1
+                        self.parameters.modulation_amplitude: 1,
                     }[param]
                     complete_parameter_set[idx] = value
 
             params.optimization_optimized_parameters.value = complete_parameter_set
 
-        print('improvement %d' % (improvement * 100))
+        print("improvement %d" % (improvement * 100))
 
         fitness = math.log(1 / optimized_slope)
 
