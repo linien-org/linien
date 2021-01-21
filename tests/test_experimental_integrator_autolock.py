@@ -4,19 +4,34 @@ from matplotlib import pyplot as plt
 TARGET_IDXS = (328, 350)
 
 
+class LockPositionNotFound(Exception):
+    pass
+
+
+class UnableToFindDescription(Exception):
+    pass
+
+
 def peak(x):
     return np.exp(-np.abs(x)) * np.sin(x)
 
 
 def spectrum_for_testing(noise_level):
     x = np.linspace(-30, 30, 512)
-    central_peak = peak(x) * 2048
+    central_peak = peak(x) * 2048 * (-1)
     smaller_peaks = (peak(x - 10) * 1024) - (peak(x + 10) * 1024)
     return central_peak + smaller_peaks + (np.random.randn(len(x)) * noise_level)
 
 
 def add_noise(spectrum, level=100):
     return spectrum + (np.random.randn(len(spectrum)) * level)
+
+
+def get_lock_region(spectrum, target_idxs):
+    part = spectrum[target_idxs[0] : target_idxs[1]]
+    return tuple(
+        sorted([target_idxs[0] + np.argmin(part), target_idxs[0] + np.argmax(part)])
+    )
 
 
 def get_x_scale(spectrum, target_idxs):
@@ -115,7 +130,7 @@ def get_lock_position_from_description(
                 # this was the last peak!
                 return idx
 
-    plt.clf()
+    """plt.clf()
     # plt.plot(spectrum, color="blue", alpha=0.5)
     plt.plot(
         get_diff_at_x_scale(sum_up_spectrum(spectrum), x_scale),
@@ -133,58 +148,75 @@ def get_lock_position_from_description(
 
     plt.legend()
     plt.grid()
-    plt.show()
-    raise Exception("not found")
+    plt.show()"""
+    raise LockPositionNotFound()
 
 
 def get_description(spectra, target_idxs):
+    # FIXME: TODO: y shift such that initial line always has + and - peak. Is this really needed?
     x_scale = int(
         round(np.mean([get_x_scale(spectrum, target_idxs) for spectrum in spectra]))
     )
     print(f"x scale is {x_scale}")
+    lock_region = get_lock_region(spectra[0], target_idxs)
 
-    all_peaks = []
-
-    for spectrum in spectra:
-        prepared_spectrum = get_diff_at_x_scale(sum_up_spectrum(spectrum), x_scale)
+    for tolerance_factor in [0.95, 0.9, 0.85, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55, 0.5]:
+        print("TOLERANCE", tolerance_factor)
+        prepared_spectrum = get_diff_at_x_scale(sum_up_spectrum(spectra[0]), x_scale)
         peaks = get_all_peaks(prepared_spectrum, target_idxs)
-        all_peaks.append(peaks)
 
-    target_peaks = [peaks[0][1] for peaks in all_peaks]
-    # TODO: Think about it. sigma=2 should be 95 % confidence. Handle the case that the difference two lines below is negative
-    sigma_factor = 4
-    noise_level = sigma_factor * np.std(target_peaks)
+        y_scale = peaks[0][1]
+        description = [
+            # FIXME: take care that (1-XXX) is never negative (or even < .5)
+            (peak_position, peak_height * tolerance_factor)
+            for peak_position, peak_height in peaks
+        ]
+        # it is important to do the filtering that happens here after the previous
+        # line as the previous line shrinks the values
+        description = [
+            (peak_position, peak_height)
+            for peak_position, peak_height in description
+            if abs(peak_height) > abs(y_scale * (1 - tolerance_factor))
+        ]
 
-    print(f"noise level is {noise_level}")
+        # now find out how much we have to wait in the end (because we detect the peak
+        # too early because our threshold is too low)
+        target_peak_described_height = description[0][1]
+        target_peak_idx = get_target_peak(prepared_spectrum, TARGET_IDXS)
+        current_idx = target_peak_idx
+        while True:
+            current_idx -= 1
+            if np.abs(prepared_spectrum[current_idx]) < np.abs(
+                target_peak_described_height
+            ):
+                break
+        final_wait_time = target_peak_idx - current_idx
+        print(f"final wait time is {final_wait_time} samples")
 
-    description = [
-        # FIXME: take care that (1-XXX) is never negative (or even < .5)
-        (peak_position, peak_height * (1 - abs(noise_level / peak_height)))
-        for peak_position, peak_height in all_peaks[0]
-    ]
-    # it is important to do the filtering that happens here after the previous
-    # line as the previous line shrinks the values
-    description = [
-        (peak_position, peak_height)
-        for peak_position, peak_height in description
-        if abs(peak_height) > abs(noise_level)
-    ]
+        # test whether description works fine for every recorded spectrum
+        does_work = True
+        for spectrum in spectra:
+            try:
+                lock_position = (
+                    get_lock_position_from_description(
+                        spectrum,
+                        list(reversed(description)),
+                        x_scale,
+                        spectra[0],
+                    )
+                    + final_wait_time
+                )
+                if not lock_region[0] <= lock_position <= lock_region[1]:
+                    print(lock_region, lock_position)
+                    raise LockPositionNotFound()
 
-    # now find out how much we have to wait in the end (because we detect the peak
-    # too early because our threshold is too low)
-    target_peak_described_height = description[0][1]
-    initial_spectrum = spectra[0]
-    prepared_spectrum = get_diff_at_x_scale(sum_up_spectrum(initial_spectrum), x_scale)
-    target_peak_idx = get_target_peak(prepared_spectrum, TARGET_IDXS)
-    current_idx = target_peak_idx
-    while True:
-        current_idx -= 1
-        if np.abs(prepared_spectrum[current_idx]) < np.abs(
-            target_peak_described_height
-        ):
+            except LockPositionNotFound:
+                does_work = False
+
+        if does_work:
             break
-    final_wait_time = target_peak_idx - current_idx
-    print(f"final wait time is {final_wait_time} samples")
+    else:
+        raise UnableToFindDescription()
 
     return list(reversed(description)), final_wait_time, x_scale
 
@@ -192,7 +224,7 @@ def get_description(spectra, target_idxs):
 def test_get_description():
     spectrum = spectrum_for_testing(0)
 
-    spectra = [add_noise(spectrum) for _ in range(100)]
+    spectra = [add_noise(spectrum) for _ in range(10)]
 
     description, final_wait_time, x_scale = get_description(spectra, TARGET_IDXS)
 
