@@ -1,5 +1,7 @@
 import numpy as np
 from matplotlib import pyplot as plt
+from scipy.signal import correlate, resample
+
 
 TARGET_IDXS = (328, 350)
 
@@ -18,13 +20,19 @@ def peak(x):
 
 def spectrum_for_testing(noise_level):
     x = np.linspace(-30, 30, 512)
-    central_peak = peak(x) * 2048 * (-1)
+    central_peak = peak(x) * 2048
     smaller_peaks = (peak(x - 10) * 1024) - (peak(x + 10) * 1024)
     return central_peak + smaller_peaks + (np.random.randn(len(x)) * noise_level)
 
 
-def add_noise(spectrum, level=100):
+def add_noise(spectrum, level):
     return spectrum + (np.random.randn(len(spectrum)) * level)
+
+
+def add_jitter(spectrum, level):
+    shift = int(round(np.random.randn() * level))
+    print("shift", shift)
+    return np.roll(spectrum, shift)
 
 
 def get_lock_region(spectrum, target_idxs):
@@ -118,9 +126,8 @@ def get_lock_position_from_description(
         if (
             sign(value) == sign(current_threshold)
             and abs(value) >= abs(current_threshold)
-            # TODO: this /2 division is very arbitrary. Probably should be more than / 2 and depend on various things
-            #       also: first peak should have special treatment bc of horizontal jitter
-            and idx - last_peak_idx > (peak_position - previous_peak_position) * 0.5
+            # TODO: this .9 factor is very arbitrary. also: first peak should have special treatment bc of horizontal jitter
+            and idx - last_peak_idx > (peak_position - previous_peak_position) * 0.9
         ):
             description_idx += 1
             last_peak_idx = idx
@@ -158,8 +165,6 @@ def get_description(spectra, target_idxs):
         round(np.mean([get_x_scale(spectrum, target_idxs) for spectrum in spectra]))
     )
     print(f"x scale is {x_scale}")
-    lock_region = get_lock_region(spectra[0], target_idxs)
-
     for tolerance_factor in [0.95, 0.9, 0.85, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55, 0.5]:
         print("TOLERANCE", tolerance_factor)
         prepared_spectrum = get_diff_at_x_scale(sum_up_spectrum(spectra[0]), x_scale)
@@ -167,7 +172,6 @@ def get_description(spectra, target_idxs):
 
         y_scale = peaks[0][1]
         description = [
-            # FIXME: take care that (1-XXX) is never negative (or even < .5)
             (peak_position, peak_height * tolerance_factor)
             for peak_position, peak_height in peaks
         ]
@@ -196,6 +200,8 @@ def get_description(spectra, target_idxs):
         # test whether description works fine for every recorded spectrum
         does_work = True
         for spectrum in spectra:
+            lock_region = get_lock_region(spectrum, target_idxs)
+
             try:
                 lock_position = (
                     get_lock_position_from_description(
@@ -207,7 +213,6 @@ def get_description(spectra, target_idxs):
                     + final_wait_time
                 )
                 if not lock_region[0] <= lock_position <= lock_region[1]:
-                    print(lock_region, lock_position)
                     raise LockPositionNotFound()
 
             except LockPositionNotFound:
@@ -224,8 +229,22 @@ def get_description(spectra, target_idxs):
 def test_get_description():
     spectrum = spectrum_for_testing(0)
 
-    spectra = [add_noise(spectrum) for _ in range(10)]
+    spectra_with_jitter = [
+        add_jitter(add_noise(spectrum, 100), 100 if _ > 0 else 0) for _ in range(10)
+    ]
+    spectra = []
 
+    for idx, spectrum in enumerate(spectra_with_jitter):
+        if idx == 0:
+            shift = 0
+        else:
+            shift = np.argmax(correlate(spectra[0], spectrum))
+            print("detected", -1 * (shift - len(spectrum)))
+        spectra.append(np.roll(spectrum, shift))
+        # plt.plot(spectra[-1])
+
+    # plt.show()
+    # asd
     description, final_wait_time, x_scale = get_description(spectra, TARGET_IDXS)
 
     print("DESCRIPTION", description)
