@@ -87,7 +87,9 @@ def get_all_peaks(summed_xscaled, target_idxs):
     return peaks
 
 
-def get_lock_position_from_description(spectrum, description, x_scale):
+def get_lock_position_from_description(
+    spectrum, description, x_scale, initial_spectrum
+):
     summed = sum_up_spectrum(spectrum)
     summed_xscaled = get_diff_at_x_scale(summed, x_scale)
 
@@ -114,8 +116,23 @@ def get_lock_position_from_description(spectrum, description, x_scale):
                 return idx
 
     plt.clf()
-    plt.plot(spectrum)
-    plt.plot(summed_xscaled)
+    # plt.plot(spectrum, color="blue", alpha=0.5)
+    plt.plot(
+        get_diff_at_x_scale(sum_up_spectrum(spectrum), x_scale),
+        color="green",
+        alpha=0.5,
+        label="to test",
+    )
+    # plt.plot(initial_spectrum, color="red", alpha=0.5)
+    plt.plot(
+        get_diff_at_x_scale(sum_up_spectrum(initial_spectrum), x_scale),
+        color="orange",
+        alpha=0.5,
+        label="initial",
+    )
+
+    plt.legend()
+    plt.grid()
     plt.show()
     raise Exception("not found")
 
@@ -175,7 +192,7 @@ def get_description(spectra, target_idxs):
 def test_get_description():
     spectrum = spectrum_for_testing(0)
 
-    spectra = [add_noise(spectrum) for _ in range(10)]
+    spectra = [add_noise(spectrum) for _ in range(100)]
 
     description, final_wait_time, x_scale = get_description(spectra, TARGET_IDXS)
 
@@ -185,7 +202,9 @@ def test_get_description():
 
     for spectrum in spectra:
         lock_positions.append(
-            get_lock_position_from_description(spectrum, description, x_scale)
+            get_lock_position_from_description(
+                spectrum, description, x_scale, spectra[0]
+            )
             + final_wait_time
         )
 
