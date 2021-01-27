@@ -14,6 +14,7 @@ from misoc.interconnect.csr import AutoCSR, CSRStorage, CSRStatus
 from .pitaya_ps import sys_layout
 
 
+# FIXME: remove this class
 class Tester(Module):
     def __init__(self):
         self.counter = Signal(14)
