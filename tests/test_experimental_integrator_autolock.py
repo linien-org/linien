@@ -19,6 +19,9 @@ from misoc.interconnect.csr import AutoCSR, CSRStorage, CSRStatus
 
 
 TARGET_IDXS = (328, 350)
+FPGA_DELAY_SUMDIFF_CALCULATOR = 2
+# FIXME: When programming FPGA, this delay has to be subtracted from final_wait constant
+FPGA_DELAY_LOCK_POSITION_FINDER = 3
 
 
 class LockPositionNotFound(Exception):
@@ -156,25 +159,27 @@ class SumDiffCalculator(Module):
         self.delay_value = Signal(bits_for(N_points))
 
         sum_value_bits = bits_for(((2 ** width) - 1) * N_points)
-        sum_value = Signal((sum_value_bits, True))
+        self.sum_value = Signal((sum_value_bits, True))
         delayed_sum = Signal((sum_value_bits, True))
         self.current_sum_diff = Signal((sum_value_bits + 1, True))
 
-        self.submodules.delayer = DynamicDelay(sum_value_bits, bits_for(N_points))
+        # FIXME: max_delay should be in theory N_points but this makes simulation too hard.
+        #        How to solve this?
+        self.submodules.delayer = DynamicDelay(sum_value_bits, 20)
 
         self.sync += [
-            If(self.at_start, sum_value.eq(0),).Else(
+            If(self.at_start, self.sum_value.eq(0),).Else(
                 # not at start
-                sum_value.eq(sum_value + self.value)
+                self.sum_value.eq(self.sum_value + self.value)
             )
         ]
 
         self.comb += [
             self.delayer.at_start.eq(self.at_start),
             self.delayer.delay.eq(self.delay_value),
-            self.delayer.input.eq(sum_value),
+            self.delayer.input.eq(self.sum_value),
             delayed_sum.eq(self.delayer.output),
-            self.current_sum_diff.eq(sum_value - delayed_sum),
+            self.current_sum_diff.eq(self.sum_value - delayed_sum),
         ]
 
 
@@ -283,7 +288,39 @@ class FPGALockPositionFinder(Module):
 def get_lock_position_from_description_fpga(
     spectrum, description, x_scale, initial_spectrum
 ):
-    pass
+    result = {}
+    def tb(dut):
+        yield dut.at_start.eq(1)
+
+        for description_idx, [wait_for, current_threshold] in enumerate(description):
+            yield dut.peak_heights[description_idx].storage.eq(int(current_threshold))
+            yield dut.wait_for[description_idx].storage.eq(int(wait_for))
+
+        yield
+
+        yield dut.at_start.eq(0)
+        yield dut.x_scale.storage.eq(int(x_scale))
+
+        for i in range(len(spectrum)):
+            yield dut.value.eq(int(spectrum[i]))
+
+            instruction_idx = yield dut.current_instruction_idx
+            sum_diff = yield dut.sum_diff_calculator.current_sum_diff
+            #print('sumdiff', sum_diff)
+            #print(instruction_idx, len(description))
+            if instruction_idx >= len(description):
+                result['index'] = i
+                return
+
+            yield
+
+
+    dut = FPGALockPositionFinder()
+    run_simulation(
+        dut, tb(dut), vcd_name="experimental_autolock_fpga_lock_position_finder.vcd"
+    )
+
+    return result.get('index')
 
 
 def get_lock_position_from_description(
@@ -302,8 +339,7 @@ def get_lock_position_from_description(
         if (
             sign(value) == sign(current_threshold)
             and abs(value) >= abs(current_threshold)
-            # TODO: this .9 factor is very arbitrary. also: first peak should have special treatment bc of horizontal jitter
-            and idx - last_detected_peak > wait_for * 0.9
+            and idx - last_detected_peak > wait_for
         ):
             description_idx += 1
             last_detected_peak = idx
@@ -376,7 +412,8 @@ def get_description(spectra, target_idxs):
 
         last_peak_position = 0
         for peak_position, peak_height in list(reversed(peaks_filtered)):
-            description.append(((peak_position - last_peak_position), peak_height))
+            # TODO: this .9 factor is very arbitrary. also: first peak should have special treatment bc of horizontal jitter
+            description.append((int(0.9 * (peak_position - last_peak_position)), int(peak_height)))
             last_peak_position = peak_position
 
         # test whether description works fine for every recorded spectrum
@@ -409,10 +446,10 @@ def get_description(spectra, target_idxs):
 
 
 def test_get_description():
-    spectrum = spectrum_for_testing(0)
+    spectrum = spectrum_for_testing(0).astype(np.int64)
 
     spectra_with_jitter = [
-        add_jitter(add_noise(spectrum, 100), 100 if _ > 0 else 0) for _ in range(10)
+        add_jitter(add_noise(spectrum, 100), 100 if _ > 0 else 0).astype(np.int64) for _ in range(10)
     ]
     spectra = []
 
@@ -431,17 +468,21 @@ def test_get_description():
     # asd
     description, final_wait_time, x_scale = get_description(spectra, TARGET_IDXS)
 
-    print("DESCRIPTION", description)
-
     lock_positions = []
 
     for spectrum in spectra:
-        lock_positions.append(
-            get_lock_position_from_description(
-                spectrum, description, x_scale, spectra[0]
-            )
-            + final_wait_time
+
+        lock_position = get_lock_position_from_description(
+            spectrum, description, x_scale, spectra[0]
         )
+        lock_position_fpga = get_lock_position_from_description_fpga(
+            spectrum, description, x_scale, spectra[0]
+        )
+
+        # FIXME: When programming FPGA, FPGA_DELAY_LOCK_POSITION_FINDER has to be subtracted from final_wait constant
+        assert lock_position == lock_position_fpga - FPGA_DELAY_LOCK_POSITION_FINDER
+
+        lock_positions.append(lock_position + final_wait_time)
 
         plt.axvline(lock_positions[-1], color="green", alpha=0.5)
 
@@ -513,6 +554,66 @@ def test_sum_diff_calculator():
     run_simulation(
         dut, tb(dut), vcd_name="experimental_autolock_sum_diff_calculator.vcd"
     )
+
+
+def test_compare_sum_diff_calculator_implementations():
+    for iteration in (0, 1):
+        if iteration == 1:
+            spectrum = spectrum_for_testing(0)
+            x_scale = get_x_scale(spectrum, TARGET_IDXS)
+            # FIXME: very important! max_delay of DynamicDelay has to be >= x_scale
+
+            # FIXME: es sollten immer nur ints überall verwendet werden, damit vergleichbar
+            spectrum = [int(v) for v in spectrum]
+
+        else:
+            spectrum = [1 * i for i in range(1000)]
+            x_scale = 5
+
+
+
+        summed = sum_up_spectrum(spectrum)
+        summed_xscaled = get_diff_at_x_scale(summed, x_scale)
+
+        summed_fpga = {
+            'summed_xscaled': [],
+            'summed': []
+        }
+
+        def tb(dut):
+            yield dut.at_start.eq(1)
+
+            yield dut.at_start.eq(0)
+            yield dut.x_scale.storage.eq(int(x_scale))
+
+            for i in range(len(spectrum)):
+                yield dut.value.eq(int(spectrum[i]))
+
+                sum_diff = yield dut.sum_diff_calculator.current_sum_diff
+                sum = yield dut.sum_diff_calculator.sum_value
+                summed_fpga['summed_xscaled'].append(sum_diff)
+                summed_fpga['summed'].append(sum)
+
+                yield
+
+        dut = FPGALockPositionFinder()
+        run_simulation(
+            dut, tb(dut), vcd_name="experimental_autolock_fpga_lock_position_finder.vcd"
+        )
+
+
+        assert summed[:-FPGA_DELAY_SUMDIFF_CALCULATOR] == summed_fpga["summed"][FPGA_DELAY_SUMDIFF_CALCULATOR:]
+        """plt.plot(summed[:-FPGA_DELAY_SUMDIFF_CALCULATOR], label='normal calculation')
+        plt.plot(summed_fpga["summed"][FPGA_DELAY_SUMDIFF_CALCULATOR:], label='FPGA calculation')
+        plt.legend()
+        plt.show()"""
+
+        """plt.plot(summed_xscaled[:-FPGA_DELAY_SUMDIFF_CALCULATOR], label='normal calculation')
+        plt.plot(summed_fpga['summed_xscaled'][FPGA_DELAY_SUMDIFF_CALCULATOR:], label='FPGA calculation')
+        plt.legend()
+        plt.show()"""
+        assert summed_xscaled[:-FPGA_DELAY_SUMDIFF_CALCULATOR] == summed_fpga["summed_xscaled"][FPGA_DELAY_SUMDIFF_CALCULATOR:]
+
 
 
 def test_fpga_lock_position_finder():
@@ -595,7 +696,8 @@ def test_fpga_lock_position_finder():
 
 
 if __name__ == "__main__":
-    # test_get_description()
+    # test_compare_sum_diff_calculator_implementations()
+    test_get_description()
     # test_dynamic_delay()
     # test_sum_diff_calculator()
-    test_fpga_lock_position_finder()
+    # test_fpga_lock_position_finder()
