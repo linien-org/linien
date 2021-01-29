@@ -103,6 +103,10 @@ class Registers:
             logic_analog_out_1=params["analog_out_1"],
             logic_analog_out_2=params["analog_out_2"],
             logic_analog_out_3=params["analog_out_3"],
+            logic_autolock_fast_target_position=params["autolock_target_position"],
+            logic_autolock_autolock_mode=params["autolock_mode"],
+            logic_autolock_robust_N_instructions=len(params["autolock_instructions"]),
+            logic_autolock_robust_time_scale=params["autolock_time_scale"],
             # channel A
             fast_a_demod_delay=phase_to_delay(params["demodulation_phase_a"]),
             fast_a_demod_multiplier=params["demodulation_multiplier_a"],
@@ -127,6 +131,12 @@ class Registers:
             gpio_n_do1_en=self.csr.signal("zero"),
             logic_slow_decimation=16,
         )
+
+        for instruction_idx, [wait_for, peak_height] in enumerate(
+            params["autolock_instructions"]
+        ):
+            new["logic_autolock_robust_peak_height_%d" % instruction_idx] = peak_height
+            new["logic_autolock_robust_wait_for_%d" % instruction_idx] = wait_for
 
         if lock:
             # display combined error signal and control signal
@@ -278,7 +288,7 @@ class Registers:
 
     def set_pid(self, p, i, d, slope, reset=None, request_lock=None):
         if request_lock is not None:
-            self.set("logic_request_lock", request_lock)
+            self.set("logic_autolock_request_lock", request_lock)
 
         sign = -1 if slope else 1
         self.set("logic_pid_kp", p * sign)

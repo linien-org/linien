@@ -5,7 +5,7 @@ import numpy as np
 import traceback
 
 from linien.common import determine_shift_by_correlation, get_lock_point
-from linien.server.autolock import Approacher
+from linien.server.approach_line import Approacher
 
 
 class OptimizeSpectroscopy:

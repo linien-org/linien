@@ -1,4 +1,6 @@
-from os import error
+"""
+This file contains stuff that is required by the server as well as the client.
+"""
 import hashlib
 import pickle
 import numpy as np
@@ -20,6 +22,8 @@ ANALOG_OUT0 = 2
 DECIMATION = 8
 assert DECIMATION % 2 == 0 or DECIMATION == 1
 N_POINTS = int(16384 / DECIMATION)
+
+AUTOLOCK_MAX_N_INSTRUCTIONS = 32
 
 
 class SpectrumUncorrelatedException(Exception):

@@ -11,7 +11,7 @@ from linien.server.autolock.autolock import (
     get_lock_position_from_autolock_instructions,
 )
 from gateware.logic.autolock import (
-    AutolockFPGA,
+    RobustAutolock,
     DynamicDelay,
     SumDiffCalculator,
     get_lock_position_from_autolock_instructions_by_simulating_fpga,
@@ -106,6 +106,7 @@ def test_dynamic_delay():
     def tb(dut):
         yield dut.input.eq(1)
         yield dut.delay.eq(10)
+        yield dut.writing_data_now.eq(1)
 
         for i in range(10):
             yield
@@ -117,7 +118,7 @@ def test_dynamic_delay():
         out = yield dut.output
         assert out == 1
 
-    dut = DynamicDelay(14 + 14, 8192)
+    dut = DynamicDelay(14 + 14, max_delay=8191)
     run_simulation(dut, tb(dut), vcd_name="experimental_autolock_dynamic_delay.vcd")
 
 
@@ -125,9 +126,10 @@ def test_sum_diff_calculator():
     def tb(dut):
         value = 5
         delay = 10
-        yield dut.reset.eq(0)
+        yield dut.restart.eq(0)
         yield dut.input.eq(value)
         yield dut.delay_value.eq(delay)
+        yield dut.writing_data_now.eq(1)
 
         for i in range(20):
             yield
@@ -147,9 +149,9 @@ def test_sum_diff_calculator():
 
         assert out == -50
 
-        yield dut.reset.eq(1)
+        yield dut.restart.eq(1)
         yield
-        yield dut.reset.eq(0)
+        yield dut.restart.eq(0)
         yield
         out = yield dut.output
         assert out == 0
@@ -158,7 +160,7 @@ def test_sum_diff_calculator():
         out = yield dut.output
         assert out != 0
 
-    dut = SumDiffCalculator(14, 8192)
+    dut = SumDiffCalculator(14, 8192, max_delay=50)
     run_simulation(
         dut, tb(dut), vcd_name="experimental_autolock_sum_diff_calculator.vcd"
     )
@@ -180,7 +182,9 @@ def test_compare_sum_diff_calculator_implementations(debug=False):
         summed_fpga = {"summed_xscaled": [], "summed": []}
 
         def tb(dut):
+            yield dut.request_lock.eq(1)
             yield dut.at_start.eq(1)
+            yield dut.writing_data_now.eq(1)
 
             yield dut.at_start.eq(0)
             yield dut.time_scale.storage.eq(int(time_scale))
@@ -195,7 +199,7 @@ def test_compare_sum_diff_calculator_implementations(debug=False):
 
                 yield
 
-        dut = AutolockFPGA()
+        dut = RobustAutolock(max_delay=50)
         run_simulation(
             dut, tb(dut), vcd_name="experimental_autolock_fpga_lock_position_finder.vcd"
         )
@@ -235,12 +239,17 @@ def test_compare_sum_diff_calculator_implementations(debug=False):
 def test_fpga_lock_position_finder():
     def tb(dut):
         for iteration in range(2):
+            yield dut.request_lock.eq(1)
             yield dut.at_start.eq(1)
+            yield dut.writing_data_now.eq(1)
+
+            heights = [6000, 7000, -100, 10000]
+            yield dut.N_instructions.storage.eq(len(heights))
+
             yield
 
             yield dut.at_start.eq(0)
             yield dut.time_scale.storage.eq(5)
-            heights = [6000, 7000, -100]
             yield dut.wait_for_0.storage.eq(0)
             yield dut.peak_height_0.storage.eq(heights[0])
 
@@ -249,6 +258,9 @@ def test_fpga_lock_position_finder():
 
             yield dut.wait_for_2.storage.eq(10)
             yield dut.peak_height_2.storage.eq(heights[2])
+
+            yield dut.wait_for_3.storage.eq(10)
+            yield dut.peak_height_3.storage.eq(heights[3])
 
             yield dut.input.eq(1000)
 
@@ -304,7 +316,7 @@ def test_fpga_lock_position_finder():
                 else:
                     assert instruction_idx == 3
 
-    dut = AutolockFPGA()
+    dut = RobustAutolock(max_delay=50)
     run_simulation(
         dut, tb(dut), vcd_name="experimental_autolock_fpga_lock_position_finder.vcd"
     )

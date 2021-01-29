@@ -12,7 +12,7 @@ from rpyc.utils.server import ThreadedServer
 from rpyc.utils.authenticators import AuthenticationError
 from random import random
 
-from autolock import Autolock
+from autolock_old import Autolock
 from parameters import Parameters
 
 from linien.config import DEFAULT_SERVER_PORT
@@ -191,6 +191,11 @@ class RedPitayaControlService(BaseService):
 
     def exposed_continue_acquisition(self):
         self.continue_acquisition()
+
+    def exposed_set_csr_direct(self, k, v):
+        """Directly sets a CSR register. This method is intended for debugging.
+        Normally, the FPGA should be controlled via manipulation of parameters."""
+        self.registers.set(k, v)
 
     def pause_acquisition(self):
         """Pause continuous acquisition. Call this before changing a parameter

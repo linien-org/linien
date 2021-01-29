@@ -1,4 +1,5 @@
 # this code is based on redpid. See LICENSE for details.
+from gateware.logic.autolock import FPGAAutolock
 from migen import (
     Signal,
     Module,
@@ -78,39 +79,19 @@ class LinienLogic(Module, AutoCSR):
         self.submodules.limit_fast2 = LimitCSR(width=width, guard=5)
         self.submodules.pid = PID(width=signal_width)
 
+        # FIXME: max_delay=100 should be more!
+        self.submodules.autolock = FPGAAutolock(width=width, max_delay=100)
+
     def connect_pid(self):
         # pid is not started directly by `request_lock` signal. Instead, `request_lock`
         # queues a run that is then started when the ramp is at the zero crossing
-        self.request_lock = CSRStorage()
-        self.lock_running = CSRStatus()
-        ready_for_lock = Signal()
-
         self.comb += [
-            self.pid.running.eq(self.lock_running.status),
-            self.sweep.clear.eq(self.lock_running.status),
-            self.sweep.hold.eq(0),
-        ]
-
-        self.sync += [
-            If(
-                ~self.request_lock.storage,
-                self.lock_running.status.eq(0),
-                ready_for_lock.eq(0),
-            ),
-            If(
-                self.request_lock.storage & ~ready_for_lock,
-                ready_for_lock.eq(
-                    # set ready for lock if sweep is at zero crossing
-                    (self.sweep.sweep.y > 0)
-                    & (self.sweep.sweep.y <= self.sweep.sweep.step)
-                    # and if the ramp is going up (because this is when a
-                    # spectrum is recorded)
-                    & (self.sweep.sweep.up)
-                ),
-            ),
-            If(
-                self.request_lock.storage & ready_for_lock,
-                self.lock_running.status.eq(1),
+            self.pid.running.eq(self.autolock.lock_running.status),
+            self.sweep.hold.eq(self.autolock.lock_running.status),
+            self.autolock.fast.sweep_value.eq(self.sweep.y),
+            self.autolock.fast.sweep_up.eq(self.sweep.sweep.up),
+            self.autolock.fast.sweep_step.eq(
+                self.sweep.step.storage >> self.sweep.step_shift
             ),
         ]
 
@@ -213,6 +194,7 @@ class LinienModule(Module, AutoCSR):
                 ("slow", self.slow),
                 ("scopegen", self.scopegen),
                 ("logic", self.logic),
+                ("robust", self.logic.autolock.robust),
             ],
         )
 
@@ -299,7 +281,9 @@ class LinienModule(Module, AutoCSR):
                 # first analog out gets a special treatment bc it may
                 # contain signal of slow pid or sweep
 
-                self.comb += self.slow.pid.running.eq(self.logic.lock_running.status)
+                self.comb += self.slow.pid.running.eq(
+                    self.logic.autolock.lock_running.status
+                )
 
                 slow_pid_out = Signal((width, True))
                 self.comb += slow_pid_out.eq(self.slow.output)
@@ -344,9 +328,23 @@ class LinienModule(Module, AutoCSR):
             dss = [self.ds0, self.ds1, self.ds2, self.ds3]
             self.comb += dss[analog_idx].data.eq(analog_out)
 
+        # FIXME: did it help making robust.input sync?
+        self.sync += [
+            self.logic.autolock.robust.input.eq(self.scopegen.scope_written_data),
+        ]
+
         self.comb += [
+            self.logic.autolock.robust.at_start.eq(self.logic.sweep.sweep.trigger),
+            self.logic.autolock.robust.writing_data_now.eq(
+                self.scopegen.writing_data_now
+            ),
             self.scopegen.gpio_trigger.eq(self.gpio_p.i[0]),
             self.scopegen.sweep_trigger.eq(self.logic.sweep.sweep.trigger),
+            self.logic.autolock.robust.input.eq(self.scopegen.scope_written_data),
+            self.logic.autolock.robust.at_start.eq(self.scopegen.scope_position == 0),
+            self.logic.autolock.cd_robustautolock_clock.clk.eq(
+                self.scopegen.writing_data_now
+            ),
             self.logic.limit_fast1.x.eq(fast_outs[0]),
             self.logic.limit_fast2.x.eq(fast_outs[1]),
             self.analog.dac_a.eq(self.logic.limit_fast1.y),

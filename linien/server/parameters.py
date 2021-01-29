@@ -276,6 +276,10 @@ class Parameters(BaseParameters):
         # manipulated
         self.task = Parameter(start=None, sync=False)
         self.automatic_mode = Parameter(start=True)
+        self.autolock_target_position = Parameter(start=0)
+        self.autolock_mode = Parameter(start=0)
+        self.autolock_time_scale = Parameter(start=0)
+        self.autolock_instructions = Parameter(start=[])
         self.autolock_selection = Parameter(start=False)
         self.autolock_running = Parameter(start=False)
         self.autolock_approaching = Parameter(start=False)

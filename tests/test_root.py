@@ -5,9 +5,14 @@ from gateware.linien import LinienLogic
 
 
 def test_root():
-    def tb(root: LinienLogic):
+    def tb(root: LinienLogic, lock_target_position):
+        print("lock target position", lock_target_position)
         sweep: SweepCSR = root.sweep
         pid: PID = root.pid
+        autolock = root.autolock
+        fast = autolock.fast
+
+        yield fast.target_position.storage.eq(lock_target_position)
 
         yield sweep.step.storage.eq(1 << sweep.step_shift)
         yield sweep.run.storage.eq(1)
@@ -20,27 +25,30 @@ def test_root():
         yield
 
         for iteration in range(2):
-            ramp_sign = (-1, 1)[iteration]
+            print("iteration", iteration)
+            ramp_sign = (-1, 1, -1)[iteration]
+
+            sweep_out_at_beginning = yield sweep.y
 
             # start the ramp and check that PID doesn't operate
-            for i in range(100):
+            for i in range(100 - sweep_out_at_beginning):
                 yield
                 sweep_out = yield sweep.y
                 pid_out = yield pid.pid_out
                 pid_running = yield pid.running
 
-                assert sweep_out == ramp_sign * i
+                assert sweep_out == sweep_out_at_beginning + ramp_sign * i
                 assert pid_out == 0
                 assert pid_running == 0
 
             # now turn around the ramp and request lock
             yield sweep.sweep.turn.eq(1)
-            yield root.request_lock.storage.eq(1)
+            yield autolock.request_lock.storage.eq(1)
             yield
             yield
 
             # check that lock isn't turned on yet
-            for i in range(102):
+            for i in range(102 + lock_target_position):
                 yield
                 sweep_out = yield sweep.y
                 assert ramp_sign * sweep_out == 100 - i
@@ -58,13 +66,16 @@ def test_root():
                 yield
                 yield
 
+                sweep_out_at_begin_of_lock = yield sweep.y
+                assert sweep_out_at_begin_of_lock == 3 + lock_target_position
+
                 for i in range(100):
                     sweep_out = yield sweep.y
-                    assert sweep_out == 0
+                    assert sweep_out == sweep_out_at_begin_of_lock
                     pid_out = yield pid.pid_out
                     assert pid_out > 0
 
-                yield root.request_lock.storage.eq(0)
+                yield autolock.request_lock.storage.eq(0)
                 print("turn on ramp again")
                 yield
                 yield
@@ -74,12 +85,15 @@ def test_root():
                 for i in range(10):
                     yield
                     sweep_out = yield sweep.y
-                    print("!", sweep_out)
                     pid_running = yield pid.running
                     assert pid_running == 0
 
     dut = LinienLogic()
-    run_simulation(dut, tb(dut), vcd_name="root.vcd")
+    run_simulation(dut, tb(dut, 0), vcd_name="root.vcd")
+    dut = LinienLogic()
+    run_simulation(dut, tb(dut, -40), vcd_name="root.vcd")
+    dut = LinienLogic()
+    run_simulation(dut, tb(dut, 51), vcd_name="root.vcd")
 
 
 if __name__ == "__main__":

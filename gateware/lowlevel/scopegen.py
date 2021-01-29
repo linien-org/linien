@@ -6,31 +6,9 @@ from migen import (
     ResetSignal,
     Array,
     Record,
-    ClockDomain,
-    ClockDomainsRenamer,
-    If,
 )
-from misoc.interconnect.csr import AutoCSR, CSRStorage, CSRStatus
+from misoc.interconnect.csr import AutoCSR, CSRStorage
 from .pitaya_ps import sys_layout
-
-
-# FIXME: remove this class
-class Tester(Module):
-    def __init__(self):
-        self.counter = Signal(14)
-        self.value = Signal((14, True))
-        self.to_compare = Signal((14, True))
-
-        # self.sign = Signal((2, True), reset=1)
-        self.at_start = Signal()
-
-        self.sync += [
-            If(
-                (self.value > self.to_compare) & ~self.at_start,
-                self.counter.eq(self.counter + 1),
-            ),
-            If(self.at_start, self.counter.eq(0)),
-        ]
 
 
 class ScopeGen(Module, AutoCSR):
@@ -65,28 +43,10 @@ class ScopeGen(Module, AutoCSR):
         s = width - len(asg_a)
         self.comb += dac_a.eq(asg_a << s), dac_b.eq(asg_b << s)
 
-        scope_written_data = Signal((14, True))
-        scope_position = Signal(14)
-
-        self.to_compare = CSRStorage(14)
-        self.N_greater = CSRStatus(14)
-        # self.sign = CSRStorage(2)
-
-        self.clock_domains.cd_tester_clock = ClockDomain("tester_clock")
-        renamed_clock = ClockDomainsRenamer("tester_clock")
-
-        self.submodules.tester = renamed_clock(Tester())
-
-        self.comb += [
-            self.tester.value.eq(scope_written_data),
-            self.tester.to_compare.eq(self.to_compare.storage),
-            self.N_greater.status.eq(self.tester.counter),
-            self.tester.at_start.eq(scope_position == 0),
-            # self.tester.sign.eq(self.sign)
-        ]
-        scope_writing_now = Signal()
-
-        self.comb += [self.cd_tester_clock.clk.eq(scope_writing_now)]
+        # these signals will be connected to autolock which inspects written data
+        self.writing_data_now = Signal()
+        self.scope_written_data = Signal((14, True))
+        self.scope_position = Signal(14)
 
         self.specials.scope = Instance(
             "red_pitaya_scope",
@@ -110,53 +70,7 @@ class ScopeGen(Module, AutoCSR):
             o_sys_rdata_o=self.scope_sys.rdata,
             o_sys_err_o=self.scope_sys.err,
             o_sys_ack_o=self.scope_sys.ack,
-            o_written_data=scope_written_data,
-            o_scope_position=scope_position,
-            o_scope_writing_now=scope_writing_now,
+            o_written_data=self.scope_written_data,
+            o_scope_position=self.scope_position,
+            o_scope_writing_now=self.writing_data_now,
         )
-
-
-def tester_testbench(tester):
-    yield tester.to_compare.eq(123)
-    yield tester.value.eq(124)
-    yield
-
-    yield
-    yield
-    yield
-    yield
-    yield
-
-    counter = yield tester.counter
-    assert counter == 5
-
-    yield tester.at_start.eq(1)
-    yield
-    yield
-    counter = yield tester.counter
-    assert counter == 0
-
-    yield tester.at_start.eq(0)
-    yield tester.to_compare.eq(50)
-    yield
-    for i in range(100):
-        yield tester.value.eq(i)
-        yield
-
-    counter = yield tester.counter
-    assert counter == 49
-    """
-
-    yield tester.at_start.eq(1)
-    yield tester.sign.eq(-1)
-
-    yield
-
-    yield tester.at_start.eq(0)"""
-
-
-if __name__ == "__main__":
-    from migen import run_simulation
-
-    tester = Tester()
-    run_simulation(tester, tester_testbench(tester))

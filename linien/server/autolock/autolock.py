@@ -1,3 +1,5 @@
+import pickle
+from linien.common import combine_error_signal
 from linien.server.autolock.utils import (
     crop_spectra_to_same_view,
     get_all_peaks,
@@ -26,6 +28,85 @@ class UnableToFindDescription(Exception):
     pass
 
 
+class AutoLockNew:
+    def __init__(self, control, parameters):
+        self.control = control
+        self.parameters = parameters
+
+        self.parameters.autolock_running.value = False
+
+        self.reset_properties()
+
+    def reset_properties(self):
+        # we check each parameter before setting it because otherwise
+        # this may crash the client if called very often (e.g.if the
+        # autolock continuously fails)
+        if self.parameters.autolock_failed.value:
+            self.parameters.autolock_failed.value = False
+        if self.parameters.autolock_locked.value:
+            self.parameters.autolock_locked.value = False
+        if self.parameters.autolock_watching.value:
+            self.parameters.autolock_watching.value = False
+
+        self.spectra = []
+
+    def run(
+        self,
+        x0,
+        x1,
+        spectrum,
+        should_watch_lock=False,
+        auto_offset=True,
+        N_spectra_required=5,
+    ):
+        self.N_spectra_required = N_spectra_required
+
+        # FIXME: auto_offset not implemented
+        # FIXME: should_watch_lock not implemented
+        self.parameters.autolock_running.value = True
+        self.parameters.fetch_quadratures.value = False
+
+        self.x0, self.x1 = int(x0), int(x1)
+
+        # TODO: check whether add_data_listner calls react_to_new_spectrum with exactly the same spectrum
+        self.spectra.append(spectrum)
+
+        self.add_data_listener()
+
+    def add_data_listener(self):
+        if not self._data_listener_added:
+            self._data_listener_added = True
+            self.parameters.to_plot.on_change(self.react_to_new_spectrum)
+
+    def remove_data_listener(self):
+        self._data_listener_added = False
+        self.parameters.to_plot.remove_listener(self.react_to_new_spectrum)
+
+    def react_to_new_spectrum(self, plot_data):
+        if self.parameters.pause_acquisition.value:
+            return
+
+        if plot_data is None or not self.parameters.autolock_running.value:
+            return
+
+        plot_data = pickle.loads(plot_data)
+        if plot_data is None:
+            return
+
+        combined_error_signal = combine_error_signal(
+            (plot_data["error_signal_1"], plot_data["error_signal_2"]),
+            self.parameters.dual_channel.value,
+            self.parameters.channel_mixing.value,
+            self.parameters.combined_offset.value,
+        )
+
+        self.spectra.append(combined_error_signal)
+
+        if len(self.spectra) >= self.N_spectra_required:
+            # FIXME: was damit tun?
+            calculate_autolock_instructions(self.spectra, (self.x0, self.x1))
+
+
 def calculate_autolock_instructions(spectra_with_jitter, target_idxs):
     spectra, crop_left = crop_spectra_to_same_view(spectra_with_jitter)
 
@@ -35,6 +116,7 @@ def calculate_autolock_instructions(spectra_with_jitter, target_idxs):
         plt.plot(spectrum)
     plt.show()
 
+    # FIXME: implement something like SpectrumUncorrelatedException
     # FIXME: TODO: y shift such that initial line always has + and - peak. Is this really needed?
     time_scale = int(
         round(np.mean([get_time_scale(spectrum, target_idxs) for spectrum in spectra]))

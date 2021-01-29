@@ -320,7 +320,7 @@ always @(posedge adc_clk_i) begin
       written_data <= adc_a_dat ;
    end
    scope_position <= adc_wp;
-   scope_writing_now = adc_we && adc_dv;
+   scope_writing_now <= adc_we && adc_dv;
 end
 
 // Read
