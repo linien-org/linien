@@ -331,20 +331,17 @@ class LinienModule(Module, AutoCSR):
         # FIXME: did it help making robust.input sync?
         self.sync += [
             self.logic.autolock.robust.input.eq(self.scopegen.scope_written_data),
+            # `writing_data_now` is intentionally delayed by one cycle here
+            # in order to prevent glitches
+            self.logic.autolock.robust.writing_data_now.eq(
+                self.scopegen.writing_data_now
+            ),
         ]
 
         self.comb += [
             self.logic.autolock.robust.at_start.eq(self.logic.sweep.sweep.trigger),
-            self.logic.autolock.robust.writing_data_now.eq(
-                self.scopegen.writing_data_now
-            ),
             self.scopegen.gpio_trigger.eq(self.gpio_p.i[0]),
             self.scopegen.sweep_trigger.eq(self.logic.sweep.sweep.trigger),
-            self.logic.autolock.robust.input.eq(self.scopegen.scope_written_data),
-            self.logic.autolock.robust.at_start.eq(self.scopegen.scope_position == 0),
-            self.logic.autolock.cd_robustautolock_clock.clk.eq(
-                self.scopegen.writing_data_now
-            ),
             self.logic.limit_fast1.x.eq(fast_outs[0]),
             self.logic.limit_fast2.x.eq(fast_outs[1]),
             self.analog.dac_a.eq(self.logic.limit_fast1.y),
