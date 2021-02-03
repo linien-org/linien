@@ -63,6 +63,7 @@ module red_pitaya_scope
    input                 adc_rstn_i      ,  //!< ADC reset - active low
    input                 trig_ext_i      ,  //!< external trigger
    input                 trig_asg_i      ,  //!< ASG trigger
+   input                 automatically_rearm_i  ,
 
 
    // System bus
@@ -373,7 +374,7 @@ always @(posedge adc_clk_i) begin
       adc_trig      <= 1'b0 ;
    end
    else begin
-      adc_arm_do  <= wen && (addr[19:0]==20'h0) && wdata[0] ; // SW ARM
+      adc_arm_do  <= (automatically_rearm_i && (adc_we == 1'b0)) || (wen && (addr[19:0]==20'h0) && wdata[0]) ; // SW ARM
       adc_rst_do  <= wen && (addr[19:0]==20'h0) && wdata[1] ;
       adc_trig_sw <= wen && (addr[19:0]==20'h4) ; // SW trigger
 

@@ -16,6 +16,15 @@ class ScopeGen(Module, AutoCSR):
         self.gpio_trigger = Signal()
         self.sweep_trigger = Signal()
 
+        # when lock is disabled and sweep enabled, acquisition process arms the
+        # scope, waits until scope has triggered and reads out the data. Once
+        # data is read out, it rearms the acquisition. When robust autolock is
+        # looking for a lock point, acquisition process doesn't send any triggers
+        # though because it doesn't transmit any data until lock is confirmed.
+        # Therefore, autolock turns on "always_arm" mode which automatically
+        # rearms scope when it has finished.
+        self.automatically_rearm = Signal()
+
         self.external_trigger = CSRStorage(1)
         ext_scope_trigger = Array([self.gpio_trigger, self.sweep_trigger])[
             self.external_trigger.storage
@@ -50,6 +59,7 @@ class ScopeGen(Module, AutoCSR):
 
         self.specials.scope = Instance(
             "red_pitaya_scope",
+            i_automatically_rearm_i=self.automatically_rearm,
             i_adc_a_i=adc_a >> s,
             i_adc_b_i=adc_b >> s,
             i_adc_a_q_i=adc_a_q >> s,

@@ -74,7 +74,7 @@ class DataAcquisitionService(Service):
 
                 if self.locked and not self.confirmed_that_in_lock:
                     self.confirmed_that_in_lock = self.csr.get(
-                        "logic_autolock_request_lock"
+                        "logic_autolock_lock_running"
                     )
                     if not self.confirmed_that_in_lock:
                         sleep(0.05)

@@ -131,7 +131,7 @@ class FPGAAutolock(Module, AutoCSR):
 class FastAutolock(Module, AutoCSR):
     def __init__(self, width=14):
         # pid is not started directly by `request_lock` signal. Instead, `request_lock`
-        # queues a run that is then started when the ramp is at the zero crossing
+        # queues a run that is then started when the ramp is at the zero target position
         self.request_lock = Signal()
         self.turn_on_lock = Signal()
         self.sweep_value = Signal((width, True))
@@ -166,6 +166,7 @@ class RobustAutolock(Module, AutoCSR):
     def __init__(self, width=14, N_points=16383, max_delay=16383):
         self.at_start = Signal()
         self.writing_data_now = Signal()
+        self.sweep_up = Signal()
 
         # FIXME: Remove this?
         # FIXME: cleanup all these test signals
@@ -250,6 +251,8 @@ class RobustAutolock(Module, AutoCSR):
         sign_equal = Signal()
         over_threshold = Signal()
         waited_long_enough = Signal()
+        instruction_idx_at_zero = Signal()
+        self.comb += [instruction_idx_at_zero.eq(self.current_instruction_idx == 0)]
 
         self.signal_out = [
             test_sum,
@@ -267,6 +270,7 @@ class RobustAutolock(Module, AutoCSR):
             sign_equal,
             over_threshold,
             waited_long_enough,
+            instruction_idx_at_zero,
         ]
         self.state_in = []
 
@@ -294,6 +298,15 @@ class RobustAutolock(Module, AutoCSR):
             ),
         ]
 
+        self.sign_equal_csr = CSRStatus()
+        self.current_instruction_idx_csr = CSRStatus()
+        self.current_peak_height_csr = CSRStatus(peak_height_bit)
+        self.comb += [
+            self.sign_equal_csr.status.eq(sign_equal),
+            self.current_instruction_idx_csr.status.eq(self.current_instruction_idx),
+            self.current_peak_height_csr.status.eq(current_peak_height),
+        ]
+
         self.sync += [
             If(
                 self.at_start,
@@ -303,7 +316,16 @@ class RobustAutolock(Module, AutoCSR):
             ).Else(
                 # not at start
                 If(
-                    self.writing_data_now & ~self.turn_on_lock,
+                    ~self.request_lock,
+                    # disable `watching` if `request_lock` was disabled while
+                    # the ramp is running. This is important for slow scan
+                    # speeds when disabling the autolock and enabling it again
+                    # with different parameters. In this case we want to take
+                    # care that we start watching at start.
+                    watching.eq(0),
+                ),
+                If(
+                    self.writing_data_now & ~self.turn_on_lock & self.sweep_up,
                     If(
                         watching & sign_equal & over_threshold & waited_long_enough,
                         self.current_instruction_idx.eq(
@@ -311,7 +333,7 @@ class RobustAutolock(Module, AutoCSR):
                         ),
                         waited_for.eq(0),
                     ).Else(waited_for.eq(waited_for + 1)),
-                )
+                ),
             ),
         ]
 

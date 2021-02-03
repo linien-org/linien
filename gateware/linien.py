@@ -93,6 +93,7 @@ class LinienLogic(Module, AutoCSR):
             self.autolock.fast.sweep_step.eq(
                 self.sweep.step.storage >> self.sweep.step_shift
             ),
+            self.autolock.robust.sweep_up.eq(self.sweep.sweep.up),
         ]
 
     def connect_everything(self, width, signal_width):
@@ -342,6 +343,10 @@ class LinienModule(Module, AutoCSR):
             self.logic.autolock.robust.at_start.eq(self.logic.sweep.sweep.trigger),
             self.scopegen.gpio_trigger.eq(self.gpio_p.i[0]),
             self.scopegen.sweep_trigger.eq(self.logic.sweep.sweep.trigger),
+            self.scopegen.automatically_rearm.eq(
+                self.logic.autolock.request_lock.storage
+                & ~self.logic.autolock.lock_running.status
+            ),
             self.logic.limit_fast1.x.eq(fast_outs[0]),
             self.logic.limit_fast2.x.eq(fast_outs[1]),
             self.analog.dac_a.eq(self.logic.limit_fast1.y),
