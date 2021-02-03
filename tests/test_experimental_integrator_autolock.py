@@ -160,7 +160,7 @@ def test_sum_diff_calculator():
         out = yield dut.output
         assert out != 0
 
-    dut = SumDiffCalculator(14, 8192, max_delay=50)
+    dut = SumDiffCalculator(14, 8192)
     run_simulation(
         dut, tb(dut), vcd_name="experimental_autolock_sum_diff_calculator.vcd"
     )
@@ -199,7 +199,7 @@ def test_compare_sum_diff_calculator_implementations(debug=False):
 
                 yield
 
-        dut = RobustAutolock(max_delay=50)
+        dut = RobustAutolock()
         run_simulation(
             dut, tb(dut), vcd_name="experimental_autolock_fpga_lock_position_finder.vcd"
         )
@@ -319,7 +319,7 @@ def test_fpga_lock_position_finder():
                 else:
                     assert instruction_idx == 3
 
-    dut = RobustAutolock(max_delay=50)
+    dut = RobustAutolock()
     run_simulation(
         dut, tb(dut), vcd_name="experimental_autolock_fpga_lock_position_finder.vcd"
     )
@@ -349,9 +349,9 @@ def test_crop_spectra_to_same_view():
 
 
 if __name__ == "__main__":
+    test_dynamic_delay()
     test_crop_spectra_to_same_view()
     test_compare_sum_diff_calculator_implementations()
-    test_dynamic_delay()
     test_sum_diff_calculator()
     test_fpga_lock_position_finder()
     test_get_description(debug=False)

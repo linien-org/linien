@@ -79,8 +79,7 @@ class LinienLogic(Module, AutoCSR):
         self.submodules.limit_fast2 = LimitCSR(width=width, guard=5)
         self.submodules.pid = PID(width=signal_width)
 
-        # FIXME: max_delay=100 should be more!
-        self.submodules.autolock = FPGAAutolock(width=width, max_delay=100)
+        self.submodules.autolock = FPGAAutolock(width=width, max_delay=8191)
 
     def connect_pid(self):
         # pid is not started directly by `request_lock` signal. Instead, `request_lock`

@@ -9,7 +9,17 @@ from migen import (
     ClockDomainsRenamer,
     ClockDomain,
 )
-from misoc.interconnect.csr import AutoCSR, CSRStatus, CSRStorage
+from misoc.interconnect.csr import AutoCSR, CSRStatus, CSRStorage, Memory
+
+
+def create_memory(self, N_bits, N_points, name):
+    setattr(self.specials, name, Memory(N_bits, N_points, name=name))
+    mem = getattr(self, name)
+
+    rdport = mem.get_port()
+    wrport = mem.get_port(write_capable=True)
+
+    return rdport, wrport
 
 
 class DynamicDelay(Module):
@@ -29,20 +39,37 @@ class DynamicDelay(Module):
         self.input = Signal((input_bit, True))
         self.output = Signal((input_bit, True))
 
-        registers = [Signal((input_bit, True)) for _ in range(max_delay)]
+        # this ensures that counter overflows / underflows correctly
+        assert max_delay == (2 ** (bits_for(max_delay)) - 1)
 
-        self.comb += [registers[0].eq(self.input)]
+        self.mem_rdport, self.mem_wrport = create_memory(
+            self, input_bit, max_delay, "dynamic_delay_mem"
+        )
 
-        for idx, register in enumerate(registers):
-            if idx < len(registers) - 1:
-                next_register = registers[idx + 1]
-                self.sync += [
-                    If(self.restart, next_register.eq(0)).Else(
-                        If(self.writing_data_now, next_register.eq(register)),
-                    )
-                ]
+        # register all the ports
+        self.specials += [self.mem_rdport, self.mem_wrport]
 
-        self.comb += [self.output.eq(Array(registers)[self.delay])]
+        self.counter = Signal(bits_for(max_delay))
+        self.counter_delayed = Signal((bits_for(max_delay)))
+
+        negative_delay = 1
+
+        self.sync += [
+            If(self.restart, self.counter.eq(0)).Else(
+                If(self.writing_data_now, self.counter.eq(self.counter + 1))
+            ),
+        ]
+        self.comb += [
+            self.mem_wrport.we.eq(self.writing_data_now),
+            self.mem_wrport.adr.eq(self.counter),
+            self.mem_wrport.dat_w.eq(self.input),
+            self.mem_rdport.adr.eq(self.counter_delayed),
+            self.counter_delayed.eq(self.counter - self.delay + negative_delay),
+            self.mem_rdport.adr.eq(self.counter_delayed),
+            If(self.counter < self.delay - negative_delay, self.output.eq(0)).Else(
+                self.output.eq(self.mem_rdport.dat_r),
+            ),
+        ]
 
 
 class SumDiffCalculator(Module):
@@ -370,7 +397,7 @@ def get_lock_position_from_autolock_instructions_by_simulating_fpga(
 
             yield
 
-    dut = RobustAutolock(max_delay=time_scale + 5)
+    dut = RobustAutolock()
     run_simulation(
         dut, tb(dut), vcd_name="experimental_autolock_fpga_lock_position_finder.vcd"
     )
