@@ -237,8 +237,11 @@ def test_compare_sum_diff_calculator_implementations(debug=False):
 
 
 def test_fpga_lock_position_finder():
-    def tb(dut):
+    def tb(dut: RobustAutolock):
+        yield dut.sweep_up.eq(1)
+
         for iteration in range(2):
+            print("iteration", iteration)
             yield dut.request_lock.eq(1)
             yield dut.at_start.eq(1)
             yield dut.writing_data_now.eq(1)
@@ -348,7 +351,7 @@ def test_crop_spectra_to_same_view():
 if __name__ == "__main__":
     test_crop_spectra_to_same_view()
     test_compare_sum_diff_calculator_implementations()
-    test_get_description(debug=False)
     test_dynamic_delay()
     test_sum_diff_calculator()
     test_fpga_lock_position_finder()
+    test_get_description(debug=False)

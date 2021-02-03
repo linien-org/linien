@@ -344,6 +344,7 @@ def get_lock_position_from_autolock_instructions_by_simulating_fpga(
     result = {}
 
     def tb(dut):
+        yield dut.sweep_up.eq(1)
         yield dut.request_lock.eq(1)
         yield dut.at_start.eq(1)
         yield dut.writing_data_now.eq(1)
