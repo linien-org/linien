@@ -4,7 +4,7 @@ from linien.server.autolock.utils import (
     get_time_scale,
     sum_up_spectrum,
 )
-from linien.server.autolock.autolock import (
+from linien.server.autolock.robust import (
     FPGA_DELAY_LOCK_POSITION_FINDER,
     FPGA_DELAY_SUMDIFF_CALCULATOR,
     calculate_autolock_instructions,
@@ -171,7 +171,6 @@ def test_compare_sum_diff_calculator_implementations(debug=False):
         if iteration == 1:
             spectrum = spectrum_for_testing(0)
             time_scale = get_time_scale(spectrum, TARGET_IDXS)
-            # FIXME: very important! max_delay of DynamicDelay has to be >= time_scale
         else:
             spectrum = [1 * i for i in range(1000)]
             time_scale = 5

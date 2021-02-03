@@ -1,41 +1,34 @@
 import pickle
-from linien.common import combine_error_signal
-from linien.server.autolock.utils import (
-    crop_spectra_to_same_view,
-    get_all_peaks,
-    get_diff_at_time_scale,
-    get_lock_region,
-    get_target_peak,
-    get_time_scale,
-    sign,
-    sum_up_spectrum,
-)
+import traceback
 import numpy as np
-from matplotlib import pyplot as plt
-from scipy.signal import correlate
+
+from linien.common import (
+    get_lock_point,
+    combine_error_signal,
+    check_plot_data,
+    ANALOG_OUT0,
+    SpectrumUncorrelatedException,
+)
+from linien.server.autolock.fast import FastAutolock
+from linien.server.autolock.robust import RobustAutolock
 
 
-FPGA_DELAY_SUMDIFF_CALCULATOR = 2
-# FIXME: When programming FPGA, this delay has to be subtracted from final_wait constant
-FPGA_DELAY_LOCK_POSITION_FINDER = 3
-
-
-class LockPositionNotFound(Exception):
-    pass
-
-
-class UnableToFindDescription(Exception):
-    pass
-
-
-class AutoLockNew:
+class Autolock:
     def __init__(self, control, parameters):
         self.control = control
         self.parameters = parameters
 
+        self.first_error_signal = None
+        self.first_error_signal_rolled = None
         self.parameters.autolock_running.value = False
+        self.parameters.autolock_retrying.value = False
+
+        self.should_watch_lock = False
+        self._data_listener_added = False
 
         self.reset_properties()
+
+        self.algorithm = None
 
     def reset_properties(self):
         # we check each parameter before setting it because otherwise
@@ -48,8 +41,6 @@ class AutoLockNew:
         if self.parameters.autolock_watching.value:
             self.parameters.autolock_watching.value = False
 
-        self.spectra = []
-
     def run(
         self,
         x0,
@@ -57,19 +48,40 @@ class AutoLockNew:
         spectrum,
         should_watch_lock=False,
         auto_offset=True,
-        N_spectra_required=5,
     ):
-        self.N_spectra_required = N_spectra_required
+        """Starts the autolock.
 
-        # FIXME: auto_offset not implemented
-        # FIXME: should_watch_lock not implemented
+        If `should_watch_lock` is specified, the autolock continuously monitors
+        the control and error signals after the lock was successful and tries to
+        relock automatically using the spectrum that was recorded in the first
+        run of the lock.
+        """
         self.parameters.autolock_running.value = True
         self.parameters.fetch_quadratures.value = False
-
         self.x0, self.x1 = int(x0), int(x1)
+        self.should_watch_lock = should_watch_lock
+        self.auto_offset = auto_offset
 
-        # TODO: check whether add_data_listner calls react_to_new_spectrum with exactly the same spectrum
-        self.spectra.append(spectrum)
+        first_error_signal, first_error_signal_rolled = self.record_first_error_signal(
+            spectrum
+        )
+
+        self.algorithm = [FastAutolock, RobustAutolock][
+            self.parameters.autolock_mode.value
+        ](
+            self.control,
+            self.parameters,
+            first_error_signal,
+            first_error_signal_rolled,
+            self.x0,
+            self.x1,
+        )
+
+        self.initial_ramp_speed = self.parameters.ramp_speed.value
+        self.parameters.autolock_initial_ramp_amplitude.value = (
+            self.parameters.ramp_amplitude.value
+        )
+        self.initial_ramp_center = self.parameters.center.value
 
         self.add_data_listener()
 
@@ -83,6 +95,21 @@ class AutoLockNew:
         self.parameters.to_plot.remove_listener(self.react_to_new_spectrum)
 
     def react_to_new_spectrum(self, plot_data):
+        """React to new spectrum data.
+
+        If this is executed for the first time, a reference spectrum is
+        recorded.
+
+        If the autolock is approaching the desired line, a correlation
+        function of the spectrum with the reference spectrum is calculated
+        and the laser current is adapted such that the targeted line is centered.
+
+        After this procedure is done, the real lock is turned on and after some
+        time the lock is verified.
+
+        If automatic relocking is desired, the control and error signals are
+        continuously monitored after locking.
+        """
         if self.parameters.pause_acquisition.value:
             return
 
@@ -93,133 +120,176 @@ class AutoLockNew:
         if plot_data is None:
             return
 
-        combined_error_signal = combine_error_signal(
-            (plot_data["error_signal_1"], plot_data["error_signal_2"]),
-            self.parameters.dual_channel.value,
-            self.parameters.channel_mixing.value,
-            self.parameters.combined_offset.value,
-        )
+        is_locked = self.parameters.lock.value
 
-        self.spectra.append(combined_error_signal)
+        # check that `plot_data` contains the information we need
+        # otherwise skip this round
+        if not check_plot_data(is_locked, plot_data):
+            return
 
-        if len(self.spectra) >= self.N_spectra_required:
-            # FIXME: was damit tun?
-            calculate_autolock_instructions(self.spectra, (self.x0, self.x1))
-
-
-def calculate_autolock_instructions(spectra_with_jitter, target_idxs):
-    spectra, crop_left = crop_spectra_to_same_view(spectra_with_jitter)
-
-    target_idxs = [idx - crop_left for idx in target_idxs]
-
-    for spectrum in spectra:
-        plt.plot(spectrum)
-    plt.show()
-
-    # FIXME: implement something like SpectrumUncorrelatedException
-    # FIXME: TODO: y shift such that initial line always has + and - peak. Is this really needed?
-    time_scale = int(
-        round(np.mean([get_time_scale(spectrum, target_idxs) for spectrum in spectra]))
-    )
-
-    print(f"x scale is {time_scale}")
-
-    for tolerance_factor in [0.95, 0.9, 0.85, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55, 0.5]:
-        print("TOLERANCE", tolerance_factor)
-        prepared_spectrum = get_diff_at_time_scale(
-            sum_up_spectrum(spectra[0]), time_scale
-        )
-        peaks = get_all_peaks(prepared_spectrum, target_idxs)
-
-        y_scale = peaks[0][1]
-        peaks_filtered = [
-            (peak_position, peak_height * tolerance_factor)
-            for peak_position, peak_height in peaks
-        ]
-        # it is important to do the filtering that happens here after the previous
-        # line as the previous line shrinks the values
-        peaks_filtered = [
-            (peak_position, peak_height)
-            for peak_position, peak_height in peaks_filtered
-            if abs(peak_height) > abs(y_scale * (1 - tolerance_factor))
-        ]
-
-        # now find out how much we have to wait in the end (because we detect the peak
-        # too early because our threshold is too low)
-        target_peak_described_height = peaks_filtered[0][1]
-        target_peak_idx = get_target_peak(prepared_spectrum, target_idxs)
-        current_idx = target_peak_idx
-        while True:
-            current_idx -= 1
-            if np.abs(prepared_spectrum[current_idx]) < np.abs(
-                target_peak_described_height
-            ):
-                break
-        final_wait_time = target_peak_idx - current_idx
-        print(f"final wait time is {final_wait_time} samples")
-
-        description = []
-
-        last_peak_position = 0
-        for peak_position, peak_height in list(reversed(peaks_filtered)):
-            # TODO: this .9 factor is very arbitrary. also: first peak should have special treatment bc of horizontal jitter
-            description.append(
-                (int(0.9 * (peak_position - last_peak_position)), int(peak_height))
-            )
-            last_peak_position = peak_position
-
-        # test whether description works fine for every recorded spectrum
-        does_work = True
-        for spectrum in spectra:
-            lock_region = get_lock_region(spectrum, target_idxs)
-
-            try:
-                lock_position = (
-                    get_lock_position_from_autolock_instructions(
-                        spectrum,
-                        description,
-                        time_scale,
-                        spectra[0],
-                    )
-                    + final_wait_time
+        try:
+            if not is_locked:
+                combined_error_signal = combine_error_signal(
+                    (plot_data["error_signal_1"], plot_data["error_signal_2"]),
+                    self.parameters.dual_channel.value,
+                    self.parameters.channel_mixing.value,
+                    self.parameters.combined_offset.value,
                 )
-                if not lock_region[0] <= lock_position <= lock_region[1]:
-                    raise LockPositionNotFound()
+                return self.algorithm.handle_new_spectrum(combined_error_signal)
 
-            except LockPositionNotFound:
-                does_work = False
+            error_signal = plot_data["error_signal"]
+            control_signal = plot_data["control_signal"]
 
-        if does_work:
-            break
-    else:
-        raise UnableToFindDescription()
+            if self.parameters.autolock_watching.value:
+                # the laser was locked successfully before. Now we check
+                # periodically whether the laser is still in lock
+                return self.watch_lock(error_signal, control_signal)
 
-    return description, final_wait_time, time_scale
+            else:
+                # we have started the lock.
+                # skip some data and check whether we really are in lock
+                # afterwards.
+                return self.after_lock(
+                    error_signal, control_signal, plot_data.get("slow")
+                )
 
+        except Exception:
+            traceback.print_exc()
+            self.parameters.autolock_failed.value = True
+            self.exposed_stop()
 
-def get_lock_position_from_autolock_instructions(
-    spectrum, description, time_scale, initial_spectrum
-):
-    summed = sum_up_spectrum(spectrum)
-    summed_xscaled = get_diff_at_time_scale(summed, time_scale)
+    def record_first_error_signal(self, error_signal):
+        (
+            mean_signal,
+            target_slope_rising,
+            target_zoom,
+            error_signal_rolled,
+        ) = get_lock_point(error_signal, self.x0, self.x1)
 
-    description_idx = 0
+        self.central_y = int(mean_signal)
 
-    last_detected_peak = 0
+        if self.auto_offset:
+            self.control.pause_acquisition()
+            self.parameters.combined_offset.value = -1 * self.central_y
+            error_signal -= self.central_y
+            error_signal_rolled -= self.central_y
+            self.control.exposed_write_data()
+            self.control.continue_acquisition()
 
-    for idx, value in enumerate(summed_xscaled):
-        wait_for, current_threshold = description[description_idx]
+        self.parameters.target_slope_rising.value = target_slope_rising
+        self.control.exposed_write_data()
 
-        if (
-            sign(value) == sign(current_threshold)
-            and abs(value) >= abs(current_threshold)
-            and idx - last_detected_peak > wait_for
-        ):
-            description_idx += 1
-            last_detected_peak = idx
+        return error_signal, error_signal_rolled
 
-            if description_idx == len(description):
-                # this was the last peak!
-                return idx
+    def after_lock(self, error_signal, control_signal, slow_out):
+        """After locking, this method checks whether the laser really is locked.
 
-    raise LockPositionNotFound()
+        If desired, it automatically tries to relock if locking failed, or
+        starts a watcher that does so over and over again.
+        """
+
+        # acquisition in locked state doesn't care about ramp speed
+        # therefore, we can reset it here
+        self.parameters.ramp_speed.value = self.initial_ramp_speed
+
+        def check_whether_in_lock(control_signal):
+            """
+            The laser is considered in lock if the mean value of the control
+            signal is within the boundaries of the smallest current ramp we had
+            before turning on the lock.
+            """
+            center = self.parameters.center.value
+            initial_ampl = self.parameters.autolock_initial_ramp_amplitude.value
+            target_zoom = 1
+            ampl = initial_ampl / target_zoom
+
+            slow_ramp = self.parameters.sweep_channel.value == ANALOG_OUT0
+            slow_pid = self.parameters.pid_on_slow_enabled.value
+
+            if not slow_ramp and not slow_pid:
+                mean = np.mean(control_signal) / 8192
+                return (center - ampl) <= mean <= (center + ampl)
+            else:
+                if slow_pid and not slow_ramp:
+                    # we cannot handle this case. Just assume the laser is locked.
+                    return True
+
+                return (center - ampl) <= slow_out / 8192 <= (center + ampl)
+
+        self.parameters.autolock_locked.value = (
+            check_whether_in_lock(control_signal)
+            if self.parameters.check_lock.value
+            else True
+        )
+
+        if self.parameters.autolock_locked.value and self.should_watch_lock:
+            # we start watching the lock status from now on.
+            # this is done in `react_to_new_spectrum()` which is called regularly.
+            self.watcher_last_value = np.mean(control_signal) / 8192
+            self.parameters.autolock_watching.value = True
+        else:
+            self.remove_data_listener()
+            self.parameters.autolock_running.value = False
+
+            if not self.parameters.autolock_locked.value:
+                if self.should_watch_lock:
+                    return self.relock()
+
+                raise Exception("lock failed")
+
+    def watch_lock(self, error_signal, control_signal):
+        """Check whether the laser is still in lock and init a relock if not."""
+        mean = np.mean(control_signal) / 8192
+
+        diff = np.abs(mean - self.watcher_last_value)
+        lock_lost = diff > self.parameters.watch_lock_threshold.value
+
+        too_close_to_edge = np.abs(mean) > 0.95
+
+        if too_close_to_edge or lock_lost:
+            self.relock()
+
+        self.watcher_last_value = mean
+
+    def relock(self):
+        """
+        Relock the laser using the reference spectrum recorded in the first
+        locking approach.
+        """
+        # we check each parameter before setting it because otherwise
+        # this may crash the client if called very often (e.g.if the
+        # autolock continuously fails)
+        if not self.parameters.autolock_running.value:
+            self.parameters.autolock_running.value = True
+        if not self.parameters.autolock_retrying.value:
+            self.parameters.autolock_retrying.value = True
+
+        self.reset_properties()
+        self._reset_scan()
+
+        # add a listener that listens for new spectrum data and consequently
+        # tries to relock.
+        self.add_data_listener()
+
+    def exposed_stop(self):
+        """Abort any operation."""
+        self.parameters.autolock_running.value = False
+        self.parameters.autolock_locked.value = False
+        self.parameters.autolock_watching.value = False
+        self.parameters.fetch_quadratures.value = True
+        self.remove_data_listener()
+
+        self._reset_scan()
+        self.parameters.task.value = None
+
+    def _reset_scan(self):
+        self.control.pause_acquisition()
+
+        self.parameters.center.value = self.initial_ramp_center
+        self.parameters.ramp_amplitude.value = (
+            self.parameters.autolock_initial_ramp_amplitude.value
+        )
+        self.parameters.ramp_speed.value = self.initial_ramp_speed
+        self.control.exposed_start_ramp()
+
+        self.control.continue_acquisition()

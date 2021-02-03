@@ -1,4 +1,4 @@
-from linien.common import AUTOLOCK_MAX_N_INSTRUCTIONS
+from linien.common import AUTOLOCK_MAX_N_INSTRUCTIONS, FAST_AUTOLOCK, ROBUST_AUTOLOCK
 from migen import (
     Array,
     If,
@@ -143,13 +143,13 @@ class FPGAAutolock(Module, AutoCSR):
             If(
                 self.request_lock.storage
                 & self.fast.turn_on_lock
-                & (self.autolock_mode.storage == 0),
+                & (self.autolock_mode.storage == FAST_AUTOLOCK),
                 self.lock_running.status.eq(1),
             ),
             If(
                 self.request_lock.storage
                 & self.robust.turn_on_lock
-                & (self.autolock_mode.storage == 1),
+                & (self.autolock_mode.storage == ROBUST_AUTOLOCK),
                 self.lock_running.status.eq(1),
             ),
         ]

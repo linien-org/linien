@@ -12,7 +12,7 @@ from rpyc.utils.server import ThreadedServer
 from rpyc.utils.authenticators import AuthenticationError
 from random import random
 
-from autolock_old import Autolock
+from autolock.autolock import Autolock
 from parameters import Parameters
 
 from linien.config import DEFAULT_SERVER_PORT

@@ -25,6 +25,9 @@ N_POINTS = int(16384 / DECIMATION)
 
 AUTOLOCK_MAX_N_INSTRUCTIONS = 32
 
+FAST_AUTOLOCK = 0
+ROBUST_AUTOLOCK = 1
+
 
 class SpectrumUncorrelatedException(Exception):
     pass
@@ -69,8 +72,6 @@ def update_control_signal_history(history, to_plot, is_locked, max_time_diff):
     if not to_plot:
         return history
 
-    now = time()
-
     if is_locked:
         history["values"].append(np.mean(to_plot["control_signal"]))
         history["times"].append(time())
@@ -93,6 +94,10 @@ def update_control_signal_history(history, to_plot, is_locked, max_time_diff):
     downsample_history(history["slow_times"], history["slow_values"], max_time_diff)
 
     return history
+
+
+def check_whether_correlation_is_bad(correlation, N):
+    return np.max(correlation) < 100 * N
 
 
 def determine_shift_by_correlation(zoom_factor, reference_signal, error_signal):
@@ -128,7 +133,7 @@ def determine_shift_by_correlation(zoom_factor, reference_signal, error_signal):
 
     correlation = correlate(zoomed_ref, downsampled_error_signal)
 
-    if np.max(correlation) < 100 * len(zoomed_ref):
+    if check_whether_correlation_is_bad(correlation, len(zoomed_ref)):
         raise SpectrumUncorrelatedException()
 
     shift = np.argmax(correlation)
