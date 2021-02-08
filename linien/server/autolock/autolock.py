@@ -7,7 +7,6 @@ from linien.common import (
     combine_error_signal,
     check_plot_data,
     ANALOG_OUT0,
-    SpectrumUncorrelatedException,
 )
 from linien.server.autolock.fast import FastAutolock
 from linien.server.autolock.robust import RobustAutolock

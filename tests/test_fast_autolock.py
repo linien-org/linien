@@ -1,9 +1,7 @@
-from ast import Param
 import pickle
-from linien.common import get_lock_point
 import numpy as np
 from linien.server.autolock.autolock import Autolock
-from linien.server.parameters import Parameter, Parameters
+from linien.server.parameters import Parameters
 from matplotlib import pyplot as plt
 
 Y_SHIFT = 4000
@@ -48,12 +46,10 @@ class FakeControl:
 
 def test_autolock():
     def _get_signal(shift):
-        return get_signal(
-            parameters.ramp_amplitude.value, parameters.center.value, shift
-        )
+        return get_signal(1, 0, shift)
 
-    for ref_shift in (-0.7, 0.3):
-        for target_shift in (-0.3, 0.6):
+    for ref_shift in (0, -0.7, 0.3):
+        for target_shift in (0.5, -0.3, 0.6):
             print(f"----- ref_shift={ref_shift}, target_shift={target_shift} -----")
 
             parameters = Parameters()
@@ -61,14 +57,10 @@ def test_autolock():
 
             reference_signal = _get_signal(ref_shift)
 
-            autolock = Autolock(
-                control, parameters, wait_time_between_current_corrections=0
-            )
+            autolock = Autolock(control, parameters)
 
             N = len(reference_signal)
             new_center_point = int((N / 2) - ((ref_shift / 2) * N))
-            # plt.plot(reference_signal)
-            # plt.show()
 
             autolock.run(
                 int(new_center_point - (0.01 * N)),
@@ -78,19 +70,17 @@ def test_autolock():
                 auto_offset=True,
             )
 
-            for i in range(25):
-                shift = target_shift * (1 + (0.05 * np.random.randn()))
-                error_signal = _get_signal(shift)[:]
+            error_signal = _get_signal(target_shift)[:]
 
-                parameters.to_plot.value = pickle.dumps(
-                    {"error_signal_1": error_signal, "error_signal_2": []}
-                )
-
-                if control.locked:
-                    break
+            parameters.to_plot.value = pickle.dumps(
+                {"error_signal_1": error_signal, "error_signal_2": []}
+            )
 
             assert control.locked
-            assert parameters.ramp_amplitude.value == 0.125
+
+            lock_position = parameters.autolock_target_position.value
+            ideal_lock_position = (1 - target_shift) * N / 2
+            assert abs(lock_position - ideal_lock_position) <= 15
 
 
 if __name__ == "__main__":

@@ -32,11 +32,12 @@ class FastAutolock:
 
             return
 
-        # TODO: missing: shift --> sweep counts
-        #       take into account:
-        #           - [-8191:8191]
-        #           - initial zoom / initial center position
-        self.parameters.autolock_target_position.value = shift
+        half_length = len(self.first_error_signal_rolled) / 2
+        lock_point = (-shift) * half_length + half_length
+
+        print("lock point is", lock_point)
+
+        self.parameters.autolock_target_position.value = int(lock_point)
         self.control.exposed_write_data()
         self.control.exposed_start_lock()
 
