@@ -1,123 +1,10 @@
 from linien.common import AUTOLOCK_MAX_N_INSTRUCTIONS, FAST_AUTOLOCK, ROBUST_AUTOLOCK
-from migen import (
-    Array,
-    If,
-    Module,
-    Signal,
-    bits_for,
-    run_simulation,
-    ClockDomainsRenamer,
-    ClockDomain,
-)
+from migen import Array, If, Module, Signal, bits_for, run_simulation
 from misoc.interconnect.csr import AutoCSR, CSRStatus, CSRStorage, Memory
+from gateware.logic.autolock_utils import SumDiffCalculator
 
 
-def create_memory(self, N_bits, N_points, name):
-    setattr(self.specials, name, Memory(N_bits, N_points, name=name))
-    mem = getattr(self, name)
-
-    rdport = mem.get_port()
-    wrport = mem.get_port(write_capable=True)
-
-    return rdport, wrport
-
-
-class DynamicDelay(Module):
-    """Delays a signal `self.input` of length `input_bit` by a dynamic number
-    of clock cycles (`max_delay` is the maximum number of clock cycles).
-    `self.output` contains the delayed signal.
-
-    Internally, this module uses an array of registers. Set `restart` to 1 if you
-    want to delete everything stored in these registers.
-    """
-
-    def __init__(self, input_bit, max_delay):
-        self.delay = Signal(bits_for(max_delay))
-        self.restart = Signal()
-        self.writing_data_now = Signal()
-
-        self.input = Signal((input_bit, True))
-        self.output = Signal((input_bit, True))
-
-        # this ensures that counter overflows / underflows correctly
-        assert max_delay == (2 ** (bits_for(max_delay)) - 1)
-
-        self.mem_rdport, self.mem_wrport = create_memory(
-            self, input_bit, max_delay, "dynamic_delay_mem"
-        )
-
-        # register all the ports
-        self.specials += [self.mem_rdport, self.mem_wrport]
-
-        self.counter = Signal(bits_for(max_delay))
-        self.counter_delayed = Signal((bits_for(max_delay)))
-
-        negative_delay = 1
-
-        self.sync += [
-            If(self.restart, self.counter.eq(0)).Else(
-                If(self.writing_data_now, self.counter.eq(self.counter + 1))
-            ),
-        ]
-        self.comb += [
-            self.mem_wrport.we.eq(self.writing_data_now),
-            self.mem_wrport.adr.eq(self.counter),
-            self.mem_wrport.dat_w.eq(self.input),
-            self.mem_rdport.adr.eq(self.counter_delayed),
-            self.counter_delayed.eq(self.counter - self.delay + negative_delay),
-            self.mem_rdport.adr.eq(self.counter_delayed),
-            If(self.counter < self.delay - negative_delay, self.output.eq(0)).Else(
-                self.output.eq(self.mem_rdport.dat_r),
-            ),
-        ]
-
-
-class SumDiffCalculator(Module):
-    """The autolock requires the integral of the spectrum over the last few values
-    in a moving window. This module provides this quantity by summing over all
-    values of the spectrum and comparing the current value of this sum with a
-    delayed version.
-
-    `width` is the signal width and `N_points` is the length of the spectrum.
-    `self.input` is the input signal and `self.delay_value` the time constant
-    in clock cycles. The result is stored in `self.output`.
-    Use `self.restart` to restart the calculation.
-    """
-
-    def __init__(self, width=14, N_points=16383, max_delay=16383):
-        self.restart = Signal()
-        self.writing_data_now = Signal()
-
-        self.input = Signal((width, True))
-        self.delay_value = Signal(bits_for(N_points))
-
-        sum_value_bits = bits_for(((2 ** width) - 1) * N_points)
-        self.sum_value = Signal((sum_value_bits, True))
-        delayed_sum = Signal((sum_value_bits, True))
-        current_sum_diff = Signal((sum_value_bits + 1, True))
-        self.output = Signal.like(current_sum_diff)
-
-        self.submodules.delayer = DynamicDelay(sum_value_bits, max_delay=max_delay)
-
-        self.sync += [
-            If(self.restart, self.sum_value.eq(0),).Else(
-                If(
-                    self.writing_data_now,
-                    # not at start
-                    self.sum_value.eq(self.sum_value + self.input),
-                )
-            )
-        ]
-
-        self.comb += [
-            self.delayer.writing_data_now.eq(self.writing_data_now),
-            self.delayer.restart.eq(self.restart),
-            self.delayer.delay.eq(self.delay_value),
-            self.delayer.input.eq(self.sum_value),
-            delayed_sum.eq(self.delayer.output),
-            current_sum_diff.eq(self.sum_value - delayed_sum),
-            self.output.eq(current_sum_diff),
-        ]
+ROBUST_AUTOLOCK_FPGA_DELAY = 3
 
 
 class FPGAAutolock(Module, AutoCSR):
@@ -191,47 +78,18 @@ class FastAutolock(Module, AutoCSR):
 
 class RobustAutolock(Module, AutoCSR):
     def __init__(self, width=14, N_points=16383, max_delay=16383):
-        self.at_start = Signal()
-        self.writing_data_now = Signal()
-        self.sweep_up = Signal()
+        self.init_submodules(width, N_points, max_delay)
+        peak_height_bit, x_data_length_bit = self.init_csr(N_points)
+        self.init_inout_signals(width)
 
         # FIXME: Remove this?
         # FIXME: cleanup all these test signals
         signal_width = 25
-        test_sum = Signal((signal_width, True))
         test_sum_diff = Signal((signal_width, True))
 
-        state_always_on = Signal()
         watching = Signal()
 
-        self.request_lock = Signal()
-
-        self.input = Signal((width, True))
-        self.time_scale = CSRStorage(bits_for(N_points))
-
-        self.submodules.sum_diff_calculator = SumDiffCalculator(
-            width, N_points, max_delay=max_delay
-        )
-
         self.current_instruction_idx = Signal(bits_for(AUTOLOCK_MAX_N_INSTRUCTIONS - 1))
-        self.N_instructions = CSRStorage(bits_for(AUTOLOCK_MAX_N_INSTRUCTIONS - 1))
-        self.turn_on_lock = Signal()
-
-        peak_height_bit = len(self.sum_diff_calculator.sum_value)
-        self.peak_heights = [
-            CSRStorage(peak_height_bit, name="peak_height_%d" % idx)
-            for idx in range(AUTOLOCK_MAX_N_INSTRUCTIONS)
-        ]
-        for idx, peak_height in enumerate(self.peak_heights):
-            setattr(self, "peak_height_%d" % idx, peak_height)
-
-        x_data_length_bit = bits_for(N_points)
-        self.wait_for = [
-            CSRStorage(x_data_length_bit, name="wait_for_%d" % idx)
-            for idx in range(AUTOLOCK_MAX_N_INSTRUCTIONS)
-        ]
-        for idx, wait_for in enumerate(self.wait_for):
-            setattr(self, "wait_for_%d" % idx, wait_for)
 
         current_peak_height = Signal((peak_height_bit, True))
         current_wait_for = Signal(x_data_length_bit)
@@ -250,28 +108,20 @@ class RobustAutolock(Module, AutoCSR):
         ]
 
         waited_for = Signal(bits_for(N_points))
-        waited_for_shifted = Signal(25)
+        final_waited_for = Signal(bits_for(N_points))
         current_peak_height_shifted = Signal(25)
         current_wait_for_shifted = Signal(25)
-        input_shifted = Signal((25, True))
 
         self.comb += [
-            test_sum.eq(
-                self.sum_diff_calculator.sum_value
-                >> (len(self.sum_diff_calculator.sum_value) - signal_width)
-            ),
             test_sum_diff.eq(
                 self.sum_diff_calculator.output
                 >> (len(self.sum_diff_calculator.output) - signal_width)
             ),
-            state_always_on.eq(1),
-            waited_for_shifted.eq(waited_for << 11),
             current_peak_height_shifted.eq(
                 current_peak_height
                 >> (len(self.sum_diff_calculator.sum_value) - signal_width)
             ),
             current_wait_for_shifted.eq(current_wait_for << 11),
-            input_shifted.eq(self.input << 11),
         ]
 
         sum_diff = Signal((len(self.sum_diff_calculator.output), True))
@@ -279,19 +129,16 @@ class RobustAutolock(Module, AutoCSR):
         over_threshold = Signal()
         waited_long_enough = Signal()
         instruction_idx_at_zero = Signal()
+        all_instructions_triggered = Signal()
         self.comb += [instruction_idx_at_zero.eq(self.current_instruction_idx == 0)]
 
         self.signal_out = [
-            test_sum,
             test_sum_diff,
-            waited_for_shifted,
             current_peak_height_shifted,
             current_wait_for_shifted,
-            input_shifted,
         ]
         self.signal_in = []
         self.state_out = [
-            state_always_on,
             watching,
             self.turn_on_lock,
             sign_equal,
@@ -320,8 +167,12 @@ class RobustAutolock(Module, AutoCSR):
             ).Else(abs_current_peak_height.eq(-1 * current_peak_height)),
             over_threshold.eq(abs_sum_diff >= abs_current_peak_height),
             waited_long_enough.eq(waited_for > current_wait_for),
-            self.turn_on_lock.eq(
+            all_instructions_triggered.eq(
                 self.current_instruction_idx >= self.N_instructions.storage
+            ),
+            self.turn_on_lock.eq(
+                all_instructions_triggered
+                & (final_waited_for >= self.final_wait_time.storage)
             ),
         ]
 
@@ -338,6 +189,9 @@ class RobustAutolock(Module, AutoCSR):
             If(
                 self.at_start,
                 waited_for.eq(0),
+                # fpga robust autolock algorithm registeres trigger events delayed.
+                # Therefore, we give it a head start for `final_waited_for`
+                final_waited_for.eq(ROBUST_AUTOLOCK_FPGA_DELAY),
                 self.current_instruction_idx.eq(0),
                 If(self.request_lock, watching.eq(1)).Else(watching.eq(0)),
             ).Else(
@@ -352,7 +206,7 @@ class RobustAutolock(Module, AutoCSR):
                     watching.eq(0),
                 ),
                 If(
-                    self.writing_data_now & ~self.turn_on_lock & self.sweep_up,
+                    self.writing_data_now & ~all_instructions_triggered & self.sweep_up,
                     If(
                         watching & sign_equal & over_threshold & waited_long_enough,
                         self.current_instruction_idx.eq(
@@ -361,12 +215,54 @@ class RobustAutolock(Module, AutoCSR):
                         waited_for.eq(0),
                     ).Else(waited_for.eq(waited_for + 1)),
                 ),
+                If(
+                    self.writing_data_now & all_instructions_triggered & self.sweep_up,
+                    final_waited_for.eq(final_waited_for + 1),
+                ),
             ),
         ]
 
+    def init_submodules(self, width, N_points, max_delay):
+        self.submodules.sum_diff_calculator = SumDiffCalculator(
+            width, N_points, max_delay=max_delay
+        )
+
+    def init_csr(self, N_points):
+        # CSR storages
+        self.time_scale = CSRStorage(bits_for(N_points))
+        self.N_instructions = CSRStorage(bits_for(AUTOLOCK_MAX_N_INSTRUCTIONS - 1))
+        self.final_wait_time = CSRStorage(bits_for(N_points))
+
+        peak_height_bit = len(self.sum_diff_calculator.sum_value)
+        self.peak_heights = [
+            CSRStorage(peak_height_bit, name="peak_height_%d" % idx)
+            for idx in range(AUTOLOCK_MAX_N_INSTRUCTIONS)
+        ]
+        for idx, peak_height in enumerate(self.peak_heights):
+            setattr(self, "peak_height_%d" % idx, peak_height)
+
+        x_data_length_bit = bits_for(N_points)
+        self.wait_for = [
+            CSRStorage(x_data_length_bit, name="wait_for_%d" % idx)
+            for idx in range(AUTOLOCK_MAX_N_INSTRUCTIONS)
+        ]
+        for idx, wait_for in enumerate(self.wait_for):
+            setattr(self, "wait_for_%d" % idx, wait_for)
+
+        return peak_height_bit, x_data_length_bit
+
+    def init_inout_signals(self, width):
+        # signals that are connected to other modules
+        self.input = Signal((width, True))
+        self.request_lock = Signal()
+        self.at_start = Signal()
+        self.writing_data_now = Signal()
+        self.sweep_up = Signal()
+        self.turn_on_lock = Signal()
+
 
 def get_lock_position_from_autolock_instructions_by_simulating_fpga(
-    spectrum, description, time_scale, initial_spectrum
+    spectrum, description, time_scale, initial_spectrum, final_wait_time
 ):
     result = {}
 
@@ -377,6 +273,7 @@ def get_lock_position_from_autolock_instructions_by_simulating_fpga(
         yield dut.writing_data_now.eq(1)
 
         yield dut.N_instructions.storage.eq(len(description))
+        yield dut.final_wait_time.storage.eq(final_wait_time)
 
         for description_idx, [wait_for, current_threshold] in enumerate(description):
             yield dut.peak_heights[description_idx].storage.eq(int(current_threshold))

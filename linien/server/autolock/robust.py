@@ -12,11 +12,6 @@ from linien.server.autolock.utils import (
 import numpy as np
 
 
-FPGA_DELAY_SUMDIFF_CALCULATOR = 2
-# FIXME: When programming FPGA, this delay has to be subtracted from final_wait constant
-FPGA_DELAY_LOCK_POSITION_FINDER = 3
-
-
 class LockPositionNotFound(Exception):
     pass
 
@@ -78,6 +73,8 @@ class RobustAutolock:
 
             self.parameters.autolock_time_scale.value = time_scale
             self.parameters.autolock_instructions.value = description
+            self.parameters.autolock_final_wait_time.value = final_wait_time
+
             self.control.write_data()
 
             self.parameters.lock.value = True
@@ -147,14 +144,8 @@ def calculate_autolock_instructions(spectra_with_jitter, target_idxs):
             lock_region = get_lock_region(spectrum, target_idxs)
 
             try:
-                lock_position = (
-                    get_lock_position_from_autolock_instructions(
-                        spectrum,
-                        description,
-                        time_scale,
-                        spectra[0],
-                    )
-                    + final_wait_time
+                lock_position = get_lock_position_from_autolock_instructions(
+                    spectrum, description, time_scale, spectra[0], final_wait_time
                 )
                 if not lock_region[0] <= lock_position <= lock_region[1]:
                     raise LockPositionNotFound()
@@ -171,7 +162,7 @@ def calculate_autolock_instructions(spectra_with_jitter, target_idxs):
 
 
 def get_lock_position_from_autolock_instructions(
-    spectrum, description, time_scale, initial_spectrum
+    spectrum, description, time_scale, initial_spectrum, final_wait_time
 ):
     summed = sum_up_spectrum(spectrum)
     summed_xscaled = get_diff_at_time_scale(summed, time_scale)
@@ -193,6 +184,6 @@ def get_lock_position_from_autolock_instructions(
 
             if description_idx == len(description):
                 # this was the last peak!
-                return idx
+                return idx + final_wait_time
 
     raise LockPositionNotFound()

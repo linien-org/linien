@@ -5,15 +5,12 @@ from linien.server.autolock.utils import (
     sum_up_spectrum,
 )
 from linien.server.autolock.robust import (
-    FPGA_DELAY_LOCK_POSITION_FINDER,
-    FPGA_DELAY_SUMDIFF_CALCULATOR,
     calculate_autolock_instructions,
     get_lock_position_from_autolock_instructions,
 )
+from gateware.logic.autolock_utils import DynamicDelay, SumDiffCalculator
 from gateware.logic.autolock import (
     RobustAutolock,
-    DynamicDelay,
-    SumDiffCalculator,
     get_lock_position_from_autolock_instructions_by_simulating_fpga,
 )
 import numpy as np
@@ -22,6 +19,7 @@ from migen import run_simulation
 
 
 TARGET_IDXS = (328, 350)
+FPGA_DELAY_SUMDIFF_CALCULATOR = 2
 
 
 def peak(x):
@@ -73,18 +71,21 @@ def test_get_description(debug=False):
 
     for jitter, spectrum in zip(jitters, spectra_with_jitter):
         lock_position = get_lock_position_from_autolock_instructions(
-            spectrum, description, time_scale, spectra_with_jitter[0]
+            spectrum, description, time_scale, spectra_with_jitter[0], final_wait_time
         )
         lock_position_fpga = (
             get_lock_position_from_autolock_instructions_by_simulating_fpga(
-                spectrum, description, time_scale, spectra_with_jitter[0]
+                spectrum,
+                description,
+                time_scale,
+                spectra_with_jitter[0],
+                int(final_wait_time),
             )
         )
 
-        # FIXME: When programming FPGA, FPGA_DELAY_LOCK_POSITION_FINDER has to be subtracted from final_wait constant
-        assert lock_position == lock_position_fpga - FPGA_DELAY_LOCK_POSITION_FINDER
+        assert lock_position == lock_position_fpga
 
-        lock_position_corrected = lock_position + final_wait_time - jitter
+        lock_position_corrected = lock_position - jitter
 
         lock_positions.append(lock_position_corrected)
 

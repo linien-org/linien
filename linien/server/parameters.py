@@ -280,6 +280,7 @@ class Parameters(BaseParameters):
         self.autolock_mode = Parameter(start=0)
         self.autolock_time_scale = Parameter(start=0)
         self.autolock_instructions = Parameter(start=[])
+        self.autolock_final_wait_time = Parameter(start=0)
         self.autolock_selection = Parameter(start=False)
         self.autolock_running = Parameter(start=False)
         self.autolock_approaching = Parameter(start=False)
