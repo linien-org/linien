@@ -2,7 +2,7 @@ from ast import Param
 import pickle
 from linien.common import get_lock_point
 import numpy as np
-from linien.server.autolock import Autolock
+from linien.server.autolock.autolock import Autolock
 from linien.server.parameters import Parameter, Parameters
 from matplotlib import pyplot as plt
 

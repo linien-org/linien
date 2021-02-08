@@ -54,7 +54,7 @@ def test_modulate():
 
                 data.append((yield mod.y))
                 phase.append((yield mod.phase))
-                demodulated.append((yield demod.y))
+                demodulated.append((yield demod.i))
                 cordic_out_2.append((yield demod.cordic.yo >> 1))
 
     class Combined(Module):
