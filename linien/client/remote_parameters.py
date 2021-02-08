@@ -59,6 +59,7 @@ class RemoteParameters:
         self._listeners = {}
 
         self._mimic_remote_parameters(use_cache)
+        self._attributes_locked = True
 
         self.call_listeners()
 
@@ -66,11 +67,34 @@ class RemoteParameters:
         for name, param in self.remote.exposed_get_all_parameters():
             yield name, getattr(self, name).value
 
+    def __setattr__(self, name, value):
+        """In order to set the value of a parameter,
+
+            parameters.my_param.value = 123
+
+        is used. In order to prevent accidentally forgetting the .value part, i.e.
+
+            parameters.my_param = 123
+
+        we raise an error in this case."""
+        if (
+            hasattr(self, "_attributes_locked")
+            and self._attributes_locked
+            and not name.startswith("_")
+        ):
+            raise Exception(
+                "Parameters are locked! Did you mean to set the value of this "
+                "parameter instead, i.e. parameters.%s.value = %s" % (name, value)
+            )
+        super().__setattr__(name, value)
+
     def _mimic_remote_parameters(self, use_cache: bool):
         """For every remote parameter, instanciate a `RemoteParameter` object
         that allows to mimics the functionality of the remote parameter."""
         for name, param in self.remote.exposed_get_all_parameters():
             setattr(self, name, RemoteParameter(self, param, name, use_cache))
+
+        self._attributes_locked = True
 
     def _register_listener(self, param, callback: Callable):
         """Tells the server to notify our client (identified by `self.uuid`)
