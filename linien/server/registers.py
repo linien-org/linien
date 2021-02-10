@@ -107,6 +107,7 @@ class Registers:
             logic_autolock_autolock_mode=params["autolock_mode"],
             logic_autolock_robust_N_instructions=len(params["autolock_instructions"]),
             logic_autolock_robust_time_scale=params["autolock_time_scale"],
+            logic_autolock_robust_final_wait_time=params["autolock_final_wait_time"],
             # channel A
             fast_a_demod_delay=phase_to_delay(params["demodulation_phase_a"]),
             fast_a_demod_multiplier=params["demodulation_multiplier_a"],

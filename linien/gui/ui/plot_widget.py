@@ -160,7 +160,7 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         def autolock_selection_changed(value):
             if value:
                 self.parameters.optimization_selection.value = False
-                self.enable_area_selection(selectable_width=0.75)
+                self.enable_area_selection(selectable_width=0.99)
             elif not self.parameters.optimization_selection.value:
                 self.disable_area_selection()
 

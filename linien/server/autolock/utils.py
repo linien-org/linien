@@ -3,9 +3,33 @@ from scipy.signal import correlate
 
 
 def get_lock_region(spectrum, target_idxs):
+    """Given a spectrum and the points that the user selected for locking,
+    calculate the region where locking will work. This is the region between the
+    next zero crossings after the extrema."""
     part = spectrum[target_idxs[0] : target_idxs[1]]
-    return tuple(
+    extrema = tuple(
         sorted([target_idxs[0] + np.argmin(part), target_idxs[0] + np.argmax(part)])
+    )
+
+    def walk_until_sign_changes(start_idx, direction):
+        current_idx = start_idx
+        start_sign = sign(spectrum[start_idx])
+        while True:
+            current_idx += direction
+            if current_idx < 0:
+                return 0
+            if current_idx == len(spectrum):
+                return current_idx - 1
+
+            current_value = sign(spectrum[current_idx])
+            current_sign = sign(current_value)
+
+            if current_sign != start_sign:
+                return current_idx - direction
+
+    return (
+        walk_until_sign_changes(extrema[0], -1),
+        walk_until_sign_changes(extrema[1], 1),
     )
 
 
@@ -93,8 +117,6 @@ def crop_spectra_to_same_view(spectra_with_jitter):
     length_after_crop = len(spectra_with_jitter[0]) - (max_shift - min_shift)
 
     for shift, spectrum in zip(shifts, spectra_with_jitter):
-        cropped_spectra.append(
-            spectrum[shift-min_shift:][:length_after_crop]
-        )
+        cropped_spectra.append(spectrum[shift - min_shift :][:length_after_crop])
 
     return cropped_spectra, -min_shift + 1

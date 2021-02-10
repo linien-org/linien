@@ -1,3 +1,4 @@
+from linien.common import FAST_AUTOLOCK
 from PyQt5 import QtGui
 from linien.gui.widgets import CustomWidget
 from linien.gui.utils_gui import param2ui
@@ -129,6 +130,8 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
             self.ids.button_slope_rising.isChecked()
         )
         self.parameters.fetch_quadratures.value = False
+        self.parameters.autolock_mode.value = FAST_AUTOLOCK
+        self.parameters.autolock_target_position.value = 0
         self.control.write_data()
         self.control.start_lock()
         self.control.continue_acquisition()

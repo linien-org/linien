@@ -62,6 +62,7 @@ class RobustAutolock:
         self.spectra.append(spectrum)
 
         if len(self.spectra) == self.N_spectra_required:
+            print("enough spectra!, calculate")
             description, final_wait_time, time_scale = calculate_autolock_instructions(
                 self.spectra, (self.x0, self.x1)
             )
@@ -69,18 +70,23 @@ class RobustAutolock:
             # first reset lock in case it was True. This ensures that autolock
             # starts properly once all parameters are set
             self.parameters.lock.value = False
-            self.control.write_data()
+            self.control.exposed_write_data()
 
             self.parameters.autolock_time_scale.value = time_scale
             self.parameters.autolock_instructions.value = description
             self.parameters.autolock_final_wait_time.value = final_wait_time
 
-            self.control.write_data()
+            self.control.exposed_write_data()
 
             self.parameters.lock.value = True
-            self.control.write_data()
+            self.control.exposed_write_data()
 
             self._done = True
+        else:
+            print(
+                "not enough spectra collected: %d of %d"
+                % (len(self.spectra), self.N_spectra_required)
+            )
 
 
 def calculate_autolock_instructions(spectra_with_jitter, target_idxs):
@@ -93,6 +99,10 @@ def calculate_autolock_instructions(spectra_with_jitter, target_idxs):
     )
 
     print("x scale is %d" % time_scale)
+
+    prepared_spectrum = get_diff_at_time_scale(sum_up_spectrum(spectra[0]), time_scale)
+    peaks = get_all_peaks(prepared_spectrum, target_idxs)
+    y_scale = peaks[0][1]
 
     for tolerance_factor in [0.95, 0.9, 0.85, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55, 0.5]:
         print("TOLERANCE", tolerance_factor)
@@ -158,6 +168,7 @@ def calculate_autolock_instructions(spectra_with_jitter, target_idxs):
     else:
         raise UnableToFindDescription()
 
+    print("description is", description)
     return description, final_wait_time, time_scale
 
 

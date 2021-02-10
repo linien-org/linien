@@ -1,6 +1,7 @@
 from linien.server.autolock.utils import (
     crop_spectra_to_same_view,
     get_diff_at_time_scale,
+    get_lock_region,
     get_time_scale,
     sum_up_spectrum,
 )
@@ -18,7 +19,6 @@ from matplotlib import pyplot as plt
 from migen import run_simulation
 
 
-TARGET_IDXS = (328, 350)
 FPGA_DELAY_SUMDIFF_CALCULATOR = 2
 
 
@@ -31,13 +31,24 @@ def as_int(array):
     return np.round(array).astype(np.int64)
 
 
-def spectrum_for_testing(noise_level):
+def atomic_spectrum(noise_level):
     x = np.linspace(-30, 30, 512)
     central_peak = peak(x) * 2048
     smaller_peaks = (peak(x - 10) * 1024) - (peak(x + 10) * 1024)
-    return as_int(
-        central_peak + smaller_peaks + (np.random.randn(len(x)) * noise_level)
+    target_idxs = (328, 350)
+    return (
+        as_int(central_peak + smaller_peaks + (np.random.randn(len(x)) * noise_level)),
+        target_idxs,
     )
+
+
+def pfd_spectrum(noise_level):
+    x = np.linspace(-30, 30, 512)
+    y = x * 1000
+    y[y > 3000] = 3000
+    y[y < -3000] = -3000
+    target_idxs = (220, 300)
+    return as_int(y + (np.random.randn(len(x)) * noise_level)), target_idxs
 
 
 def add_noise(spectrum, level):
@@ -54,53 +65,90 @@ def add_jitter(spectrum, level=None, exact_value=None):
 
 
 def test_get_description(debug=False):
-    spectrum = spectrum_for_testing(0)
+    for sign_spectrum_multiplicator in (1, -1):
+        for spectrum_generator in (pfd_spectrum, atomic_spectrum):
+            spectrum, target_idxs = spectrum_generator(0)
+            spectrum *= sign_spectrum_multiplicator
 
-    jitters = [0 if i == 0 else int(round(np.random.randn() * 50)) for i in range(10)]
+            if debug:
+                plt.plot(spectrum)
+                plt.show()
 
-    spectra_with_jitter = [
-        add_jitter(add_noise(spectrum, 100), exact_value=jitter).astype(np.int64)
-        for jitter in jitters
-    ]
+            jitters = [
+                0 if i == 0 else int(round(np.random.randn() * 50)) for i in range(10)
+            ]
 
-    description, final_wait_time, time_scale = calculate_autolock_instructions(
-        spectra_with_jitter, TARGET_IDXS
-    )
+            spectra_with_jitter = [
+                add_jitter(add_noise(spectrum, 100), exact_value=jitter).astype(
+                    np.int64
+                )
+                for jitter in jitters
+            ]
 
-    lock_positions = []
-
-    for jitter, spectrum in zip(jitters, spectra_with_jitter):
-        lock_position = get_lock_position_from_autolock_instructions(
-            spectrum, description, time_scale, spectra_with_jitter[0], final_wait_time
-        )
-        lock_position_fpga = (
-            get_lock_position_from_autolock_instructions_by_simulating_fpga(
-                spectrum,
-                description,
-                time_scale,
-                spectra_with_jitter[0],
-                int(final_wait_time),
+            description, final_wait_time, time_scale = calculate_autolock_instructions(
+                spectra_with_jitter, target_idxs
             )
-        )
 
-        assert lock_position == lock_position_fpga
+            lock_region = get_lock_region(spectrum, target_idxs)
 
-        lock_position_corrected = lock_position - jitter
+            lock_positions = []
 
-        lock_positions.append(lock_position_corrected)
+            for spectrum_idx, [jitter, spectrum] in enumerate(
+                zip(jitters, spectra_with_jitter)
+            ):
+                lock_position = get_lock_position_from_autolock_instructions(
+                    spectrum,
+                    description,
+                    time_scale,
+                    spectra_with_jitter[0],
+                    final_wait_time,
+                )
+                lock_position_fpga = (
+                    get_lock_position_from_autolock_instructions_by_simulating_fpga(
+                        spectrum,
+                        description,
+                        time_scale,
+                        spectra_with_jitter[0],
+                        int(final_wait_time),
+                    )
+                )
 
-        if debug:
-            plt.axvline(lock_positions[-1], color="green", alpha=0.5)
+                print("lock_positions", lock_position, lock_position_fpga)
+                assert abs(lock_position - lock_position_fpga) <= 1
 
-        assert TARGET_IDXS[0] <= lock_position_corrected <= TARGET_IDXS[1]
+                lock_position_corrected = lock_position - jitter
 
-    if debug:
-        plt.plot(spectra_with_jitter[0])
-        # plt.plot(get_diff_at_time_scale(sum_up_spectrum(spectra[0]), time_scale))
-        plt.axvspan(TARGET_IDXS[0], TARGET_IDXS[1], alpha=0.2, color="red")
+                lock_positions.append(lock_position_corrected)
 
-        plt.legend()
-        plt.show()
+                if debug:
+                    if spectrum_idx == 0:
+                        kwargs = {"label": "lock ended up here"}
+                    else:
+                        kwargs = {}
+                    plt.axvline(lock_positions[-1], color="green", alpha=0.5, **kwargs)
+
+                assert lock_region[0] <= lock_position_corrected <= lock_region[1]
+
+            if debug:
+                plt.plot(spectra_with_jitter[0])
+                # plt.plot(get_diff_at_time_scale(sum_up_spectrum(spectra[0]), time_scale))
+                plt.axvspan(
+                    lock_region[0],
+                    lock_region[1],
+                    alpha=0.2,
+                    color="yellow",
+                    label="its okay to end up in this region",
+                )
+                plt.axvspan(
+                    target_idxs[0],
+                    target_idxs[1],
+                    alpha=0.2,
+                    color="red",
+                    label="user selected region",
+                )
+
+                plt.legend()
+                plt.show()
 
 
 def test_dynamic_delay():
@@ -167,11 +215,42 @@ def test_sum_diff_calculator():
     )
 
 
+def test_sum_diff_calculator2():
+    spectrum = pfd_spectrum(0)[0]
+
+    delay = 60
+    out_fpga = []
+
+    def tb(dut):
+        yield dut.restart.eq(0)
+        yield dut.delay_value.eq(delay)
+        yield dut.writing_data_now.eq(1)
+
+        for point in spectrum:
+            yield dut.input.eq(int(point))
+            yield
+            out = yield dut.output
+            out_fpga.append(out)
+
+    dut = SumDiffCalculator(14, 8192)
+    run_simulation(
+        dut, tb(dut), vcd_name="experimental_autolock_sum_diff_calculator.vcd"
+    )
+
+    summed = sum_up_spectrum(spectrum)
+    summed_xscaled = get_diff_at_time_scale(summed, delay)
+
+    # plt.plot(out_fpga[1:])
+    # plt.plot(summed_xscaled)
+    # plt.show()
+    assert out_fpga[1:] == summed_xscaled[:-1]
+
+
 def test_compare_sum_diff_calculator_implementations(debug=False):
     for iteration in (0, 1):
         if iteration == 1:
-            spectrum = spectrum_for_testing(0)
-            time_scale = get_time_scale(spectrum, TARGET_IDXS)
+            spectrum, target_idxs = atomic_spectrum(0)
+            time_scale = get_time_scale(spectrum, target_idxs)
         else:
             spectrum = [1 * i for i in range(1000)]
             time_scale = 5
@@ -327,9 +406,9 @@ def test_fpga_lock_position_finder():
 
 def test_crop_spectra_to_same_view():
     spectra_to_test = (
-        [np.roll(spectrum_for_testing(0), -i * 10) for i in range(10)],
-        [np.roll(spectrum_for_testing(0), i * 10) for i in range(10)],
-        [add_jitter(spectrum_for_testing(0), 50 if i > 0 else 0) for i in range(10)],
+        [np.roll(atomic_spectrum(0)[0], -i * 10) for i in range(10)],
+        [np.roll(atomic_spectrum(0)[0], i * 10) for i in range(10)],
+        [add_jitter(atomic_spectrum(0)[0], 50 if i > 0 else 0) for i in range(10)],
     )
 
     for idx, spectra in enumerate(spectra_to_test):
@@ -353,5 +432,6 @@ if __name__ == "__main__":
     test_crop_spectra_to_same_view()
     test_compare_sum_diff_calculator_implementations()
     test_sum_diff_calculator()
+    test_sum_diff_calculator2()
     test_fpga_lock_position_finder()
-    test_get_description(debug=False)
+    test_get_description(debug=True)

@@ -245,7 +245,12 @@ class LinienModule(Module, AutoCSR):
                     + (self.logic.chain_b_factor.storage * self.fast_b.out_i)
                     + (self.logic.combined_offset_signed << (chain_factor_bits + s))
                 ),
-            ).Else(mixed.eq(self.fast_a.out_i << chain_factor_bits))
+            ).Else(
+                mixed.eq(
+                    (self.fast_a.out_i << chain_factor_bits)
+                    + (self.logic.combined_offset_signed << (chain_factor_bits + s))
+                )
+            )
         ]
 
         mixed_limited = Signal((signal_width, True))
