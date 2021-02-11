@@ -70,12 +70,14 @@ class Autolock:
         )
 
         if self.parameters.autolock_mode_preference.value != AUTO_DETECT_AUTOLOCK_MODE:
-            self.parameters.autolock_mode.value = self.parameters.autolock_mode.value
+            self.parameters.autolock_mode.value = (
+                self.parameters.autolock_mode_preference.value
+            )
         else:
             # FIXME: really autodetect
             self.parameters.autolock_mode.value = FAST_AUTOLOCK
 
-        self.algorithm = [FastAutolock, RobustAutolock][
+        self.algorithm = [None, FastAutolock, RobustAutolock][
             self.parameters.autolock_mode.value
         ](
             self.control,
