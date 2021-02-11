@@ -37,7 +37,7 @@ def load_device_data():
     try:
         with open(get_devices_filename(), "rb") as f:
             devices = pickle.load(f)
-    except FileNotFoundError:
+    except (FileNotFoundError, pickle.UnpicklingError):
         devices = []
 
     return devices

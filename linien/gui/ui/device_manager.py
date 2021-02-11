@@ -1,6 +1,5 @@
-from PyQt5 import QtGui, QtWidgets, QtCore
+from PyQt5 import QtGui, QtCore
 from PyQt5.QtCore import QThread, pyqtSignal
-from threading import Thread
 from traceback import print_exc
 from paramiko.ssh_exception import AuthenticationException as SSHAuthenticationException
 

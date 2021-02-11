@@ -267,7 +267,9 @@ class LinienClient(RawRPYCClient):
 
         for k, v in params.items():
             if hasattr(self.parameters, k):
-                getattr(self.parameters, k).value = v
+                param = getattr(self.parameters, k)
+                if param.value != v:
+                    param.value = v
             else:
                 # this may happen if the settings were written with a different
                 # version of linien.

@@ -17,6 +17,7 @@ from parameters import Parameters
 
 from linien.config import DEFAULT_SERVER_PORT
 from linien.common import update_control_signal_history, N_POINTS, pack, unpack
+from linien.server.parameter_store import ParameterStore
 from linien.server.optimization.optimization import OptimizeSpectroscopy
 
 
@@ -26,6 +27,7 @@ class BaseService(rpyc.Service):
 
     def __init__(self):
         self.parameters = Parameters()
+        self.parameter_store = ParameterStore(self.parameters)
         self._uuid_mapping = {}
 
     def on_connect(self, client):
@@ -176,7 +178,9 @@ class RedPitayaControlService(BaseService):
         """Kills the server."""
         self.registers.acquisition.shutdown()
         _thread.interrupt_main()
-        os._exit(0)
+        # we use SystemExit instead of os._exit because we want to call atexit
+        # handlers
+        raise SystemExit
 
     def exposed_get_server_version(self):
         import linien
