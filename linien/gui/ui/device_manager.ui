@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>510</width>
-    <height>331</height>
+    <height>333</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -53,9 +53,9 @@
         </item>
         <item>
          <widget class="QPushButton" name="editButton">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="text">
            <string>Edit device</string>
           </property>
@@ -68,6 +68,26 @@
           </property>
           <property name="text">
            <string>Remove device</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="moveUpButton">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>Move up</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="moveDownButton">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>Move down</string>
           </property>
          </widget>
         </item>
@@ -96,7 +116,7 @@
      <x>0</x>
      <y>0</y>
      <width>510</width>
-     <height>27</height>
+     <height>29</height>
     </rect>
    </property>
   </widget>
@@ -184,11 +204,45 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>moveDownButton</sender>
+   <signal>clicked()</signal>
+   <receiver>DeviceManager</receiver>
+   <slot>move_device_down()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>439</x>
+     <y>264</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>254</x>
+     <y>166</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>moveUpButton</sender>
+   <signal>clicked()</signal>
+   <receiver>DeviceManager</receiver>
+   <slot>move_device_up()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>439</x>
+     <y>222</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>254</x>
+     <y>166</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>remove_device()</slot>
   <slot>selected_device_changed()</slot>
   <slot>connect()</slot>
   <slot>new_device()</slot>
+  <slot>move_device_up()</slot>
+  <slot>move_device_down()</slot>
  </slots>
 </ui>
