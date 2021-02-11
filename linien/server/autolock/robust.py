@@ -48,7 +48,6 @@ class RobustAutolock:
 
         self._done = False
         self._error_counter = 0
-        self._spectrum_counter = 0
 
         if additional_spectra is not None:
             # the most recent ones are the ones we are interested in
@@ -57,13 +56,6 @@ class RobustAutolock:
                 self.handle_new_spectrum(additional_spectrum)
 
     def handle_new_spectrum(self, spectrum):
-        # FIXME: use the new option in order to prevent this
-        self._spectrum_counter += 1
-        if self._spectrum_counter == 1:
-            # the first spectrum always equals the ref spectrum, but we don't
-            # want to record it again
-            return
-
         if self._done:
             return
 
