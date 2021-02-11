@@ -497,7 +497,7 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
     def plot_autolock_target_line(self, combined_error_signal):
         if (
             self.autolock_ref_spectrum is not None
-            and self.parameters.autolock_approaching.value
+            and self.parameters.autolock_preparing.value
         ):
             ramp_amplitude = self.parameters.ramp_amplitude.value
             zoom_factor = 1 / ramp_amplitude

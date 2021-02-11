@@ -434,4 +434,4 @@ if __name__ == "__main__":
     test_sum_diff_calculator()
     test_sum_diff_calculator2()
     test_fpga_lock_position_finder()
-    test_get_description(debug=True)
+    test_get_description(debug=False)

@@ -29,6 +29,7 @@ class RobustAutolock:
         first_error_signal_rolled,
         x0,
         x1,
+        # FIXME: how many?
         N_spectra_required=5,
     ):
         self.control = control
@@ -44,11 +45,19 @@ class RobustAutolock:
 
         self._done = False
         self._error_counter = 0
+        self._spectrum_counter = 0
 
     def handle_new_spectrum(self, spectrum):
+        self._spectrum_counter += 1
+        if self._spectrum_counter == 1:
+            # the first spectrum always equals the ref spectrum, but we don't
+            # want to record it again
+            return
+
         if self._done:
             return
 
+        print("handle new spectrum")
         try:
             determine_shift_by_correlation(1, self.first_error_signal, spectrum)
         except SpectrumUncorrelatedException:
@@ -60,6 +69,9 @@ class RobustAutolock:
             return
 
         self.spectra.append(spectrum)
+        self.parameters.autolock_percentage.value = int(
+            round((len(self.spectra) / self.N_spectra_required) * 100)
+        )
 
         if len(self.spectra) == self.N_spectra_required:
             print("enough spectra!, calculate")
@@ -80,6 +92,10 @@ class RobustAutolock:
 
             self.parameters.lock.value = True
             self.control.exposed_write_data()
+
+            self.parameters.autolock_preparing.value = False
+
+            print("done!")
 
             self._done = True
         else:
@@ -106,12 +122,7 @@ def calculate_autolock_instructions(spectra_with_jitter, target_idxs):
 
     for tolerance_factor in [0.95, 0.9, 0.85, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55, 0.5]:
         print("TOLERANCE", tolerance_factor)
-        prepared_spectrum = get_diff_at_time_scale(
-            sum_up_spectrum(spectra[0]), time_scale
-        )
-        peaks = get_all_peaks(prepared_spectrum, target_idxs)
 
-        y_scale = peaks[0][1]
         peaks_filtered = [
             (peak_position, peak_height * tolerance_factor)
             for peak_position, peak_height in peaks

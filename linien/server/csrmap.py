@@ -258,7 +258,7 @@ csr = {
     'logic_autolock_robust_current_peak_height_csr': (8, 0x10a, 28, False),
     'logic_autolock_fast_target_position': (8, 0x10e, 14, True),
     'logic_autolock_request_lock': (8, 0x110, 1, True),
-    'logic_autolock_autolock_mode': (8, 0x111, 1, True),
+    'logic_autolock_autolock_mode': (8, 0x111, 2, True),
     'logic_autolock_lock_running': (8, 0x112, 1, False),
     'logic_control_signal_clr': (8, 0x113, 1, True),
     'logic_control_signal_max': (8, 0x114, 25, False),

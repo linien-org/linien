@@ -3,6 +3,8 @@ import traceback
 import numpy as np
 
 from linien.common import (
+    AUTO_DETECT_AUTOLOCK_MODE,
+    FAST_AUTOLOCK,
     get_lock_point,
     combine_error_signal,
     check_plot_data,
@@ -56,6 +58,8 @@ class Autolock:
         run of the lock.
         """
         self.parameters.autolock_running.value = True
+        self.parameters.autolock_preparing.value = True
+        self.parameters.autolock_percentage.value = 0
         self.parameters.fetch_quadratures.value = False
         self.x0, self.x1 = int(x0), int(x1)
         self.should_watch_lock = should_watch_lock
@@ -64,6 +68,12 @@ class Autolock:
         first_error_signal, first_error_signal_rolled = self.record_first_error_signal(
             spectrum
         )
+
+        if self.parameters.autolock_mode_preference.value != AUTO_DETECT_AUTOLOCK_MODE:
+            self.parameters.autolock_mode.value = self.parameters.autolock_mode.value
+        else:
+            # FIXME: really autodetect
+            self.parameters.autolock_mode.value = FAST_AUTOLOCK
 
         self.algorithm = [FastAutolock, RobustAutolock][
             self.parameters.autolock_mode.value
@@ -272,6 +282,8 @@ class Autolock:
 
     def exposed_stop(self):
         """Abort any operation."""
+        self.parameters.autolock_preparing.value = False
+        self.parameters.autolock_percentage.value = 0
         self.parameters.autolock_running.value = False
         self.parameters.autolock_locked.value = False
         self.parameters.autolock_watching.value = False

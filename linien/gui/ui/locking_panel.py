@@ -37,6 +37,10 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
 
         self.ids.reset_lock_failed_state.clicked.connect(self.reset_lock_failed)
 
+        self.ids.autolock_mode_preference.currentIndexChanged.connect(
+            self.autolock_mode_preference_changed
+        )
+
     def connection_established(self):
         params = self.app().parameters
         self.parameters = params
@@ -83,7 +87,7 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
 
         for param in (
             params.lock,
-            params.autolock_approaching,
+            params.autolock_preparing,
             params.autolock_watching,
             params.autolock_failed,
             params.autolock_locked,
@@ -102,6 +106,8 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
             self.ids.auto_mode_not_activated.setVisible(not value)
 
         params.autolock_selection.on_change(autolock_selection_status_changed)
+
+        param2ui(params.autolock_mode_preference, self.ids.autolock_mode_preference)
 
     def kp_changed(self):
         self.parameters.p.value = self.ids.kp.value()
@@ -123,6 +129,9 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
 
     def lock_mode_changed(self, idx):
         self.parameters.automatic_mode.value = idx == 0
+
+    def autolock_mode_preference_changed(self, idx):
+        self.parameters.autolock_mode_preference.value = idx
 
     def start_manual_lock(self):
         self.control.pause_acquisition()

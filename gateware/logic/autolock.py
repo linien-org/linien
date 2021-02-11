@@ -14,7 +14,7 @@ class FPGAAutolock(Module, AutoCSR):
         self.submodules.fast = FastAutolock(width=width)
 
         self.request_lock = CSRStorage()
-        self.autolock_mode = CSRStorage()
+        self.autolock_mode = CSRStorage(2)
         self.lock_running = CSRStatus()
 
         self.comb += [

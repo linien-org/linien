@@ -1,6 +1,6 @@
 from linien.server.parameters_base import BaseParameters, Parameter
 from linien.config import DEFAULT_COLORS, N_COLORS
-from linien.common import Vpp, MHz
+from linien.common import AUTO_DETECT_AUTOLOCK_MODE, FAST_AUTOLOCK, Vpp, MHz
 
 
 class Parameters(BaseParameters):
@@ -84,6 +84,8 @@ class Parameters(BaseParameters):
             "plot_color_3",
             "plot_line_opacity",
             "plot_fill_opacity",
+            "autolock_determine_offset",
+            "autolock_mode_preference",
         )
 
         self.to_plot = Parameter()
@@ -277,13 +279,15 @@ class Parameters(BaseParameters):
         self.task = Parameter(start=None, sync=False)
         self.automatic_mode = Parameter(start=True)
         self.autolock_target_position = Parameter(start=0)
-        self.autolock_mode = Parameter(start=0)
+        self.autolock_mode_preference = Parameter(start=AUTO_DETECT_AUTOLOCK_MODE)
+        self.autolock_mode = Parameter(start=FAST_AUTOLOCK)
         self.autolock_time_scale = Parameter(start=0)
         self.autolock_instructions = Parameter(start=[])
         self.autolock_final_wait_time = Parameter(start=0)
         self.autolock_selection = Parameter(start=False)
         self.autolock_running = Parameter(start=False)
-        self.autolock_approaching = Parameter(start=False)
+        self.autolock_preparing = Parameter(start=False)
+        self.autolock_percentage = Parameter(start=0, min_=0, max_=100)
         self.autolock_watching = Parameter(start=False)
         self.autolock_failed = Parameter(start=False)
         self.autolock_locked = Parameter(start=False)

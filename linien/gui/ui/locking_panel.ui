@@ -432,6 +432,34 @@
            </widget>
           </item>
           <item>
+           <widget class="QGroupBox" name="groupBox">
+            <property name="title">
+             <string>Autolock algorithm</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_8">
+             <item>
+              <widget class="QComboBox" name="autolock_mode_preference">
+               <item>
+                <property name="text">
+                 <string>Auto-detect</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Jitter-tolerant mode</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Fast mode</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
            <widget class="QCheckBox" name="autoOffsetCheckbox">
             <property name="text">
              <string>Determine signal offset</string>
