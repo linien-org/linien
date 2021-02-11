@@ -5,7 +5,14 @@ class FastAutolock:
     """Spectroscopy autolock based on correlation."""
 
     def __init__(
-        self, control, parameters, first_error_signal, first_error_signal_rolled, x0, x1
+        self,
+        control,
+        parameters,
+        first_error_signal,
+        first_error_signal_rolled,
+        x0,
+        x1,
+        additional_spectra=None,
     ):
         self.control = control
         self.parameters = parameters

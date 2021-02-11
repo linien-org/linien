@@ -49,6 +49,7 @@ class Autolock:
         spectrum,
         should_watch_lock=False,
         auto_offset=True,
+        additional_spectra=None,
     ):
         """Starts the autolock.
 
@@ -86,6 +87,7 @@ class Autolock:
             first_error_signal_rolled,
             self.x0,
             self.x1,
+            additional_spectra=additional_spectra,
         )
 
         self.initial_ramp_speed = self.parameters.ramp_speed.value

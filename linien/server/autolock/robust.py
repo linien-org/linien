@@ -33,6 +33,7 @@ class RobustAutolock:
         x1,
         # FIXME: how many?
         N_spectra_required=5,
+        additional_spectra=None,
     ):
         self.control = control
         self.parameters = parameters
@@ -49,7 +50,14 @@ class RobustAutolock:
         self._error_counter = 0
         self._spectrum_counter = 0
 
+        if additional_spectra is not None:
+            # the most recent ones are the ones we are interested in
+            additional_spectra = list(reversed(additional_spectra))
+            for additional_spectrum in additional_spectra:
+                self.handle_new_spectrum(additional_spectrum)
+
     def handle_new_spectrum(self, spectrum):
+        # FIXME: use the new option in order to prevent this
         self._spectrum_counter += 1
         if self._spectrum_counter == 1:
             # the first spectrum always equals the ref spectrum, but we don't

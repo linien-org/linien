@@ -1,27 +1,24 @@
-from linien.client.utils import peak_voltage_to_dBm
-import math
 import pickle
+from time import time
+
 import numpy as np
 import pyqtgraph as pg
-
-from time import time
-from PyQt5 import QtGui, QtWidgets
-from pyqtgraph.Qt import QtCore, QtGui
-from PyQt5.QtCore import QThread, pyqtSignal
-
-from linien.config import DEFAULT_COLORS, N_COLORS
 from linien.client.config import COLORS, DEFAULT_PLOT_RATE_LIMIT
-from linien.gui.widgets import CustomWidget
+from linien.client.utils import peak_voltage_to_dBm
 from linien.common import (
-    get_signal_strength_from_i_q,
-    update_control_signal_history,
-    determine_shift_by_correlation,
-    get_lock_point,
-    combine_error_signal,
-    check_plot_data,
     N_POINTS,
     SpectrumUncorrelatedException,
+    check_plot_data,
+    combine_error_signal,
+    determine_shift_by_correlation,
+    get_lock_point,
+    get_signal_strength_from_i_q,
+    update_control_signal_history,
 )
+from linien.config import N_COLORS
+from linien.gui.widgets import CustomWidget
+from PyQt5.QtCore import pyqtSignal
+from pyqtgraph.Qt import QtCore
 
 # NOTE: this is required for using a pen_width > 1.
 # There is a bug though that causes the plot to be way too small. Therefore,
@@ -116,10 +113,11 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
 
         self._fixed_opengl_bug = False
 
-        self.enable_area_selection()
-
         self.last_plot_time = 0
         self.plot_rate_limit = DEFAULT_PLOT_RATE_LIMIT
+
+        self._plot_paused = False
+        self._cached_plot_data = []
 
     def _to_data_coords(self, event):
         pos = self.plotItem.vb.mapSceneToView(event.pos())
@@ -161,8 +159,10 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
             if value:
                 self.parameters.optimization_selection.value = False
                 self.enable_area_selection(selectable_width=0.99)
+                self.pause_plot_and_cache_data()
             elif not self.parameters.optimization_selection.value:
                 self.disable_area_selection()
+                self.resume_plot_and_clear_cache()
 
         self.parameters.autolock_selection.on_change(autolock_selection_changed)
 
@@ -170,8 +170,10 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
             if value:
                 self.parameters.autolock_selection.value = False
                 self.enable_area_selection(selectable_width=0.75)
+                self.pause_plot_and_cache_data()
             elif not self.parameters.autolock_selection.value:
                 self.disable_area_selection()
+                self.resume_plot_and_clear_cache()
 
         self.parameters.optimization_selection.on_change(optimization_selection_changed)
 
@@ -265,14 +267,16 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         else:
             # it was a selection
             if self.selection_running:
-                # we pickle it here because otherwise a netref is
-                # transmitted which blocks the autolock
                 if self.parameters.autolock_selection.value:
                     last_combined_error_signal = self.last_plot_data[2]
                     self.parameters.autolock_selection.value = False
 
                     self.control.start_autolock(
-                        *sorted([x0, x]), pickle.dumps(last_combined_error_signal)
+                        # we pickle it here because otherwise a netref is
+                        # transmitted which blocks the autolock
+                        *sorted([x0, x]),
+                        pickle.dumps(last_combined_error_signal),
+                        additional_spectra=pickle.dumps(self._cached_plot_data)
                     )
 
                     (
@@ -303,9 +307,16 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
 
     def replot(self, to_plot):
         time_beginning = time()
-        if time_beginning - self.last_plot_time <= self.plot_rate_limit:
+        if (
+            time_beginning - self.last_plot_time <= self.plot_rate_limit
+            and not self._plot_paused
+        ):
             # don't plot too often at it only causes unnecessary load
+            # this does not apply if plot is paused, because in this case we want
+            # to collect all the data that we can get in order to pass it to the
+            # autolock
             return
+
         self.last_plot_time = time_beginning
 
         # NOTE: this is necessary if OpenGL is activated. Otherwise, the
@@ -321,7 +332,7 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         if self.parameters.pause_acquisition.value:
             return
 
-        if to_plot is not None and not self.touch_start:
+        if to_plot is not None:
             to_plot = pickle.loads(to_plot)
 
             if to_plot is None:
@@ -375,6 +386,13 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
                     self.parameters.channel_mixing.value,
                     self.parameters.combined_offset.value,
                 )
+
+                if self._plot_paused:
+                    self._cached_plot_data.append(combined_error_signal)
+                    # don't save too much
+                    self._cached_plot_data = self._cached_plot_data[-20:]
+                    return
+
                 all_signals = [s1, s2] + [combined_error_signal]
                 self.last_plot_data = all_signals
 
@@ -604,3 +622,14 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
 
         for overlay in self.boundary_overlays:
             overlay.setVisible(False)
+
+    def pause_plot_and_cache_data(self):
+        """This function pauses plot updates. All incoming data is cached though.
+        This is useful for letting the user select a line that is then used in
+        the autolock."""
+        self._plot_paused = True
+
+    def resume_plot_and_clear_cache(self):
+        """Resumes plotting again."""
+        self._plot_paused = False
+        self._cached_plot_data = []
