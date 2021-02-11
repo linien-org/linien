@@ -34,7 +34,7 @@
         <item>
          <widget class="QGroupBox" name="groupBox">
           <property name="title">
-           <string>Host</string>
+           <string>Hostname / IP Address</string>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_2">
            <item>
@@ -47,7 +47,7 @@
            <item>
             <widget class="QLabel" name="explain_host">
              <property name="text">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;xxxxxx&lt;/span&gt; are the last 6 characters from MAC address of your RedPitaya. The MAC address is written on the Ethernet connector.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;xxxxxx&lt;/span&gt; are the last 6 characters from MAC address of your RedPitaya. The MAC address is written on the Ethernet connector.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Note:&lt;/span&gt; If connections fails using host name, try using ip address of RedPitaya instead.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="alignment">
               <set>Qt::AlignJustify|Qt::AlignVCenter</set>
@@ -123,7 +123,7 @@
            <item>
             <widget class="QLabel" name="label_2">
              <property name="text">
-              <string>Which port should the server use? Default port is 18862.</string>
+              <string>Which port should the Linien server use? Default port is 18862.</string>
              </property>
              <property name="wordWrap">
               <bool>true</bool>

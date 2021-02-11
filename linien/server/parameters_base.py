@@ -41,11 +41,12 @@ class Parameter:
         for listener in self._listeners.copy():
             listener(value)
 
-    def on_change(self, function):
+    def on_change(self, function, call_listener_with_first_value=True):
         self._listeners.add(function)
 
-        if self._value is not None:
-            function(self._value)
+        if call_listener_with_first_value:
+            if self._value is not None:
+                function(self._value)
 
     def remove_listener(self, function):
         if function in self._listeners:

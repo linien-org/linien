@@ -1,6 +1,5 @@
-from PyQt5 import QtGui, QtWidgets, QtCore
+from PyQt5 import QtGui, QtCore
 from PyQt5.QtCore import QThread, pyqtSignal
-from threading import Thread
 from traceback import print_exc
 from paramiko.ssh_exception import AuthenticationException as SSHAuthenticationException
 
@@ -203,6 +202,30 @@ class DeviceManager(QtGui.QMainWindow, CustomWidget):
 
         self.dialog.accepted.connect(reload_device_data)
 
+    def move_device_up(self):
+        self.move_device(-1)
+
+    def move_device_down(self):
+        self.move_device(1)
+
+    def move_device(self, direction):
+        devices = load_device_data()
+
+        if not devices:
+            return
+
+        current_index = self.get_list_index()
+        new_index = current_index + direction
+
+        if new_index < 0 or new_index > len(devices) - 1:
+            return
+
+        device = devices.pop(current_index)
+        devices = devices[:new_index] + [device] + devices[new_index:]
+        save_device_data(devices)
+        self.load_device_data()
+        self.ids.deviceList.setCurrentRow(new_index)
+
     def get_list_index(self):
         return self.ids.deviceList.currentIndex().row()
 
@@ -227,7 +250,13 @@ class DeviceManager(QtGui.QMainWindow, CustomWidget):
             if devices:
                 disable_buttons = False
 
-        for btn in [self.ids.connectButton, self.ids.removeButton, self.ids.editButton]:
+        for btn in [
+            self.ids.connectButton,
+            self.ids.removeButton,
+            self.ids.editButton,
+            self.ids.moveUpButton,
+            self.ids.moveDownButton,
+        ]:
             btn.setEnabled(not disable_buttons)
 
 

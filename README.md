@@ -18,6 +18,7 @@ Features
     One or multiple GUI clients or python clients can connect to the server.
 -   **Autolock**: Click and drag over a line, and Linien will
     automatically approach it and lock to it.
+-   **IQ demodulation**: Optimize demodulation phase in an instant
 -   **Lock detection**: Linien is capable of detecting loss of lock.
 -   **Automatic relocking**: in that case, it relocks autonomously.
 -   **Machine learning** is used to tune the spectroscopy parameters in order to optimize the signal
