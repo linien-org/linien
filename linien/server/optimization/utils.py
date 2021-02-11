@@ -5,7 +5,7 @@ from scipy import stats, optimize
 
 # after the line was centered, its width will be 1/FINAL_ZOOM_FACTOR of the
 # view.
-FINAL_ZOOM_FACTOR = 10
+FINAL_ZOOM_FACTOR = 20
 
 
 def get_max_slope(signal, final_zoom_factor):

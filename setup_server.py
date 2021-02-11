@@ -20,7 +20,7 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     install_requires=[
-        "rpyc==4.1.5",
+        "rpyc>=4.0,<5.0",
         "myhdl==0.11",
         "click==7.1.2",
         "cma==3.0.3",

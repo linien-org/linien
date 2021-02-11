@@ -381,7 +381,10 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
                 self.plot_data_unlocked((s1, s2), combined_error_signal)
                 self.plot_autolock_target_line(combined_error_signal)
 
-                if "error_signal_1_quadrature" in to_plot:
+                if (
+                    "error_signal_1_quadrature" in to_plot
+                    and self.parameters.modulation_frequency.value != 0
+                ):
                     self.signal_strength_a.setVisible(True)
                     self.signal_strength_b.setVisible(dual_channel)
                     self.signal_strength_a2.setVisible(True)
