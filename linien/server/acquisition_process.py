@@ -90,7 +90,7 @@ class DataAcquisitionService(Service):
 
                 slow_out = self.csr.get("logic_slow_value")
                 slow_out = slow_out if slow_out <= 8191 else slow_out - 16384
-                data += [slow_out]
+                data["slow"] = slow_out
 
                 # trigger_source=6 means external trigger positive edge
                 self.r.scope.rearm(trigger_source=6)
@@ -166,10 +166,6 @@ class DataAcquisitionService(Service):
         self.data_uuid = uuid
 
     def read_data(self):
-        channel_offsets = [0x10000]
-        if self.fetch_quadratures:
-            channel_offsets.append(0x20000)
-
         write_pointer = self.r.scope.write_pointer_trigger
 
         def get_data(offset, addr, data_length):
@@ -205,7 +201,11 @@ class DataAcquisitionService(Service):
 
             return signals
 
-        rv = []
+        signals = []
+
+        channel_offsets = [0x10000]
+        if self.fetch_quadratures:
+            channel_offsets.append(0x20000)
 
         for channel_offset in channel_offsets:
             channel_data = get_data(
@@ -213,11 +213,25 @@ class DataAcquisitionService(Service):
             )
 
             for sub_channel_idx in range(2):
-                rv.append(
+                signals.append(
                     decimate(channel_data[sub_channel_idx], self.additional_decimation)
                 )
 
-        return rv
+        signals_named = {}
+
+        if not self.locked:
+            signals_named["error_signal_1"] = signals[0]
+            signals_named["error_signal_2"] = signals[1]
+
+            if self.fetch_quadratures:
+                signals_named["error_signal_1_quadrature"] = signals[2]
+                signals_named["error_signal_2_quadrature"] = signals[3]
+
+        else:
+            signals_named["error_signal"] = signals[0]
+            signals_named["control_signal"] = signals[1]
+
+        return signals_named
 
 
 if __name__ == "__main__":

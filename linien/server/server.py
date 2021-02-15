@@ -79,43 +79,26 @@ class RedPitayaControlService(BaseService):
                 if data_uuid != self.data_uuid:
                     return
 
-                # TODO: acquisition_process pickles this data, server unpickles it again. Can everything be done in acquisition_process?
                 data_loaded = pickle.loads(plot_data)
                 is_locked = self.parameters.lock.value
 
-                if is_locked:
-                    if len(data_loaded) != 3:
-                        print(
-                            "warning: too much data received for is_locked state, ignoring!"
-                        )
-                        return
+                if is_locked and not "error_signal" in data_loaded:
+                    print(
+                        "warning: incorrect data received for locked state, ignoring!"
+                    )
+                    return
+                elif not is_locked and not "error_signal_1" in data_loaded:
+                    print(
+                        "warning: incorrect data received for not locked state, ignoring!"
+                    )
+                    return
 
-                    s1, s2, slow_out = data_loaded
-                    data = {"error_signal": s1, "control_signal": s2}
-                    if self.parameters.pid_on_slow_enabled.value:
-                        data["slow"] = slow_out
-                else:
-                    s1, s2 = data_loaded[0], data_loaded[1]
-                    slow_out = data_loaded[-1]
-                    data = {
-                        "error_signal_1": s1,
-                        "error_signal_2": s2,
-                    }
-                    if len(data_loaded) == 5:
-                        s1q, s2q = data_loaded[2], data_loaded[3]
-                        data.update(
-                            {
-                                "error_signal_1_quadrature": s1q,
-                                "error_signal_2_quadrature": s2q,
-                            }
-                        )
-
-                self.parameters.to_plot.value = pickle.dumps(data)
+                self.parameters.to_plot.value = plot_data
 
                 self.parameters.control_signal_history.value = (
                     update_control_signal_history(
                         self.parameters.control_signal_history.value,
-                        data,
+                        data_loaded,
                         is_locked,
                         self.parameters.control_signal_history_length.value,
                     )
