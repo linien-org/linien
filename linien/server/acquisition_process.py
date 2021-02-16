@@ -223,7 +223,7 @@ class DataAcquisitionService(Service):
             signals_named["error_signal_1"] = signals[0]
             signals_named["error_signal_2"] = signals[1]
 
-            if self.fetch_quadratures:
+            if self.fetch_quadratures and len(signals) >= 3:
                 signals_named["error_signal_1_quadrature"] = signals[2]
                 signals_named["error_signal_2_quadrature"] = signals[3]
 
