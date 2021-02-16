@@ -88,7 +88,7 @@ class RedPitayaControlService(BaseService):
                 data_loaded = pickle.loads(plot_data)
                 is_locked = self.parameters.lock.value
 
-                if not check_plot_data(is_locked, plot_data):
+                if not check_plot_data(is_locked, data_loaded):
                     print("warning: incorrect data received for lock state, ignoring!")
                     return
 
