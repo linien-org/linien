@@ -81,7 +81,10 @@ def test_autolock():
             assert control.locked
 
             lock_position = parameters.autolock_target_position.value
-            ideal_lock_position = (1 - target_shift) * N / 2
+
+            ideal_lock_position = (
+                -1 * target_shift * parameters.ramp_amplitude.value * 8191
+            )
             assert abs(lock_position - ideal_lock_position) <= 15
 
 
