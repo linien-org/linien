@@ -27,6 +27,7 @@ class Registers:
         self.acquisition = None
 
         self._last_sweep_speed = None
+        self._iir_cache = {}
 
     def connect(self, control, parameters):
         """Starts a process that can be used to control FPGA registers."""
@@ -309,5 +310,9 @@ class Registers:
     def set(self, key, value):
         self.acquisition.set_csr(key, value)
 
-    def set_iir(self, *args):
-        self.acquisition.set_iir_csr(*args)
+    def set_iir(self, iir_name, *args):
+        if self._iir_cache.get(iir_name) != args:
+            # as setting iir parameters takes some time, take care that we don't
+            # do it too often
+            self.acquisition.set_iir_csr(iir_name, *args)
+            self._iir_cache[iir_name] = args
