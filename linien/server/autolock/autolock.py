@@ -75,13 +75,14 @@ class Autolock:
         )
         self.initial_ramp_center = self.parameters.center.value
 
+        self.additional_spectra = additional_spectra or []
+
         (
             self.first_error_signal,
             self.first_error_signal_rolled,
             self.line_width,
+            self.peak_idxs,
         ) = self.record_first_error_signal(spectrum)
-
-        self.additional_spectra = additional_spectra or []
 
         if self.parameters.autolock_mode_preference.value == AUTO_DETECT_AUTOLOCK_MODE:
             self.autolock_mode_detector = AutolockAlgorithmSelector(
@@ -106,8 +107,8 @@ class Autolock:
             self.parameters,
             self.first_error_signal,
             self.first_error_signal_rolled,
-            self.x0,
-            self.x1,
+            self.peak_idxs[0],
+            self.peak_idxs[1],
             additional_spectra=self.additional_spectra,
         )
 
@@ -209,6 +210,7 @@ class Autolock:
             target_zoom,
             error_signal_rolled,
             line_width,
+            peak_idxs,
         ) = get_lock_point(error_signal, self.x0, self.x1)
 
         self.central_y = int(mean_signal)
@@ -218,13 +220,16 @@ class Autolock:
             self.parameters.combined_offset.value = -1 * self.central_y
             error_signal -= self.central_y
             error_signal_rolled -= self.central_y
+            self.additional_spectra = [
+                s - self.central_y for s in self.additional_spectra
+            ]
             self.control.exposed_write_data()
             self.control.continue_acquisition()
 
         self.parameters.target_slope_rising.value = target_slope_rising
         self.control.exposed_write_data()
 
-        return error_signal, error_signal_rolled, line_width
+        return error_signal, error_signal_rolled, line_width, peak_idxs
 
     def after_lock(self, error_signal, control_signal, slow_out):
         """After locking, this method checks whether the laser really is locked.

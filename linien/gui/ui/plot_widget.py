@@ -284,7 +284,8 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
                         target_slope_rising,
                         target_zoom,
                         rolled_error_signal,
-                        line_width
+                        line_width,
+                        peak_idxs,
                     ) = get_lock_point(
                         last_combined_error_signal, *sorted((int(x0), int(x)))
                     )

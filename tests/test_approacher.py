@@ -65,6 +65,7 @@ def test_approacher():
                 _,
                 rolled_reference_signal,
                 line_width,
+                peak_idxs,
             ) = get_lock_point(reference_signal, 0, len(reference_signal))
 
             """plt.plot(reference_signal)

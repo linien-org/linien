@@ -45,7 +45,14 @@ class OptimizeSpectroscopy:
         params.optimization_improvement.value = 0
 
     def record_first_error_signal(self, error_signal):
-        mean_signal, _2, target_zoom, rolled_error_signal, line_width = get_lock_point(
+        (
+            mean_signal,
+            _2,
+            target_zoom,
+            rolled_error_signal,
+            line_width,
+            peak_idxs,
+        ) = get_lock_point(
             error_signal,
             *list(sorted([self.x0, self.x1])),
             final_zoom_factor=FINAL_ZOOM_FACTOR

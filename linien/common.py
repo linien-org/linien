@@ -168,6 +168,8 @@ def get_lock_point(error_signal, x0, x1, final_zoom_factor=1.5):
     idxs = sorted([min_idx, max_idx])
     slope_data = np.array(cropped_data[idxs[0] : idxs[1]]) - mean_signal
 
+    peak_idxs = (idxs[0] + x0, idxs[1] + x0)
+
     zero_idx = x0 + np.min(idxs) + np.argmin(np.abs(slope_data))
 
     # roll the error signal such that the target lock point is exactly in the
@@ -193,6 +195,7 @@ def get_lock_point(error_signal, x0, x1, final_zoom_factor=1.5):
         target_zoom,
         rolled_error_signal,
         line_width,
+        peak_idxs,
     )
 
 
