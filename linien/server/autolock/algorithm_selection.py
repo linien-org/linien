@@ -1,4 +1,9 @@
-from linien.common import FAST_AUTOLOCK, ROBUST_AUTOLOCK, determine_shift_by_correlation
+from linien.common import (
+    FAST_AUTOLOCK,
+    N_POINTS,
+    ROBUST_AUTOLOCK,
+    determine_shift_by_correlation,
+)
 
 
 class AutolockAlgorithmSelector:
@@ -26,13 +31,14 @@ class AutolockAlgorithmSelector:
         else:
             ref = self.spectra[0]
             additional = self.spectra[1:]
-            shifts = [
-                determine_shift_by_correlation(1, ref, spectrum)
+            abs_shifts = [
+                abs(determine_shift_by_correlation(1, ref, spectrum)[0] * N_POINTS)
                 for spectrum in additional
             ]
-            max_shift = max(shifts)
+            max_shift = max(abs_shifts)
+            print("jitter / line width ratio:", max_shift / (self.line_width / 2))
 
-            if max_shift <= self.line_width:
+            if max_shift <= self.line_width / 2:
                 self.mode = FAST_AUTOLOCK
             else:
                 self.mode = ROBUST_AUTOLOCK
