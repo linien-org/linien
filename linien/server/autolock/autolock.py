@@ -87,17 +87,18 @@ class Autolock:
             self.autolock_mode_detector = AutolockAlgorithmSelector(
                 spectrum, additional_spectra, self.line_width
             )
-            mode_selected = self.autolock_mode_detector.done
+
+            if self.autolock_mode_detector.done:
+                self.start_autolock(self.autolock_mode_detector.mode)
+
         else:
             self.autolock_mode_detector = None
-            mode_selected = True
-
-        if mode_selected:
             self.start_autolock(self.parameters.autolock_mode_preference.value)
 
         self.add_data_listener()
 
     def start_autolock(self, mode):
+        print("start autolock with mode", mode)
         self.parameters.autolock_mode.value = mode
 
         self.algorithm = [None, RobustAutolock, FastAutolock][mode](
