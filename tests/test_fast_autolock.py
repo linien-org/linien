@@ -1,3 +1,4 @@
+from linien.common import FAST_AUTOLOCK
 import pickle
 import numpy as np
 from linien.server.autolock.autolock import Autolock
@@ -53,6 +54,7 @@ def test_autolock():
             print(f"----- ref_shift={ref_shift}, target_shift={target_shift} -----")
 
             parameters = Parameters()
+            parameters.autolock_mode_preference.value = FAST_AUTOLOCK
             control = FakeControl(parameters)
 
             reference_signal = _get_signal(ref_shift)

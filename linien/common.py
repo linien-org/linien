@@ -161,6 +161,7 @@ def get_lock_point(error_signal, x0, x1, final_zoom_factor=1.5):
 
     min_idx = np.argmin(cropped_data)
     max_idx = np.argmax(cropped_data)
+    line_width = abs(max_idx - min_idx)
 
     # the y value that is between minimum and maximum
     mean_signal = np.mean([cropped_data[min_idx], cropped_data[max_idx]])
@@ -186,7 +187,13 @@ def get_lock_point(error_signal, x0, x1, final_zoom_factor=1.5):
     target_slope_rising = max_idx > min_idx
     target_zoom = N_POINTS / (idxs[1] - idxs[0]) / final_zoom_factor
 
-    return mean_signal, target_slope_rising, target_zoom, rolled_error_signal
+    return (
+        mean_signal,
+        target_slope_rising,
+        target_zoom,
+        rolled_error_signal,
+        line_width,
+    )
 
 
 def convert_channel_mixing_value(value):

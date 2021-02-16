@@ -65,7 +65,7 @@ class RobustAutolock:
         except SpectrumUncorrelatedException:
             print("skipping spectrum because it is not correlated")
             self._error_counter += 1
-            if self._error_counter > 10:
+            if self._error_counter > 2:
                 raise
 
             return

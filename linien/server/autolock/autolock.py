@@ -1,3 +1,4 @@
+from linien.server.autolock.algorithm_selection import AutolockAlgorithmSelector
 import pickle
 import traceback
 import numpy as np
@@ -58,6 +59,7 @@ class Autolock:
         relock automatically using the spectrum that was recorded in the first
         run of the lock.
         """
+        # FIXME: hier kann auch SpectrumUncorrelatedException auftauchen, entweder beim Auolock algorithm selector oder robust algorithm. Handlen!
         self.parameters.autolock_running.value = True
         self.parameters.autolock_preparing.value = True
         self.parameters.autolock_percentage.value = 0
@@ -66,37 +68,47 @@ class Autolock:
         self.should_watch_lock = should_watch_lock
         self.auto_offset = auto_offset
 
-        first_error_signal, first_error_signal_rolled = self.record_first_error_signal(
-            spectrum
-        )
-
-        if self.parameters.autolock_mode_preference.value != AUTO_DETECT_AUTOLOCK_MODE:
-            self.parameters.autolock_mode.value = (
-                self.parameters.autolock_mode_preference.value
-            )
-        else:
-            # FIXME: really autodetect
-            self.parameters.autolock_mode.value = FAST_AUTOLOCK
-
-        self.algorithm = [None, FastAutolock, RobustAutolock][
-            self.parameters.autolock_mode.value
-        ](
-            self.control,
-            self.parameters,
-            first_error_signal,
-            first_error_signal_rolled,
-            self.x0,
-            self.x1,
-            additional_spectra=additional_spectra,
-        )
-
+        # collect parameters that should be restored after stopping the lock
         self.initial_ramp_speed = self.parameters.ramp_speed.value
         self.parameters.autolock_initial_ramp_amplitude.value = (
             self.parameters.ramp_amplitude.value
         )
         self.initial_ramp_center = self.parameters.center.value
 
+        (
+            self.first_error_signal,
+            self.first_error_signal_rolled,
+            self.line_width,
+        ) = self.record_first_error_signal(spectrum)
+
+        self.additional_spectra = additional_spectra or []
+
+        if self.parameters.autolock_mode_preference.value == AUTO_DETECT_AUTOLOCK_MODE:
+            self.autolock_mode_detector = AutolockAlgorithmSelector(
+                spectrum, additional_spectra, self.line_width
+            )
+            mode_selected = self.autolock_mode_detector.done
+        else:
+            self.autolock_mode_detector = None
+            mode_selected = True
+
+        if mode_selected:
+            self.start_autolock(self.parameters.autolock_mode_preference.value)
+
         self.add_data_listener()
+
+    def start_autolock(self, mode):
+        self.parameters.autolock_mode.value = mode
+
+        self.algorithm = [None, RobustAutolock, FastAutolock][mode](
+            self.control,
+            self.parameters,
+            self.first_error_signal,
+            self.first_error_signal_rolled,
+            self.x0,
+            self.x1,
+            additional_spectra=self.additional_spectra,
+        )
 
     def add_data_listener(self):
         if not self._data_listener_added:
@@ -150,23 +162,39 @@ class Autolock:
                     self.parameters.channel_mixing.value,
                     self.parameters.combined_offset.value,
                 )
+
+                if (
+                    self.autolock_mode_detector is not None
+                    and not self.autolock_mode_detector.done
+                ):
+                    self.autolock_mode_detector.handle_new_spectrum(
+                        combined_error_signal
+                    )
+                    self.additional_spectra.append(combined_error_signal)
+
+                    if self.autolock_mode_detector.done:
+                        self.start_autolock(self.autolock_mode_detector.mode)
+                    else:
+                        return
+
                 return self.algorithm.handle_new_spectrum(combined_error_signal)
 
-            error_signal = plot_data["error_signal"]
-            control_signal = plot_data["control_signal"]
-
-            if self.parameters.autolock_watching.value:
-                # the laser was locked successfully before. Now we check
-                # periodically whether the laser is still in lock
-                return self.watch_lock(error_signal, control_signal)
-
             else:
-                # we have started the lock.
-                # skip some data and check whether we really are in lock
-                # afterwards.
-                return self.after_lock(
-                    error_signal, control_signal, plot_data.get("slow")
-                )
+                error_signal = plot_data["error_signal"]
+                control_signal = plot_data["control_signal"]
+
+                if self.parameters.autolock_watching.value:
+                    # the laser was locked successfully before. Now we check
+                    # periodically whether the laser is still in lock
+                    return self.watch_lock(error_signal, control_signal)
+
+                else:
+                    # we have started the lock.
+                    # skip some data and check whether we really are in lock
+                    # afterwards.
+                    return self.after_lock(
+                        error_signal, control_signal, plot_data.get("slow")
+                    )
 
         except Exception:
             traceback.print_exc()
@@ -179,6 +207,7 @@ class Autolock:
             target_slope_rising,
             target_zoom,
             error_signal_rolled,
+            line_width,
         ) = get_lock_point(error_signal, self.x0, self.x1)
 
         self.central_y = int(mean_signal)
@@ -194,7 +223,7 @@ class Autolock:
         self.parameters.target_slope_rising.value = target_slope_rising
         self.control.exposed_write_data()
 
-        return error_signal, error_signal_rolled
+        return error_signal, error_signal_rolled, line_width
 
     def after_lock(self, error_signal, control_signal, slow_out):
         """After locking, this method checks whether the laser really is locked.

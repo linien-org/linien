@@ -59,9 +59,13 @@ def test_approacher():
             # the center (this is done using get_lock_point)
             reference_signal = _get_signal(ref_shift)
 
-            central_y, target_slope_rising, _, rolled_reference_signal = get_lock_point(
-                reference_signal, 0, len(reference_signal)
-            )
+            (
+                central_y,
+                target_slope_rising,
+                _,
+                rolled_reference_signal,
+                line_width,
+            ) = get_lock_point(reference_signal, 0, len(reference_signal))
 
             """plt.plot(reference_signal)
             plt.plot(rolled_reference_signal)

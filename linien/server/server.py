@@ -16,7 +16,13 @@ from autolock.autolock import Autolock
 from parameters import Parameters
 
 from linien.config import DEFAULT_SERVER_PORT
-from linien.common import update_control_signal_history, N_POINTS, pack, unpack
+from linien.common import (
+    check_plot_data,
+    update_control_signal_history,
+    N_POINTS,
+    pack,
+    unpack,
+)
 from linien.server.parameter_store import ParameterStore
 from linien.server.optimization.optimization import OptimizeSpectroscopy
 
@@ -82,15 +88,8 @@ class RedPitayaControlService(BaseService):
                 data_loaded = pickle.loads(plot_data)
                 is_locked = self.parameters.lock.value
 
-                if is_locked and not "error_signal" in data_loaded:
-                    print(
-                        "warning: incorrect data received for locked state, ignoring!"
-                    )
-                    return
-                elif not is_locked and not "error_signal_1" in data_loaded:
-                    print(
-                        "warning: incorrect data received for not locked state, ignoring!"
-                    )
+                if not check_plot_data(is_locked, plot_data):
+                    print("warning: incorrect data received for lock state, ignoring!")
                     return
 
                 self.parameters.to_plot.value = plot_data
