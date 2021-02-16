@@ -1,4 +1,5 @@
 from linien.common import (
+    AUTO_DETECT_AUTOLOCK_MODE,
     FAST_AUTOLOCK,
     N_POINTS,
     ROBUST_AUTOLOCK,
@@ -6,15 +7,30 @@ from linien.common import (
 )
 
 
+# TODO: use fast autolock if scan rate is slow
+
+
 class AutolockAlgorithmSelector:
     """This class helps deciding which autolock method should be used."""
 
-    def __init__(self, spectrum, additional_spectra, line_width, N_spectra_required=3):
+    def __init__(
+        self,
+        mode_preference,
+        spectrum,
+        additional_spectra,
+        line_width,
+        N_spectra_required=3,
+    ):
         self.done = False
         self.mode = None
         self.spectra = [spectrum] + (additional_spectra or [])
         self.N_spectra_required = N_spectra_required
         self.line_width = line_width
+
+        if mode_preference != AUTO_DETECT_AUTOLOCK_MODE:
+            self.mode = mode_preference
+            self.done = True
+            return
 
         self.check()
 

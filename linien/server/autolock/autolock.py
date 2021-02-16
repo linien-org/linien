@@ -1,16 +1,15 @@
-from linien.server.autolock.algorithm_selection import AutolockAlgorithmSelector
 import pickle
 import traceback
-import numpy as np
 
+import numpy as np
 from linien.common import (
-    AUTO_DETECT_AUTOLOCK_MODE,
-    FAST_AUTOLOCK,
-    get_lock_point,
-    combine_error_signal,
-    check_plot_data,
     ANALOG_OUT0,
+    AUTO_DETECT_AUTOLOCK_MODE,
+    check_plot_data,
+    combine_error_signal,
+    get_lock_point,
 )
+from linien.server.autolock.algorithm_selection import AutolockAlgorithmSelector
 from linien.server.autolock.fast import FastAutolock
 from linien.server.autolock.robust import RobustAutolock
 
@@ -66,14 +65,11 @@ class Autolock:
         self.parameters.fetch_quadratures.value = False
         self.x0, self.x1 = int(x0), int(x1)
         self.should_watch_lock = should_watch_lock
-        self.auto_offset = auto_offset
 
         # collect parameters that should be restored after stopping the lock
-        self.initial_ramp_speed = self.parameters.ramp_speed.value
         self.parameters.autolock_initial_ramp_amplitude.value = (
             self.parameters.ramp_amplitude.value
         )
-        self.initial_ramp_center = self.parameters.center.value
 
         self.additional_spectra = additional_spectra or []
 
@@ -82,19 +78,17 @@ class Autolock:
             self.first_error_signal_rolled,
             self.line_width,
             self.peak_idxs,
-        ) = self.record_first_error_signal(spectrum)
+        ) = self.record_first_error_signal(spectrum, auto_offset)
 
-        if self.parameters.autolock_mode_preference.value == AUTO_DETECT_AUTOLOCK_MODE:
-            self.autolock_mode_detector = AutolockAlgorithmSelector(
-                spectrum, additional_spectra, self.line_width
-            )
+        self.autolock_mode_detector = AutolockAlgorithmSelector(
+            self.parameters.autolock_mode_preference.value,
+            spectrum,
+            additional_spectra,
+            self.line_width,
+        )
 
-            if self.autolock_mode_detector.done:
-                self.start_autolock(self.autolock_mode_detector.mode)
-
-        else:
-            self.autolock_mode_detector = None
-            self.start_autolock(self.parameters.autolock_mode_preference.value)
+        if self.autolock_mode_detector.done:
+            self.start_autolock(self.autolock_mode_detector.mode)
 
         self.add_data_listener()
 
@@ -203,7 +197,7 @@ class Autolock:
             self.parameters.autolock_failed.value = True
             self.exposed_stop()
 
-    def record_first_error_signal(self, error_signal):
+    def record_first_error_signal(self, error_signal, auto_offset):
         (
             mean_signal,
             target_slope_rising,
@@ -215,7 +209,7 @@ class Autolock:
 
         self.central_y = int(mean_signal)
 
-        if self.auto_offset:
+        if auto_offset:
             self.control.pause_acquisition()
             self.parameters.combined_offset.value = -1 * self.central_y
             error_signal -= self.central_y
@@ -237,10 +231,6 @@ class Autolock:
         If desired, it automatically tries to relock if locking failed, or
         starts a watcher that does so over and over again.
         """
-
-        # acquisition in locked state doesn't care about ramp speed
-        # therefore, we can reset it here
-        self.parameters.ramp_speed.value = self.initial_ramp_speed
 
         def check_whether_in_lock(control_signal):
             """
@@ -337,11 +327,9 @@ class Autolock:
     def _reset_scan(self):
         self.control.pause_acquisition()
 
-        self.parameters.center.value = self.initial_ramp_center
         self.parameters.ramp_amplitude.value = (
             self.parameters.autolock_initial_ramp_amplitude.value
         )
-        self.parameters.ramp_speed.value = self.initial_ramp_speed
         self.control.exposed_start_ramp()
 
         self.control.continue_acquisition()

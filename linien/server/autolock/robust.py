@@ -31,7 +31,6 @@ class RobustAutolock:
         first_error_signal_rolled,
         x0,
         x1,
-        # FIXME: how many?
         N_spectra_required=5,
         additional_spectra=None,
     ):
@@ -143,6 +142,8 @@ def calculate_autolock_instructions(spectra_with_jitter, target_idxs):
     with open("/home/ben/prepared_spectrum.pickle", "wb") as f:
         pickle.dump(prepared_spectrum, f)"""
 
+    lock_regions = [get_lock_region(spectrum, target_idxs) for spectrum in spectra]
+
     for tolerance_factor in [0.95, 0.9, 0.85, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55, 0.5]:
         print("TOLERANCE", tolerance_factor)
 
@@ -184,9 +185,7 @@ def calculate_autolock_instructions(spectra_with_jitter, target_idxs):
 
         # test whether description works fine for every recorded spectrum
         does_work = True
-        for spectrum in spectra:
-            lock_region = get_lock_region(spectrum, target_idxs)
-
+        for spectrum, lock_region in zip(spectra, lock_regions):
             try:
                 lock_position = get_lock_position_from_autolock_instructions(
                     spectrum, description, time_scale, spectra[0], final_wait_time
