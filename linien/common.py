@@ -98,7 +98,7 @@ def update_control_signal_history(history, to_plot, is_locked, max_time_diff):
 
 
 def check_whether_correlation_is_bad(correlation, N):
-    return np.max(correlation) < 100 * N
+    return np.max(correlation) < 0.1
 
 
 def determine_shift_by_correlation(zoom_factor, reference_signal, error_signal):
@@ -113,6 +113,15 @@ def determine_shift_by_correlation(zoom_factor, reference_signal, error_signal):
     # --> we set it to 0
     reference_signal[np.isnan(reference_signal)] = 0
     error_signal[np.isnan(error_signal)] = 0
+
+    # prepare the signals in order to get a normalized cross-correlation
+    # this is required in order for `check_whether_correlation_is_bad` to return
+    # senseful answer
+    # cf. https://stackoverflow.com/questions/53436231/normalized-cross-correlation-in-python
+    reference_signal = (reference_signal - np.mean(reference_signal)) / (
+        np.std(reference_signal) * len(reference_signal)
+    )
+    error_signal = (error_signal - np.mean(error_signal)) / (np.std(error_signal))
 
     length = len(error_signal)
     center_idx = int(length / 2)
