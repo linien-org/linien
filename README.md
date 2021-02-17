@@ -361,7 +361,12 @@ on the command line.
 FAQs
 ----
 
-### Can I run linien and the RedPitaya web application / scpi interface at the same time
+### How to update to a new version?
+
+There's no need to install anything on RedPitaya manually.
+Run the new version of Linien on your computer and connect to RedPitaya. You will see a dialog that allows you to install the corresponding server component.
+
+### Can I run linien and the RedPitaya web application / scpi interface at the same time?
 
 No, this is not possible as linien relies on a customized FPGA bitstream.
 
