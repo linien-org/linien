@@ -117,45 +117,11 @@ reg  [ 25-1: 0] set_b_filt_pp  ;
 
 assign adc_a_filt_in = adc_a_i ;
 assign adc_b_filt_in = adc_b_i ;
-// this replaces the filtering by a simple assignment
+// this replaces the filtering of the original FPGA image by a simple assignment
 assign adc_a_filt_out = adc_a_filt_in ;
 assign adc_b_filt_out = adc_b_filt_in ;
 assign adc_a_q_filt_out = adc_a_q_i ;
 assign adc_b_q_filt_out = adc_b_q_i ;
-
-/*
-red_pitaya_dfilt1 i_dfilt1_cha
-(
-   // ADC
-  .adc_clk_i   ( adc_clk_i       ),  // ADC clock
-  .adc_rstn_i  ( adc_rstn_i      ),  // ADC reset - active low
-  .adc_dat_i   ( adc_a_filt_in   ),  // ADC data
-  .adc_dat_o   ( adc_a_filt_out  ),  // ADC data
-
-   // configuration
-  .cfg_aa_i    ( set_a_filt_aa   ),  // config AA coefficient
-  .cfg_bb_i    ( set_a_filt_bb   ),  // config BB coefficient
-  .cfg_kk_i    ( set_a_filt_kk   ),  // config KK coefficient
-  .cfg_pp_i    ( set_a_filt_pp   )   // config PP coefficient
-);
-
-red_pitaya_dfilt1 i_dfilt1_chb
-(
-   // ADC
-  .adc_clk_i   ( adc_clk_i       ),  // ADC clock
-  .adc_rstn_i  ( adc_rstn_i      ),  // ADC reset - active low
-  .adc_dat_i   ( adc_b_filt_in   ),  // ADC data
-  .adc_dat_o   ( adc_b_filt_out  ),  // ADC data
-
-   // configuration
-  .cfg_aa_i    ( set_b_filt_aa   ),  // config AA coefficient
-  .cfg_bb_i    ( set_b_filt_bb   ),  // config BB coefficient
-  .cfg_kk_i    ( set_b_filt_kk   ),  // config KK coefficient
-  .cfg_pp_i    ( set_b_filt_pp   )   // config PP coefficient
-);*/
-
-
-
 
 
 //---------------------------------------------------------------------------------
