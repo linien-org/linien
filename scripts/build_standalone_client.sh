@@ -14,7 +14,7 @@ pwd
 
 FILE=/etc/resolv.conf
 if [ -f "linien/VERSION" ]; then
-    pyinstaller client.spec
+    pyinstaller pyinstaller.spec
 else
     echo "VERSION file is missing! See README"
 fi

@@ -1,4 +1,6 @@
 # -*- mode: python -*-
+# this spec file is for compiling a standalone version of linien using pyinstaller.
+# use `scripts/build_standalone_client.sh` for this purpose
 
 block_cipher = None
 
@@ -22,7 +24,7 @@ if platform.system().lower() != 'linux':
     if not os.path.exists(qt_bin_folder):
         print('')
         print('============================================')
-        print('client.spec was customized due to a pyinstaller bug that lead to Qt5Core.dll not being bundled.')
+        print('pyinstaller.spec was customized due to a pyinstaller bug that lead to Qt5Core.dll not being bundled.')
         print('see also https://github.com/pyinstaller/pyinstaller/issues/2152')
         print('therefore, qt_bin_folder is set to')
         print(qt_bin_folder)

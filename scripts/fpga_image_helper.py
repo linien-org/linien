@@ -1,10 +1,19 @@
 #!/usr/bin/python3
 # this code is based on redpid. See LICENSE for details.
 
-from migen import *
+# this file compiles the FPGA image. You shouldn't call it directly though but
+# use `build_fpga_image.sh`
 
-from gateware.platform import Platform
+LINIEN_FOLDER = "/".join(__file__.split("/")[:-2])
+import os
+import sys
+
+os.chdir(LINIEN_FOLDER)
+sys.path.append(LINIEN_FOLDER)
+
 from gateware.linien import RootModule
+from gateware.platform import Platform
+
 from bit2bin import bit2bin
 
 
