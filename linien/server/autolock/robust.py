@@ -1,6 +1,10 @@
 from time import time
 
-from linien.common import SpectrumUncorrelatedException, determine_shift_by_correlation
+from linien.common import (
+    AUTOLOCK_MAX_N_INSTRUCTIONS,
+    SpectrumUncorrelatedException,
+    determine_shift_by_correlation,
+)
 from linien.server.autolock.utils import (
     crop_spectra_to_same_view,
     get_all_peaks,
@@ -74,12 +78,6 @@ class RobustAutolock:
             round((len(self.spectra) / self.N_spectra_required) * 100)
         )
 
-        """FIXME: remove
-        import pickle
-
-        with open("/home/ben/spectra.pickle", "wb") as f:
-            pickle.dump(self.spectra, f)"""
-
         if len(self.spectra) == self.N_spectra_required:
             print("enough spectra!, calculate")
 
@@ -88,7 +86,7 @@ class RobustAutolock:
                 self.spectra, (self.x0, self.x1)
             )
             t2 = time()
-            print("calculation took", t2 - t1)
+            print("calculation of autolock description took", t2 - t1)
 
             # first reset lock in case it was True. This ensures that autolock
             # starts properly once all parameters are set
@@ -105,8 +103,6 @@ class RobustAutolock:
             self.control.exposed_write_data()
 
             self.parameters.autolock_preparing.value = False
-
-            print("done!")
 
             self._done = True
         else:
@@ -131,22 +127,10 @@ def calculate_autolock_instructions(spectra_with_jitter, target_idxs):
     peaks = get_all_peaks(prepared_spectrum, target_idxs)
     y_scale = peaks[0][1]
 
-    """
-    FIXME: remove
-    from matplotlib import pyplot as plt
-
-    plt.plot(prepared_spectrum)
-    plt.show()
-    import pickle
-
-    with open("/home/ben/prepared_spectrum.pickle", "wb") as f:
-        pickle.dump(prepared_spectrum, f)"""
-
     lock_regions = [get_lock_region(spectrum, target_idxs) for spectrum in spectra]
 
     for tolerance_factor in [0.95, 0.9, 0.85, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55, 0.5]:
-        print("TOLERANCE", tolerance_factor)
-
+        print("try out tolerance", tolerance_factor)
         peaks_filtered = [
             (peak_position, peak_height * tolerance_factor)
             for peak_position, peak_height in peaks
@@ -177,7 +161,7 @@ def calculate_autolock_instructions(spectra_with_jitter, target_idxs):
 
         last_peak_position = 0
         for peak_position, peak_height in list(reversed(peaks_filtered)):
-            # TODO: this .9 factor is very arbitrary. also: first peak should have special treatment bc of horizontal jitter
+            # TODO: this .9 factor is very arbitrary.
             description.append(
                 (int(0.9 * (peak_position - last_peak_position)), int(peak_height))
             )
@@ -200,6 +184,10 @@ def calculate_autolock_instructions(spectra_with_jitter, target_idxs):
             break
     else:
         raise UnableToFindDescription()
+
+    if len(description) > AUTOLOCK_MAX_N_INSTRUCTIONS:
+        print("warning: autolock description too long. Cropping!", len(description))
+        description = description[-AUTOLOCK_MAX_N_INSTRUCTIONS:]
 
     print("description is", description)
     return description, final_wait_time, time_scale

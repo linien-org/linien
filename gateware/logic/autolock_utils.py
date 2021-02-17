@@ -1,6 +1,5 @@
-from linien.common import AUTOLOCK_MAX_N_INSTRUCTIONS, FAST_AUTOLOCK, ROBUST_AUTOLOCK
-from migen import Array, If, Module, Signal, bits_for, run_simulation
-from misoc.interconnect.csr import AutoCSR, CSRStatus, CSRStorage, Memory
+from migen import If, Module, Signal, bits_for
+from misoc.interconnect.csr import Memory
 
 
 def create_memory(self, N_bits, N_points, name):

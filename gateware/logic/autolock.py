@@ -1,8 +1,7 @@
+from gateware.logic.autolock_utils import SumDiffCalculator
 from linien.common import AUTOLOCK_MAX_N_INSTRUCTIONS, FAST_AUTOLOCK, ROBUST_AUTOLOCK
 from migen import Array, If, Module, Signal, bits_for, run_simulation
-from misoc.interconnect.csr import AutoCSR, CSRStatus, CSRStorage, Memory
-from gateware.logic.autolock_utils import SumDiffCalculator
-
+from misoc.interconnect.csr import AutoCSR, CSRStatus, CSRStorage
 
 ROBUST_AUTOLOCK_FPGA_DELAY = 3
 
@@ -82,11 +81,6 @@ class RobustAutolock(Module, AutoCSR):
         peak_height_bit, x_data_length_bit = self.init_csr(N_points)
         self.init_inout_signals(width)
 
-        # FIXME: Remove this?
-        # FIXME: cleanup all these test signals
-        signal_width = 25
-        test_sum_diff = Signal((signal_width, True))
-
         watching = Signal()
 
         self.current_instruction_idx = Signal(bits_for(AUTOLOCK_MAX_N_INSTRUCTIONS - 1))
@@ -109,34 +103,14 @@ class RobustAutolock(Module, AutoCSR):
 
         waited_for = Signal(bits_for(N_points))
         final_waited_for = Signal(bits_for(N_points))
-        current_peak_height_shifted = Signal(25)
-        current_wait_for_shifted = Signal(25)
-
-        self.comb += [
-            test_sum_diff.eq(
-                self.sum_diff_calculator.output
-                >> (len(self.sum_diff_calculator.output) - signal_width)
-            ),
-            current_peak_height_shifted.eq(
-                current_peak_height
-                >> (len(self.sum_diff_calculator.sum_value) - signal_width)
-            ),
-            current_wait_for_shifted.eq(current_wait_for << 11),
-        ]
 
         sum_diff = Signal((len(self.sum_diff_calculator.output), True))
         sign_equal = Signal()
         over_threshold = Signal()
         waited_long_enough = Signal()
-        instruction_idx_at_zero = Signal()
         all_instructions_triggered = Signal()
-        self.comb += [instruction_idx_at_zero.eq(self.current_instruction_idx == 0)]
 
-        self.signal_out = [
-            test_sum_diff,
-            current_peak_height_shifted,
-            current_wait_for_shifted,
-        ]
+        self.signal_out = []
         self.signal_in = []
         self.state_out = [
             watching,
@@ -144,7 +118,6 @@ class RobustAutolock(Module, AutoCSR):
             sign_equal,
             over_threshold,
             waited_long_enough,
-            instruction_idx_at_zero,
         ]
         self.state_in = []
 

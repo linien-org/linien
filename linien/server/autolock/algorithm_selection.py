@@ -7,9 +7,6 @@ from linien.common import (
 )
 
 
-# TODO: use fast autolock if scan rate is slow
-
-
 class AutolockAlgorithmSelector:
     """This class helps deciding which autolock method should be used."""
 

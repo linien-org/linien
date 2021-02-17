@@ -4,7 +4,6 @@ import traceback
 import numpy as np
 from linien.common import (
     ANALOG_OUT0,
-    AUTO_DETECT_AUTOLOCK_MODE,
     check_plot_data,
     combine_error_signal,
     get_lock_point,
