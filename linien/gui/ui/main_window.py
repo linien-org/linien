@@ -158,6 +158,16 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
             params.ramp_amplitude, self.ids.zoom_slider, ramp_amplitude_to_zoom_step
         )
 
+        def display_ramp_range(*args):
+            center = params.center.value
+            amp = params.ramp_amplitude.value
+            min_ = center - amp
+            max_ = center + amp
+            self.ids.ramp_status.setText("%.3fV to %.3fV" % (min_, max_))
+
+        params.center.on_change(display_ramp_range)
+        params.ramp_amplitude.on_change(display_ramp_range)
+
         def change_manual_navigation_visibility(*args):
             al_running = params.autolock_running.value
             optimization = params.optimization_running.value

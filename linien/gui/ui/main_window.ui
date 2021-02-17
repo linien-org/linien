@@ -36,7 +36,7 @@
               </property>
               <property name="sizeHint" stdset="0">
                <size>
-                <width>73</width>
+                <width>40</width>
                 <height>20</height>
                </size>
               </property>
@@ -45,7 +45,7 @@
             <item>
              <widget class="QLabel" name="label_3">
               <property name="text">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ramp amplitude:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ramp Amplitude:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignCenter</set>
@@ -93,7 +93,7 @@
             <item>
              <widget class="QLabel" name="label_2">
               <property name="text">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Position:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ramp Position:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignCenter</set>
@@ -122,6 +122,44 @@
             </item>
             <item>
              <spacer name="horizontalSpacer">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_9">
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Ramp:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="ramp_status">
+              <property name="font">
+               <font>
+                <family>DejaVu Sans Mono</family>
+               </font>
+              </property>
+              <property name="text">
+               <string>-1V to 1V</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_8">
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
               </property>
@@ -966,7 +1004,7 @@
             <x>0</x>
             <y>0</y>
             <width>338</width>
-            <height>451</height>
+            <height>483</height>
            </rect>
           </property>
           <attribute name="label">
@@ -984,7 +1022,7 @@
             <x>0</x>
             <y>0</y>
             <width>338</width>
-            <height>451</height>
+            <height>483</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1002,7 +1040,7 @@
             <x>0</x>
             <y>0</y>
             <width>338</width>
-            <height>451</height>
+            <height>483</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1020,7 +1058,7 @@
             <x>0</x>
             <y>0</y>
             <width>338</width>
-            <height>451</height>
+            <height>483</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -1044,7 +1082,7 @@
             <x>0</x>
             <y>0</y>
             <width>338</width>
-            <height>451</height>
+            <height>483</height>
            </rect>
           </property>
           <property name="sizePolicy">
