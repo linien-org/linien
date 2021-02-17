@@ -1,12 +1,11 @@
 import json
-from linien.config import N_COLORS
 import pickle
-import numpy as np
 from os import path
-from PyQt5 import QtGui, QtWidgets
 
+from linien.config import N_COLORS
 from linien.gui.utils_gui import color_to_hex, param2ui
 from linien.gui.widgets import CustomWidget
+from PyQt5 import QtGui, QtWidgets
 
 
 class ViewPanel(QtGui.QWidget, CustomWidget):

@@ -183,8 +183,7 @@ from linien.client.connection import LinienClient, MHz, Vpp
 c = LinienClient(
     {'host': 'rp-XXXXXX.local', 'username': 'root', 'password': 'change-it-to-something-else!'},
     # starts the server if it is not running
-    autostart_server=True,
-    restore_parameters=False
+    autostart_server=True
 )
 
 # read out the modulation frequency

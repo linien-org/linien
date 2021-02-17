@@ -4,13 +4,19 @@ from traceback import print_exc
 from paramiko.ssh_exception import AuthenticationException as SSHAuthenticationException
 
 import linien
-from linien.client.config import load_device_data, save_device_data
+from linien.gui.config import (
+    get_saved_parameters,
+    load_device_data,
+    save_device_data,
+    save_parameter,
+)
 from linien.gui.widgets import CustomWidget
 from linien.client.connection import LinienClient
 from linien.gui.dialogs import (
     LoadingDialog,
+    ask_for_parameter_restore_dialog,
     error_dialog,
-    execute_command,
+    execute_command_and_show_output,
     question_dialog,
 )
 from linien.gui.ui.new_device_dialog import NewDeviceDialog
@@ -82,7 +88,7 @@ class DeviceManager(QtGui.QMainWindow, CustomWidget):
             loading_dialog.hide()
             if not aborted:
                 display_question = """The server is not yet installed on the device. Should it be installed? (Requires internet connection on RedPitaya)"""
-                if question_dialog(self, display_question):
+                if question_dialog(self, display_question, "Install server?"):
                     self.install_linien_server(
                         device,
                         version=client_version if client_version != "dev" else None,
@@ -99,7 +105,9 @@ class DeviceManager(QtGui.QMainWindow, CustomWidget):
                         "Should the corresponding server version be installed?"
                         % (remote_version, client_version)
                     )
-                    if question_dialog(self, display_question):
+                    if question_dialog(
+                        self, display_question, "Install corresponding version?"
+                    ):
                         self.install_linien_server(device, version=client_version)
                 else:
                     display_error = (
@@ -142,6 +150,15 @@ class DeviceManager(QtGui.QMainWindow, CustomWidget):
 
         self.t.exception.connect(exception)
 
+        def ask_for_parameter_restore():
+            question = "Linien on RedPitaya is running with different parameters than the ones saved locally on this machine. Do you want to upload the local parameters or keep the remote ones?"
+            should_restore = ask_for_parameter_restore_dialog(
+                self, question, "Restore parameters?"
+            )
+            self.t.answer_whether_to_restore_parameters(should_restore)
+
+        self.t.ask_for_parameter_restore.connect(ask_for_parameter_restore)
+
         def connection_lost():
             error_dialog(self, "Lost connection to the server!")
             self.app.close()
@@ -159,7 +176,7 @@ class DeviceManager(QtGui.QMainWindow, CustomWidget):
             # stop server if another version of linien is installed
             stop_server_command = "linien_stop_server;"
 
-        self.ssh_command = execute_command(
+        self.ssh_command = execute_command_and_show_output(
             self,
             device["host"],
             device["username"],
@@ -268,6 +285,7 @@ class ConnectionThread(QThread):
     general_connection_error = pyqtSignal()
     exception = pyqtSignal()
     connection_lost = pyqtSignal()
+    ask_for_parameter_restore = pyqtSignal()
 
     def __init__(self, device):
         super().__init__()
@@ -279,11 +297,12 @@ class ConnectionThread(QThread):
             conn = LinienClient(
                 self.device,
                 autostart_server=True,
-                restore_parameters=True,
                 use_parameter_cache=True,
                 on_connection_lost=self.on_connection_lost,
             )
             self.connected.emit(conn)
+
+            self.client = conn
 
         except ServerNotInstalledException:
             return self.server_not_installed.emit()
@@ -301,5 +320,75 @@ class ConnectionThread(QThread):
             print_exc()
             return self.exception.emit()
 
+        # now, we are connected to the server. Check whether we have cached settings
+        # for this server. If yes, check whether they match with what is currently
+        # running. If there is a mismatch, ask the user whether the settings should
+        # be restored.
+
+        parameters_differ = self.restore_parameters(dry_run=True)
+        if parameters_differ:
+            self.ask_for_parameter_restore.emit()
+        else:
+            # if parameters don't differ, we can start monitoring remote parameter
+            # changes and write them to disk. We don't do this if parameters
+            # differ because we don't want to override our local settings with
+            # the remote one --> we wait until user has answered whether local
+            # parameters or remote ones should be used.
+            self.continuously_write_parameters_to_disk()
+
     def on_connection_lost(self):
         self.connection_lost.emit()
+
+    def answer_whether_to_restore_parameters(self, should_restore):
+        if should_restore:
+            self.restore_parameters(dry_run=False)
+
+        self.continuously_write_parameters_to_disk()
+
+    def restore_parameters(self, dry_run=False):
+        """Reads settings for a server that were cached locally. Sends them to
+        the server. If `dry_run` is...
+
+            * `True`, this function returns a boolean indicating whether the
+              local parameters differ from the ones on the server
+            * `False`, the local parameters are uploaded to the server
+        """
+        device_key = self.device["key"]
+        params = get_saved_parameters(device_key)
+        print("restoring parameters")
+
+        differences = False
+
+        for k, v in params.items():
+            if hasattr(self.client.parameters, k):
+                param = getattr(self.client.parameters, k)
+                if param.value != v:
+                    if dry_run:
+                        differences = True
+                        break
+                    else:
+                        param.value = v
+            else:
+                # this may happen if the settings were written with a different
+                # version of linien.
+                print("unable to restore parameter %s. Delete the cached value." % k)
+                save_parameter(device_key, k, None, delete=True)
+
+        if not dry_run:
+            self.client.control.write_data()
+
+        return differences
+
+    def continuously_write_parameters_to_disk(self):
+        """Listens for changes of some parameters and permanently saves their
+        values on the client's disk. This data can be used to restore the status
+        later, if the client tries to connect to the server but it doesn't run
+        anymore."""
+        params = self.client.parameters.remote.exposed_get_restorable_parameters()
+
+        for param in params:
+
+            def on_change(value, param=param):
+                save_parameter(self.device["key"], param, value)
+
+            getattr(self.client.parameters, param).on_change(on_change)

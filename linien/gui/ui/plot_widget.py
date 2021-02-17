@@ -3,7 +3,6 @@ from time import time
 
 import numpy as np
 import pyqtgraph as pg
-from linien.client.config import COLORS, DEFAULT_PLOT_RATE_LIMIT
 from linien.client.utils import peak_voltage_to_dBm
 from linien.common import (
     N_POINTS,
@@ -16,6 +15,7 @@ from linien.common import (
     update_control_signal_history,
 )
 from linien.config import N_COLORS
+from linien.gui.config import COLORS, DEFAULT_PLOT_RATE_LIMIT
 from linien.gui.widgets import CustomWidget
 from PyQt5.QtCore import pyqtSignal
 from pyqtgraph.Qt import QtCore

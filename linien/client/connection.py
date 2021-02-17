@@ -7,7 +7,6 @@ from typing import Callable
 
 import linien
 import rpyc
-from linien.client.config import get_saved_parameters, save_parameter
 from linien.client.exceptions import (
     GeneralConnectionErrorException,
     InvalidServerVersionException,
@@ -142,7 +141,6 @@ class LinienClient(RawRPYCClient):
         self,
         device,
         autostart_server=True,
-        restore_parameters=False,
         use_parameter_cache=False,
         on_connection_lost: Callable = None,
     ):
@@ -158,7 +156,6 @@ class LinienClient(RawRPYCClient):
         else:
             assert user and password
 
-        self.restore_parameters = restore_parameters
         self.autostart_server = autostart_server
 
         super().__init__(
@@ -235,45 +232,6 @@ class LinienClient(RawRPYCClient):
 
         print(colors.green | "connected established!")
 
-        if self.restore_parameters:
-            if server_was_started:
-                # without this sleep, parameter restoring sometimes crashed the sever
-                sleep(1)
-                self.do_restore_parameters()
-            self.prepare_parameter_restoring()
-
     def disconnect(self):
         self.connection.close()
         self.connected = False
-
-    def prepare_parameter_restoring(self):
-        """Listens for changes of some parameters and permanently saves their
-        values on the client's disk. This data can be used to restore the status
-        later, if the client tries to connect to the server but it doesn't run
-        anymore."""
-        params = self.parameters.remote.exposed_get_restorable_parameters()
-
-        for param in params:
-
-            def on_change(value, param=param):
-                save_parameter(self.device["key"], param, value)
-
-            getattr(self.parameters, param).on_change(on_change)
-
-    def do_restore_parameters(self):
-        device_key = self.device["key"]
-        params = get_saved_parameters(device_key)
-        print("restoring parameters")
-
-        for k, v in params.items():
-            if hasattr(self.parameters, k):
-                param = getattr(self.parameters, k)
-                if param.value != v:
-                    param.value = v
-            else:
-                # this may happen if the settings were written with a different
-                # version of linien.
-                print("unable to restore parameter %s. Delete the cached value." % k)
-                save_parameter(device_key, k, None, delete=True)
-
-        self.control.write_data()

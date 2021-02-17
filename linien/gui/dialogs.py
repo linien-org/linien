@@ -56,12 +56,13 @@ class SSHCommandOutputWidget(QListWidget):
         QtCore.QTimer.singleShot(1000, self.show_output)
 
 
-def execute_command(parent, host, user, password, command, callback):
+def execute_command_and_show_output(parent, host, user, password, command, callback):
     print((colors.bold | "Execute command: ") + command)
 
     ssh = connect_ssh(host, user, password)
 
     window = QDialog(parent)
+    window.setWindowTitle("Installing Linien server component")
     window.resize(800, 600)
     window_layout = QVBoxLayout(window)
 
@@ -110,9 +111,24 @@ def error_dialog(parent, error):
     return QMessageBox.question(parent, "Error", error, QMessageBox.Ok, QMessageBox.Ok)
 
 
-def question_dialog(parent, question):
+def question_dialog(parent, question, title):
+    box = QMessageBox(parent)
+    box.setText(question)
+    box.setWindowTitle(title)
     reply = QMessageBox.question(
-        parent, "Error", question, QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes
+        parent, title, question, QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes
     )
 
     return reply == QMessageBox.Yes
+
+
+def ask_for_parameter_restore_dialog(parent, question, title):
+    box = QMessageBox(parent)
+    box.setText(question)
+    box.setWindowTitle(title)
+    do_nothing_button = box.addButton("Keep remote parameters", QMessageBox.NoRole)
+    upload_button = box.addButton("Upload local parameters", QMessageBox.YesRole)
+
+    box.exec_()
+
+    return box.clickedButton() == upload_button

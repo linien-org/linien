@@ -10,7 +10,7 @@ import linien
 from linien.common import check_plot_data
 from linien.gui.utils_gui import color_to_hex, param2ui
 from linien.config import N_COLORS
-from linien.client.config import COLORS
+from linien.gui.config import COLORS
 from linien.gui.widgets import CustomWidget
 
 
