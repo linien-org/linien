@@ -202,8 +202,14 @@ c.connection.root.write_data()
 c.parameters.analog_out_1.value = 1.2 * ANALOG_OUT_V
 
 # GPIO outputs can also be set
-c.parameters.gpio_p_out.value = 0b11110000 # 4 on, 4 off
-c.parameters.gpio_n_out.value = 0b01010101 # 4 on, 4 off
+# each bit corresponds to a pin
+# Example: enable all N pins and disable all P pins
+c.parameters.gpio_n_out.value = 0b11111111
+c.parameters.gpio_p_out.value = 0b00000000
+# Example: enable the N pins 1-4 and disable N pins 5-8
+c.parameters.gpio_n_out.value = 0b11110000 # 4 on, 4 off
+# Example: enable every second P pin
+c.parameters.gpio_p_out.value = 0b01010101 # 4 on, 4 off
 
 # again, we have to call write_data in order to write the data to the FPGA
 c.connection.root.write_data()
