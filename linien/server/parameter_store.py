@@ -47,12 +47,20 @@ class ParameterStore:
             param = getattr(self.parameters, param_name)
             parameters[param_name] = param.value
 
-        with open(PARAMETER_STORE_FN, "wb") as f:
-            pickle.dump(
-                {
-                    "parameters": parameters,
-                    "time": time(),
-                    "version": linien.__version__,
-                },
-                f,
-            )
+        try:
+            with open(PARAMETER_STORE_FN, "wb") as f:
+                pickle.dump(
+                    {
+                        "parameters": parameters,
+                        "time": time(),
+                        "version": linien.__version__,
+                    },
+                    f,
+                )
+        except PermissionError:
+            # this may happen if the server doesn't run on RedPitaya but on the
+            # developer's machine. As it is not a critical problem, just print
+            # the exception and ignore it
+            from traceback import print_exc
+
+            print_exc()
