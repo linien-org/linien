@@ -7,6 +7,13 @@ ROBUST_AUTOLOCK_FPGA_DELAY = 3
 
 
 class FPGAAutolock(Module, AutoCSR):
+    """This class handles autolock on FPGA. It is the counterpart to the
+    `Autolock` class in the server directory.
+
+    Depending on `autolock_mode`, either fast or robust autolock is used.
+    Independent of the mode selected, locking happens by setting
+    `request_lock`. Once lock has been established, `lock_running` will be HIGH.
+    """
     def __init__(self, width=14, N_points=16383, max_delay=16383):
         self.submodules.robust = RobustAutolock(max_delay=max_delay)
 
@@ -42,6 +49,9 @@ class FPGAAutolock(Module, AutoCSR):
 
 
 class FastAutolock(Module, AutoCSR):
+    """The operation of fast autolock is simple: wait until the ramp has reached
+    a certain point and turn on the lock. This method is well suited for systems
+    with not too much jitter."""
     def __init__(self, width=14):
         # pid is not started directly by `request_lock` signal. Instead, `request_lock`
         # queues a run that is then started when the ramp is at the zero target position
@@ -81,13 +91,16 @@ class RobustAutolock(Module, AutoCSR):
         peak_height_bit, x_data_length_bit = self.init_csr(N_points)
         self.init_inout_signals(width)
 
+        # is the autolock actively trying to detect peaks? This is set to true
+        # if lock is requested and once the ramp is at start
         watching = Signal()
 
+        # the following signals are property of the peak that the autolock is
+        # trying to detet right now
         self.current_instruction_idx = Signal(bits_for(AUTOLOCK_MAX_N_INSTRUCTIONS - 1))
-
         current_peak_height = Signal((peak_height_bit, True))
+        abs_current_peak_height = Signal.like(current_peak_height)
         current_wait_for = Signal(x_data_length_bit)
-
         self.comb += [
             current_peak_height.eq(
                 Array([peak_height.storage for peak_height in self.peak_heights])[
@@ -101,35 +114,33 @@ class RobustAutolock(Module, AutoCSR):
             ),
         ]
 
+        # after detecting the last peak, how many cycles have passed?
         waited_for = Signal(bits_for(N_points))
+        # after all peaks have been detected, how many cycles have passed?
         final_waited_for = Signal(bits_for(N_points))
 
+        # this is the signal that's used for detecting peaks
         sum_diff = Signal((len(self.sum_diff_calculator.output), True))
-        sign_equal = Signal()
-        over_threshold = Signal()
-        waited_long_enough = Signal()
-        all_instructions_triggered = Signal()
-
-        self.signal_out = []
-        self.signal_in = []
-        self.state_out = [
-            watching,
-            self.turn_on_lock,
-            sign_equal,
-            over_threshold,
-            waited_long_enough,
-        ]
-        self.state_in = []
-
         abs_sum_diff = Signal.like(sum_diff)
-        abs_current_peak_height = Signal.like(current_peak_height)
-
         self.comb += [
             self.sum_diff_calculator.writing_data_now.eq(self.writing_data_now),
             self.sum_diff_calculator.restart.eq(self.at_start),
             self.sum_diff_calculator.input.eq(self.input),
             self.sum_diff_calculator.delay_value.eq(self.time_scale.storage),
             sum_diff.eq(self.sum_diff_calculator.output),
+        ]
+
+        # has this signal at the moment the same sign as the peak we are looking
+        # for?
+        sign_equal = Signal()
+        # is this signal higher than the peak we are looking for?
+        over_threshold = Signal()
+        # since detecting the previous peak, has enough time passed?
+        waited_long_enough = Signal()
+        # have we detected all peaks (and can turn on the lock)?
+        all_instructions_triggered = Signal()
+
+        self.comb += [
             sign_equal.eq((sum_diff > 0) == (current_peak_height > 0)),
             If(sum_diff >= 0, abs_sum_diff.eq(sum_diff)).Else(
                 abs_sum_diff.eq(-1 * sum_diff)
@@ -147,15 +158,6 @@ class RobustAutolock(Module, AutoCSR):
                 all_instructions_triggered
                 & (final_waited_for >= self.final_wait_time.storage)
             ),
-        ]
-
-        self.sign_equal_csr = CSRStatus()
-        self.current_instruction_idx_csr = CSRStatus()
-        self.current_peak_height_csr = CSRStatus(peak_height_bit)
-        self.comb += [
-            self.sign_equal_csr.status.eq(sign_equal),
-            self.current_instruction_idx_csr.status.eq(self.current_instruction_idx),
-            self.current_peak_height_csr.status.eq(current_peak_height),
         ]
 
         self.sync += [
@@ -194,6 +196,17 @@ class RobustAutolock(Module, AutoCSR):
                 ),
             ),
         ]
+
+        self.signal_out = []
+        self.signal_in = []
+        self.state_out = [
+            watching,
+            self.turn_on_lock,
+            sign_equal,
+            over_threshold,
+            waited_long_enough,
+        ]
+        self.state_in = []
 
     def init_submodules(self, width, N_points, max_delay):
         self.submodules.sum_diff_calculator = SumDiffCalculator(
@@ -237,6 +250,8 @@ class RobustAutolock(Module, AutoCSR):
 def get_lock_position_from_autolock_instructions_by_simulating_fpga(
     spectrum, description, time_scale, initial_spectrum, final_wait_time
 ):
+    """This function simulated the behavior of `RobustAutolock` on FPGA
+    and allows to find out whether FPGA would lock to the correct point."""
     result = {}
 
     def tb(dut):
