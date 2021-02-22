@@ -3,10 +3,10 @@ LINIEN
 
 <img align="right" src="https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/docs/icon.png" width="20%">
 
-Spectroscopy locking of lasers using RedPitaya (STEMlab 125-14) that
-just works. Linien aims to follow the UNIX philosophy of doing one thing
-very well. It is built with Python and
-[Migen](https://github.com/m-labs/migen) and is based on [RED
+User-friendly locking of lasers using RedPitaya (STEMlab 125-14) that just works.
+Linien aims to follow the UNIX philosophy of doing a single thing (locking using intelligent algorithms) very well.
+It was mainly developed for locking spectroscopy signals but may also be used for Pound-Drever-Hall or oter Lock-In techniques.
+It is built with Python and [Migen](https://github.com/m-labs/migen) and is based on [RED
 PID](https://github.com/quartiq/redpid).
 
 Features
@@ -17,7 +17,7 @@ Features
 -   **Client-server architecture**: Autonomous operation on RedPitaya.
     One or multiple GUI clients or python clients can connect to the server.
 -   **Autolock**: Click and drag over a line, and Linien will
-    automatically approach it and lock to it.
+    automatically lock to it.
 -   **IQ demodulation**: Optimize demodulation phase in an instant
 -   **Lock detection**: Linien is capable of detecting loss of lock.
 -   **Automatic relocking**: in that case, it relocks autonomously.
