@@ -260,8 +260,8 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         x = self._within_boundaries(x)
         x0, y0 = self.touch_start
         xdiff = np.abs(x0 - x)
-
-        if xdiff / self.xmax < 0.01:
+        xmax = len(self.last_plot_data[0]) - 1
+        if xdiff / xmax < 0.01:
             # it was a click
             pass
         else:
@@ -302,10 +302,6 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
 
         self.overlay.setVisible(False)
         self.touch_start = None
-
-    @property
-    def xmax(self):
-        return len(self.last_plot_data[0]) - 1
 
     def replot(self, to_plot):
         time_beginning = time()
@@ -348,8 +344,6 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
             history, slow_history = self.update_control_signal_history(to_plot)
 
             if self.parameters.lock.value:
-                self.last_plot_data = to_plot
-
                 self.signal1.setVisible(False)
                 self.signal2.setVisible(False)
                 self.control_signal.setVisible(True)
@@ -551,8 +545,8 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         # are only caught here
         self.keyPressed.emit(event.key())
 
-    def update_plot_scaling(self, signals):
-        if time() - self.last_plot_rescale > 0.5:
+    def update_plot_scaling(self, signals, force=False):
+        if force or time() - self.last_plot_rescale > .5:
             all_ = np.array([])
             for signal in signals:
                 all_ = np.append(all_, signal)
@@ -633,6 +627,11 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         This is useful for letting the user select a line that is then used in
         the autolock."""
         self._plot_paused = True
+        # pausing plot means that no new plot data is allowed. As plot scaling
+        # is only updated when new data is plotted, this may lead to a situation
+        # where plot scaling is not up-to-date with the latest data
+        # --> force rescaling here once
+        self.update_plot_scaling(self.last_plot_data, force=True)
 
     def resume_plot_and_clear_cache(self):
         """Resumes plotting again."""
