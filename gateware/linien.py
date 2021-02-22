@@ -333,7 +333,6 @@ class LinienModule(Module, AutoCSR):
             dss = [self.ds0, self.ds1, self.ds2, self.ds3]
             self.comb += dss[analog_idx].data.eq(analog_out)
 
-        # FIXME: did it help making robust.input sync?
         self.sync += [
             self.logic.autolock.robust.input.eq(self.scopegen.scope_written_data),
             # `writing_data_now` is intentionally delayed by one cycle here
@@ -350,6 +349,9 @@ class LinienModule(Module, AutoCSR):
             self.scopegen.automatically_rearm.eq(
                 self.logic.autolock.request_lock.storage
                 & ~self.logic.autolock.lock_running.status
+            ),
+            self.scopegen.automatically_trigger.eq(
+                self.logic.autolock.lock_running.status
             ),
             self.logic.limit_fast1.x.eq(fast_outs[0]),
             self.logic.limit_fast2.x.eq(fast_outs[1]),

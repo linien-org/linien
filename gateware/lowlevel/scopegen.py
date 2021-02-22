@@ -6,6 +6,7 @@ from migen import (
     ResetSignal,
     Array,
     Record,
+    If
 )
 from misoc.interconnect.csr import AutoCSR, CSRStorage
 from .pitaya_ps import sys_layout
@@ -24,6 +25,19 @@ class ScopeGen(Module, AutoCSR):
         # Therefore, autolock turns on "always_arm" mode which automatically
         # rearms scope when it has finished.
         self.automatically_rearm = Signal()
+
+        # this mode is used when the laser is locked. In this case we don't have
+        # to sync acquisition with a ramp. Synchronisation with readout takes
+        # place by manually rearming after reading out the data.
+        self.automatically_trigger = Signal()
+        automatic_trigger_signal = Signal()
+        self.sync += [
+            If(self.automatically_trigger,
+                automatic_trigger_signal.eq(~automatic_trigger_signal)
+            ).Else(
+                automatic_trigger_signal.eq(0)
+            )
+        ]
 
         self.external_trigger = CSRStorage(1)
         ext_scope_trigger = Array([self.gpio_trigger, self.sweep_trigger])[
@@ -68,7 +82,7 @@ class ScopeGen(Module, AutoCSR):
             # i_adc_b_q_i=0b11111111111111,
             i_adc_clk_i=ClockSignal(),
             i_adc_rstn_i=~ResetSignal(),
-            i_trig_ext_i=ext_scope_trigger,
+            i_trig_ext_i=ext_scope_trigger | automatic_trigger_signal,
             i_trig_asg_i=asg_trig,
             i_sys_clk_i=self.scope_sys.clk,
             i_sys_rstn_i=self.scope_sys.rstn,

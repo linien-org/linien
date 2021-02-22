@@ -82,7 +82,7 @@ class DataAcquisitionService(Service):
 
                 # copied from https://github.com/RedPitaya/RedPitaya/blob/14cca62dd58f29826ee89f4b28901602f5cdb1d8/api/src/oscilloscope.c#L115
                 # check whether scope was triggered
-                if (self.r.scope.read(0x1 << 2) & 0x4) > 0 and not self.locked:
+                if (self.r.scope.read(0x1 << 2) & 0x4) > 0:
                     sleep(0.05)
                     continue
 
