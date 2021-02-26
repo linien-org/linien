@@ -25,6 +25,10 @@ from linien.common import (
 )
 from linien.server.parameter_store import ParameterStore
 from linien.server.optimization.optimization import OptimizeSpectroscopy
+from linien.server.pid_optimization.pid_optimization import (
+    PIDOptimization,
+    PSDAcquisition,
+)
 
 
 class BaseService(rpyc.Service):
@@ -77,7 +81,7 @@ class RedPitayaControlService(BaseService):
         """Starts a background process that keeps polling control and error
         signal. Every received value is pushed to `parameters.to_plot`."""
 
-        def data_received(plot_data, data_uuid):
+        def data_received(is_raw, plot_data, data_uuid):
             # When a parameter is changed, `pause_acquisition` is set.
             # This means that the we should skip new data until we are sure that
             # it was recorded with the new settings.
@@ -86,22 +90,28 @@ class RedPitayaControlService(BaseService):
                     return
 
                 data_loaded = pickle.loads(plot_data)
-                is_locked = self.parameters.lock.value
 
-                if not check_plot_data(is_locked, data_loaded):
-                    print("warning: incorrect data received for lock state, ignoring!")
-                    return
+                if not is_raw:
+                    is_locked = self.parameters.lock.value
 
-                self.parameters.to_plot.value = plot_data
+                    if not check_plot_data(is_locked, data_loaded):
+                        print(
+                            "warning: incorrect data received for lock state, ignoring!"
+                        )
+                        return
 
-                self.parameters.control_signal_history.value = (
-                    update_control_signal_history(
-                        self.parameters.control_signal_history.value,
-                        data_loaded,
-                        is_locked,
-                        self.parameters.control_signal_history_length.value,
+                    self.parameters.to_plot.value = plot_data
+
+                    self.parameters.control_signal_history.value = (
+                        update_control_signal_history(
+                            self.parameters.control_signal_history.value,
+                            data_loaded,
+                            is_locked,
+                            self.parameters.control_signal_history_length.value,
+                        )
                     )
-                )
+                else:
+                    self.parameters.acquisition_raw_data.value = plot_data
 
         self.registers.run_data_acquisition(data_received)
         self.pause_acquisition()
@@ -141,6 +151,16 @@ class RedPitayaControlService(BaseService):
             optim = OptimizeSpectroscopy(self, self.parameters)
             self.parameters.task.value = optim
             optim.run(x0, x1, spectrum)
+
+    def exposed_start_psd_acquisition(self):
+        if not self.task.running():
+            self.parameters.task.value = PSDAcquisition(self, self.parameters)
+            self.parameters.task.value.run()
+
+    def exposed_start_pid_optimization(self):
+        if not self.task_running():
+            self.parameters.task.value = PIDOptimization(self, self.parameters)
+            self.parameters.task.value.run()
 
     def exposed_start_ramp(self):
         self.pause_acquisition()
@@ -193,13 +213,14 @@ class RedPitayaControlService(BaseService):
         `continue_acquisition`."""
         self.parameters.pause_acquisition.value = True
         self.data_uuid = random()
+        self.registers.acquisition.pause_acquisition()
 
     def continue_acquisition(self):
         """Continue acquisition after a short delay, when we are sure that the
         new parameters values have been written to the FPGA and that data that
         is now recorded is recorded with the correct parameters."""
         self.parameters.pause_acquisition.value = False
-        self.registers.acquisition.clear_data_cache(self.data_uuid)
+        self.registers.acquisition.continue_acquisition(self.data_uuid)
 
 
 class FakeRedPitayaControl(BaseService):

@@ -20,6 +20,7 @@ sys.path += [ui_path]
 
 from linien.gui.ui.device_manager import DeviceManager
 from linien.gui.ui.main_window import MainWindow
+from linien.gui.ui.psd_window import PSDWindow
 from linien.gui.utils_gui import set_window_icon
 
 
@@ -36,6 +37,10 @@ class QTApp(QtCore.QObject):
         self.device_manager = DeviceManager()
         self.device_manager.app = self
         self.device_manager.show()
+
+        self.psd_window = PSDWindow()
+        self.psd_window.app = self
+        self.psd_window.show()
 
         self.app.aboutToQuit.connect(lambda: self.app.quit())
 

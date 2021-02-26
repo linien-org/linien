@@ -51,3 +51,8 @@ def color_to_hex(color):
         result += ("00" + hex(color[part_idx]).lstrip("0x"))[-2:]
 
     return "#" + result
+
+
+def hex_to_color(hex):
+    hex = hex.lstrip("#")
+    return tuple(int(hex[i : i + 2], 16) for i in (0, 2, 4))

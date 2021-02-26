@@ -57,6 +57,8 @@ class LockStatusPanel(QtGui.QWidget, CustomWidget):
 
         for param in (
             params.lock,
+            params.task,
+            params.autolock_running,
             params.autolock_preparing,
             params.autolock_watching,
             params.autolock_failed,

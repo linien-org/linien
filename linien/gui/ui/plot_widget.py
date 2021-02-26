@@ -546,7 +546,7 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         self.keyPressed.emit(event.key())
 
     def update_plot_scaling(self, signals, force=False):
-        if force or time() - self.last_plot_rescale > .5:
+        if force or time() - self.last_plot_rescale > 0.5:
             all_ = np.array([])
             for signal in signals:
                 all_ = np.append(all_, signal)

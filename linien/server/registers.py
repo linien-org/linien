@@ -27,6 +27,7 @@ class Registers:
         self.acquisition = None
 
         self._last_sweep_speed = None
+        self._last_raw_acquisition_settings = None
         self._iir_cache = {}
 
     def connect(self, control, parameters):
@@ -179,6 +180,14 @@ class Registers:
         if sweep_changed:
             self._last_sweep_speed = params["ramp_speed"]
             self.acquisition.set_ramp_speed(params["ramp_speed"])
+
+        raw_acquisition_settings = (
+            params["acquisition_raw_enabled"],
+            params["acquisition_raw_decimation"],
+        )
+        if raw_acquisition_settings != self._last_raw_acquisition_settings:
+            self._last_raw_acquisition_settings = raw_acquisition_settings
+            self.acquisition.set_raw_acquisition(*raw_acquisition_settings)
 
         for k, v in new.items():
             self.set(k, int(v))

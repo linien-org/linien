@@ -23,8 +23,10 @@ class AcquisitionProcessSignals(Enum):
     SET_LOCK_STATUS = 3
     SET_CSR = 4
     SET_IIR_CSR = 5
-    CLEAR_DATA_CACHE = 6
+    PAUSE_ACQUISIITON = 5.5
+    CONTINUE_ACQUISITION = 6
     FETCH_QUADRATURES = 7
+    SET_RAW_ACQUISITION = 8
 
 
 class AcquisitionMaster:
@@ -33,9 +35,9 @@ class AcquisitionMaster:
 
         def receive_acquired_data(conn):
             while True:
-                received_data, data_uuid = conn.recv()
+                is_raw, received_data, data_uuid = conn.recv()
                 if self.on_acquisition is not None:
-                    self.on_acquisition(received_data, data_uuid)
+                    self.on_acquisition(is_raw, received_data, data_uuid)
 
         self.acq_process, child_pipe = Pipe()
         p = Process(
@@ -90,23 +92,28 @@ class AcquisitionMaster:
                     acquisition.exposed_set_lock_status(data[1])
                 elif data[0] == AcquisitionProcessSignals.FETCH_QUADRATURES:
                     acquisition.exposed_set_fetch_quadratures(data[1])
+                elif data[0] == AcquisitionProcessSignals.SET_RAW_ACQUISITION:
+                    acquisition.exposed_set_raw_acquisition(data[1])
                 elif data[0] == AcquisitionProcessSignals.SET_CSR:
                     acquisition.exposed_set_csr(*data[1])
                 elif data[0] == AcquisitionProcessSignals.SET_IIR_CSR:
                     acquisition.exposed_set_iir_csr(*data[1])
-                elif data[0] == AcquisitionProcessSignals.CLEAR_DATA_CACHE:
-                    acquisition.exposed_clear_data_cache(data[1])
+                elif data[0] == AcquisitionProcessSignals.PAUSE_ACQUISIITON:
+                    acquisition.exposed_pause_acquisition()
+                elif data[0] == AcquisitionProcessSignals.CONTINUE_ACQUISITION:
+                    acquisition.exposed_continue_acquisition(data[1])
 
             # load acquired data and send it to the main thread
             (
                 new_data_returned,
                 new_hash,
+                data_was_raw,
                 new_data,
                 data_uuid,
             ) = acquisition.exposed_return_data(last_hash)
             if new_data_returned:
                 last_hash = new_hash
-                pipe.send((new_data, data_uuid))
+                pipe.send((data_was_raw, new_data, data_uuid))
 
             sleep(0.05)
 
@@ -133,5 +140,15 @@ class AcquisitionMaster:
     def set_iir_csr(self, *args):
         self.acq_process.send((AcquisitionProcessSignals.SET_IIR_CSR, args))
 
-    def clear_data_cache(self, uuid):
-        self.acq_process.send((AcquisitionProcessSignals.CLEAR_DATA_CACHE, uuid))
+    def pause_acquisition(self):
+        self.acq_process.send((AcquisitionProcessSignals.PAUSE_ACQUISIITON, True))
+
+    def continue_acquisition(self, uuid):
+        self.acq_process.send((AcquisitionProcessSignals.CONTINUE_ACQUISITION, uuid))
+
+    def set_raw_acquisition(self, enabled, decimation=None):
+        if decimation is None:
+            decimation = 0
+        self.acq_process.send(
+            (AcquisitionProcessSignals.SET_RAW_ACQUISITION, (enabled, decimation))
+        )

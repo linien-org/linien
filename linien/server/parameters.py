@@ -312,6 +312,14 @@ class Parameters(BaseParameters):
         self.optimization_channel = Parameter(start=0)
         self.optimization_failed = Parameter(start=False)
 
+        #           --------- PID OPTIMIZATION PARAMETERS ---------
+        # these are used internally by the PID optimization algorithm and usually
+        # should not be manipulated
+        self.acquisition_raw_enabled = Parameter(start=False)
+        self.acquisition_raw_decimation = Parameter(start=1)
+        self.acquisition_raw_data = Parameter()
+        self.psd_data = Parameter(start=None)
+
         #           --------- PARAMETERS OF GUI ---------
         self.autoscale_y = Parameter(start=True)
         self.y_axis_limits = Parameter(start=1)
