@@ -91,7 +91,12 @@ class RemoteParameters:
     def _mimic_remote_parameters(self, use_cache: bool):
         """For every remote parameter, instanciate a `RemoteParameter` object
         that allows to mimics the functionality of the remote parameter."""
-        for name, param in self.remote.exposed_get_all_parameters():
+        # when directly iterating over `get_all_parameters`, each iteration
+        # triggers a request as it is a netref over an iterator
+        # --> the `list` call prevents this and improves startup performance
+        all_parameters = list(self.remote.exposed_get_all_parameters())
+
+        for name, param in all_parameters:
             setattr(self, name, RemoteParameter(self, param, name, use_cache))
 
         self._attributes_locked = True
