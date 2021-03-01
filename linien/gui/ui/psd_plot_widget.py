@@ -30,15 +30,26 @@ class PSDPlotWidget(pg.PlotWidget, CustomWidget):
             )
 
     def plot_curve(self, uuid, psds, color):
-        self.curves[uuid] = []
+        self.curves[uuid] = self.curves.get(uuid, [])
+        for idx in range(len(psds)):
+            if len(self.curves[uuid]) <= idx:
+                curve = pg.PlotCurveItem()
+                self.curves[uuid].append(curve)
+                self.addItem(curve)
 
-        for decimation, [f, psd] in psds.items():
-            curve = pg.PlotCurveItem()
-            self.addItem(curve)
+        # sort such that high decimations are first
+        psds_sorted = sorted(psds.items(), key=lambda v: -1 * v[0])
+        highest_plotted_frequency = 0
+        for idx, [decimation, [f, psd]] in enumerate(psds_sorted):
+            curve = self.curves[uuid][idx]
+
+            psd = psd[f > highest_plotted_frequency]
+            f = f[f > highest_plotted_frequency]
+            highest_plotted_frequency = f[-1]
+
             curve.setData(np.log10(f), np.log10(psd))
             r, g, b = color
             curve.setPen(pg.mkPen((r, g, b, 200)))
-            self.curves[uuid].append(curve)
 
     def show_or_hide_curve(self, uuid, show):
         curves = self.curves.get(uuid, [])

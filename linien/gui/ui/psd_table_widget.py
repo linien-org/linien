@@ -24,8 +24,12 @@ class PSDTableWidget(QtGui.QTableWidget, CustomWidget):
         self.parameters = self.app().parameters
 
     def add_curve(self, uuid, data, color):
-        row_count = self.rowCount()
-        self.setRowCount(row_count + 1)
+        if uuid not in self.uuids:
+            row_count = self.rowCount()
+            self.setRowCount(row_count + 1)
+        else:
+            row_count = self.uuids.index(uuid)
+
         checkbox = QtGui.QCheckBox()
 
         checkbox.setChecked(True)
@@ -54,6 +58,7 @@ class PSDTableWidget(QtGui.QTableWidget, CustomWidget):
         self.setItem(row_count, 3, create_item(data["p"]))
         self.setItem(row_count, 4, create_item(data["i"]))
         self.setItem(row_count, 5, create_item(data["d"]))
+        self.setItem(row_count, 6, create_item(data["fitness"]))
 
         self.resizeColumnsToContents()
 

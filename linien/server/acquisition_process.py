@@ -147,7 +147,6 @@ class DataAcquisitionService(Service):
 
         elif self.raw_acquisition_enabled:
             self.r.scope.data_decimation = 2 ** self.raw_acquisition_decimation
-            print("SET DEC", self.raw_acquisition_decimation)
             self.additional_decimation = 1
             self.r.scope.trigger_delay = trigger_delay
 

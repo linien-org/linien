@@ -153,7 +153,7 @@ class RedPitayaControlService(BaseService):
             optim.run(x0, x1, spectrum)
 
     def exposed_start_psd_acquisition(self):
-        if not self.task.running():
+        if not self.task_running():
             self.parameters.task.value = PSDAcquisition(self, self.parameters)
             self.parameters.task.value.run()
 
