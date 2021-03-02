@@ -16,21 +16,9 @@ from linien.config import ACQUISITION_PORT
 from linien.common import DECIMATION, MAX_N_POINTS, N_POINTS
 
 
-# the maximum decimation supported by the FPGA image
-MAX_FPGA_DECIMATION = 65536
-
-
 def shutdown():
     _thread.interrupt_main()
     os._exit(0)
-
-
-def decimate(array, factor):
-    if factor == 1:
-        return array
-
-    dtype = array.dtype
-    return np.round(array.reshape(-1, factor).mean(axis=1)).astype(dtype)
 
 
 class DataAcquisitionService(Service):
@@ -44,12 +32,11 @@ class DataAcquisitionService(Service):
         self.data_was_raw = False
         self.data_hash = None
         self.data_uuid = None
-        self.additional_decimation = 1
 
         super(DataAcquisitionService, self).__init__()
 
-        self.exposed_set_ramp_speed(9)
         self.locked = False
+        self.exposed_set_ramp_speed(9)
         # when self.locked is set to True, this doesn't mean that the lock is
         # really on. It just means that the lock is requested and that the
         # gateware waits until the sweep is at the correct position for the lock.
@@ -120,39 +107,17 @@ class DataAcquisitionService(Service):
     def program_acquisition_and_rearm(self, trigger_delay=16384):
         """Programs the acquisition settings and rearms acquisition."""
         if not self.locked:
-            # we use decimation of the FPGA scope for two reasons:
-            # - we want to record at lower scan rates
-            # - we want to record less data points than 16384 data points.
-            #   We could do this by additionally averaging in software, but
-            #   this turned out to be too slow on the RP. Therefore, we
-            #   let the FPGA do this.
-            # With high values of DECIMATION and low scan rates, the required
-            # decimation value exceeds the maximum value supported by the FPGA
-            # image. Therefore, we perform additional software averaging in
-            # these cases. As this happens for slow ramps only, the performance
-            # hit doesn't matter.
             target_decimation = 2 ** (self.ramp_speed + int(np.log2(DECIMATION)))
-            if target_decimation > MAX_FPGA_DECIMATION:
-                self.additional_decimation = int(
-                    target_decimation / MAX_FPGA_DECIMATION
-                )
-                target_decimation = MAX_FPGA_DECIMATION
-            else:
-                self.additional_decimation = 1
 
             self.r.scope.data_decimation = target_decimation
-            self.r.scope.trigger_delay = (
-                int(trigger_delay / DECIMATION * self.additional_decimation) - 1
-            )
+            self.r.scope.trigger_delay = int(trigger_delay / DECIMATION) - 1
 
         elif self.raw_acquisition_enabled:
             self.r.scope.data_decimation = 2 ** self.raw_acquisition_decimation
-            self.additional_decimation = 1
             self.r.scope.trigger_delay = trigger_delay
 
         else:
             self.r.scope.data_decimation = 1
-            self.additional_decimation = 1
             self.r.scope.trigger_delay = int(trigger_delay / DECIMATION) - 1
 
         # trigger_source=6 means external trigger positive edge
@@ -168,6 +133,9 @@ class DataAcquisitionService(Service):
 
     def exposed_set_ramp_speed(self, speed):
         self.ramp_speed = speed
+        # if a slow acqisition is currently running and we change the ramp speed
+        # we don't want to wait until it finishes
+        self.program_acquisition_and_rearm()
 
     def exposed_set_lock_status(self, locked):
         self.locked = locked
@@ -200,7 +168,9 @@ class DataAcquisitionService(Service):
         self.data = None
         self.acquisition_paused = False
         self.data_uuid = uuid
-        self.skip_next_data = True
+        # if we are ramping, we have to skip one data set because an incomplete
+        # ramp may have been recorded. When locked, this does not matter
+        self.skip_next_data = not self.confirmed_that_in_lock
 
     def read_data(self):
         write_pointer = self.r.scope.write_pointer_trigger
@@ -217,15 +187,11 @@ class DataAcquisitionService(Service):
 
             for channel_offset in channel_offsets:
                 channel_data = self.read_data_raw(
-                    channel_offset, write_pointer, N_POINTS * self.additional_decimation
+                    channel_offset, write_pointer, N_POINTS
                 )
 
                 for sub_channel_idx in range(2):
-                    signals.append(
-                        decimate(
-                            channel_data[sub_channel_idx], self.additional_decimation
-                        )
-                    )
+                    signals.append(channel_data[sub_channel_idx])
 
             signals_named = {}
 

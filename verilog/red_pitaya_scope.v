@@ -131,34 +131,34 @@ reg  [ 14-1: 0] adc_a_dat     ;
 reg  [ 14-1: 0] adc_b_dat     ;
 reg  [ 14-1: 0] adc_a_q_dat     ;
 reg  [ 14-1: 0] adc_b_q_dat     ;
-reg  [ 32-1: 0] adc_a_sum     ;
-reg  [ 32-1: 0] adc_b_sum     ;
-reg  [ 32-1: 0] adc_a_q_sum     ;
-reg  [ 32-1: 0] adc_b_q_sum     ;
-reg  [ 17-1: 0] set_dec       ;
-reg  [ 17-1: 0] adc_dec_cnt   ;
+reg  [ 48-1: 0] adc_a_sum     ;
+reg  [ 48-1: 0] adc_b_sum     ;
+reg  [ 48-1: 0] adc_a_q_sum     ;
+reg  [ 48-1: 0] adc_b_q_sum     ;
+reg  [ 32-1: 0] set_dec       ;
+reg  [ 32-1: 0] adc_dec_cnt   ;
 reg             set_avg_en    ;
 reg             adc_dv        ;
 
 always @(posedge adc_clk_i) begin
    if (adc_rstn_i == 1'b0) begin
-      adc_a_sum   <= 32'h0 ;
-      adc_b_sum   <= 32'h0 ;
-      adc_a_q_sum   <= 32'h0 ;
-      adc_b_q_sum   <= 32'h0 ;
-      adc_dec_cnt <= 17'h0 ;
+      adc_a_sum   <= 48'h0 ;
+      adc_b_sum   <= 48'h0 ;
+      adc_a_q_sum   <= 48'h0 ;
+      adc_b_q_sum   <= 48'h0 ;
+      adc_dec_cnt <= 32'h0 ;
       adc_dv      <=  1'b0 ;
    end
    else begin
       if ((adc_dec_cnt >= set_dec) || adc_arm_do) begin // start again or arm
-         adc_dec_cnt <= 17'h1                   ;
+         adc_dec_cnt <= 32'h1                   ;
          adc_a_sum   <= $signed(adc_a_filt_out) ;
          adc_b_sum   <= $signed(adc_b_filt_out) ;
          adc_a_q_sum   <= $signed(adc_a_q_filt_out) ;
          adc_b_q_sum   <= $signed(adc_b_q_filt_out) ;
       end
       else begin
-         adc_dec_cnt <= adc_dec_cnt + 17'h1 ;
+         adc_dec_cnt <= adc_dec_cnt + 32'h1 ;
          adc_a_sum   <= $signed(adc_a_sum) + $signed(adc_a_filt_out) ;
          adc_b_sum   <= $signed(adc_b_sum) + $signed(adc_b_filt_out) ;
          adc_a_q_sum   <= $signed(adc_a_q_sum) + $signed(adc_a_q_filt_out) ;
@@ -167,25 +167,41 @@ always @(posedge adc_clk_i) begin
 
       adc_dv <= (adc_dec_cnt >= set_dec) ;
 
-      case (set_dec & {17{set_avg_en}})
-         17'h0     : begin adc_a_dat <= adc_a_filt_out;            adc_b_dat <= adc_b_filt_out;             adc_a_q_dat <= adc_a_q_filt_out;              adc_b_q_dat <= adc_b_q_filt_out;                  end
-         17'h1     : begin adc_a_dat <= adc_a_sum[15+0 :  0];      adc_b_dat <= adc_b_sum[15+0 :  0];       adc_a_q_dat <= adc_a_q_sum[15+0 :  0];        adc_b_q_dat <= adc_b_q_sum[15+0 :  0];            end
-         17'h2     : begin adc_a_dat <= adc_a_sum[15+1 :  1];      adc_b_dat <= adc_b_sum[15+1 :  1];       adc_a_q_dat <= adc_a_q_sum[15+1 :  1];        adc_b_q_dat <= adc_b_q_sum[15+1 :  1];            end
-         17'h4     : begin adc_a_dat <= adc_a_sum[15+2 :  2];      adc_b_dat <= adc_b_sum[15+2 :  2];       adc_a_q_dat <= adc_a_q_sum[15+2 :  2];        adc_b_q_dat <= adc_b_q_sum[15+2 :  2];            end
-         17'h8     : begin adc_a_dat <= adc_a_sum[15+3 :  3];      adc_b_dat <= adc_b_sum[15+3 :  3];       adc_a_q_dat <= adc_a_q_sum[15+3 :  3];        adc_b_q_dat <= adc_b_q_sum[15+3 :  3];            end
-         17'h10    : begin adc_a_dat <= adc_a_sum[15+4 :  4];      adc_b_dat <= adc_b_sum[15+4 :  4];       adc_a_q_dat <= adc_a_q_sum[15+4 :  4];        adc_b_q_dat <= adc_b_q_sum[15+4 :  4];            end
-         17'h20    : begin adc_a_dat <= adc_a_sum[15+5 :  5];      adc_b_dat <= adc_b_sum[15+5 :  5];       adc_a_q_dat <= adc_a_q_sum[15+5 :  5];        adc_b_q_dat <= adc_b_q_sum[15+5 :  5];            end
-         17'h40    : begin adc_a_dat <= adc_a_sum[15+6 :  6];      adc_b_dat <= adc_b_sum[15+6 :  6];       adc_a_q_dat <= adc_a_q_sum[15+6 :  6];        adc_b_q_dat <= adc_b_q_sum[15+6 :  6];            end
-         17'h80    : begin adc_a_dat <= adc_a_sum[15+7 :  7];      adc_b_dat <= adc_b_sum[15+7 :  7];       adc_a_q_dat <= adc_a_q_sum[15+7 :  7];        adc_b_q_dat <= adc_b_q_sum[15+7 :  7];            end
-         17'h100   : begin adc_a_dat <= adc_a_sum[15+8 :  8];      adc_b_dat <= adc_b_sum[15+8 :  8];       adc_a_q_dat <= adc_a_q_sum[15+8 :  8];        adc_b_q_dat <= adc_b_q_sum[15+8 :  8];            end
-         17'h200   : begin adc_a_dat <= adc_a_sum[15+9 :  9];      adc_b_dat <= adc_b_sum[15+9 :  9];       adc_a_q_dat <= adc_a_q_sum[15+9 :  9];        adc_b_q_dat <= adc_b_q_sum[15+9 :  9];            end
-         17'h400   : begin adc_a_dat <= adc_a_sum[15+10: 10];      adc_b_dat <= adc_b_sum[15+10: 10];       adc_a_q_dat <= adc_a_q_sum[15+10: 10];        adc_b_q_dat <= adc_b_q_sum[15+10: 10];            end
-         17'h800   : begin adc_a_dat <= adc_a_sum[15+11: 11];      adc_b_dat <= adc_b_sum[15+11: 11];       adc_a_q_dat <= adc_a_q_sum[15+11: 11];        adc_b_q_dat <= adc_b_q_sum[15+11: 11];            end
-         17'h1000  : begin adc_a_dat <= adc_a_sum[15+12: 12];      adc_b_dat <= adc_b_sum[15+12: 12];       adc_a_q_dat <= adc_a_q_sum[15+12: 12];        adc_b_q_dat <= adc_b_q_sum[15+12: 12];            end
-         17'h2000  : begin adc_a_dat <= adc_a_sum[15+13: 13];      adc_b_dat <= adc_b_sum[15+13: 13];       adc_a_q_dat <= adc_a_q_sum[15+13: 13];        adc_b_q_dat <= adc_b_q_sum[15+13: 13];            end
-         17'h4000  : begin adc_a_dat <= adc_a_sum[15+14: 14];      adc_b_dat <= adc_b_sum[15+14: 14];       adc_a_q_dat <= adc_a_q_sum[15+14: 14];        adc_b_q_dat <= adc_b_q_sum[15+14: 14];            end
-         17'h8000  : begin adc_a_dat <= adc_a_sum[15+15: 15];      adc_b_dat <= adc_b_sum[15+15: 15];       adc_a_q_dat <= adc_a_q_sum[15+15: 15];        adc_b_q_dat <= adc_b_q_sum[15+15: 15];            end
-         17'h10000 : begin adc_a_dat <= adc_a_sum[15+16: 16];      adc_b_dat <= adc_b_sum[15+16: 16];       adc_a_q_dat <= adc_a_q_sum[15+16: 16];        adc_b_q_dat <= adc_b_q_sum[15+16: 16];            end
+      case (set_dec & {32{set_avg_en}})
+         32'h0     : begin adc_a_dat <= adc_a_filt_out;            adc_b_dat <= adc_b_filt_out;             adc_a_q_dat <= adc_a_q_filt_out;              adc_b_q_dat <= adc_b_q_filt_out;                  end
+         32'h1     : begin adc_a_dat <= adc_a_sum[15+0 :  0];      adc_b_dat <= adc_b_sum[15+0 :  0];       adc_a_q_dat <= adc_a_q_sum[15+0 :  0];        adc_b_q_dat <= adc_b_q_sum[15+0 :  0];            end
+         32'h2     : begin adc_a_dat <= adc_a_sum[15+1 :  1];      adc_b_dat <= adc_b_sum[15+1 :  1];       adc_a_q_dat <= adc_a_q_sum[15+1 :  1];        adc_b_q_dat <= adc_b_q_sum[15+1 :  1];            end
+         32'h4     : begin adc_a_dat <= adc_a_sum[15+2 :  2];      adc_b_dat <= adc_b_sum[15+2 :  2];       adc_a_q_dat <= adc_a_q_sum[15+2 :  2];        adc_b_q_dat <= adc_b_q_sum[15+2 :  2];            end
+         32'h8     : begin adc_a_dat <= adc_a_sum[15+3 :  3];      adc_b_dat <= adc_b_sum[15+3 :  3];       adc_a_q_dat <= adc_a_q_sum[15+3 :  3];        adc_b_q_dat <= adc_b_q_sum[15+3 :  3];            end
+         32'h10    : begin adc_a_dat <= adc_a_sum[15+4 :  4];      adc_b_dat <= adc_b_sum[15+4 :  4];       adc_a_q_dat <= adc_a_q_sum[15+4 :  4];        adc_b_q_dat <= adc_b_q_sum[15+4 :  4];            end
+         32'h20    : begin adc_a_dat <= adc_a_sum[15+5 :  5];      adc_b_dat <= adc_b_sum[15+5 :  5];       adc_a_q_dat <= adc_a_q_sum[15+5 :  5];        adc_b_q_dat <= adc_b_q_sum[15+5 :  5];            end
+         32'h40    : begin adc_a_dat <= adc_a_sum[15+6 :  6];      adc_b_dat <= adc_b_sum[15+6 :  6];       adc_a_q_dat <= adc_a_q_sum[15+6 :  6];        adc_b_q_dat <= adc_b_q_sum[15+6 :  6];            end
+         32'h80    : begin adc_a_dat <= adc_a_sum[15+7 :  7];      adc_b_dat <= adc_b_sum[15+7 :  7];       adc_a_q_dat <= adc_a_q_sum[15+7 :  7];        adc_b_q_dat <= adc_b_q_sum[15+7 :  7];            end
+         32'h100   : begin adc_a_dat <= adc_a_sum[15+8 :  8];      adc_b_dat <= adc_b_sum[15+8 :  8];       adc_a_q_dat <= adc_a_q_sum[15+8 :  8];        adc_b_q_dat <= adc_b_q_sum[15+8 :  8];            end
+         32'h200   : begin adc_a_dat <= adc_a_sum[15+9 :  9];      adc_b_dat <= adc_b_sum[15+9 :  9];       adc_a_q_dat <= adc_a_q_sum[15+9 :  9];        adc_b_q_dat <= adc_b_q_sum[15+9 :  9];            end
+         32'h400   : begin adc_a_dat <= adc_a_sum[15+10: 10];      adc_b_dat <= adc_b_sum[15+10: 10];       adc_a_q_dat <= adc_a_q_sum[15+10: 10];        adc_b_q_dat <= adc_b_q_sum[15+10: 10];            end
+         32'h800   : begin adc_a_dat <= adc_a_sum[15+11: 11];      adc_b_dat <= adc_b_sum[15+11: 11];       adc_a_q_dat <= adc_a_q_sum[15+11: 11];        adc_b_q_dat <= adc_b_q_sum[15+11: 11];            end
+         32'h1000  : begin adc_a_dat <= adc_a_sum[15+12: 12];      adc_b_dat <= adc_b_sum[15+12: 12];       adc_a_q_dat <= adc_a_q_sum[15+12: 12];        adc_b_q_dat <= adc_b_q_sum[15+12: 12];            end
+         32'h2000  : begin adc_a_dat <= adc_a_sum[15+13: 13];      adc_b_dat <= adc_b_sum[15+13: 13];       adc_a_q_dat <= adc_a_q_sum[15+13: 13];        adc_b_q_dat <= adc_b_q_sum[15+13: 13];            end
+         32'h4000  : begin adc_a_dat <= adc_a_sum[15+14: 14];      adc_b_dat <= adc_b_sum[15+14: 14];       adc_a_q_dat <= adc_a_q_sum[15+14: 14];        adc_b_q_dat <= adc_b_q_sum[15+14: 14];            end
+         32'h8000  : begin adc_a_dat <= adc_a_sum[15+15: 15];      adc_b_dat <= adc_b_sum[15+15: 15];       adc_a_q_dat <= adc_a_q_sum[15+15: 15];        adc_b_q_dat <= adc_b_q_sum[15+15: 15];            end
+         32'h10000 : begin adc_a_dat <= adc_a_sum[15+16: 16];      adc_b_dat <= adc_b_sum[15+16: 16];       adc_a_q_dat <= adc_a_q_sum[15+16: 16];        adc_b_q_dat <= adc_b_q_sum[15+16: 16];            end
+
+         32'h20000     : begin adc_a_dat <= adc_a_sum[15+17 :  17];      adc_b_dat <= adc_b_sum[15+17 :  17];       adc_a_q_dat <= adc_a_q_sum[15+17 :  17];        adc_b_q_dat <= adc_b_q_sum[15+17 :  17];            end
+         32'h40000     : begin adc_a_dat <= adc_a_sum[15+18 :  18];      adc_b_dat <= adc_b_sum[15+18 :  18];       adc_a_q_dat <= adc_a_q_sum[15+18 :  18];        adc_b_q_dat <= adc_b_q_sum[15+18 :  18];            end
+         32'h80000     : begin adc_a_dat <= adc_a_sum[15+19 :  19];      adc_b_dat <= adc_b_sum[15+19 :  19];       adc_a_q_dat <= adc_a_q_sum[15+19 :  19];        adc_b_q_dat <= adc_b_q_sum[15+19 :  19];            end
+         32'h100000    : begin adc_a_dat <= adc_a_sum[15+20 :  20];      adc_b_dat <= adc_b_sum[15+20 :  20];       adc_a_q_dat <= adc_a_q_sum[15+20 :  20];        adc_b_q_dat <= adc_b_q_sum[15+20 :  20];            end
+         32'h200000    : begin adc_a_dat <= adc_a_sum[15+21 :  21];      adc_b_dat <= adc_b_sum[15+21 :  21];       adc_a_q_dat <= adc_a_q_sum[15+21 :  21];        adc_b_q_dat <= adc_b_q_sum[15+21 :  21];            end
+         32'h400000    : begin adc_a_dat <= adc_a_sum[15+22 :  22];      adc_b_dat <= adc_b_sum[15+22 :  22];       adc_a_q_dat <= adc_a_q_sum[15+22 :  22];        adc_b_q_dat <= adc_b_q_sum[15+22 :  22];            end
+         32'h800000    : begin adc_a_dat <= adc_a_sum[15+23 :  23];      adc_b_dat <= adc_b_sum[15+23 :  23];       adc_a_q_dat <= adc_a_q_sum[15+23 :  23];        adc_b_q_dat <= adc_b_q_sum[15+23 :  23];            end
+         32'h1000000   : begin adc_a_dat <= adc_a_sum[15+24 :  24];      adc_b_dat <= adc_b_sum[15+24 :  24];       adc_a_q_dat <= adc_a_q_sum[15+24 :  24];        adc_b_q_dat <= adc_b_q_sum[15+24 :  24];            end
+         32'h2000000   : begin adc_a_dat <= adc_a_sum[15+25 :  25];      adc_b_dat <= adc_b_sum[15+25 :  25];       adc_a_q_dat <= adc_a_q_sum[15+25 :  25];        adc_b_q_dat <= adc_b_q_sum[15+25 :  25];            end
+         32'h4000000   : begin adc_a_dat <= adc_a_sum[15+26: 26];      adc_b_dat <= adc_b_sum[15+26: 26];       adc_a_q_dat <= adc_a_q_sum[15+26: 26];        adc_b_q_dat <= adc_b_q_sum[15+26: 26];            end
+         32'h8000000   : begin adc_a_dat <= adc_a_sum[15+27: 27];      adc_b_dat <= adc_b_sum[15+27: 27];       adc_a_q_dat <= adc_a_q_sum[15+27: 27];        adc_b_q_dat <= adc_b_q_sum[15+27: 27];            end
+         32'h10000000  : begin adc_a_dat <= adc_a_sum[15+28: 28];      adc_b_dat <= adc_b_sum[15+28: 28];       adc_a_q_dat <= adc_a_q_sum[15+28: 28];        adc_b_q_dat <= adc_b_q_sum[15+28: 28];            end
+         32'h20000000  : begin adc_a_dat <= adc_a_sum[15+29: 29];      adc_b_dat <= adc_b_sum[15+29: 29];       adc_a_q_dat <= adc_a_q_sum[15+29: 29];        adc_b_q_dat <= adc_b_q_sum[15+29: 29];            end
+         32'h40000000  : begin adc_a_dat <= adc_a_sum[15+30: 30];      adc_b_dat <= adc_b_sum[15+30: 30];       adc_a_q_dat <= adc_a_q_sum[15+30: 30];        adc_b_q_dat <= adc_b_q_sum[15+30: 30];            end
+         32'h80000000  : begin adc_a_dat <= adc_a_sum[15+31: 31];      adc_b_dat <= adc_b_sum[15+31: 31];       adc_a_q_dat <= adc_a_q_sum[15+31: 31];        adc_b_q_dat <= adc_b_q_sum[15+31: 31];            end
          default   : begin adc_a_dat <= adc_a_sum[15+0 :  0];      adc_b_dat <= adc_b_sum[15+0 :  0];       adc_a_q_dat <= adc_a_q_sum[15+0 :  0];        adc_b_q_dat <= adc_b_q_sum[15+0 :  0];            end
       endcase
 
@@ -539,7 +555,7 @@ always @(posedge adc_clk_i) begin
       set_a_tresh   <=  14'd5000   ;
       set_b_tresh   <= -14'd5000   ;
       set_dly       <=  32'd0      ;
-      set_dec       <=  17'd1      ;
+      set_dec       <=  32'd1      ;
       set_a_hyst    <=  14'd20     ;
       set_b_hyst    <=  14'd20     ;
       set_avg_en    <=   1'b1      ;
@@ -557,7 +573,7 @@ always @(posedge adc_clk_i) begin
          if (addr[19:0]==20'h8)    set_a_tresh <= wdata[14-1:0] ;
          if (addr[19:0]==20'hC)    set_b_tresh <= wdata[14-1:0] ;
          if (addr[19:0]==20'h10)   set_dly     <= wdata[32-1:0] ;
-         if (addr[19:0]==20'h14)   set_dec     <= wdata[17-1:0] ;
+         if (addr[19:0]==20'h14)   set_dec     <= wdata[32-1:0] ;
          if (addr[19:0]==20'h20)   set_a_hyst  <= wdata[14-1:0] ;
          if (addr[19:0]==20'h24)   set_b_hyst  <= wdata[14-1:0] ;
          if (addr[19:0]==20'h28)   set_avg_en  <= wdata[     0] ;
@@ -587,7 +603,7 @@ always @(*) begin
      20'h00008 : begin ack <= 1'b1;          rdata <= {{32-14{1'b0}}, set_a_tresh}        ; end
      20'h0000C : begin ack <= 1'b1;          rdata <= {{32-14{1'b0}}, set_b_tresh}        ; end
      20'h00010 : begin ack <= 1'b1;          rdata <= {               set_dly}            ; end
-     20'h00014 : begin ack <= 1'b1;          rdata <= {{32-17{1'b0}}, set_dec}            ; end
+     20'h00014 : begin ack <= 1'b1;          rdata <= {{32-32{1'b0}}, set_dec}            ; end
 
      20'h00018 : begin ack <= 1'b1;          rdata <= {{32-RSZ{1'b0}}, adc_wp_cur}        ; end
      20'h0001C : begin ack <= 1'b1;          rdata <= {{32-RSZ{1'b0}}, adc_wp_trig}       ; end
