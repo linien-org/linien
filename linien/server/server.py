@@ -125,6 +125,8 @@ class RedPitayaControlService(BaseService):
         return (
             self.parameters.autolock_running.value
             or self.parameters.optimization_running.value
+            or self.parameters.psd_acquisition_running.value
+            or self.parameters.psd_optimization_running.value
         )
 
     def exposed_start_autolock(self, x0, x1, spectrum, additional_spectra=None):

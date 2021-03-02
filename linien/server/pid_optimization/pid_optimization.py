@@ -6,9 +6,7 @@ from scipy import signal
 from time import time
 
 
-# TODO: not all decimations are needed, steps > 1 can be made
-DECIMATIONS = list(range(17))
-DECIMATIONS = [0, 4, 8, 12, 16]
+ALL_DECIMATIONS = list(range(32))
 
 # TODO: FÜR PSD TATSÄCHLICH BAYES VERWENDEN, WEIL LÄNGER DAUERT?
 
@@ -16,7 +14,7 @@ DECIMATIONS = [0, 4, 8, 12, 16]
 def residual_freq_noise(dt, sig):
     fs = 1 / dt
     # num_pts = int(len(sig) / 128)
-    num_pts = 256
+    num_pts = 512
     hann = signal.hann(num_pts)
     f, psd = signal.welch(sig, fs=fs, window=hann, nperseg=num_pts)
     return f, psd
@@ -37,8 +35,7 @@ def generate_curve_uuid():
 
 
 class PSDAcquisition:
-    def __init__(self, control, parameters, decimations=DECIMATIONS, is_child=False):
-        self.decimations = decimations
+    def __init__(self, control, parameters, is_child=False):
         self.decimation_index = 0
 
         self.recorded_signals_by_decimation = {}
@@ -51,52 +48,75 @@ class PSDAcquisition:
         self.is_child = is_child
 
     def run(self):
-        self.uuid = generate_curve_uuid()
-        self.set_decimation(DECIMATIONS[0])
-        self.add_listeners()
+        try:
+            self.uuid = generate_curve_uuid()
+            self.set_decimation(ALL_DECIMATIONS[0])
+            self.add_listeners()
+            self.parameters.psd_acquisition_running.value = True
+        except:
+            self.cleanup()
+            raise
 
     def add_listeners(self):
         self.parameters.acquisition_raw_data.on_change(
             self.react_to_new_signal, call_listener_with_first_value=False
         )
 
-    def remove_listeners(self):
-        # TODO: if something fails, (try to) remove listeners
+    def cleanup(self):
+        self.running = False
+        self.parameters.psd_acquisition_running.value = False
+
         self.parameters.acquisition_raw_data.remove_listener(self.react_to_new_signal)
+
+        if not self.is_child:
+            self.control.pause_acquisition()
+            self.parameters.acquisition_raw_enabled.value = False
+            self.control.exposed_write_data()
+            self.control.continue_acquisition()
 
     def react_to_new_signal(self, data_pickled):
         # FIXME: erster Datenpunkt oder letzter haben manchmal glitches --> entfernen?
-        if not self.running or self.parameters.pause_acquisition.value:
-            return
+        try:
+            if not self.running or self.parameters.pause_acquisition.value:
+                return
 
-        data = pickle.loads(data_pickled)
+            data = pickle.loads(data_pickled)
 
-        current_decimation = self.parameters.acquisition_raw_decimation.value
-        print("recorded signal for decimation", current_decimation)
-        self.recorded_signals_by_decimation[current_decimation] = data
-        self.recorded_psds_by_decimation[current_decimation] = residual_freq_noise(
-            1 / (125e6) * (2 ** (current_decimation)), data[0]
-        )
-        self.decimation_index += 1
-        complete = self.decimation_index >= len(DECIMATIONS)
-        self.publish_psd_data(complete)
+            current_decimation = self.parameters.acquisition_raw_decimation.value
+            print("recorded signal for decimation", current_decimation)
+            print("recording took", time() - self.time_decimation_set, "s")
+            self.recorded_signals_by_decimation[current_decimation] = data
+            self.recorded_psds_by_decimation[current_decimation] = residual_freq_noise(
+                1 / (125e6) * (2 ** (current_decimation)), data[0]
+            )
 
-        if not complete:
-            new_decimation = DECIMATIONS[self.decimation_index]
-            print("set new decimation", new_decimation)
-            self.set_decimation(new_decimation)
-        else:
-            self.remove_listeners()
-            self.running = False
+            # note: we don't precalculate the decimation values because we
+            # want the user to be able to change these values while the acquisition
+            # is running (i.e. if the user notices that it takes too long)
+            self.decimation_index += (
+                self.parameters.psd_acquisition_decimation_step.value
+            )
 
-            if not self.is_child:
-                self.control.pause_acquisition()
-                self.parameters.acquisition_raw_enabled.value = False
-                self.control.exposed_write_data()
-                self.control.continue_acquisition()
+            complete = (
+                self.decimation_index
+                > self.parameters.psd_acquisition_max_decimation.value
+            )
+
+            self.publish_psd_data(complete)
+
+            if not complete:
+                new_decimation = self.decimation_index
+                print("set new decimation", new_decimation)
+                self.set_decimation(new_decimation)
+            else:
+                self.cleanup()
+
+        except:
+            self.cleanup()
+            raise
 
     def publish_psd_data(self, complete):
-        self.parameters.psd_data.value = pickle.dumps(
+        data_pickled = pickle.dumps(
             {
                 "uuid": self.uuid,
                 "time": time(),
@@ -109,13 +129,24 @@ class PSDAcquisition:
                 "complete": complete,
             }
         )
+        self.parameters.psd_data_partial.value = data_pickled
+        if complete:
+            # we ave an extra parameter for complete psd data becaue partial
+            # psd data may change quickly. This makes it possible that someone
+            # listening to partial psd data may miss the complete data set because
+            # a new partial trace is being recorded.
+            self.parameters.psd_data_complete.value = data_pickled
 
     def set_decimation(self, decimation):
+        self.time_decimation_set = time()
         self.control.pause_acquisition()
         self.parameters.acquisition_raw_decimation.value = decimation
         self.parameters.acquisition_raw_enabled.value = True
         self.control.exposed_write_data()
         self.control.continue_acquisition()
+
+    def exposed_stop(self):
+        self.cleanup()
 
 
 class PIDOptimization:
@@ -123,19 +154,23 @@ class PIDOptimization:
         self.control = control
         self.parameters = parameters
 
-        self.engine = MultiDimensionalOptimizationEngine([[100, 4000], [100, 4000]])
+        self.engine = MultiDimensionalOptimizationEngine(
+            [[100, 4000], [100, 4000]], x0=[2000, 2000]
+        )
 
     def run(self):
-        self.parameters.psd_data.on_change(
-            self.psd_data_received, call_listener_with_first_value=False
-        )
-        self.start_single_psd_measurement()
+        try:
+            self.parameters.psd_data_complete.on_change(
+                self.psd_data_received, call_listener_with_first_value=False
+            )
+            self.parameters.psd_optimization_running.value = True
+            self.start_single_psd_measurement()
+        except:
+            self.cleanup()
+            raise
 
     def start_single_psd_measurement(self):
         new_params = self.engine.ask()
-        # FIXME: how to tell CMAES that only int is allowed?
-        # FIXME: current parameters as x0
-        # FIXME: CMAES renormalize checken
         self.parameters.p.value = int(new_params[0])
         self.parameters.i.value = int(new_params[1])
 
@@ -144,26 +179,31 @@ class PIDOptimization:
         )
         self.psd_acquisition.run()
 
-    def remove_listeners(self):
-        # TODO: if something fails, (try to) remove listeners
-        self.parameters.psd_data.remove_listener(self.psd_data_received)
+    def cleanup(self):
+        self.parameters.psd_optimization_running.value = False
+        self.parameters.psd_data_complete.remove_listener(self.psd_data_received)
 
     def psd_data_received(self, psd_data_pickled):
-        # TODO: calculate fitness
-        # psd data doesn't have to be stored here as a client that is interested
-        # in it may listen to parameters.psd_data change events
-        psd_data = pickle.loads(psd_data_pickled)
-        if not psd_data["complete"]:
-            return
+        try:
+            # psd data doesn't have to be stored here as a client that is interested
+            # in it may listen to parameters.psd_data change events
+            psd_data = pickle.loads(psd_data_pickled)
 
-        params = (psd_data["p"], psd_data["i"])
-        print("received fitness", psd_data["fitness"], params)
+            params = (psd_data["p"], psd_data["i"])
+            print("received fitness", psd_data["fitness"], params)
 
-        self.engine.tell(psd_data["fitness"], params)
+            self.engine.tell(psd_data["fitness"], params)
 
-        # self.start_single_psd_measurement()
+            self.start_single_psd_measurement()
 
-        done = True
-        if done:
-            # FIXME: implement
-            self.remove_listeners()
+            done = self.engine.finished()
+            if done:
+                # FIXME: implement use of optimized pid parameters
+                self.cleanup()
+
+        except:
+            self.cleanup()
+            raise
+
+    def exposed_stop(self):
+        self.cleanup()

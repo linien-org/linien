@@ -86,6 +86,8 @@ class Parameters(BaseParameters):
             "plot_fill_opacity",
             "autolock_determine_offset",
             "autolock_mode_preference",
+            "psd_acquisition_max_decimation",
+            "psd_acquisition_decimation_step",
         )
 
         self.to_plot = Parameter()
@@ -164,7 +166,7 @@ class Parameters(BaseParameters):
         # The ramp speed in internal units. The actual speed is given by
         #       f_real = 3.8 kHz / (2 ** ramp_speed)
         # Allowed values are [0, ..., 16]
-        self.ramp_speed = Parameter(min_=0, max_=16, start=8)
+        self.ramp_speed = Parameter(min_=0, max_=32, start=8)
 
         #           --------- MODULATION PARAMETERS ---------
 
@@ -318,7 +320,12 @@ class Parameters(BaseParameters):
         self.acquisition_raw_enabled = Parameter(start=False)
         self.acquisition_raw_decimation = Parameter(start=1)
         self.acquisition_raw_data = Parameter()
-        self.psd_data = Parameter(start=None)
+        self.psd_data_partial = Parameter(start=None)
+        self.psd_data_complete = Parameter(start=None)
+        self.psd_acquisition_running = Parameter(start=False)
+        self.psd_optimization_running = Parameter(start=False)
+        self.psd_acquisition_max_decimation = Parameter(start=18, min_=1, max_=32)
+        self.psd_acquisition_decimation_step = Parameter(start=1, min_=1, max_=4)
 
         #           --------- PARAMETERS OF GUI ---------
         self.autoscale_y = Parameter(start=True)

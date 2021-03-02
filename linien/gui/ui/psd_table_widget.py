@@ -27,6 +27,7 @@ class PSDTableWidget(QtGui.QTableWidget, CustomWidget):
         if uuid not in self.uuids:
             row_count = self.rowCount()
             self.setRowCount(row_count + 1)
+            self.uuids.append(uuid)
         else:
             row_count = self.uuids.index(uuid)
 
@@ -62,10 +63,10 @@ class PSDTableWidget(QtGui.QTableWidget, CustomWidget):
 
         self.resizeColumnsToContents()
 
-        self.uuids.append(uuid)
-
     def delete_selected_curve(self):
         current = self.currentRow()
+        if not self.uuids or current == -1:
+            return
 
         try:
             uuid = self.uuids.pop(current)
