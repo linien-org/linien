@@ -14,16 +14,27 @@ class RightPanel(QtGui.QWidget, CustomWidget):
         self.parameters.optimization_running.on_change(self.optimization_status_changed)
         self.parameters.lock.on_change(self.enable_or_disable_panels)
 
+        def highlight_psd_button(locked):
+            self.ids.pid_parameter_optimization_button.setStyleSheet(
+                "background: #00aa00;" if locked else ""
+            )
+
+        self.parameters.lock.on_change(highlight_psd_button)
+
     def ready(self):
         self.ids.closeButton.clicked.connect(self.close_app)
         self.ids.shutdownButton.clicked.connect(self.shutdown_server)
         self.ids.openDeviceManagerButton.clicked.connect(self.open_device_manager)
+        self.ids.pid_parameter_optimization_button.clicked.connect(self.open_psd_window)
 
     def close_app(self):
         self.app().close()
 
     def shutdown_server(self):
         self.app().shutdown()
+
+    def open_psd_window(self):
+        self.app().open_psd_window()
 
     def open_device_manager(self):
         self.app().open_device_manager()

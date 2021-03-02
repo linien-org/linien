@@ -36,6 +36,10 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
         )
         super().show()
 
+    def closeEvent(self, *args, **kwargs):
+        self.app.close_all_secondary_windows()
+        super().closeEvent(*args, **kwargs)
+
     def ready(self):
         # handle keyboard events
         self.setFocus()

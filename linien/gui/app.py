@@ -40,7 +40,6 @@ class QTApp(QtCore.QObject):
 
         self.psd_window = PSDWindow()
         self.psd_window.app = self
-        self.psd_window.show()
 
         self.app.aboutToQuit.connect(lambda: self.app.quit())
 
@@ -95,12 +94,18 @@ class QTApp(QtCore.QObject):
         self.control.shutdown()
         self.close()
 
+    def open_psd_window(self):
+        self.psd_window.show()
+
     def open_device_manager(self):
         self.main_window.hide()
         self.device_manager.show()
 
         self.connection.disconnect()
         del self.connection
+
+    def close_all_secondary_windows(self):
+        self.psd_window.hide()
 
 
 def run_application():

@@ -521,6 +521,13 @@
         </layout>
        </item>
        <item>
+        <widget class="QPushButton" name="pid_parameter_optimization_button">
+         <property name="text">
+          <string>PID parameter optimization</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QPushButton" name="shutdownButton">
          <property name="palette">
           <palette>
@@ -1004,7 +1011,7 @@
             <x>0</x>
             <y>0</y>
             <width>338</width>
-            <height>483</height>
+            <height>441</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1022,7 +1029,7 @@
             <x>0</x>
             <y>0</y>
             <width>338</width>
-            <height>483</height>
+            <height>441</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1040,7 +1047,7 @@
             <x>0</x>
             <y>0</y>
             <width>338</width>
-            <height>483</height>
+            <height>441</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1058,7 +1065,7 @@
             <x>0</x>
             <y>0</y>
             <width>338</width>
-            <height>483</height>
+            <height>441</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -1082,7 +1089,7 @@
             <x>0</x>
             <y>0</y>
             <width>338</width>
-            <height>483</height>
+            <height>441</height>
            </rect>
           </property>
           <property name="sizePolicy">

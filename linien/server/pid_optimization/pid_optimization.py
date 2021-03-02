@@ -1,22 +1,26 @@
-from linien.server.optimization.engine import MultiDimensionalOptimizationEngine
 import pickle
 import random
 import string
-from scipy import signal
+import numpy as np
 from time import time
+from scipy import signal
 
+from linien.server.optimization.engine import MultiDimensionalOptimizationEngine
 
 ALL_DECIMATIONS = list(range(32))
-
-# TODO: FÜR PSD TATSÄCHLICH BAYES VERWENDEN, WEIL LÄNGER DAUERT?
 
 
 def residual_freq_noise(dt, sig):
     fs = 1 / dt
     # num_pts = int(len(sig) / 128)
-    num_pts = 512
+    num_pts = 256
     hann = signal.hann(num_pts)
-    f, psd = signal.welch(sig, fs=fs, window=hann, nperseg=num_pts)
+
+    f, psd = signal.welch(sig, fs=fs, window=hann, nperseg=num_pts, scaling="density")
+
+    # we want to have it in counts / Sqrt[Hz], not in (counts**2) / Hz
+    psd = np.sqrt(psd)
+
     return f, psd
 
 

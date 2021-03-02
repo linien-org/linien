@@ -59,7 +59,7 @@ class PSDTableWidget(QtGui.QTableWidget, CustomWidget):
         self.setItem(row_count, 3, create_item(data["p"]))
         self.setItem(row_count, 4, create_item(data["i"]))
         self.setItem(row_count, 5, create_item(data["d"]))
-        self.setItem(row_count, 6, create_item(data["fitness"]))
+        self.setItem(row_count, 6, create_item("%.4f" % data["fitness"]))
 
         self.resizeColumnsToContents()
 
