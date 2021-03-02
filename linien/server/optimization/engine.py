@@ -46,16 +46,35 @@ class OneDimensionalOptimizationEngine:
 
 
 class MultiDimensionalOptimizationEngine:
-    def __init__(self, bounds):
+    def __init__(self, bounds, x0=None):
+        self.bounds = bounds
+
+        if x0 is not None:
+            x0_converted = self.params_to_internal(x0)
+        else:
+            x0_converted = [0.5 for v in bounds]
+
         self.es = cma.CMAEvolutionStrategy(
-            [np.mean(v) for v in bounds],
+            x0_converted,
             0.5,
-            {"bounds": [[v[0] for v in bounds], [v[1] for v in bounds]]},
+            {"bounds": [[0 for v in bounds], [1 for v in bounds]]},
         )
 
         self._pending = []
         self._done = []
         self._results = []
+
+    def params_to_internal(self, parameters):
+        new_parameters = []
+        for [min_, max_], param in zip(self.bounds, parameters):
+            new_parameters.append((param - min_) / (max_ - min_))
+        return new_parameters
+
+    def internal_to_params(self, internal):
+        parameters = []
+        for [min_, max_], param in zip(self.bounds, internal):
+            parameters.append((param * (max_ - min_)) + min_)
+        return parameters
 
     def finished(self):
         return self.es.stop()
@@ -64,14 +83,16 @@ class MultiDimensionalOptimizationEngine:
         if not self._pending:
             self._pending = self.es.ask()
 
-        return self._pending.pop()
+        return self.internal_to_params(self._pending.pop())
 
     def tell(self, fitness, parameters):
         self._results.append(fitness)
         self._done.append(parameters)
 
         if not self._pending:
-            self.es.tell(self._done, self._results)
+            self.es.tell(
+                [self.params_to_internal(p) for p in self._done], self._results
+            )
             self._results = []
             self._done = []
 
