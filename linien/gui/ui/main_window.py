@@ -70,6 +70,12 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
         self.ids.graphicsView.signal_power2.connect(display_power_channel_2)
         self.ids.graphicsView.keyPressed.connect(self.handle_key_press)
 
+        # by default we hide it and just show when a new version is available
+        self.ids.new_version_available_label.hide()
+
+    def show_new_version_available(self):
+        self.ids.new_version_available_label.show()
+
     def keyPressEvent(self, event):
         self.handle_key_press(event.key())
 

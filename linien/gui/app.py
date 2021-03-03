@@ -19,6 +19,7 @@ from linien.gui.widgets import CustomWidget, ui_path
 sys.path += [ui_path]
 
 from linien.gui.ui.device_manager import DeviceManager
+from linien.gui.ui.version_checker import VersionCheckerThread
 from linien.gui.ui.main_window import MainWindow
 from linien.gui.ui.psd_window import PSDWindow
 from linien.gui.utils_gui import set_window_icon
@@ -68,6 +69,8 @@ class QTApp(QtCore.QObject):
 
         self.call_listeners()
 
+        self.check_for_new_version()
+
     def call_listeners(self):
         if (
             hasattr(self, "connection")
@@ -106,6 +109,19 @@ class QTApp(QtCore.QObject):
 
     def close_all_secondary_windows(self):
         self.psd_window.hide()
+
+    def check_for_new_version(self):
+        self.version_checker = VersionCheckerThread()
+        self.version_checker.check_done.connect(self.new_version_available)
+        self.version_checker.start()
+
+    def new_version_available(self, new_version_available):
+        if new_version_available:
+            print("new version available")
+            self.main_window.show_new_version_available()
+        else:
+            print("no new version available")
+            QtCore.QTimer.singleShot(1000 * 60 * 60, self.check_for_new_version)
 
 
 def run_application():
