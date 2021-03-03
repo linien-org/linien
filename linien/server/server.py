@@ -53,11 +53,15 @@ class BaseService(rpyc.Service):
     def exposed_set_param(self, param_name, value):
         self.parameters._get_param(param_name).value = unpack(value)
 
-    def exposed_get_all_parameters(self):
-        return self.parameters.get_all_parameters()
+    def exposed_init_parameter_sync(self, uuid):
+        return self.parameters.init_parameter_sync(uuid)
 
     def exposed_register_remote_listener(self, uuid, param_name):
         return self.parameters.register_remote_listener(uuid, param_name)
+
+    def exposed_register_remote_listeners(self, uuid, param_names):
+        for param_name in param_names:
+            self.exposed_register_remote_listener(uuid, param_name)
 
     def exposed_get_listener_queue(self, uuid):
         return self.parameters.get_listener_queue(uuid)

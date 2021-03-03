@@ -89,6 +89,15 @@ class BaseParameters:
             if isinstance(element, Parameter):
                 yield name, element
 
+    def init_parameter_sync(self, uuid):
+        """To be called by a remote client: Yields all parameters as well
+        as their values and if the parameters are suited to be cached registers
+        a listener that pushes changes of these parameters to the client."""
+        for name, element in self.get_all_parameters():
+            yield name, element, element.value, element.exposed_can_be_cached
+            if element.exposed_can_be_cached:
+                self.register_remote_listener(uuid, name)
+
     def register_remote_listener(self, uuid, param_name):
         self._remote_listener_queue.setdefault(uuid, [])
         self._remote_listener_callbacks.setdefault(uuid, [])

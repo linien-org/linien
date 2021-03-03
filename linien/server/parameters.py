@@ -90,7 +90,7 @@ class Parameters(BaseParameters):
             "psd_acquisition_decimation_step",
         )
 
-        self.to_plot = Parameter()
+        self.to_plot = Parameter(sync=False)
 
         #           --------- GENERAL PARAMETERS ---------
         # configures the output of the modulation frequency. A value of 0 means
