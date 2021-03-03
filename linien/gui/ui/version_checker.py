@@ -19,11 +19,9 @@ class VersionCheckerThread(QThread):
             with urlopen(
                 "https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/latest_version"
             ) as response:
-                response_content = response.read().strip()
-                # latest_version = (4, 2, 1)
+                response_content = response.read().decode().strip()
                 latest_version = version_string_to_tuple(response_content)
-                our_version = (0, 3, 1)
-                # our_version = version_string_to_tuple(linien.__version__)
+                our_version = version_string_to_tuple(linien.__version__)
                 new_version_available = latest_version > our_version
 
         except:
