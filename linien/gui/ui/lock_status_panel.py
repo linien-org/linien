@@ -76,10 +76,11 @@ class LockStatusPanel(QtGui.QWidget, CustomWidget):
         self.parameters.fetch_quadratures.value = True
 
         if self.parameters.task.value is not None:
+            # this may be autolock or psd acquisition
             self.parameters.task.value.stop()
             self.parameters.task.value = None
-        else:
-            self.control.exposed_start_ramp()
+
+        self.control.exposed_start_ramp()
 
     def control_signal_history_length_changed(self):
         self.parameters.control_signal_history_length.value = (

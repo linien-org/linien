@@ -1,6 +1,6 @@
+from linien.gui.dialogs import error_dialog
 import linien
 import pickle
-import json
 
 from time import time
 from linien.gui.utils_gui import RandomColorChoser, param2ui, set_window_icon
@@ -33,13 +33,18 @@ class PSDWindow(QtGui.QMainWindow, CustomWidget):
         self.ids.export_psd_button.clicked.connect(self.export_psd)
         self.ids.import_psd_button.clicked.connect(self.import_psd)
 
-        print("add index listener")
         self.ids.decimation_multiplier.currentIndexChanged.connect(
             self.change_decimation_multiplier
         )
         self.ids.maximum_measurement_time.currentIndexChanged.connect(
             self.change_maximum_measurement_time
         )
+
+    def closeEvent(self, event, *args, **kwargs):
+        # we never realy want to close the window (which destroys its content)
+        # but just to hide it
+        event.ignore()
+        self.hide()
 
     def change_decimation_multiplier(self, index):
         self.parameters.psd_acquisition_decimation_step.value = index + 1
@@ -112,6 +117,9 @@ class PSDWindow(QtGui.QMainWindow, CustomWidget):
         self.data[curve_uuid] = data
 
     def start_psd(self):
+        if not self.parameters.lock.value:
+            return error_dialog(self, """Laser has to be locked for PSD measurement!""")
+
         self.control.start_psd_acquisition()
 
     def stop_psd(self):
@@ -124,26 +132,27 @@ class PSDWindow(QtGui.QMainWindow, CustomWidget):
 
     def delete_curve(self):
         uuid = self.ids.curve_table.delete_selected_curve()
-        self.ids.psd_plot_widget.delete_curve(uuid)
-        del self.data[uuid]
+        if uuid is not None:
+            self.ids.psd_plot_widget.delete_curve(uuid)
+            del self.data[uuid]
 
     def export_psd(self):
         options = QtWidgets.QFileDialog.Options()
         # options |= QtWidgets.QFileDialog.DontUseNativeDialog
-        default_ext = ".json"
+        default_ext = ".pickle"
         fn, _ = QtWidgets.QFileDialog.getSaveFileName(
             self,
             "QFileDialog.getSaveFileName()",
             "",
-            "JSON (*%s)" % default_ext,
+            "PICKLE (*%s)" % default_ext,
             options=options,
         )
         if fn:
             if not fn.endswith(default_ext):
                 fn = fn + default_ext
 
-            with open(fn, "w") as f:
-                json.dump(
+            with open(fn, "wb") as f:
+                pickle.dump(
                     {
                         "linien-version": linien.__version__,
                         "time": time(),
@@ -155,7 +164,7 @@ class PSDWindow(QtGui.QMainWindow, CustomWidget):
     def import_psd(self):
         options = QtWidgets.QFileDialog.Options()
         # options |= QtWidgets.QFileDialog.DontUseNativeDialog
-        default_ext = ".json"
+        default_ext = ".pickle"
         fn, _ = QtWidgets.QFileDialog.getOpenFileName(
             self,
             "QFileDialog.getSaveFileName()",
@@ -164,8 +173,8 @@ class PSDWindow(QtGui.QMainWindow, CustomWidget):
             options=options,
         )
         if fn:
-            with open(fn, "r") as f:
-                data = json.load(f)
+            with open(fn, "rb") as f:
+                data = pickle.load(f)
 
             assert "linien-version" in data, "invalid parameter file"
 

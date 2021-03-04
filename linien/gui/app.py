@@ -98,6 +98,9 @@ class QTApp(QtCore.QObject):
         self.close()
 
     def open_psd_window(self):
+        # first hiding it, then showing it brings it to foregroud if it is in
+        # background
+        self.psd_window.hide()
         self.psd_window.show()
 
     def open_device_manager(self):

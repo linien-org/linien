@@ -137,7 +137,7 @@ class DeviceManager(QtGui.QMainWindow, CustomWidget):
         def general_connection_error():
             loading_dialog.hide()
             if not aborted:
-                display_error = "Unable to connect to device."
+                display_error = "Unable to connect to device. If you are connecting by hostname (i.e. rp-xxxxxx.local), try using IP address instead."
                 error_dialog(self, display_error)
 
         self.t.general_connection_error.connect(general_connection_error)
@@ -151,7 +151,7 @@ class DeviceManager(QtGui.QMainWindow, CustomWidget):
         self.t.exception.connect(exception)
 
         def ask_for_parameter_restore():
-            question = "Linien on RedPitaya is running with different parameters than the ones saved locally on this machine. Do you want to upload the local parameters or keep the remote ones?"
+            question = "Linien on RedPitaya is running with different parameters than the ones saved locally on this machine. Do you want to upload the local parameters or keep the remote ones? Note that remote parameters are only saved if Linien server was shut down properly, not when unplugging the power plug. In this case, you should update your local parameters."
             should_restore = ask_for_parameter_restore_dialog(
                 self, question, "Restore parameters?"
             )

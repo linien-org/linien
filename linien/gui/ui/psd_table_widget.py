@@ -74,4 +74,13 @@ class PSDTableWidget(QtGui.QTableWidget, CustomWidget):
             return
 
         self.removeRow(current)
+
+        # select the next row
+        row_count = len(self.uuids)
+        if row_count:
+            if row_count > current:
+                self.setCurrentCell(current, 0)
+            else:
+                self.setCurrentCell(current - 1, 0)
+
         return uuid
