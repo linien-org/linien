@@ -14,10 +14,6 @@ class ViewPanel(QtGui.QWidget, CustomWidget):
         self.load_ui("view_panel.ui")
 
     def ready(self):
-        self.ids.autoscale_y_axis.stateChanged.connect(self.autoscale_changed)
-        self.ids.y_axis_limit.setKeyboardTracking(False)
-        self.ids.y_axis_limit.valueChanged.connect(self.y_limits_changed)
-
         self.ids.export_select_file.clicked.connect(self.do_export_select_file)
         self.ids.export_data.clicked.connect(self.do_export_data)
 
@@ -48,13 +44,6 @@ class ViewPanel(QtGui.QWidget, CustomWidget):
         self.control = self.app().control
         self.parameters = params
 
-        def set_y_limit_inputs_enabled(autoscale):
-            self.ids.y_axis_limit.setEnabled(not autoscale)
-
-        params.autoscale_y.on_change(set_y_limit_inputs_enabled)
-        param2ui(params.autoscale_y, self.ids.autoscale_y_axis)
-        param2ui(params.y_axis_limits, self.ids.y_axis_limit)
-
         param2ui(params.plot_line_width, self.ids.plot_line_width)
         param2ui(params.plot_line_opacity, self.ids.plot_line_opacity)
         param2ui(params.plot_fill_opacity, self.ids.plot_fill_opacity)
@@ -69,12 +58,6 @@ class ViewPanel(QtGui.QWidget, CustomWidget):
             getattr(self.parameters, "plot_color_%d" % color_idx).on_change(
                 preview_colors
             )
-
-    def autoscale_changed(self):
-        self.parameters.autoscale_y.value = int(self.ids.autoscale_y_axis.checkState())
-
-    def y_limits_changed(self):
-        self.parameters.y_axis_limits.value = self.ids.y_axis_limit.value()
 
     def plot_line_width_changed(self):
         self.parameters.plot_line_width.value = self.ids.plot_line_width.value()

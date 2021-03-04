@@ -71,8 +71,6 @@ class Parameters(BaseParameters):
             "polarity_fast_out1",
             "polarity_fast_out2",
             "polarity_analog_out0",
-            "autoscale_y",
-            "y_axis_limits",
             "check_lock",
             "analog_out_1",
             "analog_out_2",
@@ -328,8 +326,6 @@ class Parameters(BaseParameters):
         self.psd_acquisition_decimation_step = Parameter(start=1, min_=1, max_=4)
 
         #           --------- PARAMETERS OF GUI ---------
-        self.autoscale_y = Parameter(start=True)
-        self.y_axis_limits = Parameter(start=1)
         self.plot_line_width = Parameter(start=2, min_=0.1, max_=100)
         self.plot_line_opacity = Parameter(start=230, min_=0, max_=255)
         self.plot_fill_opacity = Parameter(start=70, min_=0, max_=255)

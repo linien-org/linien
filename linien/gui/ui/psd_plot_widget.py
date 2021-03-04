@@ -66,10 +66,6 @@ class PSDPlotWidget(pg.PlotWidget, CustomWidget):
             **kwargs
         )
 
-        self.currentItem
-
-        self._fixed_opengl_bug = False
-
         self.curves = {}
 
         self.setLogMode(x=True, y=True)
@@ -82,13 +78,6 @@ class PSDPlotWidget(pg.PlotWidget, CustomWidget):
     def connection_established(self):
         self.control = self.app().control
         self.parameters = self.app().parameters
-
-        if not self._fixed_opengl_bug:
-            self._fixed_opengl_bug = True
-            self.resize(
-                self.parent().frameGeometry().width(),
-                self.parent().frameGeometry().height(),
-            )
 
     def plot_curve(self, uuid, psds, color):
         self.curves[uuid] = self.curves.get(uuid, [])

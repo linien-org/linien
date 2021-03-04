@@ -5,6 +5,7 @@ import numpy as np
 import pyqtgraph as pg
 from linien.client.utils import peak_voltage_to_dBm
 from linien.common import (
+    DECIMATION,
     N_POINTS,
     SpectrumUncorrelatedException,
     check_plot_data,
@@ -18,6 +19,7 @@ from linien.config import N_COLORS
 from linien.gui.config import COLORS, DEFAULT_PLOT_RATE_LIMIT
 from linien.gui.widgets import CustomWidget
 from PyQt5.QtCore import pyqtSignal
+from PyQt5 import QtGui
 from pyqtgraph.Qt import QtCore
 
 # NOTE: this is required for using a pen_width > 1.
@@ -35,19 +37,93 @@ pg.setConfigOptions(
 V = 8192
 
 
+class TimeXAxis(pg.AxisItem, CustomWidget):
+    """Plots x axis as time in seconds instead of point number."""
+
+    def __init__(self, *args, parent=None, **kwargs):
+        pg.AxisItem.__init__(self, *args, **kwargs)
+        self.parent = parent
+
+    @property
+    def parameters(self):
+        return self.parent.parameters
+
+    @property
+    def ramp_speed(self):
+        return self.parameters.ramp_speed
+
+    @property
+    def lock(self):
+        return self.parameters.lock
+
+    def connection_established(self):
+        # we have to wait until parameters (of parent) is available
+        QtCore.QTimer.singleShot(100, self.listen_to_parameter_changes)
+
+    def listen_to_parameter_changes(self):
+        self.ramp_speed.on_change(self.force_repaint_tick_strings)
+        self.lock.on_change(self.force_repaint_tick_strings)
+        self.force_repaint_tick_strings()
+
+    def force_repaint_tick_strings(self, *args):
+        self.picture = None
+        self.update()
+
+    def tickStrings(self, values, scale, spacing):
+        locked = self.lock.value
+        ramp_speed = self.ramp_speed.value if not locked else 0
+        time_between_points = (1 / 125e6) * 2 ** (ramp_speed) * DECIMATION
+        values = [v * time_between_points for v in values]
+        spacing *= time_between_points
+
+        places = max(0, np.ceil(-np.log10(spacing * scale)))
+        strings = []
+        for v in values:
+            vs = v * scale
+            if abs(vs) < 0.001 or abs(vs) >= 10000:
+                vstr = "%g" % vs
+            else:
+                vstr = ("%%0.%df" % places) % vs
+            strings.append(vstr)
+        return strings
+
+
 class PlotWidget(pg.PlotWidget, CustomWidget):
     signal_power1 = pyqtSignal(float)
     signal_power2 = pyqtSignal(float)
     keyPressed = pyqtSignal(int)
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super().__init__(
+            *args,
+            axisItems={"bottom": TimeXAxis(orientation="bottom", parent=self)},
+            **kwargs
+        )
 
-        self.hideAxis("bottom")
+        # self.hideAxis("bottom")
         # self.hideAxis('left')
+        self.getAxis("bottom").enableAutoSIPrefix(False)
 
-        self.setMouseEnabled(x=False, y=False)
-        self.setMenuEnabled(False)
+        # self.setMouseEnabled(x=False, y=False)
+        # self.setMenuEnabled(False)
+        self.showGrid(x=True, y=True)
+        self.setLabel("bottom", "time", units="s")
+
+        # Causes auto-scale button (‘A’ in lower-left corner) to be hidden for this PlotItem
+        self.hideButtons()
+        # we have our own "reset view" button instead
+        self.init_reset_view_button()
+
+        # copied from https://github.com/pyqtgraph/pyqtgraph/blob/master/pyqtgraph/graphicsItems/PlotItem/PlotItem.py#L133
+        # whenever something changes, we check whether to show "auto scale" button
+        self.plotItem.vb.sigStateChanged.connect(
+            self.check_whether_to_show_reset_view_button
+        )
+
+        # user may zoom only as far out as there is still data
+        # https://stackoverflow.com/questions/18868530/pyqtgraph-limit-zoom-to-upper-lower-bound-of-axes
+
+        self.getViewBox().setLimits(xMin=0, xMax=2048, yMin=-1, yMax=1)
 
         # NOTE: increasing the pen width requires OpenGL, otherwise painting
         # gets horribly slow.
@@ -98,7 +174,6 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
 
         self.connection = None
         self.parameters = None
-        self.last_plot_rescale = 0
         self.last_plot_data = None
         self.plot_max = 0
         self.plot_min = np.inf
@@ -118,6 +193,7 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
 
         self._plot_paused = False
         self._cached_plot_data = []
+        self._should_reposition_reset_view_button = False
 
     def _to_data_coords(self, event):
         pos = self.plotItem.vb.mapSceneToView(event.pos())
@@ -183,14 +259,17 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         self.parameters.automatic_mode.on_change(show_or_hide_crosshair)
 
     def mouseMoveEvent(self, event):
-        if self.touch_start is None:
-            return
+        if not self.selection_running:
+            super().mouseMoveEvent(event)
+        else:
+            if self.touch_start is None:
+                return
 
-        x0, y0 = self.touch_start
+            x0, y0 = self.touch_start
 
-        x, y = self._to_data_coords(event)
-        x = self._within_boundaries(x)
-        self.set_selection_overlay(x0, x - x0)
+            x, y = self._to_data_coords(event)
+            x = self._within_boundaries(x)
+            self.set_selection_overlay(x0, x - x0)
 
     def init_overlays(self):
         self.overlay = pg.LinearRegionItem(values=(0, 0), movable=False)
@@ -223,21 +302,19 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
     def mousePressEvent(self, event):
         super().mousePressEvent(event)
 
-        if event.button() == QtCore.Qt.RightButton:
-            return
-
-        x, y = self._to_data_coords(event)
-
-        if not self.selection_running:
-            return
-
         if self.selection_running:
-            if x < self.selection_boundaries[0] or x > self.selection_boundaries[1]:
+            if event.button() == QtCore.Qt.RightButton:
                 return
 
-        self.touch_start = x, y
-        self.set_selection_overlay(x, 0)
-        self.overlay.setVisible(True)
+            x, y = self._to_data_coords(event)
+
+            if self.selection_running:
+                if x < self.selection_boundaries[0] or x > self.selection_boundaries[1]:
+                    return
+
+            self.touch_start = x, y
+            self.set_selection_overlay(x, 0)
+            self.overlay.setVisible(True)
 
     def _within_boundaries(self, x):
         boundaries = (
@@ -253,58 +330,64 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
     def mouseReleaseEvent(self, event):
         super().mouseReleaseEvent(event)
 
-        if self.touch_start is None:
-            return
+        if self.selection_running:
+            if self.touch_start is None:
+                return
 
-        x, y = self._to_data_coords(event)
-        x = self._within_boundaries(x)
-        x0, y0 = self.touch_start
-        xdiff = np.abs(x0 - x)
-        xmax = len(self.last_plot_data[0]) - 1
-        if xdiff / xmax < 0.01:
-            # it was a click
-            pass
-        else:
-            # it was a selection
-            if self.selection_running:
-                if self.parameters.autolock_selection.value:
-                    last_combined_error_signal = self.last_plot_data[2]
-                    self.parameters.autolock_selection.value = False
+            x, y = self._to_data_coords(event)
+            x = self._within_boundaries(x)
+            x0, y0 = self.touch_start
+            xdiff = np.abs(x0 - x)
+            xmax = len(self.last_plot_data[0]) - 1
+            if xdiff / xmax < 0.01:
+                # it was a click
+                pass
+            else:
+                # it was a selection
+                if self.selection_running:
+                    if self.parameters.autolock_selection.value:
+                        last_combined_error_signal = self.last_plot_data[2]
+                        self.parameters.autolock_selection.value = False
 
-                    self.control.start_autolock(
-                        # we pickle it here because otherwise a netref is
-                        # transmitted which blocks the autolock
-                        *sorted([x0, x]),
-                        pickle.dumps(last_combined_error_signal),
-                        additional_spectra=pickle.dumps(self._cached_plot_data)
-                    )
+                        self.control.start_autolock(
+                            # we pickle it here because otherwise a netref is
+                            # transmitted which blocks the autolock
+                            *sorted([x0, x]),
+                            pickle.dumps(last_combined_error_signal),
+                            additional_spectra=pickle.dumps(self._cached_plot_data)
+                        )
 
-                    (
-                        mean_signal,
-                        target_slope_rising,
-                        target_zoom,
-                        rolled_error_signal,
-                        line_width,
-                        peak_idxs,
-                    ) = get_lock_point(
-                        last_combined_error_signal, *sorted((int(x0), int(x)))
-                    )
-                    self.autolock_ref_spectrum = rolled_error_signal
-                elif self.parameters.optimization_selection.value:
-                    dual_channel = self.parameters.dual_channel.value
-                    channel = self.parameters.optimization_channel.value
-                    spectrum = self.last_plot_data[
-                        0 if not dual_channel else (0, 1)[channel]
-                    ]
-                    self.parameters.optimization_selection.value = False
-                    points = sorted([int(x0), int(x)])
-                    self.control.start_optimization(*points, pickle.dumps(spectrum))
+                        (
+                            mean_signal,
+                            target_slope_rising,
+                            target_zoom,
+                            rolled_error_signal,
+                            line_width,
+                            peak_idxs,
+                        ) = get_lock_point(
+                            last_combined_error_signal, *sorted((int(x0), int(x)))
+                        )
+                        self.autolock_ref_spectrum = rolled_error_signal
+                    elif self.parameters.optimization_selection.value:
+                        dual_channel = self.parameters.dual_channel.value
+                        channel = self.parameters.optimization_channel.value
+                        spectrum = self.last_plot_data[
+                            0 if not dual_channel else (0, 1)[channel]
+                        ]
+                        self.parameters.optimization_selection.value = False
+                        points = sorted([int(x0), int(x)])
+                        self.control.start_optimization(*points, pickle.dumps(spectrum))
 
-        self.overlay.setVisible(False)
-        self.touch_start = None
+            self.overlay.setVisible(False)
+            self.touch_start = None
 
     def replot(self, to_plot):
         time_beginning = time()
+
+        if self._should_reposition_reset_view_button:
+            self._should_reposition_reset_view_button = False
+            self.position_reset_view_button()
+
         if (
             time_beginning - self.last_plot_time <= self.plot_rate_limit
             and not self._plot_paused
@@ -364,7 +447,6 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
                 all_signals = (error_signal, control_signal, history, slow_history)
 
                 self.plot_data_locked(to_plot)
-                self.update_plot_scaling(all_signals)
                 self.plot_autolock_target_line(None)
             else:
                 dual_channel = self.parameters.dual_channel.value
@@ -463,8 +545,6 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
                     self.signal_power1.emit(-1000)
                     self.signal_power2.emit(-1000)
 
-                self.update_plot_scaling(all_signals)
-
         time_end = time()
         time_diff = time_end - time_beginning
         new_rate_limit = 2 * time_diff
@@ -545,26 +625,6 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         # are only caught here
         self.keyPressed.emit(event.key())
 
-    def update_plot_scaling(self, signals, force=False):
-        if force or time() - self.last_plot_rescale > 0.5:
-            all_ = np.array([])
-            for signal in signals:
-                all_ = np.append(all_, signal)
-
-            if self.parameters.autoscale_y.value:
-                self.plot_min = np.min(all_) / V
-                self.plot_max = np.max(all_) / V
-            else:
-                limit = self.parameters.y_axis_limits.value
-                self.plot_min, self.plot_max = -limit, limit
-
-            if self.plot_min == self.plot_max:
-                self.plot_max += 0.0001
-
-            self.setYRange(self.plot_min, self.plot_max)
-
-            self.last_plot_rescale = time()
-
     def update_control_signal_history(self, to_plot):
         self.control_history_data = update_control_signal_history(
             self.control_signal_history_data,
@@ -627,13 +687,42 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         This is useful for letting the user select a line that is then used in
         the autolock."""
         self._plot_paused = True
-        # pausing plot means that no new plot data is allowed. As plot scaling
-        # is only updated when new data is plotted, this may lead to a situation
-        # where plot scaling is not up-to-date with the latest data
-        # --> force rescaling here once
-        self.update_plot_scaling(self.last_plot_data, force=True)
 
     def resume_plot_and_clear_cache(self):
         """Resumes plotting again."""
         self._plot_paused = False
         self._cached_plot_data = []
+
+    def init_reset_view_button(self):
+        self.reset_view_button = QtGui.QPushButton(self)
+        self.reset_view_button.setText("Reset view")
+        self.reset_view_button.setStyleSheet("padding: 10px; font-weight: bold")
+        icon = QtGui.QIcon.fromTheme("view-restore")
+        self.reset_view_button.setIcon(icon)
+        self.reset_view_button.clicked.connect(self.reset_view)
+        self.position_reset_view_button()
+
+    # called when widget is resized
+    def position_reset_view_button(self):
+        pos = QtCore.QPoint(
+            self.geometry().width() - self.reset_view_button.geometry().width() - 25,
+            25,
+        )
+        self.reset_view_button.move(pos)
+
+    def check_whether_to_show_reset_view_button(self):
+        # copied from https://github.com/pyqtgraph/pyqtgraph/blob/master/pyqtgraph/graphicsItems/PlotItem/PlotItem.py#L1195
+        auto_scale_disabled = not all(self.plotItem.vb.autoRangeEnabled())
+        if auto_scale_disabled:
+            self.reset_view_button.show()
+        else:
+            self.reset_view_button.hide()
+
+    def reset_view(self):
+        self.enableAutoRange()
+
+    def resizeEvent(self, event, *args, **kwargs):
+        super().resizeEvent(event, *args, **kwargs)
+
+        # we don't do it directly here because this causes problems for some reason
+        self._should_reposition_reset_view_button = True
