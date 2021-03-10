@@ -1,3 +1,6 @@
+## V 0.4.1
+- fix a bug in the server package that lead to an incomplete install
+
 ## V 0.4.0
 - Implemented new autolock algorithms that are faster and work with high jitter
 - For noise analysis, PSD of the error signal may be recorded

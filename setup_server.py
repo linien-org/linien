@@ -13,7 +13,13 @@ setuptools.setup(
     long_description='Have a look at the "linien" package for installation instructions.',
     long_description_content_type="text/x-rst",
     url="https://github.com/hermitdemschoenenleben/linien",
-    packages=["linien", "linien.server", "linien.server.optimization"],
+    packages=[
+        "linien",
+        "linien.server",
+        "linien.server.autolock",
+        "linien.server.optimization",
+        "linien.server.pid_optimization",
+    ],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
