@@ -19,6 +19,7 @@ Features
 -   **Autolock**: Click and drag over a line, and Linien will
     automatically lock to it.
 -   **IQ demodulation**: Optimize demodulation phase in an instant
+-   **Noise analysis**: Record phase spectral density (PSD) of the error signal for analyzing noise of the locked laser and for optimizing PID parameters
 -   **Lock detection**: Linien is capable of detecting loss of lock.
 -   **Automatic relocking**: in that case, it relocks autonomously.
 -   **Machine learning** is used to tune the spectroscopy parameters in order to optimize the signal
