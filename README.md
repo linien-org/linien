@@ -5,7 +5,7 @@ LINIEN
 
 User-friendly locking of lasers using RedPitaya (STEMlab 125-14) that just works.
 Linien aims to follow the UNIX philosophy of doing a single thing (locking using intelligent algorithms) very well.
-It was mainly developed for locking spectroscopy signals but may also be used for Pound-Drever-Hall or oter Lock-In techniques.
+It was mainly developed for locking spectroscopy signals but may also be used for Pound-Drever-Hall or other lock-in techniques.
 It is built with Python and [Migen](https://github.com/m-labs/migen) and is based on [RED
 PID](https://github.com/quartiq/redpid).
 
