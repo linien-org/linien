@@ -1,3 +1,9 @@
+## V 0.4.0
+- Implemented new autolock algorithms that are faster and work with high jitter
+- For noise analysis, PSD of the error signal may be recorded
+- Plot window of the main window may be zoomed / panned by clicking and dragging / using the mouse wheel
+- Parameters are not only backed up on the client side but also on the server. When client connects to a server with parameter mismatch, the user may decide whether to keep local or remote parameters
+
 ## V 0.3.2
 - FIX: incompatibility with rpyc==5.0.0
 - improved documentation
