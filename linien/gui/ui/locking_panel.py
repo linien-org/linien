@@ -17,11 +17,11 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
         self.ids.kd.setKeyboardTracking(False)
         self.ids.kd.valueChanged.connect(self.kd_changed)
         self.ids.kd.setKeyboardTracking(False)
-        self.ids.checkLockCheckbox.stateChanged.connect(self.check_lock_changed)
-        self.ids.watchLockCheckbox.stateChanged.connect(self.watch_lock_changed)
-        self.ids.watch_lock_threshold.valueChanged.connect(
-            self.watch_lock_threshold_changed
-        )
+        #self.ids.checkLockCheckbox.stateChanged.connect(self.check_lock_changed)
+        #self.ids.watchLockCheckbox.stateChanged.connect(self.watch_lock_changed)
+        #self.ids.watch_lock_threshold.valueChanged.connect(
+        #    self.watch_lock_threshold_changed
+        #)
         self.ids.lock_control_container.currentChanged.connect(self.lock_mode_changed)
 
         self.ids.selectLineToLock.clicked.connect(self.start_autolock_selection)
@@ -50,13 +50,13 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
         param2ui(params.i, self.ids.ki)
         param2ui(params.d, self.ids.kd)
 
-        param2ui(params.check_lock, self.ids.checkLockCheckbox)
-        param2ui(params.watch_lock, self.ids.watchLockCheckbox)
-        param2ui(
-            params.watch_lock_threshold,
-            self.ids.watch_lock_threshold,
-            lambda v: v * 100,
-        )
+        #param2ui(params.check_lock, self.ids.checkLockCheckbox)
+        #param2ui(params.watch_lock, self.ids.watchLockCheckbox)
+        #param2ui(
+        #    params.watch_lock_threshold,
+        #    self.ids.watch_lock_threshold,
+        #    lambda v: v * 100,
+        #)
         param2ui(params.autolock_determine_offset, self.ids.autoOffsetCheckbox)
         param2ui(
             params.automatic_mode,
@@ -121,11 +121,11 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
         self.parameters.d.value = self.ids.kd.value()
         self.control.write_data()
 
-    def check_lock_changed(self):
+    """def check_lock_changed(self):
         self.parameters.check_lock.value = int(self.ids.checkLockCheckbox.checkState())
 
     def watch_lock_changed(self):
-        self.parameters.watch_lock.value = int(self.ids.watchLockCheckbox.checkState())
+        self.parameters.watch_lock.value = int(self.ids.watchLockCheckbox.checkState())"""
 
     def lock_mode_changed(self, idx):
         self.parameters.automatic_mode.value = idx == 0
@@ -160,10 +160,10 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
     def stop_autolock_selection(self):
         self.parameters.autolock_selection.value = False
 
-    def watch_lock_threshold_changed(self):
+    """def watch_lock_threshold_changed(self):
         self.parameters.watch_lock_threshold.value = (
             self.ids.watch_lock_threshold.value() / 100.0
-        )
+        )"""
 
     def reset_lock_failed(self):
         self.parameters.autolock_failed.value = False

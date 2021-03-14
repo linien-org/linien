@@ -501,83 +501,17 @@
            </widget>
           </item>
           <item>
-           <widget class="QCheckBox" name="checkLockCheckbox">
-            <property name="text">
-             <string>Check lock</string>
+           <spacer name="verticalSpacer_6">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
             </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="watchLockCheckbox">
-            <property name="text">
-             <string>Watch lock</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="label_8">
-            <property name="maximumSize">
+            <property name="sizeHint" stdset="0">
              <size>
-              <width>300</width>
-              <height>16777215</height>
+              <width>20</width>
+              <height>40</height>
              </size>
             </property>
-            <property name="text">
-             <string>Automatically relocks if a quick control signal change of more than</string>
-            </property>
-            <property name="wordWrap">
-             <bool>true</bool>
-            </property>
-            <property name="margin">
-             <number>0</number>
-            </property>
-            <property name="indent">
-             <number>30</number>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_5">
-            <property name="leftMargin">
-             <number>30</number>
-            </property>
-            <item>
-             <widget class="QDoubleSpinBox" name="watch_lock_threshold">
-              <property name="maximum">
-               <double>50.000000000000000</double>
-              </property>
-              <property name="value">
-               <double>1.000000000000000</double>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="label_15">
-              <property name="text">
-               <string>%</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <widget class="QLabel" name="label_16">
-            <property name="maximumSize">
-             <size>
-              <width>300</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>is detected.</string>
-            </property>
-            <property name="indent">
-             <number>30</number>
-            </property>
-           </widget>
+           </spacer>
           </item>
          </layout>
         </widget>

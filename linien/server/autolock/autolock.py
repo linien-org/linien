@@ -255,11 +255,12 @@ class Autolock:
 
                 return (center - ampl) <= slow_out / 8192 <= (center + ampl)
 
-        self.parameters.autolock_locked.value = (
+        """self.parameters.autolock_locked.value = (
             check_whether_in_lock(control_signal)
             if self.parameters.check_lock.value
             else True
-        )
+        )"""
+        self.parameters.autolock_locked.value = True
 
         if self.parameters.autolock_locked.value and self.should_watch_lock:
             # we start watching the lock status from now on.
