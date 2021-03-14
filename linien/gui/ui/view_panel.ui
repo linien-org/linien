@@ -29,7 +29,7 @@
       <item>
        <widget class="QLabel" name="label_7">
         <property name="text">
-         <string>Just pan / zoom the plot with your mouse (wheel). Click &quot;Reset View&quot; button for automatic scaling.</string>
+         <string>Just pan (zoom) the plot with your mouse (wheel). Click &quot;Reset View&quot; button for automatic scaling. Right click on plot to set up fixed scaling.</string>
         </property>
         <property name="wordWrap">
          <bool>true</bool>
