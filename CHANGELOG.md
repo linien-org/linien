@@ -1,3 +1,6 @@
+## V 0.4.2
+- **Removed "Check lock" and "Watch lock" features** as they caused problems with the new autolock algorithms as well as with noise analysis. These features are planned to be reimplemented in a future release (and in a more sophisticated way). If you rely on these features, consider using Linien version `0.3.2` until then.
+
 ## V 0.4.1
 - fix a bug in the server package that lead to an incomplete install
 
