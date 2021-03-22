@@ -4,3 +4,7 @@ rpyc==4.1.5
 paramiko>=2.5.0
 plumbum>=1.6.7
 uuid
+PyQt5==5.12.2
+pyqtgraph>=0.10.0
+appdirs>=1.4.3
+linien-python-client
