@@ -1,8 +1,5 @@
-# This is a basic workflow to help you get started with Actions
+name: Pyinstaller Windows
 
-name: Test-Workflow
-
-# Controls when the action will run.
 on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -28,26 +25,24 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
-
-      - name: Print input
-        run: echo "The log level is $INPUT_VERSION_NAME"
-
       - name: create VERSION file
         run: echo "$INPUT_VERSION_NAME" > linien/VERSION
+
+      # NOTE: we hardcode the version of requirements here because the new pip
+      #       resolver otherwise takes ages
+      # ANOTHER NOTE: scipy is fixed to 1.4.1 because of problems with pyinstaller
+      - name: create requirements file
+        run: echo "altgraph==0.17\nppdirs==1.4.4\nbcrypt==3.2.0\ncffi==1.14.2\nclick==7.1.2\ncryptography==3.0\nfuture==0.18.2\nnumpy==1.19.1\nparamiko==2.7.1\npefile==2019.4.18\nplumbum==1.6.9\npycparser==2.20\nPyNaCl==1.4.0\nPyQt5==5.15.0\nPyQt5-sip==12.8.0\npyqtgraph==0.11.0\npywin32-ctypes==0.2.0\nrpyc==4.1.5\nscipy==1.4.1\nsix==1.15.0\nuuid==1.30" > requirements.txt
 
       - name: PyInstaller Windows
         uses: JackMcKew/pyinstaller-action-windows@main
         with:
           path: .
 
-      - name: ls
-        run: ls dist
-
       - uses: actions/upload-artifact@v2
         with:
           name: my-exe
-          path: dist/windows # or path/to/artifact
-
+          path: dist/windows
 
 
 
