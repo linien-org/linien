@@ -394,7 +394,7 @@ Citation
 ```
 @misc{linien,
   author = {Benjamin Wiegand},
-  title = {Linien,
+  title = {Linien - User-friendly spectroscopy locking},
   year = {2020},
   publisher = {GitHub},
   journal = {GitHub repository},
