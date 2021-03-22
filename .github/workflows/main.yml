@@ -31,11 +31,14 @@ jobs:
       
       - name: Print input
         run: echo "The log level is $INPUT_VERSION_NAME"
+        
+      - name: Install requirements
+        run: pip install -r requirements_client
 
       - name: PyInstaller Windows
         uses: JackMcKew/pyinstaller-action-windows@main
         with:
-          path: src
+          path: .
 
       - uses: actions/upload-artifact@v2
         with:
