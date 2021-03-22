@@ -1,5 +1,5 @@
 numpy
-scipy==1.5.0
+scipy==1.4.1
 rpyc==4.1.5
 paramiko>=2.5.0
 plumbum>=1.6.7
