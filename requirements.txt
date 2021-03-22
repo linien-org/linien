@@ -1,0 +1,6 @@
+numpy
+scipy>=1.5.0
+rpyc==4.1.5
+paramiko>=2.5.0
+plumbum>=1.6.7
+uuid

@@ -2,7 +2,7 @@
 
 name: Test-Workflow
 
-# Controls when the action will run. 
+# Controls when the action will run.
 on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -10,12 +10,12 @@ on:
       version_name:
         description: 'Version name'
         required: true
-        
+
 
 env:
   INPUT_VERSION_NAME: ${{ github.event.inputs.version_name }}
 
-  
+
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
@@ -27,13 +27,13 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
-      
-      
+
+
       - name: Print input
         run: echo "The log level is $INPUT_VERSION_NAME"
-        
-      - name: Install requirements
-        run: python3 -m pip install $(cat requirements_client)
+
+      - name: create VERSION file
+        run: echo "$INPUT_VERSION_NAME" > linien/VERSION
 
       - name: PyInstaller Windows
         uses: JackMcKew/pyinstaller-action-windows@main

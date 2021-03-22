@@ -17,8 +17,6 @@ pathex = []
 if platform.system().lower() != 'linux':
     import os
 
-    os.system('pip install numpy scipy>=1.5.0 rpyc==4.1.5 paramiko>=2.5.0 plumbum>=1.6.7 uuid')
-
     # IMPORTANT: For some reason the app doesn't work if pyqt is not installed globally
     # using powershell run with admin privileges.
     """qt_site_packages = 'C:\\Program Files\\Python38\\lib\\site-packages'
