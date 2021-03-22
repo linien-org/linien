@@ -32,12 +32,16 @@ jobs:
       - name: Print input
         run: echo "The log level is $INPUT_VERSION_NAME"
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
+      - name: PyInstaller Windows
+        uses: JackMcKew/pyinstaller-action-windows@main
+        with:
+          path: src
 
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
-        run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+      - uses: actions/upload-artifact@v2
+        with:
+          name: my-exe
+          path: src/dist/windows # or path/to/artifact
+
+
+
+
