@@ -32,7 +32,27 @@ jobs:
       #       resolver otherwise takes ages
       # ANOTHER NOTE: scipy is fixed to 1.4.1 because of problems with pyinstaller
       - name: create requirements file
-        run: echo "altgraph==0.17\nppdirs==1.4.4\nbcrypt==3.2.0\ncffi==1.14.2\nclick==7.1.2\ncryptography==3.0\nfuture==0.18.2\nnumpy==1.19.1\nparamiko==2.7.1\npefile==2019.4.18\nplumbum==1.6.9\npycparser==2.20\nPyNaCl==1.4.0\nPyQt5==5.15.0\nPyQt5-sip==12.8.0\npyqtgraph==0.11.0\npywin32-ctypes==0.2.0\nrpyc==4.1.5\nscipy==1.4.1\nsix==1.15.0\nuuid==1.30" > requirements.txt
+        run: echo "altgraph==0.17
+appdirs==1.4.4
+bcrypt==3.2.0
+cffi==1.14.2
+click==7.1.2
+cryptography==3.0
+future==0.18.2
+numpy==1.19.1
+paramiko==2.7.1
+pefile==2019.4.18
+plumbum==1.6.9
+pycparser==2.20
+PyNaCl==1.4.0
+PyQt5==5.15.0
+PyQt5-sip==12.8.0
+pyqtgraph==0.11.0
+pywin32-ctypes==0.2.0
+rpyc==4.1.5
+scipy==1.4.1
+six==1.15.0
+uuid==1.30" > requirements.txt
 
       - name: PyInstaller Windows
         uses: JackMcKew/pyinstaller-action-windows@main
