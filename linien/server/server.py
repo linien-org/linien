@@ -105,18 +105,18 @@ class RedPitayaControlService(BaseService):
                         return
 
                     self.parameters.to_plot.value = plot_data
+                    self._generate_signal_stats(data_loaded)
 
+                    # update signal history (if in locked state)
                     (
                         self.parameters.control_signal_history.value,
-                        self.parameters.monitor_signal_history.value
-                    ) = (
-                        update_signal_history(
-                            self.parameters.control_signal_history.value,
-                            self.parameters.monitor_signal_history.value,
-                            data_loaded,
-                            is_locked,
-                            self.parameters.control_signal_history_length.value,
-                        )
+                        self.parameters.monitor_signal_history.value,
+                    ) = update_signal_history(
+                        self.parameters.control_signal_history.value,
+                        self.parameters.monitor_signal_history.value,
+                        data_loaded,
+                        is_locked,
+                        self.parameters.control_signal_history_length.value,
                     )
                 else:
                     self.parameters.acquisition_raw_data.value = plot_data
@@ -124,6 +124,17 @@ class RedPitayaControlService(BaseService):
         self.registers.run_data_acquisition(data_received)
         self.pause_acquisition()
         self.continue_acquisition()
+
+    def _generate_signal_stats(self, to_plot):
+        stats = {}
+
+        for signal_name, signal in to_plot.items():
+            stats["%s_mean" % signal_name] = np.mean(signal)
+            stats["%s_std" % signal_name] = np.std(signal)
+            stats["%s_max" % signal_name] = np.max(signal)
+            stats["%s_min" % signal_name] = np.min(signal)
+
+        self.parameters.signal_stats.value = stats
 
     def exposed_write_data(self):
         """Syncs the parameters with the FPGA registers."""

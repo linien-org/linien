@@ -88,7 +88,36 @@ class Parameters(BaseParameters):
             "psd_acquisition_decimation_step",
         )
 
+        # the `to_plot` parameter is a pickled dictionary that contains signals
+        # that may be plotted. Depending on the locking state, it may contain these
+        # signals:
+        # Unlocked state:
+        #   - `error_signal_1` and `error_signal_1_quadrature`:
+        #       IQ-demodulated and low-pass-filtered error signals from
+        #       ANALOG IN 0
+        #   - `error_signal_2` and `error_signal_2_quadrature`:
+        #       IQ-demodulated and low-pass-filtered error signals from
+        #       ANALOG IN 1. These signals are only available if in dual-channel
+        #       spectroscopy mode is enabled. Otherwise the un-demodulated
+        #       monitor_signal` is shown.
+        #   - `monitor_signal`:
+        #       Signal recorded from ANALOG IN 1 without demodulation. Only
+        #       available if dual channel mode is not enabled.
+        #
+        # Locked state:
+        #   - `error_signal`:
+        #       Error signal that is fed into the PID controller.
+        #   - `control_signal`:
+        #       Output of the PID controller.
+        #   - `slow`:
+        #       Output of slow additional integrator on slow analog output.
+        #       Note that this value is not an array but a single point.
         self.to_plot = Parameter(sync=False)
+        # A dictionary that contains mean, standard deviation, minimum value and
+        # maximum value for all the signals contained in `to_plot`.
+        # Exemplary dictionary keys are `error_signal_mean`,
+        # `control_signal_std`, `monitor_signal_min` or `error_signal_2_max`.
+        self.signal_stats = Parameter(sync=False)
 
         #           --------- GENERAL PARAMETERS ---------
         # configures the output of the modulation frequency. A value of 0 means
