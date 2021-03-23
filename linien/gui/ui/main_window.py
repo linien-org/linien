@@ -200,6 +200,9 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
         params.pid_on_slow_enabled.on_change(
             lambda v: self.ids.legend_slow_signal_history.setVisible(v)
         )
+        params.dual_channel.on_change(
+            lambda v: self.ids.legend_monitor_signal_history.setVisible(not v)
+        )
 
         self.ids.settings_toolbox.setCurrentIndex(0)
 
@@ -230,6 +233,7 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
             set_color(self.ids.legend_control_signal, "control_signal")
             set_color(self.ids.legend_control_signal_history, "control_signal_history")
             set_color(self.ids.legend_slow_signal_history, "slow_history")
+            set_color(self.ids.legend_monitor_signal_history, "monitor_signal_history")
 
         for color_idx in range(N_COLORS):
             getattr(self.parameters, "plot_color_%d" % color_idx).on_change(

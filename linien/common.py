@@ -70,32 +70,50 @@ def truncate(times, values, max_time_diff):
         break
 
 
-def update_control_signal_history(history, to_plot, is_locked, max_time_diff):
+def update_signal_history(
+    control_history, monitor_history, to_plot, is_locked, max_time_diff
+):
     if not to_plot:
-        return history
+        return control_history
 
     if is_locked:
-        history["values"].append(np.mean(to_plot["control_signal"]))
-        history["times"].append(time())
+        control_history["values"].append(np.mean(to_plot["control_signal"]))
+        control_history["times"].append(time())
 
         if "slow" in to_plot:
-            history["slow_values"].append(to_plot["slow"])
-            history["slow_times"].append(time())
+            control_history["slow_values"].append(to_plot["slow"])
+            control_history["slow_times"].append(time())
+
+        if "monitor_signal" in to_plot:
+            monitor_history["values"].append(np.mean(to_plot["monitor_signal"]))
+            monitor_history["times"].append(time())
+
     else:
-        history["values"] = []
-        history["times"] = []
-        history["slow_values"] = []
-        history["slow_times"] = []
+        control_history["values"] = []
+        control_history["times"] = []
+        control_history["slow_values"] = []
+        control_history["slow_times"] = []
+        monitor_history["values"] = []
+        monitor_history["times"] = []
 
     # truncate
-    truncate(history["times"], history["values"], max_time_diff)
-    truncate(history["slow_times"], history["slow_values"], max_time_diff)
+    truncate(control_history["times"], control_history["values"], max_time_diff)
+    truncate(
+        control_history["slow_times"], control_history["slow_values"], max_time_diff
+    )
+    truncate(monitor_history["times"], monitor_history["values"], max_time_diff)
 
     # downsample
-    downsample_history(history["times"], history["values"], max_time_diff)
-    downsample_history(history["slow_times"], history["slow_values"], max_time_diff)
-
-    return history
+    downsample_history(
+        control_history["times"], control_history["values"], max_time_diff
+    )
+    downsample_history(
+        control_history["slow_times"], control_history["slow_values"], max_time_diff
+    )
+    downsample_history(
+        monitor_history["times"], monitor_history["values"], max_time_diff
+    )
+    return control_history, monitor_history
 
 
 def check_whether_correlation_is_bad(correlation, N):

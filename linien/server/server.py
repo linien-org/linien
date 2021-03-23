@@ -18,7 +18,7 @@ from parameters import Parameters
 from linien.config import DEFAULT_SERVER_PORT
 from linien.common import (
     check_plot_data,
-    update_control_signal_history,
+    update_signal_history,
     N_POINTS,
     pack,
     unpack,
@@ -106,9 +106,13 @@ class RedPitayaControlService(BaseService):
 
                     self.parameters.to_plot.value = plot_data
 
-                    self.parameters.control_signal_history.value = (
-                        update_control_signal_history(
+                    (
+                        self.parameters.control_signal_history.value,
+                        self.parameters.monitor_signal_history.value
+                    ) = (
+                        update_signal_history(
                             self.parameters.control_signal_history.value,
+                            self.parameters.monitor_signal_history.value,
                             data_loaded,
                             is_locked,
                             self.parameters.control_signal_history_length.value,
@@ -135,7 +139,7 @@ class RedPitayaControlService(BaseService):
 
     def exposed_start_autolock(self, x0, x1, spectrum, additional_spectra=None):
         spectrum = pickle.loads(spectrum)
-        #start_watching = self.parameters.watch_lock.value
+        # start_watching = self.parameters.watch_lock.value
         start_watching = False
         auto_offset = self.parameters.autolock_determine_offset.value
 

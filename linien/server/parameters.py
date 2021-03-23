@@ -142,6 +142,9 @@ class Parameters(BaseParameters):
         self.control_signal_history = Parameter(
             start={"times": [], "values": []}, sync=False
         )
+        self.monitor_signal_history = Parameter(
+            start={"times": [], "values": []}, sync=False
+        )
         # if this boolean is `True`, no new spectroscopy data is sent to the
         # clients. This parameter is used when writing data to FPGA that would
         # result in cropped / distorted signals being displayed.

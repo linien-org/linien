@@ -10,6 +10,7 @@ COLORS = {
     "control_signal": 0,
     "control_signal_history": 1,
     "slow_history": 3,
+    "monitor_signal_history": 4,
 }
 # don't plot more often than once per `DEFAULT_PLOT_RATE_LIMIT` seconds
 DEFAULT_PLOT_RATE_LIMIT = 0.1

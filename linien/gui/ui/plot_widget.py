@@ -13,7 +13,7 @@ from linien.common import (
     determine_shift_by_correlation,
     get_lock_point,
     get_signal_strength_from_i_q,
-    update_control_signal_history,
+    update_signal_history,
 )
 from linien.config import N_COLORS
 from linien.gui.config import COLORS, DEFAULT_PLOT_RATE_LIMIT
@@ -166,6 +166,8 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         self.addItem(self.control_signal_history)
         self.slow_history = pg.PlotCurveItem()
         self.addItem(self.slow_history)
+        self.monitor_signal_history = pg.PlotCurveItem()
+        self.addItem(self.monitor_signal_history)
 
         self.zero_line.setData([0, N_POINTS - 1], [0, 0])
         self.signal1.setData([0, N_POINTS - 1], [1, 1])
@@ -214,6 +216,7 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
                 self.control_signal: "control_signal",
                 self.control_signal_history: "control_signal_history",
                 self.slow_history: "slow_history",
+                self.monitor_signal_history: "monitor_signal_history",
             }.items():
                 color_idx = COLORS[name]
                 r, g, b, *stuff = getattr(
@@ -228,6 +231,7 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         self.parameters.plot_line_opacity.on_change(set_pens)
 
         self.control_signal_history_data = self.parameters.control_signal_history.value
+        self.monitor_signal_history_data = self.parameters.monitor_signal_history.value
 
         self.parameters.to_plot.on_change(self.replot)
 
@@ -424,7 +428,7 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
 
             # we also call this if the laser is not locked because it resets
             # the history in this case
-            history, slow_history = self.update_control_signal_history(to_plot)
+            history, slow_history = self.update_signal_history(to_plot)
 
             if self.parameters.lock.value:
                 self.signal1.setVisible(False)
@@ -432,6 +436,9 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
                 self.control_signal.setVisible(True)
                 self.control_signal_history.setVisible(True)
                 self.slow_history.setVisible(self.parameters.pid_on_slow_enabled.value)
+                self.monitor_signal_history.setVisible(
+                    not self.parameters.dual_channel.value
+                )
                 self.combined_signal.setVisible(True)
                 self.signal_strength_a.setVisible(False)
                 self.signal_strength_b.setVisible(False)
@@ -460,6 +467,7 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
                 self.control_signal.setVisible(False)
                 self.control_signal_history.setVisible(False)
                 self.slow_history.setVisible(False)
+                self.monitor_signal_history.setVisible(False)
 
                 s1 = to_plot["error_signal_1"]
                 s2 = error_signal_2 if error_signal_2 is not None else monitor_signal
@@ -635,13 +643,15 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         # are only caught here
         self.keyPressed.emit(event.key())
 
-    def update_control_signal_history(self, to_plot):
-        self.control_history_data = update_control_signal_history(
+    def update_signal_history(self, to_plot):
+        update_signal_history(
             self.control_signal_history_data,
+            self.monitor_signal_history_data,
             to_plot,
             self.parameters.lock.value,
             self.parameters.control_signal_history_length.value,
         )
+
         if self.parameters.lock.value:
             x_axis_length = N_POINTS
 
@@ -663,6 +673,12 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
                 scale(self.control_signal_history_data["slow_times"]),
                 np.array(slow_values) / V,
             )
+
+            if not self.parameters.dual_channel.value:
+                self.monitor_signal_history.setData(
+                    scale(self.monitor_signal_history_data["times"]),
+                    np.array(self.monitor_signal_history_data["values"]) / V,
+                )
 
             return history, slow_values
         return [], []

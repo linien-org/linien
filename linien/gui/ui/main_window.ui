@@ -296,6 +296,13 @@
               </property>
              </widget>
             </item>
+            <item>
+             <widget class="QLabel" name="legend_monitor_signal_history">
+              <property name="text">
+               <string>monitor signal</string>
+              </property>
+             </widget>
+            </item>
            </layout>
           </widget>
          </item>
