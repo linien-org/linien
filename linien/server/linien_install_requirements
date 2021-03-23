@@ -32,3 +32,12 @@ cp libmonitor.so /usr/lib/
 
 cd /tmp
 rm -R /tmp/linien
+
+# https://github.com/RedPitaya/RedPitaya/issues/205
+echo 'building ethernet blinking fix'
+git clone https://github.com/hermitdemschoenenleben/mdio-tool.git
+cd mdio-tool
+cmake .
+make
+rm -f /usr/bin/mdio-tool
+mv mdio-tool /usr/bin

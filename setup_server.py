@@ -36,12 +36,16 @@ setuptools.setup(
         "linien/server/linien_start_server",
         "linien/server/linien_stop_server",
         "linien/server/linien_install_requirements",
+        "linien/server/linien_start_ethernet_blinking",
+        "linien/server/linien_stop_ethernet_blinking",
     ],
     package_data={
         "": [
             "linien.bin",
             "linien_start_server",
             "linien_stop_server",
+            "linien_start_ethernet_blinking",
+            "linien_stop_ethernet_blinking",
             "linien_install_requirements",
             "VERSION",
         ]

@@ -381,6 +381,12 @@ No, this is not possible as linien relies on a customized FPGA bitstream.
 
 The propagation delay is roughly 300 ns, thus approximately 3 MHz bandwidth are possible.
 
+### Why do ethernet LEDs of RedPitaya stop blinking when linien is running?
+
+Ethernet LED blinking [was found to impact analog outputs of RedPitaya](https://github.com/RedPitaya/RedPitaya/issues/205). As this may impact lock stability, linien disables ethernet LED blinking when starting.
+
+If you want to re-enable the LEDs, just stop the linien server or restart your RedPitaya.
+
 Troubleshooting
 ----
 
