@@ -111,14 +111,18 @@ class Registers:
             logic_autolock_robust_time_scale=params["autolock_time_scale"],
             logic_autolock_robust_final_wait_time=params["autolock_final_wait_time"],
             # channel A
-            fast_a_demod_delay=phase_to_delay(params["demodulation_phase_a"]),
+            fast_a_demod_delay=phase_to_delay(params["demodulation_phase_a"])
+            if params["modulation_frequency"] > 0
+            else 0,
             fast_a_demod_multiplier=params["demodulation_multiplier_a"],
             fast_a_dx_sel=self.csr.signal("zero"),
             fast_a_y_tap=2,
             fast_a_dy_sel=self.csr.signal("zero"),
             fast_a_invert=int(params["invert_a"]),
             # channel B
-            fast_b_demod_delay=phase_to_delay(params["demodulation_phase_b"]),
+            fast_b_demod_delay=phase_to_delay(params["demodulation_phase_b"])
+            if params["modulation_frequency"] > 0
+            else 0,
             fast_b_demod_multiplier=params["demodulation_multiplier_b"],
             fast_b_dx_sel=self.csr.signal("zero"),
             fast_b_y_tap=1,
