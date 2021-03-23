@@ -2,6 +2,8 @@
 
 set -e
 
+read -p "Use production pypi.org? [y/n]" realpypi
+
 while true; do
     read -p "Did you remember to build a new gateware (if required)? [y/n]" yn
     case $yn in
@@ -39,26 +41,33 @@ read -s -p "Enter your pypi password: " password
 
 
 #               CLIENT
-
 python3 setup_client.py sdist bdist_wheel
-# python3 -m twine upload --repository-url https://test.pypi.org/legacy/ dist/* -u hermitdemschoenenleben -p $password
 python3 -m twine check dist/*
-python3 -m twine upload dist/* -u hermitdemschoenenleben -p $password
+
+case $realpypi in
+    [Yy]* ) python3 -m twine upload dist/* -u hermitdemschoenenleben -p $password;;
+    * ) python3 -m twine upload --repository-url https://test.pypi.org/legacy/ dist/* -u hermitdemschoenenleben -p $password;;
+esac
+
 
 #               GUI
-
 rm -R build --force
 rm -R dist --force
 python3 setup_gui.py sdist bdist_wheel
-# python3 -m twine upload --repository-url https://test.pypi.org/legacy/ dist/* -u hermitdemschoenenleben -p $password
 python3 -m twine check dist/*
-python3 -m twine upload dist/* -u hermitdemschoenenleben -p $password
+
+case $realpypi in
+    [Yy]* ) python3 -m twine upload dist/* -u hermitdemschoenenleben -p $password;;
+    * ) python3 -m twine upload --repository-url https://test.pypi.org/legacy/ dist/* -u hermitdemschoenenleben -p $password;;
+esac
 
 #               SERVER
 
 rm -R build --force
 rm -R dist --force
 python3 setup_server.py sdist bdist_wheel
-# python3 -m twine upload --repository-url https://test.pypi.org/legacy/ dist/* -u hermitdemschoenenleben -p $password
-python3 -m twine check dist/*
-python3 -m twine upload dist/* -u hermitdemschoenenleben -p $password
+
+case $realpypi in
+    [Yy]* ) python3 -m twine upload dist/* -u hermitdemschoenenleben -p $password;;
+    * ) python3 -m twine upload --repository-url https://test.pypi.org/legacy/ dist/* -u hermitdemschoenenleben -p $password;;
+esac
