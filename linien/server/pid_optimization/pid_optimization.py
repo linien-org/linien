@@ -16,7 +16,9 @@ def residual_freq_noise(dt, sig):
     num_pts = 256
     hann = signal.hann(num_pts)
 
-    f, psd = signal.welch(sig, fs=fs, window=hann, nperseg=num_pts, scaling="density")
+    f, psd = signal.welch(
+        sig, fs=fs, window=hann, nperseg=num_pts, scaling="density", detrend=False
+    )
 
     # we want to have it in counts / Sqrt[Hz], not in (counts**2) / Hz
     psd = np.sqrt(psd)
