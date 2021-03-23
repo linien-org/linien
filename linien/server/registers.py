@@ -43,11 +43,13 @@ class Registers:
 
         self.parameters.lock.on_change(lock_status_changed)
 
-        def fetch_quadratures_changed(v):
+        def fetch_additional_signals_changed(v):
             if self.acquisition is not None:
-                self.acquisition.fetch_quadratures_changed(v)
+                self.acquisition.fetch_additional_signals_changed(v)
 
-        self.parameters.fetch_quadratures.on_change(fetch_quadratures_changed)
+        self.parameters.fetch_additional_signals.on_change(
+            fetch_additional_signals_changed
+        )
 
         def dual_channel_changed(dual_channel):
             if self.acquisition is not None:

@@ -44,7 +44,7 @@ class DataAcquisitionService(Service):
         # confirmation from the gateware that the lock is actually running.
         self.confirmed_that_in_lock = False
 
-        self.fetch_quadratures = True
+        self.fetch_additional_signals = True
         self.raw_acquisition_enabled = False
         self.raw_acquisition_decimation = 0
 
@@ -143,8 +143,8 @@ class DataAcquisitionService(Service):
         self.locked = locked
         self.confirmed_that_in_lock = False
 
-    def exposed_set_fetch_quadratures(self, fetch):
-        self.fetch_quadratures = fetch
+    def exposed_set_fetch_additional_signals(self, fetch):
+        self.fetch_additional_signals = fetch
 
     def exposed_set_raw_acquisition(self, data):
         self.raw_acquisition_enabled = data[0]
@@ -187,7 +187,7 @@ class DataAcquisitionService(Service):
             signals = []
 
             channel_offsets = [0x10000]
-            if self.fetch_quadratures or self.locked:
+            if self.fetch_additional_signals or self.locked:
                 channel_offsets.append(0x20000)
 
             for channel_offset in channel_offsets:
@@ -203,12 +203,12 @@ class DataAcquisitionService(Service):
             if not self.locked:
                 signals_named["error_signal_1"] = signals[0]
 
-                if self.fetch_quadratures and len(signals) >= 3:
+                if self.fetch_additional_signals and len(signals) >= 3:
                     signals_named["error_signal_1_quadrature"] = signals[2]
 
                 if self.dual_channel:
                     signals_named["error_signal_2"] = signals[1]
-                    if self.fetch_quadratures and len(signals) >= 3:
+                    if self.fetch_additional_signals and len(signals) >= 3:
                         signals_named["error_signal_2_quadrature"] = signals[3]
                 else:
                     signals_named["monitor_signal"] = signals[1]

@@ -152,7 +152,7 @@ class Parameters(BaseParameters):
 
         # this parameter is not exposed to GUI. It is used by the autolock or
         # normal lock to fetch less data if they are not needed.
-        self.fetch_quadratures = Parameter(start=True)
+        self.fetch_additional_signals = Parameter(start=True)
 
         #           --------- RAMP PARAMETERS ---------
 

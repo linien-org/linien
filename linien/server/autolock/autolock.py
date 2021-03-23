@@ -61,7 +61,7 @@ class Autolock:
         self.parameters.autolock_running.value = True
         self.parameters.autolock_preparing.value = True
         self.parameters.autolock_percentage.value = 0
-        self.parameters.fetch_quadratures.value = False
+        self.parameters.fetch_additional_signals.value = False
         self.x0, self.x1 = int(x0), int(x1)
         self.should_watch_lock = should_watch_lock
 
@@ -318,7 +318,7 @@ class Autolock:
         self.parameters.autolock_running.value = False
         self.parameters.autolock_locked.value = False
         self.parameters.autolock_watching.value = False
-        self.parameters.fetch_quadratures.value = True
+        self.parameters.fetch_additional_signals.value = True
         self.remove_data_listener()
 
         self._reset_scan()

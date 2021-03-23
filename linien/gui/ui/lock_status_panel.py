@@ -73,7 +73,7 @@ class LockStatusPanel(QtGui.QWidget, CustomWidget):
         )
 
     def stop_lock(self):
-        self.parameters.fetch_quadratures.value = True
+        self.parameters.fetch_additional_signals.value = True
 
         if self.parameters.task.value is not None:
             # this may be autolock or psd acquisition

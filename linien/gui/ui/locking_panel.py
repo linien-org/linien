@@ -17,11 +17,11 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
         self.ids.kd.setKeyboardTracking(False)
         self.ids.kd.valueChanged.connect(self.kd_changed)
         self.ids.kd.setKeyboardTracking(False)
-        #self.ids.checkLockCheckbox.stateChanged.connect(self.check_lock_changed)
-        #self.ids.watchLockCheckbox.stateChanged.connect(self.watch_lock_changed)
-        #self.ids.watch_lock_threshold.valueChanged.connect(
+        # self.ids.checkLockCheckbox.stateChanged.connect(self.check_lock_changed)
+        # self.ids.watchLockCheckbox.stateChanged.connect(self.watch_lock_changed)
+        # self.ids.watch_lock_threshold.valueChanged.connect(
         #    self.watch_lock_threshold_changed
-        #)
+        # )
         self.ids.lock_control_container.currentChanged.connect(self.lock_mode_changed)
 
         self.ids.selectLineToLock.clicked.connect(self.start_autolock_selection)
@@ -50,13 +50,13 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
         param2ui(params.i, self.ids.ki)
         param2ui(params.d, self.ids.kd)
 
-        #param2ui(params.check_lock, self.ids.checkLockCheckbox)
-        #param2ui(params.watch_lock, self.ids.watchLockCheckbox)
-        #param2ui(
+        # param2ui(params.check_lock, self.ids.checkLockCheckbox)
+        # param2ui(params.watch_lock, self.ids.watchLockCheckbox)
+        # param2ui(
         #    params.watch_lock_threshold,
         #    self.ids.watch_lock_threshold,
         #    lambda v: v * 100,
-        #)
+        # )
         param2ui(params.autolock_determine_offset, self.ids.autoOffsetCheckbox)
         param2ui(
             params.automatic_mode,
@@ -137,7 +137,7 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
         self.parameters.target_slope_rising.value = (
             self.ids.button_slope_rising.isChecked()
         )
-        self.parameters.fetch_quadratures.value = False
+        self.parameters.fetch_additional_signals.value = False
         self.parameters.autolock_mode.value = FAST_AUTOLOCK
         self.parameters.autolock_target_position.value = 0
         self.control.write_data()

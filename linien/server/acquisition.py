@@ -92,7 +92,7 @@ class AcquisitionMaster:
                 elif data[0] == AcquisitionProcessSignals.SET_LOCK_STATUS:
                     acquisition.exposed_set_lock_status(data[1])
                 elif data[0] == AcquisitionProcessSignals.FETCH_QUADRATURES:
-                    acquisition.exposed_set_fetch_quadratures(data[1])
+                    acquisition.exposed_set_fetch_additional_signals(data[1])
                 elif data[0] == AcquisitionProcessSignals.SET_RAW_ACQUISITION:
                     acquisition.exposed_set_raw_acquisition(data[1])
                 elif data[0] == AcquisitionProcessSignals.SET_DUAL_CHANNEL:
@@ -133,7 +133,7 @@ class AcquisitionMaster:
         if self.acq_process:
             self.acq_process.send((AcquisitionProcessSignals.SET_LOCK_STATUS, status))
 
-    def fetch_quadratures_changed(self, status):
+    def fetch_additional_signals_changed(self, status):
         if self.acq_process:
             self.acq_process.send((AcquisitionProcessSignals.FETCH_QUADRATURES, status))
 
