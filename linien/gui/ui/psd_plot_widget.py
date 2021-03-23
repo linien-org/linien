@@ -75,6 +75,16 @@ class PSDPlotWidget(pg.PlotWidget, CustomWidget):
         self.getAxis("bottom").enableAutoSIPrefix(False)
         self.showGrid(x=True, y=True)
 
+        self.vertical_line = pg.InfiniteLine(angle=90, movable=False)
+        self.horizontal_line = pg.InfiniteLine(angle=0, movable=False)
+        self.cursor_label = pg.TextItem(anchor=(0, 0))
+        self.scene().sigMouseMoved.connect(self.mouseMoved)
+        self.addItem(self.vertical_line)
+        self.addItem(self.horizontal_line)
+        self.addItem(self.cursor_label)
+
+        self.recalculate_min_max()
+
     def connection_established(self):
         self.control = self.app().control
         self.parameters = self.app().parameters
@@ -101,6 +111,29 @@ class PSDPlotWidget(pg.PlotWidget, CustomWidget):
             r, g, b = color
             curve.setPen(pg.mkPen((r, g, b, 200)))
 
+        self.recalculate_min_max()
+
+    def recalculate_min_max(self):
+        self._x_min = np.inf
+        self._x_max = -np.inf
+        self._y_min = np.inf
+        self._y_max = -np.inf
+
+        if self.curves:
+            for curves in self.curves.values():
+                for curve in curves:
+                    x, y = curve.getData()
+                    if np.min(x) < self._x_min:
+                        self._x_min = np.min(x)
+                    if np.max(x) > self._x_max:
+                        self._x_max = np.max(x)
+                    if np.min(y) < self._y_min:
+                        self._y_min = np.min(y)
+                    if np.max(y) > self._y_max:
+                        self._y_max = np.max(y)
+
+            self.cursor_label.setPos(self._x_min, self._y_max)
+
     def show_or_hide_curve(self, uuid, show):
         curves = self.curves.get(uuid, [])
 
@@ -111,3 +144,36 @@ class PSDPlotWidget(pg.PlotWidget, CustomWidget):
         for curve in self.curves[uuid]:
             self.removeItem(curve)
         del self.curves[uuid]
+
+    def _to_data_coords(self, event):
+        pos = self.plotItem.vb.mapSceneToView(event.pos())
+        x, y = pos.x(), pos.y()
+        return x, y
+
+    def mouseMoved(self, evt):
+        pos = evt
+
+        if self.sceneBoundingRect().contains(pos):
+            mousePoint = self.plotItem.vb.mapSceneToView(pos)
+            x = mousePoint.x()
+            y = mousePoint.y()
+
+            if x > self._x_max or x < self._x_min or y > self._y_max or y < self._y_min:
+                self.show_cursor_position(False)
+            else:
+                # if index > 0 and index < self.MFmax:
+                self.cursor_label.setHtml(
+                    "<span style='font-size: 12pt'>(%.1e,%.1e)</span>"
+                    % (10 ** x, 10 ** y)
+                )
+                self.vertical_line.setPos(x)
+                self.horizontal_line.setPos(y)
+
+                self.show_cursor_position(True)
+        else:
+            self.show_cursor_position(False)
+
+    def show_cursor_position(self, show):
+        self.vertical_line.setVisible(show)
+        self.horizontal_line.setVisible(show)
+        self.cursor_label.setVisible(show)
