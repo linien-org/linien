@@ -484,7 +484,7 @@
              </size>
             </property>
             <property name="text">
-             <string>Adapt offset such that lock is in the middle between minimum and maximum</string>
+             <string>Adapt offset such that lock is in the middle between minimum and maximum. Note: this setting may reduce reproducability of absolute frequency</string>
             </property>
             <property name="textFormat">
              <enum>Qt::PlainText</enum>

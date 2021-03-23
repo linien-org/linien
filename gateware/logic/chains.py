@@ -39,6 +39,7 @@ class FastChain(Module, AutoCSR):
         s = signal_width - width
 
         self.comb += [
+            x.eq(self.adc << s),
             self.demod.x.eq(self.adc),
             self.demod.phase.eq(mod.phase),
         ]

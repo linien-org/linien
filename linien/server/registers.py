@@ -49,6 +49,12 @@ class Registers:
 
         self.parameters.fetch_quadratures.on_change(fetch_quadratures_changed)
 
+        def dual_channel_changed(dual_channel):
+            if self.acquisition is not None:
+                self.acquisition.set_dual_channel(dual_channel)
+
+        self.parameters.dual_channel.on_change(dual_channel_changed)
+
         use_ssh = self.host is not None and self.host not in ("localhost", "127.0.0.1")
         self.acquisition = AcquisitionMaster(use_ssh, self.host)
 
@@ -152,19 +158,24 @@ class Registers:
                     "scopegen_adc_a_sel": self.csr.signal(
                         "logic_combined_error_signal"
                     ),
-                    "scopegen_adc_a_q_sel": self.csr.signal("zero"),
+                    "scopegen_adc_a_q_sel": self.csr.signal("fast_b_x"),
                     "scopegen_adc_b_sel": self.csr.signal("logic_control_signal"),
                     "scopegen_adc_b_q_sel": self.csr.signal("zero"),
                 }
             )
         else:
-            # display both demodulated error signals
+            # display both demodulated error signals (if dual channel mode)
+            # OR: display demodulated error signal 1 + monitor signal
             new.update(
                 {
                     "scopegen_adc_a_sel": self.csr.signal("fast_a_out_i"),
                     "scopegen_adc_a_q_sel": self.csr.signal("fast_a_out_q"),
-                    "scopegen_adc_b_sel": self.csr.signal("fast_b_out_i"),
-                    "scopegen_adc_b_q_sel": self.csr.signal("fast_b_out_q"),
+                    "scopegen_adc_b_sel": self.csr.signal(
+                        "fast_b_out_i" if params["dual_channel"] else "fast_b_x"
+                    ),
+                    "scopegen_adc_b_q_sel": self.csr.signal(
+                        "fast_b_out_q" if params["dual_channel"] else "zero"
+                    ),
                 }
             )
 

@@ -48,6 +48,8 @@ class DataAcquisitionService(Service):
         self.raw_acquisition_enabled = False
         self.raw_acquisition_decimation = 0
 
+        self.dual_channel = False
+
         self.acquisition_paused = False
         self.skip_next_data = False
 
@@ -148,6 +150,9 @@ class DataAcquisitionService(Service):
         self.raw_acquisition_enabled = data[0]
         self.raw_acquisition_decimation = data[1]
 
+    def exposed_set_dual_channel(self, dual_channel):
+        self.dual_channel = dual_channel
+
     def exposed_set_csr(self, key, value):
         self.csr_queue.append((key, value))
 
@@ -182,7 +187,7 @@ class DataAcquisitionService(Service):
             signals = []
 
             channel_offsets = [0x10000]
-            if self.fetch_quadratures:
+            if self.fetch_quadratures or self.locked:
                 channel_offsets.append(0x20000)
 
             for channel_offset in channel_offsets:
@@ -197,15 +202,23 @@ class DataAcquisitionService(Service):
 
             if not self.locked:
                 signals_named["error_signal_1"] = signals[0]
-                signals_named["error_signal_2"] = signals[1]
 
                 if self.fetch_quadratures and len(signals) >= 3:
                     signals_named["error_signal_1_quadrature"] = signals[2]
-                    signals_named["error_signal_2_quadrature"] = signals[3]
+
+                if self.dual_channel:
+                    signals_named["error_signal_2"] = signals[1]
+                    if self.fetch_quadratures and len(signals) >= 3:
+                        signals_named["error_signal_2_quadrature"] = signals[3]
+                else:
+                    signals_named["monitor_signal"] = signals[1]
 
             else:
                 signals_named["error_signal"] = signals[0]
                 signals_named["control_signal"] = signals[1]
+
+                if not self.dual_channel and len(signals) >= 3:
+                    signals_named["monitor_signal"] = signals[2]
 
             slow_out = self.csr.get("logic_slow_value")
             slow_out = slow_out if slow_out <= 8191 else slow_out - 16384

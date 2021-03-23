@@ -451,13 +451,19 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
             else:
                 dual_channel = self.parameters.dual_channel.value
                 self.signal1.setVisible(True)
-                self.signal2.setVisible(dual_channel)
+                monitor_signal = to_plot.get("monitor_signal")
+                error_signal_2 = to_plot.get("error_signal_2")
+                self.signal2.setVisible(
+                    error_signal_2 is not None or monitor_signal is not None
+                )
                 self.combined_signal.setVisible(dual_channel)
                 self.control_signal.setVisible(False)
                 self.control_signal_history.setVisible(False)
                 self.slow_history.setVisible(False)
 
-                s1, s2 = to_plot["error_signal_1"], to_plot["error_signal_2"]
+                s1 = to_plot["error_signal_1"]
+                s2 = error_signal_2 if error_signal_2 is not None else monitor_signal
+
                 combined_error_signal = combine_error_signal(
                     (s1, s2),
                     dual_channel,
@@ -477,54 +483,57 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
                 self.plot_data_unlocked((s1, s2), combined_error_signal)
                 self.plot_autolock_target_line(combined_error_signal)
 
-                if (
-                    "error_signal_1_quadrature" in to_plot
-                    and self.parameters.modulation_frequency.value != 0
-                ):
-                    self.signal_strength_a.setVisible(True)
-                    self.signal_strength_b.setVisible(dual_channel)
-                    self.signal_strength_a2.setVisible(True)
-                    self.signal_strength_b2.setVisible(dual_channel)
-                    self.signal_strength_a_fill.setVisible(True)
-                    self.signal_strength_b_fill.setVisible(dual_channel)
+                if self.parameters.modulation_frequency.value != 0:
+                    # check whether to plot signal strengths using quadratures
+                    s1q = to_plot.get("error_signal_1_quadrature")
+                    s2q = to_plot.get("error_signal_2_quadrature")
 
-                    s1q, s2q = (
-                        to_plot["error_signal_1_quadrature"],
-                        to_plot["error_signal_2_quadrature"],
-                    )
+                    self.signal_strength_a.setVisible(s1q is not None)
+                    self.signal_strength_a2.setVisible(s1q is not None)
+                    self.signal_strength_a_fill.setVisible(s1q is not None)
 
-                    max_signal_strength_V = (
-                        self.plot_signal_strength(
-                            s1,
-                            s1q,
-                            self.signal_strength_a,
-                            self.signal_strength_a2,
-                            self.signal_strength_a_fill,
-                            self.parameters.offset_a.value,
-                            self.parameters.plot_color_0.value,
+                    self.signal_strength_b.setVisible(s2q is not None)
+                    self.signal_strength_b2.setVisible(s2q is not None)
+                    self.signal_strength_b_fill.setVisible(s2q is not None)
+
+                    if s1q is not None:
+                        max_signal_strength_V = (
+                            self.plot_signal_strength(
+                                s1,
+                                s1q,
+                                self.signal_strength_a,
+                                self.signal_strength_a2,
+                                self.signal_strength_a_fill,
+                                self.parameters.offset_a.value,
+                                self.parameters.plot_color_0.value,
+                            )
+                            / V
                         )
-                        / V
-                    )
-                    max_signal_strength2_V = (
-                        self.plot_signal_strength(
-                            s2,
-                            s2q,
-                            self.signal_strength_b,
-                            self.signal_strength_b2,
-                            self.signal_strength_b_fill,
-                            self.parameters.offset_b.value,
-                            self.parameters.plot_color_1.value,
+                        all_signals.append(
+                            [
+                                max_signal_strength_V * V,
+                                -1 * max_signal_strength_V * V,
+                            ]
                         )
-                        / V
-                    )
 
-                    all_signals.append(
-                        [
-                            max_signal_strength_V * V,
-                            -1 * max_signal_strength_V * V,
-                        ]
-                    )
-                    if dual_channel:
+                        self.signal_power1.emit(
+                            peak_voltage_to_dBm(max_signal_strength_V)
+                        )
+
+                    if s2q is not None:
+                        max_signal_strength2_V = (
+                            self.plot_signal_strength(
+                                s2,
+                                s2q,
+                                self.signal_strength_b,
+                                self.signal_strength_b2,
+                                self.signal_strength_b_fill,
+                                self.parameters.offset_b.value,
+                                self.parameters.plot_color_1.value,
+                            )
+                            / V
+                        )
+
                         all_signals.append(
                             [
                                 max_signal_strength2_V * V,
@@ -532,8 +541,9 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
                             ]
                         )
 
-                    self.signal_power1.emit(peak_voltage_to_dBm(max_signal_strength_V))
-                    self.signal_power2.emit(peak_voltage_to_dBm(max_signal_strength2_V))
+                        self.signal_power2.emit(
+                            peak_voltage_to_dBm(max_signal_strength2_V)
+                        )
                 else:
                     self.signal_strength_a.setVisible(False)
                     self.signal_strength_b.setVisible(False)

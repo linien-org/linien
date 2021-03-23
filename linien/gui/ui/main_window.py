@@ -236,6 +236,17 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
                 update_legend_color
             )
 
+        def update_legend_text(dual_channel):
+            self.ids.legend_spectrum_1.setText(
+                "error signal" if not dual_channel else "error signal 1"
+            )
+            self.ids.legend_spectrum_2.setText(
+                "monitor" if not dual_channel else "error signal 2"
+            )
+            self.ids.legend_spectrum_combined.setVisible(dual_channel)
+
+        self.parameters.dual_channel.on_change(update_legend_text)
+
     def go_right(self):
         self.change_center(True)
 

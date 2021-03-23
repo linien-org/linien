@@ -27,6 +27,7 @@ class AcquisitionProcessSignals(Enum):
     CONTINUE_ACQUISITION = 6
     FETCH_QUADRATURES = 7
     SET_RAW_ACQUISITION = 8
+    SET_DUAL_CHANNEL = 9
 
 
 class AcquisitionMaster:
@@ -94,6 +95,8 @@ class AcquisitionMaster:
                     acquisition.exposed_set_fetch_quadratures(data[1])
                 elif data[0] == AcquisitionProcessSignals.SET_RAW_ACQUISITION:
                     acquisition.exposed_set_raw_acquisition(data[1])
+                elif data[0] == AcquisitionProcessSignals.SET_DUAL_CHANNEL:
+                    acquisition.exposed_set_dual_channel(data[1])
                 elif data[0] == AcquisitionProcessSignals.SET_CSR:
                     acquisition.exposed_set_csr(*data[1])
                 elif data[0] == AcquisitionProcessSignals.SET_IIR_CSR:
@@ -152,3 +155,6 @@ class AcquisitionMaster:
         self.acq_process.send(
             (AcquisitionProcessSignals.SET_RAW_ACQUISITION, (enabled, decimation))
         )
+
+    def set_dual_channel(self, enabled):
+        self.acq_process.send((AcquisitionProcessSignals.SET_DUAL_CHANNEL, enabled))

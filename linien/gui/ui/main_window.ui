@@ -415,7 +415,7 @@
               <item>
                <widget class="QLabel" name="legend_spectrum_1">
                 <property name="text">
-                 <string>spectrum 1</string>
+                 <string>sig1</string>
                 </property>
                 <property name="wordWrap">
                  <bool>false</bool>
@@ -425,7 +425,7 @@
               <item>
                <widget class="QLabel" name="legend_spectrum_2">
                 <property name="text">
-                 <string>spectrum 2</string>
+                 <string>sig2</string>
                 </property>
                 <property name="wordWrap">
                  <bool>false</bool>

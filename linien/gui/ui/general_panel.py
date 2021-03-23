@@ -64,6 +64,12 @@ class GeneralPanel(QtGui.QWidget, CustomWidget):
 
         def dual_channel_changed(value):
             self.ids.dual_channel_mixing.setVisible(value)
+            self.ids.fast_in_1_status.setText(
+                "error signal" if not value else "error signal 1"
+            )
+            self.ids.fast_in_2_status.setText(
+                "monitor" if not value else "error signal 2"
+            )
             return value
 
         param2ui(params.dual_channel, self.ids.dual_channel, dual_channel_changed)
