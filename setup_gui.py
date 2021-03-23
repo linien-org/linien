@@ -20,7 +20,7 @@ setuptools.setup(
     description="Spectroscopy lock application using RedPitaya",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/hermitdemschoenenleben/linien",
+    url="https://hermitdemschoenenleben.github.io/linien/",
     # IMPORTANT: any changes have to be made in setup_client_and_gui.py
     # of flathub repo as well
     packages=["linien", "linien.gui", "linien.gui.ui"],

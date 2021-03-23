@@ -404,7 +404,7 @@ Citation
   year = {2020},
   publisher = {GitHub},
   journal = {GitHub repository},
-  howpublished = {\url{https://github.com/hermitdemschoenenleben/linien}}
+  howpublished = {\url{https://hermitdemschoenenleben.github.io/linien/}}
 }
 ```
 
