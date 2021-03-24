@@ -314,7 +314,7 @@ class Parameters(BaseParameters):
         self.autolock_mode_preference = Parameter(start=AUTO_DETECT_AUTOLOCK_MODE)
         self.autolock_mode = Parameter(start=FAST_AUTOLOCK)
         self.autolock_time_scale = Parameter(start=0)
-        self.autolock_instructions = Parameter(start=[])
+        self.autolock_instructions = Parameter(start=[], sync=False)
         self.autolock_final_wait_time = Parameter(start=0)
         self.autolock_selection = Parameter(start=False)
         self.autolock_running = Parameter(start=False)

@@ -92,7 +92,7 @@ class RemoteParameters:
         # when directly iterating over `exposed_init_parameter_sync`, each iteration
         # triggers a request as it is a netref over an iterator
         # --> the `list` call prevents this and improves startup performance
-        all_parameters = list(self.remote.exposed_init_parameter_sync(self.uuid))
+        all_parameters = unpack(self.remote.exposed_init_parameter_sync(self.uuid))
 
         for name, param, value, can_be_cached in all_parameters:
             param = RemoteParameter(self, param, name, use_cache and can_be_cached)

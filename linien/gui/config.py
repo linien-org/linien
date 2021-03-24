@@ -1,4 +1,5 @@
 import os
+import rpyc
 import pickle
 import appdirs
 
@@ -50,7 +51,11 @@ def save_parameter(device_key, param, value, delete=False):
     device.setdefault("params", {})
 
     if not delete:
-        device["params"][param] = value
+        # rpyc obtain is for ensuring that we don't try to save a netref here
+        try:
+            device["params"][param] = rpyc.classic.obtain(value)
+        except:
+            print('unable to obtain and save parameter', param)
     else:
         try:
             del device["params"][param]
