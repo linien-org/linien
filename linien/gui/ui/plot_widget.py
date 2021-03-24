@@ -36,6 +36,9 @@ pg.setConfigOptions(
 # relation between counts and 1V
 V = 8192
 
+# pyqt signals enforce type, so...
+INVALID_POWER = -1000
+
 
 class TimeXAxis(pg.AxisItem, CustomWidget):
     """Plots x axis as time in seconds instead of point number."""
@@ -527,6 +530,8 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
                         self.signal_power1.emit(
                             peak_voltage_to_dBm(max_signal_strength_V)
                         )
+                    else:
+                        self.signal_power1.emit(INVALID_POWER)
 
                     if s2q is not None:
                         max_signal_strength2_V = (
@@ -552,6 +557,8 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
                         self.signal_power2.emit(
                             peak_voltage_to_dBm(max_signal_strength2_V)
                         )
+                    else:
+                        self.signal_power2.emit(INVALID_POWER)
                 else:
                     self.signal_strength_a.setVisible(False)
                     self.signal_strength_b.setVisible(False)
@@ -560,8 +567,8 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
                     self.signal_strength_a_fill.setVisible(False)
                     self.signal_strength_b_fill.setVisible(False)
 
-                    self.signal_power1.emit(-1000)
-                    self.signal_power2.emit(-1000)
+                    self.signal_power1.emit(INVALID_POWER)
+                    self.signal_power2.emit(INVALID_POWER)
 
         time_end = time()
         time_diff = time_end - time_beginning

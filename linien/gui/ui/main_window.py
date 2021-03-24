@@ -1,4 +1,5 @@
 import json
+from linien.gui.ui.plot_widget import INVALID_POWER
 import linien
 import pickle
 import numpy as np
@@ -54,17 +55,20 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
         self.ids.import_parameters_button.clicked.connect(self.import_parameters)
 
         def display_power(power, element):
-            if power != -1000:
-                text = "%.2f" % power
+            if power == INVALID_POWER:
+                element.hide()
             else:
-                text = "NaN"
-            element.setText(text)
+                element.show()
+                text = "%.2f" % power
+                element.setText(text)
 
         def display_power_channel_1(power):
-            display_power(power, self.ids.power_channel_1)
+            el = self.ids.power_channel_1
+            display_power(power, el)
 
         def display_power_channel_2(power):
-            display_power(power, self.ids.power_channel_2)
+            el = self.ids.power_channel_2
+            display_power(power, el)
 
         self.ids.graphicsView.signal_power1.connect(display_power_channel_1)
         self.ids.graphicsView.signal_power2.connect(display_power_channel_2)
