@@ -1,4 +1,4 @@
 #!/bin/bash
 
 screen -X -S spectrolockserver quit
-bash /linien/server/linien_start_ethernet_blinking
+bash linien_start_ethernet_blinking

@@ -17,6 +17,5 @@ screen -S spectrolockserver -d -m
 
 # start the server inside the screen session
 screen -r spectrolockserver -X stuff $"cd $pth/server;\n"
-screen -r spectrolockserver -X stuff $"python3 server.py $1; bash /linien/server/linien_start_ethernet_blinking; \n"
 
-bash /linien/server/linien_stop_ethernet_blinking
+screen -r spectrolockserver -X stuff $"bash linien_stop_ethernet_blinking; python3 server.py $1; bash linien_start_ethernet_blinking; \n"
