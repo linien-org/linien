@@ -1,5 +1,6 @@
 import json
 import pickle
+import numpy as np
 from os import path
 
 from linien.config import N_COLORS
@@ -111,14 +112,11 @@ class ViewPanel(QtGui.QWidget, CustomWidget):
         print("export data to", fn_with_suffix)
 
         with open(fn_with_suffix, "w") as f:
-            data = dict(self.parameters)
-            data["to_plot"] = pickle.loads(data["to_plot"])
+            data = pickle.loads(self.parameters.to_plot.value)
 
             # filter out keys that are not json-able
             for k, v in list(data.items()):
-                try:
-                    json.dumps(v)
-                except:
-                    del data[k]
+                if isinstance(v, np.ndarray):
+                    data[k] = v.tolist()
 
             json.dump(data, f)
