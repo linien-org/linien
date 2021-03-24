@@ -372,7 +372,8 @@ def run_server(port, fake=False, remote_rp=False):
         return sock, None
 
     t = ThreadedServer(
-        control, port=port, authenticator=username_and_password_authenticator
+        control, port=port, authenticator=username_and_password_authenticator,
+        protocol_config={"allow_pickle":True}
     )
     t.start()
 

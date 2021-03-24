@@ -1,4 +1,5 @@
 from typing import Callable
+import rpyc
 from rpyc import async_
 from linien.common import unpack, pack
 
@@ -98,7 +99,9 @@ class RemoteParameters:
             param = RemoteParameter(self, param, name, use_cache and can_be_cached)
             setattr(self, name, param)
             if use_cache and can_be_cached:
-                param._update_cache(value)
+                # obtain takes care that we really don't deal with netrefs
+                # (np.float64 is not automatically serialized)
+                param._update_cache(rpyc.classic.obtain(value))
 
         self._attributes_locked = True
 

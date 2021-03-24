@@ -55,7 +55,7 @@ def save_parameter(device_key, param, value, delete=False):
         try:
             device["params"][param] = rpyc.classic.obtain(value)
         except:
-            print('unable to obtain and save parameter', param)
+            print("unable to obtain and save parameter", param)
     else:
         try:
             del device["params"][param]

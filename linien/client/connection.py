@@ -101,7 +101,9 @@ class RawRPYCClient:
         self, server, port, user, password, use_parameter_cache, call_on_error=None
     ):
         """Connect to the server using rpyc and instanciate `RemoteParameters`."""
-        self.connection = rpyc.connect(server, port, service=self.client_service)
+        self.connection = rpyc.connect(
+            server, port, service=self.client_service, config={"allow_pickle": True}
+        )
 
         cls = RemoteParameters
         if call_on_error:
