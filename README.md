@@ -1,4 +1,4 @@
-LINIEN
+Linien
 ======
 
 <img align="right" src="https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/docs/icon.png" width="20%">
@@ -17,13 +17,13 @@ Features
 -   **Client-server architecture**: Autonomous operation on RedPitaya.
     One or multiple GUI clients or python clients can connect to the server.
 -   **Autolock**: Click and drag over a line, and Linien will
-    automatically lock to it.
+    automatically lock to it. This algorithm is built to be noise and jitter tolerant.
 -   **IQ demodulation**: Optimize demodulation phase in an instant
 -   **Noise analysis**: Record power spectral density (PSD) of the error signal for analyzing noise of the locked laser and for optimizing PID parameters
 -   **Lock detection**: Linien is capable of detecting loss of lock.
 -   **Automatic relocking**: in that case, it relocks autonomously.
 -   **Machine learning** is used to tune the spectroscopy parameters in order to optimize the signal
--   **Remote-controllable**: The client libraries can be used to control or monitor the spectroscopy lock with python.
+-   **Remote-controllable**: the client libraries can be used to control or monitor the spectroscopy lock with python.
 -   **Combined FMS+MTS**: Linien supports dual-channel spectroscopy that can be
     used to implement [combined
     FMS+MTS](https://arxiv.org/pdf/1701.01918.pdf)
@@ -36,26 +36,28 @@ Features
 
 ![image](https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/docs/screencast.gif)
 
-Getting started
+Getting started: install Linien
 ---------------
 
 Linien runs on Windows and Linux. For most users the [standalone
 binaries](#standalone-binary) containing the graphical user interface
-are recommended. If you want to use the python interface you should [install it using pip](#installation-with-pip).
+are recommended.
+These binaries run on your lab PC and contain everything to get Linien running on your RedPitaya.
+
+If you want to use the python interface you should [install it using pip](#installation-with-pip).
 
 ### Standalone binary
 
 You can download standalone binaries for windows and linux on [the
 releases
-page](https://github.com/hermitdemschoenenleben/linien/releases) (download the corresponding binary in the assets section of the latest version). On
-linux you have to mark it as executable before executing:
+page](https://github.com/hermitdemschoenenleben/linien/releases) (download the corresponding binary in the assets section of the latest version). On linux mark it as executable before executing:
 
 ```bash
 chmod +x linien-linux*
 ./linien-linux*
 ```
 
-As the linux world is highly heterogeneous, the standalone binary may not work on some systems. In this case flatpak installation (see below) is recommended.
+As the linux world is highly heterogeneous, the standalone binary may not work on some systems (Ubuntu 18.04 or newer should work, other distributions may not). In this case flatpak install (see below) is recommended.
 
 ### Installation with Flatpak (linux only)
 
@@ -73,11 +75,13 @@ package manager pip:
 pip3 install linien
 ```
 
-Run the application by calling
+On Linux, you may run the application by calling
 
 ```bash
 linien
 ```
+
+in a terminal.
 
 If this doesn\'t work, your local bin directory (e.g. \~/.local/bin) is
 probably missing in your PATH. In this case you can open Linien with
@@ -88,7 +92,7 @@ from linien.gui.app import run_application
 run_application()
 ```
 
-In case you're only interested in the python client and don't want to install the graphical application, you can use
+In case you're only interested in the python client and don't want to install the graphical application, you may use the `linien-python-client`, a subset of the `linien` package:
 
 ```bash
 pip3 install linien-python-client
@@ -102,7 +106,7 @@ The default setup looks like this:
 
 ![image](https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/docs/setup.png)
 
-You can also configure linien for different setups, e.g. if you want to
+You can also configure Linien for different setups, e.g. if you want to
 have the modulation frequency and the control on the same output. Additionally, it is possible to set up a slow integrator on ANALOG OUT 0 (0 V to 1.8 V).
 
 ![image](https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/docs/explain-pins.png)
@@ -116,6 +120,10 @@ After launching Linien you should supply details of your RedPitaya. Its host add
 
 ![image](https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/docs/mac.jpg)
 
+| :exclamation: If connecting using host name fails, try using RP's IP address instead |
+|--------------------------------------------------------------------------------------|
+
+
 Default value for user name and password is `root` (but you should probably change the password...).
 
 When connecting to a RedPitaya for the first time, the Linien offers you to install the server component. Please note that this requires internet access on the RedPitaya (LAN access is not sufficient).
@@ -128,15 +136,19 @@ The server now operates autonomously: closing the client application doesn't hav
 
 The first thing to set up is the configuration of input and output signals:
 
+Connect your AC spectroscopy signal to FAST IN 1. If you also want to monitor the DC spectroscopy signal, connect it to FAST IN 2.
+
+Then, adapt the output signals to your needs:
+
 ![image](https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/docs/explain-pins.png)
 
-Head over to *Modulation, Ramp & Spectroscopy* and set modulation frequency and amplitude. Once your setup is working, you should see something like this:
+When you're done, head over to *Modulation, Ramp & Spectroscopy* to configure modulation frequency and amplitude. Once your setup is working, you should see something like this:
 
 ![image](https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/docs/spectrum.jpg)
 
 The bright red line is the demodulated spectroscopy signal. The dark red area is the signal strength obtained by [iq demodulation](https://en.wikipedia.org/wiki/In-phase_and_quadrature_components), i.e. the demodulation signal obtained when demodulating in phase at this point.
 
-### Optimization of spectroscopy parameters using machine learning
+### Optimization of spectroscopy parameters using machine learning (optional)
 
 Linien may use machine learning to maximize the slope of a line. As for the autolock, click and drag over the line you want to optimize. Then, the line is centered and the optimization starts. Please note that this only works if initially a distinguished zero-crossing is visible.
 
@@ -144,7 +156,7 @@ Linien may use machine learning to maximize the slope of a line. As for the auto
 
 ### Using the autolock
 
-In order to use the autolock, enter some PID parameters first. Note that the sign of the parameters is determined automatically. After clicking the green button, you can select the line you want to lock to by clicking and dragging over it. The autolock will then center this line, decrease the scan range and try to lock to the middle between minimum and maximum contained in your selection.
+In order to use the autolock, enter some PID parameters first. Note that the sign of the parameters is determined automatically. After clicking the green button, you can select the line you want to lock to by clicking and dragging over it: your selection should contain both extrema of the line. The autolock will then center this line, decrease the scan range and try to lock to the middle between minimum and maximum contained in your selection.
 
 ![image](https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/docs/screencast.gif)
 
@@ -154,6 +166,16 @@ The following options are available:
  * **Watch lock**: This option tells the Linien to continuously watch the control signal when the laser is locked. If steep changes are detected, a relock is initiated.
 
 If you experience trouble with the autolock, this is most likely due to a bad signal to noise ratio or strong laser jitter.
+
+#### Autolock algorithms
+
+Linien implements two different autolock algorithms:
+
+ * **Jitter-tolerant mode**: this algorithm runs on FPGA and analyzes the peak shapes in order to turn on the lock at the right ramp position. It is able to cope with a high amount of jitter as it runs completely on the FPGA, i.e. no delays due to communication between CPU and FPGA occur.
+ * **Fast mode**: this algorithm uses a simple calculation of autocorrelation on the CPU which is then used to specify at which point of the ramp the lock should start. This algorithm is less complex than the first one and may be used if you experience problems with jitter-tolerant mode. As it requires some communication between CPU and FPGA which causes some delay, it may have problems if the line jitters a lot.
+
+ By default, **auto-detect mode** is chosen: this mode choses an algorithm based on the amount of jitter.
+
 
 ### Using the manual lock
 
@@ -263,7 +285,7 @@ look at
 Updating Linien
 ---------------
 
-Before installing a new version of linien, open the previously installed client and click the "Shutdown server" button. Don't worry, your settings and parameters will be saved. Then you may install the latest client on your local PC as described in the [getting started](#getting-started) section above. The next time you connect to RedPitaya, Linien will install the matching server version.
+Before installing a new version of Linien, open the previously installed client and click the "Shutdown server" button. Don't worry, your settings and parameters will be saved. Then you may install the latest client on your local PC as described in the [getting started](#getting-started) section above. The next time you connect to RedPitaya, Linien will install the matching server version.
 
 
 Development
@@ -373,19 +395,19 @@ FAQs
 There's no need to install anything on RedPitaya manually.
 Run the new version of Linien on your computer and connect to RedPitaya. You will see a dialog that allows you to install the corresponding server component.
 
-### Can I run linien and the RedPitaya web application / scpi interface at the same time?
+### Can I run Linien and the RedPitaya web application / scpi interface at the same time?
 
-No, this is not possible as linien relies on a customized FPGA bitstream.
+No, this is not possible as Linien relies on a customized FPGA bitstream.
 
-### What control bandwidth is achievable with linien?
+### What control bandwidth is achievable with Linien?
 
 The propagation delay is roughly 300 ns, thus approximately 3 MHz bandwidth are possible.
 
-### Why do ethernet LEDs of RedPitaya stop blinking when linien is running?
+### Why do ethernet LEDs of RedPitaya stop blinking when Linien is running?
 
-Ethernet LED blinking [was found to impact analog outputs of RedPitaya](https://github.com/RedPitaya/RedPitaya/issues/205). As this may impact lock stability, linien disables ethernet LED blinking when starting.
+Ethernet LED blinking [was found to impact analog outputs of RedPitaya](https://github.com/RedPitaya/RedPitaya/issues/205). As this may impact lock stability, Linien disables ethernet LED blinking when starting.
 
-If you want to re-enable the LEDs, just stop the linien server or restart your RedPitaya.
+If you want to re-enable the LEDs, just stop the Linien server or restart your RedPitaya.
 
 Troubleshooting
 ----
@@ -412,4 +434,4 @@ Citation
 See Also
 --------
 
--   [RedPID](https://github.com/quartiq/redpid): the basis of linien
+-   [RedPID](https://github.com/quartiq/redpid): the basis of Linien
