@@ -33,9 +33,6 @@ class PSDWindow(QtGui.QMainWindow, CustomWidget):
         self.ids.export_psd_button.clicked.connect(self.export_psd)
         self.ids.import_psd_button.clicked.connect(self.import_psd)
 
-        self.ids.decimation_multiplier.currentIndexChanged.connect(
-            self.change_decimation_multiplier
-        )
         self.ids.maximum_measurement_time.currentIndexChanged.connect(
             self.change_maximum_measurement_time
         )
@@ -45,9 +42,6 @@ class PSDWindow(QtGui.QMainWindow, CustomWidget):
         # but just to hide it
         event.ignore()
         self.hide()
-
-    def change_decimation_multiplier(self, index):
-        self.parameters.psd_acquisition_decimation_step.value = index + 1
 
     def change_maximum_measurement_time(self, index):
         self.parameters.psd_acquisition_max_decimation.value = 12 + index
@@ -64,11 +58,6 @@ class PSDWindow(QtGui.QMainWindow, CustomWidget):
             self.psd_data_received,
         )
 
-        param2ui(
-            self.parameters.psd_acquisition_decimation_step,
-            self.ids.decimation_multiplier,
-            lambda decimation_step: decimation_step - 1,
-        )
         param2ui(
             self.parameters.psd_acquisition_max_decimation,
             self.ids.maximum_measurement_time,

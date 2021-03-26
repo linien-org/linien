@@ -85,7 +85,6 @@ class Parameters(BaseParameters):
             "autolock_determine_offset",
             "autolock_mode_preference",
             "psd_acquisition_max_decimation",
-            "psd_acquisition_decimation_step",
         )
 
         # the `to_plot` parameter is a pickled dictionary that contains signals
@@ -355,7 +354,6 @@ class Parameters(BaseParameters):
         self.psd_acquisition_running = Parameter(start=False)
         self.psd_optimization_running = Parameter(start=False)
         self.psd_acquisition_max_decimation = Parameter(start=18, min_=1, max_=32)
-        self.psd_acquisition_decimation_step = Parameter(start=1, min_=1, max_=4)
 
         #           --------- PARAMETERS OF GUI ---------
         self.plot_line_width = Parameter(start=2, min_=0.1, max_=100)

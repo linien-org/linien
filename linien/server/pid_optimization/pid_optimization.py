@@ -2,24 +2,51 @@ import pickle
 import random
 import string
 import numpy as np
-from time import time
+from time import sleep, time
 from scipy import signal
 
 from linien.server.optimization.engine import MultiDimensionalOptimizationEngine
+from linien.server.pid_optimization.lpsd import lpsd
 
 ALL_DECIMATIONS = list(range(32))
 
 
+def calculate_psd(sig, fs):
+    # TODO: long-term: remove scipy code if lpsd actually works better
+    use_scipy = False
+
+    # at beginning or end of signal, we sometimes have more glitches --> ignore
+    # them (200 points less @ 16384 points doesn't hurt much)
+    sig = sig[100:-100]
+
+    N = len(sig)
+    fmin = float(fs) / N * 10  # lowest frequency of interest
+    fmax = float(fs) / 20.0  # highest frequency of interest
+    Jdes = 256  # desired number of points in the spectrum
+    Kdes = 100  # desired number of averages
+    Kmin = 2  # minimum number of averages
+    xi = 0.5  # fractional overlap
+
+    if use_scipy:
+        # nfft = np.ceil(fs / float(fmin))
+        # window = np.hanning(nfft)
+        num_pts = 256
+        window = signal.hann(num_pts)
+
+        f, Pxx = signal.welch(sig, fs, window, nperseg=num_pts, scaling="density")
+
+    else:
+        sig = sig.astype(np.float64)
+        X, f, C = lpsd(sig, np.hanning, fmin, fmax, Jdes, Kdes, Kmin, fs, xi)
+        Pxx = X * C["PSD"]
+
+    return f, Pxx
+
+
 def residual_freq_noise(dt, sig):
     fs = 1 / dt
-    # num_pts = int(len(sig) / 128)
-    num_pts = 256
-    hann = signal.hann(num_pts)
 
-    f, psd = signal.welch(
-        sig, fs=fs, window=hann, nperseg=num_pts, scaling="density", detrend=False
-    )
-
+    f, psd = calculate_psd(sig, fs)
     # we want to have it in counts / Sqrt[Hz], not in (counts**2) / Hz
     psd = np.sqrt(psd)
 
@@ -81,7 +108,6 @@ class PSDAcquisition:
             self.control.continue_acquisition()
 
     def react_to_new_signal(self, data_pickled):
-        # FIXME: erster Datenpunkt oder letzter haben manchmal glitches --> entfernen?
         try:
             if not self.running or self.parameters.pause_acquisition.value:
                 return
@@ -96,12 +122,9 @@ class PSDAcquisition:
                 1 / (125e6) * (2 ** (current_decimation)), data[0]
             )
 
-            # note: we don't precalculate the decimation values because we
-            # want the user to be able to change these values while the acquisition
-            # is running (i.e. if the user notices that it takes too long)
-            self.decimation_index += (
-                self.parameters.psd_acquisition_decimation_step.value
-            )
+            # this means that measurement time increases by a factor of 16 after
+            # each measurement
+            self.decimation_index += 4
 
             complete = (
                 self.decimation_index
@@ -149,6 +172,8 @@ class PSDAcquisition:
         self.parameters.acquisition_raw_decimation.value = decimation
         self.parameters.acquisition_raw_enabled.value = True
         self.control.exposed_write_data()
+        # take care that new decimation was actually written to FPGA
+        sleep(0.1)
         self.control.continue_acquisition()
 
     def exposed_stop(self):

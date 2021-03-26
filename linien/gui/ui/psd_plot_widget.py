@@ -76,12 +76,18 @@ class PSDPlotWidget(pg.PlotWidget, CustomWidget):
         self.showGrid(x=True, y=True)
 
         self.vertical_line = pg.InfiniteLine(angle=90, movable=False)
+        self.vertical_line.hide()
         self.horizontal_line = pg.InfiniteLine(angle=0, movable=False)
-        self.cursor_label = pg.TextItem(anchor=(0, 0))
+        self.horizontal_line.hide()
+        self.cursor_label = pg.TextItem()
         self.scene().sigMouseMoved.connect(self.mouseMoved)
-        self.addItem(self.vertical_line)
-        self.addItem(self.horizontal_line)
-        self.addItem(self.cursor_label)
+
+        for element in (self.vertical_line, self.horizontal_line, self.cursor_label):
+            # ignoreBounds tells pyqtgraph not to consider these items when calculating
+            # automatic axis scaling
+            self.addItem(element, ignoreBounds=True)
+            # all these elements should be on top of all plots
+            element.setZValue(10000)
 
         self.recalculate_min_max()
 
@@ -100,12 +106,21 @@ class PSDPlotWidget(pg.PlotWidget, CustomWidget):
         # sort such that high decimations are first
         psds_sorted = sorted(psds.items(), key=lambda v: -1 * v[0])
         highest_plotted_frequency = 0
+        highest_plotted_frequency_psd = None
+
         for idx, [decimation, [f, psd]] in enumerate(psds_sorted):
             curve = self.curves[uuid][idx]
 
             psd = psd[f > highest_plotted_frequency]
             f = f[f > highest_plotted_frequency]
+
+            if highest_plotted_frequency_psd is not None:
+                # this connects first and last points of adjacent segments
+                f = np.array([highest_plotted_frequency] + list(f))
+                psd = np.array([highest_plotted_frequency_psd] + list(psd))
+
             highest_plotted_frequency = f[-1]
+            highest_plotted_frequency_psd = psd[-1]
 
             curve.setData(np.log10(f), np.log10(psd / V))
             r, g, b = color
@@ -132,8 +147,6 @@ class PSDPlotWidget(pg.PlotWidget, CustomWidget):
                     if np.max(y) > self._y_max:
                         self._y_max = np.max(y)
 
-            self.cursor_label.setPos(self._x_min, self._y_max)
-
     def show_or_hide_curve(self, uuid, show):
         curves = self.curves.get(uuid, [])
 
@@ -158,18 +171,18 @@ class PSDPlotWidget(pg.PlotWidget, CustomWidget):
             x = mousePoint.x()
             y = mousePoint.y()
 
-            if x > self._x_max or x < self._x_min or y > self._y_max or y < self._y_min:
-                self.show_cursor_position(False)
-            else:
-                # if index > 0 and index < self.MFmax:
-                self.cursor_label.setHtml(
-                    "<span style='font-size: 12pt'>(%.1e,%.1e)</span>"
-                    % (10 ** x, 10 ** y)
-                )
-                self.vertical_line.setPos(x)
-                self.horizontal_line.setPos(y)
+            # if index > 0 and index < self.MFmax:
+            self.cursor_label.setHtml(
+                "<span style='font-size: 12pt'>(%.1e,%.1e)</span>" % (10 ** x, 10 ** y)
+            )
+            # this determines whether cursor label is on right or left side of
+            # crosshair
+            self.cursor_label.setAnchor((1 if x > self._x_max / 2 else 0, 1))
+            self.cursor_label.setPos(x, y)
+            self.vertical_line.setPos(x)
+            self.horizontal_line.setPos(y)
 
-                self.show_cursor_position(True)
+            self.show_cursor_position(True)
         else:
             self.show_cursor_position(False)
 
@@ -177,3 +190,9 @@ class PSDPlotWidget(pg.PlotWidget, CustomWidget):
         self.vertical_line.setVisible(show)
         self.horizontal_line.setVisible(show)
         self.cursor_label.setVisible(show)
+
+    def leaveEvent(self, QEvent):
+        """This method is called when the mouse used to hover the plot and
+        not left. In this case, we hide crosshair and cursor label."""
+        super().leaveEvent(QEvent)
+        self.show_cursor_position(False)
