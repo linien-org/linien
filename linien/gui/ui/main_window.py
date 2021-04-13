@@ -77,6 +77,10 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
         # by default we hide it and just show when a new version is available
         self.ids.new_version_available_label.hide()
 
+        self.ids.relocking_configurator.showRelockingThresholds.connect(
+            self.ids.graphicsView.show_relocking_thresholds
+        )
+
     def show_new_version_available(self):
         self.ids.new_version_available_label.show()
 

@@ -177,6 +177,21 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         self.signal1.setData([0, N_POINTS - 1], [1, 1])
         self.combined_signal.setData([0, N_POINTS - 1], [1, 1])
 
+        # these lines are used for configuration of the relocking system
+        threshold_pen = pg.mkPen("m", width=2)
+        self.horizontal_threshold_1 = pg.InfiniteLine(pen=threshold_pen, angle=0)
+        self.horizontal_threshold_2 = pg.InfiniteLine(pen=threshold_pen, angle=0)
+        self.vertical_threshold_1 = pg.InfiniteLine(pen=threshold_pen, angle=90)
+        self.vertical_threshold_2 = pg.InfiniteLine(pen=threshold_pen, angle=90)
+
+        for item in (
+            self.horizontal_threshold_1,
+            self.horizontal_threshold_2,
+            self.vertical_threshold_1,
+            self.vertical_threshold_2,
+        ):
+            self.addItem(item)
+
         self.connection = None
         self.parameters = None
         self.last_plot_data = None
@@ -759,3 +774,29 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
 
         # we don't do it directly here because this causes problems for some reason
         self._should_reposition_reset_view_button = True
+
+    def show_relocking_thresholds(self, value):
+        show_vertical = value and value["vertical"]
+        show_horizontal = value and not value["vertical"]
+
+        vertical = (self.vertical_threshold_1, self.vertical_threshold_2)
+        horizontal = (self.horizontal_threshold_1, self.horizontal_threshold_2)
+
+        for item in vertical:
+            item.setVisible(show_vertical)
+
+        for item in horizontal:
+            item.setVisible(show_horizontal)
+
+        if value:
+            items = vertical if show_vertical else horizontal
+
+            for idx, item in enumerate(items):
+                threshold = value["thresholds"][idx]
+                threshold = (
+                    threshold / 100 * 2048
+                    if show_vertical
+                    else 2 * ((threshold / 100) - 0.5)
+                )
+                print("SET", show_horizontal, threshold)
+                item.setValue(threshold)

@@ -260,7 +260,7 @@ class FakeRedPitayaControl(BaseService):
 
         def run():
             while True:
-                max_ = randint(0, 8191)
+                max_ = randint(1500, 1700)
                 gen = lambda: np.array([randint(-max_, max_) for _ in range(N_POINTS)])
                 self.parameters.to_plot.value = pickle.dumps(
                     {
@@ -372,8 +372,10 @@ def run_server(port, fake=False, remote_rp=False):
         return sock, None
 
     t = ThreadedServer(
-        control, port=port, authenticator=username_and_password_authenticator,
-        protocol_config={"allow_pickle":True}
+        control,
+        port=port,
+        authenticator=username_and_password_authenticator,
+        protocol_config={"allow_pickle": True},
     )
     t.start()
 

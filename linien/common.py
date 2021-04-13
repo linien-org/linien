@@ -294,3 +294,15 @@ def get_signal_strength_from_i_q(i, q):
 def hash_username_and_password(username, password):
     secret = hashlib.sha256((username + "/" + password).encode()).hexdigest()
     return secret
+
+
+def get_name_automatic_relocking_enabled_parameter(signal):
+    return "automatic_relocking_%s_enabled" % signal
+
+
+def get_name_automatic_relocking_min_parameter(signal):
+    return "automatic_relocking_%s_min" % signal
+
+
+def get_name_automatic_relocking_max_parameter(signal):
+    return "automatic_relocking_%s_max" % signal

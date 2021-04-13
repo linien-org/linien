@@ -1,6 +1,14 @@
 from linien.server.parameters_base import BaseParameters, Parameter
 from linien.config import DEFAULT_COLORS, N_COLORS
-from linien.common import AUTO_DETECT_AUTOLOCK_MODE, FAST_AUTOLOCK, Vpp, MHz
+from linien.common import (
+    AUTO_DETECT_AUTOLOCK_MODE,
+    FAST_AUTOLOCK,
+    Vpp,
+    MHz,
+    get_name_automatic_relocking_enabled_parameter,
+    get_name_automatic_relocking_max_parameter,
+    get_name_automatic_relocking_min_parameter,
+)
 
 
 class Parameters(BaseParameters):
@@ -301,8 +309,27 @@ class Parameters(BaseParameters):
         self.pid_on_slow_strength = Parameter(start=0)
 
         self.check_lock = Parameter(start=True)
+        # TODO: remove long-term?
         self.watch_lock = Parameter(start=True)
         self.watch_lock_threshold = Parameter(start=0.01)
+
+        self.automatic_relocking = Parameter(start=True)
+        for signal in ("control", "error", "monitor"):
+            setattr(
+                self,
+                get_name_automatic_relocking_enabled_parameter(signal),
+                Parameter(start=False),
+            )
+            setattr(
+                self,
+                get_name_automatic_relocking_min_parameter(signal),
+                Parameter(start=5),
+            )
+            setattr(
+                self,
+                get_name_automatic_relocking_max_parameter(signal),
+                Parameter(start=95),
+            )
 
         #           --------- AUTOLOCK PARAMETERS ---------
         # these are used internally by the autolock and usually should not be

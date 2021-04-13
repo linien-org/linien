@@ -1020,7 +1020,7 @@
           </size>
          </property>
          <property name="currentIndex">
-          <number>2</number>
+          <number>5</number>
          </property>
          <widget class="QWidget" name="generalPanel">
           <property name="enabled">
@@ -1031,7 +1031,7 @@
             <x>0</x>
             <y>0</y>
             <width>338</width>
-            <height>355</height>
+            <height>322</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1049,7 +1049,7 @@
             <x>0</x>
             <y>0</y>
             <width>338</width>
-            <height>355</height>
+            <height>322</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1067,7 +1067,7 @@
             <x>0</x>
             <y>0</y>
             <width>338</width>
-            <height>355</height>
+            <height>322</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1085,7 +1085,7 @@
             <x>0</x>
             <y>0</y>
             <width>338</width>
-            <height>355</height>
+            <height>322</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -1109,7 +1109,7 @@
             <x>0</x>
             <y>0</y>
             <width>338</width>
-            <height>355</height>
+            <height>322</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -1123,7 +1123,25 @@
           </attribute>
           <layout class="QVBoxLayout" name="verticalLayout_7">
            <item>
-            <widget class="LockingPanel" name="widget_3" native="true"/>
+            <widget class="LockingPanel" name="locking_panel" native="true"/>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="relockingPage">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>338</width>
+            <height>322</height>
+           </rect>
+          </property>
+          <attribute name="label">
+           <string>Automatic Relocking</string>
+          </attribute>
+          <layout class="QVBoxLayout" name="verticalLayout">
+           <item>
+            <widget class="RelockingConfigurator" name="relocking_configurator" native="true"/>
            </item>
           </layout>
          </widget>
@@ -1189,7 +1207,33 @@
    <header location="global">optimization_panel.h</header>
    <container>1</container>
   </customwidget>
+  <customwidget>
+   <class>RelockingConfigurator</class>
+   <extends>QWidget</extends>
+   <header location="global">relocking_configurator.h</header>
+   <container>1</container>
+   <slots>
+    <slot>tabChanged()</slot>
+   </slots>
+  </customwidget>
  </customwidgets>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>settings_toolbox</sender>
+   <signal>currentChanged(int)</signal>
+   <receiver>relocking_configurator</receiver>
+   <slot>tabChanged()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1098</x>
+     <y>527</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1098</x>
+     <y>626</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>
