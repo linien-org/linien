@@ -1,3 +1,4 @@
+from linien.server.utils import ramp_speed_to_time
 from time import time
 
 from linien.common import (
@@ -88,6 +89,10 @@ class RobustAutolock:
             t2 = time()
             print("calculation of autolock description took", t2 - t1)
 
+            # sets up a timeout: if the lock doesn't finish within a certain time
+            # span, throw an error
+            self.setup_timeout()
+
             # first reset lock in case it was True. This ensures that autolock
             # starts properly once all parameters are set
             self.parameters.lock.value = False
@@ -105,11 +110,44 @@ class RobustAutolock:
             self.parameters.autolock_preparing.value = False
 
             self._done = True
+
         else:
             print(
                 "not enough spectra collected: %d of %d"
                 % (len(self.spectra), self.N_spectra_required)
             )
+
+    def setup_timeout(self, N_acquisitions_to_wait=5):
+        """Robust autolock just programs the FPGA image with a set of instructions.
+        The FPGA image then uses these instructions in order to actually turn on
+        the lock once all conditions are met. However, it may happen that the
+        FPGA image is unable to lock for some reason. For this case, we set up
+        a timeout that raises an error if this happens.
+        """
+        self._timeout_start_time = time()
+        self._timeout_time_to_wait = (
+            N_acquisitions_to_wait
+            * 2
+            * ramp_speed_to_time(self.parameters.ramp_speed.value)
+        )
+
+        self.parameters.ping.on_change(self.check_for_timeout)
+
+    def check_for_timeout(self, ping):
+        min_time_to_wait = 5
+
+        if time() - self._timeout_start_time > max(
+            self._timeout_time_to_wait, min_time_to_wait
+        ):
+            print("Waited too long for autolock! Aborting")
+            self.stop_timeout()
+            self.parameters.task.value.exposed_stop()
+
+    def stop_timeout(self):
+        self.parameters.ping.remove_listener(self.check_for_timeout)
+
+    def after_lock(self):
+        self.stop_timeout()
 
 
 def calculate_autolock_instructions(spectra_with_jitter, target_idxs):

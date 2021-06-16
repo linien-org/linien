@@ -182,6 +182,11 @@ class Parameters(BaseParameters):
         # normal lock to fetch less data if they are not needed.
         self.fetch_additional_signals = Parameter(start=True)
 
+        # this is just a counter that is automatically increased every second.
+        # Its purpose is to allow for periodic tasks on the server:
+        # just register an `on_change` listener for this parameter.
+        self.ping = Parameter(start=0)
+
         #           --------- RAMP PARAMETERS ---------
 
         # how big should the ramp amplitude be relative to the full output range

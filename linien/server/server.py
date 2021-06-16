@@ -7,10 +7,12 @@ import click
 import _thread
 import pickle
 import numpy as np
+import threading
 
 from rpyc.utils.server import ThreadedServer
 from rpyc.utils.authenticators import AuthenticationError
 from random import random
+from time import sleep
 
 from autolock.autolock import Autolock
 from parameters import Parameters
@@ -124,6 +126,23 @@ class RedPitayaControlService(BaseService):
         self.registers.run_data_acquisition(data_received)
         self.pause_acquisition()
         self.continue_acquisition()
+
+    def run_periodic_timer(self):
+        """Starts a timer that increases the `ping` parameter once per second.
+        Its purpose is to allow for periodic tasks on the server:
+        just register an `on_change` listener for this parameter.
+        """
+
+        def send_ping():
+            while True:
+                self.parameters.ping.value = self.parameters.ping.value + 1
+                print("ping", self.parameters.ping.value)
+                sleep(1)
+
+        t = threading.Thread(target=send_ping)
+        t.daemon = True
+        t.start()
+        self._periodic_timer = t
 
     def _generate_signal_stats(self, to_plot):
         stats = {}
@@ -276,6 +295,9 @@ class FakeRedPitayaControl(BaseService):
         t.daemon = True
         t.start()
 
+    def run_periodic_timer(self):
+        pass
+
     def exposed_shutdown(self):
         _thread.interrupt_main()
         os._exit(0)
@@ -337,6 +359,7 @@ def run_server(port, fake=False, remote_rp=False):
             control = RedPitayaControlService()
 
     control.run_acquiry_loop()
+    control.run_periodic_timer()
     control.exposed_write_data()
 
     failed_auth_counter = {"c": 0}
@@ -372,8 +395,10 @@ def run_server(port, fake=False, remote_rp=False):
         return sock, None
 
     t = ThreadedServer(
-        control, port=port, authenticator=username_and_password_authenticator,
-        protocol_config={"allow_pickle":True}
+        control,
+        port=port,
+        authenticator=username_and_password_authenticator,
+        protocol_config={"allow_pickle": True},
     )
     t.start()
 

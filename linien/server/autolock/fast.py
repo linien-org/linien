@@ -51,3 +51,6 @@ class FastAutolock:
         self.control.exposed_start_lock()
 
         self._done = True
+
+    def after_lock(self):
+        pass
