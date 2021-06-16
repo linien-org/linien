@@ -146,6 +146,19 @@ class LinienClient(RawRPYCClient):
         use_parameter_cache=False,
         on_connection_lost: Callable = None,
     ):
+        """Connect to a RedPitaya that runs linien server.
+
+        Takes the following arguments:
+            * `device` should be a dictionary:
+                {
+                    "host": "rp-XXXXXX.local",
+                    "username": "root",
+                    "password": "your-username"
+                }
+            * `autostart_server`: A bool indicating whether this call
+              should automatically start a linien server on redpitaya if it
+              doesn't run already
+        """
         self.device = device
         self.host = device["host"]
         user = device.get("username")
@@ -156,7 +169,7 @@ class LinienClient(RawRPYCClient):
             # 127.0.0.1 in all cases
             self.host = "127.0.0.1"
         else:
-            assert user and password
+            assert user and password, "username and passwort are required"
 
         self.autostart_server = autostart_server
 
