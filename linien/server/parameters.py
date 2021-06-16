@@ -309,10 +309,8 @@ class Parameters(BaseParameters):
         self.pid_on_slow_strength = Parameter(start=0)
 
         self.check_lock = Parameter(start=True)
-        # TODO: remove long-term?
-        self.watch_lock = Parameter(start=True)
-        self.watch_lock_threshold = Parameter(start=0.01)
 
+        # FIXME: make these parameters restorable
         self.automatic_relocking = Parameter(start=True)
         for signal in ("control", "error", "monitor"):
             setattr(
@@ -330,6 +328,7 @@ class Parameters(BaseParameters):
                 get_name_automatic_relocking_max_parameter(signal),
                 Parameter(start=95),
             )
+        self.lock_lost = Parameter(start=False)
 
         #           --------- AUTOLOCK PARAMETERS ---------
         # these are used internally by the autolock and usually should not be

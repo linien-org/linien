@@ -23,7 +23,6 @@ class Autolock:
         self.parameters.autolock_running.value = False
         self.parameters.autolock_retrying.value = False
 
-        self.should_watch_lock = False
         self._data_listener_added = False
 
         self.reset_properties()
@@ -46,24 +45,16 @@ class Autolock:
         x0,
         x1,
         spectrum,
-        should_watch_lock=False,
         auto_offset=True,
         additional_spectra=None,
     ):
-        """Starts the autolock.
-
-        If `should_watch_lock` is specified, the autolock continuously monitors
-        the control and error signals after the lock was successful and tries to
-        relock automatically using the spectrum that was recorded in the first
-        run of the lock.
-        """
+        """Starts the autolock."""
         # FIXME: hier kann auch SpectrumUncorrelatedException auftauchen, entweder beim Auolock algorithm selector oder robust algorithm. Handlen!
         self.parameters.autolock_running.value = True
         self.parameters.autolock_preparing.value = True
         self.parameters.autolock_percentage.value = 0
         self.parameters.fetch_additional_signals.value = False
         self.x0, self.x1 = int(x0), int(x1)
-        self.should_watch_lock = should_watch_lock
 
         # collect parameters that should be restored after stopping the lock
         self.parameters.autolock_initial_ramp_amplitude.value = (
@@ -178,18 +169,12 @@ class Autolock:
                 error_signal = plot_data["error_signal"]
                 control_signal = plot_data["control_signal"]
 
-                if self.parameters.autolock_watching.value:
-                    # the laser was locked successfully before. Now we check
-                    # periodically whether the laser is still in lock
-                    return self.watch_lock(error_signal, control_signal)
-
-                else:
-                    # we have started the lock.
-                    # skip some data and check whether we really are in lock
-                    # afterwards.
-                    return self.after_lock(
-                        error_signal, control_signal, plot_data.get("slow")
-                    )
+                # we have started the lock.
+                # skip some data and check whether we really are in lock
+                # afterwards.
+                return self.after_lock(
+                    error_signal, control_signal, plot_data.get("slow")
+                )
 
         except Exception:
             traceback.print_exc()
@@ -225,71 +210,8 @@ class Autolock:
         return error_signal, error_signal_rolled, line_width, peak_idxs
 
     def after_lock(self, error_signal, control_signal, slow_out):
-        """After locking, this method checks whether the laser really is locked.
-
-        If desired, it automatically tries to relock if locking failed, or
-        starts a watcher that does so over and over again.
-        """
-
-        def check_whether_in_lock(control_signal):
-            """
-            The laser is considered in lock if the mean value of the control
-            signal is within the boundaries of the smallest current ramp we had
-            before turning on the lock.
-            """
-            center = self.parameters.center.value
-            initial_ampl = self.parameters.autolock_initial_ramp_amplitude.value
-            target_zoom = 1
-            ampl = initial_ampl / target_zoom
-
-            slow_ramp = self.parameters.sweep_channel.value == ANALOG_OUT0
-            slow_pid = self.parameters.pid_on_slow_enabled.value
-
-            if not slow_ramp and not slow_pid:
-                mean = np.mean(control_signal) / 8192
-                return (center - ampl) <= mean <= (center + ampl)
-            else:
-                if slow_pid and not slow_ramp:
-                    # we cannot handle this case. Just assume the laser is locked.
-                    return True
-
-                return (center - ampl) <= slow_out / 8192 <= (center + ampl)
-
-        """self.parameters.autolock_locked.value = (
-            check_whether_in_lock(control_signal)
-            if self.parameters.check_lock.value
-            else True
-        )"""
         self.parameters.autolock_locked.value = True
-
-        if self.parameters.autolock_locked.value and self.should_watch_lock:
-            # we start watching the lock status from now on.
-            # this is done in `react_to_new_spectrum()` which is called regularly.
-            self.watcher_last_value = np.mean(control_signal) / 8192
-            self.parameters.autolock_watching.value = True
-        else:
-            self.remove_data_listener()
-            self.parameters.autolock_running.value = False
-
-            if not self.parameters.autolock_locked.value:
-                if self.should_watch_lock:
-                    return self.relock()
-
-                raise Exception("lock failed")
-
-    def watch_lock(self, error_signal, control_signal):
-        """Check whether the laser is still in lock and init a relock if not."""
-        mean = np.mean(control_signal) / 8192
-
-        diff = np.abs(mean - self.watcher_last_value)
-        lock_lost = diff > self.parameters.watch_lock_threshold.value
-
-        too_close_to_edge = np.abs(mean) > 0.95
-
-        if too_close_to_edge or lock_lost:
-            self.relock()
-
-        self.watcher_last_value = mean
+        self.remove_data_listener()
 
     def relock(self):
         """

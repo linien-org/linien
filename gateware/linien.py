@@ -1,4 +1,5 @@
 # this code is based on redpid. See LICENSE for details.
+from gateware.logic.relocking import RelockWatcher
 from gateware.logic.autolock import FPGAAutolock
 from migen import (
     Signal,
@@ -80,6 +81,7 @@ class LinienLogic(Module, AutoCSR):
         self.submodules.pid = PID(width=signal_width)
 
         self.submodules.autolock = FPGAAutolock(width=width, max_delay=8191)
+        self.submodules.relock_watcher = RelockWatcher(width=width)
 
     def connect_pid(self):
         # pid is not started directly by `request_lock` signal. Instead, `request_lock`
@@ -134,6 +136,7 @@ class LinienModule(Module, AutoCSR):
             width, signal_width, coeff_width, chain_factor_bits, platform
         )
         self.connect_everything(width, signal_width, coeff_width, chain_factor_bits)
+        self.connect_relock_watcher()
 
     def init_submodules(
         self, width, signal_width, coeff_width, chain_factor_bits, platform
@@ -362,6 +365,16 @@ class LinienModule(Module, AutoCSR):
             self.decimate.decimation.eq(self.logic.slow_decimation.storage),
             self.cd_decimated_clock.clk.eq(self.decimate.output),
             self.logic.slow_value.status.eq(self.slow.limit.y),
+        ]
+
+    def connect_relock_watcher(self):
+        self.comb += [
+            self.logic.relock_watcher.locked.eq(
+                self.logic.autolock.lock_running.status
+            ),
+            self.logic.relock_watcher.error_signal.eq(self.logic.pid.input),
+            self.logic.relock_watcher.monitor_signal.eq(self.fast_b.adc),
+            self.logic.relock_watcher.control_signal.eq(self.logic.pid.pid_out),
         ]
 
 

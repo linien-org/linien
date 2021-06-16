@@ -220,6 +220,13 @@ class DataAcquisitionService(Service):
                 if not self.dual_channel and len(signals) >= 3:
                     signals_named["monitor_signal"] = signals[2]
 
+                if self.confirmed_that_in_lock:
+                    lock_lost = bool(self.csr.get("logic_relock_watcher_lock_lost"))
+                else:
+                    lock_lost = False
+
+                signals_named["lock_lost"] = lock_lost
+
             slow_out = self.csr.get("logic_slow_value")
             slow_out = slow_out if slow_out <= 8191 else slow_out - 16384
             signals_named["slow"] = slow_out

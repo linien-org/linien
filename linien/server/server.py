@@ -105,6 +105,10 @@ class RedPitayaControlService(BaseService):
                         return
 
                     self.parameters.to_plot.value = plot_data
+
+                    if is_locked:
+                        self.parameters.lock_lost.value = data_loaded.get("lock_lost")
+
                     self._generate_signal_stats(data_loaded)
 
                     # update signal history (if in locked state)
@@ -150,8 +154,6 @@ class RedPitayaControlService(BaseService):
 
     def exposed_start_autolock(self, x0, x1, spectrum, additional_spectra=None):
         spectrum = pickle.loads(spectrum)
-        # start_watching = self.parameters.watch_lock.value
-        start_watching = False
         auto_offset = self.parameters.autolock_determine_offset.value
 
         if not self.task_running():
@@ -161,7 +163,6 @@ class RedPitayaControlService(BaseService):
                 x0,
                 x1,
                 spectrum,
-                should_watch_lock=start_watching,
                 auto_offset=auto_offset,
                 additional_spectra=pickle.loads(additional_spectra)
                 if additional_spectra is not None
