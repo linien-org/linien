@@ -57,7 +57,6 @@ class Autolock:
         relock automatically using the spectrum that was recorded in the first
         run of the lock.
         """
-        # FIXME: hier kann auch SpectrumUncorrelatedException auftauchen, entweder beim Auolock algorithm selector oder robust algorithm. Handlen!
         self.parameters.autolock_running.value = True
         self.parameters.autolock_preparing.value = True
         self.parameters.autolock_percentage.value = 0
@@ -79,15 +78,24 @@ class Autolock:
             self.peak_idxs,
         ) = self.record_first_error_signal(spectrum, auto_offset)
 
-        self.autolock_mode_detector = AutolockAlgorithmSelector(
-            self.parameters.autolock_mode_preference.value,
-            spectrum,
-            additional_spectra,
-            self.line_width,
-        )
+        try:
+            self.autolock_mode_detector = AutolockAlgorithmSelector(
+                self.parameters.autolock_mode_preference.value,
+                spectrum,
+                additional_spectra,
+                self.line_width,
+            )
 
-        if self.autolock_mode_detector.done:
-            self.start_autolock(self.autolock_mode_detector.mode)
+            if self.autolock_mode_detector.done:
+                self.start_autolock(self.autolock_mode_detector.mode)
+
+        except Exception:
+            # this may happen if `additional_spectra` contain uncorrelated data
+            # then either autolock algorithm selector or `start_autolock` may
+            # raise a spectrum uncorrelated exception
+            traceback.print_exc()
+            self.parameters.autolock_failed.value = True
+            return self.exposed_stop()
 
         self.add_data_listener()
 
