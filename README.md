@@ -282,6 +282,84 @@ For a full list of parameters that can be controlled or accessed have a
 look at
 [parameters.py](https://github.com/hermitdemschoenenleben/linien/blob/master/linien/server/parameters.py). Remember that changed parameters are not written to the FPGA unless `c.connection.root.write_data()` is called.
 
+### Run the autolock
+
+The script below shows an example of how to run the autolock using the scripting interface:
+
+```python
+import pickle
+import numpy as np
+
+from linien.client.connection import LinienClient
+from linien.common import FAST_AUTOLOCK
+
+from matplotlib import pyplot as plt
+from time import sleep
+
+c = LinienClient(
+    {"host": "HOST", "username": "USERNAME", "password": "PASSWORD"},
+    autostart_server=False,
+)
+c.parameters.autolock_mode_preference.value = FAST_AUTOLOCK
+
+def wait_for_lock_status(should_be_locked):
+    """A helper function that waits until the laser is locked or unlocked."""
+    counter = 0
+    while True:
+        to_plot = pickle.loads(c.parameters.to_plot.value)
+        is_locked = "error_signal" in to_plot
+
+        if is_locked == should_be_locked:
+            break
+
+        counter += 1
+        if counter > 10:
+            raise Exception("waited too long")
+
+        sleep(1)
+
+
+# turn of the lock (if it is running)
+c.connection.root.start_ramp()
+# wait until the laser is unlocked (if required)
+wait_for_lock_status(False)
+
+
+# we record a reference spectrum
+to_plot = pickle.loads(c.parameters.to_plot.value)
+error_signal = to_plot["error_signal_1"]
+
+
+# we plot the reference spectrum and ask the user where the target line is
+plt.plot(error_signal)
+plt.plot(to_plot["monitor_signal"])
+plt.show()
+
+print('Please specify the position of the target line. ')
+x0 = int(input('enter index of a point that is on the left side of the target line'))
+x1 = int(input('enter index of a point that is on the right side of the target line'))
+
+
+# show the lock point again
+plt.axvline(x0)
+plt.axvline(x1)
+plt.plot(error_signal)
+plt.show()
+
+
+# turn on the lock
+c.connection.root.start_autolock(x0, x1, pickle.dumps(error_signal))
+
+
+# wait until the laser is actually locked
+try:
+    wait_for_lock_status(True)
+    print('locking the laser worked \o/')
+except:
+    print('locking the laser failed :(')
+
+```
+
 Updating Linien
 ---------------
 
