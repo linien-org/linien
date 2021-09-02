@@ -7,11 +7,6 @@ assert linien.__version__ != "dev"
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-with open("requirements_gui", "r") as fh:
-    requirements = fh.read().split(" ")
-
-requirements += ["linien-python-client==" + linien.__version__]
-
 setuptools.setup(
     name="linien",
     version=linien.__version__,
@@ -30,7 +25,17 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     entry_points={"console_scripts": ["linien=linien.gui.app:run_application"]},
-    install_requires=[requirements],
+    install_requires=[
+        "click>=7.1.2",
+        "numpy>=1.19.1",
+        "paramiko>=2.7.1",
+        "plumbum>=1.6.9",
+        "pyqtgraph>=0.10.0",
+        "PyQt5>=5.12.0",
+        "rpyc>=4.0,<5.0",
+        "scipy>=1.4.1",
+        "linien-python-client==" + linien.__version__,
+    ],
     package_data={
         # IMPORTANT: any changes have to be made in pyinstaller.spec, too
         # (for the standalone installer)
