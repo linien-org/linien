@@ -408,7 +408,7 @@ Before running the development version check that no production version of the s
 Now you can launch the client
 
 ```
-python3 linien/client/client.py
+python3 linien/gui/app.py
 ```
 
 and you can connect to your RedPitaya.
