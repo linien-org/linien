@@ -1,0 +1,6 @@
+-r requirements_client.txt
+-r requirements_gui.txt
+cma==3.0.3
+flake8
+black
+pre-commit
