@@ -1,13 +1,4 @@
-from migen import (
-    Signal,
-    Module,
-    Instance,
-    ClockSignal,
-    ResetSignal,
-    Array,
-    Record,
-    If
-)
+from migen import Signal, Module, Instance, ClockSignal, ResetSignal, Array, Record, If
 from misoc.interconnect.csr import AutoCSR, CSRStorage
 from .pitaya_ps import sys_layout
 
@@ -32,11 +23,10 @@ class ScopeGen(Module, AutoCSR):
         self.automatically_trigger = Signal()
         automatic_trigger_signal = Signal()
         self.sync += [
-            If(self.automatically_trigger,
-                automatic_trigger_signal.eq(~automatic_trigger_signal)
-            ).Else(
-                automatic_trigger_signal.eq(0)
-            )
+            If(
+                self.automatically_trigger,
+                automatic_trigger_signal.eq(~automatic_trigger_signal),
+            ).Else(automatic_trigger_signal.eq(0))
         ]
 
         self.external_trigger = CSRStorage(1)

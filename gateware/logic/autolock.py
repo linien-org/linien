@@ -14,6 +14,7 @@ class FPGAAutolock(Module, AutoCSR):
     Independent of the mode selected, locking happens by setting
     `request_lock`. Once lock has been established, `lock_running` will be HIGH.
     """
+
     def __init__(self, width=14, N_points=16383, max_delay=16383):
         self.submodules.robust = RobustAutolock(max_delay=max_delay)
 
@@ -52,6 +53,7 @@ class FastAutolock(Module, AutoCSR):
     """The operation of fast autolock is simple: wait until the ramp has reached
     a certain point and turn on the lock. This method is well suited for systems
     with not too much jitter."""
+
     def __init__(self, width=14):
         # pid is not started directly by `request_lock` signal. Instead, `request_lock`
         # queues a run that is then started when the ramp is at the zero target position
