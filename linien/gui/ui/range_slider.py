@@ -1,0 +1,1 @@
+from superqt import QRangeSlider

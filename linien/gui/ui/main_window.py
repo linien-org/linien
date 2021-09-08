@@ -1,6 +1,5 @@
 import json
 import pickle
-from math import log
 from time import time
 
 import linien
@@ -9,17 +8,9 @@ from linien.common import check_plot_data
 from linien.config import N_COLORS
 from linien.gui.config import COLORS
 from linien.gui.ui.plot_widget import INVALID_POWER
-from linien.gui.utils_gui import color_to_hex, param2ui
+from linien.gui.utils_gui import color_to_hex
 from linien.gui.widgets import CustomWidget
-from PyQt5 import QtCore, QtGui, QtWidgets
-
-ZOOM_STEP = 0.9
-MAX_ZOOM = 50
-MIN_ZOOM = 0
-
-
-def ramp_amplitude_to_zoom_step(amplitude):
-    return round(log(amplitude, ZOOM_STEP))
+from PyQt5 import QtGui, QtWidgets
 
 
 class MainWindow(QtGui.QMainWindow, CustomWidget):
@@ -43,9 +34,7 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
         # handle keyboard events
         self.setFocus()
 
-        self.ids.zoom_slider.valueChanged.connect(self.change_zoom)
-        self.ids.go_left_btn.clicked.connect(self.go_left)
-        self.ids.go_right_btn.clicked.connect(self.go_right)
+        self.ids.ramp_slider.valueChanged.connect(self.change_ramp)
 
         self.ids.export_parameters_button.clicked.connect(
             self.export_parameters_select_file
@@ -78,32 +67,8 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
     def show_new_version_available(self):
         self.ids.new_version_available_label.show()
 
-    def keyPressEvent(self, event):
-        self.handle_key_press(event.key())
-
     def handle_key_press(self, key):
         print("key pressed", key)
-
-        def click_if_enabled(btn):
-            if btn.isEnabled():
-                btn.clicked.emit()
-
-        if key == ord("+"):
-            self.increase_or_decrease_zoom(+1)
-        elif key == ord("-"):
-            self.increase_or_decrease_zoom(-1)
-        elif key == QtCore.Qt.Key_Right:
-            click_if_enabled(self.ids.go_right_btn)
-        elif key == QtCore.Qt.Key_Left:
-            click_if_enabled(self.ids.go_left_btn)
-
-    def increase_or_decrease_zoom(self, direction):
-        amplitude = self.parameters.ramp_amplitude.value
-        zoom_level = ramp_amplitude_to_zoom_step(amplitude)
-        zoom_level += direction
-        if zoom_level < MIN_ZOOM or zoom_level > MAX_ZOOM:
-            return
-        self.change_zoom(zoom_level)
 
     def export_parameters_select_file(self):
         options = QtWidgets.QFileDialog.Options()
@@ -165,12 +130,6 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
         self.control = self.app.control
         self.parameters = self.app.parameters
 
-        param2ui(
-            self.parameters.ramp_amplitude,
-            self.ids.zoom_slider,
-            ramp_amplitude_to_zoom_step,
-        )
-
         def display_ramp_range(*args):
             center = self.parameters.center.value
             amp = self.parameters.ramp_amplitude.value
@@ -211,16 +170,6 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
 
         self.ids.settings_toolbox.setCurrentIndex(0)
 
-        def center_or_amplitude_changed(_):
-            center = self.parameters.center.value
-            amplitude = self.parameters.ramp_amplitude.value
-
-            self.ids.go_right_btn.setEnabled(center + amplitude < 1)
-            self.ids.go_left_btn.setEnabled(center - amplitude > -1)
-
-        self.parameters.ramp_amplitude.on_change(center_or_amplitude_changed)
-        self.parameters.center.on_change(center_or_amplitude_changed)
-
         self.parameters.lock.on_change(lambda *args: self.reset_std_history())
 
         def update_legend_color(*args):
@@ -259,36 +208,14 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
 
         self.parameters.dual_channel.on_change(update_legend_text)
 
-    def go_right(self):
-        self.change_center(True)
-
-    def go_left(self):
-        self.change_center(False)
-
-    def change_center(self, positive):
-        delta_center = self.parameters.ramp_amplitude.value / 10
-        if not positive:
-            delta_center *= -1
-        new_center = self.parameters.center.value + delta_center
-
-        if np.abs(new_center) + self.parameters.ramp_amplitude.value > 1:
-            new_center = np.sign(new_center) * (
-                1 - self.parameters.ramp_amplitude.value
-            )
-
-        print("set center", new_center)
-        self.parameters.center.value = new_center
-        self.control.write_data()
-
-    def change_zoom(self, zoom):
-        amplitude = ZOOM_STEP ** zoom
-        print("change zoom", zoom, amplitude)
+    def change_ramp(self, range_):
+        min_ = (range_[0] - 1000) / 1000
+        max_ = (range_[1] - 1000) / 1000
+        amplitude = (max_ - min_) / 2
+        center = (max_ + min_) / 2
         self.parameters.ramp_amplitude.value = amplitude
-        center = self.parameters.center.value
-        if center + amplitude > 1:
-            self.parameters.center.value = 1 - amplitude
-        elif center - amplitude < -1:
-            self.parameters.center.value = -1 + amplitude
+        self.parameters.center.value = center
+        print("amplitude: {}, center: {}".format(amplitude, center))
         self.control.write_data()
 
     def update_std(self, to_plot, max_std_history_length=10):
