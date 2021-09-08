@@ -128,7 +128,7 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
                         "time": time(),
                         "parameters": dict(
                             (k, getattr(self.parameters, k).value)
-                            for k in self.parameters.remote.exposed_get_restorable_parameters()
+                            for k in self.parameters.remote.exposed_get_restorable_parameters()  # noqa: E501
                         ),
                     },
                     f,
@@ -222,12 +222,15 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
         params.lock.on_change(lambda *args: self.reset_std_history())
 
         def update_legend_color(*args):
-            set_color = lambda el, color_name: el.setStyleSheet(
-                "color: "
-                + color_to_hex(
-                    getattr(self.parameters, "plot_color_%d" % COLORS[color_name]).value
+            def set_color(el, color_name):
+                return el.setStyleSheet(
+                    "color: "
+                    + color_to_hex(
+                        getattr(
+                            self.parameters, "plot_color_%d" % COLORS[color_name]
+                        ).value
+                    )
                 )
-            )
 
             set_color(self.ids.legend_spectrum_1, "spectrum_1")
             set_color(self.ids.legend_spectrum_2, "spectrum_2")
