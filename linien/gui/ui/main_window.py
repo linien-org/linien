@@ -1,18 +1,17 @@
 import json
-from linien.gui.ui.plot_widget import INVALID_POWER
-import linien
 import pickle
-import numpy as np
 from math import log
 from time import time
-from PyQt5 import QtGui, QtWidgets, QtCore
 
+import linien
+import numpy as np
 from linien.common import check_plot_data
-from linien.gui.utils_gui import color_to_hex, param2ui
 from linien.config import N_COLORS
 from linien.gui.config import COLORS
+from linien.gui.ui.plot_widget import INVALID_POWER
+from linien.gui.utils_gui import color_to_hex, param2ui
 from linien.gui.widgets import CustomWidget
-
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 ZOOM_STEP = 0.9
 MAX_ZOOM = 50
