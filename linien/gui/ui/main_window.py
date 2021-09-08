@@ -163,27 +163,28 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
 
     def connection_established(self):
         self.control = self.app.control
-        params = self.app.parameters
-        self.parameters = params
+        self.parameters = self.app.parameters
 
         param2ui(
-            params.ramp_amplitude, self.ids.zoom_slider, ramp_amplitude_to_zoom_step
+            self.parameters.ramp_amplitude,
+            self.ids.zoom_slider,
+            ramp_amplitude_to_zoom_step,
         )
 
         def display_ramp_range(*args):
-            center = params.center.value
-            amp = params.ramp_amplitude.value
+            center = self.parameters.center.value
+            amp = self.parameters.ramp_amplitude.value
             min_ = center - amp
             max_ = center + amp
             self.ids.ramp_status.setText("%.3fV to %.3fV" % (min_, max_))
 
-        params.center.on_change(display_ramp_range)
-        params.ramp_amplitude.on_change(display_ramp_range)
+        self.parameters.center.on_change(display_ramp_range)
+        self.parameters.ramp_amplitude.on_change(display_ramp_range)
 
         def change_manual_navigation_visibility(*args):
-            al_running = params.autolock_running.value
-            optimization = params.optimization_running.value
-            locked = params.lock.value
+            al_running = self.parameters.autolock_running.value
+            optimization = self.parameters.optimization_running.value
+            locked = self.parameters.lock.value
 
             self.get_widget("manual_navigation").setVisible(
                 not al_running and not locked and not optimization
@@ -193,32 +194,34 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
                 not al_running and not locked and not optimization
             )
 
-        params.lock.on_change(change_manual_navigation_visibility)
-        params.autolock_running.on_change(change_manual_navigation_visibility)
-        params.optimization_running.on_change(change_manual_navigation_visibility)
+        self.parameters.lock.on_change(change_manual_navigation_visibility)
+        self.parameters.autolock_running.on_change(change_manual_navigation_visibility)
+        self.parameters.optimization_running.on_change(
+            change_manual_navigation_visibility
+        )
 
-        params.to_plot.on_change(self.update_std)
+        self.parameters.to_plot.on_change(self.update_std)
 
-        params.pid_on_slow_enabled.on_change(
+        self.parameters.pid_on_slow_enabled.on_change(
             lambda v: self.ids.legend_slow_signal_history.setVisible(v)
         )
-        params.dual_channel.on_change(
+        self.parameters.dual_channel.on_change(
             lambda v: self.ids.legend_monitor_signal_history.setVisible(not v)
         )
 
         self.ids.settings_toolbox.setCurrentIndex(0)
 
         def center_or_amplitude_changed(_):
-            center = params.center.value
-            amplitude = params.ramp_amplitude.value
+            center = self.parameters.center.value
+            amplitude = self.parameters.ramp_amplitude.value
 
             self.ids.go_right_btn.setEnabled(center + amplitude < 1)
             self.ids.go_left_btn.setEnabled(center - amplitude > -1)
 
-        params.ramp_amplitude.on_change(center_or_amplitude_changed)
-        params.center.on_change(center_or_amplitude_changed)
+        self.parameters.ramp_amplitude.on_change(center_or_amplitude_changed)
+        self.parameters.center.on_change(center_or_amplitude_changed)
 
-        params.lock.on_change(lambda *args: self.reset_std_history())
+        self.parameters.lock.on_change(lambda *args: self.reset_std_history())
 
         def update_legend_color(*args):
             def set_color(el, color_name):
