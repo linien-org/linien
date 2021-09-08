@@ -7,7 +7,6 @@ from math import log
 from time import time
 from PyQt5 import QtGui, QtWidgets, QtCore
 
-import linien
 from linien.common import check_plot_data
 from linien.gui.utils_gui import color_to_hex, param2ui
 from linien.config import N_COLORS
