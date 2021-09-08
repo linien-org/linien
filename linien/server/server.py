@@ -1,7 +1,11 @@
 import os
 import sys
 
-sys.path += ["../../"]
+# add the two parent directories to the path so linien and autolock can be found
+dir_name = os.path.dirname(os.path.abspath(__file__))
+sys.path += [os.path.join(dir_name, "..", "..")]
+sys.path += [os.path.join(dir_name, "..")]
+
 import rpyc
 import click
 import _thread
