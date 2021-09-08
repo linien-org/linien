@@ -135,7 +135,7 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
             amp = self.parameters.ramp_amplitude.value
             min_ = center - amp
             max_ = center + amp
-            self.ids.ramp_status.setText("%.3fV to %.3fV" % (min_, max_))
+            self.ids.ramp_status.setText("{:+.3f}V to {:+.3f}V".format(min_, max_))
 
         self.parameters.center.on_change(display_ramp_range)
         self.parameters.ramp_amplitude.on_change(display_ramp_range)
