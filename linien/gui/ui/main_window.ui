@@ -56,18 +56,15 @@
              </widget>
             </item>
             <item>
-             <widget class="QRangeSlider" name="ramp_slider">
+             <widget class="RampSlider" name="ramp_slider">
               <property name="minimumSize">
                <size>
                 <width>400</width>
                 <height>0</height>
                </size>
               </property>
-              <property name="minimum">
-               <number>0</number>
-              </property>
               <property name="maximum">
-               <number>2000</number>
+               <number>99</number>
               </property>
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
@@ -1091,9 +1088,9 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>QRangeSlider</class>
+   <class>RampSlider</class>
    <extends>QSlider</extends>
-   <header>range_slider.h</header>
+   <header>ramp_control.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
