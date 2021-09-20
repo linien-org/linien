@@ -1,7 +1,8 @@
+from linien.gui.widgets import CustomWidget
 import superqt
 
 
-class RampSlider(superqt.QDoubleRangeSlider):
+class RampSlider(superqt.QDoubleRangeSlider, CustomWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 

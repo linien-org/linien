@@ -33,6 +33,8 @@ class CustomWidget:
         pass
 
     def connection_established(self):
+        # This is executed the client succesfully established a connection to the server
+        # and can be extended by inheritting classes.
         pass
 
     def get_widget(self, name):

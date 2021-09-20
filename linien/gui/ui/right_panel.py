@@ -7,8 +7,8 @@ class RightPanel(QtGui.QWidget, CustomWidget):
         super().__init__(*args, **kwargs)
 
     def connection_established(self):
-        self.control = self.app.control
         self.parameters = self.app.parameters
+        self.control = self.app.control
 
         self.parameters.autolock_running.on_change(self.autolock_status_changed)
         self.parameters.optimization_running.on_change(self.optimization_status_changed)

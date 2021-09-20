@@ -24,23 +24,22 @@ class ModulationAndRampPanel(QtGui.QWidget, CustomWidget):
         self.ids.spectroscopyTabs.setCurrentIndex(0)
 
     def connection_established(self):
-        params = self.app.parameters
+        self.parameters = self.app.parameters
         self.control = self.app.control
-        self.parameters = params
 
         param2ui(
-            params.modulation_frequency,
+            self.parameters.modulation_frequency,
             self.ids.modulation_frequency,
             lambda value: value / MHz,
         )
         param2ui(
-            params.modulation_amplitude,
+            self.parameters.modulation_amplitude,
             self.ids.modulation_amplitude,
             lambda value: value / Vpp,
         )
-        param2ui(params.ramp_speed, self.ids.ramp_speed)
+        param2ui(self.parameters.ramp_speed, self.ids.ramp_speed)
 
-        params.dual_channel.on_change(self.dual_channel_changed)
+        self.parameters.dual_channel.on_change(self.dual_channel_changed)
 
     def change_modulation_frequency(self):
         self.parameters.modulation_frequency.value = (

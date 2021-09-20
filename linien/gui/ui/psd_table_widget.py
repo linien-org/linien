@@ -20,8 +20,8 @@ class PSDTableWidget(QtGui.QTableWidget, CustomWidget):
         self.uuids = []
 
     def connection_established(self):
-        self.control = self.app.control
         self.parameters = self.app.parameters
+        self.control = self.app.control
 
     def add_curve(self, uuid, data, color):
         if uuid not in self.uuids:
