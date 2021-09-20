@@ -6,7 +6,7 @@ from plumbum import colors
 from traceback import print_exc
 
 from PyQt5 import QtWidgets
-from pyqtgraph.Qt import QtCore, QtGui
+from pyqtgraph.Qt import QtCore
 
 
 # it may seem odd to include '.', but for some reason this is needed for
@@ -62,9 +62,12 @@ class QTApp(QtCore.QObject):
         for instance in CustomWidget.instances:
             try:
                 instance.connection_established()
-            except:
+            except Exception:
                 print(
-                    "the error below happend when calling connection_established of a widget. This may happen if the widget was recently destroyed."
+                    """
+                    The error below happend when calling connection_established of a 
+                    widget. This may happen if the widget was recently destroyed.
+                    """  # noqa: W291
                 )
                 print_exc()
 
@@ -76,7 +79,7 @@ class QTApp(QtCore.QObject):
         if hasattr(self, "client") and self.client and self.client.connected:
             try:
                 self.parameters.call_listeners()
-            except:
+            except Exception:
                 print(colors.red | "call_listeners() failed")
                 print_exc()
 
