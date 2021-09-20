@@ -129,8 +129,9 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
             self.control.write_data()
 
     def connection_established(self):
+        print("jo")
         self.control = self.app.control
-        self.parameters = self.app.parameters
+        self.parameters = self.app.client.parameters
         # FIXME: ramp slider should use the values from `self.parameters`
         self.ids.ramp_slider.initValues()
 

@@ -47,9 +47,8 @@ class PSDWindow(QtGui.QMainWindow, CustomWidget):
         self.parameters.psd_acquisition_max_decimation.value = 12 + index
 
     def connection_established(self):
-        self.control = self.app.control
-        params = self.app.parameters
-        self.parameters = params
+        self.control = self.app.client.control
+        self.parameters = self.app.client.parameters
 
         self.parameters.psd_data_partial.on_change(
             self.psd_data_received,
