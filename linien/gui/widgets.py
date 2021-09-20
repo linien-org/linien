@@ -2,7 +2,7 @@ import os
 import weakref
 from os import path
 from PyQt5 import uic
-from pyqtgraph.Qt import QtCore, QtGui
+from pyqtgraph.Qt import QtCore
 
 
 # add ui folder to path
