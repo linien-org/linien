@@ -58,8 +58,8 @@ class GeneralPanel(QtGui.QWidget, CustomWidget):
         self.control.write_data()
 
     def connection_established(self):
-        params = self.app().parameters
-        self.control = self.app().control
+        params = self.app.parameters
+        self.control = self.app.control
         self.parameters = params
 
         def dual_channel_changed(value):

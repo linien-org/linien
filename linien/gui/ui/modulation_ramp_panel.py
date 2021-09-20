@@ -24,8 +24,8 @@ class ModulationAndRampPanel(QtGui.QWidget, CustomWidget):
         self.ids.spectroscopyTabs.setCurrentIndex(0)
 
     def connection_established(self):
-        params = self.app().parameters
-        self.control = self.app().control
+        params = self.app.parameters
+        self.control = self.app.control
         self.parameters = params
 
         param2ui(

@@ -42,9 +42,9 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
         )
 
     def connection_established(self):
-        params = self.app().parameters
+        params = self.app.parameters
         self.parameters = params
-        self.control = self.app().control
+        self.control = self.app.control
 
         param2ui(params.p, self.ids.kp)
         param2ui(params.i, self.ids.ki)

@@ -48,9 +48,9 @@ class OptimizationPanel(QtGui.QWidget, CustomWidget):
             getattr(self.ids, param_name).stateChanged.connect(optim_enabled_changed)
 
     def connection_established(self):
-        params = self.app().parameters
+        params = self.app.parameters
         self.parameters = params
-        self.control = self.app().control
+        self.control = self.app.control
 
         def opt_running_changed(_):
             running = params.optimization_running.value

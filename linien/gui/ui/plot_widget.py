@@ -206,8 +206,8 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         return x, y
 
     def connection_established(self):
-        self.control = self.app().control
-        self.parameters = self.app().parameters
+        self.control = self.app.control
+        self.parameters = self.app.parameters
 
         def set_pens(color):
             pen_width = self.parameters.plot_line_width.value

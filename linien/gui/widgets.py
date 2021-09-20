@@ -39,10 +39,15 @@ class CustomWidget:
         """Queries a widget by name."""
         return self.findChild(QtCore.QObject, name)
 
+    @property
     def app(self):
         # this property is set manually. Probably there is a more elegant way
         # to solve this...
-        return self.window().app
+        return self.window()._app
+
+    @app.setter
+    def app(self, app):
+        self._app = app
 
     def load_ui(self, name):
         assert name.endswith(".ui")

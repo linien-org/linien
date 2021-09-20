@@ -81,8 +81,8 @@ class SpectroscopyPanel(QtWidgets.QWidget, CustomWidget):
         self.ids.invert.stateChanged.connect(invert_changed)
 
     def connection_established(self):
-        params = self.app().parameters
-        self.control = self.app().control
+        params = self.app.parameters
+        self.control = self.app.control
         self.parameters = params
 
         # self.close_button.clicked.connect(self.close_app)

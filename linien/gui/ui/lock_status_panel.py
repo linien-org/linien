@@ -16,8 +16,8 @@ class LockStatusPanel(QtGui.QWidget, CustomWidget):
         )
 
     def connection_established(self):
-        self.control = self.app().control
-        params = self.app().parameters
+        self.control = self.app.control
+        params = self.app.parameters
         self.parameters = params
 
         def update_status(_):
