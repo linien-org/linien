@@ -80,6 +80,11 @@ class PSDAcquisition:
 
         self.is_child = is_child
 
+    def exposed_return_signals(self):
+        import pickle
+
+        return pickle.dumps(self.recorded_signals_by_decimation)
+
     def run(self):
         try:
             self.uuid = generate_curve_uuid()

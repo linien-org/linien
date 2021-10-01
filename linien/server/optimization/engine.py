@@ -119,6 +119,12 @@ class OptimizerEngine:
         self.last_parameters = None
         self.last_parameters_internal = None
 
+        import random
+        import string
+
+        self.uuid = "".join(random.choice(string.ascii_lowercase) for i in range(3))
+        self.history = []
+
     def init_opt_with_bounds(self):
         params = self.parameters
 
@@ -226,6 +232,10 @@ class OptimizerEngine:
         fitness = math.log(1 / optimized_slope)
 
         if self.last_parameters_internal is not None:
+            self.history.append(fitness)
+            with open('/optimization-history-' + self.uuid + '.pickle', 'wb') as f:
+                import pickle
+                pickle.dump(self.history, f)
             self.opt.tell(fitness, self.last_parameters_internal)
 
     def use_best_parameters(self):

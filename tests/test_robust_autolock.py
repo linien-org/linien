@@ -427,11 +427,123 @@ def test_crop_spectra_to_same_view():
         # plt.show()
 
 
+def foo():
+    spectrum, target_idxs = atomic_spectrum(150)
+    time_scale = get_time_scale(spectrum, target_idxs)
+
+    summed = sum_up_spectrum(spectrum)
+    summed_xscaled = get_diff_at_time_scale(summed, time_scale)
+
+    x_axis = np.array(range(len(spectrum)))
+
+    plt.axvspan(*target_idxs, alpha=0.15, color="red", label="target transition")
+
+    plt.plot(x_axis, spectrum, label="noisy spectrum")
+    plt.plot(
+        x_axis - (time_scale / 2),
+        np.array(summed_xscaled) / time_scale,
+        label="filtered spectrum",
+    )
+    plt.xlabel("ramp position in a.u.")
+    plt.ylabel("error signal in a.u.")
+
+    ax = plt.gca()
+    labels = [item.get_text() for item in ax.get_xticklabels()]
+    empty_string_labels = [""] * len(labels)
+    ax.set_xticklabels(empty_string_labels)
+
+    ax = plt.gca()
+    labels = [item.get_text() for item in ax.get_yticklabels()]
+    empty_string_labels = [""] * len(labels)
+    ax.set_yticklabels(empty_string_labels)
+
+    plt.xlim((x_axis[0], x_axis[-1]))
+
+    plt.grid()
+    plt.legend()
+
+    plt.savefig("/home/ben/Schreibtisch/linien-paper/plots/spectrum_filtering.png")
+    plt.show()
+
+
+def foo2():
+    spectra = []
+    for idx in range(5):
+        spectrum, target_idxs = atomic_spectrum(150)
+        spectra.append(spectrum)
+
+    description, final_wait_time, time_scale = calculate_autolock_instructions(
+        spectra, target_idxs
+    )
+    print(description)
+
+    x_axis = np.array(range(len(spectrum)))
+
+    # plt.plot(x_axis, spectra[0], color="grey")
+
+    for spectrum in spectra:
+        time_scale = get_time_scale(spectrum, target_idxs)
+
+        summed = sum_up_spectrum(spectrum)
+        summed_xscaled = get_diff_at_time_scale(summed, time_scale)
+
+        plt.plot(
+            x_axis - (time_scale / 2),
+            np.array(summed_xscaled) / time_scale,
+            label="filtered spectrum",
+            color="grey",
+            alpha=0.5,
+        )
+    plt.xlabel("ramp position in a.u.")
+    plt.ylabel("error signal in a.u.")
+
+    ax = plt.gca()
+    labels = [item.get_text() for item in ax.get_xticklabels()]
+    empty_string_labels = [""] * len(labels)
+    ax.set_xticklabels(empty_string_labels)
+
+    ax = plt.gca()
+    labels = [item.get_text() for item in ax.get_yticklabels()]
+    empty_string_labels = [""] * len(labels)
+    ax.set_yticklabels(empty_string_labels)
+
+    plt.xlim((x_axis[0], x_axis[-1]))
+
+    plt.grid()
+    # plt.legend()
+
+    helper = [(149, 169), (168, 188), (235, 255), (250, 275), (320, 340)]
+    for i, [x, y] in enumerate(description):
+        plt.plot(
+            [helper[i][0], helper[i][1]],
+            [y / time_scale] * 2,
+            color="red",
+            linewidth=3,
+        )
+
+    lock_position = get_lock_position_from_autolock_instructions(
+        spectrum,
+        description,
+        time_scale,
+        spectra[0],
+        final_wait_time,
+    )
+    print("!!!", lock_position)
+    plt.axvline(lock_position, linewidth=3)
+
+    plt.savefig("/home/ben/Schreibtisch/linien-paper/plots/autolock.png")
+    plt.show()
+
+
 if __name__ == "__main__":
+    foo()
+    # foo2()
+    """foo()
+    asd
     test_dynamic_delay()
     test_crop_spectra_to_same_view()
     test_compare_sum_diff_calculator_implementations()
     test_sum_diff_calculator()
     test_sum_diff_calculator2()
     test_fpga_lock_position_finder()
-    test_get_description(debug=False)
+    test_get_description(debug=True)"""
