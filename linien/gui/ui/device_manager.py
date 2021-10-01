@@ -41,6 +41,7 @@ class DeviceManager(QtGui.QMainWindow, CustomWidget):
 
     def keyPressEvent(self, event):
         key = event.key()
+
         if key in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return):
             self.connect()
 
@@ -74,73 +75,85 @@ class DeviceManager(QtGui.QMainWindow, CustomWidget):
 
         loading_dialog.aborted.connect(was_aborted)
 
-        self.t = ConnectionThread(device)
+        self.connection_thread = ConnectionThread(device)
 
-        def connected(conn):
+        def client_connected(client):
             loading_dialog.hide()
             if not aborted:
-                self.app.connected(conn, conn.parameters, conn.control)
+                self.app.client_connected(client)
 
-        self.t.connected.connect(connected)
+        self.connection_thread.client_connected.connect(client_connected)
 
         def server_not_installed():
             client_version = linien.__version__
             loading_dialog.hide()
             if not aborted:
-                display_question = """The server is not yet installed on the device. Should it be installed? (Requires internet connection on RedPitaya)"""
+                display_question = """
+                The server is not yet installed on the device. 
+                Should it be installed? (Requires internet connection on RedPitaya)
+                """  # noqa: W291
                 if question_dialog(self, display_question, "Install server?"):
                     self.install_linien_server(
                         device,
                         version=client_version if client_version != "dev" else None,
                     )
 
-        self.t.server_not_installed.connect(server_not_installed)
+        self.connection_thread.server_not_installed.connect(server_not_installed)
 
         def invalid_server_version(remote_version, client_version):
             loading_dialog.hide()
             if not aborted:
                 if client_version != "dev":
-                    display_question = (
-                        "The server version (%s) does not match the client (%s) version."
-                        "Should the corresponding server version be installed?"
-                        % (remote_version, client_version)
+                    display_question = """
+                        The server version ({}) does not match the client ({})
+                        version. Should the corresponding server version be installed?
+                        """.format(
+                        remote_version, client_version
                     )
                     if question_dialog(
                         self, display_question, "Install corresponding version?"
                     ):
                         self.install_linien_server(device, version=client_version)
                 else:
-                    display_error = (
-                        "A production version is installed on the RedPitaya, "
-                        "but the client uses a development version. Stop the "
-                        "server and uninstall the version on the RedPitaya using\n"
-                        "    linien_stop_server;\n"
-                        "    pip3 uninstall linien-server\n"
-                        "before trying it again."
-                    )
+                    display_error = """
+                        A production version is installed on the RedPitaya, 
+                        but the client uses a development version. Stop the 
+                        server and uninstall the version on the RedPitaya using\n
+                        linien_stop_server;\n
+                        pip3 uninstall linien-server\n
+                        before trying it again.
+                        """  # noqa: W291
                     error_dialog(self, display_error)
 
-        self.t.invalid_server_version.connect(invalid_server_version)
+        self.connection_thread.invalid_server_version.connect(invalid_server_version)
 
         def authentication_exception():
             loading_dialog.hide()
             if not aborted:
-                display_error = (
-                    "Error at authentication. "
-                    'Check username and password (by default both are "root") and verify that you '
-                    "don't have any offending SSH keys in your known hosts file."
-                )
+                display_error = """
+                    Error at authentication.\n
+                    Check username and password (by default both are "root") and verify 
+                    that you don't have any offending SSH keys in your known hosts file.
+                    """  # noqa: W291
+
                 error_dialog(self, display_error)
 
-        self.t.authentication_exception.connect(authentication_exception)
+        self.connection_thread.authentication_exception.connect(
+            authentication_exception
+        )
 
         def general_connection_error():
             loading_dialog.hide()
             if not aborted:
-                display_error = "Unable to connect to device. If you are connecting by hostname (i.e. rp-xxxxxx.local), try using IP address instead."
+                display_error = """
+                Unable to connect to device. If you are connecting by hostname 
+                (i.e. rp-xxxxxx.local), try using IP address instead.
+                """  # noqa: W291
                 error_dialog(self, display_error)
 
-        self.t.general_connection_error.connect(general_connection_error)
+        self.connection_thread.general_connection_error.connect(
+            general_connection_error
+        )
 
         def exception():
             loading_dialog.hide()
@@ -148,24 +161,32 @@ class DeviceManager(QtGui.QMainWindow, CustomWidget):
                 display_error = "Exception occured when connecting to the device."
                 error_dialog(self, display_error)
 
-        self.t.exception.connect(exception)
+        self.connection_thread.exception.connect(exception)
 
         def ask_for_parameter_restore():
-            question = "Linien on RedPitaya is running with different parameters than the ones saved locally on this machine. Do you want to upload the local parameters or keep the remote ones? Note that remote parameters are only saved if Linien server was shut down properly, not when unplugging the power plug. In this case, you should update your local parameters."
+            question = """
+            Linien on RedPitaya is running with different parameters than the ones saved
+             locally on this machine. Do you want to upload the local parameters or keep
+             the remote ones? Note that remote parameters are only saved if Linien 
+            server was shut down properly, not when unplugging the power plug. In this 
+            case, you should update your local parameters.
+            """  # noqa: W291
             should_restore = ask_for_parameter_restore_dialog(
                 self, question, "Restore parameters?"
             )
-            self.t.answer_whether_to_restore_parameters(should_restore)
+            self.connection_thread.answer_whether_to_restore_parameters(should_restore)
 
-        self.t.ask_for_parameter_restore.connect(ask_for_parameter_restore)
+        self.connection_thread.ask_for_parameter_restore.connect(
+            ask_for_parameter_restore
+        )
 
         def connection_lost():
             error_dialog(self, "Lost connection to the server!")
             self.app.close()
 
-        self.t.connection_lost.connect(connection_lost)
+        self.connection_thread.connection_lost.connect(connection_lost)
 
-        self.t.start()
+        self.connection_thread.start()
 
     def install_linien_server(self, device, version=None):
         version_string = ""
@@ -278,7 +299,7 @@ class DeviceManager(QtGui.QMainWindow, CustomWidget):
 
 
 class ConnectionThread(QThread):
-    connected = pyqtSignal(object)
+    client_connected = pyqtSignal(object)
     server_not_installed = pyqtSignal()
     invalid_server_version = pyqtSignal(str, str)
     authentication_exception = pyqtSignal()
@@ -294,15 +315,15 @@ class ConnectionThread(QThread):
 
     def run(self):
         try:
-            conn = LinienClient(
+            client = LinienClient(
                 self.device,
                 autostart_server=True,
                 use_parameter_cache=True,
                 on_connection_lost=self.on_connection_lost,
             )
-            self.connected.emit(conn)
+            self.client_connected.emit(client)
 
-            self.client = conn
+            self.client = client
 
         except ServerNotInstalledException:
             return self.server_not_installed.emit()
@@ -316,7 +337,7 @@ class ConnectionThread(QThread):
         except GeneralConnectionErrorException:
             return self.general_connection_error.emit()
 
-        except Exception as e:
+        except Exception:
             print_exc()
             return self.exception.emit()
 

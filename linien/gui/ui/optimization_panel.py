@@ -48,14 +48,13 @@ class OptimizationPanel(QtGui.QWidget, CustomWidget):
             getattr(self.ids, param_name).stateChanged.connect(optim_enabled_changed)
 
     def connection_established(self):
-        params = self.app().parameters
-        self.parameters = params
-        self.control = self.app().control
+        self.parameters = self.app.parameters
+        self.control = self.app.control
 
         def opt_running_changed(_):
-            running = params.optimization_running.value
-            approaching = params.optimization_approaching.value
-            failed = params.optimization_failed.value
+            running = self.parameters.optimization_running.value
+            approaching = self.parameters.optimization_approaching.value
+            failed = self.parameters.optimization_failed.value
 
             self.ids.optimization_not_running_container.setVisible(
                 not failed and not running
@@ -68,20 +67,20 @@ class OptimizationPanel(QtGui.QWidget, CustomWidget):
             )
             self.ids.optimization_failed.setVisible(failed)
 
-        params.optimization_running.on_change(opt_running_changed)
-        params.optimization_approaching.on_change(opt_running_changed)
-        params.optimization_failed.on_change(opt_running_changed)
+        self.parameters.optimization_running.on_change(opt_running_changed)
+        self.parameters.optimization_approaching.on_change(opt_running_changed)
+        self.parameters.optimization_failed.on_change(opt_running_changed)
 
         def opt_selection_changed(value):
             self.ids.optimization_selecting.setVisible(value)
             self.ids.optimization_not_selecting.setVisible(not value)
 
-        params.optimization_selection.on_change(opt_selection_changed)
+        self.parameters.optimization_selection.on_change(opt_selection_changed)
 
         def mod_param_changed(_):
-            dual_channel = params.dual_channel.value
-            channel = params.optimization_channel.value
-            optimized = params.optimization_optimized_parameters.value
+            dual_channel = self.parameters.dual_channel.value
+            channel = self.parameters.optimization_channel.value
+            optimized = self.parameters.optimization_optimized_parameters.value
 
             self.ids.optimization_display_parameters.setText(
                 """<br />
@@ -90,11 +89,12 @@ class OptimizationPanel(QtGui.QWidget, CustomWidget):
                 <br />
                 """
                 % (
-                    params.modulation_frequency.value / MHz,
-                    params.modulation_amplitude.value / Vpp,
-                    (params.demodulation_phase_a, params.demodulation_phase_b)[
-                        0 if not dual_channel else (0, 1)[channel]
-                    ].value,
+                    self.parameters.modulation_frequency.value / MHz,
+                    self.parameters.modulation_amplitude.value / Vpp,
+                    (
+                        self.parameters.demodulation_phase_a,
+                        self.parameters.demodulation_phase_b,
+                    )[0 if not dual_channel else (0, 1)[channel]].value,
                     optimized[0] / MHz,
                     optimized[1] / Vpp,
                     optimized[2],
@@ -102,28 +102,43 @@ class OptimizationPanel(QtGui.QWidget, CustomWidget):
             )
 
         for p in (
-            params.modulation_amplitude,
-            params.modulation_frequency,
-            params.demodulation_phase_a,
+            self.parameters.modulation_amplitude,
+            self.parameters.modulation_frequency,
+            self.parameters.demodulation_phase_a,
         ):
             p.on_change(mod_param_changed)
 
         def improvement_changed(improvement):
             self.ids.optimization_improvement.setText("%d %%" % (improvement * 100))
 
-        params.optimization_improvement.on_change(improvement_changed)
+        self.parameters.optimization_improvement.on_change(improvement_changed)
 
-        param2ui(params.optimization_mod_freq_enabled, self.ids.optimization_mod_freq)
-        param2ui(params.optimization_mod_freq_min, self.ids.optimization_mod_freq_min)
-        param2ui(params.optimization_mod_freq_max, self.ids.optimization_mod_freq_max)
-        param2ui(params.optimization_mod_amp_enabled, self.ids.optimization_mod_amp)
-        param2ui(params.optimization_mod_amp_min, self.ids.optimization_mod_amp_min)
-        param2ui(params.optimization_mod_amp_max, self.ids.optimization_mod_amp_max)
+        param2ui(
+            self.parameters.optimization_mod_freq_enabled,
+            self.ids.optimization_mod_freq,
+        )
+        param2ui(
+            self.parameters.optimization_mod_freq_min,
+            self.ids.optimization_mod_freq_min,
+        )
+        param2ui(
+            self.parameters.optimization_mod_freq_max,
+            self.ids.optimization_mod_freq_max,
+        )
+        param2ui(
+            self.parameters.optimization_mod_amp_enabled, self.ids.optimization_mod_amp
+        )
+        param2ui(
+            self.parameters.optimization_mod_amp_min, self.ids.optimization_mod_amp_min
+        )
+        param2ui(
+            self.parameters.optimization_mod_amp_max, self.ids.optimization_mod_amp_max
+        )
 
         def dual_channel_changed(value):
             self.ids.optimization_channel_selector_box.setVisible(value)
 
-        params.dual_channel.on_change(dual_channel_changed)
+        self.parameters.dual_channel.on_change(dual_channel_changed)
 
     def start_optimization(self):
         self.parameters.optimization_selection.value = True

@@ -34,8 +34,6 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
         # handle keyboard events
         self.setFocus()
 
-        # FIXME: Ramp slider should be disabled until connection is established and we
-        # actually know what value range is actually set.
         self.ids.ramp_slider.valueChanged.connect(self.change_ramp)
 
         self.ids.export_parameters_button.clicked.connect(
@@ -131,14 +129,18 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
     def connection_established(self):
         self.control = self.app.control
         self.parameters = self.app.parameters
-        # FIXME: ramp slider should use the values from `self.parameters`
-        self.ids.ramp_slider.initValues()
+
+        # initialize ramp controls
+        self.ids.ramp_slider.init()
+        amplitude = self.parameters.ramp_amplitude.value
+        center = self.parameters.center.value
+        self.ids.ramp_slider.setValue((center - amplitude, center + amplitude))
 
         def display_ramp_range(*args):
             center = self.parameters.center.value
-            amp = self.parameters.ramp_amplitude.value
-            min_ = center - amp
-            max_ = center + amp
+            amplitude = self.parameters.ramp_amplitude.value
+            min_ = center - amplitude
+            max_ = center + amplitude
             self.ids.ramp_status.setText("{:+.3f}V to {:+.3f}V".format(min_, max_))
 
         self.parameters.center.on_change(display_ramp_range)

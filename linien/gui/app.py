@@ -6,7 +6,7 @@ from plumbum import colors
 from traceback import print_exc
 
 from PyQt5 import QtWidgets
-from pyqtgraph.Qt import QtCore, QtGui
+from pyqtgraph.Qt import QtCore
 
 
 # it may seem odd to include '.', but for some reason this is needed for
@@ -46,24 +46,28 @@ class QTApp(QtCore.QObject):
 
         super().__init__()
 
-    def connected(self, connection, parameters, control):
+    def client_connected(self, client):
         self.device_manager.hide()
-        self.main_window.show(connection.host, connection.device["name"])
+        self.main_window.show(client.host, client.device["name"])
 
-        self.connection = connection
-        self.control = control
-        self.parameters = parameters
+        self.client = client
+        self.control = client.control
+        self.parameters = client.parameters
 
         self.ready.connect(self.init)
         self.ready.emit(True)
 
     def init(self):
+
         for instance in CustomWidget.instances:
             try:
                 instance.connection_established()
-            except:
+            except Exception:
                 print(
-                    "the error below happend when calling connection_established of a widget. This may happen if the widget was recently destroyed."
+                    """
+                    The error below happend when calling connection_established of a 
+                    widget. This may happen if the widget was recently destroyed.
+                    """  # noqa: W291
                 )
                 print_exc()
 
@@ -72,14 +76,10 @@ class QTApp(QtCore.QObject):
         self.check_for_new_version()
 
     def call_listeners(self):
-        if (
-            hasattr(self, "connection")
-            and self.connection
-            and self.connection.connected
-        ):
+        if hasattr(self, "client") and self.client and self.client.connected:
             try:
                 self.parameters.call_listeners()
-            except:
+            except Exception:
                 print(colors.red | "call_listeners() failed")
                 print_exc()
 
@@ -94,7 +94,7 @@ class QTApp(QtCore.QObject):
         self.app.quit()
 
     def shutdown(self):
-        self.control.shutdown()
+        self.client.control.shutdown()
         self.close()
 
     def open_psd_window(self):
@@ -107,8 +107,8 @@ class QTApp(QtCore.QObject):
         self.main_window.hide()
         self.device_manager.show()
 
-        self.connection.disconnect()
-        del self.connection
+        self.client.disconnect()
+        del self.client
 
     def close_all_secondary_windows(self):
         self.psd_window.hide()
