@@ -23,6 +23,7 @@ from .logic.limit import LimitCSR
 from .logic.modulate import Modulate
 from .logic.pid import PID
 from .logic.sweep import SweepCSR
+from .logic.iir import Iir
 
 from .lowlevel.analog import PitayaAnalog
 from .lowlevel.crg import CRG
@@ -34,11 +35,11 @@ from .lowlevel.xadc import XADC
 
 
 class LinienLogic(Module, AutoCSR):
-    def __init__(self, width=14, signal_width=25, chain_factor_width=8):
+    def __init__(self, width=14, signal_width=25, chain_factor_width=8, coeff_width=25):
         self.init_csr(width, signal_width, chain_factor_width)
         self.init_submodules(width, signal_width)
         self.connect_pid()
-        self.connect_everything(width, signal_width)
+        self.connect_everything(width, signal_width, coeff_width)
 
     def init_csr(self, width, signal_width, chain_factor_width):
         factor_reset = 1 << (chain_factor_width - 1)
@@ -95,11 +96,27 @@ class LinienLogic(Module, AutoCSR):
             self.autolock.robust.sweep_up.eq(self.sweep.sweep.up),
         ]
 
-    def connect_everything(self, width, signal_width):
+    def connect_everything(self, width, signal_width, coeff_width):
         s = signal_width - width
 
         combined_error_signal = Signal((signal_width, True))
         self.control_signal = Signal((signal_width, True))
+
+        # additional IIR filter that prevents aliasing effects when recording
+        # PSD of error signal
+        self.submodules.raw_acquisition_iir = Iir(
+            width=signal_width,
+            coeff_width=coeff_width,
+            shift=coeff_width - 2,
+            order=5,
+        )
+        combined_error_signal_filtered = Signal((signal_width, True))
+        self.comb += [
+            self.raw_acquisition_iir.x.eq(combined_error_signal),
+            self.raw_acquisition_iir.hold.eq(0),
+            self.raw_acquisition_iir.clear.eq(0),
+            combined_error_signal_filtered.eq(self.raw_acquisition_iir.y),
+        ]
 
         self.sync += [
             self.chain_a_offset_signed.eq(self.chain_a_offset.storage),
@@ -111,7 +128,11 @@ class LinienLogic(Module, AutoCSR):
         self.state_in = []
         self.signal_in = []
         self.state_out = []
-        self.signal_out = [self.control_signal, combined_error_signal]
+        self.signal_out = [
+            self.control_signal,
+            combined_error_signal,
+            combined_error_signal_filtered,
+        ]
 
         self.comb += [
             combined_error_signal.eq(self.limit_error_signal.y),
@@ -140,7 +161,9 @@ class LinienModule(Module, AutoCSR):
     ):
         sys_double = ClockDomainsRenamer("sys_double")
 
-        self.submodules.logic = LinienLogic(chain_factor_width=chain_factor_bits)
+        self.submodules.logic = LinienLogic(
+            coeff_width=coeff_width, chain_factor_width=chain_factor_bits
+        )
         self.submodules.analog = PitayaAnalog(
             platform.request("adc"), platform.request("dac")
         )

@@ -12,8 +12,9 @@ ALL_DECIMATIONS = list(range(32))
 
 
 def calculate_psd(sig, fs):
-    # TODO: long-term: remove scipy code if lpsd actually works better
-    use_scipy = False
+    # scipy has been found to have less artifacts if additional lowpass filtering
+    # is enabled, cf. #196
+    use_scipy = True
 
     # at beginning or end of signal, we sometimes have more glitches --> ignore
     # them (200 points less @ 16384 points doesn't hurt much)
@@ -109,6 +110,8 @@ class PSDAcquisition:
         if not self.is_child:
             self.control.pause_acquisition()
             self.parameters.acquisition_raw_enabled.value = False
+            self.parameters.acquisition_raw_filter_enabled.value = False
+
             self.control.exposed_write_data()
             self.control.continue_acquisition()
 
@@ -176,6 +179,13 @@ class PSDAcquisition:
         self.control.pause_acquisition()
         self.parameters.acquisition_raw_decimation.value = decimation
         self.parameters.acquisition_raw_enabled.value = True
+
+        # lowpass filter for preventing alias effects
+        self.parameters.acquisition_raw_filter_enabled.value = True
+        self.parameters.acquisition_raw_filter_frequency.value = int(
+            125e6 / (2 ** decimation) / 2
+        )
+
         self.control.exposed_write_data()
         # take care that new decimation was actually written to FPGA
         sleep(0.1)

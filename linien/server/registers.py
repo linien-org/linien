@@ -159,6 +159,8 @@ class Registers:
                 {
                     "scopegen_adc_a_sel": self.csr.signal(
                         "logic_combined_error_signal"
+                        if not params["acquisition_raw_filter_enabled"]
+                        else "logic_combined_error_signal_filtered"
                     ),
                     "scopegen_adc_a_q_sel": self.csr.signal("fast_b_x"),
                     "scopegen_adc_b_sel": self.csr.signal("logic_control_signal"),
@@ -205,6 +207,15 @@ class Registers:
         if raw_acquisition_settings != self._last_raw_acquisition_settings:
             self._last_raw_acquisition_settings = raw_acquisition_settings
             self.acquisition.set_raw_acquisition(*raw_acquisition_settings)
+
+        fpga_base_freq = 125e6
+
+        self.set_iir(
+            "logic_raw_acquisition_iir",
+            *make_filter(
+                "LP", f=params["acquisition_raw_filter_frequency"] / fpga_base_freq, k=1
+            )
+        )
 
         for k, v in new.items():
             self.set(k, int(v))
@@ -280,20 +291,22 @@ class Registers:
                             "filter_%d_frequency_%s" % (iir_idx + 1, chain)
                         ]
 
-                    base_freq = 125e6
-
                     if not filter_enabled:
                         self.set_iir(iir_name, *make_filter("P", k=1))
                     else:
                         if filter_type == LOW_PASS_FILTER:
                             self.set_iir(
                                 iir_name,
-                                *make_filter("LP", f=filter_frequency / base_freq, k=1)
+                                *make_filter(
+                                    "LP", f=filter_frequency / fpga_base_freq, k=1
+                                )
                             )
                         elif filter_type == HIGH_PASS_FILTER:
                             self.set_iir(
                                 iir_name,
-                                *make_filter("HP", f=filter_frequency / base_freq, k=1)
+                                *make_filter(
+                                    "HP", f=filter_frequency / fpga_base_freq, k=1
+                                )
                             )
                         else:
                             raise Exception(
