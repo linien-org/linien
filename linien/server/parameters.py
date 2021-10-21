@@ -354,6 +354,11 @@ class Parameters(BaseParameters):
         self.acquisition_raw_enabled = Parameter(start=False)
         self.acquisition_raw_decimation = Parameter(start=1)
         self.acquisition_raw_data = Parameter()
+        # raw acquisition has an additiona iir filter that can be used as low
+        # pass for preventing alias effects
+        self.acquisition_raw_filter_enabled = Parameter(start=False)
+        # The filter frequency in units of Hz
+        self.acquisition_raw_filter_frequency = Parameter(start=0)
         self.psd_data_partial = Parameter(start=None)
         self.psd_data_complete = Parameter(start=None)
         self.psd_acquisition_running = Parameter(start=False)
