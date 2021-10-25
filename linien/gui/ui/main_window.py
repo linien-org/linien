@@ -34,7 +34,13 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
         # handle keyboard events
         self.setFocus()
 
-        self.ids.ramp_slider.valueChanged.connect(self.change_ramp)
+        self.ids.ramp_start_stop_button.clicked.connect(self.switch_ramp_output)
+        self.ids.ramp_slider.valueChanged.connect(self.update_ramp_range)
+        # NOTE: The keyboardTracking property of the QDoubleSpinBoxes has been set to
+        # False, to avoid signal emission when editing the field. Signals are still
+        # emitted when using the arrow buttons. See also the editingFinished method.
+        self.ids.ramp_center.valueChanged.connect(self.update_ramp_center)
+        self.ids.ramp_amplitude.valueChanged.connect(self.update_ramp_amplitude)
 
         self.ids.export_parameters_button.clicked.connect(
             self.export_parameters_select_file
@@ -136,15 +142,27 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
         center = self.parameters.center.value
         self.ids.ramp_slider.setValue((center - amplitude, center + amplitude))
 
-        def display_ramp_range(*args):
+        def display_ramp_status(*args):
             center = self.parameters.center.value
             amplitude = self.parameters.ramp_amplitude.value
             min_ = center - amplitude
             max_ = center + amplitude
-            self.ids.ramp_status.setText("{:+.3f}V to {:+.3f}V".format(min_, max_))
+            # block signals to avoid infinite loops when changing parameters, see also
+            # param2ui
+            self.ids.ramp_slider.blockSignals(True)
+            self.ids.ramp_amplitude.blockSignals(True)
+            self.ids.ramp_center.blockSignals(True)
 
-        self.parameters.center.on_change(display_ramp_range)
-        self.parameters.ramp_amplitude.on_change(display_ramp_range)
+            self.ids.ramp_slider.setValue((min_, max_))
+            self.ids.ramp_center.setValue(center)
+            self.ids.ramp_amplitude.setValue(amplitude)
+
+            self.ids.ramp_slider.blockSignals(False)
+            self.ids.ramp_center.blockSignals(False)
+            self.ids.ramp_amplitude.blockSignals(False)
+
+        self.parameters.center.on_change(display_ramp_status)
+        self.parameters.ramp_amplitude.on_change(display_ramp_status)
 
         def change_manual_navigation_visibility(*args):
             al_running = self.parameters.autolock_running.value
@@ -214,13 +232,26 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
 
         self.parameters.dual_channel.on_change(update_legend_text)
 
-    def change_ramp(self, range_):
+    def switch_ramp_output(self):
+        if self.ids.ramp_start_stop_button.isChecked():
+            self.ids.ramp_start_stop_button.setText("Pause")
+        else:
+            self.ids.ramp_start_stop_button.setText("Start")
+
+    def update_ramp_center(self, center):
+        self.parameters.center.value = center
+        self.control.write_data()
+
+    def update_ramp_amplitude(self, amplitude):
+        self.parameters.ramp_amplitude.value = amplitude
+        self.control.write_data()
+
+    def update_ramp_range(self, range_):
         min_, max_ = range_
         amplitude = (max_ - min_) / 2
         center = (max_ + min_) / 2
         self.parameters.ramp_amplitude.value = amplitude
         self.parameters.center.value = center
-        print("amplitude: {}, center: {}".format(amplitude, center))
         self.control.write_data()
 
     def update_std(self, to_plot, max_std_history_length=10):
