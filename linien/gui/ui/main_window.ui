@@ -33,7 +33,7 @@
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_17">
          <item>
-          <widget class="QWidget" name="manual_navigation" native="true">
+          <widget class="RampControlWidget" name="ramp_control" native="true">
            <layout class="QHBoxLayout" name="horizontalLayout_3">
             <item>
              <widget class="QLabel" name="label_9">
@@ -1225,7 +1225,13 @@
   <customwidget>
    <class>RampSlider</class>
    <extends>QSlider</extends>
-   <header>ramp_control.h</header>
+   <header location="global">ramp_control.h</header>
+  </customwidget>
+  <customwidget>
+   <class>RampControlWidget</class>
+   <extends>QWidget</extends>
+   <header location="global">ramp_control</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>

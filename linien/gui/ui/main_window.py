@@ -34,14 +34,6 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
         # handle keyboard events
         self.setFocus()
 
-        self.ids.ramp_start_stop_button.clicked.connect(self.switch_ramp_output)
-        self.ids.ramp_slider.valueChanged.connect(self.update_ramp_range)
-        # NOTE: The keyboardTracking property of the QDoubleSpinBoxes has been set to
-        # False, to avoid signal emission when editing the field. Signals are still
-        # emitted when using the arrow buttons. See also the editingFinished method.
-        self.ids.ramp_center.valueChanged.connect(self.update_ramp_center)
-        self.ids.ramp_amplitude.valueChanged.connect(self.update_ramp_amplitude)
-
         self.ids.export_parameters_button.clicked.connect(
             self.export_parameters_select_file
         )
@@ -136,40 +128,12 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
         self.control = self.app.control
         self.parameters = self.app.parameters
 
-        # initialize ramp controls
-        self.ids.ramp_slider.init()
-        amplitude = self.parameters.ramp_amplitude.value
-        center = self.parameters.center.value
-        self.ids.ramp_slider.setValue((center - amplitude, center + amplitude))
-
-        def display_ramp_status(*args):
-            center = self.parameters.center.value
-            amplitude = self.parameters.ramp_amplitude.value
-            min_ = center - amplitude
-            max_ = center + amplitude
-            # block signals to avoid infinite loops when changing parameters, see also
-            # param2ui
-            self.ids.ramp_slider.blockSignals(True)
-            self.ids.ramp_amplitude.blockSignals(True)
-            self.ids.ramp_center.blockSignals(True)
-
-            self.ids.ramp_slider.setValue((min_, max_))
-            self.ids.ramp_center.setValue(center)
-            self.ids.ramp_amplitude.setValue(amplitude)
-
-            self.ids.ramp_slider.blockSignals(False)
-            self.ids.ramp_center.blockSignals(False)
-            self.ids.ramp_amplitude.blockSignals(False)
-
-        self.parameters.center.on_change(display_ramp_status)
-        self.parameters.ramp_amplitude.on_change(display_ramp_status)
-
-        def change_manual_navigation_visibility(*args):
+        def change_ramp_control_visibility(*args):
             al_running = self.parameters.autolock_running.value
             optimization = self.parameters.optimization_running.value
             locked = self.parameters.lock.value
 
-            self.get_widget("manual_navigation").setVisible(
+            self.get_widget("ramp_control").setVisible(
                 not al_running and not locked and not optimization
             )
             self.get_widget("top_lock_panel").setVisible(locked)
@@ -177,11 +141,9 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
                 not al_running and not locked and not optimization
             )
 
-        self.parameters.lock.on_change(change_manual_navigation_visibility)
-        self.parameters.autolock_running.on_change(change_manual_navigation_visibility)
-        self.parameters.optimization_running.on_change(
-            change_manual_navigation_visibility
-        )
+        self.parameters.lock.on_change(change_ramp_control_visibility)
+        self.parameters.autolock_running.on_change(change_ramp_control_visibility)
+        self.parameters.optimization_running.on_change(change_ramp_control_visibility)
 
         self.parameters.to_plot.on_change(self.update_std)
 
@@ -231,28 +193,6 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
             self.ids.legend_spectrum_combined.setVisible(dual_channel)
 
         self.parameters.dual_channel.on_change(update_legend_text)
-
-    def switch_ramp_output(self):
-        if self.ids.ramp_start_stop_button.isChecked():
-            self.ids.ramp_start_stop_button.setText("Pause")
-        else:
-            self.ids.ramp_start_stop_button.setText("Start")
-
-    def update_ramp_center(self, center):
-        self.parameters.center.value = center
-        self.control.write_data()
-
-    def update_ramp_amplitude(self, amplitude):
-        self.parameters.ramp_amplitude.value = amplitude
-        self.control.write_data()
-
-    def update_ramp_range(self, range_):
-        min_, max_ = range_
-        amplitude = (max_ - min_) / 2
-        center = (max_ + min_) / 2
-        self.parameters.ramp_amplitude.value = amplitude
-        self.parameters.center.value = center
-        self.control.write_data()
 
     def update_std(self, to_plot, max_std_history_length=10):
         if self.parameters.lock.value and to_plot:
