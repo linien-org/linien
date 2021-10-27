@@ -59,10 +59,10 @@ class RampControlWidget(QtGui.QWidget, CustomWidget):
     def update_ramp_output(self):
         if self.parameters.ramp.value:
             self.parameters.ramp.value = False
-            print("Stopping")
+            self.control.write_registers()
         else:
-            print("Starting")
             self.parameters.ramp.value = True
+            self.control.write_registers()
 
     def update_ramp_center(self, center):
         self.parameters.ramp_center.value = center

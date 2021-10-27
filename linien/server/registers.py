@@ -89,7 +89,8 @@ class Registers:
             # `sweep.clear`
             logic_sweep_run=1,
             logic_sweep_step=int(
-                DEFAULT_RAMP_SPEED
+                int(params["ramp"])  # controls whether ramp is turned on
+                * DEFAULT_RAMP_SPEED
                 * params["ramp_amplitude"]
                 / (2 ** params["ramp_speed"])
             ),
