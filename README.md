@@ -463,7 +463,7 @@ This fake server just outputs random data. Then you can connect to \"localhost\"
 
 ### Building the FPGA image
 
-For building the FPGA image, you need to install Xilinx Vivado first. Then, call `scripts/build_gateware.sh`. In the end, the bitstream is located at `linien/server/linien.bin`. **Note**: So far, this was tested only with Linux. It should work on Windows 10, though, when calling the script inside Windows Powershell.
+For building the FPGA image, you need to install Xilinx Vivado first. Then, call `scripts/build_fpga_image.sh`. In the end, the bitstream is located at `linien/server/linien.bin`. **Note**: So far, this was tested only with Linux. It should work on Windows 10, though, when calling the script inside Windows Powershell.
 
 ### Releasing a new version
 
