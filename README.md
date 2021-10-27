@@ -383,7 +383,7 @@ dev
 ```
 (no newlines).
 
-This ensures that local changes of the server's code are automatically uploaded to RedPitaya when you launch the client. Please note that this only h
+This ensures that local changes of the server's code are automatically uploaded to RedPitaya when you launch the client. Please note that this only works if `linien-server` is stopped and uninstalled from the RedPitaya which can be done via `ssh`.
 
 ### Setting up the development environment
 
