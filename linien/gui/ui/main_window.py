@@ -122,7 +122,7 @@ class MainWindow(QtGui.QMainWindow, CustomWidget):
                 print("restoring", k)
                 getattr(self.parameters, k).value = v
 
-            self.control.write_data()
+            self.control.write_registers()
 
     def connection_established(self):
         self.control = self.app.control

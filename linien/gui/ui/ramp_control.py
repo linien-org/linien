@@ -66,11 +66,11 @@ class RampControlWidget(QtGui.QWidget, CustomWidget):
 
     def update_ramp_center(self, center):
         self.parameters.ramp_center.value = center
-        self.control.write_data()
+        self.control.write_registers()
 
     def update_ramp_amplitude(self, amplitude):
         self.parameters.ramp_amplitude.value = amplitude
-        self.control.write_data()
+        self.control.write_registers()
 
     def update_ramp_range(self, range_):
         min_, max_ = range_
@@ -78,7 +78,7 @@ class RampControlWidget(QtGui.QWidget, CustomWidget):
         center = (max_ + min_) / 2
         self.parameters.ramp_amplitude.value = amplitude
         self.parameters.ramp_center.value = center
-        self.control.write_data()
+        self.control.write_registers()
 
 
 class RampSlider(superqt.QDoubleRangeSlider, CustomWidget):

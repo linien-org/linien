@@ -112,15 +112,15 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
 
     def kp_changed(self):
         self.parameters.p.value = self.ids.kp.value()
-        self.control.write_data()
+        self.control.write_registers()
 
     def ki_changed(self):
         self.parameters.i.value = self.ids.ki.value()
-        self.control.write_data()
+        self.control.write_registers()
 
     def kd_changed(self):
         self.parameters.d.value = self.ids.kd.value()
-        self.control.write_data()
+        self.control.write_registers()
 
     """def check_lock_changed(self):
         self.parameters.check_lock.value = int(self.ids.checkLockCheckbox.checkState())
@@ -141,7 +141,7 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
         self.parameters.fetch_additional_signals.value = False
         self.parameters.autolock_mode.value = FAST_AUTOLOCK
         self.parameters.autolock_target_position.value = 0
-        self.control.write_data()
+        self.control.write_registers()
         self.control.start_lock()
 
     def auto_offset_changed(self):
@@ -153,7 +153,7 @@ class LockingPanel(QtGui.QWidget, CustomWidget):
         self.parameters.pid_on_slow_strength.value = (
             self.ids.pid_on_slow_strength.value()
         )
-        self.control.write_data()
+        self.control.write_registers()
 
     def start_autolock_selection(self):
         self.parameters.autolock_selection.value = True

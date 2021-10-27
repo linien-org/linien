@@ -45,17 +45,17 @@ class ModulationAndRampPanel(QtGui.QWidget, CustomWidget):
         self.parameters.modulation_frequency.value = (
             self.ids.modulation_frequency.value() * MHz
         )
-        self.control.write_data()
+        self.control.write_registers()
 
     def change_modulation_amplitude(self):
         self.parameters.modulation_amplitude.value = (
             self.ids.modulation_amplitude.value() * Vpp
         )
-        self.control.write_data()
+        self.control.write_registers()
 
     def change_ramp_speed(self, decimation):
         self.parameters.ramp_speed.value = decimation
-        self.control.write_data()
+        self.control.write_registers()
 
     def dual_channel_changed(self, value):
         self.ids.spectroscopyBPanel.setEnabled(value)

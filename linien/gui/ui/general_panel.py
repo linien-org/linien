@@ -55,7 +55,7 @@ class GeneralPanel(QtGui.QWidget, CustomWidget):
         getattr(self.parameters, name).value = int(
             getattr(self.ids, name).value() / ANALOG_OUT_V
         )
-        self.control.write_data()
+        self.control.write_registers()
 
     def connection_established(self):
         self.parameters = self.app.parameters
@@ -130,13 +130,13 @@ class GeneralPanel(QtGui.QWidget, CustomWidget):
     def channel_mixing_changed(self):
         value = int(self.ids.channel_mixing_slider.value()) - 128
         self.parameters.channel_mixing.value = value
-        self.control.write_data()
+        self.control.write_registers()
 
         self.update_channel_mixing_slider(value)
 
     def dual_channel_changed(self):
         self.parameters.dual_channel.value = int(self.ids.dual_channel.checkState() > 0)
-        self.control.write_data()
+        self.control.write_registers()
 
     def update_channel_mixing_slider(self, value):
         a_value, b_value = convert_channel_mixing_value(value)
@@ -146,28 +146,28 @@ class GeneralPanel(QtGui.QWidget, CustomWidget):
 
     def mod_channel_changed(self, channel):
         self.parameters.mod_channel.value = channel
-        self.control.write_data()
+        self.control.write_registers()
 
     def control_channel_changed(self, channel):
         self.parameters.control_channel.value = channel
-        self.control.write_data()
+        self.control.write_registers()
 
     def slow_control_channel_changed(self, channel):
         self.parameters.pid_on_slow_enabled.value = bool(channel)
-        self.control.write_data()
+        self.control.write_registers()
 
     def sweep_channel_changed(self, channel):
         self.parameters.sweep_channel.value = channel
-        self.control.write_data()
+        self.control.write_registers()
 
     def polarity_fast_out1_changed(self, polarity):
         self.parameters.polarity_fast_out1.value = bool(polarity)
-        self.control.write_data()
+        self.control.write_registers()
 
     def polarity_fast_out2_changed(self, polarity):
         self.parameters.polarity_fast_out2.value = bool(polarity)
-        self.control.write_data()
+        self.control.write_registers()
 
     def polarity_analog_out0_changed(self, polarity):
         self.parameters.polarity_analog_out0.value = bool(polarity)
-        self.control.write_data()
+        self.control.write_registers()

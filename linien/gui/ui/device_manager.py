@@ -397,7 +397,7 @@ class ConnectionThread(QThread):
                 save_parameter(device_key, k, None, delete=True)
 
         if not dry_run:
-            self.client.control.write_data()
+            self.client.control.write_registers()
 
         return differences
 

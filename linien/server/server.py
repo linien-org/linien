@@ -159,7 +159,7 @@ class RedPitayaControlService(BaseService):
 
         self.parameters.signal_stats.value = stats
 
-    def exposed_write_data(self):
+    def exposed_write_registers(self):
         """Syncs the parameters with the FPGA registers."""
         self.registers.write_registers()
 
@@ -212,7 +212,7 @@ class RedPitayaControlService(BaseService):
 
         self.parameters.combined_offset.value = 0
         self.parameters.lock.value = False
-        self.exposed_write_data()
+        self.exposed_write_registers()
 
         self.continue_acquisition()
 
@@ -220,7 +220,7 @@ class RedPitayaControlService(BaseService):
         self.pause_acquisition()
 
         self.parameters.lock.value = True
-        self.exposed_write_data()
+        self.exposed_write_registers()
 
         self.continue_acquisition()
 
@@ -364,7 +364,7 @@ def run_server(port, fake=False, remote_rp=False):
 
     control.run_acquiry_loop()
     control.run_periodic_timer()
-    control.exposed_write_data()
+    control.exposed_write_registers()
 
     failed_auth_counter = {"c": 0}
 
