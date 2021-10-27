@@ -1,17 +1,18 @@
 import pickle
 import random
 import string
-import numpy as np
 from time import sleep, time
-from scipy import signal
 
+import numpy as np
+from linien.common import PSD_ALGORITHM_LPSD, PSD_ALGORITHM_SCIPY
 from linien.server.optimization.engine import MultiDimensionalOptimizationEngine
 from linien.server.pid_optimization.lpsd import lpsd
+from scipy import signal
 
 ALL_DECIMATIONS = list(range(32))
 
 
-def calculate_psd(sig, fs):
+def calculate_psd(sig, fs, algorithm):
     # scipy has been found to have less artifacts if additional lowpass filtering
     # is enabled, cf. #196
     use_scipy = True
@@ -28,7 +29,7 @@ def calculate_psd(sig, fs):
     Kmin = 2  # minimum number of averages
     xi = 0.5  # fractional overlap
 
-    if use_scipy:
+    if algorithm == PSD_ALGORITHM_SCIPY:
         # nfft = np.ceil(fs / float(fmin))
         # window = np.hanning(nfft)
         num_pts = 256
@@ -36,18 +37,21 @@ def calculate_psd(sig, fs):
 
         f, Pxx = signal.welch(sig, fs, window, nperseg=num_pts, scaling="density")
 
-    else:
+    elif algorithm == PSD_ALGORITHM_LPSD:
         sig = sig.astype(np.float64)
         X, f, C = lpsd(sig, np.hanning, fmin, fmax, Jdes, Kdes, Kmin, fs, xi)
         Pxx = X * C["PSD"]
 
+    else:
+        raise Exception("unsupported psd algorithm")
+
     return f, Pxx
 
 
-def residual_freq_noise(dt, sig):
+def residual_freq_noise(dt, sig, algorithm):
     fs = 1 / dt
 
-    f, psd = calculate_psd(sig, fs)
+    f, psd = calculate_psd(sig, fs, algorithm)
     # we want to have it in counts / Sqrt[Hz], not in (counts**2) / Hz
     psd = np.sqrt(psd)
 
@@ -122,7 +126,9 @@ class PSDAcquisition:
             print("recording took", time() - self.time_decimation_set, "s")
             self.recorded_signals_by_decimation[current_decimation] = data
             self.recorded_psds_by_decimation[current_decimation] = residual_freq_noise(
-                1 / (125e6) * (2 ** (current_decimation)), data[0]
+                1 / (125e6) * (2 ** (current_decimation)),
+                data[0],
+                algorithm=self.parameters.psd_algorithm.value,
             )
 
             # this means that measurement time increases by a factor of 16 after

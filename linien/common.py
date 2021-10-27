@@ -30,6 +30,9 @@ AUTO_DETECT_AUTOLOCK_MODE = 0
 ROBUST_AUTOLOCK = 1
 FAST_AUTOLOCK = 2
 
+PSD_ALGORITHM_SCIPY = "scipy"
+PSD_ALGORITHM_LPSD = "lpsd"
+
 
 class SpectrumUncorrelatedException(Exception):
     pass
