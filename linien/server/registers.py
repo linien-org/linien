@@ -104,7 +104,7 @@ class Registers:
             logic_chain_b_factor=factor_b,
             logic_chain_a_offset=twos_complement(int(params["offset_a"]), 14),
             logic_chain_b_offset=twos_complement(int(params["offset_b"]), 14),
-            logic_out_offset=int(params["center"] * 8191),
+            logic_out_offset=int(params["ramp_center"] * 8191),
             logic_combined_offset=twos_complement(params["combined_offset"], 14),
             logic_control_channel=params["control_channel"],
             logic_mod_channel=params["mod_channel"],
