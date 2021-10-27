@@ -387,9 +387,14 @@ This ensures that local changes of the server's code are automatically uploaded 
 
 ### Setting up the development environment
 
-It is recommended to setup a dedicated devolpment python environment with the same package versions as the build environments used to create the standalone executables. To do so either use [virtualenv](https://pypi.org/project/virtualenv/) or a conda environment with Python 3.7.
+It is recommended to setup a dedicated devolpment python environment with the same package versions as the build environments used to create the standalone executables. To do so either use [virtualenv](https://pypi.org/project/virtualenv/) or a conda environment with Python 3.7.10. With ocnda, this is achieved by running 
 
-All necessary packages can then be installed with the provided requirement files. To install all packages for running the client and GUI, the local server and packages for [linting](https://flake8.pycqa.org) and [code formatting])(https://black.readthedocs.io/en/stable/) run 
+```
+conda create -n linien_dev python=3.7.10
+conda activate linien_dev
+```
+
+All necessary packages can then be installed with the provided requirement files. To install all packages for running the client and GUI, the local server and packages for [linting](https://flake8.pycqa.org) and [code formatting](https://black.readthedocs.io/en/stable/) run 
 
 ```
 pip install -r requirements_dev.txt
