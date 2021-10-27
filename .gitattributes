@@ -1,0 +1,5 @@
+linien/server/linien_install_requirements eol=lf
+linien/server/linien_start_ethernet_blinking eol=lf
+linien/server/linien_start_server eol=lf
+linien/server/linien_stop_ethernet_blinking eol=lf
+linien/server/linien_stop_server eol=lf
