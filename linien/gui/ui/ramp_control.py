@@ -27,12 +27,12 @@ class RampControlWidget(QtGui.QWidget, CustomWidget):
         self.display_ramp_status()
 
         # change displayed values when ramp parameters change
-        self.parameters.center.on_change(self.display_ramp_status)
+        self.parameters.ramp_center.on_change(self.display_ramp_status)
         self.parameters.ramp_amplitude.on_change(self.display_ramp_status)
         self.parameters.ramp.on_change(self.display_ramp_status)
 
     def display_ramp_status(self, *args):
-        center = self.parameters.center.value
+        center = self.parameters.ramp_center.value
         amplitude = self.parameters.ramp_amplitude.value
         ramp_is_on = self.parameters.ramp.value
         min_ = center - amplitude
@@ -65,7 +65,7 @@ class RampControlWidget(QtGui.QWidget, CustomWidget):
             self.parameters.ramp.value = True
 
     def update_ramp_center(self, center):
-        self.parameters.center.value = center
+        self.parameters.ramp_center.value = center
         self.control.write_data()
 
     def update_ramp_amplitude(self, amplitude):
@@ -77,7 +77,7 @@ class RampControlWidget(QtGui.QWidget, CustomWidget):
         amplitude = (max_ - min_) / 2
         center = (max_ + min_) / 2
         self.parameters.ramp_amplitude.value = amplitude
-        self.parameters.center.value = center
+        self.parameters.ramp_center.value = center
         self.control.write_data()
 
 

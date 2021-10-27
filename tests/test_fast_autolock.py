@@ -38,7 +38,7 @@ class FakeControl:
 
     def exposed_write_data(self):
         print(
-            f"write: center={self.parameters.center.value} amp={self.parameters.ramp_amplitude.value}"
+            f"write: center={self.parameters.ramp_center.value} amp={self.parameters.ramp_amplitude.value}"
         )
 
     def exposed_start_lock(self):

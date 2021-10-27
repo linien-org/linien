@@ -200,7 +200,7 @@ class Parameters(BaseParameters):
         self.ramp_amplitude = Parameter(min_=0.001, max_=1, start=1)
         # The center position of the ramp in volts. As the output range of
         # RedPitaya is [-1, 1], `center` has the same limits.
-        self.center = Parameter(min_=-1, max_=1, start=0)
+        self.ramp_center = Parameter(min_=-1, max_=1, start=0)
         # The ramp speed in internal units. The actual speed is given by
         #       f_real = 3.8 kHz / (2 ** ramp_speed)
         # Allowed values are [0, ..., 16]

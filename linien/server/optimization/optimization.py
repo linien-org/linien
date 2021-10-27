@@ -24,7 +24,7 @@ class OptimizeSpectroscopy:
 
         self.initial_ramp_speed = self.parameters.ramp_speed.value
         self.initial_ramp_amplitude = self.parameters.ramp_amplitude.value
-        self.initial_ramp_center = self.parameters.center.value
+        self.initial_ramp_center = self.parameters.ramp_center.value
 
     def run(self, x0, x1, spectrum):
         self.parameters.optimization_failed.value = False
@@ -108,7 +108,7 @@ class OptimizeSpectroscopy:
                         shift, _, _2 = determine_shift_by_correlation(
                             1, self.initial_spectrum, spectrum
                         )
-                        params.center.value -= shift * params.ramp_amplitude.value
+                        params.ramp_center.value -= shift * params.ramp_amplitude.value
                         self.control.exposed_write_data()
 
                         if (
@@ -154,7 +154,7 @@ class OptimizeSpectroscopy:
 
         self.parameters.ramp_speed.value = self.initial_ramp_speed
         self.parameters.ramp_amplitude.value = self.initial_ramp_amplitude
-        self.parameters.center.value = self.initial_ramp_center
+        self.parameters.ramp_center.value = self.initial_ramp_center
         self.control.exposed_write_data()
 
         self.control.continue_acquisition()

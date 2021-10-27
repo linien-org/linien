@@ -37,14 +37,14 @@ class FakeControl:
 
     def exposed_write_data(self):
         print(
-            f"write: center={self.parameters.center.value} amp={self.parameters.ramp_amplitude.value}"
+            f"write: center={self.parameters.ramp_center.value} amp={self.parameters.ramp_amplitude.value}"
         )
 
 
 def test_approacher():
     def _get_signal(shift):
         return get_signal(
-            parameters.ramp_amplitude.value, parameters.center.value, shift
+            parameters.ramp_amplitude.value, parameters.ramp_center.value, shift
         )
 
     for ref_shift in (-0.4, -0.2, 0.3):
@@ -95,7 +95,7 @@ def test_approacher():
                     break
 
             assert found
-            assert abs((-1 * target_shift) - parameters.center.value) < 0.1
+            assert abs((-1 * target_shift) - parameters.ramp_center.value) < 0.1
             print("found!")
 
 

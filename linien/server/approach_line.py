@@ -56,7 +56,7 @@ class Approacher:
         # these points as it may contain a distorted version of the spectrum that
         # disturbs the correlation.
         ramp_amplitude = self.parameters.ramp_amplitude.value
-        center = self.parameters.center.value
+        center = self.parameters.ramp_center.value
         ramp = np.linspace(-ramp_amplitude, ramp_amplitude, len(error_signal)) + center
         error_signal = np.array(error_signal)
         error_signal[np.abs(ramp) > 1] = np.nan
@@ -134,7 +134,7 @@ class Approacher:
         self.control.pause_acquisition()
         self.time_last_current_correction = time()
 
-        self.parameters.center.value -= shift
+        self.parameters.ramp_center.value -= shift
 
         self.control.exposed_write_data()
         self.control.continue_acquisition()
