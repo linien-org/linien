@@ -157,6 +157,10 @@ class Parameters(BaseParameters):
         # If `True`, this parameter turns off the ramp and starts the PID
         self.lock = Parameter(start=False)
 
+        # If `True`, this parameter turns on the ramp. If `False`, the center voltage
+        # is output.
+        self.ramp = Parameter(start=True)
+
         # for both fast outputs and the analog out, define whether tuning the
         # voltage up correspond to tuning the laser frequency up or down. Setting
         # these values correctly is only required when using both, a fast out and
