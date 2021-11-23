@@ -61,6 +61,8 @@ class LinienLogic(Module, AutoCSR):
         self.control_channel = CSRStorage(1)
         self.sweep_channel = CSRStorage(2)
 
+        self.fast_mode = CSRStorage(1)
+
         self.slow_value = CSRStatus(width)
 
         max_decimation = 16
@@ -253,6 +255,8 @@ class LinienModule(Module, AutoCSR):
         self.comb += [
             self.fast_a.adc.eq(self.analog.adc_a),
             self.fast_b.adc.eq(self.analog.adc_b),
+            self.fast_a.fast_mode.eq(self.logic.fast_mode.storage),
+            self.fast_b.fast_mode.eq(self.logic.fast_mode.storage),
         ]
 
         # now, we combine the output of the two paths, with a variable
