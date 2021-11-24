@@ -19,7 +19,7 @@ from linien.config import N_COLORS
 from linien.gui.config import COLORS, DEFAULT_PLOT_RATE_LIMIT
 from linien.gui.widgets import CustomWidget
 from PyQt5.QtCore import pyqtSignal
-from PyQt5 import QtGui
+from PyQt5 import QtGui, QtWidgets
 from pyqtgraph.Qt import QtCore
 
 # NOTE: this is required for using a pen_width > 1.
@@ -727,7 +727,7 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         self._cached_plot_data = []
 
     def init_reset_view_button(self):
-        self.reset_view_button = QtGui.QPushButton(self)
+        self.reset_view_button = QtWidgets.QPushButton(self)
         self.reset_view_button.setText("Reset view")
         self.reset_view_button.setStyleSheet("padding: 10px; font-weight: bold")
         icon = QtGui.QIcon.fromTheme("view-restore")

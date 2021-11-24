@@ -1,10 +1,10 @@
 from linien.common import FAST_AUTOLOCK
-from PyQt5 import QtGui
+from PyQt5 import QtGui, QtWidgets
 from linien.gui.widgets import CustomWidget
 from linien.gui.utils_gui import param2ui
 
 
-class LockingPanel(QtGui.QWidget, CustomWidget):
+class LockingPanel(QtWidgets.QWidget, CustomWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.load_ui("locking_panel.ui")

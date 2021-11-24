@@ -1,10 +1,10 @@
-from PyQt5 import QtGui
+from PyQt5 import QtGui, QtWidgets
 from linien.gui.widgets import CustomWidget
 from linien.gui.utils_gui import param2ui
 from linien.client.connection import MHz, Vpp
 
 
-class OptimizationPanel(QtGui.QWidget, CustomWidget):
+class OptimizationPanel(QtWidgets.QWidget, CustomWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.load_ui("optimization_panel.ui")
