@@ -255,8 +255,6 @@ class LinienModule(Module, AutoCSR):
         self.comb += [
             self.fast_a.adc.eq(self.analog.adc_a),
             self.fast_b.adc.eq(self.analog.adc_b),
-            self.fast_a.fast_mode.eq(self.logic.fast_mode.storage),
-            self.fast_b.fast_mode.eq(self.logic.fast_mode.storage),
         ]
 
         # now, we combine the output of the two paths, with a variable
@@ -288,7 +286,12 @@ class LinienModule(Module, AutoCSR):
 
         pid_out = Signal((width, True))
         self.comb += [
-            self.logic.pid.input.eq(mixed_limited),
+            If(
+                self.logic.fast_mode.storage,
+                self.logic.pid.input.eq(self.analog.adc_a << s),
+            ).Else(
+                self.logic.pid.input.eq(mixed_limited),
+            ),
             pid_out.eq(self.logic.pid.pid_out >> s),
         ]
 
@@ -382,7 +385,10 @@ class LinienModule(Module, AutoCSR):
             ),
             self.logic.limit_fast1.x.eq(fast_outs[0]),
             self.logic.limit_fast2.x.eq(fast_outs[1]),
-            self.analog.dac_a.eq(self.logic.limit_fast1.y),
+            If(
+                self.logic.fast_mode.storage,
+                self.analog.dac_a.eq(self.logic.pid.pid_out >> s),
+            ).Else(self.analog.dac_a.eq(self.logic.limit_fast1.y)),
             self.analog.dac_b.eq(self.logic.limit_fast2.y),
             # SLOW OUT
             self.slow.input.eq(self.logic.control_signal >> s),

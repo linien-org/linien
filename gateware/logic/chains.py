@@ -36,9 +36,6 @@ class FastChain(Module, AutoCSR):
 
         ###
 
-        # connected by parent module
-        self.fast_mode = Signal()
-
         s = signal_width - width
 
         self.comb += [
@@ -94,11 +91,7 @@ class FastChain(Module, AutoCSR):
                     Mux(self.invert.storage, -1, 1)
                     * (ys[self.y_tap.storage] + (ya << s) + (offset_signal << s))
                 ),
-                # if we use fast mode, then output = input
-                # otherwise we use demodulated, filtered signal
-                If(self.fast_mode, output_signal_this_channel.eq(x)).Else(
-                    output_signal_this_channel.eq(y_limit.y),
-                ),
+                output_signal_this_channel.eq(y_limit.y),
             ]
 
 
