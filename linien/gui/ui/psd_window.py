@@ -2,7 +2,7 @@ import pickle
 from time import time
 
 import linien
-from linien.common import PSD_ALGORITHM_LPSD, PSD_ALGORITHM_SCIPY
+from linien.common import PSD_ALGORITHM_LPSD, PSD_ALGORITHM_WELCH
 from linien.gui.dialogs import error_dialog
 from linien.gui.utils_gui import RandomColorChoser, param2ui, set_window_icon
 from linien.gui.widgets import CustomWidget
@@ -50,7 +50,7 @@ class PSDWindow(QtGui.QMainWindow, CustomWidget):
         self.parameters.psd_acquisition_max_decimation.value = 12 + index
 
     def change_psd_algorithm(self, index):
-        self.parameters.psd_algorithm.value = [PSD_ALGORITHM_LPSD, PSD_ALGORITHM_SCIPY][
+        self.parameters.psd_algorithm.value = [PSD_ALGORITHM_LPSD, PSD_ALGORITHM_WELCH][
             index
         ]
 
@@ -74,7 +74,7 @@ class PSDWindow(QtGui.QMainWindow, CustomWidget):
         param2ui(
             self.parameters.psd_algorithm,
             self.ids.psd_algorithm,
-            lambda algo: {PSD_ALGORITHM_LPSD: 0, PSD_ALGORITHM_SCIPY: 1}[algo],
+            lambda algo: {PSD_ALGORITHM_LPSD: 0, PSD_ALGORITHM_WELCH: 1}[algo],
         )
 
         def update_status(_):
