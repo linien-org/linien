@@ -1,4 +1,4 @@
-from PyQt5 import QtGui, QtCore
+from PyQt5 import QtGui, QtCore, QtWidgets
 from PyQt5.QtCore import QThread, pyqtSignal
 from traceback import print_exc
 from paramiko.ssh_exception import AuthenticationException as SSHAuthenticationException
@@ -29,7 +29,7 @@ from linien.client.exceptions import (
 )
 
 
-class DeviceManager(QtGui.QMainWindow, CustomWidget):
+class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.load_ui("device_manager.ui")
