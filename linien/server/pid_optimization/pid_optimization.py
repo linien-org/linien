@@ -6,45 +6,45 @@ from time import sleep, time
 import numpy as np
 from linien.common import PSD_ALGORITHM_LPSD, PSD_ALGORITHM_SCIPY
 from linien.server.optimization.engine import MultiDimensionalOptimizationEngine
-from linien.server.pid_optimization.lpsd import lpsd
+from pylpsd import lpsd
 from scipy import signal
 
 ALL_DECIMATIONS = list(range(32))
 
 
 def calculate_psd(sig, fs, algorithm):
-    # scipy has been found to have less artifacts if additional lowpass filtering
-    # is enabled, cf. #196
-    use_scipy = True
+    """
+    Calculates the power spectral density.
+
+    :param sig: The signal to calculate the PSD for.
+    :param fs: The sampling frequency.
+    :param algorithm: The PSD algorithm to use. Options are 'lpsd' and 'scipy'.
+    :return: One-sided power spectral density.
+    """
+    assert algorithm in [PSD_ALGORITHM_LPSD, PSD_ALGORITHM_SCIPY]
 
     # at beginning or end of signal, we sometimes have more glitches --> ignore
     # them (200 points less @ 16384 points doesn't hurt much)
     sig = sig[100:-100]
 
-    N = len(sig)
-    fmin = float(fs) / N * 10  # lowest frequency of interest
-    fmax = float(fs) / 20.0  # highest frequency of interest
-    Jdes = 256  # desired number of points in the spectrum
-    Kdes = 100  # desired number of averages
-    Kmin = 2  # minimum number of averages
-    xi = 0.5  # fractional overlap
+    num_pts = 256
+    window = ("hann", num_pts)  # passed to scipy.signal.get_window for welch and lpsd
+
+    sig = sig.astype(np.float64)
 
     if algorithm == PSD_ALGORITHM_SCIPY:
-        # nfft = np.ceil(fs / float(fmin))
-        # window = np.hanning(nfft)
-        num_pts = 256
-        window = signal.hann(num_pts)
 
-        f, Pxx = signal.welch(sig, fs, window, nperseg=num_pts, scaling="density")
-
+        f, Pxx = signal.welch(
+            sig, fs, window=window, nperseg=num_pts, scaling="density"
+        )
     elif algorithm == PSD_ALGORITHM_LPSD:
-        sig = sig.astype(np.float64)
-        X, f, C = lpsd(sig, np.hanning, fmin, fmax, Jdes, Kdes, Kmin, fs, xi)
-        Pxx = X * C["PSD"]
 
-    else:
-        raise Exception("unsupported psd algorithm")
+        fmin = fs / len(sig) * 10  # lowest frequency of interest
+        fmax = fs / 20.0  # highest frequency of interest
 
+        f, Pxx = lpsd(
+            sig, fs, fmin, fmax, Jdes=256, Kmin=2, window=window, scaling="density"
+        )
     return f, Pxx
 
 
