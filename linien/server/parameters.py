@@ -31,6 +31,7 @@ class Parameters(BaseParameters):
         # parameters whose values are saved by the client and restored if the
         # client connects to the RedPitaya with no server running.
         self._restorable_parameters = (
+            "fast_mode",
             "modulation_amplitude",
             "modulation_frequency",
             "ramp_speed",

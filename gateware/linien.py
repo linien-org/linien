@@ -388,8 +388,11 @@ class LinienModule(Module, AutoCSR):
             If(
                 self.logic.fast_mode.storage,
                 self.analog.dac_a.eq(self.logic.pid.pid_out >> s),
-            ).Else(self.analog.dac_a.eq(self.logic.limit_fast1.y)),
-            self.analog.dac_b.eq(self.logic.limit_fast2.y),
+                self.analog.dac_b.eq(self.logic.pid.pid_out >> s),
+            ).Else(
+                self.analog.dac_a.eq(self.logic.limit_fast1.y),
+                self.analog.dac_b.eq(self.logic.limit_fast2.y),
+            ),
             # SLOW OUT
             self.slow.input.eq(self.logic.control_signal >> s),
             self.decimate.decimation.eq(self.logic.slow_decimation.storage),

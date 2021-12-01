@@ -20,6 +20,7 @@ class GeneralPanel(QtGui.QWidget, CustomWidget):
 
     def ready(self):
         self.ids.channel_mixing_slider.valueChanged.connect(self.channel_mixing_changed)
+        self.ids.fast_mode.stateChanged.connect(self.fast_mode_changed)
         self.ids.dual_channel.stateChanged.connect(self.dual_channel_changed)
 
         self.ids.mod_channel.currentIndexChanged.connect(self.mod_channel_changed)
@@ -61,6 +62,8 @@ class GeneralPanel(QtGui.QWidget, CustomWidget):
         params = self.app().parameters
         self.control = self.app().control
         self.parameters = params
+
+        param2ui(params.fast_mode, self.ids.fast_mode)
 
         def dual_channel_changed(value):
             self.ids.dual_channel_mixing.setVisible(value)
@@ -132,6 +135,10 @@ class GeneralPanel(QtGui.QWidget, CustomWidget):
         self.control.write_data()
 
         self.update_channel_mixing_slider(value)
+
+    def fast_mode_changed(self):
+        self.parameters.fast_mode.value = int(self.ids.fast_mode.checkState() > 0)
+        self.control.write_data()
 
     def dual_channel_changed(self):
         self.parameters.dual_channel.value = int(self.ids.dual_channel.checkState() > 0)
