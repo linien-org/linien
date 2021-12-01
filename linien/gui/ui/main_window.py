@@ -24,7 +24,7 @@ def ramp_amplitude_to_zoom_step(amplitude):
     return round(log(amplitude, ZOOM_STEP))
 
 
-class MainWindow(QtGui.QMainWindow, CustomWidget):
+class MainWindow(QtWidgets.QMainWindow, CustomWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.load_ui("main_window.ui")

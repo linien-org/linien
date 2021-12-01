@@ -8,7 +8,7 @@ from linien.gui.widgets import CustomWidget
 from PyQt5 import QtGui, QtWidgets
 
 
-class PSDWindow(QtGui.QMainWindow, CustomWidget):
+class PSDWindow(QtWidgets.QMainWindow, CustomWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.load_ui("psd_window.ui")
