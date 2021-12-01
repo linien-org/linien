@@ -129,6 +129,17 @@ class GeneralPanel(QtWidgets.QWidget, CustomWidget):
                 process_value=lambda v: ANALOG_OUT_V * v,
             )
 
+        def fast_mode_changed(fast_mode_enabled):
+            """Disables controls that are irrelevant if fast mode is enabled"""
+            widgets_to_disable = (
+                self.ids.output_ports_group,
+                self.ids.input_ports_group,
+            )
+            for widget in widgets_to_disable:
+                widget.setEnabled(not fast_mode_enabled)
+
+        params.fast_mode.on_change(fast_mode_changed)
+
     def channel_mixing_changed(self):
         value = int(self.ids.channel_mixing_slider.value()) - 128
         self.parameters.channel_mixing.value = value

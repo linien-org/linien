@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>971</height>
+    <height>1058</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -41,7 +41,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox" name="groupBox_16">
+    <widget class="QGroupBox" name="output_ports_group">
      <property name="title">
       <string>Configuration of output ports</string>
      </property>
@@ -417,7 +417,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox" name="groupBox_11">
+    <widget class="QGroupBox" name="input_ports_group">
      <property name="title">
       <string>Configuration of input ports</string>
      </property>
