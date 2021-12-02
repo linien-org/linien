@@ -2,12 +2,9 @@
 exclude = '''
 (
   /(
-    linien/gateware/logic
-   | linien/gateware/lowlevel
+    gateware/logic
+   | gateware/lowlevel
    | linien/server/csrmap.py
-   | linien\gateware\logic
-   | linien\gateware\lowlevel
-   | linien\server\csrmap.py
    )/
 )
 '''
