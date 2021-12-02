@@ -1,5 +1,4 @@
 import numpy as np
-from matplotlib import pyplot as plt
 from pytest import raises
 
 from linien.common import SpectrumUncorrelatedException, determine_shift_by_correlation
@@ -41,7 +40,8 @@ def test_determine_shift_by_correlation():
     with raises(SpectrumUncorrelatedException):
         determine_shift_by_correlation(1, ref, second)[0]
 
-    # check that signal with a lot of noise still does not raise SpectrumUncorrelatedException
+    # check that signal with a lot of noise still does not raise
+    # SpectrumUncorrelatedException
     noise_level = 400
     ref = add_noise(get_signal(1, 0, 0), noise_level)
     second = add_noise(get_signal(1, 0, 0), noise_level)

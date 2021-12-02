@@ -126,7 +126,8 @@ def ask_for_parameter_restore_dialog(parent, question, title):
     box = QMessageBox(parent)
     box.setText(question)
     box.setWindowTitle(title)
-    do_nothing_button = box.addButton("Keep remote parameters", QMessageBox.NoRole)
+    # do_nothing_button
+    _ = box.addButton("Keep remote parameters", QMessageBox.NoRole)
     upload_button = box.addButton("Upload local parameters", QMessageBox.YesRole)
 
     box.exec_()

@@ -5,7 +5,7 @@ from traceback import print_exc
 
 from plumbum import colors
 from PyQt5 import QtWidgets
-from pyqtgraph.Qt import QtCore, QtGui
+from pyqtgraph.Qt import QtCore
 
 # it may seem odd to include '.', but for some reason this is needed for
 # standalone windows executable
@@ -59,9 +59,13 @@ class QTApp(QtCore.QObject):
         for instance in CustomWidget.instances:
             try:
                 instance.connection_established()
-            except:
+            except Exception:
                 print(
-                    "the error below happend when calling connection_established of a widget. This may happen if the widget was recently destroyed."
+                    (
+                        "The error below happend when calling connection_established "
+                        "of a widget. This may happen if the widget was recently "
+                        "destroyed."
+                    )
                 )
                 print_exc()
 
@@ -77,7 +81,7 @@ class QTApp(QtCore.QObject):
         ):
             try:
                 self.parameters.call_listeners()
-            except:
+            except Exception:
                 print(colors.red | "call_listeners() failed")
                 print_exc()
 

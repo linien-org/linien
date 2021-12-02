@@ -1,7 +1,6 @@
 import pickle
 
 import numpy as np
-from matplotlib import pyplot as plt
 
 from linien.common import FAST_AUTOLOCK
 from linien.server.autolock.autolock import Autolock
@@ -40,7 +39,9 @@ class FakeControl:
 
     def exposed_write_data(self):
         print(
-            f"write: center={self.parameters.center.value} amp={self.parameters.ramp_amplitude.value}"
+            "write: center={} amp={}".format(
+                self.parameters.center.value, self.parameters.ramp_amplitude.value
+            )
         )
 
     def exposed_start_lock(self):

@@ -1,7 +1,6 @@
 import math
 
 import cma
-import numpy as np
 
 from linien.common import MHz, Vpp
 from linien.server.optimization.utils import (

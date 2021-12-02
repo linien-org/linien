@@ -1,14 +1,7 @@
 import pickle
 import traceback
 
-import numpy as np
-
-from linien.common import (
-    ANALOG_OUT0,
-    check_plot_data,
-    combine_error_signal,
-    get_lock_point,
-)
+from linien.common import check_plot_data, combine_error_signal, get_lock_point
 from linien.server.autolock.algorithm_selection import AutolockAlgorithmSelector
 from linien.server.autolock.fast import FastAutolock
 from linien.server.autolock.robust import RobustAutolock

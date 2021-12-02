@@ -132,7 +132,7 @@ class OptimizeSpectroscopy:
                     # we are done!
                     self.exposed_stop(True)
 
-        except:
+        except Exception:
             print("exception at optimization task")
             traceback.print_exc()
             self.parameters.optimization_failed.value = True

@@ -3,7 +3,7 @@ import weakref
 from os import path
 
 from PyQt5 import uic
-from pyqtgraph.Qt import QtCore, QtGui
+from pyqtgraph.Qt import QtCore
 
 # add ui folder to path
 ui_path = os.path.join(*list(os.path.split(os.path.abspath(__file__))[:-1]) + ["ui"])

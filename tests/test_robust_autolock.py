@@ -131,7 +131,7 @@ def test_get_description(debug=False):
 
             if debug:
                 plt.plot(spectra_with_jitter[0])
-                # plt.plot(get_diff_at_time_scale(sum_up_spectrum(spectra[0]), time_scale))
+                # plt.plot(get_diff_at_time_scale(sum_up_spectrum(spectra[0]), time_scale))  # noqa: E501
                 plt.axvspan(
                     lock_region[0],
                     lock_region[1],
