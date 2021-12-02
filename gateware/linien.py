@@ -198,7 +198,7 @@ class LinienModule(Module, AutoCSR):
             offset_signal=self.logic.chain_b_offset_signed,
         )
 
-        sys_slow = ClockDomainsRenamer("sys_slow")
+        _ = ClockDomainsRenamer("sys_slow")
         sys_double = ClockDomainsRenamer("sys_double")
         max_decimation = 16
         self.submodules.decimate = sys_double(Decimate(max_decimation))
