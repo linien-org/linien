@@ -1,7 +1,6 @@
 /build/*
 !/build/.keep_me
 __pycache__
-*.bin
 *.vcd
 *.sav
 *.pdf
