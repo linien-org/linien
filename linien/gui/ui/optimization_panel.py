@@ -85,11 +85,14 @@ class OptimizationPanel(QtWidgets.QWidget, CustomWidget):
             optimized = params.optimization_optimized_parameters.value
 
             self.ids.optimization_display_parameters.setText(
-                """<br />
-                <b>current parameters</b>: %.2f&nbsp;MHz, %.2f&nbsp;Vpp, %.2f&nbsp;deg<br />
-                <b>optimized parameters</b>: %.2f&nbsp;MHz, %.2f&nbsp;Vpp, %.2f&nbsp;deg
-                <br />
-                """
+                (
+                    "<br />\n"
+                    "<b>current parameters</b>: "
+                    " %.2f&nbsp;MHz, %.2f&nbsp;Vpp, %.2f&nbsp;deg<br />\n"
+                    "<b>optimized parameters</b>: "
+                    "%.2f&nbsp;MHz, %.2f&nbsp;Vpp, %.2f&nbsp;deg\n"
+                    "<br />"
+                )
                 % (
                     params.modulation_frequency.value / MHz,
                     params.modulation_amplitude.value / Vpp,

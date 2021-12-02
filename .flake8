@@ -2,4 +2,4 @@
 max-line-length = 88
 per-file-ignores =
     tests/*: D103, D100
-extend-ignore = E203, E402
+extend-ignore = E203, E402, E731

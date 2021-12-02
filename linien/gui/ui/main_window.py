@@ -128,7 +128,7 @@ class MainWindow(QtWidgets.QMainWindow, CustomWidget):
                         "time": time(),
                         "parameters": dict(
                             (k, getattr(self.parameters, k).value)
-                            for k in self.parameters.remote.exposed_get_restorable_parameters()
+                            for k in self.parameters.remote.exposed_get_restorable_parameters()  # noqa: E501
                         ),
                     },
                     f,

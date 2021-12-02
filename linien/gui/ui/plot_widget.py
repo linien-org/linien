@@ -113,12 +113,13 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         self.showGrid(x=True, y=True)
         self.setLabel("bottom", "time", units="s")
 
-        # Causes auto-scale button (‘A’ in lower-left corner) to be hidden for this PlotItem
+        # Causes auto-scale button (‘A’ in lower-left corner) to be hidden for this
+        # PlotItem
         self.hideButtons()
         # we have our own "reset view" button instead
         self.init_reset_view_button()
 
-        # copied from https://github.com/pyqtgraph/pyqtgraph/blob/master/pyqtgraph/graphicsItems/PlotItem/PlotItem.py#L133
+        # copied from https://github.com/pyqtgraph/pyqtgraph/blob/master/pyqtgraph/graphicsItems/PlotItem/PlotItem.py#L133 # noqa: E501
         # whenever something changes, we check whether to show "auto scale" button
         self.plotItem.vb.sigStateChanged.connect(
             self.check_whether_to_show_reset_view_button
@@ -745,7 +746,7 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         self.reset_view_button.move(pos)
 
     def check_whether_to_show_reset_view_button(self):
-        # copied from https://github.com/pyqtgraph/pyqtgraph/blob/master/pyqtgraph/graphicsItems/PlotItem/PlotItem.py#L1195
+        # copied from https://github.com/pyqtgraph/pyqtgraph/blob/master/pyqtgraph/graphicsItems/PlotItem/PlotItem.py#L1195 # noqa: E501
         auto_scale_disabled = not all(self.plotItem.vb.autoRangeEnabled())
         if auto_scale_disabled:
             self.reset_view_button.show()
