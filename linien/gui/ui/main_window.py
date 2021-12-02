@@ -4,7 +4,7 @@ from math import log
 from time import time
 
 import numpy as np
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 import linien
 from linien.common import check_plot_data
