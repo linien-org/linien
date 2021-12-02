@@ -16,7 +16,7 @@
 # along with redpid.  If not, see <http://www.gnu.org/licenses/>.
 
 from migen import Module, Signal
-from misoc.interconnect.csr import AutoCSR, CSRStatus
+from misoc.interconnect.csr import AutoCSR
 
 
 class Filter(Module, AutoCSR):
