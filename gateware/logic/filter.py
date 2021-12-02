@@ -27,4 +27,3 @@ class Filter(Module, AutoCSR):
         self.hold = Signal()
         self.clear = Signal()
         self.error = Signal()
-
