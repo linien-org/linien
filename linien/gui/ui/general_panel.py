@@ -1,5 +1,5 @@
 import numpy as np
-from PyQt5 import QtGui
+from PyQt5 import QtGui, QtWidgets
 
 from linien.client.connection import MHz, Vpp
 from linien.common import (
@@ -13,7 +13,7 @@ from linien.gui.utils_gui import param2ui
 from linien.gui.widgets import CustomWidget
 
 
-class GeneralPanel(QtGui.QWidget, CustomWidget):
+class GeneralPanel(QtWidgets.QWidget, CustomWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.load_ui("general_panel.ui")

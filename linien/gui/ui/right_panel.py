@@ -3,7 +3,7 @@ from PyQt5 import QtGui
 from linien.gui.widgets import CustomWidget
 
 
-class RightPanel(QtGui.QWidget, CustomWidget):
+class RightPanel(QtWidgets.QWidget, CustomWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 

@@ -30,7 +30,7 @@ from linien.gui.utils_gui import set_window_icon
 from linien.gui.widgets import CustomWidget
 
 
-class DeviceManager(QtGui.QMainWindow, CustomWidget):
+class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.load_ui("device_manager.ui")

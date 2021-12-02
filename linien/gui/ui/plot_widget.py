@@ -728,7 +728,7 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         self._cached_plot_data = []
 
     def init_reset_view_button(self):
-        self.reset_view_button = QtGui.QPushButton(self)
+        self.reset_view_button = QtWidgets.QPushButton(self)
         self.reset_view_button.setText("Reset view")
         self.reset_view_button.setStyleSheet("padding: 10px; font-weight: bold")
         icon = QtGui.QIcon.fromTheme("view-restore")

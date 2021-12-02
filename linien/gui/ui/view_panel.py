@@ -10,7 +10,7 @@ from linien.gui.utils_gui import color_to_hex, param2ui
 from linien.gui.widgets import CustomWidget
 
 
-class ViewPanel(QtGui.QWidget, CustomWidget):
+class ViewPanel(QtWidgets.QWidget, CustomWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.load_ui("view_panel.ui")
@@ -36,7 +36,7 @@ class ViewPanel(QtGui.QWidget, CustomWidget):
     def edit_color(self, color_idx):
         param = getattr(self.parameters, "plot_color_%d" % color_idx)
 
-        color = QtGui.QColorDialog.getColor(QtGui.QColor.fromRgb(*param.value))
+        color = QtWidgets.QColorDialog.getColor(QtGui.QColor.fromRgb(*param.value))
         r, g, b, a = color.getRgb()
         print("set color", color_idx, color.getRgb())
         param.value = (r, g, b, a)

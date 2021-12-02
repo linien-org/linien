@@ -5,7 +5,7 @@ from linien.gui.utils_gui import param2ui
 from linien.gui.widgets import CustomWidget
 
 
-class OptimizationPanel(QtGui.QWidget, CustomWidget):
+class OptimizationPanel(QtWidgets.QWidget, CustomWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.load_ui("optimization_panel.ui")

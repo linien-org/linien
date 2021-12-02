@@ -9,7 +9,7 @@ from linien.gui.utils_gui import RandomColorChoser, param2ui, set_window_icon
 from linien.gui.widgets import CustomWidget
 
 
-class PSDWindow(QtGui.QMainWindow, CustomWidget):
+class PSDWindow(QtWidgets.QMainWindow, CustomWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.load_ui("psd_window.ui")
