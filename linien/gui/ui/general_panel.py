@@ -1,7 +1,5 @@
-import numpy as np
-from PyQt5 import QtGui, QtWidgets
+from PyQt5 import QtWidgets
 
-from linien.client.connection import MHz, Vpp
 from linien.common import (
     ANALOG_OUT0,
     ANALOG_OUT_V,

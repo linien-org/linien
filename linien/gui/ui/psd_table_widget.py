@@ -1,8 +1,6 @@
 from datetime import datetime
 
-import numpy as np
-import pyqtgraph as pg
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtCore import pyqtSignal
 
 from linien.gui.utils_gui import color_to_hex

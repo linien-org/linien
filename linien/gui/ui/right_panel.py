@@ -1,4 +1,4 @@
-from PyQt5 import QtGui
+from PyQt5 import QtWidgets
 
 from linien.gui.widgets import CustomWidget
 

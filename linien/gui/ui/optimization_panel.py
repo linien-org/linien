@@ -1,4 +1,4 @@
-from PyQt5 import QtGui
+from PyQt5 import QtWidgets
 
 from linien.client.connection import MHz, Vpp
 from linien.gui.utils_gui import param2ui

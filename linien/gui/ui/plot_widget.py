@@ -3,7 +3,7 @@ from time import time
 
 import numpy as np
 import pyqtgraph as pg
-from PyQt5 import QtGui
+from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import pyqtSignal
 from pyqtgraph.Qt import QtCore
 

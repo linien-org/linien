@@ -1,4 +1,4 @@
-from PyQt5 import QtGui, QtWidgets
+from PyQt5 import QtWidgets
 
 from linien.common import HIGH_PASS_FILTER, LOW_PASS_FILTER
 from linien.gui.utils_gui import param2ui

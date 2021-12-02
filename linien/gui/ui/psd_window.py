@@ -1,7 +1,7 @@
 import pickle
 from time import time
 
-from PyQt5 import QtGui, QtWidgets
+from PyQt5 import QtWidgets
 
 import linien
 from linien.gui.dialogs import error_dialog
