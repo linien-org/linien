@@ -1,4 +1,3 @@
-
 from PyQt5 import QtGui
 
 from linien.gui.utils_gui import param2ui
