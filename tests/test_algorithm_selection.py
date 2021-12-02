@@ -1,9 +1,11 @@
-from linien.server.autolock.robust import RobustAutolock
-from linien.server.autolock.fast import FastAutolock
-from linien.common import AUTO_DETECT_AUTOLOCK_MODE, FAST_AUTOLOCK, ROBUST_AUTOLOCK
 import pickle
+
 import numpy as np
+
+from linien.common import AUTO_DETECT_AUTOLOCK_MODE, FAST_AUTOLOCK, ROBUST_AUTOLOCK
 from linien.server.autolock.autolock import Autolock
+from linien.server.autolock.fast import FastAutolock
+from linien.server.autolock.robust import RobustAutolock
 from linien.server.parameters import Parameters
 
 Y_SHIFT = 4000

@@ -2,6 +2,7 @@ import pickle
 import traceback
 
 import numpy as np
+
 from linien.common import (
     ANALOG_OUT0,
     check_plot_data,

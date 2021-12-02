@@ -1,11 +1,12 @@
 import cma
 import numpy as np
+
 from linien.common import MHz, Vpp
-from linien.server.parameters import Parameters
 from linien.server.optimization.engine import (
     MultiDimensionalOptimizationEngine,
     OptimizerEngine,
 )
+from linien.server.parameters import Parameters
 
 
 def test_multi():

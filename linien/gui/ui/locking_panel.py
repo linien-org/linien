@@ -1,7 +1,8 @@
-from linien.common import FAST_AUTOLOCK
 from PyQt5 import QtGui
-from linien.gui.widgets import CustomWidget
+
+from linien.common import FAST_AUTOLOCK
 from linien.gui.utils_gui import param2ui
+from linien.gui.widgets import CustomWidget
 
 
 class LockingPanel(QtGui.QWidget, CustomWidget):

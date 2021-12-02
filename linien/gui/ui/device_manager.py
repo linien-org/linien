@@ -1,17 +1,23 @@
-from PyQt5 import QtGui, QtCore
-from PyQt5.QtCore import QThread, pyqtSignal
 from traceback import print_exc
+
 from paramiko.ssh_exception import AuthenticationException as SSHAuthenticationException
+from PyQt5 import QtCore, QtGui
+from PyQt5.QtCore import QThread, pyqtSignal
 
 import linien
+from linien.client.connection import LinienClient
+from linien.client.exceptions import (
+    GeneralConnectionErrorException,
+    InvalidServerVersionException,
+    RPYCAuthenticationException,
+    ServerNotInstalledException,
+)
 from linien.gui.config import (
     get_saved_parameters,
     load_device_data,
     save_device_data,
     save_parameter,
 )
-from linien.gui.widgets import CustomWidget
-from linien.client.connection import LinienClient
 from linien.gui.dialogs import (
     LoadingDialog,
     ask_for_parameter_restore_dialog,
@@ -21,12 +27,7 @@ from linien.gui.dialogs import (
 )
 from linien.gui.ui.new_device_dialog import NewDeviceDialog
 from linien.gui.utils_gui import set_window_icon
-from linien.client.exceptions import (
-    GeneralConnectionErrorException,
-    InvalidServerVersionException,
-    RPYCAuthenticationException,
-    ServerNotInstalledException,
-)
+from linien.gui.widgets import CustomWidget
 
 
 class DeviceManager(QtGui.QMainWindow, CustomWidget):

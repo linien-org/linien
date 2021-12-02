@@ -1,10 +1,11 @@
-from linien.gui.utils_gui import color_to_hex
+from datetime import datetime
+
 import numpy as np
 import pyqtgraph as pg
-from datetime import datetime
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import pyqtSignal
 
+from linien.gui.utils_gui import color_to_hex
 from linien.gui.widgets import CustomWidget
 
 

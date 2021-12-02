@@ -3,8 +3,9 @@ This file contains stuff that is required by the server as well as the client.
 """
 import hashlib
 import pickle
-import numpy as np
 from time import time
+
+import numpy as np
 from scipy.signal import correlate, resample
 
 MHz = 0x10000000 / 8

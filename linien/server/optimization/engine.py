@@ -1,12 +1,13 @@
-import cma
 import math
+
+import cma
 import numpy as np
 
 from linien.common import MHz, Vpp
 from linien.server.optimization.utils import (
+    FINAL_ZOOM_FACTOR,
     get_max_slope,
     optimize_phase_from_iq,
-    FINAL_ZOOM_FACTOR,
 )
 
 

@@ -1,15 +1,15 @@
 import numpy as np
-
 from csr import PitayaCSR, make_filter
 from utils import twos_complement
-from linien.config import DEFAULT_RAMP_SPEED
+
 from linien.common import (
-    convert_channel_mixing_value,
-    LOW_PASS_FILTER,
-    HIGH_PASS_FILTER,
     ANALOG_OUT0,
+    HIGH_PASS_FILTER,
+    LOW_PASS_FILTER,
     MHz,
+    convert_channel_mixing_value,
 )
+from linien.config import DEFAULT_RAMP_SPEED
 from linien.server.acquisition import AcquisitionMaster
 
 

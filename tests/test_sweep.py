@@ -1,5 +1,6 @@
-from migen import run_simulation
 import matplotlib.pyplot as plt
+from migen import run_simulation
+
 from gateware.logic.sweep import Sweep, SweepCSR
 
 

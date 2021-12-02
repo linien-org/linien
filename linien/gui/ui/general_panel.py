@@ -1,16 +1,16 @@
 import numpy as np
 from PyQt5 import QtGui
 
+from linien.client.connection import MHz, Vpp
 from linien.common import (
+    ANALOG_OUT0,
     ANALOG_OUT_V,
-    convert_channel_mixing_value,
     FAST_OUT1,
     FAST_OUT2,
-    ANALOG_OUT0,
+    convert_channel_mixing_value,
 )
 from linien.gui.utils_gui import param2ui
 from linien.gui.widgets import CustomWidget
-from linien.client.connection import MHz, Vpp
 
 
 class GeneralPanel(QtGui.QWidget, CustomWidget):

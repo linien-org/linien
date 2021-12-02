@@ -1,8 +1,8 @@
 import re
-from plumbum import colors
 
+from plumbum import colors
 from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtWidgets import QListWidget, QVBoxLayout, QDialog, QMessageBox
+from PyQt5.QtWidgets import QDialog, QListWidget, QMessageBox, QVBoxLayout
 from pyqtgraph import QtCore
 
 from linien.client.utils import connect_ssh

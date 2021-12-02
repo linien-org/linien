@@ -1,12 +1,14 @@
+from random import randint, random
+
 import numpy as np
+from matplotlib import pyplot as plt
+from scipy.optimize import minimize_scalar
+
 from linien.server.optimization.utils import (
     calculate_spectrum_from_iq,
     get_max_slope,
     optimize_phase_from_iq,
 )
-from matplotlib import pyplot as plt
-from scipy.optimize import minimize_scalar
-from random import randint, random
 
 
 def test_get_max_slope():

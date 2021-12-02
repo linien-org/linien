@@ -1,7 +1,8 @@
-from gateware.logic.sweep import SweepCSR
-from gateware.logic.pid import PID
 from migen import run_simulation
+
 from gateware.linien import LinienLogic
+from gateware.logic.pid import PID
+from gateware.logic.sweep import SweepCSR
 
 
 def test_root():

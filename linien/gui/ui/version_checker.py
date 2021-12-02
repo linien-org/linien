@@ -1,6 +1,8 @@
-import linien
-from PyQt5.QtCore import QThread, pyqtSignal
 from urllib.request import urlopen
+
+from PyQt5.QtCore import QThread, pyqtSignal
+
+import linien
 
 
 def version_string_to_tuple(version):

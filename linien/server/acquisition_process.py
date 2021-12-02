@@ -1,19 +1,21 @@
-import os
-import sys
-import pickle
 import _thread
-import numpy as np
+import os
+import pickle
+import sys
 import threading
-from rpyc import Service
-from time import sleep
 from random import random
-from rpyc.utils.server import OneShotServer
+from time import sleep
+
+import numpy as np
 from PyRedPitaya.board import RedPitaya
+from rpyc import Service
+from rpyc.utils.server import OneShotServer
 
 sys.path += ["../../"]
 from csr import PythonCSR
-from linien.config import ACQUISITION_PORT
+
 from linien.common import DECIMATION, MAX_N_POINTS, N_POINTS
+from linien.config import ACQUISITION_PORT
 
 
 def shutdown():

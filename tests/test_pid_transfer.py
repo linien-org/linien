@@ -1,6 +1,6 @@
 import numpy as np
-from migen import run_simulation
 from matplotlib import pyplot as plt
+from migen import run_simulation
 
 from gateware.logic.pid import PID
 

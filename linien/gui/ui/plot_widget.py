@@ -3,6 +3,10 @@ from time import time
 
 import numpy as np
 import pyqtgraph as pg
+from PyQt5 import QtGui
+from PyQt5.QtCore import pyqtSignal
+from pyqtgraph.Qt import QtCore
+
 from linien.client.utils import peak_voltage_to_dBm
 from linien.common import (
     DECIMATION,
@@ -18,9 +22,6 @@ from linien.common import (
 from linien.config import N_COLORS
 from linien.gui.config import COLORS, DEFAULT_PLOT_RATE_LIMIT
 from linien.gui.widgets import CustomWidget
-from PyQt5.QtCore import pyqtSignal
-from PyQt5 import QtGui
-from pyqtgraph.Qt import QtCore
 
 # NOTE: this is required for using a pen_width > 1.
 # There is a bug though that causes the plot to be way too small. Therefore,

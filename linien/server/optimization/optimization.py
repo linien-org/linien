@@ -1,11 +1,12 @@
-from linien.server.optimization.utils import FINAL_ZOOM_FACTOR
-from linien.server.optimization.engine import OptimizerEngine
 import pickle
-import numpy as np
 import traceback
+
+import numpy as np
 
 from linien.common import determine_shift_by_correlation, get_lock_point
 from linien.server.approach_line import Approacher
+from linien.server.optimization.engine import OptimizerEngine
+from linien.server.optimization.utils import FINAL_ZOOM_FACTOR
 
 
 class OptimizeSpectroscopy:

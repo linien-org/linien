@@ -1,15 +1,16 @@
-from linien.common import hash_username_and_password
 import os
+
 import numpy as np
 import paramiko
 from plumbum import colors
 
 import linien
-from linien.config import REMOTE_BASE_PATH
 from linien.client.exceptions import (
     InvalidServerVersionException,
     ServerNotInstalledException,
 )
+from linien.common import hash_username_and_password
+from linien.config import REMOTE_BASE_PATH
 
 
 def connect_ssh(host, user, password):

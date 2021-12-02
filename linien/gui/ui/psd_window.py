@@ -1,11 +1,12 @@
-from linien.gui.dialogs import error_dialog
-import linien
 import pickle
-
 from time import time
+
+from PyQt5 import QtGui, QtWidgets
+
+import linien
+from linien.gui.dialogs import error_dialog
 from linien.gui.utils_gui import RandomColorChoser, param2ui, set_window_icon
 from linien.gui.widgets import CustomWidget
-from PyQt5 import QtGui, QtWidgets
 
 
 class PSDWindow(QtGui.QMainWindow, CustomWidget):

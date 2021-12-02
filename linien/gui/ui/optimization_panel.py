@@ -1,7 +1,8 @@
 from PyQt5 import QtGui
-from linien.gui.widgets import CustomWidget
-from linien.gui.utils_gui import param2ui
+
 from linien.client.connection import MHz, Vpp
+from linien.gui.utils_gui import param2ui
+from linien.gui.widgets import CustomWidget
 
 
 class OptimizationPanel(QtGui.QWidget, CustomWidget):

@@ -1,9 +1,11 @@
 from ast import Param
-from linien.common import get_lock_point
+
 import numpy as np
+from matplotlib import pyplot as plt
+
+from linien.common import get_lock_point
 from linien.server.approach_line import Approacher
 from linien.server.parameters import Parameter, Parameters
-from matplotlib import pyplot as plt
 
 Y_SHIFT = 4000
 
