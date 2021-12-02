@@ -40,16 +40,23 @@ class Sweep(Module):
         self.comb += [
             If(
                 self.run,
-                If(self.turn & ~turning, self.up.eq(~dir)).Else(self.up.eq(dir)),
-            ).Else(self.up.eq(1))
+                If(self.turn & ~turning,
+                    self.up.eq(~dir))
+                .Else(
+                    self.up.eq(dir)),)
+            .Else(
+                self.up.eq(1))
         ]
         self.sync += [
             self.trigger.eq(self.turn & self.up),
             turning.eq(self.turn),
             dir.eq(self.up),
-            If(~self.run, self.y.eq(0)).Elif(
-                ~self.hold,
-                If(self.up, self.y.eq(self.y + self.step),).Else(
+            If(~self.run,
+                self.y.eq(0))
+            .Elif(~self.hold,
+                If(self.up,
+                    self.y.eq(self.y + self.step),)
+                    .Else(
                     self.y.eq(self.y - self.step),
                 ),
             ),
