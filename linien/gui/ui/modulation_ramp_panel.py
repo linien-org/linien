@@ -1,8 +1,8 @@
-import numpy as np
-from PyQt5 import QtGui, QtWidgets
-from linien.gui.widgets import CustomWidget
+from PyQt5 import QtWidgets
+
 from linien.client.connection import MHz, Vpp
 from linien.gui.utils_gui import param2ui
+from linien.gui.widgets import CustomWidget
 
 
 class ModulationAndRampPanel(QtWidgets.QWidget, CustomWidget):

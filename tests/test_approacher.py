@@ -1,9 +1,8 @@
-from ast import Param
-from linien.common import get_lock_point
 import numpy as np
+
+from linien.common import get_lock_point
 from linien.server.approach_line import Approacher
-from linien.server.parameters import Parameter, Parameters
-from matplotlib import pyplot as plt
+from linien.server.parameters import Parameters
 
 Y_SHIFT = 4000
 
@@ -37,7 +36,9 @@ class FakeControl:
 
     def exposed_write_data(self):
         print(
-            f"write: center={self.parameters.center.value} amp={self.parameters.ramp_amplitude.value}"
+            "write: center={} amp={}".format(
+                self.parameters.center.valuel, self.parameters.ramp_amplitude.value
+            )
         )
 
 

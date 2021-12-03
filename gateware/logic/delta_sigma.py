@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with redpid.  If not, see <http://www.gnu.org/licenses/>.
 
-from migen import *
+from migen import Module, Signal, run_simulation
 from misoc.interconnect.csr import AutoCSR, CSRStorage
 
 
@@ -59,8 +59,8 @@ class DeltaSigmaCSR(Module, AutoCSR):
 
 
 if __name__ == "__main__":
-    import numpy as np
     import matplotlib.pyplot as plt
+    import numpy as np
 
     def tb(dut, x, y):
         for xi in x:

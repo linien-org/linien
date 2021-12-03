@@ -1,5 +1,7 @@
+from time import time
+
 import numpy as np
-from time import sleep, time
+
 from linien.common import determine_shift_by_correlation
 
 ZOOM_STEP = 2

@@ -1,19 +1,21 @@
-import os
-import sys
-import pickle
 import _thread
-import numpy as np
+import os
+import pickle
+import sys
 import threading
-from rpyc import Service
-from time import sleep
 from random import random
-from rpyc.utils.server import OneShotServer
+from time import sleep
+
+import numpy as np
 from PyRedPitaya.board import RedPitaya
+from rpyc import Service
+from rpyc.utils.server import OneShotServer
 
 sys.path += ["../../"]
 from csr import PythonCSR
-from linien.config import ACQUISITION_PORT
+
 from linien.common import DECIMATION, MAX_N_POINTS, N_POINTS
+from linien.config import ACQUISITION_PORT
 
 
 def shutdown():
@@ -78,7 +80,7 @@ class DataAcquisitionService(Service):
                     sleep(0.05)
                     continue
 
-                # copied from https://github.com/RedPitaya/RedPitaya/blob/14cca62dd58f29826ee89f4b28901602f5cdb1d8/api/src/oscilloscope.c#L115
+                # copied from https://github.com/RedPitaya/RedPitaya/blob/14cca62dd58f29826ee89f4b28901602f5cdb1d8/api/src/oscilloscope.c#L115  # noqa: E501
                 # check whether scope was triggered
                 not_triggered = (self.r.scope.read(0x1 << 2) & 0x4) > 0
                 if not_triggered:

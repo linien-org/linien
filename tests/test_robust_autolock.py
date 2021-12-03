@@ -1,3 +1,16 @@
+import numpy as np
+from matplotlib import pyplot as plt
+from migen import run_simulation
+
+from gateware.logic.autolock import (
+    RobustAutolock,
+    get_lock_position_from_autolock_instructions_by_simulating_fpga,
+)
+from gateware.logic.autolock_utils import DynamicDelay, SumDiffCalculator
+from linien.server.autolock.robust import (
+    calculate_autolock_instructions,
+    get_lock_position_from_autolock_instructions,
+)
 from linien.server.autolock.utils import (
     crop_spectra_to_same_view,
     get_diff_at_time_scale,
@@ -5,19 +18,6 @@ from linien.server.autolock.utils import (
     get_time_scale,
     sum_up_spectrum,
 )
-from linien.server.autolock.robust import (
-    calculate_autolock_instructions,
-    get_lock_position_from_autolock_instructions,
-)
-from gateware.logic.autolock_utils import DynamicDelay, SumDiffCalculator
-from gateware.logic.autolock import (
-    RobustAutolock,
-    get_lock_position_from_autolock_instructions_by_simulating_fpga,
-)
-import numpy as np
-from matplotlib import pyplot as plt
-from migen import run_simulation
-
 
 FPGA_DELAY_SUMDIFF_CALCULATOR = 2
 
@@ -131,7 +131,7 @@ def test_get_description(debug=False):
 
             if debug:
                 plt.plot(spectra_with_jitter[0])
-                # plt.plot(get_diff_at_time_scale(sum_up_spectrum(spectra[0]), time_scale))
+                # plt.plot(get_diff_at_time_scale(sum_up_spectrum(spectra[0]), time_scale))  # noqa: E501
                 plt.axvspan(
                     lock_region[0],
                     lock_region[1],

@@ -1,12 +1,12 @@
 import pickle
 from time import time
 
+from PyQt5 import QtWidgets
+
 import linien
-from linien.common import PSD_ALGORITHM_LPSD, PSD_ALGORITHM_WELCH
 from linien.gui.dialogs import error_dialog
 from linien.gui.utils_gui import RandomColorChoser, param2ui, set_window_icon
 from linien.gui.widgets import CustomWidget
-from PyQt5 import QtGui, QtWidgets
 
 
 class PSDWindow(QtWidgets.QMainWindow, CustomWidget):

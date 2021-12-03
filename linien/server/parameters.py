@@ -1,12 +1,6 @@
-from linien.server.parameters_base import BaseParameters, Parameter
+from linien.common import AUTO_DETECT_AUTOLOCK_MODE, FAST_AUTOLOCK, MHz, Vpp
 from linien.config import DEFAULT_COLORS, N_COLORS
-from linien.common import (
-    AUTO_DETECT_AUTOLOCK_MODE,
-    FAST_AUTOLOCK,
-    Vpp,
-    MHz,
-    PSD_ALGORITHM_LPSD,
-)
+from linien.server.parameters_base import BaseParameters, Parameter
 
 
 class Parameters(BaseParameters):

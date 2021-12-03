@@ -15,9 +15,9 @@
 # You should have received a copy of the GNU General Public License
 # along with redpid.  If not, see <http://www.gnu.org/licenses/>.
 
-from migen import *
+from migen import Cat, Module, Signal, TSTriple
 from migen.genlib.cdc import MultiReg
-from misoc.interconnect.csr import CSRStorage, CSRStatus, AutoCSR
+from misoc.interconnect.csr import AutoCSR, CSRStatus, CSRStorage
 
 
 class Gpio(Module, AutoCSR):

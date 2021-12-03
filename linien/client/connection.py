@@ -5,8 +5,10 @@ from time import sleep
 from traceback import print_exc
 from typing import Callable
 
-import linien
 import rpyc
+from plumbum import colors
+
+import linien
 from linien.client.exceptions import (
     GeneralConnectionErrorException,
     InvalidServerVersionException,
@@ -15,11 +17,10 @@ from linien.client.exceptions import (
 )
 from linien.client.remote_parameters import RemoteParameters
 from linien.client.utils import run_server
-from linien.config import DEFAULT_SERVER_PORT
-from plumbum import colors
 
 # IMPORTANT: keep this import, because it eases interfacing with the python client
-from linien.common import MHz, Vpp, ANALOG_OUT_V, hash_username_and_password
+from linien.common import ANALOG_OUT_V, MHz, Vpp, hash_username_and_password
+from linien.config import DEFAULT_SERVER_PORT
 
 assert MHz
 assert Vpp

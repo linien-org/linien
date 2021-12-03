@@ -1,8 +1,8 @@
-from migen import run_simulation
 import matplotlib.pyplot as plt
-from gateware.logic.modulate import Modulate, Demodulate
-from migen import Signal, Module
 import numpy as np
+from migen import Module, Signal, run_simulation
+
+from gateware.logic.modulate import Demodulate, Modulate
 
 
 def moving_average(a, n):

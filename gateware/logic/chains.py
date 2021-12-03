@@ -1,10 +1,10 @@
-from migen import Signal, Module, Array, Mux, Cat, If, bits_for
-from misoc.interconnect.csr import AutoCSR, CSRStorage, CSRStatus, CSR
+from migen import Array, Cat, If, Module, Mux, Signal, bits_for
+from misoc.interconnect.csr import CSR, AutoCSR, CSRStatus, CSRStorage
 
 from .iir import Iir
-from .pid import PID
 from .limit import LimitCSR
 from .modulate import Demodulate
+from .pid import PID
 
 
 class FastChain(Module, AutoCSR):

@@ -4,10 +4,10 @@ import string
 from time import sleep, time
 
 import numpy as np
-from linien.common import PSD_ALGORITHM_LPSD, PSD_ALGORITHM_SCIPY
-from linien.server.optimization.engine import MultiDimensionalOptimizationEngine
-from pylpsd import lpsd
 from scipy import signal
+
+from linien.server.optimization.engine import MultiDimensionalOptimizationEngine
+from linien.server.pid_optimization.lpsd import lpsd
 
 ALL_DECIMATIONS = list(range(32))
 

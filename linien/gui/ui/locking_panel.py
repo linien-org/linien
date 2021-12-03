@@ -1,7 +1,8 @@
+from PyQt5 import QtWidgets
+
 from linien.common import FAST_AUTOLOCK
-from PyQt5 import QtGui, QtWidgets
-from linien.gui.widgets import CustomWidget
 from linien.gui.utils_gui import param2ui
+from linien.gui.widgets import CustomWidget
 
 
 class LockingPanel(QtWidgets.QWidget, CustomWidget):
@@ -120,12 +121,6 @@ class LockingPanel(QtWidgets.QWidget, CustomWidget):
     def kd_changed(self):
         self.parameters.d.value = self.ids.kd.value()
         self.control.write_data()
-
-    """def check_lock_changed(self):
-        self.parameters.check_lock.value = int(self.ids.checkLockCheckbox.checkState())
-
-    def watch_lock_changed(self):
-        self.parameters.watch_lock.value = int(self.ids.watchLockCheckbox.checkState())"""
 
     def lock_mode_changed(self, idx):
         self.parameters.automatic_mode.value = idx == 0

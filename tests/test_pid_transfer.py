@@ -1,6 +1,6 @@
 import numpy as np
-from migen import run_simulation
 from matplotlib import pyplot as plt
+from migen import run_simulation
 
 from gateware.logic.pid import PID
 
@@ -25,7 +25,7 @@ def test_pid_transfer():
             xf = np.fft.rfft(x)
             t = (np.fft.rfft(y) / xf)[:-1]
             f = (np.fft.fftfreq(n)[: n // 2 + 1] * 2)[:-1] * sampling_frequency
-            fmin = f[1]
+            _ = f[1]  # fmin
             p = plt.plot(f, 20 * np.log10(np.abs(t)), label=label)
             plot_color = p[0].get_color()
             ax = plt.gca()

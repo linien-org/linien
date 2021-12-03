@@ -1,0 +1,13 @@
+[tool.black]
+exclude = '''
+(
+  /(
+    gateware/logic
+   | gateware/lowlevel
+   | linien/server/csrmap.py
+   )/
+)
+'''
+
+[tool.isort]
+profile = "black"

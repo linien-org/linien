@@ -406,7 +406,7 @@ pip install -r requirements_dev.txt
 
 from within the python environment.
 
-To automatically checking commits for complience with [black](https://black.readthedocs.io/en/stable/) code style, run
+To automatically checking commits for compliance with [black](https://black.readthedocs.io/en/stable/) code style, run
 
 ```
 pre-commit install
