@@ -1,6 +1,12 @@
 from linien.server.parameters_base import BaseParameters, Parameter
 from linien.config import DEFAULT_COLORS, N_COLORS
-from linien.common import AUTO_DETECT_AUTOLOCK_MODE, FAST_AUTOLOCK, Vpp, MHz
+from linien.common import (
+    AUTO_DETECT_AUTOLOCK_MODE,
+    FAST_AUTOLOCK,
+    Vpp,
+    MHz,
+    PSD_ALGORITHM_LPSD,
+)
 
 
 class Parameters(BaseParameters):
@@ -365,6 +371,7 @@ class Parameters(BaseParameters):
         self.acquisition_raw_filter_frequency = Parameter(start=0)
         self.psd_data_partial = Parameter(start=None)
         self.psd_data_complete = Parameter(start=None)
+        self.psd_algorithm = Parameter(start=PSD_ALGORITHM_LPSD)
         self.psd_acquisition_running = Parameter(start=False)
         self.psd_optimization_running = Parameter(start=False)
         self.psd_acquisition_max_decimation = Parameter(start=18, min_=1, max_=32)

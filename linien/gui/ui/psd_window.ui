@@ -161,6 +161,29 @@
        </widget>
       </item>
       <item>
+       <widget class="QGroupBox" name="groupBox_2">
+        <property name="title">
+         <string>Algorithm</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_2">
+         <item>
+          <widget class="QComboBox" name="psd_algorithm">
+           <item>
+            <property name="text">
+             <string>LPSD</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Scipy (faster but prone to glitches)</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
        <widget class="QGroupBox" name="container_psd_not_running">
         <property name="title">
          <string>Single PSD measurement</string>
