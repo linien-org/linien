@@ -38,6 +38,8 @@ class PSDWindow(QtWidgets.QMainWindow, CustomWidget):
             self.change_maximum_measurement_time
         )
 
+        self.ids.psd_algorithm.currentIndexChanged.connect(self.change_psd_algorithm)
+
     def closeEvent(self, event, *args, **kwargs):
         # we never realy want to close the window (which destroys its content)
         # but just to hide it
@@ -46,6 +48,11 @@ class PSDWindow(QtWidgets.QMainWindow, CustomWidget):
 
     def change_maximum_measurement_time(self, index):
         self.parameters.psd_acquisition_max_decimation.value = 12 + index
+
+    def change_psd_algorithm(self, index):
+        self.parameters.psd_algorithm.value = [PSD_ALGORITHM_LPSD, PSD_ALGORITHM_WELCH][
+            index
+        ]
 
     def connection_established(self):
         self.control = self.app.control
@@ -63,6 +70,11 @@ class PSDWindow(QtWidgets.QMainWindow, CustomWidget):
             self.parameters.psd_acquisition_max_decimation,
             self.ids.maximum_measurement_time,
             lambda max_decimation: max_decimation - 12,
+        )
+        param2ui(
+            self.parameters.psd_algorithm,
+            self.ids.psd_algorithm,
+            lambda algo: {PSD_ALGORITHM_LPSD: 0, PSD_ALGORITHM_WELCH: 1}[algo],
         )
 
         def update_status(_):

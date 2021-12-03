@@ -129,6 +129,12 @@ class OptimizationPanel(QtWidgets.QWidget, CustomWidget):
 
         params.dual_channel.on_change(dual_channel_changed)
 
+        def fast_mode_changed(fast_mode_enabled):
+            """Disables this panel if fast mode is enabled (nothing to optimize)"""
+            self.setEnabled(not fast_mode_enabled)
+
+        params.fast_mode.on_change(fast_mode_changed)
+
     def start_optimization(self):
         self.parameters.optimization_selection.value = True
 

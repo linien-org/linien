@@ -100,6 +100,7 @@ class Registers:
             if params["modulation_frequency"] > 0
             else 0,
             logic_dual_channel=int(params["dual_channel"]),
+            logic_fast_mode=int(params["fast_mode"]),
             logic_chain_a_factor=factor_a,
             logic_chain_b_factor=factor_b,
             logic_chain_a_offset=twos_complement(int(params["offset_a"]), 14),
