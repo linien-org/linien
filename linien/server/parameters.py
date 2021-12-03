@@ -31,6 +31,7 @@ class Parameters(BaseParameters):
         # parameters whose values are saved by the client and restored if the
         # client connects to the RedPitaya with no server running.
         self._restorable_parameters = (
+            "fast_mode",
             "modulation_amplitude",
             "modulation_frequency",
             "ramp_speed",
@@ -219,6 +220,9 @@ class Parameters(BaseParameters):
         self.modulation_frequency = Parameter(min_=0, max_=0xFFFFFFFF, start=15 * MHz)
 
         #           --------- DEMODULATION AND FILTER PARAMETERS ---------
+        # fast mode allows to bypass demodulation and IIR filtering of the fast
+        # channels.
+        self.fast_mode = Parameter(start=False)
         # Linien allows for two simulataneous demodulation channels. By default,
         # only one is enabled. This is controlled by `dual_channel`.
         self.dual_channel = Parameter(start=False)

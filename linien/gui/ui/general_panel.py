@@ -20,6 +20,7 @@ class GeneralPanel(QtWidgets.QWidget, CustomWidget):
 
     def ready(self):
         self.ids.channel_mixing_slider.valueChanged.connect(self.channel_mixing_changed)
+        self.ids.fast_mode.stateChanged.connect(self.fast_mode_changed)
         self.ids.dual_channel.stateChanged.connect(self.dual_channel_changed)
 
         self.ids.mod_channel.currentIndexChanged.connect(self.mod_channel_changed)
@@ -61,6 +62,8 @@ class GeneralPanel(QtWidgets.QWidget, CustomWidget):
         params = self.app().parameters
         self.control = self.app().control
         self.parameters = params
+
+        param2ui(params.fast_mode, self.ids.fast_mode)
 
         def dual_channel_changed(value):
             self.ids.dual_channel_mixing.setVisible(value)
@@ -126,12 +129,27 @@ class GeneralPanel(QtWidgets.QWidget, CustomWidget):
                 process_value=lambda v: ANALOG_OUT_V * v,
             )
 
+        def fast_mode_changed(fast_mode_enabled):
+            """Disables controls that are irrelevant if fast mode is enabled"""
+            widgets_to_disable = (
+                self.ids.output_ports_group,
+                self.ids.input_ports_group,
+            )
+            for widget in widgets_to_disable:
+                widget.setEnabled(not fast_mode_enabled)
+
+        params.fast_mode.on_change(fast_mode_changed)
+
     def channel_mixing_changed(self):
         value = int(self.ids.channel_mixing_slider.value()) - 128
         self.parameters.channel_mixing.value = value
         self.control.write_data()
 
         self.update_channel_mixing_slider(value)
+
+    def fast_mode_changed(self):
+        self.parameters.fast_mode.value = int(self.ids.fast_mode.checkState() > 0)
+        self.control.write_data()
 
     def dual_channel_changed(self):
         self.parameters.dual_channel.value = int(self.ids.dual_channel.checkState() > 0)

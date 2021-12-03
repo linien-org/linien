@@ -85,12 +85,13 @@ class FastChain(Module, AutoCSR):
 
             ys = Array([iir_c.x, iir_c.y, iir_d.y])
 
+            output_signal_this_channel = (self.out_i, self.out_q)[sub_channel_idx]
             self.comb += [
                 y_limit.x.eq(
                     Mux(self.invert.storage, -1, 1)
                     * (ys[self.y_tap.storage] + (ya << s) + (offset_signal << s))
                 ),
-                (self.out_i, self.out_q)[sub_channel_idx].eq(y_limit.y),
+                output_signal_this_channel.eq(y_limit.y),
             ]
 
 

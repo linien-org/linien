@@ -61,6 +61,8 @@ class LinienLogic(Module, AutoCSR):
         self.control_channel = CSRStorage(1)
         self.sweep_channel = CSRStorage(2)
 
+        self.fast_mode = CSRStorage(1)
+
         self.slow_value = CSRStatus(width)
 
         max_decimation = 16
@@ -284,7 +286,12 @@ class LinienModule(Module, AutoCSR):
 
         pid_out = Signal((width, True))
         self.comb += [
-            self.logic.pid.input.eq(mixed_limited),
+            If(
+                self.logic.fast_mode.storage,
+                self.logic.pid.input.eq(self.analog.adc_a << s),
+            ).Else(
+                self.logic.pid.input.eq(mixed_limited),
+            ),
             pid_out.eq(self.logic.pid.pid_out >> s),
         ]
 
@@ -378,8 +385,14 @@ class LinienModule(Module, AutoCSR):
             ),
             self.logic.limit_fast1.x.eq(fast_outs[0]),
             self.logic.limit_fast2.x.eq(fast_outs[1]),
-            self.analog.dac_a.eq(self.logic.limit_fast1.y),
-            self.analog.dac_b.eq(self.logic.limit_fast2.y),
+            If(
+                self.logic.fast_mode.storage,
+                self.analog.dac_a.eq(self.logic.pid.pid_out >> s),
+                self.analog.dac_b.eq(self.logic.pid.pid_out >> s),
+            ).Else(
+                self.analog.dac_a.eq(self.logic.limit_fast1.y),
+                self.analog.dac_b.eq(self.logic.limit_fast2.y),
+            ),
             # SLOW OUT
             self.slow.input.eq(self.logic.control_signal >> s),
             self.decimate.decimation.eq(self.logic.slow_decimation.storage),
