@@ -1,6 +1,5 @@
-"""
-This file contains stuff that is required by the server as well as the client.
-"""
+"""This file contains stuff that is required by the server as well as the client."""
+
 import hashlib
 import pickle
 from time import time
@@ -37,9 +36,11 @@ class SpectrumUncorrelatedException(Exception):
 
 
 def downsample_history(times, values, max_time_diff, max_N=N_POINTS):
-    """The history should not grow too much. When recording for long intervals,
+    """
+    The history should not grow too much. When recording for long intervals,
     we want to throw away some datapoints that were recorded with a sampling rate
-    that is too high. This function takes care of this."""
+    that is too high. This function takes care of this.
+    """
     last_time = None
 
     to_remove = []
@@ -122,12 +123,13 @@ def check_whether_correlation_is_bad(correlation, N):
 
 
 def determine_shift_by_correlation(zoom_factor, reference_signal, error_signal):
-    """Compares two spectra and determines the shift by correlation.
+    """
+    Compare two spectra and determines the shift by correlation.
 
     `zoom_factor` is the zoom factor of `error_signal` with respect to
     `reference_signal`, i.e. it states how much reference signal has to be
-    magnified in order to show the same region as the new error signal."""
-
+    magnified in order to show the same region as the new error signal.
+    """
     # values that should not be considered are np.nan
     # but the correlation has problems with np.nans
     # --> we set it to 0
@@ -173,7 +175,7 @@ def determine_shift_by_correlation(zoom_factor, reference_signal, error_signal):
 
 
 def get_lock_point(error_signal, x0, x1, final_zoom_factor=1.5):
-    """Calculates parameters for the autolock based on the initial error signal.
+    """Calculate parameters for the autolock based on the initial error signal.
 
     Takes the `error_signal` and two points (`x0` and `x1`) as arguments. The
     points are the points selected by the user, and we know that we want to
