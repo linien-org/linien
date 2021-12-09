@@ -5,3 +5,7 @@ pylpsd==0.1.3
 flake8
 black
 pre-commit
+matplotlib
+migen
+pytest
+git+https://github.com/m-labs/misoc
