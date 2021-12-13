@@ -2,18 +2,19 @@ import json
 import pickle
 from time import time
 
-import linien
 import numpy as np
+from PyQt5 import QtWidgets
+
+import linien
 from linien.common import check_plot_data
 from linien.config import N_COLORS
 from linien.gui.config import COLORS
 from linien.gui.ui.plot_widget import INVALID_POWER
 from linien.gui.utils_gui import color_to_hex
 from linien.gui.widgets import CustomWidget
-from PyQt5 import QtGui, QtWidgets
 
 
-class MainWindow(QtGui.QMainWindow, CustomWidget):
+class MainWindow(QtWidgets.QMainWindow, CustomWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.load_ui("main_window.ui")

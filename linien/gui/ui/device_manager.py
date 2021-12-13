@@ -1,17 +1,23 @@
-from PyQt5 import QtGui, QtCore
-from PyQt5.QtCore import QThread, pyqtSignal
 from traceback import print_exc
+
 from paramiko.ssh_exception import AuthenticationException as SSHAuthenticationException
+from PyQt5 import QtCore, QtWidgets
+from PyQt5.QtCore import QThread, pyqtSignal
 
 import linien
+from linien.client.connection import LinienClient
+from linien.client.exceptions import (
+    GeneralConnectionErrorException,
+    InvalidServerVersionException,
+    RPYCAuthenticationException,
+    ServerNotInstalledException,
+)
 from linien.gui.config import (
     get_saved_parameters,
     load_device_data,
     save_device_data,
     save_parameter,
 )
-from linien.gui.widgets import CustomWidget
-from linien.client.connection import LinienClient
 from linien.gui.dialogs import (
     LoadingDialog,
     ask_for_parameter_restore_dialog,
@@ -21,15 +27,10 @@ from linien.gui.dialogs import (
 )
 from linien.gui.ui.new_device_dialog import NewDeviceDialog
 from linien.gui.utils_gui import set_window_icon
-from linien.client.exceptions import (
-    GeneralConnectionErrorException,
-    InvalidServerVersionException,
-    RPYCAuthenticationException,
-    ServerNotInstalledException,
-)
+from linien.gui.widgets import CustomWidget
 
 
-class DeviceManager(QtGui.QMainWindow, CustomWidget):
+class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.load_ui("device_manager.ui")
@@ -88,10 +89,11 @@ class DeviceManager(QtGui.QMainWindow, CustomWidget):
             client_version = linien.__version__
             loading_dialog.hide()
             if not aborted:
-                display_question = """
-                The server is not yet installed on the device. 
-                Should it be installed? (Requires internet connection on RedPitaya)
-                """  # noqa: W291
+                display_question = (
+                    "The server is not yet installed on the device. "
+                    "Should it be installed? (Requires internet "
+                    "connection on RedPitaya)"
+                )
                 if question_dialog(self, display_question, "Install server?"):
                     self.install_linien_server(
                         device,
@@ -104,11 +106,10 @@ class DeviceManager(QtGui.QMainWindow, CustomWidget):
             loading_dialog.hide()
             if not aborted:
                 if client_version != "dev":
-                    display_question = """
-                        The server version ({}) does not match the client ({})
-                        version. Should the corresponding server version be installed?
-                        """.format(
-                        remote_version, client_version
+                    display_question = (
+                        "Server version (%s) does not match the client (%s) version."
+                        "Should the corresponding server version be installed?"
+                        % (remote_version, client_version)
                     )
                     if question_dialog(
                         self, display_question, "Install corresponding version?"
@@ -130,12 +131,12 @@ class DeviceManager(QtGui.QMainWindow, CustomWidget):
         def authentication_exception():
             loading_dialog.hide()
             if not aborted:
-                display_error = """
-                    Error at authentication.\n
-                    Check username and password (by default both are "root") and verify 
-                    that you don't have any offending SSH keys in your known hosts file.
-                    """  # noqa: W291
-
+                display_error = (
+                    "Error at authentication. "
+                    "Check username and password (by default both are 'root') "
+                    "and verify that you "
+                    "don't have any offending SSH keys in your known hosts file."
+                )
                 error_dialog(self, display_error)
 
         self.connection_thread.authentication_exception.connect(
@@ -145,10 +146,11 @@ class DeviceManager(QtGui.QMainWindow, CustomWidget):
         def general_connection_error():
             loading_dialog.hide()
             if not aborted:
-                display_error = """
-                Unable to connect to device. If you are connecting by hostname 
-                (i.e. rp-xxxxxx.local), try using IP address instead.
-                """  # noqa: W291
+                display_error = (
+                    "Unable to connect to device. If you are connecting by"
+                    " hostname (i.e. rp-xxxxxx.local), try using IP "
+                    "address instead."
+                )
                 error_dialog(self, display_error)
 
         self.connection_thread.general_connection_error.connect(
@@ -164,13 +166,14 @@ class DeviceManager(QtGui.QMainWindow, CustomWidget):
         self.connection_thread.exception.connect(exception)
 
         def ask_for_parameter_restore():
-            question = """
-            Linien on RedPitaya is running with different parameters than the ones saved
-             locally on this machine. Do you want to upload the local parameters or keep
-             the remote ones? Note that remote parameters are only saved if Linien 
-            server was shut down properly, not when unplugging the power plug. In this 
-            case, you should update your local parameters.
-            """  # noqa: W291
+            question = (
+                "Linien on RedPitaya is running with different parameters than "
+                "the ones saved locally on this machine. Do you want to upload "
+                "the local parameters or keep the remote ones? Note that remote"
+                " parameters are only saved if Linien server was shut down "
+                "properly, not when unplugging the power plug. In this case, "
+                "you should update your local parameters."
+            )
             should_restore = ask_for_parameter_restore_dialog(
                 self, question, "Restore parameters?"
             )

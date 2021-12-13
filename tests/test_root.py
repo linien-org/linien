@@ -1,7 +1,12 @@
-from gateware.logic.sweep import SweepCSR
-from gateware.logic.pid import PID
+from pathlib import Path
+
 from migen import run_simulation
+
 from gateware.linien import LinienLogic
+from gateware.logic.pid import PID
+from gateware.logic.sweep import SweepCSR
+
+VCD_DIR = Path(__file__).parent / "vcd"
 
 
 def test_root():
@@ -89,11 +94,11 @@ def test_root():
                     assert pid_running == 0
 
     dut = LinienLogic()
-    run_simulation(dut, tb(dut, 0), vcd_name="root.vcd")
+    run_simulation(dut, tb(dut, 0), vcd_name=VCD_DIR / "root_target0.vcd")
     dut = LinienLogic()
-    run_simulation(dut, tb(dut, -40), vcd_name="root.vcd")
+    run_simulation(dut, tb(dut, -40), vcd_name=VCD_DIR / "root_target-40.vcd")
     dut = LinienLogic()
-    run_simulation(dut, tb(dut, 51), vcd_name="root.vcd")
+    run_simulation(dut, tb(dut, 51), vcd_name=VCD_DIR / "root_target_51.vcd")
 
 
 if __name__ == "__main__":

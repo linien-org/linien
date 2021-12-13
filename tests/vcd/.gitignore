@@ -1,0 +1,4 @@
+# Ignore all other files in this folder since they are only used for storing files for
+# testing.
+*
+!.gitignore

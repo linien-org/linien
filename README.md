@@ -148,6 +148,10 @@ When you're done, head over to *Modulation, Ramp & Spectroscopy* to configure mo
 
 The bright red line is the demodulated spectroscopy signal. The dark red area is the signal strength obtained by [iq demodulation](https://en.wikipedia.org/wiki/In-phase_and_quadrature_components), i.e. the demodulation signal obtained when demodulating in phase at this point.
 
+### Fast Mode
+
+Fast mode is intended for bare PID operation (no demodulation or filtering), bypassing most of the FPGA functionality. If enabled, the signal flow is FAST IN 1 → PID → FAST OUT 2. This is useful, if aiming for a high control bandwidth: fast mode reduces propagation delay from 320 ns to 125 ns which may make a difference when phase-locking lasers.
+
 ### Optimization of spectroscopy parameters using machine learning (optional)
 
 Linien may use machine learning to maximize the slope of a line. As for the autolock, click and drag over the line you want to optimize. Then, the line is centered and the optimization starts. Please note that this only works if initially a distinguished zero-crossing is visible.
@@ -383,13 +387,18 @@ dev
 ```
 (no newlines).
 
-This ensures that local changes of the server's code are automatically uploaded to RedPitaya when you launch the client. Please note that this only h
+This ensures that local changes of the server's code are automatically uploaded to RedPitaya when you launch the client. Please note that this only works if `linien-server` is stopped and uninstalled from the RedPitaya which can be done via `ssh`.
 
 ### Setting up the development environment
 
-It is recommended to setup a dedicated devolpment python environment with the same package versions as the build environments used to create the standalone executables. To do so either use [virtualenv](https://pypi.org/project/virtualenv/) or a conda environment with Python 3.7.
+It is recommended to setup a dedicated devolpment python environment with the same package versions as the build environments used to create the standalone executables. To do so either use [virtualenv](https://pypi.org/project/virtualenv/) or a conda environment with Python 3.7.10. With ocnda, this is achieved by running
 
-All necessary packages can then be installed with the provided requirement files. To install all packages for running the client and GUI, the local server and packages for [linting](https://flake8.pycqa.org) and [code formatting])(https://black.readthedocs.io/en/stable/) run 
+```
+conda create -n linien_dev python=3.7.10
+conda activate linien_dev
+```
+
+All necessary packages can then be installed with the provided requirement files. To install all packages for running the client and GUI, the local server and packages for [linting](https://flake8.pycqa.org) and [code formatting](https://black.readthedocs.io/en/stable/) run
 
 ```
 pip install -r requirements_dev.txt
@@ -397,7 +406,7 @@ pip install -r requirements_dev.txt
 
 from within the python environment.
 
-To automatically checking commits for complience with [black](https://black.readthedocs.io/en/stable/) code style, run
+To automatically checking commits for compliance with [black](https://black.readthedocs.io/en/stable/) code style, run
 
 ```
 pre-commit install
@@ -458,7 +467,7 @@ This fake server just outputs random data. Then you can connect to \"localhost\"
 
 ### Building the FPGA image
 
-For building the FPGA image, you need to install Xilinx Vivado first. Then, call `scripts/build_gateware.sh`. In the end, the bitstream is located at `linien/server/linien.bin`. **Note**: So far, this was tested only with Linux. It should work on Windows 10, though, when calling the script inside Windows Powershell.
+For building the FPGA image, you need to install Xilinx Vivado first. Then, call `scripts/build_fpga_image.sh`. In the end, the bitstream is located at `linien/server/linien.bin`. **Note**: So far, this was tested only with Linux. It should work on Windows 10, though, when calling the script inside Windows Powershell.
 
 ### Releasing a new version
 
@@ -502,7 +511,7 @@ No, this is not possible as Linien relies on a customized FPGA bitstream.
 
 ### What control bandwidth is achievable with Linien?
 
-The propagation delay is roughly 300 ns, thus approximately 3 MHz bandwidth are possible.
+The propagation delay is roughly 320 ns in normal mode and 125 ns in fast mode.
 
 ### Why do ethernet LEDs of RedPitaya stop blinking when Linien is running?
 

@@ -1,16 +1,16 @@
 import sys
 
 sys.path += ["../../"]
-import rpyc
 import atexit
 import threading
-
 from enum import Enum
+from multiprocessing import Pipe, Process
 from time import sleep
-from multiprocessing import Process, Pipe
+
+import rpyc
 
 from linien.config import ACQUISITION_PORT
-from linien.server.utils import stop_nginx, start_nginx, flash_fpga
+from linien.server.utils import flash_fpga, start_nginx, stop_nginx
 
 
 class AcquisitionConnectionError(Exception):

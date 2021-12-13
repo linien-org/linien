@@ -1,30 +1,29 @@
 # this code is based on redpid. See LICENSE for details.
-from gateware.logic.autolock import FPGAAutolock
 from migen import (
-    Signal,
-    Module,
-    bits_for,
     Array,
-    ClockDomainsRenamer,
     Cat,
     ClockDomain,
+    ClockDomainsRenamer,
     If,
+    Module,
     Mux,
+    Signal,
+    bits_for,
 )
 from misoc.interconnect import csr_bus
 from misoc.interconnect.csr import AutoCSR, CSRStatus, CSRStorage
 
+from gateware.logic.autolock import FPGAAutolock
 from linien.common import ANALOG_OUT0
 
 from .logic.chains import FastChain, SlowChain, cross_connect
 from .logic.decimation import Decimate
 from .logic.delta_sigma import DeltaSigma
+from .logic.iir import Iir
 from .logic.limit import LimitCSR
 from .logic.modulate import Modulate
 from .logic.pid import PID
 from .logic.sweep import SweepCSR
-from .logic.iir import Iir
-
 from .lowlevel.analog import PitayaAnalog
 from .lowlevel.crg import CRG
 from .lowlevel.dna import DNA
@@ -60,6 +59,8 @@ class LinienLogic(Module, AutoCSR):
         self.mod_channel = CSRStorage(1)
         self.control_channel = CSRStorage(1)
         self.sweep_channel = CSRStorage(2)
+
+        self.fast_mode = CSRStorage(1)
 
         self.slow_value = CSRStatus(width)
 
@@ -199,7 +200,7 @@ class LinienModule(Module, AutoCSR):
             offset_signal=self.logic.chain_b_offset_signed,
         )
 
-        sys_slow = ClockDomainsRenamer("sys_slow")
+        _ = ClockDomainsRenamer("sys_slow")
         sys_double = ClockDomainsRenamer("sys_double")
         max_decimation = 16
         self.submodules.decimate = sys_double(Decimate(max_decimation))
@@ -284,7 +285,12 @@ class LinienModule(Module, AutoCSR):
 
         pid_out = Signal((width, True))
         self.comb += [
-            self.logic.pid.input.eq(mixed_limited),
+            If(
+                self.logic.fast_mode.storage,
+                self.logic.pid.input.eq(self.analog.adc_a << s),
+            ).Else(
+                self.logic.pid.input.eq(mixed_limited),
+            ),
             pid_out.eq(self.logic.pid.pid_out >> s),
         ]
 
@@ -378,8 +384,14 @@ class LinienModule(Module, AutoCSR):
             ),
             self.logic.limit_fast1.x.eq(fast_outs[0]),
             self.logic.limit_fast2.x.eq(fast_outs[1]),
-            self.analog.dac_a.eq(self.logic.limit_fast1.y),
-            self.analog.dac_b.eq(self.logic.limit_fast2.y),
+            If(
+                self.logic.fast_mode.storage,
+                self.analog.dac_a.eq(self.logic.pid.pid_out >> s),
+                self.analog.dac_b.eq(self.logic.pid.pid_out >> s),
+            ).Else(
+                self.analog.dac_a.eq(self.logic.limit_fast1.y),
+                self.analog.dac_b.eq(self.logic.limit_fast2.y),
+            ),
             # SLOW OUT
             self.slow.input.eq(self.logic.control_signal >> s),
             self.decimate.decimation.eq(self.logic.slow_decimation.storage),

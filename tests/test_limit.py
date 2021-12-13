@@ -1,5 +1,10 @@
+from pathlib import Path
+
 from migen import run_simulation
+
 from gateware.logic.limit import Limit
+
+VCD_DIR = Path(__file__).parent / "vcd"
 
 
 def test_limit():
@@ -35,4 +40,4 @@ def test_limit():
 
     dut = Limit(16)
     n = 1 << 6
-    run_simulation(dut, tb(dut, n), vcd_name="limit.vcd")
+    run_simulation(dut, tb(dut, n), vcd_name=VCD_DIR / "limit.vcd")

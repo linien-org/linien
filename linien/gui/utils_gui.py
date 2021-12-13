@@ -1,12 +1,13 @@
 import os
+
 from PyQt5.QtWidgets import (
-    QSlider,
     QCheckBox,
-    QSpinBox,
-    QDoubleSpinBox,
-    QTabWidget,
-    QRadioButton,
     QComboBox,
+    QDoubleSpinBox,
+    QRadioButton,
+    QSlider,
+    QSpinBox,
+    QTabWidget,
 )
 from pyqtgraph.Qt import QtGui
 

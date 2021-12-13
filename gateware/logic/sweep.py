@@ -15,8 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with redpid.  If not, see <http://www.gnu.org/licenses/>.
 
-from migen import Signal, If, Cat, bits_for, Module
-from misoc.interconnect.csr import CSRStorage, CSRConstant
+from migen import Cat, If, Module, Signal, bits_for
+from misoc.interconnect.csr import CSRConstant, CSRStorage
 
 from .filter import Filter
 from .limit import Limit
@@ -40,16 +40,23 @@ class Sweep(Module):
         self.comb += [
             If(
                 self.run,
-                If(self.turn & ~turning, self.up.eq(~dir)).Else(self.up.eq(dir)),
-            ).Else(self.up.eq(1))
+                If(self.turn & ~turning,
+                    self.up.eq(~dir))
+                .Else(
+                    self.up.eq(dir)),)
+            .Else(
+                self.up.eq(1))
         ]
         self.sync += [
             self.trigger.eq(self.turn & self.up),
             turning.eq(self.turn),
             dir.eq(self.up),
-            If(~self.run, self.y.eq(0)).Elif(
-                ~self.hold,
-                If(self.up, self.y.eq(self.y + self.step),).Else(
+            If(~self.run,
+                self.y.eq(0))
+            .Elif(~self.hold,
+                If(self.up,
+                    self.y.eq(self.y + self.step),)
+                    .Else(
                     self.y.eq(self.y - self.step),
                 ),
             ),

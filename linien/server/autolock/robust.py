@@ -1,5 +1,6 @@
-from linien.server.utils import ramp_speed_to_time
 from time import time
+
+import numpy as np
 
 from linien.common import (
     AUTOLOCK_MAX_N_INSTRUCTIONS,
@@ -16,7 +17,7 @@ from linien.server.autolock.utils import (
     sign,
     sum_up_spectrum,
 )
-import numpy as np
+from linien.server.utils import ramp_speed_to_time
 
 
 class LockPositionNotFound(Exception):
