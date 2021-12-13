@@ -3,4 +3,4 @@ linien/server/linien_start_ethernet_blinking eol=lf
 linien/server/linien_start_server eol=lf
 linien/server/linien_stop_ethernet_blinking eol=lf
 linien/server/linien_stop_server eol=lf
-*.bin filter=lfs diff=lfs merge=lfs -text
+*.bin filter=lfs diff=lfs merge=lfs eol=lf -text
