@@ -19,7 +19,7 @@ class AcquisitionConnectionError(Exception):
 
 class AcquisitionProcessSignals(Enum):
     SHUTDOWN = 0
-    SET_RAMP_SPEED = 2
+    SET_SWEEP_SPEED = 2
     SET_LOCK_STATUS = 3
     SET_CSR = 4
     SET_IIR_CSR = 5
@@ -86,7 +86,7 @@ class AcquisitionMaster:
                 data = pipe.recv()
                 if data[0] == AcquisitionProcessSignals.SHUTDOWN:
                     raise SystemExit()
-                elif data[0] == AcquisitionProcessSignals.SET_RAMP_SPEED:
+                elif data[0] == AcquisitionProcessSignals.SET_SWEEP_SPEED:
                     speed = data[1]
                     acquisition.exposed_set_sweep_speed(speed)
                 elif data[0] == AcquisitionProcessSignals.SET_LOCK_STATUS:
@@ -127,7 +127,7 @@ class AcquisitionMaster:
         start_nginx()
 
     def set_sweep_speed(self, speed):
-        self.acq_process.send((AcquisitionProcessSignals.SET_RAMP_SPEED, speed))
+        self.acq_process.send((AcquisitionProcessSignals.SET_SWEEP_SPEED, speed))
 
     def lock_status_changed(self, status):
         if self.acq_process:

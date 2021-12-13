@@ -9,7 +9,7 @@ from linien.common import (
     MHz,
     convert_channel_mixing_value,
 )
-from linien.config import DEFAULT_RAMP_SPEED
+from linien.config import DEFAULT_SWEEP_SPEED
 from linien.server.acquisition import AcquisitionMaster
 
 
@@ -90,7 +90,7 @@ class Registers:
             logic_sweep_run=1,
             logic_sweep_step=int(
                 int(params["sweep"])  # controls whether sweep is turned on
-                * DEFAULT_RAMP_SPEED
+                * DEFAULT_SWEEP_SPEED
                 * params["sweep_amplitude"]
                 / (2 ** params["sweep_speed"])
             ),

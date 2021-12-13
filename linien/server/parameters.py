@@ -198,7 +198,7 @@ class Parameters(BaseParameters):
         # just register an `on_change` listener for this parameter.
         self.ping = Parameter(start=0)
 
-        #           --------- RAMP PARAMETERS ---------
+        #           --------- SWEEP PARAMETERS ---------
 
         # how big should the sweep amplitude be relative to the full output range
         # of RedPitaya? An amplitude of 1 corresponds to a sweep from -1V to 1V,
