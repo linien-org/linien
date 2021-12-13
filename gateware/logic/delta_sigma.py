@@ -81,4 +81,3 @@ if __name__ == "__main__":
         # plt.plot(y.ravel())
         plt.psd(np.array(y), detrend=plt.mlab.detrend_mean, NFFT=4096 * 2)
         plt.xscale("log")
-    plt.show()
