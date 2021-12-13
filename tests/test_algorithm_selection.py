@@ -42,7 +42,7 @@ class FakeControl:
     def exposed_write_registers(self):
         print(
             f"""
-            write: center={self.parameters.center.value}\n
+            write: center={self.parameters.sweep_center.value}\n
             amp={self.parameters.sweep_amplitude.value}
             """
         )
