@@ -1,5 +1,4 @@
 import numpy as np
-from matplotlib import pyplot as plt
 from migen import run_simulation
 
 from gateware.logic.pid import PID
