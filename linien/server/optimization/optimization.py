@@ -112,7 +112,7 @@ class OptimizeSpectroscopy:
                         params.sweep_center.value -= (
                             shift * params.sweep_amplitude.value
                         )
-                        self.control.exposed_write_data()
+                        self.control.exposed_write_registers()
 
                         if (
                             self.allow_increase_of_recentering_interval
@@ -158,6 +158,6 @@ class OptimizeSpectroscopy:
         self.parameters.sweep_speed.value = self.initial_sweep_speed
         self.parameters.sweep_amplitude.value = self.initial_sweep_amplitude
         self.parameters.sweep_center.value = self.initial_sweep_center
-        self.control.exposed_write_data()
+        self.control.exposed_write_registers()
 
         self.control.continue_acquisition()

@@ -148,7 +148,7 @@ class GeneralPanel(QtWidgets.QWidget, CustomWidget):
 
     def fast_mode_changed(self):
         self.parameters.fast_mode.value = int(self.ids.fast_mode.checkState() > 0)
-        self.control.write_data()
+        self.control.write_registers()
 
     def dual_channel_changed(self):
         self.parameters.dual_channel.value = int(self.ids.dual_channel.checkState() > 0)

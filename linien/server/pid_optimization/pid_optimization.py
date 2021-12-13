@@ -112,7 +112,7 @@ class PSDAcquisition:
             self.parameters.acquisition_raw_enabled.value = False
             self.parameters.acquisition_raw_filter_enabled.value = False
 
-            self.control.exposed_write_data()
+            self.control.exposed_write_registers()
             self.control.continue_acquisition()
 
     def react_to_new_signal(self, data_pickled):
@@ -188,7 +188,7 @@ class PSDAcquisition:
             125e6 / (2 ** decimation) / 2
         )
 
-        self.control.exposed_write_data()
+        self.control.exposed_write_registers()
         # take care that new decimation was actually written to FPGA
         sleep(0.1)
         self.control.continue_acquisition()

@@ -131,7 +131,7 @@ class Approacher:
                 else self.parameters.sweep_speed.value
             )
             self.parameters.sweep_speed.value = new_sweep_speed
-        self.control.exposed_write_data()
+        self.control.exposed_write_registers()
         self.control.continue_acquisition()
 
     def _correct_current(self, shift):
@@ -140,5 +140,5 @@ class Approacher:
 
         self.parameters.sweep_center.value -= shift
 
-        self.control.exposed_write_data()
+        self.control.exposed_write_registers()
         self.control.continue_acquisition()

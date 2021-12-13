@@ -34,7 +34,7 @@ class FakeControl:
     def continue_acquisition(self):
         pass
 
-    def exposed_write_data(self):
+    def exposed_write_registers(self):
         print(
             "write: center={} amp={}".format(
                 self.parameters.center.value, self.parameters.sweep_amplitude.value

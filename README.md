@@ -222,7 +222,7 @@ print(c.parameters.modulation_frequency.value / MHz)
 # set modulation amplitude
 c.parameters.modulation_amplitude.value = 1 * Vpp
 # in the line above, we set a parameter. This is not written directly to the
-# FPGA, though. In order to do this, we have to call write_data():
+# FPGA, though. In order to do this, we have to call write_registers():
 c.connection.root.write_registers()
 
 # additionally set ANALOG_OUT_1 to 1.2 volts DC (you can use this to control other devices of your experiment)
@@ -238,7 +238,7 @@ c.parameters.gpio_n_out.value = 0b11110000 # 4 on, 4 off
 # Example: enable every second P pin
 c.parameters.gpio_p_out.value = 0b01010101 # 4 on, 4 off
 
-# again, we have to call write_data in order to write the data to the FPGA
+# again, we have to call write_registers in order to write the data to the FPGA
 c.connection.root.write_registers()
 
 # it is also possible to set up a callback function that is called whenever a

@@ -30,7 +30,7 @@ class FakeControl:
     def continue_acquisition(self):
         pass
 
-    def exposed_write_data(self):
+    def exposed_write_registers(self):
         print(
             "write: freq={} amp={}".format(
                 self.parameters.modulation_frequency.value / MHz,

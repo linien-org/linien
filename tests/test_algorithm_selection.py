@@ -39,7 +39,7 @@ class FakeControl:
     def continue_acquisition(self):
         pass
 
-    def exposed_write_data(self):
+    def exposed_write_registers(self):
         print(
             f"""
             write: center={self.parameters.center.value}\n

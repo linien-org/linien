@@ -174,7 +174,7 @@ class OptimizerEngine:
             self.last_parameters = list(new_params_converted)
             self.last_parameters_internal = list(new_params)
 
-        self.control.exposed_write_data()
+        self.control.exposed_write_registers()
         self.control.continue_acquisition()
 
     def finished(self):
