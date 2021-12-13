@@ -1,10 +1,9 @@
-import matplotlib.pyplot as plt
 from migen import run_simulation
 
 from gateware.logic.sweep import SweepCSR
 
 
-def test_sweep():
+def test_sweep(plt):
     # s = Sweep(16)
     # from migen.fhdl import verilog
     # print(verilog.convert(s, ios=set()))
@@ -31,11 +30,9 @@ def test_sweep():
     dut = SweepCSR(width=16)
     run_simulation(dut, tb(dut, out, n), vcd_name="sweep.vcd")
 
-    if False:
-        plt.plot(out, label="ramp output")
-        plt.plot([v * max(out) for v in trig], label="trigger_signal")
-        plt.legend()
-        plt.show()
+    plt.plot(out, label="ramp output")
+    plt.plot([v * max(out) for v in trig], label="trigger_signal")
+    plt.legend()
 
     assert out[66] == -1024
     assert trig[66] == 1

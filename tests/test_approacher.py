@@ -42,7 +42,7 @@ class FakeControl:
         )
 
 
-def test_approacher():
+def test_approacher(plt):
     def _get_signal(shift):
         return get_signal(
             parameters.ramp_amplitude.value, parameters.center.value, shift
@@ -69,9 +69,8 @@ def test_approacher():
                 peak_idxs,
             ) = get_lock_point(reference_signal, 0, len(reference_signal))
 
-            """plt.plot(reference_signal)
+            plt.plot(reference_signal)
             plt.plot(rolled_reference_signal)
-            plt.show()"""
 
             assert abs(central_y - Y_SHIFT) < 1
 

@@ -1,5 +1,5 @@
-import matplotlib.pyplot as plt
 import numpy as np
+import pytest
 from migen import Module, Signal, run_simulation
 
 from gateware.logic.modulate import Demodulate, Modulate
@@ -25,7 +25,8 @@ def block_average(a, n):
 factor = 5
 
 
-def test_modulate():
+@pytest.mark.slow
+def test_modulate(plt):
     width = 16
     data = []
     phase = []
@@ -84,7 +85,6 @@ def test_modulate():
     plt.plot(np.sqrt(averaged1 ** 2 + averaged2 ** 2), label="averaged+averaged")
 
     plt.legend()
-    plt.show()
 
 
 if __name__ == "__main__":

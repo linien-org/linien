@@ -1,5 +1,5 @@
 import numpy as np
-from matplotlib import pyplot as plt
+import pytest
 from migen import run_simulation
 
 from gateware.logic.autolock import (
@@ -64,7 +64,8 @@ def add_jitter(spectrum, level=None, exact_value=None):
     return np.roll(spectrum, shift)
 
 
-def test_get_description(debug=False):
+@pytest.mark.slow
+def test_get_description(plt, debug=True):
     for sign_spectrum_multiplicator in (1, -1):
         for spectrum_generator in (pfd_spectrum, atomic_spectrum):
             spectrum, target_idxs = spectrum_generator(0)
@@ -72,7 +73,6 @@ def test_get_description(debug=False):
 
             if debug:
                 plt.plot(spectrum)
-                plt.show()
 
             jitters = [
                 0 if i == 0 else int(round(np.random.randn() * 50)) for i in range(10)
@@ -148,7 +148,6 @@ def test_get_description(debug=False):
                 )
 
                 plt.legend()
-                plt.show()
 
 
 def test_dynamic_delay():
@@ -246,7 +245,8 @@ def test_sum_diff_calculator2():
     assert out_fpga[1:] == summed_xscaled[:-1]
 
 
-def test_compare_sum_diff_calculator_implementations(debug=False):
+@pytest.mark.slow
+def test_compare_sum_diff_calculator_implementations(plt, debug=True):
     for iteration in (0, 1):
         if iteration == 1:
             spectrum, target_idxs = atomic_spectrum(0)
@@ -292,7 +292,6 @@ def test_compare_sum_diff_calculator_implementations(debug=False):
                 label="FPGA calculation",
             )
             plt.legend()
-            plt.show()
 
             plt.plot(
                 summed_xscaled[:-FPGA_DELAY_SUMDIFF_CALCULATOR],
@@ -303,7 +302,6 @@ def test_compare_sum_diff_calculator_implementations(debug=False):
                 label="FPGA calculation",
             )
             plt.legend()
-            plt.show()
 
         assert (
             summed[:-FPGA_DELAY_SUMDIFF_CALCULATOR]
@@ -404,7 +402,7 @@ def test_fpga_lock_position_finder():
     )
 
 
-def test_crop_spectra_to_same_view():
+def test_crop_spectra_to_same_view(plt):
     spectra_to_test = (
         [np.roll(atomic_spectrum(0)[0], -i * 10) for i in range(10)],
         [np.roll(atomic_spectrum(0)[0], i * 10) for i in range(10)],
@@ -423,8 +421,7 @@ def test_crop_spectra_to_same_view():
         for cropped_spectrum in cropped_spectra:
             assert np.all(cropped_spectrum == cropped_spectra[0])
 
-            # plt.plot(cropped_spectrum)
-        # plt.show()
+            plt.plot(cropped_spectrum)
 
 
 if __name__ == "__main__":
@@ -434,4 +431,4 @@ if __name__ == "__main__":
     test_sum_diff_calculator()
     test_sum_diff_calculator2()
     test_fpga_lock_position_finder()
-    test_get_description(debug=False)
+    test_get_description(debug=True)
