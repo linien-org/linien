@@ -88,7 +88,7 @@ class AcquisitionMaster:
                     raise SystemExit()
                 elif data[0] == AcquisitionProcessSignals.SET_RAMP_SPEED:
                     speed = data[1]
-                    acquisition.exposed_set_ramp_speed(speed)
+                    acquisition.exposed_set_sweep_speed(speed)
                 elif data[0] == AcquisitionProcessSignals.SET_LOCK_STATUS:
                     acquisition.exposed_set_lock_status(data[1])
                 elif data[0] == AcquisitionProcessSignals.FETCH_QUADRATURES:
@@ -126,7 +126,7 @@ class AcquisitionMaster:
 
         start_nginx()
 
-    def set_ramp_speed(self, speed):
+    def set_sweep_speed(self, speed):
         self.acq_process.send((AcquisitionProcessSignals.SET_RAMP_SPEED, speed))
 
     def lock_status_changed(self, status):

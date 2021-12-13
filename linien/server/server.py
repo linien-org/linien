@@ -200,7 +200,7 @@ class RedPitayaControlService(BaseService):
             self.parameters.task.value = PIDOptimization(self, self.parameters)
             self.parameters.task.value.run()
 
-    def exposed_start_ramp(self):
+    def exposed_start_sweep(self):
         self.pause_acquisition()
 
         self.parameters.combined_offset.value = 0

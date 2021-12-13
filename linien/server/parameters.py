@@ -40,7 +40,7 @@ class Parameters(BaseParameters):
             "fast_mode",
             "modulation_amplitude",
             "modulation_frequency",
-            "ramp_speed",
+            "sweep_speed",
             "demodulation_phase_a",
             "demodulation_multiplier_a",
             "demodulation_phase_b",
@@ -129,7 +129,7 @@ class Parameters(BaseParameters):
         # configures the output of the modulation frequency. A value of 0 means
         # FAST OUT 1 and a value of 1 corresponds to FAST OUT 2
         self.mod_channel = Parameter(start=0, min_=0, max_=1)
-        # configures the output of the scan ramp:
+        # configures the output of the scan sweep:
         #       0 --> FAST OUT 1
         #       1 --> FAST OUT 2
         #       2 --> ANALOG OUT 0 (slow channel)
@@ -161,12 +161,12 @@ class Parameters(BaseParameters):
                 Parameter(start=0, min_=0, max_=(2 ** 15) - 1),
             )
 
-        # If `True`, this parameter turns off the ramp and starts the PID
+        # If `True`, this parameter turns off the sweep and starts the PID
         self.lock = Parameter(start=False)
 
-        # If `True`, this parameter turns on the ramp. If `False`, the center voltage
+        # If `True`, this parameter turns on the sweep. If `False`, the center voltage
         # is output.
-        self.ramp = Parameter(start=True)
+        self.sweep = Parameter(start=True)
 
         # for both fast outputs and the analog out, define whether tuning the
         # voltage up correspond to tuning the laser frequency up or down. Setting
@@ -200,18 +200,18 @@ class Parameters(BaseParameters):
 
         #           --------- RAMP PARAMETERS ---------
 
-        # how big should the ramp amplitude be relative to the full output range
-        # of RedPitaya? An amplitude of 1 corresponds to a ramp from -1V to 1V,
-        # an amplitude 0f .1 to a ramp from -.1 to .1V (assuming that `center`
+        # how big should the sweep amplitude be relative to the full output range
+        # of RedPitaya? An amplitude of 1 corresponds to a sweep from -1V to 1V,
+        # an amplitude 0f .1 to a sweep from -.1 to .1V (assuming that `center`
         # is 0, see below)
-        self.ramp_amplitude = Parameter(min_=0.001, max_=1, start=1)
-        # The center position of the ramp in volts. As the output range of
+        self.sweep_amplitude = Parameter(min_=0.001, max_=1, start=1)
+        # The center position of the sweep in volts. As the output range of
         # RedPitaya is [-1, 1], `center` has the same limits.
-        self.ramp_center = Parameter(min_=-1, max_=1, start=0)
-        # The ramp speed in internal units. The actual speed is given by
-        #       f_real = 3.8 kHz / (2 ** ramp_speed)
+        self.sweep_center = Parameter(min_=-1, max_=1, start=0)
+        # The sweep speed in internal units. The actual speed is given by
+        #       f_real = 3.8 kHz / (2 ** sweep_speed)
         # Allowed values are [0, ..., 16]
-        self.ramp_speed = Parameter(min_=0, max_=32, start=8)
+        self.sweep_speed = Parameter(min_=0, max_=32, start=8)
 
         #           --------- MODULATION PARAMETERS ---------
 
@@ -343,7 +343,7 @@ class Parameters(BaseParameters):
         self.autolock_locked = Parameter(start=False)
         self.autolock_retrying = Parameter(start=False)
         self.autolock_determine_offset = Parameter(start=True)
-        self.autolock_initial_ramp_amplitude = Parameter(start=1)
+        self.autolock_initial_sweep_amplitude = Parameter(start=1)
 
         #           --------- OPTIMIZATION PARAMETERS ---------
         # these are used internally by the optimization algorithm and usually

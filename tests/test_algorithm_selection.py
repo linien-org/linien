@@ -21,8 +21,8 @@ def spectrum_for_testing(x):
     return central_peak + smaller_peaks + Y_SHIFT
 
 
-def get_signal(ramp_amplitude, center, shift):
-    max_val = np.pi * 5 * ramp_amplitude
+def get_signal(sweep_amplitude, center, shift):
+    max_val = np.pi * 5 * sweep_amplitude
     new_center = center + shift
     x = np.linspace((-1 + new_center) * max_val, (1 + new_center) * max_val, 16384)
     return spectrum_for_testing(x)
@@ -43,7 +43,7 @@ class FakeControl:
         print(
             f"""
             write: center={self.parameters.center.value}\n
-            amp={self.parameters.ramp_amplitude.value}
+            amp={self.parameters.sweep_amplitude.value}
             """
         )
 

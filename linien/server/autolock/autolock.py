@@ -59,8 +59,8 @@ class Autolock:
         self.should_watch_lock = should_watch_lock
 
         # collect parameters that should be restored after stopping the lock
-        self.parameters.autolock_initial_ramp_amplitude.value = (
-            self.parameters.ramp_amplitude.value
+        self.parameters.autolock_initial_sweep_amplitude.value = (
+            self.parameters.sweep_amplitude.value
         )
 
         self.additional_spectra = additional_spectra or []
@@ -262,9 +262,9 @@ class Autolock:
     def _reset_scan(self):
         self.control.pause_acquisition()
 
-        self.parameters.ramp_amplitude.value = (
-            self.parameters.autolock_initial_ramp_amplitude.value
+        self.parameters.sweep_amplitude.value = (
+            self.parameters.autolock_initial_sweep_amplitude.value
         )
-        self.control.exposed_start_ramp()
+        self.control.exposed_start_sweep()
 
         self.control.continue_acquisition()

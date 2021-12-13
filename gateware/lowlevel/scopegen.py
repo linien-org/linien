@@ -19,7 +19,7 @@ class ScopeGen(Module, AutoCSR):
         self.automatically_rearm = Signal()
 
         # this mode is used when the laser is locked. In this case we don't have
-        # to sync acquisition with a ramp. Synchronisation with readout takes
+        # to sync acquisition with a sweep. Synchronisation with readout takes
         # place by manually rearming after reading out the data.
         self.automatically_trigger = Signal()
         automatic_trigger_signal = Signal()

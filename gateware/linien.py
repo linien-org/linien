@@ -85,7 +85,7 @@ class LinienLogic(Module, AutoCSR):
 
     def connect_pid(self):
         # pid is not started directly by `request_lock` signal. Instead, `request_lock`
-        # queues a run that is then started when the ramp is at the zero crossing
+        # queues a run that is then started when the sweep is at the zero crossing
         self.comb += [
             self.pid.running.eq(self.autolock.lock_running.status),
             self.sweep.hold.eq(self.autolock.lock_running.status),

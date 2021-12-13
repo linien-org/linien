@@ -5,10 +5,10 @@ from linien.gui.utils_gui import param2ui
 from linien.gui.widgets import CustomWidget
 
 
-class ModulationAndRampPanel(QtWidgets.QWidget, CustomWidget):
+class ModulationAndSweepPanel(QtWidgets.QWidget, CustomWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.load_ui("modulation_ramp_panel.ui")
+        self.load_ui("modulation_sweep_panel.ui")
 
     def ready(self):
         self.ids.modulation_frequency.setKeyboardTracking(False)
@@ -19,7 +19,7 @@ class ModulationAndRampPanel(QtWidgets.QWidget, CustomWidget):
         self.ids.modulation_amplitude.valueChanged.connect(
             self.change_modulation_amplitude
         )
-        self.ids.ramp_speed.currentIndexChanged.connect(self.change_ramp_speed)
+        self.ids.sweep_speed.currentIndexChanged.connect(self.change_sweep_speed)
 
         self.ids.spectroscopyTabs.setCurrentIndex(0)
 
@@ -37,7 +37,7 @@ class ModulationAndRampPanel(QtWidgets.QWidget, CustomWidget):
             self.ids.modulation_amplitude,
             lambda value: value / Vpp,
         )
-        param2ui(self.parameters.ramp_speed, self.ids.ramp_speed)
+        param2ui(self.parameters.sweep_speed, self.ids.sweep_speed)
 
         self.parameters.dual_channel.on_change(self.dual_channel_changed)
 
@@ -65,8 +65,8 @@ class ModulationAndRampPanel(QtWidgets.QWidget, CustomWidget):
         )
         self.control.write_registers()
 
-    def change_ramp_speed(self, decimation):
-        self.parameters.ramp_speed.value = decimation
+    def change_sweep_speed(self, decimation):
+        self.parameters.sweep_speed.value = decimation
         self.control.write_registers()
 
     def dual_channel_changed(self, value):

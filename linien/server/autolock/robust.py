@@ -17,7 +17,7 @@ from linien.server.autolock.utils import (
     sign,
     sum_up_spectrum,
 )
-from linien.server.utils import ramp_speed_to_time
+from linien.server.utils import sweep_speed_to_time
 
 
 class LockPositionNotFound(Exception):
@@ -129,7 +129,7 @@ class RobustAutolock:
         self._timeout_time_to_wait = (
             N_acquisitions_to_wait
             * 2
-            * ramp_speed_to_time(self.parameters.ramp_speed.value)
+            * sweep_speed_to_time(self.parameters.sweep_speed.value)
         )
 
         self.parameters.ping.on_change(self.check_for_timeout)
