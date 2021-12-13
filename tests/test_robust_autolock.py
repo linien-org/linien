@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import numpy as np
 import pytest
 from migen import run_simulation
@@ -19,6 +21,7 @@ from linien.server.autolock.utils import (
     sum_up_spectrum,
 )
 
+VCD_DIR = Path(__file__).parent / "vcd"
 FPGA_DELAY_SUMDIFF_CALCULATOR = 2
 
 
@@ -167,7 +170,9 @@ def test_dynamic_delay():
         assert out == 1
 
     dut = DynamicDelay(14 + 14, max_delay=8191)
-    run_simulation(dut, tb(dut), vcd_name="experimental_autolock_dynamic_delay.vcd")
+    run_simulation(
+        dut, tb(dut), vcd_name=VCD_DIR / "experimental_autolock_dynamic_delay.vcd"
+    )
 
 
 def test_sum_diff_calculator():
@@ -210,7 +215,7 @@ def test_sum_diff_calculator():
 
     dut = SumDiffCalculator(14, 8192)
     run_simulation(
-        dut, tb(dut), vcd_name="experimental_autolock_sum_diff_calculator.vcd"
+        dut, tb(dut), vcd_name=VCD_DIR / "experimental_autolock_sum_diff_calculator.vcd"
     )
 
 
@@ -233,7 +238,7 @@ def test_sum_diff_calculator2():
 
     dut = SumDiffCalculator(14, 8192)
     run_simulation(
-        dut, tb(dut), vcd_name="experimental_autolock_sum_diff_calculator.vcd"
+        dut, tb(dut), vcd_name=VCD_DIR / "experimental_autolock_sum_diff_calculator.vcd"
     )
 
     summed = sum_up_spectrum(spectrum)
@@ -280,7 +285,9 @@ def test_compare_sum_diff_calculator_implementations(plt, debug=True):
 
         dut = RobustAutolock()
         run_simulation(
-            dut, tb(dut), vcd_name="experimental_autolock_fpga_lock_position_finder.vcd"
+            dut,
+            tb(dut),
+            vcd_name=VCD_DIR / "experimental_autolock_fpga_lock_position_finder.vcd",
         )
 
         if debug:
@@ -398,7 +405,9 @@ def test_fpga_lock_position_finder():
 
     dut = RobustAutolock()
     run_simulation(
-        dut, tb(dut), vcd_name="experimental_autolock_fpga_lock_position_finder.vcd"
+        dut,
+        tb(dut),
+        vcd_name=VCD_DIR / "experimental_autolock_fpga_lock_position_finder.vcd",
     )
 
 

@@ -1,6 +1,10 @@
+from pathlib import Path
+
 from migen import run_simulation
 
 from gateware.logic.sweep import SweepCSR
+
+VCD_DIR = Path(__file__).parent / "vcd"
 
 
 def test_sweep(plt):
@@ -28,10 +32,10 @@ def test_sweep(plt):
     out = []
     trig = []
     dut = SweepCSR(width=16)
-    run_simulation(dut, tb(dut, out, n), vcd_name="sweep.vcd")
+    run_simulation(dut, tb(dut, out, n), vcd_name=VCD_DIR / "sweep.vcd")
 
     plt.plot(out, label="ramp output")
-    plt.plot([v * max(out) for v in trig], label="trigger_signal")
+    plt.plot([v * max(out) for v in trig], label=VCD_DIR / "trigger_signal")
     plt.legend()
 
     assert out[66] == -1024

@@ -1,8 +1,12 @@
+from pathlib import Path
+
 import numpy as np
 import pytest
 from migen import run_simulation
 
 from gateware.logic.pid import PID
+
+VCD_DIR = Path(__file__).parent / "vcd"
 
 
 @pytest.mark.slow
@@ -94,7 +98,7 @@ def test_pid_transfer(plt):
         plt.tight_layout()
 
     pid = PID(width=25)
-    run_simulation(pid, pid_testbench(pid), vcd_name="pid.vcd")
+    run_simulation(pid, pid_testbench(pid), vcd_name=VCD_DIR / "pid.vcd")
 
 
 if __name__ == "__main__":
