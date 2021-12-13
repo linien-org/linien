@@ -1,6 +1,7 @@
 import superqt
-from linien.gui.widgets import CustomWidget
 from PyQt5 import QtGui
+
+from linien.gui.widgets import CustomWidget
 
 
 class RampControlWidget(QtGui.QWidget, CustomWidget):
