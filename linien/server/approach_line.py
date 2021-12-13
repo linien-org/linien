@@ -59,7 +59,9 @@ class Approacher:
         # disturbs the correlation.
         sweep_amplitude = self.parameters.sweep_amplitude.value
         center = self.parameters.sweep_center.value
-        sweep = np.linspace(-sweep_amplitude, sweep_amplitude, len(error_signal)) + center
+        sweep = (
+            np.linspace(-sweep_amplitude, sweep_amplitude, len(error_signal)) + center
+        )
         error_signal = np.array(error_signal)
         error_signal[np.abs(sweep) > 1] = np.nan
 

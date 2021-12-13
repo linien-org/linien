@@ -109,7 +109,9 @@ class OptimizeSpectroscopy:
                         shift, _, _2 = determine_shift_by_correlation(
                             1, self.initial_spectrum, spectrum
                         )
-                        params.sweep_center.value -= shift * params.sweep_amplitude.value
+                        params.sweep_center.value -= (
+                            shift * params.sweep_amplitude.value
+                        )
                         self.control.exposed_write_data()
 
                         if (
