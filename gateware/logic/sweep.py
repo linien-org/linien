@@ -15,6 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with redpid.  If not, see <http://www.gnu.org/licenses/>.
 
+# flake8: noqa
+
 from migen import Cat, If, Module, Signal, bits_for
 from misoc.interconnect.csr import CSRConstant, CSRStorage
 
