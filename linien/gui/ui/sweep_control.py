@@ -30,12 +30,12 @@ class SweepControlWidget(QtGui.QWidget, CustomWidget):
         # change displayed values when sweep parameters change
         self.parameters.sweep_center.on_change(self.display_sweep_status)
         self.parameters.sweep_amplitude.on_change(self.display_sweep_status)
-        self.parameters.sweep.on_change(self.display_sweep_status)
+        self.parameters.sweep_hold.on_change(self.display_sweep_status)
 
     def display_sweep_status(self, *args):
         center = self.parameters.sweep_center.value
         amplitude = self.parameters.sweep_amplitude.value
-        sweep_is_on = self.parameters.sweep.value
+        sweep_hold = self.parameters.sweep_hold.value
         min_ = center - amplitude
         max_ = center + amplitude
 
@@ -48,21 +48,21 @@ class SweepControlWidget(QtGui.QWidget, CustomWidget):
         self.ids.sweep_slider.setValue((min_, max_))
         self.ids.sweep_center.setValue(center)
         self.ids.sweep_amplitude.setValue(amplitude)
-        if sweep_is_on:
-            self.ids.sweep_start_stop_button.setText("Pause")
-        else:
+        if sweep_hold:
             self.ids.sweep_start_stop_button.setText("Start")
+        else:
+            self.ids.sweep_start_stop_button.setText("Pause")
 
         self.ids.sweep_slider.blockSignals(False)
         self.ids.sweep_center.blockSignals(False)
         self.ids.sweep_amplitude.blockSignals(False)
 
     def update_sweep_output(self):
-        if self.parameters.sweep.value:
-            self.parameters.sweep.value = False
+        if self.parameters.sweep_hold.value:
+            self.parameters.sweep_hold.value = False
             self.control.write_registers()
         else:
-            self.parameters.sweep.value = True
+            self.parameters.sweep_hold.value = True
             self.control.write_registers()
 
     def update_sweep_center(self, center):
