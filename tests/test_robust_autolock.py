@@ -444,8 +444,8 @@ def foo():
         np.array(summed_xscaled) / time_scale,
         label="filtered spectrum $\mathregular{S_{filtered}}$",
     )
-    plt.xlabel("ramp position $r$ in a.u.")
-    plt.ylabel("error signal $S(r)$ in a.u.")
+    plt.xlabel("ramp position $r$ in arb. unit")
+    plt.ylabel("error signal $S(r)$ in arb. unit")
 
     ax = plt.gca()
     labels = [item.get_text() for item in ax.get_xticklabels()]
@@ -494,8 +494,8 @@ def foo2():
             color="grey",
             alpha=0.5,
         )
-    plt.xlabel("ramp position in a.u.")
-    plt.ylabel("error signal in a.u.")
+    plt.xlabel("ramp position in arb. unit")
+    plt.ylabel("error signal in arb. unit")
 
     ax = plt.gca()
     labels = [item.get_text() for item in ax.get_xticklabels()]
