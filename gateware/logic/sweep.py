@@ -66,13 +66,12 @@ class Sweep(Module):
 
 
 class SweepCSR(Filter):
-    def __init__(self, step_width=None, step_shift=0, **kwargs):
-        Filter.__init__(self, **kwargs)
+    def __init__(self, width, step_width=None, step_shift=0, **kwargs):
+        Filter.__init__(self, width=width, **kwargs)
 
         # required by tests
         self.step_shift = step_shift
 
-        width = len(self.y)
         if step_width is None:
             step_width = width
 
