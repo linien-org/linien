@@ -128,10 +128,11 @@ def test_sweep_start_stop(dut, plt):
 
 def test_change_sweep_min_max(dut, plt):
     """Tests that the sweep minimum and maximum can be changed."""
-    n = 350
+    n = 250
     y = []
     up = []
-    change_min_max_at = [0, 10, 80, 120, 180, 200, 250]
+    hold_value_signed = []
+    change_min_max_at = [0, 10, 80, 120, 180, 200]
 
     def testbench():
         yield dut.step.storage.eq(1 << 4)
@@ -151,21 +152,15 @@ def test_change_sweep_min_max(dut, plt):
                 yield dut.min.storage.eq(-200)
                 yield dut.max.storage.eq(0)
             if i == change_min_max_at[4]:
-                # change min and max to the same value
-                yield dut.min.storage.eq(100)
-                yield dut.max.storage.eq(100)
+                # output a constant value
+                yield dut.hold_value.storage.eq(100)
+                yield dut.hold.eq(1)
             if i == change_min_max_at[5]:
-                # back to different range including the current value
-                # BUG: This doesn't work. `dut.sweep.up` stays 1 and the output rails at
-                # the maximum value.
-                yield dut.min.storage.eq(0)
-                yield dut.max.storage.eq(200)
-            if i == change_min_max_at[6]:
-                # BUG: However, this works.
-                yield dut.min.storage.eq(0)
-                yield dut.max.storage.eq(1100)
+                # turn sweep back on
+                yield dut.hold.eq(0)
             y.append((yield dut.y))
             up.append((yield dut.sweep.up))
+            hold_value_signed.append((yield dut.hold_value_signed))
             yield
 
     run_simulation(dut, testbench(), vcd_name=VCD_DIR / "test_change_sweep_min_max.vcd")
@@ -174,7 +169,9 @@ def test_change_sweep_min_max(dut, plt):
     try:
         _, (ax1, ax2) = plt.subplots(2, 1, sharex=True)
         ax1.plot(y, label="y")
+        ax1.plot(hold_value_signed, label="hold_value_signed")
         ax1.set_ylabel("y")
+        ax1.legend()
         ax2.plot(up, label="up")
         ax2.set_ylabel("up")
         for val in change_min_max_at[1:]:
@@ -203,9 +200,9 @@ def test_change_sweep_min_max(dut, plt):
     # test that values are changing again and are within the new range:
     y_changed = False
     previous_y = y[change_min_max_at[5] + 3]
-    for val in y[change_min_max_at[5] + 3 : change_min_max_at[6]]:
-        assert val >= 0
-        assert val <= 200
+    for val in y[change_min_max_at[5] + 3 :]:
+        assert val <= 0
+        assert val >= -200
         if val != previous_y:
             y_changed = True
         previous_y = val

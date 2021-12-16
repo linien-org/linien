@@ -20,7 +20,6 @@
 from migen import Cat, If, Module, Signal, bits_for
 from misoc.interconnect.csr import AutoCSR, CSRConstant, CSRStorage
 
-from .filter import Filter
 from .limit import Limit
 
 
@@ -71,6 +70,8 @@ class SweepCSR(Module, AutoCSR):
         self.y = Signal((width, True))
 
         self.hold = Signal()
+        self.hold_value = CSRStorage(width)
+
         self.clear = Signal()
         
         # required by tests
@@ -84,6 +85,9 @@ class SweepCSR(Module, AutoCSR):
         self.max = CSRStorage(width, reset=(1 << (width - 1)) - 1)
         self.run = CSRStorage(1)
 
+        # This is necessary since the CSRStorage is not signed.
+        self.hold_value_signed = Signal((width, True))
+
         ###
 
         self.submodules.sweep = Sweep(width + step_shift + 1)
@@ -94,10 +98,16 @@ class SweepCSR(Module, AutoCSR):
             self.sweep.hold.eq(self.hold),
             self.limit.x.eq(self.sweep.y >> step_shift),
             self.sweep.step.eq(self.step.storage),
+            self.hold_value_signed.eq(self.hold_value.storage),
         ]
         self.sync += [
             self.limit.min.eq(Cat(self.min.storage, self.min.storage[-1])),
             self.limit.max.eq(Cat(self.max.storage, self.max.storage[-1])),
             self.sweep.turn.eq(self.limit.railed),
-            self.y.eq(self.limit.y),
+            If(~self.hold,
+                self.y.eq(self.limit.y),
+            ).Else(
+                self.y.eq(self.hold_value_signed),
+            ),
+
         ]
