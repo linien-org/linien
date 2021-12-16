@@ -18,7 +18,7 @@
 # flake8: noqa
 
 from migen import Cat, If, Module, Signal, bits_for
-from misoc.interconnect.csr import CSRConstant, CSRStorage
+from misoc.interconnect.csr import AutoCSR, CSRConstant, CSRStorage
 
 from .filter import Filter
 from .limit import Limit
@@ -65,13 +65,16 @@ class Sweep(Module):
         ]
 
 
-class SweepCSR(Filter):
-    def __init__(self, width, step_width=None, step_shift=0, **kwargs):
-        Filter.__init__(self, width=width, **kwargs)
+class SweepCSR(Module, AutoCSR):
+    def __init__(self, width, step_width=None, step_shift=0):
+        self.x = Signal((width, True))
+        self.y = Signal((width, True))
 
+        self.hold = Signal()
+        self.clear = Signal()
+        
         # required by tests
         self.step_shift = step_shift
-
         if step_width is None:
             step_width = width
 
@@ -86,7 +89,6 @@ class SweepCSR(Filter):
         self.submodules.sweep = Sweep(width + step_shift + 1)
         self.submodules.limit = Limit(width + 1)
 
-        min, max = self.min.storage, self.max.storage
         self.comb += [
             self.sweep.run.eq(~self.clear & self.run.storage),
             self.sweep.hold.eq(self.hold),
@@ -94,8 +96,8 @@ class SweepCSR(Filter):
             self.sweep.step.eq(self.step.storage),
         ]
         self.sync += [
-            self.limit.min.eq(Cat(min, min[-1])),
-            self.limit.max.eq(Cat(max, max[-1])),
+            self.limit.min.eq(Cat(self.min.storage, self.min.storage[-1])),
+            self.limit.max.eq(Cat(self.max.storage, self.max.storage[-1])),
             self.sweep.turn.eq(self.limit.railed),
             self.y.eq(self.limit.y),
         ]
