@@ -69,7 +69,7 @@ class SweepCSR(Module, AutoCSR):
         self.x = Signal((width, True))
         self.y = Signal((width, True))
 
-        self.hold = Signal()
+        self.hold = CSRStorage()
         self.hold_value = CSRStorage(width)
 
         self.clear = Signal()
@@ -95,7 +95,7 @@ class SweepCSR(Module, AutoCSR):
 
         self.comb += [
             self.sweep.run.eq(~self.clear & self.run.storage),
-            self.sweep.hold.eq(self.hold),
+            self.sweep.hold.eq(self.hold.storage),
             self.limit.x.eq(self.sweep.y >> step_shift),
             self.sweep.step.eq(self.step.storage),
             self.hold_value_signed.eq(self.hold_value.storage),
@@ -104,7 +104,7 @@ class SweepCSR(Module, AutoCSR):
             self.limit.min.eq(Cat(self.min.storage, self.min.storage[-1])),
             self.limit.max.eq(Cat(self.max.storage, self.max.storage[-1])),
             self.sweep.turn.eq(self.limit.railed),
-            If(~self.hold,
+            If(~self.hold.storage,
                 self.y.eq(self.limit.y),
             ).Else(
                 self.y.eq(self.hold_value_signed),
