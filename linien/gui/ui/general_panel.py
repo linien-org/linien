@@ -60,7 +60,7 @@ class GeneralPanel(QtWidgets.QWidget, CustomWidget):
         self.parameters = self.app.parameters
         self.control = self.app.control
 
-        param2ui(params.fast_mode, self.ids.fast_mode)
+        param2ui(self.parameters.fast_mode, self.ids.fast_mode)
 
         def dual_channel_changed(value):
             self.ids.dual_channel_mixing.setVisible(value)
@@ -137,7 +137,7 @@ class GeneralPanel(QtWidgets.QWidget, CustomWidget):
             for widget in widgets_to_disable:
                 widget.setEnabled(not fast_mode_enabled)
 
-        params.fast_mode.on_change(fast_mode_changed)
+        self.parameters.fast_mode.on_change(fast_mode_changed)
 
     def channel_mixing_changed(self):
         value = int(self.ids.channel_mixing_slider.value()) - 128

@@ -51,7 +51,7 @@ class ModulationAndSweepPanel(QtWidgets.QWidget, CustomWidget):
             for widget in widgets_to_disable:
                 widget.setEnabled(not fast_mode_enabled)
 
-        params.fast_mode.on_change(fast_mode_changed)
+        self.parameters.fast_mode.on_change(fast_mode_changed)
 
     def change_modulation_frequency(self):
         self.parameters.modulation_frequency.value = (
