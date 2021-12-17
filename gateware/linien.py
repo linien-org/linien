@@ -88,7 +88,7 @@ class LinienLogic(Module, AutoCSR):
         # queues a run that is then started when the sweep is at the zero crossing
         self.comb += [
             self.pid.running.eq(self.autolock.lock_running.status),
-            self.sweep.hold.eq(self.autolock.lock_running.status),
+            self.sweep.hold.storage.eq(self.autolock.lock_running.status),
             self.autolock.fast.sweep_value.eq(self.sweep.y),
             self.autolock.fast.sweep_up.eq(self.sweep.sweep.up),
             self.autolock.fast.sweep_step.eq(
