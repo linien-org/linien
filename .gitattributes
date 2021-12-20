@@ -1,5 +1,8 @@
-linien/server/linien_install_requirements eol=lf
-linien/server/linien_start_ethernet_blinking eol=lf
-linien/server/linien_start_server eol=lf
-linien/server/linien_stop_ethernet_blinking eol=lf
-linien/server/linien_stop_server eol=lf
+* text=auto
+
+linien/server/linien_install_requirements text eol=lf
+linien/server/linien_start_ethernet_blinking text eol=lf
+linien/server/linien_start_server text eol=lf
+linien/server/linien_stop_ethernet_blinking text eol=lf
+linien/server/linien_stop_server text eol=lf
+ *.bin filter=lfs diff=lfs merge=lfs -text
