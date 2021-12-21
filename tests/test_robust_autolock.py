@@ -4,10 +4,7 @@ import numpy as np
 import pytest
 from migen import run_simulation
 
-from gateware.logic.autolock import (
-    RobustAutolock,
-    get_lock_position_from_autolock_instructions_by_simulating_fpga,
-)
+from gateware.logic.autolock import RobustAutolock
 from gateware.logic.autolock_utils import DynamicDelay, SumDiffCalculator
 from linien.server.autolock.robust import (
     calculate_autolock_instructions,
@@ -69,6 +66,52 @@ def add_jitter(spectrum, level=None, exact_value=None):
 
 @pytest.mark.slow
 def test_get_description(plt, debug=True):
+    def get_lock_position_from_autolock_instructions_by_simulating_fpga(
+        spectrum, description, time_scale, initial_spectrum, final_wait_time
+    ):
+        """This function simulated the behavior of `RobustAutolock` on FPGA
+        and allows to find out whether FPGA would lock to the correct point."""
+        result = {}
+
+        def tb(dut):
+            yield dut.sweep_up.eq(1)
+            yield dut.request_lock.eq(1)
+            yield dut.at_start.eq(1)
+            yield dut.writing_data_now.eq(1)
+
+            yield dut.N_instructions.storage.eq(len(description))
+            yield dut.final_wait_time.storage.eq(final_wait_time)
+
+            for description_idx, [wait_for, current_threshold] in enumerate(
+                description
+            ):
+                yield dut.peak_heights[description_idx].storage.eq(
+                    int(current_threshold)
+                )
+                yield dut.wait_for[description_idx].storage.eq(int(wait_for))
+
+            yield
+
+            yield dut.at_start.eq(0)
+            yield dut.time_scale.storage.eq(int(time_scale))
+
+            for i in range(len(spectrum)):
+                yield dut.input.eq(int(spectrum[i]))
+
+                turn_on_lock = yield dut.turn_on_lock
+                if turn_on_lock:
+                    result["index"] = i
+                    return
+
+                yield
+
+        dut = RobustAutolock()
+        run_simulation(
+            dut, tb(dut), vcd_name="experimental_autolock_fpga_lock_position_finder.vcd"
+        )
+
+        return result.get("index")
+
     for sign_spectrum_multiplicator in (1, -1):
         for spectrum_generator in (pfd_spectrum, atomic_spectrum):
             spectrum, target_idxs = spectrum_generator(0)
