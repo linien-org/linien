@@ -42,13 +42,12 @@ class ViewPanel(QtWidgets.QWidget, CustomWidget):
         param.value = (r, g, b, a)
 
     def connection_established(self):
-        params = self.app().parameters
-        self.control = self.app().control
-        self.parameters = params
+        self.parameters = self.app.parameters
+        self.control = self.app.control
 
-        param2ui(params.plot_line_width, self.ids.plot_line_width)
-        param2ui(params.plot_line_opacity, self.ids.plot_line_opacity)
-        param2ui(params.plot_fill_opacity, self.ids.plot_fill_opacity)
+        param2ui(self.parameters.plot_line_width, self.ids.plot_line_width)
+        param2ui(self.parameters.plot_line_opacity, self.ids.plot_line_opacity)
+        param2ui(self.parameters.plot_fill_opacity, self.ids.plot_fill_opacity)
 
         def preview_colors(*args):
             for color_idx in range(N_COLORS):

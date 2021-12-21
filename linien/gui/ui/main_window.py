@@ -4,14 +4,14 @@ from math import log
 from time import time
 
 import numpy as np
-from PyQt5 import QtCore, QtWidgets
+from PyQt5 import QtWidgets
 
 import linien
 from linien.common import check_plot_data
 from linien.config import N_COLORS
 from linien.gui.config import COLORS
 from linien.gui.ui.plot_widget import INVALID_POWER
-from linien.gui.utils_gui import color_to_hex, param2ui
+from linien.gui.utils_gui import color_to_hex
 from linien.gui.widgets import CustomWidget
 
 ZOOM_STEP = 0.9
@@ -19,7 +19,7 @@ MAX_ZOOM = 50
 MIN_ZOOM = 0
 
 
-def ramp_amplitude_to_zoom_step(amplitude):
+def sweep_amplitude_to_zoom_step(amplitude):
     return round(log(amplitude, ZOOM_STEP))
 
 
@@ -43,10 +43,6 @@ class MainWindow(QtWidgets.QMainWindow, CustomWidget):
     def ready(self):
         # handle keyboard events
         self.setFocus()
-
-        self.ids.zoom_slider.valueChanged.connect(self.change_zoom)
-        self.ids.go_left_btn.clicked.connect(self.go_left)
-        self.ids.go_right_btn.clicked.connect(self.go_right)
 
         self.ids.export_parameters_button.clicked.connect(
             self.export_parameters_select_file
@@ -79,32 +75,8 @@ class MainWindow(QtWidgets.QMainWindow, CustomWidget):
     def show_new_version_available(self):
         self.ids.new_version_available_label.show()
 
-    def keyPressEvent(self, event):
-        self.handle_key_press(event.key())
-
     def handle_key_press(self, key):
         print("key pressed", key)
-
-        def click_if_enabled(btn):
-            if btn.isEnabled():
-                btn.clicked.emit()
-
-        if key == ord("+"):
-            self.increase_or_decrease_zoom(+1)
-        elif key == ord("-"):
-            self.increase_or_decrease_zoom(-1)
-        elif key == QtCore.Qt.Key_Right:
-            click_if_enabled(self.ids.go_right_btn)
-        elif key == QtCore.Qt.Key_Left:
-            click_if_enabled(self.ids.go_left_btn)
-
-    def increase_or_decrease_zoom(self, direction):
-        amplitude = self.parameters.ramp_amplitude.value
-        zoom_level = ramp_amplitude_to_zoom_step(amplitude)
-        zoom_level += direction
-        if zoom_level < MIN_ZOOM or zoom_level > MAX_ZOOM:
-            return
-        self.change_zoom(zoom_level)
 
     def export_parameters_select_file(self):
         options = QtWidgets.QFileDialog.Options()
@@ -160,33 +132,18 @@ class MainWindow(QtWidgets.QMainWindow, CustomWidget):
                 print("restoring", k)
                 getattr(self.parameters, k).value = v
 
-            self.control.write_data()
+            self.control.write_registers()
 
     def connection_established(self):
         self.control = self.app.control
-        params = self.app.parameters
-        self.parameters = params
+        self.parameters = self.app.parameters
 
-        param2ui(
-            params.ramp_amplitude, self.ids.zoom_slider, ramp_amplitude_to_zoom_step
-        )
+        def change_sweep_control_visibility(*args):
+            al_running = self.parameters.autolock_running.value
+            optimization = self.parameters.optimization_running.value
+            locked = self.parameters.lock.value
 
-        def display_ramp_range(*args):
-            center = params.center.value
-            amp = params.ramp_amplitude.value
-            min_ = center - amp
-            max_ = center + amp
-            self.ids.ramp_status.setText("%.3fV to %.3fV" % (min_, max_))
-
-        params.center.on_change(display_ramp_range)
-        params.ramp_amplitude.on_change(display_ramp_range)
-
-        def change_manual_navigation_visibility(*args):
-            al_running = params.autolock_running.value
-            optimization = params.optimization_running.value
-            locked = params.lock.value
-
-            self.get_widget("manual_navigation").setVisible(
+            self.get_widget("sweep_control").setVisible(
                 not al_running and not locked and not optimization
             )
             self.get_widget("top_lock_panel").setVisible(locked)
@@ -194,40 +151,33 @@ class MainWindow(QtWidgets.QMainWindow, CustomWidget):
                 not al_running and not locked and not optimization
             )
 
-        params.lock.on_change(change_manual_navigation_visibility)
-        params.autolock_running.on_change(change_manual_navigation_visibility)
-        params.optimization_running.on_change(change_manual_navigation_visibility)
+        self.parameters.lock.on_change(change_sweep_control_visibility)
+        self.parameters.autolock_running.on_change(change_sweep_control_visibility)
+        self.parameters.optimization_running.on_change(change_sweep_control_visibility)
 
-        params.to_plot.on_change(self.update_std)
+        self.parameters.to_plot.on_change(self.update_std)
 
-        params.pid_on_slow_enabled.on_change(
+        self.parameters.pid_on_slow_enabled.on_change(
             lambda v: self.ids.legend_slow_signal_history.setVisible(v)
         )
-        params.dual_channel.on_change(
+        self.parameters.dual_channel.on_change(
             lambda v: self.ids.legend_monitor_signal_history.setVisible(not v)
         )
 
         self.ids.settings_toolbox.setCurrentIndex(0)
 
-        def center_or_amplitude_changed(_):
-            center = params.center.value
-            amplitude = params.ramp_amplitude.value
-
-            self.ids.go_right_btn.setEnabled(center + amplitude < 1)
-            self.ids.go_left_btn.setEnabled(center - amplitude > -1)
-
-        params.ramp_amplitude.on_change(center_or_amplitude_changed)
-        params.center.on_change(center_or_amplitude_changed)
-
-        params.lock.on_change(lambda *args: self.reset_std_history())
+        self.parameters.lock.on_change(lambda *args: self.reset_std_history())
 
         def update_legend_color(*args):
-            set_color = lambda el, color_name: el.setStyleSheet(
-                "color: "
-                + color_to_hex(
-                    getattr(self.parameters, "plot_color_%d" % COLORS[color_name]).value
+            def set_color(el, color_name):
+                return el.setStyleSheet(
+                    "color: "
+                    + color_to_hex(
+                        getattr(
+                            self.parameters, "plot_color_%d" % COLORS[color_name]
+                        ).value
+                    )
                 )
-            )
 
             set_color(self.ids.legend_spectrum_1, "spectrum_1")
             set_color(self.ids.legend_spectrum_2, "spectrum_2")
@@ -253,38 +203,6 @@ class MainWindow(QtWidgets.QMainWindow, CustomWidget):
             self.ids.legend_spectrum_combined.setVisible(dual_channel)
 
         self.parameters.dual_channel.on_change(update_legend_text)
-
-    def go_right(self):
-        self.change_center(True)
-
-    def go_left(self):
-        self.change_center(False)
-
-    def change_center(self, positive):
-        delta_center = self.parameters.ramp_amplitude.value / 10
-        if not positive:
-            delta_center *= -1
-        new_center = self.parameters.center.value + delta_center
-
-        if np.abs(new_center) + self.parameters.ramp_amplitude.value > 1:
-            new_center = np.sign(new_center) * (
-                1 - self.parameters.ramp_amplitude.value
-            )
-
-        print("set center", new_center)
-        self.parameters.center.value = new_center
-        self.control.write_data()
-
-    def change_zoom(self, zoom):
-        amplitude = ZOOM_STEP ** zoom
-        print("change zoom", zoom, amplitude)
-        self.parameters.ramp_amplitude.value = amplitude
-        center = self.parameters.center.value
-        if center + amplitude > 1:
-            self.parameters.center.value = 1 - amplitude
-        elif center - amplitude < -1:
-            self.parameters.center.value = -1 + amplitude
-        self.control.write_data()
 
     def update_std(self, to_plot, max_std_history_length=10):
         if self.parameters.lock.value and to_plot:

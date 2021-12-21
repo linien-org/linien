@@ -189,8 +189,6 @@ class LinienClient(RawRPYCClient):
         self.connection = None
 
         i = -1
-        server_was_started = False
-
         while True:
             i += 1
 
@@ -213,19 +211,20 @@ class LinienClient(RawRPYCClient):
             except EOFError:
                 print("EOFError! Probably authentication failed")
                 raise RPYCAuthenticationException()
-            except Exception as e:
+            except Exception:
                 if not self.autostart_server:
                     raise ServerNotRunningException()
 
                 if i == 0:
                     print("server is not running. Launching it!")
-                    server_was_started = True
                     run_server(host, user, password, port)
                     sleep(3)
                 else:
                     if i < 20:
                         print(
-                            "server still not running, waiting (this may take some time)..."
+                            """
+                            Server still not running, waiting (this may take some time).
+                            """
                         )
                         sleep(1)
                     else:

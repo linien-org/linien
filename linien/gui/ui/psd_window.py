@@ -56,9 +56,8 @@ class PSDWindow(QtWidgets.QMainWindow, CustomWidget):
         ]
 
     def connection_established(self):
+        self.parameters = self.app.parameters
         self.control = self.app.control
-        params = self.app.parameters
-        self.parameters = params
 
         self.parameters.psd_data_partial.on_change(
             self.psd_data_received,

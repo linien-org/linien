@@ -38,7 +38,7 @@ class DataAcquisitionService(Service):
         super(DataAcquisitionService, self).__init__()
 
         self.locked = False
-        self.exposed_set_ramp_speed(9)
+        self.exposed_set_sweep_speed(9)
         # when self.locked is set to True, this doesn't mean that the lock is
         # really on. It just means that the lock is requested and that the
         # gateware waits until the sweep is at the correct position for the lock.
@@ -111,7 +111,7 @@ class DataAcquisitionService(Service):
     def program_acquisition_and_rearm(self, trigger_delay=16384):
         """Programs the acquisition settings and rearms acquisition."""
         if not self.locked:
-            target_decimation = 2 ** (self.ramp_speed + int(np.log2(DECIMATION)))
+            target_decimation = 2 ** (self.sweep_speed + int(np.log2(DECIMATION)))
 
             self.r.scope.data_decimation = target_decimation
             self.r.scope.trigger_delay = int(trigger_delay / DECIMATION) - 1
@@ -135,9 +135,9 @@ class DataAcquisitionService(Service):
         else:
             return True, self.data_hash, self.data_was_raw, self.data, self.data_uuid
 
-    def exposed_set_ramp_speed(self, speed):
-        self.ramp_speed = speed
-        # if a slow acqisition is currently running and we change the ramp speed
+    def exposed_set_sweep_speed(self, speed):
+        self.sweep_speed = speed
+        # if a slow acqisition is currently running and we change the sweep speed
         # we don't want to wait until it finishes
         self.program_acquisition_and_rearm()
 
@@ -175,8 +175,8 @@ class DataAcquisitionService(Service):
         self.data = None
         self.acquisition_paused = False
         self.data_uuid = uuid
-        # if we are ramping, we have to skip one data set because an incomplete
-        # ramp may have been recorded. When locked, this does not matter
+        # if we are sweeping, we have to skip one data set because an incomplete
+        # sweep may have been recorded. When locked, this does not matter
         self.skip_next_data = not self.confirmed_that_in_lock
 
     def read_data(self):

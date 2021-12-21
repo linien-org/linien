@@ -44,18 +44,19 @@ class QTApp(QtCore.QObject):
 
         super().__init__()
 
-    def connected(self, connection, parameters, control):
+    def client_connected(self, client):
         self.device_manager.hide()
-        self.main_window.show(connection.host, connection.device["name"])
+        self.main_window.show(client.host, client.device["name"])
 
-        self.connection = connection
-        self.control = control
-        self.parameters = parameters
+        self.client = client
+        self.control = client.control
+        self.parameters = client.parameters
 
         self.ready.connect(self.init)
         self.ready.emit(True)
 
     def init(self):
+
         for instance in CustomWidget.instances:
             try:
                 instance.connection_established()
@@ -74,11 +75,7 @@ class QTApp(QtCore.QObject):
         self.check_for_new_version()
 
     def call_listeners(self):
-        if (
-            hasattr(self, "connection")
-            and self.connection
-            and self.connection.connected
-        ):
+        if hasattr(self, "client") and self.client and self.client.connected:
             try:
                 self.parameters.call_listeners()
             except Exception:
@@ -96,7 +93,7 @@ class QTApp(QtCore.QObject):
         self.app.quit()
 
     def shutdown(self):
-        self.control.shutdown()
+        self.client.control.shutdown()
         self.close()
 
     def open_psd_window(self):
@@ -109,8 +106,8 @@ class QTApp(QtCore.QObject):
         self.main_window.hide()
         self.device_manager.show()
 
-        self.connection.disconnect()
-        del self.connection
+        self.client.disconnect()
+        del self.client
 
     def close_all_secondary_windows(self):
         self.psd_window.hide()

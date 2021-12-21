@@ -19,8 +19,8 @@ def spectrum_for_testing(x):
     return central_peak + smaller_peaks + Y_SHIFT
 
 
-def get_signal(ramp_amplitude, center, shift):
-    max_val = np.pi * 5 * ramp_amplitude
+def get_signal(sweep_amplitude, center, shift):
+    max_val = np.pi * 5 * sweep_amplitude
     new_center = center + shift
     x = np.linspace((-1 + new_center) * max_val, (1 + new_center) * max_val, 16384)
     return spectrum_for_testing(x)
@@ -37,10 +37,11 @@ class FakeControl:
     def continue_acquisition(self):
         pass
 
-    def exposed_write_data(self):
+    def exposed_write_registers(self):
         print(
             "write: center={} amp={}".format(
-                self.parameters.center.value, self.parameters.ramp_amplitude.value
+                self.parameters.sweep_center.value,
+                self.parameters.sweep_amplitude.value,
             )
         )
 
@@ -86,7 +87,7 @@ def test_autolock():
             lock_position = parameters.autolock_target_position.value
 
             ideal_lock_position = (
-                -1 * target_shift * parameters.ramp_amplitude.value * 8191
+                -1 * target_shift * parameters.sweep_amplitude.value * 8191
             )
             assert abs(lock_position - ideal_lock_position) <= 15
 

@@ -34,7 +34,7 @@ def test_sweep(plt):
     dut = SweepCSR(width=16)
     run_simulation(dut, tb(dut, out, n), vcd_name=VCD_DIR / "sweep.vcd")
 
-    plt.plot(out, label="ramp output")
+    plt.plot(out, label="sweep output")
     plt.plot([v * max(out) for v in trig], label=VCD_DIR / "trigger_signal")
     plt.legend()
 

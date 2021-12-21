@@ -27,10 +27,10 @@ def twos_complement(num, N_bits):
     return num
 
 
-def ramp_speed_to_time(ramp_speed):
-    """Ramp speed is an arbitrary unit (cf. `parameters.py`).
-    This function converts it to the duration of the ramp in seconds.
+def sweep_speed_to_time(sweep_speed):
+    """Sweep speed is an arbitrary unit (cf. `parameters.py`).
+    This function converts it to the duration of the sweep in seconds.
     """
-    f_real = 3.8e3 / (2 ** ramp_speed)
+    f_real = 3.8e3 / (2 ** sweep_speed)
     duration = 1 / f_real
     return duration

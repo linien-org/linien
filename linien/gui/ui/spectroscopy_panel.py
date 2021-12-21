@@ -14,20 +14,20 @@ class SpectroscopyPanel(QtWidgets.QWidget, CustomWidget):
             self.get_param("filter_%d_frequency" % filter_i).value = getattr(
                 self.ids, "filter_%d_frequency" % filter_i
             ).value()
-            self.control.write_data()
+            self.control.write_registers()
 
         def change_filter_enabled(filter_i):
             filter_enabled = int(
                 getattr(self.ids, "filter_%d_enabled" % filter_i).checkState() > 0
             )
             self.get_param("filter_%d_enabled" % filter_i).value = filter_enabled
-            self.control.write_data()
+            self.control.write_registers()
 
         def change_filter_type(filter_i):
             param = self.get_param("filter_%d_type" % filter_i)
             current_idx = getattr(self.ids, "filter_%d_type" % filter_i).currentIndex()
             param.value = (LOW_PASS_FILTER, HIGH_PASS_FILTER)[current_idx]
-            self.control.write_data()
+            self.control.write_registers()
 
         for filter_i in [1, 2]:
             for key, fct in {
@@ -71,20 +71,19 @@ class SpectroscopyPanel(QtWidgets.QWidget, CustomWidget):
 
         def automatic_changed(value):
             self.get_param("filter_automatic").value = value
-            self.control.write_data()
+            self.control.write_registers()
 
         self.ids.filter_automatic.stateChanged.connect(automatic_changed)
 
         def invert_changed(value):
             self.get_param("invert").value = bool(value)
-            self.control.write_data()
+            self.control.write_registers()
 
         self.ids.invert.stateChanged.connect(invert_changed)
 
     def connection_established(self):
-        params = self.app().parameters
-        self.control = self.app().control
-        self.parameters = params
+        self.parameters = self.app.parameters
+        self.control = self.app.control
 
         # self.close_button.clicked.connect(self.close_app)
         # self.shutdown_button.clicked.connect(self.shutdown_server)
@@ -122,15 +121,15 @@ class SpectroscopyPanel(QtWidgets.QWidget, CustomWidget):
 
     def change_signal_offset(self):
         self.get_param("offset").value = self.ids.signal_offset.value() * 8191
-        self.control.write_data()
+        self.control.write_registers()
 
     def change_demod_phase(self):
         self.get_param("demodulation_phase").value = self.ids.demodulation_phase.value()
-        self.control.write_data()
+        self.control.write_registers()
 
     def change_demod_multiplier(self, idx):
         self.get_param("demodulation_multiplier").value = idx + 1
-        self.control.write_data()
+        self.control.write_registers()
 
 
 class SpectroscopyChannelAPanel(SpectroscopyPanel):

@@ -93,8 +93,8 @@ class PSDPlotWidget(pg.PlotWidget, CustomWidget):
         self.recalculate_min_max()
 
     def connection_established(self):
-        self.control = self.app().control
-        self.parameters = self.app().parameters
+        self.parameters = self.app.parameters
+        self.control = self.app.control
 
     def plot_curve(self, uuid, psds, color):
         self.curves[uuid] = self.curves.get(uuid, [])

@@ -42,6 +42,7 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
 
     def keyPressEvent(self, event):
         key = event.key()
+
         if key in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return):
             self.connect()
 
@@ -75,14 +76,14 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
 
         loading_dialog.aborted.connect(was_aborted)
 
-        self.t = ConnectionThread(device)
+        self.connection_thread = ConnectionThread(device)
 
-        def connected(conn):
+        def client_connected(client):
             loading_dialog.hide()
             if not aborted:
-                self.app.connected(conn, conn.parameters, conn.control)
+                self.app.client_connected(client)
 
-        self.t.connected.connect(connected)
+        self.connection_thread.client_connected.connect(client_connected)
 
         def server_not_installed():
             client_version = linien.__version__
@@ -99,7 +100,7 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
                         version=client_version if client_version != "dev" else None,
                     )
 
-        self.t.server_not_installed.connect(server_not_installed)
+        self.connection_thread.server_not_installed.connect(server_not_installed)
 
         def invalid_server_version(remote_version, client_version):
             loading_dialog.hide()
@@ -115,17 +116,17 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
                     ):
                         self.install_linien_server(device, version=client_version)
                 else:
-                    display_error = (
-                        "A production version is installed on the RedPitaya, "
-                        "but the client uses a development version. Stop the "
-                        "server and uninstall the version on the RedPitaya using\n"
-                        "    linien_stop_server;\n"
-                        "    pip3 uninstall linien-server\n"
-                        "before trying it again."
-                    )
+                    display_error = """
+                        A production version is installed on the RedPitaya, 
+                        but the client uses a development version. Stop the 
+                        server and uninstall the version on the RedPitaya using\n
+                        linien_stop_server;\n
+                        pip3 uninstall linien-server\n
+                        before trying it again.
+                        """  # noqa: W291
                     error_dialog(self, display_error)
 
-        self.t.invalid_server_version.connect(invalid_server_version)
+        self.connection_thread.invalid_server_version.connect(invalid_server_version)
 
         def authentication_exception():
             loading_dialog.hide()
@@ -138,7 +139,9 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
                 )
                 error_dialog(self, display_error)
 
-        self.t.authentication_exception.connect(authentication_exception)
+        self.connection_thread.authentication_exception.connect(
+            authentication_exception
+        )
 
         def general_connection_error():
             loading_dialog.hide()
@@ -150,7 +153,9 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
                 )
                 error_dialog(self, display_error)
 
-        self.t.general_connection_error.connect(general_connection_error)
+        self.connection_thread.general_connection_error.connect(
+            general_connection_error
+        )
 
         def exception():
             loading_dialog.hide()
@@ -158,7 +163,7 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
                 display_error = "Exception occured when connecting to the device."
                 error_dialog(self, display_error)
 
-        self.t.exception.connect(exception)
+        self.connection_thread.exception.connect(exception)
 
         def ask_for_parameter_restore():
             question = (
@@ -172,17 +177,19 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
             should_restore = ask_for_parameter_restore_dialog(
                 self, question, "Restore parameters?"
             )
-            self.t.answer_whether_to_restore_parameters(should_restore)
+            self.connection_thread.answer_whether_to_restore_parameters(should_restore)
 
-        self.t.ask_for_parameter_restore.connect(ask_for_parameter_restore)
+        self.connection_thread.ask_for_parameter_restore.connect(
+            ask_for_parameter_restore
+        )
 
         def connection_lost():
             error_dialog(self, "Lost connection to the server!")
             self.app.close()
 
-        self.t.connection_lost.connect(connection_lost)
+        self.connection_thread.connection_lost.connect(connection_lost)
 
-        self.t.start()
+        self.connection_thread.start()
 
     def install_linien_server(self, device, version=None):
         version_string = ""
@@ -295,7 +302,7 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
 
 
 class ConnectionThread(QThread):
-    connected = pyqtSignal(object)
+    client_connected = pyqtSignal(object)
     server_not_installed = pyqtSignal()
     invalid_server_version = pyqtSignal(str, str)
     authentication_exception = pyqtSignal()
@@ -311,15 +318,15 @@ class ConnectionThread(QThread):
 
     def run(self):
         try:
-            conn = LinienClient(
+            client = LinienClient(
                 self.device,
                 autostart_server=True,
                 use_parameter_cache=True,
                 on_connection_lost=self.on_connection_lost,
             )
-            self.connected.emit(conn)
+            self.client_connected.emit(client)
 
-            self.client = conn
+            self.client = client
 
         except ServerNotInstalledException:
             return self.server_not_installed.emit()
@@ -393,7 +400,7 @@ class ConnectionThread(QThread):
                 save_parameter(device_key, k, None, delete=True)
 
         if not dry_run:
-            self.client.control.write_data()
+            self.client.control.write_registers()
 
         return differences
 

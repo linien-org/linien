@@ -29,7 +29,7 @@ def calculate_psd(sig, fs, algorithm):
     sig = sig[100:-100]
 
     num_pts = 256
-    window = ("hann", num_pts)  # passed to scipy.signal.get_window for welch and lpsd
+    window = "hann"  # passed to scipy.signal.get_window for welch and lpsd
 
     sig = sig.astype(np.float64)
 
@@ -44,7 +44,14 @@ def calculate_psd(sig, fs, algorithm):
         fmax = fs / 20.0  # highest frequency of interest
 
         f, Pxx = lpsd(
-            sig, fs, fmin, fmax, Jdes=256, Kmin=2, window=window, scaling="density"
+            sig,
+            fs,
+            window=window,
+            fmin=fmin,
+            fmax=fmax,
+            Jdes=256,
+            Kmin=2,
+            scaling="density",
         )
     return f, Pxx
 
@@ -112,7 +119,7 @@ class PSDAcquisition:
             self.parameters.acquisition_raw_enabled.value = False
             self.parameters.acquisition_raw_filter_enabled.value = False
 
-            self.control.exposed_write_data()
+            self.control.exposed_write_registers()
             self.control.continue_acquisition()
 
     def react_to_new_signal(self, data_pickled):
@@ -188,7 +195,7 @@ class PSDAcquisition:
             125e6 / (2 ** decimation) / 2
         )
 
-        self.control.exposed_write_data()
+        self.control.exposed_write_registers()
         # take care that new decimation was actually written to FPGA
         sleep(0.1)
         self.control.continue_acquisition()

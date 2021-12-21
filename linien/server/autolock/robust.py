@@ -17,7 +17,7 @@ from linien.server.autolock.utils import (
     sign,
     sum_up_spectrum,
 )
-from linien.server.utils import ramp_speed_to_time
+from linien.server.utils import sweep_speed_to_time
 
 
 class LockPositionNotFound(Exception):
@@ -97,16 +97,16 @@ class RobustAutolock:
             # first reset lock in case it was True. This ensures that autolock
             # starts properly once all parameters are set
             self.parameters.lock.value = False
-            self.control.exposed_write_data()
+            self.control.exposed_write_registers()
 
             self.parameters.autolock_time_scale.value = time_scale
             self.parameters.autolock_instructions.value = description
             self.parameters.autolock_final_wait_time.value = final_wait_time
 
-            self.control.exposed_write_data()
+            self.control.exposed_write_registers()
 
             self.parameters.lock.value = True
-            self.control.exposed_write_data()
+            self.control.exposed_write_registers()
 
             self.parameters.autolock_preparing.value = False
 
@@ -129,7 +129,7 @@ class RobustAutolock:
         self._timeout_time_to_wait = (
             N_acquisitions_to_wait
             * 2
-            * ramp_speed_to_time(self.parameters.ramp_speed.value)
+            * sweep_speed_to_time(self.parameters.sweep_speed.value)
         )
 
         self.parameters.ping.on_change(self.check_for_timeout)
