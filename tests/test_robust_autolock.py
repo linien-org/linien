@@ -107,7 +107,9 @@ def test_get_description(plt, debug=True):
 
         dut = RobustAutolock()
         run_simulation(
-            dut, tb(dut), vcd_name="experimental_autolock_fpga_lock_position_finder.vcd"
+            dut,
+            tb(dut),
+            vcd_name=VCD_DIR / "experimental_autolock_fpga_lock_position_finder.vcd",
         )
 
         return result.get("index")
