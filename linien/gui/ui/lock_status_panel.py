@@ -80,7 +80,7 @@ class LockStatusPanel(QtWidgets.QWidget, CustomWidget):
             self.parameters.task.value.stop()
             self.parameters.task.value = None
 
-        self.control.exposed_start_ramp()
+        self.control.exposed_start_sweep()
 
     def control_signal_history_length_changed(self):
         self.parameters.control_signal_history_length.value = (

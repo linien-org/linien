@@ -19,7 +19,7 @@ MAX_ZOOM = 50
 MIN_ZOOM = 0
 
 
-def ramp_amplitude_to_zoom_step(amplitude):
+def sweep_amplitude_to_zoom_step(amplitude):
     return round(log(amplitude, ZOOM_STEP))
 
 
@@ -138,12 +138,12 @@ class MainWindow(QtWidgets.QMainWindow, CustomWidget):
         self.control = self.app.control
         self.parameters = self.app.parameters
 
-        def change_ramp_control_visibility(*args):
+        def change_sweep_control_visibility(*args):
             al_running = self.parameters.autolock_running.value
             optimization = self.parameters.optimization_running.value
             locked = self.parameters.lock.value
 
-            self.get_widget("ramp_control").setVisible(
+            self.get_widget("sweep_control").setVisible(
                 not al_running and not locked and not optimization
             )
             self.get_widget("top_lock_panel").setVisible(locked)
@@ -151,9 +151,9 @@ class MainWindow(QtWidgets.QMainWindow, CustomWidget):
                 not al_running and not locked and not optimization
             )
 
-        self.parameters.lock.on_change(change_ramp_control_visibility)
-        self.parameters.autolock_running.on_change(change_ramp_control_visibility)
-        self.parameters.optimization_running.on_change(change_ramp_control_visibility)
+        self.parameters.lock.on_change(change_sweep_control_visibility)
+        self.parameters.autolock_running.on_change(change_sweep_control_visibility)
+        self.parameters.optimization_running.on_change(change_sweep_control_visibility)
 
         self.parameters.to_plot.on_change(self.update_std)
 

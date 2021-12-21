@@ -142,7 +142,7 @@ Then, adapt the output signals to your needs:
 
 ![image](https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/docs/explain-pins.png)
 
-When you're done, head over to *Modulation, Ramp & Spectroscopy* to configure modulation frequency and amplitude. Once your setup is working, you should see something like this:
+When you're done, head over to *Modulation, Sweep & Spectroscopy* to configure modulation frequency and amplitude. Once your setup is working, you should see something like this:
 
 ![image](https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/docs/spectrum.jpg)
 
@@ -175,8 +175,8 @@ If you experience trouble with the autolock, this is most likely due to a bad si
 
 Linien implements two different autolock algorithms:
 
- * **Jitter-tolerant mode**: this algorithm runs on FPGA and analyzes the peak shapes in order to turn on the lock at the right ramp position. It is able to cope with a high amount of jitter as it runs completely on the FPGA, i.e. no delays due to communication between CPU and FPGA occur.
- * **Fast mode**: this algorithm uses a simple calculation of autocorrelation on the CPU which is then used to specify at which point of the ramp the lock should start. This algorithm is less complex than the first one and may be used if you experience problems with jitter-tolerant mode. As it requires some communication between CPU and FPGA which causes some delay, it may have problems if the line jitters a lot.
+ * **Jitter-tolerant mode**: this algorithm runs on FPGA and analyzes the peak shapes in order to turn on the lock at the right sweep position. It is able to cope with a high amount of jitter as it runs completely on the FPGA, i.e. no delays due to communication between CPU and FPGA occur.
+ * **Fast mode**: this algorithm uses a simple calculation of autocorrelation on the CPU which is then used to specify at which point of the sweep the lock should start. This algorithm is less complex than the first one and may be used if you experience problems with jitter-tolerant mode. As it requires some communication between CPU and FPGA which causes some delay, it may have problems if the line jitters a lot.
 
  By default, **auto-detect mode** is chosen: this mode choses an algorithm based on the amount of jitter.
 
@@ -193,7 +193,7 @@ Transfer function of the PID is given by
 L(f) = kp + ki / f + kd * f
 ```
 with `kp=P/4096`, `ki=I/0.1s` and `kd=D / (2**6 * 125e6)`.
-Note that this equation does not account for filtering before the PID (cf. *Modulation, Ramp & Spectroscopy* tab).
+Note that this equation does not account for filtering before the PID (cf. *Modulation, Sweep & Spectroscopy* tab).
 
 ![image](https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/docs/transfer.png)
 
@@ -274,7 +274,7 @@ if c.parameters.lock.value:
     plt.plot(plot_data['control_signal'], label='control signal')
     plt.plot(plot_data['error_signal'], label='error signal')
 else:
-    plt.title('laser is ramping!')
+    plt.title('laser is sweeping!')
     plt.plot(plot_data['error_signal_1'], label='error signal channel 1')
     plt.plot(plot_data['error_signal_2'], label='error signal channel 2')
 
@@ -326,7 +326,7 @@ def wait_for_lock_status(should_be_locked):
 
 
 # turn of the lock (if it is running)
-c.connection.root.start_ramp()
+c.connection.root.start_sweep()
 # wait until the laser is unlocked (if required)
 wait_for_lock_status(False)
 

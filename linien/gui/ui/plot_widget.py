@@ -53,8 +53,8 @@ class TimeXAxis(pg.AxisItem, CustomWidget):
         return self.parent.parameters
 
     @property
-    def ramp_speed(self):
-        return self.parameters.ramp_speed
+    def sweep_speed(self):
+        return self.parameters.sweep_speed
 
     @property
     def lock(self):
@@ -65,7 +65,7 @@ class TimeXAxis(pg.AxisItem, CustomWidget):
         QtCore.QTimer.singleShot(100, self.listen_to_parameter_changes)
 
     def listen_to_parameter_changes(self):
-        self.ramp_speed.on_change(self.force_repaint_tick_strings)
+        self.sweep_speed.on_change(self.force_repaint_tick_strings)
         self.lock.on_change(self.force_repaint_tick_strings)
         self.force_repaint_tick_strings()
 
@@ -75,8 +75,8 @@ class TimeXAxis(pg.AxisItem, CustomWidget):
 
     def tickStrings(self, values, scale, spacing):
         locked = self.lock.value
-        ramp_speed = self.ramp_speed.value if not locked else 0
-        time_between_points = (1 / 125e6) * 2 ** (ramp_speed) * DECIMATION
+        sweep_speed = self.sweep_speed.value if not locked else 0
+        time_between_points = (1 / 125e6) * 2 ** (sweep_speed) * DECIMATION
         values = [v * time_between_points for v in values]
         spacing *= time_between_points
 
@@ -623,10 +623,10 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
             self.autolock_ref_spectrum is not None
             and self.parameters.autolock_preparing.value
         ):
-            ramp_amplitude = self.parameters.ramp_amplitude.value
-            zoom_factor = 1 / ramp_amplitude
+            sweep_amplitude = self.parameters.sweep_amplitude.value
+            zoom_factor = 1 / sweep_amplitude
             initial_zoom_factor = (
-                1 / self.parameters.autolock_initial_ramp_amplitude.value
+                1 / self.parameters.autolock_initial_sweep_amplitude.value
             )
 
             try:

@@ -51,13 +51,13 @@ class FPGAAutolock(Module, AutoCSR):
 
 
 class FastAutolock(Module, AutoCSR):
-    """The operation of fast autolock is simple: wait until the ramp has reached
+    """The operation of fast autolock is simple: wait until the sweep has reached
     a certain point and turn on the lock. This method is well suited for systems
     with not too much jitter."""
 
     def __init__(self, width=14):
         # pid is not started directly by `request_lock` signal. Instead, `request_lock`
-        # queues a run that is then started when the ramp is at the zero target position
+        # queues a run that is then started when the sweep is at the zero target position
         self.request_lock = Signal()
         self.turn_on_lock = Signal()
         self.sweep_value = Signal((width, True))
@@ -80,7 +80,7 @@ class FastAutolock(Module, AutoCSR):
                         self.sweep_value
                         <= target_position_signed + 1 + (self.sweep_step >> 1)
                     )
-                    # and if the ramp is going up (because this is when a
+                    # and if the sweep is going up (because this is when a
                     # spectrum is recorded)
                     & (self.sweep_up)
                 ),
@@ -95,7 +95,7 @@ class RobustAutolock(Module, AutoCSR):
         self.init_inout_signals(width)
 
         # is the autolock actively trying to detect peaks? This is set to true
-        # if lock is requested and once the ramp is at start
+        # if lock is requested and once the sweep is at start
         watching = Signal()
 
         # the following signals are property of the peak that the autolock is
@@ -177,7 +177,7 @@ class RobustAutolock(Module, AutoCSR):
                 If(
                     ~self.request_lock,
                     # disable `watching` if `request_lock` was disabled while
-                    # the ramp is running. This is important for slow scan
+                    # the sweep is running. This is important for slow scan
                     # speeds when disabling the autolock and enabling it again
                     # with different parameters. In this case we want to take
                     # care that we start watching at start.

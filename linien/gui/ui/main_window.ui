@@ -33,7 +33,7 @@
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_17">
          <item>
-          <widget class="RampControlWidget" name="ramp_control" native="true">
+          <widget class="SweepControlWidget" name="sweep_control" native="true">
            <layout class="QHBoxLayout" name="horizontalLayout_3">
             <item>
              <widget class="QLabel" name="label_9">
@@ -44,14 +44,14 @@
                </font>
               </property>
               <property name="text">
-               <string>Ramp:</string>
+               <string>Sweep:</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="ramp_start_stop_button">
+             <widget class="QPushButton" name="sweep_start_stop_button">
               <property name="toolTip">
-               <string>Start and pause the output of the ramp.</string>
+               <string>Start and pause the output of the sweep.</string>
               </property>
               <property name="text">
                <string>Start / Pause</string>
@@ -75,7 +75,7 @@
              </spacer>
             </item>
             <item>
-             <widget class="RampSlider" name="ramp_slider">
+             <widget class="SweepSlider" name="sweep_slider">
               <property name="minimumSize">
                <size>
                 <width>350</width>
@@ -117,7 +117,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QDoubleSpinBox" name="ramp_center">
+             <widget class="QDoubleSpinBox" name="sweep_center">
               <property name="minimumSize">
                <size>
                 <width>65</width>
@@ -161,7 +161,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QDoubleSpinBox" name="ramp_amplitude">
+             <widget class="QDoubleSpinBox" name="sweep_amplitude">
               <property name="minimumSize">
                <size>
                 <width>65</width>
@@ -1086,11 +1086,11 @@
            </rect>
           </property>
           <attribute name="label">
-           <string>Modulation, Ramp &amp;&amp; Spectroscopy</string>
+           <string>Modulation, Sweep &amp;&amp; Spectroscopy</string>
           </attribute>
           <layout class="QVBoxLayout" name="verticalLayout_3">
            <item>
-            <widget class="ModulationAndRampPanel" name="widget_4" native="true"/>
+            <widget class="ModulationAndSweepPanel" name="widget_4" native="true"/>
            </item>
           </layout>
          </widget>
@@ -1205,9 +1205,9 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>ModulationAndRampPanel</class>
+   <class>ModulationAndSweepPanel</class>
    <extends>QWidget</extends>
-   <header location="global">modulation_ramp_panel.h</header>
+   <header location="global">modulation_sweep_panel.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
@@ -1223,14 +1223,14 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>RampSlider</class>
+   <class>SweepSlider</class>
    <extends>QSlider</extends>
-   <header location="global">ramp_control.h</header>
+   <header location="global">sweep_control.h</header>
   </customwidget>
   <customwidget>
-   <class>RampControlWidget</class>
+   <class>SweepControlWidget</class>
    <extends>QWidget</extends>
-   <header location="global">ramp_control</header>
+   <header location="global">sweep_control</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

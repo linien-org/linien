@@ -31,22 +31,22 @@ def test_root():
 
         for iteration in range(2):
             print("iteration", iteration)
-            ramp_sign = (-1, 1, -1)[iteration]
+            sweep_sign = (-1, 1, -1)[iteration]
 
             sweep_out_at_beginning = yield sweep.y
 
-            # start the ramp and check that PID doesn't operate
+            # start the sweep and check that PID doesn't operate
             for i in range(100 - sweep_out_at_beginning):
                 yield
                 sweep_out = yield sweep.y
                 pid_out = yield pid.pid_out
                 pid_running = yield pid.running
 
-                assert sweep_out == sweep_out_at_beginning + ramp_sign * i
+                assert sweep_out == sweep_out_at_beginning + sweep_sign * i
                 assert pid_out == 0
                 assert pid_running == 0
 
-            # now turn around the ramp and request lock
+            # now turn around the sweep and request lock
             yield sweep.sweep.turn.eq(1)
             yield autolock.request_lock.storage.eq(1)
             yield
@@ -56,14 +56,14 @@ def test_root():
             for i in range(102 + lock_target_position):
                 yield
                 sweep_out = yield sweep.y
-                assert ramp_sign * sweep_out == 100 - i
+                assert sweep_sign * sweep_out == 100 - i
                 pid_running = yield pid.running
                 assert pid_running == 0
                 pid_out = yield pid.pid_out
                 assert pid_out == 0
 
             if iteration == 0:
-                # check that after zero crossing, PID is turned on and ramp off
+                # check that after zero crossing, PID is turned on and sweep off
                 yield
                 pid_running = yield pid.running
                 assert pid_running == 1
@@ -81,7 +81,7 @@ def test_root():
                     assert pid_out > 0
 
                 yield autolock.request_lock.storage.eq(0)
-                print("turn on ramp again")
+                print("turn on sweep again")
                 yield
                 yield
             else:

@@ -40,7 +40,7 @@ class FastAutolock:
             return
 
         lock_point = int(
-            round((shift * (-1)) * self.parameters.ramp_amplitude.value * 8191)
+            round((shift * (-1)) * self.parameters.sweep_amplitude.value * 8191)
         )
 
         print("lock point is", lock_point, shift)

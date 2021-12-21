@@ -70,8 +70,8 @@ def test_iq():
 
     final_zoom_factor = 10
 
-    ramp_amplitude = 1.0
-    max_val = np.pi * 5 * ramp_amplitude
+    sweep_amplitude = 1.0
+    max_val = np.pi * 5 * sweep_amplitude
     x = np.linspace(-1 * max_val, 1 * max_val, 100)
 
     for iteration in range(1):

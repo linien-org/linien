@@ -96,13 +96,13 @@
    <item>
     <widget class="QGroupBox" name="groupBox_3">
      <property name="title">
-      <string>Ramp speed</string>
+      <string>Sweep speed</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_4">
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_5">
         <item>
-         <widget class="QComboBox" name="ramp_speed">
+         <widget class="QComboBox" name="sweep_speed">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -206,13 +206,13 @@
    <item>
     <widget class="QGroupBox" name="groupBox_2">
      <property name="title">
-      <string>Ramp amplitude and offset</string>
+      <string>Sweep amplitude and offset</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
        <widget class="QLabel" name="label_4">
         <property name="text">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use the controls &lt;span style=&quot; font-style:italic;&quot;&gt;Ramp amplitude&lt;/span&gt; and &lt;span style=&quot; font-style:italic;&quot;&gt;Position &lt;/span&gt;above the plot widget&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use the controls &lt;span style=&quot; font-style:italic;&quot;&gt;Sweep amplitude&lt;/span&gt; and &lt;span style=&quot; font-style:italic;&quot;&gt;Position &lt;/span&gt;above the plot widget&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="textFormat">
          <enum>Qt::RichText</enum>

@@ -17,8 +17,8 @@ def spectrum_for_testing(x):
     return central_peak + smaller_peaks + Y_SHIFT
 
 
-def get_signal(ramp_amplitude, center, shift):
-    max_val = np.pi * 5 * ramp_amplitude
+def get_signal(sweep_amplitude, center, shift):
+    max_val = np.pi * 5 * sweep_amplitude
     new_center = center + shift
     x = np.linspace((-1 + new_center) * max_val, (1 + new_center) * max_val, 16384)
     return spectrum_for_testing(x)
@@ -37,7 +37,8 @@ class FakeControl:
     def exposed_write_registers(self):
         print(
             "write: center={} amp={}".format(
-                self.parameters.center.value, self.parameters.ramp_amplitude.value
+                self.parameters.sweep_center.value,
+                self.parameters.sweep_amplitude.value,
             )
         )
 
@@ -45,7 +46,7 @@ class FakeControl:
 def test_approacher(plt):
     def _get_signal(shift):
         return get_signal(
-            parameters.ramp_amplitude.value, parameters.ramp_center.value, shift
+            parameters.sweep_amplitude.value, parameters.sweep_center.value, shift
         )
 
     for ref_shift in (-0.4, -0.2, 0.3):
@@ -90,12 +91,12 @@ def test_approacher(plt):
                 error_signal = _get_signal(shift)[:]
                 approacher.approach_line(error_signal)
 
-                if parameters.ramp_amplitude.value <= 0.2:
+                if parameters.sweep_amplitude.value <= 0.2:
                     found = True
                     break
 
             assert found
-            assert abs((-1 * target_shift) - parameters.ramp_center.value) < 0.1
+            assert abs((-1 * target_shift) - parameters.sweep_center.value) < 0.1
             print("found!")
 
 
