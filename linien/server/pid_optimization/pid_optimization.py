@@ -29,7 +29,7 @@ def calculate_psd(sig, fs, algorithm):
     sig = sig[100:-100]
 
     num_pts = 256
-    window = ("hann", num_pts)  # passed to scipy.signal.get_window for welch and lpsd
+    window = "hann"  # passed to scipy.signal.get_window for welch and lpsd
 
     sig = sig.astype(np.float64)
 
@@ -44,7 +44,14 @@ def calculate_psd(sig, fs, algorithm):
         fmax = fs / 20.0  # highest frequency of interest
 
         f, Pxx = lpsd(
-            sig, fs, fmin, fmax, Jdes=256, Kmin=2, window=window, scaling="density"
+            sig,
+            fs,
+            window=window,
+            fmin=fmin,
+            fmax=fmax,
+            Jdes=256,
+            Kmin=2,
+            scaling="density",
         )
     return f, Pxx
 
