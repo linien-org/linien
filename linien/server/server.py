@@ -273,7 +273,7 @@ class FakeRedPitayaControl(BaseService):
         super().__init__()
         self.exposed_is_locked = None
 
-    def exposed_write_data(self):
+    def exposed_write_registers(self):
         pass
 
     def run_acquiry_loop(self):

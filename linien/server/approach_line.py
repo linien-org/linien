@@ -127,7 +127,7 @@ class Approacher:
                 else self.parameters.ramp_speed.value
             )
             self.parameters.ramp_speed.value = new_ramp_speed
-        self.control.exposed_write_data()
+        self.control.exposed_write_registers()
         self.control.continue_acquisition()
 
     def _correct_current(self, shift):
@@ -136,5 +136,5 @@ class Approacher:
 
         self.parameters.ramp_center.value -= shift
 
-        self.control.exposed_write_data()
+        self.control.exposed_write_registers()
         self.control.continue_acquisition()

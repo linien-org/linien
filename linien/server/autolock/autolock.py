@@ -215,11 +215,11 @@ class Autolock:
             self.additional_spectra = [
                 s - self.central_y for s in self.additional_spectra
             ]
-            self.control.exposed_write_data()
+            self.control.exposed_write_registers()
             self.control.continue_acquisition()
 
         self.parameters.target_slope_rising.value = target_slope_rising
-        self.control.exposed_write_data()
+        self.control.exposed_write_registers()
 
         return error_signal, error_signal_rolled, line_width, peak_idxs
 

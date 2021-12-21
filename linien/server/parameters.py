@@ -18,7 +18,7 @@ class Parameters(BaseParameters):
         # if a parameter influences the behavior of the FPGA, it has to be
         # written to the FPGA as well (`control` is an instance of
         # `RedPitayaControlService`):
-        control.exposed_write_data()
+        control.exposed_write_registers()
 
     On the client side, access happens through `RemoteParameters` which
     transparently mimics the behavior of this class. Have a look at the comments
