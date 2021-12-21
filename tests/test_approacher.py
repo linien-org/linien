@@ -1,9 +1,8 @@
-from ast import Param
-from linien.common import get_lock_point
 import numpy as np
+
+from linien.common import get_lock_point
 from linien.server.approach_line import Approacher
-from linien.server.parameters import Parameter, Parameters
-from matplotlib import pyplot as plt
+from linien.server.parameters import Parameters
 
 Y_SHIFT = 4000
 
@@ -37,11 +36,13 @@ class FakeControl:
 
     def exposed_write_registers(self):
         print(
-            f"write: center={self.parameters.ramp_center.value} amp={self.parameters.ramp_amplitude.value}"
+            "write: center={} amp={}".format(
+                self.parameters.center.value, self.parameters.ramp_amplitude.value
+            )
         )
 
 
-def test_approacher():
+def test_approacher(plt):
     def _get_signal(shift):
         return get_signal(
             parameters.ramp_amplitude.value, parameters.ramp_center.value, shift
@@ -68,9 +69,8 @@ def test_approacher():
                 peak_idxs,
             ) = get_lock_point(reference_signal, 0, len(reference_signal))
 
-            """plt.plot(reference_signal)
+            plt.plot(reference_signal)
             plt.plot(rolled_reference_signal)
-            plt.show()"""
 
             assert abs(central_y - Y_SHIFT) < 1
 

@@ -6,31 +6,24 @@ dir_name = os.path.dirname(os.path.abspath(__file__))
 sys.path += [os.path.join(dir_name, "..", "..")]
 sys.path += [os.path.join(dir_name, "..")]
 
-import rpyc
-import click
 import _thread
 import pickle
-import numpy as np
 import threading
-
-from rpyc.utils.server import ThreadedServer
-from rpyc.utils.authenticators import AuthenticationError
 from random import random
 from time import sleep
 
+import click
+import numpy as np
+import rpyc
 from autolock.autolock import Autolock
 from parameters import Parameters
+from rpyc.utils.authenticators import AuthenticationError
+from rpyc.utils.server import ThreadedServer
 
+from linien.common import N_POINTS, check_plot_data, pack, unpack, update_signal_history
 from linien.config import DEFAULT_SERVER_PORT
-from linien.common import (
-    check_plot_data,
-    update_signal_history,
-    N_POINTS,
-    pack,
-    unpack,
-)
-from linien.server.parameter_store import ParameterStore
 from linien.server.optimization.optimization import OptimizeSpectroscopy
+from linien.server.parameter_store import ParameterStore
 from linien.server.pid_optimization.pid_optimization import (
     PIDOptimization,
     PSDAcquisition,
@@ -278,8 +271,8 @@ class FakeRedPitayaControl(BaseService):
 
     def run_acquiry_loop(self):
         import threading
-        from time import sleep
         from random import randint
+        from time import sleep
 
         def run():
             while True:

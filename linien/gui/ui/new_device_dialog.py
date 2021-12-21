@@ -1,10 +1,11 @@
 import random
 import string
 
+from PyQt5 import QtWidgets
+
 from linien.config import DEFAULT_SERVER_PORT
 from linien.gui.config import load_device_data, save_device_data
 from linien.gui.widgets import CustomWidget
-from PyQt5 import QtWidgets
 
 
 class NewDeviceDialog(QtWidgets.QDialog, CustomWidget):

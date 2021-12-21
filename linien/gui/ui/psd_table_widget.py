@@ -1,20 +1,19 @@
-from linien.gui.utils_gui import color_to_hex
-import numpy as np
-import pyqtgraph as pg
 from datetime import datetime
-from PyQt5 import QtCore, QtGui, QtWidgets
+
+from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtCore import pyqtSignal
 
+from linien.gui.utils_gui import color_to_hex
 from linien.gui.widgets import CustomWidget
 
 
-class PSDTableWidget(QtGui.QTableWidget, CustomWidget):
+class PSDTableWidget(QtWidgets.QTableWidget, CustomWidget):
     show_or_hide_curve = pyqtSignal(str, bool)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.AdjustToContents)
 
         self.uuids = []
@@ -31,7 +30,7 @@ class PSDTableWidget(QtGui.QTableWidget, CustomWidget):
         else:
             row_count = self.uuids.index(uuid)
 
-        checkbox = QtGui.QCheckBox()
+        checkbox = QtWidgets.QCheckBox()
 
         checkbox.setChecked(True)
         checkbox.setStyleSheet("margin-left:auto; margin-right:auto;")
@@ -40,13 +39,13 @@ class PSDTableWidget(QtGui.QTableWidget, CustomWidget):
         )
         self.setCellWidget(row_count, 0, checkbox)
 
-        display_color = QtGui.QLabel()
+        display_color = QtWidgets.QLabel()
 
         display_color.setStyleSheet("background-color: " + color_to_hex(color))
         self.setCellWidget(row_count, 1, display_color)
 
         def create_item(text):
-            item = QtGui.QTableWidgetItem(str(text))
+            item = QtWidgets.QTableWidgetItem(str(text))
             item.setFlags(item.flags() ^ QtCore.Qt.ItemIsEditable)
             item.setTextAlignment(QtCore.Qt.AlignCenter)
             return item

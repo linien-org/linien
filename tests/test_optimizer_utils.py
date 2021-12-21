@@ -1,12 +1,9 @@
-import numpy as np
-from linien.server.optimization.utils import (
-    calculate_spectrum_from_iq,
-    get_max_slope,
-    optimize_phase_from_iq,
-)
-from matplotlib import pyplot as plt
-from scipy.optimize import minimize_scalar
 from random import randint, random
+
+import numpy as np
+from scipy.optimize import minimize_scalar
+
+from linien.server.optimization.utils import get_max_slope, optimize_phase_from_iq
 
 
 def test_get_max_slope():
@@ -27,7 +24,6 @@ def test_get_max_slope():
     i = join(
         [generate_slope(slope=1), generate_slope(slope=-2), generate_slope(slope=1)]
     )
-    q = i
 
     assert get_max_slope(i, 10) == 2.0
 
@@ -83,10 +79,10 @@ def test_iq():
         data = generate_fake_data(spectrum, phase=30)  # phase=randint(0, 360))
 
         spectrum2 = spectrum_for_testing(x + random() * 3)
-        data2 = generate_fake_data(spectrum2, phase=randint(0, 360))
+        data2 = generate_fake_data(spectrum2, phase=randint(0, 360))  # noqa: F841
 
         spectrum3 = spectrum_for_testing(x + random() * 3)
-        data3 = generate_fake_data(spectrum3, phase=randint(0, 360))
+        data3 = generate_fake_data(spectrum3, phase=randint(0, 360))  # noqa: F841
 
         combined = data  # + data2 + data3
 

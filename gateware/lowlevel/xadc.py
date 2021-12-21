@@ -15,8 +15,18 @@
 # You should have received a copy of the GNU General Public License
 # along with redpid.  If not, see <http://www.gnu.org/licenses/>.
 
-from migen import *
-from misoc.interconnect.csr import CSRStatus, AutoCSR
+from migen import (
+    Case,
+    Cat,
+    ClockSignal,
+    If,
+    Instance,
+    Module,
+    Replicate,
+    ResetSignal,
+    Signal,
+)
+from misoc.interconnect.csr import AutoCSR, CSRStatus
 
 
 class XADC(Module, AutoCSR):

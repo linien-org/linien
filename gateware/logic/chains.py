@@ -1,10 +1,10 @@
-from migen import Signal, Module, Array, Mux, Cat, If, bits_for
-from misoc.interconnect.csr import AutoCSR, CSRStorage, CSRStatus, CSR
+from migen import Array, Cat, If, Module, Mux, Signal, bits_for
+from misoc.interconnect.csr import CSR, AutoCSR, CSRStatus, CSRStorage
 
 from .iir import Iir
-from .pid import PID
 from .limit import LimitCSR
 from .modulate import Demodulate
+from .pid import PID
 
 
 class FastChain(Module, AutoCSR):
@@ -85,12 +85,13 @@ class FastChain(Module, AutoCSR):
 
             ys = Array([iir_c.x, iir_c.y, iir_d.y])
 
+            output_signal_this_channel = (self.out_i, self.out_q)[sub_channel_idx]
             self.comb += [
                 y_limit.x.eq(
                     Mux(self.invert.storage, -1, 1)
                     * (ys[self.y_tap.storage] + (ya << s) + (offset_signal << s))
                 ),
-                (self.out_i, self.out_q)[sub_channel_idx].eq(y_limit.y),
+                output_signal_this_channel.eq(y_limit.y),
             ]
 
 

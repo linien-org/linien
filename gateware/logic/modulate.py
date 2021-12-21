@@ -15,8 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with redpid.  If not, see <http://www.gnu.org/licenses/>.
 
-from migen import Module, Signal, If
-from misoc.interconnect.csr import CSRStorage, AutoCSR
+from migen import If, Module, Signal
+from misoc.interconnect.csr import AutoCSR, CSRStorage
 
 from .cordic import Cordic
 from .filter import Filter

@@ -1,10 +1,11 @@
-from PyQt5 import QtGui
-from linien.gui.widgets import CustomWidget
-from linien.gui.utils_gui import param2ui
+from PyQt5 import QtWidgets
+
 from linien.client.connection import MHz, Vpp
+from linien.gui.utils_gui import param2ui
+from linien.gui.widgets import CustomWidget
 
 
-class OptimizationPanel(QtGui.QWidget, CustomWidget):
+class OptimizationPanel(QtWidgets.QWidget, CustomWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.load_ui("optimization_panel.ui")
@@ -83,11 +84,14 @@ class OptimizationPanel(QtGui.QWidget, CustomWidget):
             optimized = self.parameters.optimization_optimized_parameters.value
 
             self.ids.optimization_display_parameters.setText(
-                """<br />
-                <b>current parameters</b>: %.2f&nbsp;MHz, %.2f&nbsp;Vpp, %.2f&nbsp;deg<br />
-                <b>optimized parameters</b>: %.2f&nbsp;MHz, %.2f&nbsp;Vpp, %.2f&nbsp;deg
-                <br />
-                """
+                (
+                    "<br />\n"
+                    "<b>current parameters</b>: "
+                    " %.2f&nbsp;MHz, %.2f&nbsp;Vpp, %.2f&nbsp;deg<br />\n"
+                    "<b>optimized parameters</b>: "
+                    "%.2f&nbsp;MHz, %.2f&nbsp;Vpp, %.2f&nbsp;deg\n"
+                    "<br />"
+                )
                 % (
                     self.parameters.modulation_frequency.value / MHz,
                     self.parameters.modulation_amplitude.value / Vpp,
@@ -139,6 +143,12 @@ class OptimizationPanel(QtGui.QWidget, CustomWidget):
             self.ids.optimization_channel_selector_box.setVisible(value)
 
         self.parameters.dual_channel.on_change(dual_channel_changed)
+
+        def fast_mode_changed(fast_mode_enabled):
+            """Disables this panel if fast mode is enabled (nothing to optimize)"""
+            self.setEnabled(not fast_mode_enabled)
+
+        params.fast_mode.on_change(fast_mode_changed)
 
     def start_optimization(self):
         self.parameters.optimization_selection.value = True

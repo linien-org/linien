@@ -15,9 +15,9 @@
 # You should have received a copy of the GNU General Public License
 # along with redpid.  If not, see <http://www.gnu.org/licenses/>.
 
-from math import atan, atanh, log, sqrt, pi
+from math import atan, atanh, log, pi, sqrt
 
-from migen import *
+from migen import Array, Cat, If, Module, Mux, Signal
 
 
 class TwoQuadrantCordic(Module):

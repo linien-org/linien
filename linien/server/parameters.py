@@ -1,6 +1,12 @@
-from linien.server.parameters_base import BaseParameters, Parameter
+from linien.common import (
+    AUTO_DETECT_AUTOLOCK_MODE,
+    FAST_AUTOLOCK,
+    PSD_ALGORITHM_LPSD,
+    MHz,
+    Vpp,
+)
 from linien.config import DEFAULT_COLORS, N_COLORS
-from linien.common import AUTO_DETECT_AUTOLOCK_MODE, FAST_AUTOLOCK, Vpp, MHz
+from linien.server.parameters_base import BaseParameters, Parameter
 
 
 class Parameters(BaseParameters):
@@ -31,6 +37,7 @@ class Parameters(BaseParameters):
         # parameters whose values are saved by the client and restored if the
         # client connects to the RedPitaya with no server running.
         self._restorable_parameters = (
+            "fast_mode",
             "modulation_amplitude",
             "modulation_frequency",
             "ramp_speed",
@@ -223,6 +230,9 @@ class Parameters(BaseParameters):
         self.modulation_frequency = Parameter(min_=0, max_=0xFFFFFFFF, start=15 * MHz)
 
         #           --------- DEMODULATION AND FILTER PARAMETERS ---------
+        # fast mode allows to bypass demodulation and IIR filtering of the fast
+        # channels.
+        self.fast_mode = Parameter(start=False)
         # Linien allows for two simulataneous demodulation channels. By default,
         # only one is enabled. This is controlled by `dual_channel`.
         self.dual_channel = Parameter(start=False)
@@ -365,6 +375,7 @@ class Parameters(BaseParameters):
         self.acquisition_raw_filter_frequency = Parameter(start=0)
         self.psd_data_partial = Parameter(start=None)
         self.psd_data_complete = Parameter(start=None)
+        self.psd_algorithm = Parameter(start=PSD_ALGORITHM_LPSD)
         self.psd_acquisition_running = Parameter(start=False)
         self.psd_optimization_running = Parameter(start=False)
         self.psd_acquisition_max_decimation = Parameter(start=18, min_=1, max_=32)

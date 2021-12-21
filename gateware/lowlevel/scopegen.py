@@ -1,5 +1,6 @@
-from migen import Signal, Module, Instance, ClockSignal, ResetSignal, Array, Record, If
+from migen import Array, ClockSignal, If, Instance, Module, Record, ResetSignal, Signal
 from misoc.interconnect.csr import AutoCSR, CSRStorage
+
 from .pitaya_ps import sys_layout
 
 

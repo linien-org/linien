@@ -1,8 +1,8 @@
 import os
-import rpyc
 import pickle
-import appdirs
 
+import appdirs
+import rpyc
 
 COLORS = {
     "spectrum_1": 0,

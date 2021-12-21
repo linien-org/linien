@@ -1,15 +1,16 @@
 import numpy as np
-
-from csr import PitayaCSR, make_filter
+from csr import PitayaCSR
+from iir_coeffs import make_filter
 from utils import twos_complement
-from linien.config import DEFAULT_RAMP_SPEED
+
 from linien.common import (
-    convert_channel_mixing_value,
-    LOW_PASS_FILTER,
-    HIGH_PASS_FILTER,
     ANALOG_OUT0,
+    HIGH_PASS_FILTER,
+    LOW_PASS_FILTER,
     MHz,
+    convert_channel_mixing_value,
 )
+from linien.config import DEFAULT_RAMP_SPEED
 from linien.server.acquisition import AcquisitionMaster
 
 
@@ -101,6 +102,7 @@ class Registers:
             if params["modulation_frequency"] > 0
             else 0,
             logic_dual_channel=int(params["dual_channel"]),
+            logic_fast_mode=int(params["fast_mode"]),
             logic_chain_a_factor=factor_a,
             logic_chain_b_factor=factor_b,
             logic_chain_a_offset=twos_complement(int(params["offset_a"]), 14),

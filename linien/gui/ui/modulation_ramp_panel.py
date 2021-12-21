@@ -1,11 +1,11 @@
-import numpy as np
-from PyQt5 import QtGui
-from linien.gui.widgets import CustomWidget
+from PyQt5 import QtWidgets
+
 from linien.client.connection import MHz, Vpp
 from linien.gui.utils_gui import param2ui
+from linien.gui.widgets import CustomWidget
 
 
-class ModulationAndRampPanel(QtGui.QWidget, CustomWidget):
+class ModulationAndRampPanel(QtWidgets.QWidget, CustomWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.load_ui("modulation_ramp_panel.ui")
@@ -40,6 +40,18 @@ class ModulationAndRampPanel(QtGui.QWidget, CustomWidget):
         param2ui(self.parameters.ramp_speed, self.ids.ramp_speed)
 
         self.parameters.dual_channel.on_change(self.dual_channel_changed)
+
+        def fast_mode_changed(fast_mode_enabled):
+            """Disables controls that are irrelevant if fast mode is enabled"""
+            widgets_to_disable = (
+                self.ids.modulation_frequency_group,
+                self.ids.modulation_amplitude_group,
+                self.ids.spectroscopyTabs,
+            )
+            for widget in widgets_to_disable:
+                widget.setEnabled(not fast_mode_enabled)
+
+        params.fast_mode.on_change(fast_mode_changed)
 
     def change_modulation_frequency(self):
         self.parameters.modulation_frequency.value = (

@@ -1,7 +1,9 @@
 from typing import Callable
+
 import rpyc
 from rpyc import async_
-from linien.common import unpack, pack
+
+from linien.common import pack, unpack
 
 
 class RemoteParameters:
