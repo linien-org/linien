@@ -53,6 +53,18 @@ class ModulationAndSweepPanel(QtWidgets.QWidget, CustomWidget):
 
         self.parameters.fast_mode.on_change(fast_mode_changed)
 
+        def fast_mode_changed(fast_mode_enabled):
+            """Disables controls that are irrelevant if fast mode is enabled"""
+            widgets_to_disable = (
+                self.ids.modulation_frequency_group,
+                self.ids.modulation_amplitude_group,
+                self.ids.spectroscopyTabs,
+            )
+            for widget in widgets_to_disable:
+                widget.setEnabled(not fast_mode_enabled)
+
+        params.fast_mode.on_change(fast_mode_changed)
+
     def change_modulation_frequency(self):
         self.parameters.modulation_frequency.value = (
             self.ids.modulation_frequency.value() * MHz
