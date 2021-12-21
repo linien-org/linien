@@ -62,7 +62,7 @@ class GeneralPanel(QtWidgets.QWidget, CustomWidget):
 
         param2ui(self.parameters.fast_mode, self.ids.fast_mode)
 
-        param2ui(params.fast_mode, self.ids.fast_mode)
+        param2ui(self.parameters.fast_mode, self.ids.fast_mode)
 
         def dual_channel_changed(value):
             self.ids.dual_channel_mixing.setVisible(value)
