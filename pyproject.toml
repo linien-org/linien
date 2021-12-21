@@ -11,3 +11,11 @@ exclude = '''
 
 [tool.isort]
 profile = "black"
+
+[tool.pytest.ini_options]
+plt_dirname = "tests/plots"
+
+# don't complain about plt_dirname
+filterwarnings = "ignore::pytest.PytestConfigWarning"
+
+markers = """slow : marks tests as slow (deselect with '-m "not slow"')"""
