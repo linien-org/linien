@@ -5,6 +5,7 @@ from migen import run_simulation
 from gateware.linien import LinienLogic
 from gateware.logic.pid import PID
 from gateware.logic.sweep import SweepCSR
+from linien.common import FAST_AUTOLOCK
 
 VCD_DIR = Path(__file__).parent / "vcd"
 
@@ -16,6 +17,7 @@ def test_root():
         pid: PID = root.pid
         autolock = root.autolock
         fast = autolock.fast
+        yield autolock.autolock_mode.storage.eq(FAST_AUTOLOCK)
 
         yield fast.target_position.storage.eq(lock_target_position)
 
@@ -65,7 +67,15 @@ def test_root():
             if iteration == 0:
                 # check that after zero crossing, PID is turned on and sweep off
                 yield
+
+                autolock_requested = yield autolock.request_lock.storage
+                fast_turn_on = yield fast.turn_on_lock
+
+                assert autolock_requested
+                assert fast_turn_on
+
                 pid_running = yield pid.running
+                sweep_out = yield sweep.y
                 assert pid_running == 1
 
                 yield
@@ -94,9 +104,13 @@ def test_root():
                     assert pid_running == 0
 
     dut = LinienLogic()
-    run_simulation(dut, tb(dut, 0), vcd_name=VCD_DIR / "root_target0.vcd")
+    run_simulation(
+        dut, tb(dut, lock_target_position=0), vcd_name=VCD_DIR / "root_target0.vcd"
+    )
     dut = LinienLogic()
-    run_simulation(dut, tb(dut, -40), vcd_name=VCD_DIR / "root_target-40.vcd")
+    run_simulation(
+        dut, tb(dut, lock_target_position=-40), vcd_name=VCD_DIR / "root_target-40.vcd"
+    )
     dut = LinienLogic()
     run_simulation(dut, tb(dut, 51), vcd_name=VCD_DIR / "root_target_51.vcd")
 

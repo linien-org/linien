@@ -20,3 +20,7 @@ VERSION
 .Xil
 .pytest_cache
 *.egg-info
+
+# results of pytest-html
+tests/*.html
+tests/assets/*
