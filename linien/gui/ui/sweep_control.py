@@ -1,10 +1,10 @@
 import superqt
-from PyQt5 import QtGui
+from PyQt5 import QtGui, QtWidgets
 
 from linien.gui.widgets import CustomWidget
 
 
-class SweepControlWidget(QtGui.QWidget, CustomWidget):
+class SweepControlWidget(QtWidgets.QWidget, CustomWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
