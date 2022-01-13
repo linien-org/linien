@@ -211,3 +211,15 @@ def test_change_sweep_min_max(dut, plt):
         previous_y = val
     # This test currently fails.
     assert y_changed
+
+    # test that values are changing again and are within the new range (2nd time):
+    y_changed = False
+    previous_y = y[change_min_max_at[6] + 3]
+    for val in y[change_min_max_at[6] + 3 : change_min_max_at[-1]]:
+        assert val >= 0
+        assert val <= 1100
+        if val != previous_y:
+            y_changed = True
+        previous_y = val
+    # This works.
+    assert y_changed
