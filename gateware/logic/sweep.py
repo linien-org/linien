@@ -16,9 +16,8 @@
 # along with redpid.  If not, see <http://www.gnu.org/licenses/>.
 
 from migen import Cat, If, Module, Signal, bits_for
-from misoc.interconnect.csr import CSRConstant, CSRStorage
+from misoc.interconnect.csr import AutoCSR, CSRConstant, CSRStorage
 
-from .filter import Filter
 from .limit import Limit
 
 
@@ -63,14 +62,16 @@ class Sweep(Module):
         ]
 
 
-class SweepCSR(Filter):
-    def __init__(self, step_width=None, step_shift=0, **kwargs):
-        Filter.__init__(self, **kwargs)
+class SweepCSR(Module, AutoCSR):
+    def __init__(self, width, step_width=None, step_shift=0):
+        self.x = Signal((width, True))
+        self.y = Signal((width, True))
 
-        # required by tests
-        self.step_shift = step_shift
+        self.hold = Signal()
+        self.clear = Signal()
+        self.error = Signal()
 
-        width = len(self.y)
+        self.step_shift = step_shift # required by tests
         if step_width is None:
             step_width = width
 
