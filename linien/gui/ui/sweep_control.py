@@ -61,10 +61,9 @@ class SweepControlWidget(QtWidgets.QWidget, CustomWidget):
         # If sweep is paused, resume it or vice versa.
         if self.parameters.sweep_pause.value:
             self.parameters.sweep_pause.value = False
-            self.control.write_registers()
         else:
             self.parameters.sweep_pause.value = True
-            self.control.write_registers()
+        self.control.write_registers()
 
     def update_sweep_center(self, center):
         self.parameters.sweep_center.value = center
