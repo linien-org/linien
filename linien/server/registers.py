@@ -90,8 +90,7 @@ class Registers:
             # `sweep.clear`
             logic_sweep_run=1,
             logic_sweep_step=int(
-                int(params["sweep"])  # controls whether sweep is turned on
-                * DEFAULT_SWEEP_SPEED
+                DEFAULT_SWEEP_SPEED
                 * params["sweep_amplitude"]
                 / (2 ** params["sweep_speed"])
             ),
