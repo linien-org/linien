@@ -81,12 +81,14 @@ class SweepCSR(Module, AutoCSR):
         self.max = CSRStorage(width, reset=(1 << (width - 1)) - 1)
         self.run = CSRStorage(1)
 
+        self.pause = CSRStorage(1)
+        self.pause_value = CSRStorage(width, reset=0)
+
         ###
 
         self.submodules.sweep = Sweep(width + step_shift + 1)
         self.submodules.limit = Limit(width + 1)
 
-        min, max = self.min.storage, self.max.storage
         self.comb += [
             self.sweep.run.eq(~self.clear & self.run.storage),
             self.sweep.hold.eq(self.hold),
@@ -94,8 +96,12 @@ class SweepCSR(Module, AutoCSR):
             self.sweep.step.eq(self.step.storage),
         ]
         self.sync += [
-            self.limit.min.eq(Cat(min, min[-1])),
-            self.limit.max.eq(Cat(max, max[-1])),
+            self.limit.min.eq(Cat(self.min.storage, self.min.storage[-1])),
+            self.limit.max.eq(Cat(self.max.storage, self.max.storage[-1])),
             self.sweep.turn.eq(self.limit.railed),
-            self.y.eq(self.limit.y),
+            If(~self.pause.storage,
+                self.y.eq(self.limit.y)
+            ).Else(
+                self.y.eq(self.pause_value.storage),
+            )
         ]
