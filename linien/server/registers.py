@@ -89,6 +89,8 @@ class Registers:
             # of stopping the sweep run after `request_lock` is set by setting
             # `sweep.clear`
             logic_sweep_run=1,
+            logic_sweep_pause=int(params["sweep_pause"]),
+            logic_sweep_pause_value=int(params["sweep_center"] * 8191),
             logic_sweep_step=int(
                 DEFAULT_SWEEP_SPEED
                 * params["sweep_amplitude"]
