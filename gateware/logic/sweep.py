@@ -16,9 +16,8 @@
 # along with redpid.  If not, see <http://www.gnu.org/licenses/>.
 
 from migen import Cat, If, Module, Signal, bits_for
-from misoc.interconnect.csr import CSRConstant, CSRStorage
+from misoc.interconnect.csr import AutoCSR, CSRConstant, CSRStorage
 
-from .filter import Filter
 from .limit import Limit
 
 
@@ -63,38 +62,46 @@ class Sweep(Module):
         ]
 
 
-class SweepCSR(Filter):
-    def __init__(self, step_width=None, step_shift=0, **kwargs):
-        Filter.__init__(self, **kwargs)
+class SweepCSR(Module, AutoCSR):
+    def __init__(self, width, step_width=None, step_shift=0):
+        self.x = Signal((width, True))
+        self.y = Signal((width, True))
 
-        # required by tests
+        self.hold = Signal()
+        self.clear = Signal()
+
+        # step_shift is used to increase the sweep's width to allow for slower sweeps,
+        # i.e. smaller steps.
         self.step_shift = step_shift
-
-        width = len(self.y)
         if step_width is None:
             step_width = width
 
-        self.shift = CSRConstant(step_shift, bits_for(step_shift))
         self.step = CSRStorage(step_width)
         self.min = CSRStorage(width, reset=1 << (width - 1))
         self.max = CSRStorage(width, reset=(1 << (width - 1)) - 1)
         self.run = CSRStorage(1)
+        self.pause = CSRStorage(1)
 
         ###
 
-        self.submodules.sweep = Sweep(width + step_shift + 1)
+        # Add sweep module with (optionally) increased width.
+        self.submodules.sweep = Sweep(width + self.step_shift + 1)
         self.submodules.limit = Limit(width + 1)
 
-        min, max = self.min.storage, self.max.storage
         self.comb += [
             self.sweep.run.eq(~self.clear & self.run.storage),
             self.sweep.hold.eq(self.hold),
-            self.limit.x.eq(self.sweep.y >> step_shift),
+            # Shifting the output of the sweep back to its actual width.
+            self.limit.x.eq(self.sweep.y >> self.step_shift),
             self.sweep.step.eq(self.step.storage),
         ]
         self.sync += [
-            self.limit.min.eq(Cat(min, min[-1])),
-            self.limit.max.eq(Cat(max, max[-1])),
+            self.limit.min.eq(Cat(self.min.storage, self.min.storage[-1])),
+            self.limit.max.eq(Cat(self.max.storage, self.max.storage[-1])),
             self.sweep.turn.eq(self.limit.railed),
-            self.y.eq(self.limit.y),
+            If(self.pause.storage,
+                self.y.eq(0),
+            ).Else(
+                self.y.eq(self.limit.y)
+            )
         ]

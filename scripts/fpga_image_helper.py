@@ -51,13 +51,12 @@ if __name__ == "__main__":
     platform = Platform()
     root = RootModule(platform)
 
-    fil = open("linien/server/csrmap.py", "w")
-    py_csrconstants(root.linien.csrbanks.constants, fil)
-    csr = get_csrmap(root.linien.csrbanks.banks)
-    py_csrmap(csr, fil)
-    fil.write("states = {}\n".format(repr(root.linien.state_names)))
-    fil.write("signals = {}\n".format(repr(root.linien.signal_names)))
-    fil.close()
+    with open("linien/server/csrmap.py", "w") as fil:
+        py_csrconstants(root.linien.csrbanks.constants, fil)
+        csr = get_csrmap(root.linien.csrbanks.banks)
+        py_csrmap(csr, fil)
+        fil.write("states = {}\n".format(repr(root.linien.state_names)))
+        fil.write("signals = {}\n".format(repr(root.linien.signal_names)))
 
     platform.add_source_dir("verilog")
     build_dir = "fpga_build"
