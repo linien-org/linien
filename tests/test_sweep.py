@@ -10,7 +10,7 @@ VCD_DIR = Path(__file__).parent / "vcd"
 
 @pytest.fixture
 def dut():
-    return SweepCSR(width=16)
+    return SweepCSR(width=14)
 
 
 def test_simple_sweep(dut, plt):
@@ -23,9 +23,9 @@ def test_simple_sweep(dut, plt):
     up = []
 
     def testbench():
-        yield dut.step.storage.eq(1 << 4)
-        yield dut.min.storage.eq(0xFFFF & (-(1 << 10)))
-        yield dut.max.storage.eq(1 << 10)
+        yield dut.step.storage.eq(16)
+        yield dut.min.storage.eq(-1024)
+        yield dut.max.storage.eq(1024)
         yield dut.run.storage.eq(1)
         for _ in range(n):
             y.append((yield dut.y))
@@ -77,9 +77,9 @@ def test_sweep_start_stop(dut, plt):
     switch_run_at = [10, 210, 250, 280]
 
     def testbench():
-        yield dut.step.storage.eq(1 << 4)
-        yield dut.min.storage.eq(0xFFFF & (-(1 << 10)))
-        yield dut.max.storage.eq(1 << 10)
+        yield dut.step.storage.eq(16)
+        yield dut.min.storage.eq(-1024)
+        yield dut.max.storage.eq(1024)
         yield dut.run.storage.eq(0)
         for i in range(n):
             if i == switch_run_at[0]:
@@ -134,9 +134,9 @@ def test_change_sweep_min_max(dut, plt):
     change_min_max_at = [0, 10, 80, 120]
 
     def testbench():
-        yield dut.step.storage.eq(1 << 4)
-        yield dut.min.storage.eq(0xFFFF & (-(1 << 10)))
-        yield dut.max.storage.eq(1 << 10)
+        yield dut.step.storage.eq(16)
+        yield dut.min.storage.eq(-1024)
+        yield dut.max.storage.eq(1024)
         yield dut.run.storage.eq(1)
         for i in range(n):
             if i == change_min_max_at[1]:
