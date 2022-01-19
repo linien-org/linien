@@ -52,15 +52,15 @@ class RelockingChannelSettings(QtWidgets.QWidget, CustomWidget):
         self.parameter_enabled.value = int(
             self.ids.enableRelockingThisChannel.checkState()
         )
-        self.control.write_data()
+        self.control.write_registers()
 
     def min_value_changed(self):
         self.parameter_min.value = self.ids.relockingThisChannelMin.value()
-        self.control.write_data()
+        self.control.write_registers()
 
     def max_value_changed(self):
         self.parameter_max.value = self.ids.relockingThisChannelMax.value()
-        self.control.write_data()
+        self.control.write_registers()
 
 
 class RelockingControlChannelSettings(RelockingChannelSettings):

@@ -62,7 +62,7 @@ class RelockingConfigurator(QtWidgets.QWidget, CustomWidget):
         self.parameters.automatic_relocking.value = int(
             self.ids.automaticRelockingCheckbox.checkState()
         )
-        self.control.write_data()
+        self.control.write_registers()
 
         self.plot_relocking_thresholds()
 
