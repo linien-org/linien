@@ -69,30 +69,30 @@ class SweepCSR(Module, AutoCSR):
 
         self.hold = Signal()
         self.clear = Signal()
-        self.error = Signal()
 
-        self.step_shift = step_shift # required by tests
+        # step_shift is used to increase the sweep's width to allow for slower sweeps,
+        # i.e. smaller steps.
+        self.step_shift = step_shift
         if step_width is None:
             step_width = width
 
-        self.shift = CSRConstant(step_shift, bits_for(step_shift))
         self.step = CSRStorage(step_width)
         self.min = CSRStorage(width, reset=1 << (width - 1))
         self.max = CSRStorage(width, reset=(1 << (width - 1)) - 1)
         self.run = CSRStorage(1)
-
         self.pause = CSRStorage(1)
-        self.pause_value = CSRStorage(width, reset=0)
 
         ###
 
-        self.submodules.sweep = Sweep(width + step_shift + 1)
+        # Add sweep module with (optionally) increased width.
+        self.submodules.sweep = Sweep(width + self.step_shift + 1)
         self.submodules.limit = Limit(width + 1)
 
         self.comb += [
             self.sweep.run.eq(~self.clear & self.run.storage),
             self.sweep.hold.eq(self.hold),
-            self.limit.x.eq(self.sweep.y >> step_shift),
+            # Shifting the output of the sweep back to its actual width.
+            self.limit.x.eq(self.sweep.y >> self.step_shift),
             self.sweep.step.eq(self.step.storage),
         ]
         self.sync += [
@@ -100,8 +100,8 @@ class SweepCSR(Module, AutoCSR):
             self.limit.max.eq(Cat(self.max.storage, self.max.storage[-1])),
             self.sweep.turn.eq(self.limit.railed),
             If(~self.pause.storage,
-                self.y.eq(self.limit.y)
+                self.y.eq(0),
             ).Else(
-                self.y.eq(self.pause_value.storage),
+                self.y.eq(self.limit.y)
             )
         ]
