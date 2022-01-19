@@ -99,7 +99,7 @@ class SweepCSR(Module, AutoCSR):
             self.limit.min.eq(Cat(self.min.storage, self.min.storage[-1])),
             self.limit.max.eq(Cat(self.max.storage, self.max.storage[-1])),
             self.sweep.turn.eq(self.limit.railed),
-            If(~self.pause.storage,
+            If(self.pause.storage,
                 self.y.eq(0),
             ).Else(
                 self.y.eq(self.limit.y)
