@@ -1,10 +1,11 @@
+from PyQt5 import QtCore, QtWidgets
+
 from linien.common import (
     get_name_automatic_relocking_enabled_parameter,
     get_name_automatic_relocking_max_parameter,
     get_name_automatic_relocking_min_parameter,
 )
 from linien.gui.utils_gui import param2ui
-from PyQt5 import QtWidgets, QtCore
 from linien.gui.widgets import CustomWidget
 
 
@@ -22,16 +23,17 @@ class RelockingConfigurator(QtWidgets.QWidget, CustomWidget):
         )
 
     def connection_established(self):
-        params = self.app().parameters
-        self.control = self.app().control
-        self.parameters = params
+        self.parameters = self.app.parameters
+        self.control = self.app.control
 
-        param2ui(params.automatic_relocking, self.ids.automaticRelockingCheckbox)
+        param2ui(
+            self.parameters.automatic_relocking, self.ids.automaticRelockingCheckbox
+        )
 
         def enable_or_disable_relocking_panel(enable):
             self.ids.automaticRelockingPanel.setEnabled(enable)
 
-        params.automatic_relocking.on_change(enable_or_disable_relocking_panel)
+        self.parameters.automatic_relocking.on_change(enable_or_disable_relocking_panel)
 
         self.ids.automaticRelockingPanel.currentChanged.connect(
             self.plot_relocking_thresholds
