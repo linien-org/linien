@@ -1,5 +1,5 @@
-from migen import Module, If, Signal
-from misoc.interconnect.csr import CSRStorage, AutoCSR, CSRStatus
+from migen import If, Module, Signal
+from misoc.interconnect.csr import AutoCSR, CSRStatus, CSRStorage
 
 
 class RelockWatcher(Module, AutoCSR):
