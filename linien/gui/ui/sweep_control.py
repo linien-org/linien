@@ -35,7 +35,6 @@ class SweepControlWidget(QtWidgets.QWidget, CustomWidget):
     def display_sweep_status(self, *args):
         center = self.parameters.sweep_center.value
         amplitude = self.parameters.sweep_amplitude.value
-        sweep_is_paused = self.parameters.sweep_pause.value
         min_ = center - amplitude
         max_ = center + amplitude
 
@@ -48,7 +47,7 @@ class SweepControlWidget(QtWidgets.QWidget, CustomWidget):
         self.ids.sweep_slider.setValue((min_, max_))
         self.ids.sweep_center.setValue(center)
         self.ids.sweep_amplitude.setValue(amplitude)
-        if sweep_is_paused:
+        if self.parameters.sweep_pause.value:
             self.ids.sweep_start_stop_button.setText("Start")
         else:
             self.ids.sweep_start_stop_button.setText("Pause")
@@ -59,10 +58,7 @@ class SweepControlWidget(QtWidgets.QWidget, CustomWidget):
 
     def pause_or_resume_sweep(self):
         # If sweep is paused, resume it or vice versa.
-        if self.parameters.sweep_pause.value:
-            self.parameters.sweep_pause.value = False
-        else:
-            self.parameters.sweep_pause.value = True
+        self.parameters.sweep_pause.value = not self.parameters.sweep_pause.value
         self.control.write_registers()
 
     def update_sweep_center(self, center):
