@@ -1,3 +1,15 @@
+from pathlib import Path
+
+import numpy as np
+import pytest
+from migen import run_simulation
+
+from gateware.logic.autolock import RobustAutolock
+from gateware.logic.autolock_utils import DynamicDelay, SumDiffCalculator
+from linien.server.autolock.robust import (
+    calculate_autolock_instructions,
+    get_lock_position_from_autolock_instructions,
+)
 from linien.server.autolock.utils import (
     crop_spectra_to_same_view,
     get_diff_at_time_scale,
@@ -5,20 +17,8 @@ from linien.server.autolock.utils import (
     get_time_scale,
     sum_up_spectrum,
 )
-from linien.server.autolock.robust import (
-    calculate_autolock_instructions,
-    get_lock_position_from_autolock_instructions,
-)
-from gateware.logic.autolock_utils import DynamicDelay, SumDiffCalculator
-from gateware.logic.autolock import (
-    RobustAutolock,
-    get_lock_position_from_autolock_instructions_by_simulating_fpga,
-)
-import numpy as np
-from matplotlib import pyplot as plt
-from migen import run_simulation
 
-
+VCD_DIR = Path(__file__).parent / "vcd"
 FPGA_DELAY_SUMDIFF_CALCULATOR = 2
 
 
@@ -64,7 +64,56 @@ def add_jitter(spectrum, level=None, exact_value=None):
     return np.roll(spectrum, shift)
 
 
-def test_get_description(debug=False):
+@pytest.mark.slow
+def test_get_description(plt, debug=True):
+    def get_lock_position_from_autolock_instructions_by_simulating_fpga(
+        spectrum, description, time_scale, initial_spectrum, final_wait_time
+    ):
+        """This function simulated the behavior of `RobustAutolock` on FPGA
+        and allows to find out whether FPGA would lock to the correct point."""
+        result = {}
+
+        def tb(dut):
+            yield dut.sweep_up.eq(1)
+            yield dut.request_lock.eq(1)
+            yield dut.at_start.eq(1)
+            yield dut.writing_data_now.eq(1)
+
+            yield dut.N_instructions.storage.eq(len(description))
+            yield dut.final_wait_time.storage.eq(final_wait_time)
+
+            for description_idx, [wait_for, current_threshold] in enumerate(
+                description
+            ):
+                yield dut.peak_heights[description_idx].storage.eq(
+                    int(current_threshold)
+                )
+                yield dut.wait_for[description_idx].storage.eq(int(wait_for))
+
+            yield
+
+            yield dut.at_start.eq(0)
+            yield dut.time_scale.storage.eq(int(time_scale))
+
+            for i in range(len(spectrum)):
+                yield dut.input.eq(int(spectrum[i]))
+
+                turn_on_lock = yield dut.turn_on_lock
+                if turn_on_lock:
+                    result["index"] = i
+                    return
+
+                yield
+
+        dut = RobustAutolock()
+        run_simulation(
+            dut,
+            tb(dut),
+            vcd_name=VCD_DIR / "experimental_autolock_fpga_lock_position_finder.vcd",
+        )
+
+        return result.get("index")
+
     for sign_spectrum_multiplicator in (1, -1):
         for spectrum_generator in (pfd_spectrum, atomic_spectrum):
             spectrum, target_idxs = spectrum_generator(0)
@@ -72,7 +121,6 @@ def test_get_description(debug=False):
 
             if debug:
                 plt.plot(spectrum)
-                plt.show()
 
             jitters = [
                 0 if i == 0 else int(round(np.random.randn() * 50)) for i in range(10)
@@ -131,7 +179,7 @@ def test_get_description(debug=False):
 
             if debug:
                 plt.plot(spectra_with_jitter[0])
-                # plt.plot(get_diff_at_time_scale(sum_up_spectrum(spectra[0]), time_scale))
+                # plt.plot(get_diff_at_time_scale(sum_up_spectrum(spectra[0]), time_scale))  # noqa: E501
                 plt.axvspan(
                     lock_region[0],
                     lock_region[1],
@@ -148,7 +196,6 @@ def test_get_description(debug=False):
                 )
 
                 plt.legend()
-                plt.show()
 
 
 def test_dynamic_delay():
@@ -168,7 +215,9 @@ def test_dynamic_delay():
         assert out == 1
 
     dut = DynamicDelay(14 + 14, max_delay=8191)
-    run_simulation(dut, tb(dut), vcd_name="experimental_autolock_dynamic_delay.vcd")
+    run_simulation(
+        dut, tb(dut), vcd_name=VCD_DIR / "experimental_autolock_dynamic_delay.vcd"
+    )
 
 
 def test_sum_diff_calculator():
@@ -211,7 +260,7 @@ def test_sum_diff_calculator():
 
     dut = SumDiffCalculator(14, 8192)
     run_simulation(
-        dut, tb(dut), vcd_name="experimental_autolock_sum_diff_calculator.vcd"
+        dut, tb(dut), vcd_name=VCD_DIR / "experimental_autolock_sum_diff_calculator.vcd"
     )
 
 
@@ -234,7 +283,7 @@ def test_sum_diff_calculator2():
 
     dut = SumDiffCalculator(14, 8192)
     run_simulation(
-        dut, tb(dut), vcd_name="experimental_autolock_sum_diff_calculator.vcd"
+        dut, tb(dut), vcd_name=VCD_DIR / "experimental_autolock_sum_diff_calculator.vcd"
     )
 
     summed = sum_up_spectrum(spectrum)
@@ -246,7 +295,8 @@ def test_sum_diff_calculator2():
     assert out_fpga[1:] == summed_xscaled[:-1]
 
 
-def test_compare_sum_diff_calculator_implementations(debug=False):
+@pytest.mark.slow
+def test_compare_sum_diff_calculator_implementations(plt, debug=True):
     for iteration in (0, 1):
         if iteration == 1:
             spectrum, target_idxs = atomic_spectrum(0)
@@ -280,7 +330,9 @@ def test_compare_sum_diff_calculator_implementations(debug=False):
 
         dut = RobustAutolock()
         run_simulation(
-            dut, tb(dut), vcd_name="experimental_autolock_fpga_lock_position_finder.vcd"
+            dut,
+            tb(dut),
+            vcd_name=VCD_DIR / "experimental_autolock_fpga_lock_position_finder.vcd",
         )
 
         if debug:
@@ -292,7 +344,6 @@ def test_compare_sum_diff_calculator_implementations(debug=False):
                 label="FPGA calculation",
             )
             plt.legend()
-            plt.show()
 
             plt.plot(
                 summed_xscaled[:-FPGA_DELAY_SUMDIFF_CALCULATOR],
@@ -303,7 +354,6 @@ def test_compare_sum_diff_calculator_implementations(debug=False):
                 label="FPGA calculation",
             )
             plt.legend()
-            plt.show()
 
         assert (
             summed[:-FPGA_DELAY_SUMDIFF_CALCULATOR]
@@ -400,11 +450,13 @@ def test_fpga_lock_position_finder():
 
     dut = RobustAutolock()
     run_simulation(
-        dut, tb(dut), vcd_name="experimental_autolock_fpga_lock_position_finder.vcd"
+        dut,
+        tb(dut),
+        vcd_name=VCD_DIR / "experimental_autolock_fpga_lock_position_finder.vcd",
     )
 
 
-def test_crop_spectra_to_same_view():
+def test_crop_spectra_to_same_view(plt):
     spectra_to_test = (
         [np.roll(atomic_spectrum(0)[0], -i * 10) for i in range(10)],
         [np.roll(atomic_spectrum(0)[0], i * 10) for i in range(10)],
@@ -423,8 +475,7 @@ def test_crop_spectra_to_same_view():
         for cropped_spectrum in cropped_spectra:
             assert np.all(cropped_spectrum == cropped_spectra[0])
 
-            # plt.plot(cropped_spectrum)
-        # plt.show()
+            plt.plot(cropped_spectrum)
 
 
 if __name__ == "__main__":
@@ -434,4 +485,4 @@ if __name__ == "__main__":
     test_sum_diff_calculator()
     test_sum_diff_calculator2()
     test_fpga_lock_position_finder()
-    test_get_description(debug=False)
+    test_get_description(debug=True)

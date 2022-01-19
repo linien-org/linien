@@ -40,14 +40,17 @@ class FastAutolock:
             return
 
         lock_point = int(
-            round((shift * (-1)) * self.parameters.ramp_amplitude.value * 8191)
+            round((shift * (-1)) * self.parameters.sweep_amplitude.value * 8191)
         )
 
         print("lock point is", lock_point, shift)
 
         self.parameters.autolock_target_position.value = int(lock_point)
         self.parameters.autolock_preparing.value = False
-        self.control.exposed_write_data()
+        self.control.exposed_write_registers()
         self.control.exposed_start_lock()
 
         self._done = True
+
+    def after_lock(self):
+        pass

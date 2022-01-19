@@ -5,8 +5,10 @@ from time import sleep
 from traceback import print_exc
 from typing import Callable
 
-import linien
 import rpyc
+from plumbum import colors
+
+import linien
 from linien.client.exceptions import (
     GeneralConnectionErrorException,
     InvalidServerVersionException,
@@ -15,11 +17,10 @@ from linien.client.exceptions import (
 )
 from linien.client.remote_parameters import RemoteParameters
 from linien.client.utils import run_server
-from linien.config import DEFAULT_SERVER_PORT
-from plumbum import colors
 
 # IMPORTANT: keep this import, because it eases interfacing with the python client
-from linien.common import MHz, Vpp, ANALOG_OUT_V, hash_username_and_password
+from linien.common import ANALOG_OUT_V, MHz, Vpp, hash_username_and_password
+from linien.config import DEFAULT_SERVER_PORT
 
 assert MHz
 assert Vpp
@@ -146,6 +147,19 @@ class LinienClient(RawRPYCClient):
         use_parameter_cache=False,
         on_connection_lost: Callable = None,
     ):
+        """Connect to a RedPitaya that runs linien server.
+
+        Takes the following arguments:
+            * `device` should be a dictionary:
+                {
+                    "host": "rp-XXXXXX.local",
+                    "username": "root",
+                    "password": "your-username"
+                }
+            * `autostart_server`: A bool indicating whether this call
+              should automatically start a linien server on redpitaya if it
+              doesn't run already
+        """
         self.device = device
         self.host = device["host"]
         user = device.get("username")
@@ -156,7 +170,7 @@ class LinienClient(RawRPYCClient):
             # 127.0.0.1 in all cases
             self.host = "127.0.0.1"
         else:
-            assert user and password
+            assert user and password, "username and passwort are required"
 
         self.autostart_server = autostart_server
 
@@ -175,8 +189,6 @@ class LinienClient(RawRPYCClient):
         self.connection = None
 
         i = -1
-        server_was_started = False
-
         while True:
             i += 1
 
@@ -199,19 +211,20 @@ class LinienClient(RawRPYCClient):
             except EOFError:
                 print("EOFError! Probably authentication failed")
                 raise RPYCAuthenticationException()
-            except Exception as e:
+            except Exception:
                 if not self.autostart_server:
                     raise ServerNotRunningException()
 
                 if i == 0:
                     print("server is not running. Launching it!")
-                    server_was_started = True
                     run_server(host, user, password, port)
                     sleep(3)
                 else:
                     if i < 20:
                         print(
-                            "server still not running, waiting (this may take some time)..."
+                            """
+                            Server still not running, waiting (this may take some time).
+                            """
                         )
                         sleep(1)
                     else:

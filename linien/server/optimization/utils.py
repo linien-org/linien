@@ -1,7 +1,5 @@
-from linien.common import get_signal_strength_from_i_q
 import numpy as np
-from scipy import stats, optimize
-
+from scipy import optimize, stats
 
 # after the line was centered, its width will be 1/FINAL_ZOOM_FACTOR of the
 # view.

@@ -142,11 +142,15 @@ Then, adapt the output signals to your needs:
 
 ![image](https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/docs/explain-pins.png)
 
-When you're done, head over to *Modulation, Ramp & Spectroscopy* to configure modulation frequency and amplitude. Once your setup is working, you should see something like this:
+When you're done, head over to *Modulation, Sweep & Spectroscopy* to configure modulation frequency and amplitude. Once your setup is working, you should see something like this:
 
 ![image](https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/docs/spectrum.jpg)
 
 The bright red line is the demodulated spectroscopy signal. The dark red area is the signal strength obtained by [iq demodulation](https://en.wikipedia.org/wiki/In-phase_and_quadrature_components), i.e. the demodulation signal obtained when demodulating in phase at this point.
+
+### Fast Mode
+
+Fast mode is intended for bare PID operation (no demodulation or filtering), bypassing most of the FPGA functionality. If enabled, the signal flow is FAST IN 1 → PID → FAST OUT 2. This is useful, if aiming for a high control bandwidth: fast mode reduces propagation delay from 320 ns to 125 ns which may make a difference when phase-locking lasers.
 
 ### Optimization of spectroscopy parameters using machine learning (optional)
 
@@ -171,8 +175,8 @@ If you experience trouble with the autolock, this is most likely due to a bad si
 
 Linien implements two different autolock algorithms:
 
- * **Jitter-tolerant mode**: this algorithm runs on FPGA and analyzes the peak shapes in order to turn on the lock at the right ramp position. It is able to cope with a high amount of jitter as it runs completely on the FPGA, i.e. no delays due to communication between CPU and FPGA occur.
- * **Fast mode**: this algorithm uses a simple calculation of autocorrelation on the CPU which is then used to specify at which point of the ramp the lock should start. This algorithm is less complex than the first one and may be used if you experience problems with jitter-tolerant mode. As it requires some communication between CPU and FPGA which causes some delay, it may have problems if the line jitters a lot.
+ * **Jitter-tolerant mode**: this algorithm runs on FPGA and analyzes the peak shapes in order to turn on the lock at the right sweep position. It is able to cope with a high amount of jitter as it runs completely on the FPGA, i.e. no delays due to communication between CPU and FPGA occur.
+ * **Fast mode**: this algorithm uses a simple calculation of autocorrelation on the CPU which is then used to specify at which point of the sweep the lock should start. This algorithm is less complex than the first one and may be used if you experience problems with jitter-tolerant mode. As it requires some communication between CPU and FPGA which causes some delay, it may have problems if the line jitters a lot.
 
  By default, **auto-detect mode** is chosen: this mode choses an algorithm based on the amount of jitter.
 
@@ -189,7 +193,7 @@ Transfer function of the PID is given by
 L(f) = kp + ki / f + kd * f
 ```
 with `kp=P/4096`, `ki=I/0.1s` and `kd=D / (2**6 * 125e6)`.
-Note that this equation does not account for filtering before the PID (cf. *Modulation, Ramp & Spectroscopy* tab).
+Note that this equation does not account for filtering before the PID (cf. *Modulation, Sweep & Spectroscopy* tab).
 
 ![image](https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/docs/transfer.png)
 
@@ -218,8 +222,8 @@ print(c.parameters.modulation_frequency.value / MHz)
 # set modulation amplitude
 c.parameters.modulation_amplitude.value = 1 * Vpp
 # in the line above, we set a parameter. This is not written directly to the
-# FPGA, though. In order to do this, we have to call write_data():
-c.connection.root.write_data()
+# FPGA, though. In order to do this, we have to call write_registers():
+c.connection.root.write_registers()
 
 # additionally set ANALOG_OUT_1 to 1.2 volts DC (you can use this to control other devices of your experiment)
 c.parameters.analog_out_1.value = 1.2 * ANALOG_OUT_V
@@ -234,8 +238,8 @@ c.parameters.gpio_n_out.value = 0b11110000 # 4 on, 4 off
 # Example: enable every second P pin
 c.parameters.gpio_p_out.value = 0b01010101 # 4 on, 4 off
 
-# again, we have to call write_data in order to write the data to the FPGA
-c.connection.root.write_data()
+# again, we have to call write_registers in order to write the data to the FPGA
+c.connection.root.write_registers()
 
 # it is also possible to set up a callback function that is called whenever a
 # parameter changes (remember to call `call_listeners()` periodically)
@@ -270,7 +274,7 @@ if c.parameters.lock.value:
     plt.plot(plot_data['control_signal'], label='control signal')
     plt.plot(plot_data['error_signal'], label='error signal')
 else:
-    plt.title('laser is ramping!')
+    plt.title('laser is sweeping!')
     plt.plot(plot_data['error_signal_1'], label='error signal channel 1')
     plt.plot(plot_data['error_signal_2'], label='error signal channel 2')
 
@@ -280,7 +284,88 @@ plt.show()
 
 For a full list of parameters that can be controlled or accessed have a
 look at
-[parameters.py](https://github.com/hermitdemschoenenleben/linien/blob/master/linien/server/parameters.py). Remember that changed parameters are not written to the FPGA unless `c.connection.root.write_data()` is called.
+[parameters.py](https://github.com/hermitdemschoenenleben/linien/blob/master/linien/server/parameters.py). Remember that changed parameters are not written to the FPGA unless `c.connection.root.write_registers()` is called.
+
+### Run the autolock
+
+The script below shows an example of how to run the autolock using the scripting interface:
+
+```python
+import pickle
+import numpy as np
+
+from linien.client.connection import LinienClient
+from linien.common import FAST_AUTOLOCK
+
+from matplotlib import pyplot as plt
+from time import sleep
+
+c = LinienClient(
+    {"host": "HOST", "username": "USER", "password": "PASSWORD"},
+    autostart_server=False,
+)
+
+c.parameters.autolock_mode_preference.value = FAST_AUTOLOCK
+
+
+def wait_for_lock_status(should_be_locked):
+    """A helper function that waits until the laser is locked or unlocked."""
+    counter = 0
+    while True:
+        to_plot = pickle.loads(c.parameters.to_plot.value)
+        is_locked = "error_signal" in to_plot
+
+        if is_locked == should_be_locked:
+            break
+
+        counter += 1
+        if counter > 10:
+            raise Exception("waited too long")
+
+        sleep(1)
+
+
+# turn of the lock (if it is running)
+c.connection.root.start_sweep()
+# wait until the laser is unlocked (if required)
+wait_for_lock_status(False)
+
+
+# we record a reference spectrum
+to_plot = pickle.loads(c.parameters.to_plot.value)
+error_signal = to_plot["error_signal_1"]
+
+
+# we plot the reference spectrum and ask the user where the target line is
+plt.plot(error_signal)
+plt.plot(to_plot["monitor_signal"])
+plt.show()
+
+print("Please specify the position of the target line. ")
+x0 = int(input("enter index of a point that is on the left side of the target line: "))
+x1 = int(input("enter index of a point that is on the right side of the target line: "))
+
+
+# show the lock point again
+plt.axvline(x0, color="r")
+plt.axvline(x1, color="r")
+plt.plot(error_signal)
+plt.show()
+
+
+# turn on the lock
+c.connection.root.start_autolock(x0, x1, pickle.dumps(error_signal))
+
+
+# wait until the laser is actually locked
+try:
+    wait_for_lock_status(True)
+    print("locking the laser worked \o/")
+except:
+    print("locking the laser failed :(")
+
+
+```
 
 Updating Linien
 ---------------
@@ -302,7 +387,32 @@ dev
 ```
 (no newlines).
 
-This ensures that local changes of the server's code are automatically uploaded to RedPitaya when you launch the client. Please note that this only h
+This ensures that local changes of the server's code are automatically uploaded to RedPitaya when you launch the client. Please note that this only works if `linien-server` is stopped and uninstalled from the RedPitaya which can be done via `ssh`.
+
+### Setting up the development environment
+
+It is recommended to setup a dedicated devolpment python environment with the same package versions as the build environments used to create the standalone executables. To do so either use [virtualenv](https://pypi.org/project/virtualenv/) or a conda environment with Python 3.7.10. With ocnda, this is achieved by running
+
+```
+conda create -n linien_dev python=3.7.10
+conda activate linien_dev
+```
+
+All necessary packages can then be installed with the provided requirement files. To install all packages for running the client and GUI, the local server and packages for [linting](https://flake8.pycqa.org) and [code formatting](https://black.readthedocs.io/en/stable/) run
+
+```
+pip install -r requirements_dev.txt
+```
+
+from within the python environment.
+
+To automatically checking commits for compliance with [black](https://black.readthedocs.io/en/stable/) code style, run
+
+```
+pre-commit install
+```
+
+from the repository's parent directory.
 
 ### Architecture
 
@@ -327,7 +437,7 @@ Before running the development version check that no production version of the s
 Now you can launch the client
 
 ```
-python3 linien/client/client.py
+python3 linien/gui/app.py
 ```
 
 and you can connect to your RedPitaya.
@@ -357,7 +467,7 @@ This fake server just outputs random data. Then you can connect to \"localhost\"
 
 ### Building the FPGA image
 
-For building the FPGA image, you need to install Xilinx Vivado first. Then, call `scripts/build_gateware.sh`. In the end, the bitstream is located at `linien/server/linien.bin`. **Note**: So far, this was tested only with Linux. It should work on Windows 10, though, when calling the script inside Windows Powershell.
+For building the FPGA image, you need to install Xilinx Vivado first. Then, call `scripts/build_fpga_image.sh`. In the end, the bitstream is located at `linien/server/linien.bin`. **Note**: So far, this was tested only with Linux. It should work on Windows 10, though, when calling the script inside Windows Powershell.
 
 ### Releasing a new version
 
@@ -401,7 +511,7 @@ No, this is not possible as Linien relies on a customized FPGA bitstream.
 
 ### What control bandwidth is achievable with Linien?
 
-The propagation delay is roughly 300 ns, thus approximately 3 MHz bandwidth are possible.
+The propagation delay is roughly 320 ns in normal mode and 125 ns in fast mode.
 
 ### Why do ethernet LEDs of RedPitaya stop blinking when Linien is running?
 

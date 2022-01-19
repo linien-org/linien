@@ -1,13 +1,7 @@
 import pickle
 import traceback
 
-import numpy as np
-from linien.common import (
-    ANALOG_OUT0,
-    check_plot_data,
-    combine_error_signal,
-    get_lock_point,
-)
+from linien.common import check_plot_data, combine_error_signal, get_lock_point
 from linien.server.autolock.algorithm_selection import AutolockAlgorithmSelector
 from linien.server.autolock.fast import FastAutolock
 from linien.server.autolock.robust import RobustAutolock
@@ -49,7 +43,8 @@ class Autolock:
         additional_spectra=None,
     ):
         """Starts the autolock."""
-        # FIXME: hier kann auch SpectrumUncorrelatedException auftauchen, entweder beim Auolock algorithm selector oder robust algorithm. Handlen!
+        # FIXME: hier kann auch SpectrumUncorrelatedException auftauchen, entweder beim
+        # Auolock algorithm selector oder robust algorithm. Handlen!
         self.parameters.autolock_running.value = True
         self.parameters.autolock_preparing.value = True
         self.parameters.autolock_percentage.value = 0
@@ -57,8 +52,8 @@ class Autolock:
         self.x0, self.x1 = int(x0), int(x1)
 
         # collect parameters that should be restored after stopping the lock
-        self.parameters.autolock_initial_ramp_amplitude.value = (
-            self.parameters.ramp_amplitude.value
+        self.parameters.autolock_initial_sweep_amplitude.value = (
+            self.parameters.sweep_amplitude.value
         )
 
         self.additional_spectra = additional_spectra or []
@@ -70,15 +65,24 @@ class Autolock:
             self.peak_idxs,
         ) = self.record_first_error_signal(spectrum, auto_offset)
 
-        self.autolock_mode_detector = AutolockAlgorithmSelector(
-            self.parameters.autolock_mode_preference.value,
-            spectrum,
-            additional_spectra,
-            self.line_width,
-        )
+        try:
+            self.autolock_mode_detector = AutolockAlgorithmSelector(
+                self.parameters.autolock_mode_preference.value,
+                spectrum,
+                additional_spectra,
+                self.line_width,
+            )
 
-        if self.autolock_mode_detector.done:
-            self.start_autolock(self.autolock_mode_detector.mode)
+            if self.autolock_mode_detector.done:
+                self.start_autolock(self.autolock_mode_detector.mode)
+
+        except Exception:
+            # this may happen if `additional_spectra` contain uncorrelated data
+            # then either autolock algorithm selector or `start_autolock` may
+            # raise a spectrum uncorrelated exception
+            traceback.print_exc()
+            self.parameters.autolock_failed.value = True
+            return self.exposed_stop()
 
         self.add_data_listener()
 
@@ -143,7 +147,7 @@ class Autolock:
         try:
             if not is_locked:
                 combined_error_signal = combine_error_signal(
-                    (plot_data["error_signal_1"], plot_data["error_signal_2"]),
+                    (plot_data["error_signal_1"], plot_data.get("error_signal_2")),
                     self.parameters.dual_channel.value,
                     self.parameters.channel_mixing.value,
                     self.parameters.combined_offset.value,
@@ -201,17 +205,24 @@ class Autolock:
             self.additional_spectra = [
                 s - self.central_y for s in self.additional_spectra
             ]
-            self.control.exposed_write_data()
+            self.control.exposed_write_registers()
             self.control.continue_acquisition()
 
         self.parameters.target_slope_rising.value = target_slope_rising
-        self.control.exposed_write_data()
+        self.control.exposed_write_registers()
 
         return error_signal, error_signal_rolled, line_width, peak_idxs
 
     def after_lock(self, error_signal, control_signal, slow_out):
         self.parameters.autolock_locked.value = True
         self.remove_data_listener()
+        print("after lock")
+        self.parameters.autolock_locked.value = True
+
+        self.remove_data_listener()
+        self.parameters.autolock_running.value = False
+
+        self.algorithm.after_lock()
 
     def relock(self):
         """
@@ -249,9 +260,9 @@ class Autolock:
     def _reset_scan(self):
         self.control.pause_acquisition()
 
-        self.parameters.ramp_amplitude.value = (
-            self.parameters.autolock_initial_ramp_amplitude.value
+        self.parameters.sweep_amplitude.value = (
+            self.parameters.autolock_initial_sweep_amplitude.value
         )
-        self.control.exposed_start_ramp()
+        self.control.exposed_start_sweep()
 
         self.control.continue_acquisition()

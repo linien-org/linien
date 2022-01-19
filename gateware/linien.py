@@ -1,30 +1,30 @@
 # this code is based on redpid. See LICENSE for details.
-from gateware.logic.relocking import RelockWatcher
-from gateware.logic.autolock import FPGAAutolock
 from migen import (
-    Signal,
-    Module,
-    bits_for,
     Array,
-    ClockDomainsRenamer,
     Cat,
     ClockDomain,
+    ClockDomainsRenamer,
     If,
+    Module,
     Mux,
+    Signal,
+    bits_for,
 )
 from misoc.interconnect import csr_bus
 from misoc.interconnect.csr import AutoCSR, CSRStatus, CSRStorage
 
+from gateware.logic.autolock import FPGAAutolock
+from gateware.logic.relocking import RelockWatcher
 from linien.common import ANALOG_OUT0
 
 from .logic.chains import FastChain, SlowChain, cross_connect
 from .logic.decimation import Decimate
 from .logic.delta_sigma import DeltaSigma
+from .logic.iir import Iir
 from .logic.limit import LimitCSR
 from .logic.modulate import Modulate
 from .logic.pid import PID
 from .logic.sweep import SweepCSR
-
 from .lowlevel.analog import PitayaAnalog
 from .lowlevel.crg import CRG
 from .lowlevel.dna import DNA
@@ -35,11 +35,11 @@ from .lowlevel.xadc import XADC
 
 
 class LinienLogic(Module, AutoCSR):
-    def __init__(self, width=14, signal_width=25, chain_factor_width=8):
+    def __init__(self, width=14, signal_width=25, chain_factor_width=8, coeff_width=25):
         self.init_csr(width, signal_width, chain_factor_width)
         self.init_submodules(width, signal_width)
         self.connect_pid()
-        self.connect_everything(width, signal_width)
+        self.connect_everything(width, signal_width, coeff_width)
 
     def init_csr(self, width, signal_width, chain_factor_width):
         factor_reset = 1 << (chain_factor_width - 1)
@@ -60,6 +60,8 @@ class LinienLogic(Module, AutoCSR):
         self.mod_channel = CSRStorage(1)
         self.control_channel = CSRStorage(1)
         self.sweep_channel = CSRStorage(2)
+
+        self.fast_mode = CSRStorage(1)
 
         self.slow_value = CSRStatus(width)
 
@@ -85,7 +87,7 @@ class LinienLogic(Module, AutoCSR):
 
     def connect_pid(self):
         # pid is not started directly by `request_lock` signal. Instead, `request_lock`
-        # queues a run that is then started when the ramp is at the zero crossing
+        # queues a run that is then started when the sweep is at the zero crossing
         self.comb += [
             self.pid.running.eq(self.autolock.lock_running.status),
             self.sweep.hold.eq(self.autolock.lock_running.status),
@@ -97,11 +99,27 @@ class LinienLogic(Module, AutoCSR):
             self.autolock.robust.sweep_up.eq(self.sweep.sweep.up),
         ]
 
-    def connect_everything(self, width, signal_width):
+    def connect_everything(self, width, signal_width, coeff_width):
         s = signal_width - width
 
         combined_error_signal = Signal((signal_width, True))
         self.control_signal = Signal((signal_width, True))
+
+        # additional IIR filter that prevents aliasing effects when recording
+        # PSD of error signal
+        self.submodules.raw_acquisition_iir = Iir(
+            width=signal_width,
+            coeff_width=coeff_width,
+            shift=coeff_width - 2,
+            order=5,
+        )
+        combined_error_signal_filtered = Signal((signal_width, True))
+        self.comb += [
+            self.raw_acquisition_iir.x.eq(combined_error_signal),
+            self.raw_acquisition_iir.hold.eq(0),
+            self.raw_acquisition_iir.clear.eq(0),
+            combined_error_signal_filtered.eq(self.raw_acquisition_iir.y),
+        ]
 
         self.sync += [
             self.chain_a_offset_signed.eq(self.chain_a_offset.storage),
@@ -113,7 +131,11 @@ class LinienLogic(Module, AutoCSR):
         self.state_in = []
         self.signal_in = []
         self.state_out = []
-        self.signal_out = [self.control_signal, combined_error_signal]
+        self.signal_out = [
+            self.control_signal,
+            combined_error_signal,
+            combined_error_signal_filtered,
+        ]
 
         self.comb += [
             combined_error_signal.eq(self.limit_error_signal.y),
@@ -143,7 +165,9 @@ class LinienModule(Module, AutoCSR):
     ):
         sys_double = ClockDomainsRenamer("sys_double")
 
-        self.submodules.logic = LinienLogic(chain_factor_width=chain_factor_bits)
+        self.submodules.logic = LinienLogic(
+            coeff_width=coeff_width, chain_factor_width=chain_factor_bits
+        )
         self.submodules.analog = PitayaAnalog(
             platform.request("adc"), platform.request("dac")
         )
@@ -179,7 +203,7 @@ class LinienModule(Module, AutoCSR):
             offset_signal=self.logic.chain_b_offset_signed,
         )
 
-        sys_slow = ClockDomainsRenamer("sys_slow")
+        _ = ClockDomainsRenamer("sys_slow")
         sys_double = ClockDomainsRenamer("sys_double")
         max_decimation = 16
         self.submodules.decimate = sys_double(Decimate(max_decimation))
@@ -264,7 +288,12 @@ class LinienModule(Module, AutoCSR):
 
         pid_out = Signal((width, True))
         self.comb += [
-            self.logic.pid.input.eq(mixed_limited),
+            If(
+                self.logic.fast_mode.storage,
+                self.logic.pid.input.eq(self.analog.adc_a << s),
+            ).Else(
+                self.logic.pid.input.eq(mixed_limited),
+            ),
             pid_out.eq(self.logic.pid.pid_out >> s),
         ]
 
@@ -358,8 +387,14 @@ class LinienModule(Module, AutoCSR):
             ),
             self.logic.limit_fast1.x.eq(fast_outs[0]),
             self.logic.limit_fast2.x.eq(fast_outs[1]),
-            self.analog.dac_a.eq(self.logic.limit_fast1.y),
-            self.analog.dac_b.eq(self.logic.limit_fast2.y),
+            If(
+                self.logic.fast_mode.storage,
+                self.analog.dac_a.eq(self.logic.pid.pid_out >> s),
+                self.analog.dac_b.eq(self.logic.pid.pid_out >> s),
+            ).Else(
+                self.analog.dac_a.eq(self.logic.limit_fast1.y),
+                self.analog.dac_b.eq(self.logic.limit_fast2.y),
+            ),
             # SLOW OUT
             self.slow.input.eq(self.logic.control_signal >> s),
             self.decimate.decimation.eq(self.logic.slow_decimation.storage),

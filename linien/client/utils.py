@@ -1,15 +1,16 @@
-from linien.common import hash_username_and_password
 import os
+
 import numpy as np
 import paramiko
 from plumbum import colors
 
 import linien
-from linien.config import REMOTE_BASE_PATH
 from linien.client.exceptions import (
     InvalidServerVersionException,
     ServerNotInstalledException,
 )
+from linien.common import hash_username_and_password
+from linien.config import REMOTE_BASE_PATH
 
 
 def connect_ssh(host, user, password):
@@ -92,8 +93,14 @@ def upload_source_code(ssh):
 
     # upload the code required for running the server
     for dirpath, dirnames, filenames in os.walk(directory):
+        # lstrip / so os.path.join does not think dir_path_rel is an absolute path.
         dirpath_rel = dirpath.replace(directory, "").lstrip("/")
+        # Change direction of path slashes to work on the RedPitayas Linux system. This
+        # is necessary when deploying the server from a Windows machine.
+        dirpath_rel = dirpath_rel.lstrip("\\")
         remote_path = os.path.join(REMOTE_BASE_PATH, dirpath_rel)
+
+        remote_path = remote_path.replace("\\", "/")
 
         if "." in dirpath_rel or "__" in dirpath_rel:
             continue
@@ -106,6 +113,7 @@ def upload_source_code(ssh):
         for filename in filenames:
             local_path = os.path.join(dirpath, filename)
             remote_filepath = os.path.join(remote_path, filename)
+            remote_filepath = remote_filepath.replace("\\", "/")
             # put file
             ftp.put(local_path, remote_filepath)
 

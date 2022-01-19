@@ -1,3 +1,9 @@
+## V 0.4.3
+- **Disabled LED blinking** as [it causes additional noise](https://github.com/RedPitaya/RedPitaya/issues/205) (thanks to Yao-Chin!)
+- **DC spectroscopy signal is displayed** (thanks to aisichenko for the idea!)
+- **lpsd** is now used for psd measurements (samples psd on a log scale)
+- **various bug fixes** especially in the autolock component
+
 ## V 0.4.2
 - **Removed "Check lock" and "Watch lock" features** as they caused problems with the new autolock algorithms as well as with noise analysis. These features are planned to be reimplemented in a future release (and in a more sophisticated way). If you rely on these features, consider using Linien version `0.3.2` until then.
 

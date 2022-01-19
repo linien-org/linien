@@ -1,11 +1,16 @@
+from pathlib import Path
+
 import numpy as np
+import pytest
 from migen import run_simulation
-from matplotlib import pyplot as plt
 
 from gateware.logic.pid import PID
 
+VCD_DIR = Path(__file__).parent / "vcd"
 
-def test_pid_transfer():
+
+@pytest.mark.slow
+def test_pid_transfer(plt):
     def pid_testbench(pid):
         np.random.seed(299792458)
         amplitude = 0.01
@@ -25,7 +30,7 @@ def test_pid_transfer():
             xf = np.fft.rfft(x)
             t = (np.fft.rfft(y) / xf)[:-1]
             f = (np.fft.fftfreq(n)[: n // 2 + 1] * 2)[:-1] * sampling_frequency
-            fmin = f[1]
+            _ = f[1]  # fmin
             p = plt.plot(f, 20 * np.log10(np.abs(t)), label=label)
             plot_color = p[0].get_color()
             ax = plt.gca()
@@ -91,10 +96,9 @@ def test_pid_transfer():
         plt.legend(loc=(1.04, 0))
         plt.grid()
         plt.tight_layout()
-        plt.show()
 
     pid = PID(width=25)
-    run_simulation(pid, pid_testbench(pid), vcd_name="pid.vcd")
+    run_simulation(pid, pid_testbench(pid), vcd_name=VCD_DIR / "pid.vcd")
 
 
 if __name__ == "__main__":

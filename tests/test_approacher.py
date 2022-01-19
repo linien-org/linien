@@ -1,9 +1,8 @@
-from ast import Param
-from linien.common import get_lock_point
 import numpy as np
+
+from linien.common import get_lock_point
 from linien.server.approach_line import Approacher
-from linien.server.parameters import Parameter, Parameters
-from matplotlib import pyplot as plt
+from linien.server.parameters import Parameters
 
 Y_SHIFT = 4000
 
@@ -18,8 +17,8 @@ def spectrum_for_testing(x):
     return central_peak + smaller_peaks + Y_SHIFT
 
 
-def get_signal(ramp_amplitude, center, shift):
-    max_val = np.pi * 5 * ramp_amplitude
+def get_signal(sweep_amplitude, center, shift):
+    max_val = np.pi * 5 * sweep_amplitude
     new_center = center + shift
     x = np.linspace((-1 + new_center) * max_val, (1 + new_center) * max_val, 16384)
     return spectrum_for_testing(x)
@@ -35,16 +34,19 @@ class FakeControl:
     def continue_acquisition(self):
         pass
 
-    def exposed_write_data(self):
+    def exposed_write_registers(self):
         print(
-            f"write: center={self.parameters.center.value} amp={self.parameters.ramp_amplitude.value}"
+            "write: center={} amp={}".format(
+                self.parameters.sweep_center.value,
+                self.parameters.sweep_amplitude.value,
+            )
         )
 
 
-def test_approacher():
+def test_approacher(plt):
     def _get_signal(shift):
         return get_signal(
-            parameters.ramp_amplitude.value, parameters.center.value, shift
+            parameters.sweep_amplitude.value, parameters.sweep_center.value, shift
         )
 
     for ref_shift in (-0.4, -0.2, 0.3):
@@ -68,9 +70,8 @@ def test_approacher():
                 peak_idxs,
             ) = get_lock_point(reference_signal, 0, len(reference_signal))
 
-            """plt.plot(reference_signal)
+            plt.plot(reference_signal)
             plt.plot(rolled_reference_signal)
-            plt.show()"""
 
             assert abs(central_y - Y_SHIFT) < 1
 
@@ -90,12 +91,12 @@ def test_approacher():
                 error_signal = _get_signal(shift)[:]
                 approacher.approach_line(error_signal)
 
-                if parameters.ramp_amplitude.value <= 0.2:
+                if parameters.sweep_amplitude.value <= 0.2:
                     found = True
                     break
 
             assert found
-            assert abs((-1 * target_shift) - parameters.center.value) < 0.1
+            assert abs((-1 * target_shift) - parameters.sweep_center.value) < 0.1
             print("found!")
 
 

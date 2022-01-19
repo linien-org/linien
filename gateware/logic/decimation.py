@@ -1,4 +1,4 @@
-from migen import Signal, Array, Module
+from migen import Array, Module, Signal
 
 
 class Decimate(Module):

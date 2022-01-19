@@ -3,18 +3,19 @@
 
 # this file compiles the FPGA image. You shouldn't call it directly though but
 # use `build_fpga_image.sh`
-
-LINIEN_FOLDER = "/".join(__file__.split("/")[:-2])
 import os
 import sys
+
+LINIEN_FOLDER = "/".join(os.path.abspath(__file__).split("/")[:-2])
+
 
 os.chdir(LINIEN_FOLDER)
 sys.path.append(LINIEN_FOLDER)
 
+from bit2bin import bit2bin
+
 from gateware.linien import RootModule
 from gateware.platform import Platform
-
-from bit2bin import bit2bin
 
 
 def py_csrconstants(map, fil):

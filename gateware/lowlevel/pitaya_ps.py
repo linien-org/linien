@@ -18,9 +18,20 @@
 from functools import reduce
 from operator import or_
 
-from migen import *
+from migen import (
+    DIR_M_TO_S,
+    DIR_S_TO_M,
+    Cat,
+    ClockSignal,
+    If,
+    Instance,
+    Module,
+    Record,
+    Replicate,
+    ResetSignal,
+    Signal,
+)
 from misoc.interconnect import csr_bus, wishbone
-
 
 sys_layout = [
     ("rstn", 1, DIR_M_TO_S),

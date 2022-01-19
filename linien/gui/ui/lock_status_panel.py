@@ -1,10 +1,10 @@
-import numpy as np
-from PyQt5 import QtGui
-from linien.gui.widgets import CustomWidget
+from PyQt5 import QtWidgets
+
 from linien.gui.utils_gui import param2ui
+from linien.gui.widgets import CustomWidget
 
 
-class LockStatusPanel(QtGui.QWidget, CustomWidget):
+class LockStatusPanel(QtWidgets.QWidget, CustomWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -16,18 +16,17 @@ class LockStatusPanel(QtGui.QWidget, CustomWidget):
         )
 
     def connection_established(self):
-        self.control = self.app().control
-        params = self.app().parameters
-        self.parameters = params
+        self.parameters = self.app.parameters
+        self.control = self.app.control
 
         def update_status(_):
-            locked = params.lock.value
-            task = params.task.value
-            al_failed = params.autolock_failed.value
-            running = params.autolock_running.value
-            retrying = params.autolock_retrying.value
-            percentage = params.autolock_percentage.value
-            preparing = params.autolock_preparing.value
+            locked = self.parameters.lock.value
+            task = self.parameters.task.value
+            al_failed = self.parameters.autolock_failed.value
+            running = self.parameters.autolock_running.value
+            retrying = self.parameters.autolock_retrying.value
+            percentage = self.parameters.autolock_percentage.value
+            preparing = self.parameters.autolock_preparing.value
 
             if locked or (task is not None and not al_failed):
                 self.show()
@@ -35,7 +34,7 @@ class LockStatusPanel(QtGui.QWidget, CustomWidget):
                 self.hide()
 
             if task:
-                watching = params.autolock_watching.value
+                watching = self.parameters.autolock_watching.value
             else:
                 running = False
                 watching = False
@@ -56,20 +55,21 @@ class LockStatusPanel(QtGui.QWidget, CustomWidget):
                     set_text("Trying again to lock...")
 
         for param in (
-            params.lock,
-            params.task,
-            params.autolock_running,
-            params.autolock_preparing,
-            params.autolock_watching,
-            params.autolock_failed,
-            params.autolock_locked,
-            params.autolock_retrying,
-            params.autolock_percentage,
+            self.parameters.lock,
+            self.parameters.task,
+            self.parameters.autolock_running,
+            self.parameters.autolock_preparing,
+            self.parameters.autolock_watching,
+            self.parameters.autolock_failed,
+            self.parameters.autolock_locked,
+            self.parameters.autolock_retrying,
+            self.parameters.autolock_percentage,
         ):
             param.on_change(update_status)
 
         param2ui(
-            params.control_signal_history_length, self.ids.control_signal_history_length
+            self.parameters.control_signal_history_length,
+            self.ids.control_signal_history_length,
         )
 
     def stop_lock(self):
@@ -80,7 +80,7 @@ class LockStatusPanel(QtGui.QWidget, CustomWidget):
             self.parameters.task.value.stop()
             self.parameters.task.value = None
 
-        self.control.exposed_start_ramp()
+        self.control.exposed_start_sweep()
 
     def control_signal_history_length_changed(self):
         self.parameters.control_signal_history_length.value = (

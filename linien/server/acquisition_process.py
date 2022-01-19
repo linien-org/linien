@@ -1,19 +1,21 @@
-import os
-import sys
-import pickle
 import _thread
-import numpy as np
+import os
+import pickle
+import sys
 import threading
-from rpyc import Service
-from time import sleep
 from random import random
-from rpyc.utils.server import OneShotServer
+from time import sleep
+
+import numpy as np
 from PyRedPitaya.board import RedPitaya
+from rpyc import Service
+from rpyc.utils.server import OneShotServer
 
 sys.path += ["../../"]
 from csr import PythonCSR
-from linien.config import ACQUISITION_PORT
+
 from linien.common import DECIMATION, MAX_N_POINTS, N_POINTS
+from linien.config import ACQUISITION_PORT
 
 
 def shutdown():
@@ -36,7 +38,7 @@ class DataAcquisitionService(Service):
         super(DataAcquisitionService, self).__init__()
 
         self.locked = False
-        self.exposed_set_ramp_speed(9)
+        self.exposed_set_sweep_speed(9)
         # when self.locked is set to True, this doesn't mean that the lock is
         # really on. It just means that the lock is requested and that the
         # gateware waits until the sweep is at the correct position for the lock.
@@ -78,7 +80,7 @@ class DataAcquisitionService(Service):
                     sleep(0.05)
                     continue
 
-                # copied from https://github.com/RedPitaya/RedPitaya/blob/14cca62dd58f29826ee89f4b28901602f5cdb1d8/api/src/oscilloscope.c#L115
+                # copied from https://github.com/RedPitaya/RedPitaya/blob/14cca62dd58f29826ee89f4b28901602f5cdb1d8/api/src/oscilloscope.c#L115  # noqa: E501
                 # check whether scope was triggered
                 not_triggered = (self.r.scope.read(0x1 << 2) & 0x4) > 0
                 if not_triggered:
@@ -109,7 +111,7 @@ class DataAcquisitionService(Service):
     def program_acquisition_and_rearm(self, trigger_delay=16384):
         """Programs the acquisition settings and rearms acquisition."""
         if not self.locked:
-            target_decimation = 2 ** (self.ramp_speed + int(np.log2(DECIMATION)))
+            target_decimation = 2 ** (self.sweep_speed + int(np.log2(DECIMATION)))
 
             self.r.scope.data_decimation = target_decimation
             self.r.scope.trigger_delay = int(trigger_delay / DECIMATION) - 1
@@ -133,9 +135,9 @@ class DataAcquisitionService(Service):
         else:
             return True, self.data_hash, self.data_was_raw, self.data, self.data_uuid
 
-    def exposed_set_ramp_speed(self, speed):
-        self.ramp_speed = speed
-        # if a slow acqisition is currently running and we change the ramp speed
+    def exposed_set_sweep_speed(self, speed):
+        self.sweep_speed = speed
+        # if a slow acqisition is currently running and we change the sweep speed
         # we don't want to wait until it finishes
         self.program_acquisition_and_rearm()
 
@@ -173,8 +175,8 @@ class DataAcquisitionService(Service):
         self.data = None
         self.acquisition_paused = False
         self.data_uuid = uuid
-        # if we are ramping, we have to skip one data set because an incomplete
-        # ramp may have been recorded. When locked, this does not matter
+        # if we are sweeping, we have to skip one data set because an incomplete
+        # sweep may have been recorded. When locked, this does not matter
         self.skip_next_data = not self.confirmed_that_in_lock
 
     def read_data(self):

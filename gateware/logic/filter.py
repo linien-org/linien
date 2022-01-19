@@ -15,8 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with redpid.  If not, see <http://www.gnu.org/licenses/>.
 
-from migen import *
-from misoc.interconnect.csr import CSRStatus, AutoCSR
+from migen import Module, Signal
+from misoc.interconnect.csr import AutoCSR
 
 
 class Filter(Module, AutoCSR):
@@ -27,7 +27,3 @@ class Filter(Module, AutoCSR):
         self.hold = Signal()
         self.clear = Signal()
         self.error = Signal()
-
-        if False:
-            self.y_current = CSRStatus(width)
-            self.comb += self.y_current.status.eq(self.y)

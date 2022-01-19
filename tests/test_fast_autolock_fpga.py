@@ -1,7 +1,13 @@
-from gateware.logic.sweep import SweepCSR
-from gateware.logic.pid import PID
+from pathlib import Path
+
 from migen import run_simulation
+
 from gateware.linien import LinienLogic
+from gateware.logic.pid import PID
+from gateware.logic.sweep import SweepCSR
+from linien.common import FAST_AUTOLOCK
+
+VCD_DIR = Path(__file__).parent / "vcd"
 
 
 def test_root():
@@ -11,6 +17,7 @@ def test_root():
         pid: PID = root.pid
         autolock = root.autolock
         fast = autolock.fast
+        yield autolock.autolock_mode.storage.eq(FAST_AUTOLOCK)
 
         yield fast.target_position.storage.eq(lock_target_position)
 
@@ -26,22 +33,22 @@ def test_root():
 
         for iteration in range(2):
             print("iteration", iteration)
-            ramp_sign = (-1, 1, -1)[iteration]
+            sweep_sign = (-1, 1, -1)[iteration]
 
             sweep_out_at_beginning = yield sweep.y
 
-            # start the ramp and check that PID doesn't operate
+            # start the sweep and check that PID doesn't operate
             for i in range(100 - sweep_out_at_beginning):
                 yield
                 sweep_out = yield sweep.y
                 pid_out = yield pid.pid_out
                 pid_running = yield pid.running
 
-                assert sweep_out == sweep_out_at_beginning + ramp_sign * i
+                assert sweep_out == sweep_out_at_beginning + sweep_sign * i
                 assert pid_out == 0
                 assert pid_running == 0
 
-            # now turn around the ramp and request lock
+            # now turn around the sweep and request lock
             yield sweep.sweep.turn.eq(1)
             yield autolock.request_lock.storage.eq(1)
             yield
@@ -51,16 +58,24 @@ def test_root():
             for i in range(102 + lock_target_position):
                 yield
                 sweep_out = yield sweep.y
-                assert ramp_sign * sweep_out == 100 - i
+                assert sweep_sign * sweep_out == 100 - i
                 pid_running = yield pid.running
                 assert pid_running == 0
                 pid_out = yield pid.pid_out
                 assert pid_out == 0
 
             if iteration == 0:
-                # check that after zero crossing, PID is turned on and ramp off
+                # check that after zero crossing, PID is turned on and sweep off
                 yield
+
+                autolock_requested = yield autolock.request_lock.storage
+                fast_turn_on = yield fast.turn_on_lock
+
+                assert autolock_requested
+                assert fast_turn_on
+
                 pid_running = yield pid.running
+                sweep_out = yield sweep.y
                 assert pid_running == 1
 
                 yield
@@ -76,7 +91,7 @@ def test_root():
                     assert pid_out > 0
 
                 yield autolock.request_lock.storage.eq(0)
-                print("turn on ramp again")
+                print("turn on sweep again")
                 yield
                 yield
             else:
@@ -89,11 +104,15 @@ def test_root():
                     assert pid_running == 0
 
     dut = LinienLogic()
-    run_simulation(dut, tb(dut, 0), vcd_name="root.vcd")
+    run_simulation(
+        dut, tb(dut, lock_target_position=0), vcd_name=VCD_DIR / "root_target0.vcd"
+    )
     dut = LinienLogic()
-    run_simulation(dut, tb(dut, -40), vcd_name="root.vcd")
+    run_simulation(
+        dut, tb(dut, lock_target_position=-40), vcd_name=VCD_DIR / "root_target-40.vcd"
+    )
     dut = LinienLogic()
-    run_simulation(dut, tb(dut, 51), vcd_name="root.vcd")
+    run_simulation(dut, tb(dut, 51), vcd_name=VCD_DIR / "root_target_51.vcd")
 
 
 if __name__ == "__main__":

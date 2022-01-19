@@ -1,11 +1,12 @@
 import cma
 import numpy as np
+
 from linien.common import MHz, Vpp
-from linien.server.parameters import Parameters
 from linien.server.optimization.engine import (
     MultiDimensionalOptimizationEngine,
     OptimizerEngine,
 )
+from linien.server.parameters import Parameters
 
 
 def test_multi():
@@ -29,9 +30,12 @@ class FakeControl:
     def continue_acquisition(self):
         pass
 
-    def exposed_write_data(self):
+    def exposed_write_registers(self):
         print(
-            f"write: freq={self.parameters.modulation_frequency.value / MHz} amp={self.parameters.modulation_amplitude.value / Vpp}"
+            "write: freq={} amp={}".format(
+                self.parameters.modulation_frequency.value / MHz,
+                self.parameters.modulation_amplitude.value / Vpp,
+            )
         )
 
 
@@ -42,9 +46,9 @@ def test_optimization():
     def generate_slope(N=1024, slope=1):
         return np.array([v * slope for v in range(N)])
 
-    ### -------------------------------------------------------
+    # # # -------------------------------------------------------
     #  check that 0D optimization only optimizes phase
-    ### -------------------------------------------------------
+    # # #-------------------------------------------------------
     params = Parameters()
     control = FakeControl(params)
 
@@ -68,9 +72,9 @@ def test_optimization():
         abs(demod_phase - iq_phase) < 0.1 or (abs(180 - demod_phase - iq_phase)) < 0.1
     )
 
-    ### -------------------------------------------------------
+    # # # -------------------------------------------------------
     # test 1D optimization
-    ### -------------------------------------------------------
+    # # # -------------------------------------------------------
     params = Parameters()
     control = FakeControl(params)
 
@@ -108,9 +112,9 @@ def test_optimization():
         abs(demod_phase - iq_phase) < 0.1 or (abs(180 - demod_phase - iq_phase)) < 0.1
     )
 
-    ### -------------------------------------------------------
+    # # # -------------------------------------------------------
     # test 2D optimization
-    ### -------------------------------------------------------
+    # # # -------------------------------------------------------
 
     params = Parameters()
     control = FakeControl(params)

@@ -1,14 +1,15 @@
-from linien.server.parameters_base import BaseParameters, Parameter
-from linien.config import DEFAULT_COLORS, N_COLORS
 from linien.common import (
     AUTO_DETECT_AUTOLOCK_MODE,
     FAST_AUTOLOCK,
-    Vpp,
+    PSD_ALGORITHM_LPSD,
     MHz,
+    Vpp,
     get_name_automatic_relocking_enabled_parameter,
     get_name_automatic_relocking_max_parameter,
     get_name_automatic_relocking_min_parameter,
 )
+from linien.config import DEFAULT_COLORS, N_COLORS
+from linien.server.parameters_base import BaseParameters, Parameter
 
 
 class Parameters(BaseParameters):
@@ -26,7 +27,7 @@ class Parameters(BaseParameters):
         # if a parameter influences the behavior of the FPGA, it has to be
         # written to the FPGA as well (`control` is an instance of
         # `RedPitayaControlService`):
-        control.exposed_write_data()
+        control.exposed_write_registers()
 
     On the client side, access happens through `RemoteParameters` which
     transparently mimics the behavior of this class. Have a look at the comments
@@ -39,9 +40,10 @@ class Parameters(BaseParameters):
         # parameters whose values are saved by the client and restored if the
         # client connects to the RedPitaya with no server running.
         self._restorable_parameters = (
+            "fast_mode",
             "modulation_amplitude",
             "modulation_frequency",
-            "ramp_speed",
+            "sweep_speed",
             "demodulation_phase_a",
             "demodulation_multiplier_a",
             "demodulation_phase_b",
@@ -130,7 +132,7 @@ class Parameters(BaseParameters):
         # configures the output of the modulation frequency. A value of 0 means
         # FAST OUT 1 and a value of 1 corresponds to FAST OUT 2
         self.mod_channel = Parameter(start=0, min_=0, max_=1)
-        # configures the output of the scan ramp:
+        # configures the output of the scan sweep:
         #       0 --> FAST OUT 1
         #       1 --> FAST OUT 2
         #       2 --> ANALOG OUT 0 (slow channel)
@@ -162,8 +164,12 @@ class Parameters(BaseParameters):
                 Parameter(start=0, min_=0, max_=(2 ** 15) - 1),
             )
 
-        # If `True`, this parameter turns off the ramp and starts the PID
+        # If `True`, this parameter turns off the sweep and starts the PID
         self.lock = Parameter(start=False)
+
+        # If `True`, this parameter turns on the sweep. If `False`, the center voltage
+        # is output.
+        self.sweep = Parameter(start=True)
 
         # for both fast outputs and the analog out, define whether tuning the
         # voltage up correspond to tuning the laser frequency up or down. Setting
@@ -190,20 +196,25 @@ class Parameters(BaseParameters):
         # normal lock to fetch less data if they are not needed.
         self.fetch_additional_signals = Parameter(start=True)
 
-        #           --------- RAMP PARAMETERS ---------
+        # this is just a counter that is automatically increased every second.
+        # Its purpose is to allow for periodic tasks on the server:
+        # just register an `on_change` listener for this parameter.
+        self.ping = Parameter(start=0)
 
-        # how big should the ramp amplitude be relative to the full output range
-        # of RedPitaya? An amplitude of 1 corresponds to a ramp from -1V to 1V,
-        # an amplitude 0f .1 to a ramp from -.1 to .1V (assuming that `center`
+        #           --------- SWEEP PARAMETERS ---------
+
+        # how big should the sweep amplitude be relative to the full output range
+        # of RedPitaya? An amplitude of 1 corresponds to a sweep from -1V to 1V,
+        # an amplitude 0f .1 to a sweep from -.1 to .1V (assuming that `center`
         # is 0, see below)
-        self.ramp_amplitude = Parameter(min_=0.001, max_=1, start=1)
-        # The center position of the ramp in volts. As the output range of
+        self.sweep_amplitude = Parameter(min_=0.001, max_=1, start=1)
+        # The center position of the sweep in volts. As the output range of
         # RedPitaya is [-1, 1], `center` has the same limits.
-        self.center = Parameter(min_=-1, max_=1, start=0)
-        # The ramp speed in internal units. The actual speed is given by
-        #       f_real = 3.8 kHz / (2 ** ramp_speed)
+        self.sweep_center = Parameter(min_=-1, max_=1, start=0)
+        # The sweep speed in internal units. The actual speed is given by
+        #       f_real = 3.8 kHz / (2 ** sweep_speed)
         # Allowed values are [0, ..., 16]
-        self.ramp_speed = Parameter(min_=0, max_=32, start=8)
+        self.sweep_speed = Parameter(min_=0, max_=32, start=8)
 
         #           --------- MODULATION PARAMETERS ---------
 
@@ -222,6 +233,9 @@ class Parameters(BaseParameters):
         self.modulation_frequency = Parameter(min_=0, max_=0xFFFFFFFF, start=15 * MHz)
 
         #           --------- DEMODULATION AND FILTER PARAMETERS ---------
+        # fast mode allows to bypass demodulation and IIR filtering of the fast
+        # channels.
+        self.fast_mode = Parameter(start=False)
         # Linien allows for two simulataneous demodulation channels. By default,
         # only one is enabled. This is controlled by `dual_channel`.
         self.dual_channel = Parameter(start=False)
@@ -350,7 +364,7 @@ class Parameters(BaseParameters):
         self.autolock_locked = Parameter(start=False)
         self.autolock_retrying = Parameter(start=False)
         self.autolock_determine_offset = Parameter(start=True)
-        self.autolock_initial_ramp_amplitude = Parameter(start=1)
+        self.autolock_initial_sweep_amplitude = Parameter(start=1)
 
         #           --------- OPTIMIZATION PARAMETERS ---------
         # these are used internally by the optimization algorithm and usually
@@ -375,8 +389,14 @@ class Parameters(BaseParameters):
         self.acquisition_raw_enabled = Parameter(start=False)
         self.acquisition_raw_decimation = Parameter(start=1)
         self.acquisition_raw_data = Parameter()
+        # raw acquisition has an additiona iir filter that can be used as low
+        # pass for preventing alias effects
+        self.acquisition_raw_filter_enabled = Parameter(start=False)
+        # The filter frequency in units of Hz
+        self.acquisition_raw_filter_frequency = Parameter(start=0)
         self.psd_data_partial = Parameter(start=None)
         self.psd_data_complete = Parameter(start=None)
+        self.psd_algorithm = Parameter(start=PSD_ALGORITHM_LPSD)
         self.psd_acquisition_running = Parameter(start=False)
         self.psd_optimization_running = Parameter(start=False)
         self.psd_acquisition_max_decimation = Parameter(start=18, min_=1, max_=32)
