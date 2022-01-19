@@ -1,10 +1,11 @@
+from PyQt5 import QtCore, QtWidgets
+
 from linien.common import (
     get_name_automatic_relocking_enabled_parameter,
     get_name_automatic_relocking_max_parameter,
     get_name_automatic_relocking_min_parameter,
 )
 from linien.gui.utils_gui import param2ui
-from PyQt5 import QtWidgets, QtCore
 from linien.gui.widgets import CustomWidget
 
 

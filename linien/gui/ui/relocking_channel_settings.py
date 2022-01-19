@@ -1,5 +1,6 @@
-from linien.gui.utils_gui import param2ui
 from PyQt5 import QtWidgets
+
+from linien.gui.utils_gui import param2ui
 from linien.gui.widgets import CustomWidget
 
 
