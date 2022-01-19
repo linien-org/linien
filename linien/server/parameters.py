@@ -69,8 +69,6 @@ class Parameters(BaseParameters):
             "p",
             "i",
             "d",
-            "watch_lock",
-            "watch_lock_threshold",
             "dual_channel",
             "channel_mixing",
             "pid_on_slow_enabled",
