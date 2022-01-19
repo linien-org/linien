@@ -186,14 +186,14 @@ def test_change_sweep_min_max(dut, plt):
 def test_pause_sweep(dut, plt):
     """Tests that the sweep can be paused and resumed."""
 
-    n = 200
+    n = 150
     y = []
     pause = []
 
     def testbench():
-        yield dut.step.storage.eq(1 << 4)
-        yield dut.min.storage.eq(0xFFFF & (-(1 << 10)))
-        yield dut.max.storage.eq(1 << 10)
+        yield dut.step.storage.eq(16)
+        yield dut.min.storage.eq(-1024)
+        yield dut.max.storage.eq(1024)
         yield dut.run.storage.eq(1)
         for i in range(n):
 
@@ -204,11 +204,6 @@ def test_pause_sweep(dut, plt):
             if i == 100:
                 # resume sweep
                 yield dut.pause.storage.eq(0)
-
-            if i == 150:
-                # set a different pause value and pause sweep
-                yield dut.pause_value.storage.eq(500)
-                yield dut.pause.storage.eq(1)
 
             y.append((yield dut.y))
             pause.append((yield dut.pause.storage))
@@ -234,5 +229,3 @@ def test_pause_sweep(dut, plt):
         assert val != 0
         assert val != previous_y
         previous_y = val
-    # test that the pause value is changed
-    assert y[152:159] == 7 * [500]
