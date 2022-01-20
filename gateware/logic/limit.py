@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with redpid.  If not, see <http://www.gnu.org/licenses/>.
 
-from migen import Cat, If, Module, Replicate, Signal
+from migen import *
 from misoc.interconnect.csr import CSRStorage
 
 from .filter import Filter

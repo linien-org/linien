@@ -1,6 +1,7 @@
 /build/*
 !/build/.keep_me
 __pycache__
+*.bin
 *.vcd
 *.sav
 *.pdf
@@ -20,7 +21,3 @@ VERSION
 .Xil
 .pytest_cache
 *.egg-info
-
-# results of pytest-html
-tests/*.html
-tests/assets/*

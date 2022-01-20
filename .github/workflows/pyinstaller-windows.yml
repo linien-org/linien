@@ -5,11 +5,13 @@ on:
   workflow_dispatch:
     inputs:
       version_name:
-        description: "Version name"
+        description: 'Version name'
         required: true
+
 
 env:
   INPUT_VERSION_NAME: ${{ github.event.inputs.version_name }}
+
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -30,7 +32,7 @@ jobs:
       #       resolver otherwise takes ages
       # ANOTHER NOTE: scipy is fixed to 1.4.1 because of problems with pyinstaller
       - name: create requirements file
-        run: cp requirements_gui.txt requirements.txt
+        run: printf "altgraph==0.17\nappdirs==1.4.4\nbcrypt==3.2.0\ncffi==1.14.2\nclick==7.1.2\ncryptography==3.0\nfuture==0.18.2\nnumpy==1.19.1\nparamiko==2.7.1\npefile==2019.4.18\nplumbum==1.6.9\npycparser==2.20\nPyNaCl==1.4.0\nPyQt5==5.15.0\nPyQt5-sip==12.8.0\npyqtgraph==0.11.0\npywin32-ctypes==0.2.0\nrpyc==4.1.5\nscipy==1.4.1\nsix==1.15.0\nuuid==1.30" > requirements.txt
 
       - name: PyInstaller Windows
         uses: JackMcKew/pyinstaller-action-windows@main
@@ -41,3 +43,6 @@ jobs:
         with:
           name: my-exe
           path: dist/windows
+
+
+

@@ -15,14 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with redpid.  If not, see <http://www.gnu.org/licenses/>.
 
-from migen.build.generic_platform import (
-    ConstraintError,
-    Drive,
-    IOStandard,
-    Misc,
-    Pins,
-    Subsignal,
-)
+from migen.build.generic_platform import *
 from migen.build.xilinx import XilinxPlatform
 
 # https://github.com/RedPitaya/RedPitaya/blob/master/FPGA/release1/fpga/code/red_pitaya.xdc

@@ -1,15 +1,14 @@
-from PyQt5 import QtWidgets
-
+from PyQt5 import QtGui
 from linien.gui.widgets import CustomWidget
 
 
-class RightPanel(QtWidgets.QWidget, CustomWidget):
+class RightPanel(QtGui.QWidget, CustomWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
     def connection_established(self):
-        self.parameters = self.app.parameters
-        self.control = self.app.control
+        self.control = self.app().control
+        self.parameters = self.app().parameters
 
         self.parameters.autolock_running.on_change(self.autolock_status_changed)
         self.parameters.optimization_running.on_change(self.optimization_status_changed)
@@ -29,16 +28,16 @@ class RightPanel(QtWidgets.QWidget, CustomWidget):
         self.ids.pid_parameter_optimization_button.clicked.connect(self.open_psd_window)
 
     def close_app(self):
-        self.app.close()
+        self.app().close()
 
     def shutdown_server(self):
-        self.app.shutdown()
+        self.app().shutdown()
 
     def open_psd_window(self):
-        self.app.open_psd_window()
+        self.app().open_psd_window()
 
     def open_device_manager(self):
-        self.app.open_device_manager()
+        self.app().open_device_manager()
 
     def autolock_status_changed(self, value):
         if value:

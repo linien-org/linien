@@ -10,7 +10,7 @@ setuptools.setup(
     author="Benjamin Wiegand",
     author_email="highwaychile@posteo.de",
     description="Server of linien that runs on RedPitaya.",
-    long_description="Have a look at the 'linien' package for installation instructions.",
+    long_description='Have a look at the "linien" package for installation instructions.',
     long_description_content_type="text/x-rst",
     url="https://hermitdemschoenenleben.github.io/linien/",
     packages=[
@@ -31,7 +31,6 @@ setuptools.setup(
         "click==7.1.2",
         "cma==3.0.3",
         "plumbum==1.6.9",
-        "pylpsd>=0.1.3",
     ],
     scripts=[
         "linien/server/linien_start_server",

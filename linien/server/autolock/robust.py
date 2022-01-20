@@ -1,7 +1,5 @@
 from time import time
 
-import numpy as np
-
 from linien.common import (
     AUTOLOCK_MAX_N_INSTRUCTIONS,
     SpectrumUncorrelatedException,
@@ -17,7 +15,7 @@ from linien.server.autolock.utils import (
     sign,
     sum_up_spectrum,
 )
-from linien.server.utils import sweep_speed_to_time
+import numpy as np
 
 
 class LockPositionNotFound(Exception):
@@ -90,65 +88,28 @@ class RobustAutolock:
             t2 = time()
             print("calculation of autolock description took", t2 - t1)
 
-            # sets up a timeout: if the lock doesn't finish within a certain time
-            # span, throw an error
-            self.setup_timeout()
-
             # first reset lock in case it was True. This ensures that autolock
             # starts properly once all parameters are set
             self.parameters.lock.value = False
-            self.control.exposed_write_registers()
+            self.control.exposed_write_data()
 
             self.parameters.autolock_time_scale.value = time_scale
             self.parameters.autolock_instructions.value = description
             self.parameters.autolock_final_wait_time.value = final_wait_time
 
-            self.control.exposed_write_registers()
+            self.control.exposed_write_data()
 
             self.parameters.lock.value = True
-            self.control.exposed_write_registers()
+            self.control.exposed_write_data()
 
             self.parameters.autolock_preparing.value = False
 
             self._done = True
-
         else:
             print(
                 "not enough spectra collected: %d of %d"
                 % (len(self.spectra), self.N_spectra_required)
             )
-
-    def setup_timeout(self, N_acquisitions_to_wait=5):
-        """Robust autolock just programs the FPGA image with a set of instructions.
-        The FPGA image then uses these instructions in order to actually turn on
-        the lock once all conditions are met. However, it may happen that the
-        FPGA image is unable to lock for some reason. For this case, we set up
-        a timeout that raises an error if this happens.
-        """
-        self._timeout_start_time = time()
-        self._timeout_time_to_wait = (
-            N_acquisitions_to_wait
-            * 2
-            * sweep_speed_to_time(self.parameters.sweep_speed.value)
-        )
-
-        self.parameters.ping.on_change(self.check_for_timeout)
-
-    def check_for_timeout(self, ping):
-        min_time_to_wait = 5
-
-        if time() - self._timeout_start_time > max(
-            self._timeout_time_to_wait, min_time_to_wait
-        ):
-            print("Waited too long for autolock! Aborting")
-            self.stop_timeout()
-            self.parameters.task.value.exposed_stop()
-
-    def stop_timeout(self):
-        self.parameters.ping.remove_listener(self.check_for_timeout)
-
-    def after_lock(self):
-        self.stop_timeout()
 
 
 def calculate_autolock_instructions(spectra_with_jitter, target_idxs):

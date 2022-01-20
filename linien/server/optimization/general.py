@@ -1,6 +1,6 @@
 """Module providing the Optimizer interface class."""
 
-from typing import List, NewType
+from typing import List, NewType, Optional
 
 Params = NewType("Params", List[float])
 """A type alias for actual optmizer params. """
@@ -42,20 +42,13 @@ class Optimizer:
         return self._generation
 
     def _truncate_parameters(self, params):
-        """
-        Make sure the passed list of parameters is within [min, max] if available,
-        respectively.
-        """
+        """Make sure the passed list of parameters is within [min, max] if available respectively."""
 
         if self._lower_limits != []:
-            params = [
-                max(low_lim, par) for low_lim, par in zip(self._lower_limits, params)
-            ]
+            params = [max(l, r) for l, r in zip(self._lower_limits, params)]
 
         if self._upper_limits != []:
-            params = [
-                min(low_lim, par) for low_lim, par in zip(self._upper_limits, params)
-            ]
+            params = [min(l, r) for l, r in zip(self._upper_limits, params)]
 
         if self._boundary_conditions != []:
             for condition in self._boundary_conditions:

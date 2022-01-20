@@ -15,9 +15,9 @@
 # You should have received a copy of the GNU General Public License
 # along with redpid.  If not, see <http://www.gnu.org/licenses/>.
 
-from migen import Constant, If, Signal
+from migen import *
 from migen.genlib.misc import timeline
-from misoc.interconnect.csr import CSRConstant, CSRStorage
+from misoc.interconnect.csr import CSRStorage, CSRConstant
 
 from .filter import Filter
 

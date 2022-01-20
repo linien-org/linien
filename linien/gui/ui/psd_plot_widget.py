@@ -1,7 +1,6 @@
+from linien.gui.ui.plot_widget import V
 import numpy as np
 import pyqtgraph as pg
-
-from linien.gui.ui.plot_widget import V
 from linien.gui.widgets import CustomWidget
 
 
@@ -93,8 +92,8 @@ class PSDPlotWidget(pg.PlotWidget, CustomWidget):
         self.recalculate_min_max()
 
     def connection_established(self):
-        self.parameters = self.app.parameters
-        self.control = self.app.control
+        self.control = self.app().control
+        self.parameters = self.app().parameters
 
     def plot_curve(self, uuid, psds, color):
         self.curves[uuid] = self.curves.get(uuid, [])

@@ -1,8 +1,8 @@
 import re
-
 from plumbum import colors
+
 from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtWidgets import QDialog, QListWidget, QMessageBox, QVBoxLayout
+from PyQt5.QtWidgets import QListWidget, QVBoxLayout, QDialog, QMessageBox
 from pyqtgraph import QtCore
 
 from linien.client.utils import connect_ssh
@@ -126,8 +126,7 @@ def ask_for_parameter_restore_dialog(parent, question, title):
     box = QMessageBox(parent)
     box.setText(question)
     box.setWindowTitle(title)
-    # do_nothing_button
-    _ = box.addButton("Keep remote parameters", QMessageBox.NoRole)
+    do_nothing_button = box.addButton("Keep remote parameters", QMessageBox.NoRole)
     upload_button = box.addButton("Upload local parameters", QMessageBox.YesRole)
 
     box.exec_()

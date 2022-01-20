@@ -1,14 +1,11 @@
-from pathlib import Path
-
 import numpy as np
+from matplotlib import pyplot as plt
 from migen import run_simulation
 
 from gateware.logic.pid import PID
 
-VCD_DIR = Path(__file__).parent / "vcd"
 
-
-def test_pid(plt):
+def test_pid():
     def pid_testbench(pid):
         def test_not_running():
             input_ = 1000
@@ -32,7 +29,7 @@ def test_pid(plt):
             yield pid.ki.storage.eq(0)
             yield pid.kd.storage.eq(0)
 
-            for _ in range(10):
+            for i in range(10):
                 yield
 
             out = yield pid.pid_out
@@ -112,10 +109,11 @@ def test_pid(plt):
                     out = yield pid.pid_out
                     y.append(out)
 
-                plt.plot(x)
-                plt.plot(y)
+                # plt.plot(x)
+                # plt.plot(y)
 
                 ys.append(y)
+            # plt.show()
 
             assert np.all(np.abs(np.array(ys[0][10:]) - np.array(ys[1][10:])) <= 1)
 
@@ -126,7 +124,7 @@ def test_pid(plt):
         yield from test_d()
 
     pid = PID(width=25)
-    run_simulation(pid, pid_testbench(pid), vcd_name=VCD_DIR / "pid.vcd")
+    run_simulation(pid, pid_testbench(pid), vcd_name="pid.vcd")
 
 
 if __name__ == "__main__":

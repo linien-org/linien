@@ -10,12 +10,6 @@
     <height>800</height>
    </rect>
   </property>
-  <property name="minimumSize">
-   <size>
-    <width>350</width>
-    <height>0</height>
-   </size>
-  </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
@@ -33,34 +27,8 @@
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_17">
          <item>
-          <widget class="SweepControlWidget" name="sweep_control" native="true">
+          <widget class="QWidget" name="manual_navigation" native="true">
            <layout class="QHBoxLayout" name="horizontalLayout_3">
-            <item>
-             <widget class="QLabel" name="label_9">
-              <property name="font">
-               <font>
-                <weight>75</weight>
-                <bold>true</bold>
-               </font>
-              </property>
-              <property name="text">
-               <string>Sweep:</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="sweep_start_stop_button">
-              <property name="toolTip">
-               <string>Start and pause the output of the sweep.</string>
-              </property>
-              <property name="text">
-               <string>Start / Pause</string>
-              </property>
-              <property name="checkable">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
             <item>
              <spacer name="horizontalSpacer_3">
               <property name="orientation">
@@ -75,18 +43,80 @@
              </spacer>
             </item>
             <item>
-             <widget class="SweepSlider" name="sweep_slider">
+             <widget class="QLabel" name="label_3">
+              <property name="text">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ramp Amplitude:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSlider" name="zoom_slider">
               <property name="minimumSize">
                <size>
-                <width>350</width>
+                <width>200</width>
                 <height>0</height>
                </size>
               </property>
+              <property name="focusPolicy">
+               <enum>Qt::NoFocus</enum>
+              </property>
               <property name="maximum">
-               <number>99</number>
+               <number>50</number>
               </property>
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="tickPosition">
+               <enum>QSlider::TicksBothSides</enum>
+              </property>
+              <property name="tickInterval">
+               <number>25</number>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_4">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_2">
+              <property name="text">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ramp Position:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="go_left_btn">
+              <property name="text">
+               <string>&lt;</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="go_right_btn">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>&gt;</string>
               </property>
              </widget>
             </item>
@@ -104,7 +134,7 @@
              </spacer>
             </item>
             <item>
-             <widget class="QLabel" name="label_2">
+             <widget class="QLabel" name="label_9">
               <property name="font">
                <font>
                 <weight>75</weight>
@@ -112,82 +142,19 @@
                </font>
               </property>
               <property name="text">
-               <string>Center:</string>
+               <string>Ramp:</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QDoubleSpinBox" name="sweep_center">
-              <property name="minimumSize">
-               <size>
-                <width>65</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="keyboardTracking">
-               <bool>false</bool>
-              </property>
-              <property name="suffix">
-               <string> V</string>
-              </property>
-              <property name="decimals">
-               <number>3</number>
-              </property>
-              <property name="minimum">
-               <double>-1.000000000000000</double>
-              </property>
-              <property name="maximum">
-               <double>1.000000000000000</double>
-              </property>
-              <property name="singleStep">
-               <double>0.100000000000000</double>
-              </property>
-              <property name="value">
-               <double>0.000000000000000</double>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="label_3">
+             <widget class="QLabel" name="ramp_status">
               <property name="font">
                <font>
-                <weight>75</weight>
-                <bold>true</bold>
+                <family>DejaVu Sans Mono</family>
                </font>
               </property>
               <property name="text">
-               <string>Amplitude:</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QDoubleSpinBox" name="sweep_amplitude">
-              <property name="minimumSize">
-               <size>
-                <width>65</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="keyboardTracking">
-               <bool>false</bool>
-              </property>
-              <property name="suffix">
-               <string> V</string>
-              </property>
-              <property name="decimals">
-               <number>3</number>
-              </property>
-              <property name="minimum">
-               <double>0.000000000000000</double>
-              </property>
-              <property name="maximum">
-               <double>1.000000000000000</double>
-              </property>
-              <property name="singleStep">
-               <double>0.100000000000000</double>
-              </property>
-              <property name="value">
-               <double>1.000000000000000</double>
+               <string>-1V to 1V</string>
               </property>
              </widget>
             </item>
@@ -720,6 +687,15 @@
               </color>
              </brush>
             </colorrole>
+            <colorrole role="PlaceholderText">
+             <brush brushstyle="NoBrush">
+              <color alpha="128">
+               <red>0</red>
+               <green>0</green>
+               <blue>0</blue>
+              </color>
+             </brush>
+            </colorrole>
            </active>
            <inactive>
             <colorrole role="WindowText">
@@ -851,6 +827,15 @@
             <colorrole role="ToolTipText">
              <brush brushstyle="SolidPattern">
               <color alpha="255">
+               <red>0</red>
+               <green>0</green>
+               <blue>0</blue>
+              </color>
+             </brush>
+            </colorrole>
+            <colorrole role="PlaceholderText">
+             <brush brushstyle="NoBrush">
+              <color alpha="128">
                <red>0</red>
                <green>0</green>
                <blue>0</blue>
@@ -994,6 +979,15 @@
               </color>
              </brush>
             </colorrole>
+            <colorrole role="PlaceholderText">
+             <brush brushstyle="NoBrush">
+              <color alpha="128">
+               <red>0</red>
+               <green>0</green>
+               <blue>0</blue>
+              </color>
+             </brush>
+            </colorrole>
            </disabled>
           </palette>
          </property>
@@ -1036,8 +1030,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>332</width>
-            <height>400</height>
+            <width>338</width>
+            <height>322</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1054,16 +1048,16 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>332</width>
-            <height>400</height>
+            <width>338</width>
+            <height>322</height>
            </rect>
           </property>
           <attribute name="label">
-           <string>Modulation, Sweep &amp;&amp; Spectroscopy</string>
+           <string>Modulation, Ramp &amp;&amp; Spectroscopy</string>
           </attribute>
           <layout class="QVBoxLayout" name="verticalLayout_3">
            <item>
-            <widget class="ModulationAndSweepPanel" name="widget_4" native="true"/>
+            <widget class="ModulationAndRampPanel" name="widget_4" native="true"/>
            </item>
           </layout>
          </widget>
@@ -1072,8 +1066,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>332</width>
-            <height>400</height>
+            <width>338</width>
+            <height>322</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1090,8 +1084,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>332</width>
-            <height>400</height>
+            <width>338</width>
+            <height>322</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -1114,8 +1108,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>332</width>
-            <height>400</height>
+            <width>338</width>
+            <height>322</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -1138,8 +1132,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>332</width>
-            <height>400</height>
+            <width>338</width>
+            <height>322</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1196,9 +1190,9 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>ModulationAndSweepPanel</class>
+   <class>ModulationAndRampPanel</class>
    <extends>QWidget</extends>
-   <header location="global">modulation_sweep_panel.h</header>
+   <header location="global">modulation_ramp_panel.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
@@ -1214,24 +1208,13 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>SweepSlider</class>
-   <extends>QSlider</extends>
-   <header location="global">sweep_control.h</header>
+   <class>RelockingConfigurator</class>
+   <extends>QWidget</extends>
+   <header location="global">relocking_configurator.h</header>
    <container>1</container>
    <slots>
     <slot>tabChanged()</slot>
    </slots>
-  </customwidget>
-  <customwidget>
-   <class>SweepControlWidget</class>
-   <extends>QWidget</extends>
-   <header location="global">sweep_control</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>RelockingConfigurator</class>
-   <extends>QWidget</extends>
-   <header>relocking_configurator.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

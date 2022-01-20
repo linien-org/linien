@@ -15,8 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with redpid.  If not, see <http://www.gnu.org/licenses/>.
 
+from math import log2, ceil, pi
 import warnings
-from math import ceil, log2, pi
 
 import scipy.signal
 

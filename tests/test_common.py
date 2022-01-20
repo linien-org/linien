@@ -1,7 +1,7 @@
 import numpy as np
-from pytest import raises
-
 from linien.common import SpectrumUncorrelatedException, determine_shift_by_correlation
+from matplotlib import pyplot as plt
+from pytest import raises
 
 Y_SHIFT = 0
 
@@ -16,8 +16,8 @@ def spectrum_for_testing(x):
     return central_peak + smaller_peaks + Y_SHIFT
 
 
-def get_signal(sweep_amplitude, center, shift):
-    max_val = np.pi * 10 * sweep_amplitude
+def get_signal(ramp_amplitude, center, shift):
+    max_val = np.pi * 10 * ramp_amplitude
     new_center = center + shift
     x = np.linspace((-1 + new_center) * max_val, (1 + new_center) * max_val, 2048)
     return spectrum_for_testing(x)
@@ -40,8 +40,7 @@ def test_determine_shift_by_correlation():
     with raises(SpectrumUncorrelatedException):
         determine_shift_by_correlation(1, ref, second)[0]
 
-    # check that signal with a lot of noise still does not raise
-    # SpectrumUncorrelatedException
+    # check that signal with a lot of noise still does not raise SpectrumUncorrelatedException
     noise_level = 400
     ref = add_noise(get_signal(1, 0, 0), noise_level)
     second = add_noise(get_signal(1, 0, 0), noise_level)

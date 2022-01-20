@@ -3,10 +3,6 @@ from time import time
 
 import numpy as np
 import pyqtgraph as pg
-from PyQt5 import QtGui, QtWidgets
-from PyQt5.QtCore import pyqtSignal
-from pyqtgraph.Qt import QtCore
-
 from linien.client.utils import peak_voltage_to_dBm
 from linien.common import (
     DECIMATION,
@@ -22,6 +18,9 @@ from linien.common import (
 from linien.config import N_COLORS
 from linien.gui.config import COLORS, DEFAULT_PLOT_RATE_LIMIT
 from linien.gui.widgets import CustomWidget
+from PyQt5.QtCore import pyqtSignal
+from PyQt5 import QtGui
+from pyqtgraph.Qt import QtCore
 
 # NOTE: this is required for using a pen_width > 1.
 # There is a bug though that causes the plot to be way too small. Therefore,
@@ -53,8 +52,8 @@ class TimeXAxis(pg.AxisItem, CustomWidget):
         return self.parent.parameters
 
     @property
-    def sweep_speed(self):
-        return self.parameters.sweep_speed
+    def ramp_speed(self):
+        return self.parameters.ramp_speed
 
     @property
     def lock(self):
@@ -65,7 +64,7 @@ class TimeXAxis(pg.AxisItem, CustomWidget):
         QtCore.QTimer.singleShot(100, self.listen_to_parameter_changes)
 
     def listen_to_parameter_changes(self):
-        self.sweep_speed.on_change(self.force_repaint_tick_strings)
+        self.ramp_speed.on_change(self.force_repaint_tick_strings)
         self.lock.on_change(self.force_repaint_tick_strings)
         self.force_repaint_tick_strings()
 
@@ -75,8 +74,8 @@ class TimeXAxis(pg.AxisItem, CustomWidget):
 
     def tickStrings(self, values, scale, spacing):
         locked = self.lock.value
-        sweep_speed = self.sweep_speed.value if not locked else 0
-        time_between_points = (1 / 125e6) * 2 ** (sweep_speed) * DECIMATION
+        ramp_speed = self.ramp_speed.value if not locked else 0
+        time_between_points = (1 / 125e6) * 2 ** (ramp_speed) * DECIMATION
         values = [v * time_between_points for v in values]
         spacing *= time_between_points
 
@@ -113,13 +112,12 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         self.showGrid(x=True, y=True)
         self.setLabel("bottom", "time", units="s")
 
-        # Causes auto-scale button (‘A’ in lower-left corner) to be hidden for this
-        # PlotItem
+        # Causes auto-scale button (‘A’ in lower-left corner) to be hidden for this PlotItem
         self.hideButtons()
         # we have our own "reset view" button instead
         self.init_reset_view_button()
 
-        # copied from https://github.com/pyqtgraph/pyqtgraph/blob/master/pyqtgraph/graphicsItems/PlotItem/PlotItem.py#L133 # noqa: E501
+        # copied from https://github.com/pyqtgraph/pyqtgraph/blob/master/pyqtgraph/graphicsItems/PlotItem/PlotItem.py#L133
         # whenever something changes, we check whether to show "auto scale" button
         self.plotItem.vb.sigStateChanged.connect(
             self.check_whether_to_show_reset_view_button
@@ -223,8 +221,8 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         return x, y
 
     def connection_established(self):
-        self.parameters = self.app.parameters
-        self.control = self.app.control
+        self.control = self.app().control
+        self.parameters = self.app().parameters
 
         def set_pens(color):
             pen_width = self.parameters.plot_line_width.value
@@ -638,10 +636,10 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
             self.autolock_ref_spectrum is not None
             and self.parameters.autolock_preparing.value
         ):
-            sweep_amplitude = self.parameters.sweep_amplitude.value
-            zoom_factor = 1 / sweep_amplitude
+            ramp_amplitude = self.parameters.ramp_amplitude.value
+            zoom_factor = 1 / ramp_amplitude
             initial_zoom_factor = (
-                1 / self.parameters.autolock_initial_sweep_amplitude.value
+                1 / self.parameters.autolock_initial_ramp_amplitude.value
             )
 
             try:
@@ -744,7 +742,7 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         self._cached_plot_data = []
 
     def init_reset_view_button(self):
-        self.reset_view_button = QtWidgets.QPushButton(self)
+        self.reset_view_button = QtGui.QPushButton(self)
         self.reset_view_button.setText("Reset view")
         self.reset_view_button.setStyleSheet("padding: 10px; font-weight: bold")
         icon = QtGui.QIcon.fromTheme("view-restore")
@@ -761,7 +759,7 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         self.reset_view_button.move(pos)
 
     def check_whether_to_show_reset_view_button(self):
-        # copied from https://github.com/pyqtgraph/pyqtgraph/blob/master/pyqtgraph/graphicsItems/PlotItem/PlotItem.py#L1195 # noqa: E501
+        # copied from https://github.com/pyqtgraph/pyqtgraph/blob/master/pyqtgraph/graphicsItems/PlotItem/PlotItem.py#L1195
         auto_scale_disabled = not all(self.plotItem.vb.autoRangeEnabled())
         if auto_scale_disabled:
             self.reset_view_button.show()

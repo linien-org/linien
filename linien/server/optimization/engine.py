@@ -1,12 +1,12 @@
-import math
-
 import cma
+import math
+import numpy as np
 
 from linien.common import MHz, Vpp
 from linien.server.optimization.utils import (
-    FINAL_ZOOM_FACTOR,
     get_max_slope,
     optimize_phase_from_iq,
+    FINAL_ZOOM_FACTOR,
 )
 
 
@@ -174,7 +174,7 @@ class OptimizerEngine:
             self.last_parameters = list(new_params_converted)
             self.last_parameters_internal = list(new_params)
 
-        self.control.exposed_write_registers()
+        self.control.exposed_write_data()
         self.control.continue_acquisition()
 
     def finished(self):

@@ -1,29 +1,30 @@
 import os
 import sys
 
-# add the two parent directories to the path so linien and autolock can be found
-dir_name = os.path.dirname(os.path.abspath(__file__))
-sys.path += [os.path.join(dir_name, "..", "..")]
-sys.path += [os.path.join(dir_name, "..")]
-
+sys.path += ["../../"]
+import rpyc
+import click
 import _thread
 import pickle
-import threading
-from random import random
-from time import sleep
-
-import click
 import numpy as np
-import rpyc
+
+from rpyc.utils.server import ThreadedServer
+from rpyc.utils.authenticators import AuthenticationError
+from random import random
+
 from autolock.autolock import Autolock
 from parameters import Parameters
-from rpyc.utils.authenticators import AuthenticationError
-from rpyc.utils.server import ThreadedServer
 
-from linien.common import N_POINTS, check_plot_data, pack, unpack, update_signal_history
 from linien.config import DEFAULT_SERVER_PORT
-from linien.server.optimization.optimization import OptimizeSpectroscopy
+from linien.common import (
+    check_plot_data,
+    update_signal_history,
+    N_POINTS,
+    pack,
+    unpack,
+)
 from linien.server.parameter_store import ParameterStore
+from linien.server.optimization.optimization import OptimizeSpectroscopy
 from linien.server.pid_optimization.pid_optimization import (
     PIDOptimization,
     PSDAcquisition,
@@ -128,23 +129,6 @@ class RedPitayaControlService(BaseService):
         self.pause_acquisition()
         self.continue_acquisition()
 
-    def run_periodic_timer(self):
-        """Starts a timer that increases the `ping` parameter once per second.
-        Its purpose is to allow for periodic tasks on the server:
-        just register an `on_change` listener for this parameter.
-        """
-
-        def send_ping():
-            while True:
-                self.parameters.ping.value = self.parameters.ping.value + 1
-                print("ping", self.parameters.ping.value)
-                sleep(1)
-
-        t = threading.Thread(target=send_ping)
-        t.daemon = True
-        t.start()
-        self._periodic_timer = t
-
     def _generate_signal_stats(self, to_plot):
         stats = {}
 
@@ -156,7 +140,7 @@ class RedPitayaControlService(BaseService):
 
         self.parameters.signal_stats.value = stats
 
-    def exposed_write_registers(self):
+    def exposed_write_data(self):
         """Syncs the parameters with the FPGA registers."""
         self.registers.write_registers()
 
@@ -201,12 +185,12 @@ class RedPitayaControlService(BaseService):
             self.parameters.task.value = PIDOptimization(self, self.parameters)
             self.parameters.task.value.run()
 
-    def exposed_start_sweep(self):
+    def exposed_start_ramp(self):
         self.pause_acquisition()
 
         self.parameters.combined_offset.value = 0
         self.parameters.lock.value = False
-        self.exposed_write_registers()
+        self.exposed_write_data()
 
         self.continue_acquisition()
 
@@ -214,7 +198,7 @@ class RedPitayaControlService(BaseService):
         self.pause_acquisition()
 
         self.parameters.lock.value = True
-        self.exposed_write_registers()
+        self.exposed_write_data()
 
         self.continue_acquisition()
 
@@ -267,13 +251,13 @@ class FakeRedPitayaControl(BaseService):
         super().__init__()
         self.exposed_is_locked = None
 
-    def exposed_write_registers(self):
+    def exposed_write_data(self):
         pass
 
     def run_acquiry_loop(self):
         import threading
-        from random import randint
         from time import sleep
+        from random import randint
 
         def run():
             while True:
@@ -292,9 +276,6 @@ class FakeRedPitayaControl(BaseService):
         t = threading.Thread(target=run)
         t.daemon = True
         t.start()
-
-    def run_periodic_timer(self):
-        pass
 
     def exposed_shutdown(self):
         _thread.interrupt_main()
@@ -357,8 +338,7 @@ def run_server(port, fake=False, remote_rp=False):
             control = RedPitayaControlService()
 
     control.run_acquiry_loop()
-    control.run_periodic_timer()
-    control.exposed_write_registers()
+    control.exposed_write_data()
 
     failed_auth_counter = {"c": 0}
 

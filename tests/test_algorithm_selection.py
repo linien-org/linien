@@ -1,11 +1,9 @@
-import pickle
-
-import numpy as np
-
-from linien.common import AUTO_DETECT_AUTOLOCK_MODE, FAST_AUTOLOCK, ROBUST_AUTOLOCK
-from linien.server.autolock.autolock import Autolock
-from linien.server.autolock.fast import FastAutolock
 from linien.server.autolock.robust import RobustAutolock
+from linien.server.autolock.fast import FastAutolock
+from linien.common import AUTO_DETECT_AUTOLOCK_MODE, FAST_AUTOLOCK, ROBUST_AUTOLOCK
+import pickle
+import numpy as np
+from linien.server.autolock.autolock import Autolock
 from linien.server.parameters import Parameters
 
 Y_SHIFT = 4000
@@ -21,8 +19,8 @@ def spectrum_for_testing(x):
     return central_peak + smaller_peaks + Y_SHIFT
 
 
-def get_signal(sweep_amplitude, center, shift):
-    max_val = np.pi * 5 * sweep_amplitude
+def get_signal(ramp_amplitude, center, shift):
+    max_val = np.pi * 5 * ramp_amplitude
     new_center = center + shift
     x = np.linspace((-1 + new_center) * max_val, (1 + new_center) * max_val, 16384)
     return spectrum_for_testing(x)
@@ -39,12 +37,9 @@ class FakeControl:
     def continue_acquisition(self):
         pass
 
-    def exposed_write_registers(self):
+    def exposed_write_data(self):
         print(
-            f"""
-            write: center={self.parameters.sweep_center.value}\n
-            amp={self.parameters.sweep_amplitude.value}
-            """
+            f"write: center={self.parameters.center.value} amp={self.parameters.ramp_amplitude.value}"
         )
 
     def exposed_start_lock(self):

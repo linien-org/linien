@@ -1,5 +1,5 @@
-from migen import If, Module, Signal
-from misoc.interconnect.csr import AutoCSR, CSRStorage
+from migen import Module, If, Signal
+from misoc.interconnect.csr import CSRStorage, AutoCSR
 
 
 class PID(Module, AutoCSR):

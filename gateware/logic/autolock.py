@@ -1,8 +1,7 @@
-from migen import Array, If, Module, Signal, bits_for
-from misoc.interconnect.csr import AutoCSR, CSRStatus, CSRStorage
-
 from gateware.logic.autolock_utils import SumDiffCalculator
 from linien.common import AUTOLOCK_MAX_N_INSTRUCTIONS, FAST_AUTOLOCK, ROBUST_AUTOLOCK
+from migen import Array, If, Module, Signal, bits_for, run_simulation
+from misoc.interconnect.csr import AutoCSR, CSRStatus, CSRStorage
 
 ROBUST_AUTOLOCK_FPGA_DELAY = 3
 
@@ -15,7 +14,6 @@ class FPGAAutolock(Module, AutoCSR):
     Independent of the mode selected, locking happens by setting
     `request_lock`. Once lock has been established, `lock_running` will be HIGH.
     """
-
     def __init__(self, width=14, N_points=16383, max_delay=16383):
         self.submodules.robust = RobustAutolock(max_delay=max_delay)
 
@@ -51,14 +49,12 @@ class FPGAAutolock(Module, AutoCSR):
 
 
 class FastAutolock(Module, AutoCSR):
-    """The operation of fast autolock is simple: wait until the sweep has reached
+    """The operation of fast autolock is simple: wait until the ramp has reached
     a certain point and turn on the lock. This method is well suited for systems
     with not too much jitter."""
-
     def __init__(self, width=14):
         # pid is not started directly by `request_lock` signal. Instead, `request_lock`
-        # queues a run that is then started when the sweep is at the zero target
-        # position.
+        # queues a run that is then started when the ramp is at the zero target position
         self.request_lock = Signal()
         self.turn_on_lock = Signal()
         self.sweep_value = Signal((width, True))
@@ -81,7 +77,7 @@ class FastAutolock(Module, AutoCSR):
                         self.sweep_value
                         <= target_position_signed + 1 + (self.sweep_step >> 1)
                     )
-                    # and if the sweep is going up (because this is when a
+                    # and if the ramp is going up (because this is when a
                     # spectrum is recorded)
                     & (self.sweep_up)
                 ),
@@ -96,7 +92,7 @@ class RobustAutolock(Module, AutoCSR):
         self.init_inout_signals(width)
 
         # is the autolock actively trying to detect peaks? This is set to true
-        # if lock is requested and once the sweep is at start
+        # if lock is requested and once the ramp is at start
         watching = Signal()
 
         # the following signals are property of the peak that the autolock is
@@ -178,7 +174,7 @@ class RobustAutolock(Module, AutoCSR):
                 If(
                     ~self.request_lock,
                     # disable `watching` if `request_lock` was disabled while
-                    # the sweep is running. This is important for slow scan
+                    # the ramp is running. This is important for slow scan
                     # speeds when disabling the autolock and enabling it again
                     # with different parameters. In this case we want to take
                     # care that we start watching at start.
@@ -249,3 +245,46 @@ class RobustAutolock(Module, AutoCSR):
         self.writing_data_now = Signal()
         self.sweep_up = Signal()
         self.turn_on_lock = Signal()
+
+
+def get_lock_position_from_autolock_instructions_by_simulating_fpga(
+    spectrum, description, time_scale, initial_spectrum, final_wait_time
+):
+    """This function simulated the behavior of `RobustAutolock` on FPGA
+    and allows to find out whether FPGA would lock to the correct point."""
+    result = {}
+
+    def tb(dut):
+        yield dut.sweep_up.eq(1)
+        yield dut.request_lock.eq(1)
+        yield dut.at_start.eq(1)
+        yield dut.writing_data_now.eq(1)
+
+        yield dut.N_instructions.storage.eq(len(description))
+        yield dut.final_wait_time.storage.eq(final_wait_time)
+
+        for description_idx, [wait_for, current_threshold] in enumerate(description):
+            yield dut.peak_heights[description_idx].storage.eq(int(current_threshold))
+            yield dut.wait_for[description_idx].storage.eq(int(wait_for))
+
+        yield
+
+        yield dut.at_start.eq(0)
+        yield dut.time_scale.storage.eq(int(time_scale))
+
+        for i in range(len(spectrum)):
+            yield dut.input.eq(int(spectrum[i]))
+
+            turn_on_lock = yield dut.turn_on_lock
+            if turn_on_lock:
+                result["index"] = i
+                return
+
+            yield
+
+    dut = RobustAutolock()
+    run_simulation(
+        dut, tb(dut), vcd_name="experimental_autolock_fpga_lock_position_finder.vcd"
+    )
+
+    return result.get("index")

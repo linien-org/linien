@@ -1,6 +1,5 @@
-from PyQt5 import QtWidgets
-
 from linien.gui.utils_gui import param2ui
+from PyQt5 import QtWidgets
 from linien.gui.widgets import CustomWidget
 
 
@@ -37,8 +36,9 @@ class RelockingChannelSettings(QtWidgets.QWidget, CustomWidget):
         return getattr(self.parameters, "automatic_relocking_%s_max" % self.signal_name)
 
     def connection_established(self):
-        self.parameters = self.app.parameters
-        self.control = self.app.control
+        params = self.app().parameters
+        self.control = self.app().control
+        self.parameters = params
 
         param2ui(self.parameter_min, self.ids.enableRelockingThisChannel)
         param2ui(self.parameter_max, self.ids.enableRelockingThisChannel)
@@ -52,15 +52,15 @@ class RelockingChannelSettings(QtWidgets.QWidget, CustomWidget):
         self.parameter_enabled.value = int(
             self.ids.enableRelockingThisChannel.checkState()
         )
-        self.control.write_registers()
+        self.control.write_data()
 
     def min_value_changed(self):
         self.parameter_min.value = self.ids.relockingThisChannelMin.value()
-        self.control.write_registers()
+        self.control.write_data()
 
     def max_value_changed(self):
         self.parameter_max.value = self.ids.relockingThisChannelMax.value()
-        self.control.write_registers()
+        self.control.write_data()
 
 
 class RelockingControlChannelSettings(RelockingChannelSettings):

@@ -7,6 +7,9 @@ assert linien.__version__ != "dev"
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
+with open("requirements_client", "r") as fh:
+    requirements = fh.read().split(" ")
+
 setuptools.setup(
     name="linien-python-client",
     version=linien.__version__,
@@ -24,14 +27,7 @@ setuptools.setup(
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
         "Operating System :: OS Independent",
     ],
-    install_requires=[
-        "numpy>=1.19.1",
-        "paramiko>=2.7.1",
-        "plumbum>=1.6.9",
-        "rpyc>=4.0,<5.0",
-        "scipy>=1.4.1",
-        "uuid>=1.30",
-    ],
+    install_requires=[requirements],
     package_data={
         # IMPORTANT: any changes have to be made in pyinstaller.spec, too
         # (for the standalone installer)

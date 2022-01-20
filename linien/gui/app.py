@@ -1,11 +1,13 @@
 import os
 import signal
 import sys
-from traceback import print_exc
 
 from plumbum import colors
+from traceback import print_exc
+
 from PyQt5 import QtWidgets
-from pyqtgraph.Qt import QtCore
+from pyqtgraph.Qt import QtCore, QtGui
+
 
 # it may seem odd to include '.', but for some reason this is needed for
 # standalone windows executable
@@ -17,9 +19,9 @@ from linien.gui.widgets import CustomWidget, ui_path
 sys.path += [ui_path]
 
 from linien.gui.ui.device_manager import DeviceManager
+from linien.gui.ui.version_checker import VersionCheckerThread
 from linien.gui.ui.main_window import MainWindow
 from linien.gui.ui.psd_window import PSDWindow
-from linien.gui.ui.version_checker import VersionCheckerThread
 from linien.gui.utils_gui import set_window_icon
 
 
@@ -44,29 +46,24 @@ class QTApp(QtCore.QObject):
 
         super().__init__()
 
-    def client_connected(self, client):
+    def connected(self, connection, parameters, control):
         self.device_manager.hide()
-        self.main_window.show(client.host, client.device["name"])
+        self.main_window.show(connection.host, connection.device["name"])
 
-        self.client = client
-        self.control = client.control
-        self.parameters = client.parameters
+        self.connection = connection
+        self.control = control
+        self.parameters = parameters
 
         self.ready.connect(self.init)
         self.ready.emit(True)
 
     def init(self):
-
         for instance in CustomWidget.instances:
             try:
                 instance.connection_established()
-            except Exception:
+            except:
                 print(
-                    (
-                        "The error below happend when calling connection_established "
-                        "of a widget. This may happen if the widget was recently "
-                        "destroyed."
-                    )
+                    "the error below happend when calling connection_established of a widget. This may happen if the widget was recently destroyed."
                 )
                 print_exc()
 
@@ -75,10 +72,14 @@ class QTApp(QtCore.QObject):
         self.check_for_new_version()
 
     def call_listeners(self):
-        if hasattr(self, "client") and self.client and self.client.connected:
+        if (
+            hasattr(self, "connection")
+            and self.connection
+            and self.connection.connected
+        ):
             try:
                 self.parameters.call_listeners()
-            except Exception:
+            except:
                 print(colors.red | "call_listeners() failed")
                 print_exc()
 
@@ -93,7 +94,7 @@ class QTApp(QtCore.QObject):
         self.app.quit()
 
     def shutdown(self):
-        self.client.control.shutdown()
+        self.control.shutdown()
         self.close()
 
     def open_psd_window(self):
@@ -106,8 +107,8 @@ class QTApp(QtCore.QObject):
         self.main_window.hide()
         self.device_manager.show()
 
-        self.client.disconnect()
-        del self.client
+        self.connection.disconnect()
+        del self.connection
 
     def close_all_secondary_windows(self):
         self.psd_window.hide()

@@ -1,65 +1,52 @@
 import pickle
 import random
 import string
-from time import sleep, time
-
 import numpy as np
-from pylpsd import lpsd
+from time import sleep, time
 from scipy import signal
 
-from linien.common import PSD_ALGORITHM_LPSD, PSD_ALGORITHM_WELCH
 from linien.server.optimization.engine import MultiDimensionalOptimizationEngine
+from linien.server.pid_optimization.lpsd import lpsd
 
 ALL_DECIMATIONS = list(range(32))
 
 
-def calculate_psd(sig, fs, algorithm):
-    """
-    Calculates the power spectral density.
-
-    :param sig: The signal to calculate the PSD for.
-    :param fs: The sampling frequency.
-    :param algorithm: The PSD algorithm to use. Options are 'lpsd' and 'welch'.
-    :return: One-sided power spectral density.
-    """
-    assert algorithm in [PSD_ALGORITHM_LPSD, PSD_ALGORITHM_WELCH]
+def calculate_psd(sig, fs):
+    # TODO: long-term: remove scipy code if lpsd actually works better
+    use_scipy = False
 
     # at beginning or end of signal, we sometimes have more glitches --> ignore
     # them (200 points less @ 16384 points doesn't hurt much)
     sig = sig[100:-100]
 
-    num_pts = 256
-    window = "hann"  # passed to scipy.signal.get_window for welch and lpsd
+    N = len(sig)
+    fmin = float(fs) / N * 10  # lowest frequency of interest
+    fmax = float(fs) / 20.0  # highest frequency of interest
+    Jdes = 256  # desired number of points in the spectrum
+    Kdes = 100  # desired number of averages
+    Kmin = 2  # minimum number of averages
+    xi = 0.5  # fractional overlap
 
-    sig = sig.astype(np.float64)
+    if use_scipy:
+        # nfft = np.ceil(fs / float(fmin))
+        # window = np.hanning(nfft)
+        num_pts = 256
+        window = signal.hann(num_pts)
 
-    if algorithm == PSD_ALGORITHM_WELCH:
+        f, Pxx = signal.welch(sig, fs, window, nperseg=num_pts, scaling="density")
 
-        f, Pxx = signal.welch(
-            sig, fs, window=window, nperseg=num_pts, scaling="density"
-        )
-    elif algorithm == PSD_ALGORITHM_LPSD:
+    else:
+        sig = sig.astype(np.float64)
+        X, f, C = lpsd(sig, np.hanning, fmin, fmax, Jdes, Kdes, Kmin, fs, xi)
+        Pxx = X * C["PSD"]
 
-        fmin = fs / len(sig) * 10  # lowest frequency of interest
-        fmax = fs / 20.0  # highest frequency of interest
-
-        f, Pxx = lpsd(
-            sig,
-            fs,
-            window=window,
-            fmin=fmin,
-            fmax=fmax,
-            Jdes=256,
-            Kmin=2,
-            scaling="density",
-        )
     return f, Pxx
 
 
-def residual_freq_noise(dt, sig, algorithm):
+def residual_freq_noise(dt, sig):
     fs = 1 / dt
 
-    f, psd = calculate_psd(sig, fs, algorithm)
+    f, psd = calculate_psd(sig, fs)
     # we want to have it in counts / Sqrt[Hz], not in (counts**2) / Hz
     psd = np.sqrt(psd)
 
@@ -117,9 +104,7 @@ class PSDAcquisition:
         if not self.is_child:
             self.control.pause_acquisition()
             self.parameters.acquisition_raw_enabled.value = False
-            self.parameters.acquisition_raw_filter_enabled.value = False
-
-            self.control.exposed_write_registers()
+            self.control.exposed_write_data()
             self.control.continue_acquisition()
 
     def react_to_new_signal(self, data_pickled):
@@ -134,9 +119,7 @@ class PSDAcquisition:
             print("recording took", time() - self.time_decimation_set, "s")
             self.recorded_signals_by_decimation[current_decimation] = data
             self.recorded_psds_by_decimation[current_decimation] = residual_freq_noise(
-                1 / (125e6) * (2 ** (current_decimation)),
-                data[0],
-                algorithm=self.parameters.psd_algorithm.value,
+                1 / (125e6) * (2 ** (current_decimation)), data[0]
             )
 
             # this means that measurement time increases by a factor of 16 after
@@ -188,14 +171,7 @@ class PSDAcquisition:
         self.control.pause_acquisition()
         self.parameters.acquisition_raw_decimation.value = decimation
         self.parameters.acquisition_raw_enabled.value = True
-
-        # lowpass filter for preventing alias effects
-        self.parameters.acquisition_raw_filter_enabled.value = True
-        self.parameters.acquisition_raw_filter_frequency.value = int(
-            125e6 / (2 ** decimation) / 2
-        )
-
-        self.control.exposed_write_registers()
+        self.control.exposed_write_data()
         # take care that new decimation was actually written to FPGA
         sleep(0.1)
         self.control.continue_acquisition()

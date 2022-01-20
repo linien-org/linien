@@ -1,16 +1,15 @@
 import json
 import pickle
-from os import path
-
 import numpy as np
-from PyQt5 import QtGui, QtWidgets
+from os import path
 
 from linien.config import N_COLORS
 from linien.gui.utils_gui import color_to_hex, param2ui
 from linien.gui.widgets import CustomWidget
+from PyQt5 import QtGui, QtWidgets
 
 
-class ViewPanel(QtWidgets.QWidget, CustomWidget):
+class ViewPanel(QtGui.QWidget, CustomWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.load_ui("view_panel.ui")
@@ -36,18 +35,19 @@ class ViewPanel(QtWidgets.QWidget, CustomWidget):
     def edit_color(self, color_idx):
         param = getattr(self.parameters, "plot_color_%d" % color_idx)
 
-        color = QtWidgets.QColorDialog.getColor(QtGui.QColor.fromRgb(*param.value))
+        color = QtGui.QColorDialog.getColor(QtGui.QColor.fromRgb(*param.value))
         r, g, b, a = color.getRgb()
         print("set color", color_idx, color.getRgb())
         param.value = (r, g, b, a)
 
     def connection_established(self):
-        self.parameters = self.app.parameters
-        self.control = self.app.control
+        params = self.app().parameters
+        self.control = self.app().control
+        self.parameters = params
 
-        param2ui(self.parameters.plot_line_width, self.ids.plot_line_width)
-        param2ui(self.parameters.plot_line_opacity, self.ids.plot_line_opacity)
-        param2ui(self.parameters.plot_fill_opacity, self.ids.plot_fill_opacity)
+        param2ui(params.plot_line_width, self.ids.plot_line_width)
+        param2ui(params.plot_line_opacity, self.ids.plot_line_opacity)
+        param2ui(params.plot_fill_opacity, self.ids.plot_fill_opacity)
 
         def preview_colors(*args):
             for color_idx in range(N_COLORS):

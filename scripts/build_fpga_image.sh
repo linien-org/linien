@@ -5,10 +5,10 @@ SCRIPT=`realpath $0`
 SCRIPTPATH=`dirname $SCRIPT`
 cd $SCRIPTPATH/../
 
-VIVADOPATH=~/xilinx/Vivado/2020.2/bin
+VIVADOPATH=/tools/Xilinx/Vivado/2020.1/bin
 if [ ! -d $VIVADOPATH ]
 then
-echo "vivado path $VIVADOPATH does not exist. Please adapt it in build_fpga_image.sh"
+echo "vivado path $VIVADOPATH does not exist. Please adapt it in build_gateware.sh"
 exit 1
 fi
 

@@ -1,12 +1,8 @@
-from pathlib import Path
-
+from migen import run_simulation
+import matplotlib.pyplot as plt
+from gateware.logic.modulate import Modulate, Demodulate
+from migen import Signal, Module
 import numpy as np
-import pytest
-from migen import Module, Signal, run_simulation
-
-from gateware.logic.modulate import Demodulate, Modulate
-
-VCD_DIR = Path(__file__).parent / "vcd"
 
 
 def moving_average(a, n):
@@ -29,8 +25,7 @@ def block_average(a, n):
 factor = 5
 
 
-@pytest.mark.slow
-def test_modulate(plt):
+def test_modulate():
     width = 16
     data = []
     phase = []
@@ -75,7 +70,7 @@ def test_modulate(plt):
             ]
 
     dut = Combined()
-    run_simulation(dut, tb(dut), vcd_name=VCD_DIR / "modulate.vcd")
+    run_simulation(dut, tb(dut), vcd_name="modulate.vcd")
 
     """        """
     plt.plot(data, label="y")
@@ -89,6 +84,7 @@ def test_modulate(plt):
     plt.plot(np.sqrt(averaged1 ** 2 + averaged2 ** 2), label="averaged+averaged")
 
     plt.legend()
+    plt.show()
 
 
 if __name__ == "__main__":

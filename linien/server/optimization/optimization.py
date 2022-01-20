@@ -1,12 +1,11 @@
+from linien.server.optimization.utils import FINAL_ZOOM_FACTOR
+from linien.server.optimization.engine import OptimizerEngine
 import pickle
-import traceback
-
 import numpy as np
+import traceback
 
 from linien.common import determine_shift_by_correlation, get_lock_point
 from linien.server.approach_line import Approacher
-from linien.server.optimization.engine import OptimizerEngine
-from linien.server.optimization.utils import FINAL_ZOOM_FACTOR
 
 
 class OptimizeSpectroscopy:
@@ -23,9 +22,9 @@ class OptimizeSpectroscopy:
         self.next_recentering_iteration = self.recenter_after
         self.allow_increase_of_recentering_interval = True
 
-        self.initial_sweep_speed = self.parameters.sweep_speed.value
-        self.initial_sweep_amplitude = self.parameters.sweep_amplitude.value
-        self.initial_sweep_center = self.parameters.sweep_center.value
+        self.initial_ramp_speed = self.parameters.ramp_speed.value
+        self.initial_ramp_amplitude = self.parameters.ramp_amplitude.value
+        self.initial_ramp_center = self.parameters.center.value
 
     def run(self, x0, x1, spectrum):
         self.parameters.optimization_failed.value = False
@@ -68,7 +67,7 @@ class OptimizeSpectroscopy:
             self.first_error_signal,
             self.target_zoom,
             mean_signal,
-            allow_sweep_speed_change=False,
+            allow_ramp_speed_change=False,
         )
 
     def react_to_new_spectrum(self, spectrum):
@@ -109,10 +108,8 @@ class OptimizeSpectroscopy:
                         shift, _, _2 = determine_shift_by_correlation(
                             1, self.initial_spectrum, spectrum
                         )
-                        params.sweep_center.value -= (
-                            shift * params.sweep_amplitude.value
-                        )
-                        self.control.exposed_write_registers()
+                        params.center.value -= shift * params.ramp_amplitude.value
+                        self.control.exposed_write_data()
 
                         if (
                             self.allow_increase_of_recentering_interval
@@ -134,7 +131,7 @@ class OptimizeSpectroscopy:
                     # we are done!
                     self.exposed_stop(True)
 
-        except Exception:
+        except:
             print("exception at optimization task")
             traceback.print_exc()
             self.parameters.optimization_failed.value = True
@@ -155,9 +152,9 @@ class OptimizeSpectroscopy:
     def reset_scan(self):
         self.control.pause_acquisition()
 
-        self.parameters.sweep_speed.value = self.initial_sweep_speed
-        self.parameters.sweep_amplitude.value = self.initial_sweep_amplitude
-        self.parameters.sweep_center.value = self.initial_sweep_center
-        self.control.exposed_write_registers()
+        self.parameters.ramp_speed.value = self.initial_ramp_speed
+        self.parameters.ramp_amplitude.value = self.initial_ramp_amplitude
+        self.parameters.center.value = self.initial_ramp_center
+        self.control.exposed_write_data()
 
         self.control.continue_acquisition()

@@ -1,9 +1,9 @@
 import os
 import weakref
 from os import path
-
 from PyQt5 import uic
-from pyqtgraph.Qt import QtCore
+from pyqtgraph.Qt import QtCore, QtGui
+
 
 # add ui folder to path
 ui_path = os.path.join(*list(os.path.split(os.path.abspath(__file__))[:-1]) + ["ui"])
@@ -33,23 +33,16 @@ class CustomWidget:
         pass
 
     def connection_established(self):
-        # This is executed the client succesfully established a connection to the server
-        # and can be extended by inheritting classes.
         pass
 
     def get_widget(self, name):
         """Queries a widget by name."""
         return self.findChild(QtCore.QObject, name)
 
-    @property
     def app(self):
         # this property is set manually. Probably there is a more elegant way
         # to solve this...
-        return self.window()._app
-
-    @app.setter
-    def app(self, app):
-        self._app = app
+        return self.window().app
 
     def load_ui(self, name):
         assert name.endswith(".ui")

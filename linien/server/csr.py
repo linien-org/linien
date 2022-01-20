@@ -17,7 +17,7 @@
 
 
 import csrmap
-from iir_coeffs import get_params
+from iir_coeffs import get_params, make_filter
 
 
 class PitayaCSR:

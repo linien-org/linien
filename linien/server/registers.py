@@ -1,16 +1,15 @@
 import numpy as np
-from csr import PitayaCSR
-from iir_coeffs import make_filter
-from utils import twos_complement
 
+from csr import PitayaCSR, make_filter
+from utils import twos_complement
+from linien.config import DEFAULT_RAMP_SPEED
 from linien.common import (
-    ANALOG_OUT0,
-    HIGH_PASS_FILTER,
-    LOW_PASS_FILTER,
-    MHz,
     convert_channel_mixing_value,
+    LOW_PASS_FILTER,
+    HIGH_PASS_FILTER,
+    ANALOG_OUT0,
+    MHz,
 )
-from linien.config import DEFAULT_SWEEP_SPEED
 from linien.server.acquisition import AcquisitionMaster
 
 
@@ -89,26 +88,23 @@ class Registers:
             # of stopping the sweep run after `request_lock` is set by setting
             # `sweep.clear`
             logic_sweep_run=1,
-            logic_sweep_pause=int(params["sweep_pause"]),
             logic_sweep_step=int(
-                DEFAULT_SWEEP_SPEED
-                * params["sweep_amplitude"]
-                / (2 ** params["sweep_speed"])
+                DEFAULT_RAMP_SPEED
+                * params["ramp_amplitude"]
+                / (2 ** params["ramp_speed"])
             ),
-            # NOTE: Sweep center is set by `logic_out_offset`.
-            logic_sweep_min=-1 * _max(params["sweep_amplitude"] * 8191),
-            logic_sweep_max=_max(params["sweep_amplitude"] * 8191),
+            logic_sweep_min=-1 * _max(params["ramp_amplitude"] * 8191),
+            logic_sweep_max=_max(params["ramp_amplitude"] * 8191),
             logic_mod_freq=params["modulation_frequency"],
             logic_mod_amp=params["modulation_amplitude"]
             if params["modulation_frequency"] > 0
             else 0,
             logic_dual_channel=int(params["dual_channel"]),
-            logic_fast_mode=int(params["fast_mode"]),
             logic_chain_a_factor=factor_a,
             logic_chain_b_factor=factor_b,
             logic_chain_a_offset=twos_complement(int(params["offset_a"]), 14),
             logic_chain_b_offset=twos_complement(int(params["offset_b"]), 14),
-            logic_out_offset=int(params["sweep_center"] * 8191),
+            logic_out_offset=int(params["center"] * 8191),
             logic_combined_offset=twos_complement(params["combined_offset"], 14),
             logic_control_channel=params["control_channel"],
             logic_mod_channel=params["mod_channel"],
@@ -140,7 +136,7 @@ class Registers:
             fast_b_y_tap=1,
             fast_b_dy_sel=self.csr.signal("zero"),
             fast_b_invert=int(params["invert_b"]),
-            # trigger on sweep
+            # trigger on ramp
             scopegen_external_trigger=1,
             gpio_p_oes=0b11111111,
             gpio_n_oes=0b11111111,
@@ -163,8 +159,6 @@ class Registers:
                 {
                     "scopegen_adc_a_sel": self.csr.signal(
                         "logic_combined_error_signal"
-                        if not params["acquisition_raw_filter_enabled"]
-                        else "logic_combined_error_signal_filtered"
                     ),
                     "scopegen_adc_a_q_sel": self.csr.signal("fast_b_x"),
                     "scopegen_adc_b_sel": self.csr.signal("logic_control_signal"),
@@ -198,11 +192,11 @@ class Registers:
         )
         self.control._cached_data.update(new)
 
-        # pass sweep speed changes to acquisition process
-        sweep_changed = params["sweep_speed"] != self._last_sweep_speed
+        # pass ramp speed changes to acquisition process
+        sweep_changed = params["ramp_speed"] != self._last_sweep_speed
         if sweep_changed:
-            self._last_sweep_speed = params["sweep_speed"]
-            self.acquisition.set_sweep_speed(params["sweep_speed"])
+            self._last_sweep_speed = params["ramp_speed"]
+            self.acquisition.set_ramp_speed(params["ramp_speed"])
 
         raw_acquisition_settings = (
             params["acquisition_raw_enabled"],
@@ -211,15 +205,6 @@ class Registers:
         if raw_acquisition_settings != self._last_raw_acquisition_settings:
             self._last_raw_acquisition_settings = raw_acquisition_settings
             self.acquisition.set_raw_acquisition(*raw_acquisition_settings)
-
-        fpga_base_freq = 125e6
-
-        self.set_iir(
-            "logic_raw_acquisition_iir",
-            *make_filter(
-                "LP", f=params["acquisition_raw_filter_frequency"] / fpga_base_freq, k=1
-            )
-        )
 
         for k, v in new.items():
             self.set(k, int(v))
@@ -295,22 +280,20 @@ class Registers:
                             "filter_%d_frequency_%s" % (iir_idx + 1, chain)
                         ]
 
+                    base_freq = 125e6
+
                     if not filter_enabled:
                         self.set_iir(iir_name, *make_filter("P", k=1))
                     else:
                         if filter_type == LOW_PASS_FILTER:
                             self.set_iir(
                                 iir_name,
-                                *make_filter(
-                                    "LP", f=filter_frequency / fpga_base_freq, k=1
-                                )
+                                *make_filter("LP", f=filter_frequency / base_freq, k=1)
                             )
                         elif filter_type == HIGH_PASS_FILTER:
                             self.set_iir(
                                 iir_name,
-                                *make_filter(
-                                    "HP", f=filter_frequency / fpga_base_freq, k=1
-                                )
+                                *make_filter("HP", f=filter_frequency / base_freq, k=1)
                             )
                         else:
                             raise Exception(

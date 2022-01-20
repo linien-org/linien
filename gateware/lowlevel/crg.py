@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with redpid.  If not, see <http://www.gnu.org/licenses/>.
 
-from migen import ClockDomain, Instance, Module, Signal
+from migen import *
 
 
 class CRG(Module):
