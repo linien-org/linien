@@ -31,8 +31,9 @@ setuptools.setup(
         "click>=7.1.2",
         "cma>=3.0.3",
         "plumbum>=1.6.9",
-        "pylpsd>=0.1.3",
+        "pylpsd>=0.1.4",
         "numpy>=1.11.0",
+        "scipy>=0.17.0",
     ],
     scripts=[
         "linien/server/linien_start_server",
