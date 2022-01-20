@@ -1,5 +1,5 @@
 import superqt
-from PyQt5 import QtGui, QtWidgets
+from PyQt5 import QtWidgets
 
 from linien.gui.widgets import CustomWidget
 
@@ -22,7 +22,7 @@ class SweepControlWidget(QtWidgets.QWidget, CustomWidget):
         # emitted when using the arrow buttons. See also the editingFinished method.
         self.ids.sweep_center.valueChanged.connect(self.update_sweep_center)
         self.ids.sweep_amplitude.valueChanged.connect(self.update_sweep_amplitude)
-        self.ids.sweep_start_stop_button.clicked.connect(self.update_sweep_output)
+        self.ids.sweep_start_stop_button.clicked.connect(self.pause_or_resume_sweep)
 
         # initialize sweep controls
         self.display_sweep_status()
@@ -30,12 +30,11 @@ class SweepControlWidget(QtWidgets.QWidget, CustomWidget):
         # change displayed values when sweep parameters change
         self.parameters.sweep_center.on_change(self.display_sweep_status)
         self.parameters.sweep_amplitude.on_change(self.display_sweep_status)
-        self.parameters.sweep.on_change(self.display_sweep_status)
+        self.parameters.sweep_pause.on_change(self.display_sweep_status)
 
     def display_sweep_status(self, *args):
         center = self.parameters.sweep_center.value
         amplitude = self.parameters.sweep_amplitude.value
-        sweep_is_on = self.parameters.sweep.value
         min_ = center - amplitude
         max_ = center + amplitude
 
@@ -48,22 +47,19 @@ class SweepControlWidget(QtWidgets.QWidget, CustomWidget):
         self.ids.sweep_slider.setValue((min_, max_))
         self.ids.sweep_center.setValue(center)
         self.ids.sweep_amplitude.setValue(amplitude)
-        if sweep_is_on:
-            self.ids.sweep_start_stop_button.setText("Pause")
-        else:
+        if self.parameters.sweep_pause.value:
             self.ids.sweep_start_stop_button.setText("Start")
+        else:
+            self.ids.sweep_start_stop_button.setText("Pause")
 
         self.ids.sweep_slider.blockSignals(False)
         self.ids.sweep_center.blockSignals(False)
         self.ids.sweep_amplitude.blockSignals(False)
 
-    def update_sweep_output(self):
-        if self.parameters.sweep.value:
-            self.parameters.sweep.value = False
-            self.control.write_registers()
-        else:
-            self.parameters.sweep.value = True
-            self.control.write_registers()
+    def pause_or_resume_sweep(self):
+        # If sweep is paused, resume it or vice versa.
+        self.parameters.sweep_pause.value = not self.parameters.sweep_pause.value
+        self.control.write_registers()
 
     def update_sweep_center(self, center):
         self.parameters.sweep_center.value = center

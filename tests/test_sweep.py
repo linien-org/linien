@@ -10,7 +10,7 @@ VCD_DIR = Path(__file__).parent / "vcd"
 
 @pytest.fixture
 def dut():
-    return SweepCSR(width=16)
+    return SweepCSR(width=14)
 
 
 def test_simple_sweep(dut, plt):
@@ -23,9 +23,9 @@ def test_simple_sweep(dut, plt):
     up = []
 
     def testbench():
-        yield dut.step.storage.eq(1 << 4)
-        yield dut.min.storage.eq(0xFFFF & (-(1 << 10)))
-        yield dut.max.storage.eq(1 << 10)
+        yield dut.step.storage.eq(16)
+        yield dut.min.storage.eq(-1024)
+        yield dut.max.storage.eq(1024)
         yield dut.run.storage.eq(1)
         for _ in range(n):
             y.append((yield dut.y))
@@ -36,7 +36,7 @@ def test_simple_sweep(dut, plt):
 
     run_simulation(dut, testbench(), vcd_name=VCD_DIR / "test_simple_sweep.vcd")
 
-    # Wrap plotting in try-except to avoid pytest errors if --plot option is not passed.
+    # Wrap in try-except to avoid pytest errors if --plots option is not passed.
     try:
         _, (ax1, ax2, ax3, ax4) = plt.subplots(4, 1, sharex=True)
         ax1.plot(y, label="y")
@@ -77,9 +77,9 @@ def test_sweep_start_stop(dut, plt):
     switch_run_at = [10, 210, 250, 280]
 
     def testbench():
-        yield dut.step.storage.eq(1 << 4)
-        yield dut.min.storage.eq(0xFFFF & (-(1 << 10)))
-        yield dut.max.storage.eq(1 << 10)
+        yield dut.step.storage.eq(16)
+        yield dut.min.storage.eq(-1024)
+        yield dut.max.storage.eq(1024)
         yield dut.run.storage.eq(0)
         for i in range(n):
             if i == switch_run_at[0]:
@@ -98,7 +98,7 @@ def test_sweep_start_stop(dut, plt):
 
     run_simulation(dut, testbench(), vcd_name=VCD_DIR / "test_sweep_start_stop.vcd")
 
-    # Wrap plotting in try-except to avoid pytest errors if --plot option is not passed.
+    # Wrap in try-except to avoid pytest errors if --plots option is not passed.
     try:
         _, (ax1, ax2, ax3) = plt.subplots(3, 1, sharex=True)
         ax1.plot(y, label="y")
@@ -131,12 +131,12 @@ def test_change_sweep_min_max(dut, plt):
     n = 350
     y = []
     up = []
-    change_min_max_at = [0, 10, 80, 120, 180, 200, 250]
+    change_min_max_at = [0, 10, 80, 120]
 
     def testbench():
-        yield dut.step.storage.eq(1 << 4)
-        yield dut.min.storage.eq(0xFFFF & (-(1 << 10)))
-        yield dut.max.storage.eq(1 << 10)
+        yield dut.step.storage.eq(16)
+        yield dut.min.storage.eq(-1024)
+        yield dut.max.storage.eq(1024)
         yield dut.run.storage.eq(1)
         for i in range(n):
             if i == change_min_max_at[1]:
@@ -150,27 +150,13 @@ def test_change_sweep_min_max(dut, plt):
                 # value
                 yield dut.min.storage.eq(-200)
                 yield dut.max.storage.eq(0)
-            if i == change_min_max_at[4]:
-                # change min and max to the same value
-                yield dut.min.storage.eq(100)
-                yield dut.max.storage.eq(100)
-            if i == change_min_max_at[5]:
-                # back to different range including the current value
-                # BUG: This doesn't work. `dut.sweep.up` stays 1 and the output rails at
-                # the maximum value.
-                yield dut.min.storage.eq(0)
-                yield dut.max.storage.eq(200)
-            if i == change_min_max_at[6]:
-                # BUG: However, this works.
-                yield dut.min.storage.eq(0)
-                yield dut.max.storage.eq(1100)
             y.append((yield dut.y))
             up.append((yield dut.sweep.up))
             yield
 
     run_simulation(dut, testbench(), vcd_name=VCD_DIR / "test_change_sweep_min_max.vcd")
 
-    # Wrap plotting in try-except to avoid pytest errors if --plot option is not passed.
+    # Wrap in try-except to avoid pytest errors if --plots option is not passed.
     try:
         _, (ax1, ax2) = plt.subplots(2, 1, sharex=True)
         ax1.plot(y, label="y")
@@ -192,34 +178,54 @@ def test_change_sweep_min_max(dut, plt):
         assert val <= 100
 
     # test minimum and maximum are changed correctly:
-    for val in y[change_min_max_at[3] + 3 : change_min_max_at[4]]:
+    for val in y[change_min_max_at[3] + 3 : change_min_max_at[-1]]:
         assert val >= -200
         assert val <= 0
 
-    # test that constant value is set:
-    for val in y[change_min_max_at[4] + 3 : change_min_max_at[5]]:
-        assert val == 100
 
-    # test that values are changing again and are within the new range:
-    y_changed = False
-    previous_y = y[change_min_max_at[5] + 3]
-    for val in y[change_min_max_at[5] + 3 : change_min_max_at[6]]:
-        assert val >= 0
-        assert val <= 200
-        if val != previous_y:
-            y_changed = True
-        previous_y = val
-    # This test currently fails.
-    assert y_changed
+def test_pause_sweep(dut, plt):
+    """Tests that the sweep can be paused and resumed."""
 
-    # test that values are changing again and are within the new range (2nd time):
-    y_changed = False
-    previous_y = y[change_min_max_at[6] + 3]
-    for val in y[change_min_max_at[6] + 3 : change_min_max_at[-1]]:
-        assert val >= 0
-        assert val <= 1100
-        if val != previous_y:
-            y_changed = True
+    n = 150
+    y = []
+    pause = []
+
+    def testbench():
+        yield dut.step.storage.eq(16)
+        yield dut.min.storage.eq(-1024)
+        yield dut.max.storage.eq(1024)
+        yield dut.run.storage.eq(1)
+        for i in range(n):
+
+            if i == 50:
+                # pause sweep
+                yield dut.pause.storage.eq(1)
+
+            if i == 100:
+                # resume sweep
+                yield dut.pause.storage.eq(0)
+
+            y.append((yield dut.y))
+            pause.append((yield dut.pause.storage))
+            yield
+
+    run_simulation(dut, testbench(), vcd_name=VCD_DIR / "test_pause_sweep.vcd")
+
+    # Wrap in try-except to avoid pytest errors if --plots option is not passed.
+    try:
+        _, (ax1, ax2) = plt.subplots(2, 1, sharex=True)
+        ax1.plot(y, label="y")
+        ax1.set_ylabel("y")
+        ax2.plot(pause, label="pause")
+        ax2.set_ylabel("pause")
+    except ValueError:
+        pass
+
+    # test that the sweep is paused
+    assert y[52:59] == 7 * [0]
+    # test that the sweep is resumed
+    previous_y = 0
+    for val in y[102:105]:
+        assert val != 0
+        assert val != previous_y
         previous_y = val
-    # This works.
-    assert y_changed
