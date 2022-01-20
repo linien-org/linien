@@ -1,3 +1,8 @@
+## V 0.5.0
+- **Better sweep controls** make it easier to adjust the sweep range and allow to stop the sweep altogether.
+- **A new, faster PID-only mode**  allows for a higher control bandwidth by skipping modulation/demodulation steps (useful for offset locks).
+- **Added Welch's method** to the measurement of the error signals power spectral density (PSD).
+
 ## V 0.4.3
 - **Disabled LED blinking** as [it causes additional noise](https://github.com/RedPitaya/RedPitaya/issues/205) (thanks to Yao-Chin!)
 - **DC spectroscopy signal is displayed** (thanks to aisichenko for the idea!)
