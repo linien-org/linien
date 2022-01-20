@@ -27,11 +27,12 @@ setuptools.setup(
     ],
     install_requires=[
         "rpyc>=4.0,<5.0",
-        "myhdl==0.11",
-        "click==7.1.2",
-        "cma==3.0.3",
-        "plumbum==1.6.9",
+        "myhdl>=0.11",
+        "click>=7.1.2",
+        "cma>=3.0.3",
+        "plumbum>=1.6.9",
         "pylpsd>=0.1.3",
+        "numpy>=1.11.0",
     ],
     scripts=[
         "linien/server/linien_start_server",
