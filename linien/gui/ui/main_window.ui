@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1280</width>
+    <width>1184</width>
     <height>800</height>
    </rect>
   </property>
@@ -51,7 +51,11 @@
             <item>
              <widget class="QPushButton" name="sweep_start_stop_button">
               <property name="toolTip">
-               <string>Start and pause the output of the sweep.</string>
+               <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Start and pause the output of the sweep at the sweep center position.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>Start / Pause</string>
@@ -124,11 +128,18 @@
                 <height>0</height>
                </size>
               </property>
+              <property name="toolTip">
+               <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;The center position of the sweep. If a fast output is used for the sweep this is the sweep center position in volts. If the slow output is used the interval [-1, +1] of this parameter is mapped to the interval [0V, +1.8V].&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
               <property name="keyboardTracking">
                <bool>false</bool>
               </property>
               <property name="suffix">
-               <string> V</string>
+               <string/>
               </property>
               <property name="decimals">
                <number>3</number>
@@ -168,11 +179,18 @@
                 <height>0</height>
                </size>
               </property>
+              <property name="toolTip">
+               <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Amplitude of the sweep in units of 0.5 * Vpp of the output (2 V for fast outputs (range +/- 1 V) and 0.9 V for slow outputs (range 0 V to 1.8 V). That means an amplitude of 1.0 corresponds to the full sweep range in both cases.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
               <property name="keyboardTracking">
                <bool>false</bool>
               </property>
               <property name="suffix">
-               <string> V</string>
+               <string/>
               </property>
               <property name="decimals">
                <number>3</number>
@@ -1036,8 +1054,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>332</width>
-            <height>400</height>
+            <width>98</width>
+            <height>28</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1054,8 +1072,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>332</width>
-            <height>400</height>
+            <width>98</width>
+            <height>28</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1072,8 +1090,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>332</width>
-            <height>400</height>
+            <width>98</width>
+            <height>28</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1090,8 +1108,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>332</width>
-            <height>400</height>
+            <width>98</width>
+            <height>28</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -1114,8 +1132,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>332</width>
-            <height>400</height>
+            <width>98</width>
+            <height>28</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -1134,6 +1152,14 @@
           </layout>
          </widget>
          <widget class="QWidget" name="relockingPanel">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>338</width>
+            <height>488</height>
+           </rect>
+          </property>
           <attribute name="label">
            <string>Automatic Relocking</string>
           </attribute>
