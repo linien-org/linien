@@ -164,9 +164,6 @@ class Parameters(BaseParameters):
         # If `True`, this parameter turns off the sweep and starts the PID
         self.lock = Parameter(start=False)
 
-        # If `True`, this parameter pauses the sweep the the sweep center voltage.
-        self.sweep_pause = Parameter(start=False)
-
         # for both fast outputs and the analog out, define whether tuning the
         # voltage up correspond to tuning the laser frequency up or down. Setting
         # these values correctly is only required when using both, a fast out and
@@ -199,18 +196,20 @@ class Parameters(BaseParameters):
 
         #           --------- SWEEP PARAMETERS ---------
 
-        # how big should the sweep amplitude be relative to the full output range
-        # of RedPitaya? An amplitude of 1 corresponds to a sweep from -1V to 1V,
-        # an amplitude 0f .1 to a sweep from -.1 to .1V (assuming that `center`
-        # is 0, see below)
+        # Amplitude of the sweep in units of 0.5 * Vpp of the output (2 V for fast
+        # outputs (range +/- 1 V) and 0.9 V for slow outputs (range 0 V to 1.8 V). That
+        # means an amplitude of 1.0 corresponds to the full sweep range in both cases.
         self.sweep_amplitude = Parameter(min_=0.001, max_=1, start=1)
-        # The center position of the sweep in volts. As the output range of
-        # RedPitaya is [-1, 1], `center` has the same limits.
+        # The center position of the sweep. If a fast output is used for sweep this is
+        # the sweep center position in volts. If the slow output is used the interval
+        # [-1, +1] of this parameter is mapped to the interval [0V, +1.8V].
         self.sweep_center = Parameter(min_=-1, max_=1, start=0)
         # The sweep speed in internal units. The actual speed is given by
         #       f_real = 3.8 kHz / (2 ** sweep_speed)
         # Allowed values are [0, ..., 16]
         self.sweep_speed = Parameter(min_=0, max_=32, start=8)
+        # If set to `True`, this parameter pauses the sweep at the `sweep_center`.
+        self.sweep_pause = Parameter(start=False)
 
         #           --------- MODULATION PARAMETERS ---------
 
