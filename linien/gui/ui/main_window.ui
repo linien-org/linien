@@ -1135,7 +1135,7 @@
          </widget>
          <widget class="QWidget" name="relockingPanel">
           <attribute name="label">
-           <string>Automatic Relockinng</string>
+           <string>Automatic Relocking</string>
           </attribute>
           <widget class="RelockingPanel" name="relockingPage" native="true">
            <property name="geometry">
