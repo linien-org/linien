@@ -1026,7 +1026,7 @@
           </size>
          </property>
          <property name="currentIndex">
-          <number>0</number>
+          <number>5</number>
          </property>
          <widget class="QWidget" name="generalPanel">
           <property name="enabled">
@@ -1037,7 +1037,7 @@
             <x>0</x>
             <y>0</y>
             <width>332</width>
-            <height>427</height>
+            <height>400</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1133,6 +1133,21 @@
            </item>
           </layout>
          </widget>
+         <widget class="QWidget" name="relockingPanel">
+          <attribute name="label">
+           <string>Automatic Relockinng</string>
+          </attribute>
+          <widget class="RelockingPanel" name="relockingPage" native="true">
+           <property name="geometry">
+            <rect>
+             <x>10</x>
+             <y>0</y>
+             <width>311</width>
+             <height>401</height>
+            </rect>
+           </property>
+          </widget>
+         </widget>
         </widget>
        </item>
       </layout>
@@ -1204,6 +1219,12 @@
    <class>SweepControlWidget</class>
    <extends>QWidget</extends>
    <header location="global">sweep_control</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>RelockingPanel</class>
+   <extends>QWidget</extends>
+   <header location="global">relocking_panel.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
