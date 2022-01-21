@@ -200,9 +200,9 @@ class Parameters(BaseParameters):
         # outputs (range +/- 1 V) and 0.9 V for slow outputs (range 0 V to 1.8 V). That
         # means an amplitude of 1.0 corresponds to the full sweep range in both cases.
         self.sweep_amplitude = Parameter(min_=0.001, max_=1, start=1)
-        # The center position of the sweep. If a fast output is used for sweep this is
-        # the sweep center position in volts. If the slow output is used the interval
-        # [-1, +1] of this parameter is mapped to the interval [0V, +1.8V].
+        # The center position of the sweep. If a fast output is used for the sweep this
+        #  is the sweep center position in volts. If the slow output is used the
+        # interval [-1, +1] of this parameter is mapped to the interval [0V, +1.8V].
         self.sweep_center = Parameter(min_=-1, max_=1, start=0)
         # The sweep speed in internal units. The actual speed is given by
         #       f_real = 3.8 kHz / (2 ** sweep_speed)
