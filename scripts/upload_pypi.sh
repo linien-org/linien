@@ -37,7 +37,7 @@ fi
 rm -R build --force
 rm -R dist --force
 
-read -s -p "Enter your pypi password: " password
+read -s -p "Enter your pypi token: " password
 
 
 #               CLIENT
@@ -45,8 +45,8 @@ python3 setup_client.py sdist bdist_wheel
 python3 -m twine check dist/*
 
 case $realpypi in
-    [Yy]* ) python3 -m twine upload dist/* -u hermitdemschoenenleben -p $password;;
-    * ) python3 -m twine upload --repository-url https://test.pypi.org/legacy/ dist/* -u hermitdemschoenenleben -p $password;;
+    [Yy]* ) python3 -m twine upload dist/* -u __token__ -p $password;;
+    * ) python3 -m twine upload --repository-url https://test.pypi.org/legacy/ dist/* -u __token__ -p $password;;
 esac
 
 
@@ -57,8 +57,8 @@ python3 setup_gui.py sdist bdist_wheel
 python3 -m twine check dist/*
 
 case $realpypi in
-    [Yy]* ) python3 -m twine upload dist/* -u hermitdemschoenenleben -p $password;;
-    * ) python3 -m twine upload --repository-url https://test.pypi.org/legacy/ dist/* -u hermitdemschoenenleben -p $password;;
+    [Yy]* ) python3 -m twine upload dist/* -u __token__ -p $password;;
+    * ) python3 -m twine upload --repository-url https://test.pypi.org/legacy/ dist/* -u __token__ -p $password;;
 esac
 
 #               SERVER
@@ -68,6 +68,6 @@ rm -R dist --force
 python3 setup_server.py sdist bdist_wheel
 
 case $realpypi in
-    [Yy]* ) python3 -m twine upload dist/* -u hermitdemschoenenleben -p $password;;
-    * ) python3 -m twine upload --repository-url https://test.pypi.org/legacy/ dist/* -u hermitdemschoenenleben -p $password;;
+    [Yy]* ) python3 -m twine upload dist/* -u __token__ -p $password;;
+    * ) python3 -m twine upload --repository-url https://test.pypi.org/legacy/ dist/* -u __token__ -p $password;;
 esac
