@@ -11,3 +11,4 @@ pre-commit
 matplotlib
 pytest
 pytest-plt
+twine
