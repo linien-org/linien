@@ -17,8 +17,8 @@ class VersionCheckerThread(QThread):
                 "https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/latest_version"  # noqa: E501
             ) as response:
                 response_content = response.read().decode().strip()
-                latest_version = version(response_content)
-                our_version = version(linien.__version__)
+                latest_version = version.parse(response_content)
+                our_version = version.parse(linien.__version__)
                 new_version_available = latest_version > our_version
         finally:
             self.check_done.emit(new_version_available)
