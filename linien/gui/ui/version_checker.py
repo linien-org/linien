@@ -1,14 +1,9 @@
 from urllib.request import urlopen
 
+from packaging import version
 from PyQt5.QtCore import QThread, pyqtSignal
 
 import linien
-
-
-def version_string_to_tuple(version):
-    parts = tuple(int(v) for v in version.split("."))
-    assert len(parts) == 3
-    return parts
 
 
 class VersionCheckerThread(QThread):
@@ -16,17 +11,14 @@ class VersionCheckerThread(QThread):
 
     def run(self):
         new_version_available = False
-        print("check whether new version is available")
+        print("Check whether new version is available.")
         try:
             with urlopen(
                 "https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/latest_version"  # noqa: E501
             ) as response:
                 response_content = response.read().decode().strip()
-                latest_version = version_string_to_tuple(response_content)
-                our_version = version_string_to_tuple(linien.__version__)
+                latest_version = version.parse(response_content)
+                our_version = version.parse(linien.__version__)
                 new_version_available = latest_version > our_version
-
-        except Exception:
-            pass
-
-        self.check_done.emit(new_version_available)
+        finally:
+            self.check_done.emit(new_version_available)
