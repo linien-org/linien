@@ -40,7 +40,7 @@ def test_modulate(plt):
     amp = 2 ** (width - 2)
     frequency = (2 ** (width + 9)) - 1
     frequency_width = 32
-    period = int((2 ** frequency_width) / frequency)
+    period = int((2**frequency_width) / frequency)
     print(period)
 
     def tb(combined):
@@ -86,7 +86,7 @@ def test_modulate(plt):
     averaged2 = block_average(cordic_out_2, period * factor)
     plt.plot(averaged2, label="cordic_out_2 averaged")
 
-    plt.plot(np.sqrt(averaged1 ** 2 + averaged2 ** 2), label="averaged+averaged")
+    plt.plot(np.sqrt(averaged1**2 + averaged2**2), label="averaged+averaged")
 
     plt.legend()
 

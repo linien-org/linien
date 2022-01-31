@@ -10,7 +10,7 @@ from scipy.signal import correlate, resample
 MHz = 0x10000000 / 8
 Vpp = ((1 << 14) - 1) / 4
 # conversion of bits to V
-ANALOG_OUT_V = 1.8 / ((2 ** 15) - 1)
+ANALOG_OUT_V = 1.8 / ((2**15) - 1)
 
 LOW_PASS_FILTER = 0
 HIGH_PASS_FILTER = 1
@@ -291,8 +291,8 @@ def unpack(value):
 def get_signal_strength_from_i_q(i, q):
     i = i.astype(np.int64)
     q = q.astype(np.int64)
-    i_squared = i ** 2
-    q_squared = q ** 2
+    i_squared = i**2
+    q_squared = q**2
     signal_strength = np.sqrt(i_squared + q_squared)
     return signal_strength
 

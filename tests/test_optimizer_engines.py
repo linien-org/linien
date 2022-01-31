@@ -93,7 +93,7 @@ def test_optimization():
         f = params.modulation_frequency.value / MHz
         a = params.modulation_amplitude.value / Vpp
 
-        fitness = 2 ** 2 - (a - 0.5) ** 2
+        fitness = 2**2 - (a - 0.5) ** 2
 
         generated_slope = generate_slope(slope=fitness)
         i = np.cos(iq_phase / 360 * 2 * np.pi) * generated_slope
@@ -134,7 +134,7 @@ def test_optimization():
         f = params.modulation_frequency.value / MHz
         a = params.modulation_amplitude.value / Vpp
 
-        fitness = (5 ** 2 - (f - 5) ** 2) + (2 ** 2 - (a - 0.5) ** 2)
+        fitness = (5**2 - (f - 5) ** 2) + (2**2 - (a - 0.5) ** 2)
 
         generated_slope = generate_slope(slope=fitness)
         i = np.cos(iq_phase / 360 * 2 * np.pi) * generated_slope
