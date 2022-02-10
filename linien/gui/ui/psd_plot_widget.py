@@ -174,7 +174,7 @@ class PSDPlotWidget(pg.PlotWidget, CustomWidget):
 
             # if index > 0 and index < self.MFmax:
             self.cursor_label.setHtml(
-                "<span style='font-size: 12pt'>(%.1e,%.1e)</span>" % (10 ** x, 10 ** y)
+                "<span style='font-size: 12pt'>(%.1e,%.1e)</span>" % (10**x, 10**y)
             )
             # this determines whether cursor label is on right or left side of
             # crosshair

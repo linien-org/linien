@@ -192,7 +192,7 @@ class PSDAcquisition:
         # lowpass filter for preventing alias effects
         self.parameters.acquisition_raw_filter_enabled.value = True
         self.parameters.acquisition_raw_filter_frequency.value = int(
-            125e6 / (2 ** decimation) / 2
+            125e6 / (2**decimation) / 2
         )
 
         self.control.exposed_write_registers()

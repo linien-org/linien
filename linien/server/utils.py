@@ -31,6 +31,6 @@ def sweep_speed_to_time(sweep_speed):
     """Sweep speed is an arbitrary unit (cf. `parameters.py`).
     This function converts it to the duration of the sweep in seconds.
     """
-    f_real = 3.8e3 / (2 ** sweep_speed)
+    f_real = 3.8e3 / (2**sweep_speed)
     duration = 1 / f_real
     return duration

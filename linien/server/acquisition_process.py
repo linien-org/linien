@@ -117,7 +117,7 @@ class DataAcquisitionService(Service):
             self.r.scope.trigger_delay = int(trigger_delay / DECIMATION) - 1
 
         elif self.raw_acquisition_enabled:
-            self.r.scope.data_decimation = 2 ** self.raw_acquisition_decimation
+            self.r.scope.data_decimation = 2**self.raw_acquisition_decimation
             self.r.scope.trigger_delay = trigger_delay
 
         else:
@@ -247,7 +247,7 @@ class DataAcquisitionService(Service):
         raw_data.dtype = np.int16
 
         # sign bit is at position 14, but we have 16 bit ints
-        raw_data[raw_data >= 2 ** 13] -= 2 ** 14
+        raw_data[raw_data >= 2**13] -= 2**14
 
         # order is such that we have first the signal a then signal b
         signals = tuple(raw_data[signal_idx::2] for signal_idx in (0, 1))

@@ -45,7 +45,7 @@ def test_pid_transfer(plt):
             plt.plot(
                 f,
                 20
-                * np.log10(np.abs(p / 4096 + 10 * i / f + d * (f / 125e6) / (2 ** 6))),
+                * np.log10(np.abs(p / 4096 + 10 * i / f + d * (f / 125e6) / (2**6))),
                 color=plot_color,
                 linestyle="dashed",
             )

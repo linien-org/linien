@@ -158,7 +158,7 @@ class Parameters(BaseParameters):
             setattr(
                 self,
                 "analog_out_%d" % i,
-                Parameter(start=0, min_=0, max_=(2 ** 15) - 1),
+                Parameter(start=0, min_=0, max_=(2**15) - 1),
             )
 
         # If `True`, this parameter turns off the sweep and starts the PID
