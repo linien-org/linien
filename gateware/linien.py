@@ -382,8 +382,6 @@ class LinienModule(Module, AutoCSR):
             self.scopegen.automatically_trigger.eq(
                 self.logic.autolock.lock_running.status
             ),
-            self.logic.limit_fast1.x.eq(fast_outs[0]),
-            self.logic.limit_fast2.x.eq(fast_outs[1]),
             self.analog.dac_a.eq(self.logic.limit_fast1.y),
             self.analog.dac_b.eq(self.logic.limit_fast2.y),
             # SLOW OUT
@@ -391,6 +389,11 @@ class LinienModule(Module, AutoCSR):
             self.decimate.decimation.eq(self.logic.slow_decimation.storage),
             self.cd_decimated_clock.clk.eq(self.decimate.output),
             self.logic.slow_value.status.eq(self.slow.limit.y),
+        ]
+
+        self.sync += [
+            self.logic.limit_fast1.x.eq(fast_outs[0]),
+            self.logic.limit_fast2.x.eq(fast_outs[1]),
         ]
 
 
