@@ -208,7 +208,7 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
             (
                 "%s "
                 "pip3 install linien-server%s --no-cache-dir; "
-                "linien_install_requirements; "
+                "linien_install_requirements.sh; "
             )
             % (stop_server_command, version_string),
             lambda: self.connect_to_device(device),

@@ -40,7 +40,7 @@ def run_server(host, user, password, port):
                 "export LINIEN_AUTH_HASH=%s;"
                 % hash_username_and_password(user, password)
             )
-            + ("bash %s/server/linien_start_server %d" % (REMOTE_BASE_PATH, port))
+            + ("bash %s/server/linien_start_server.sh %d" % (REMOTE_BASE_PATH, port))
         )
         err = stderr.read()
         if err:
@@ -57,7 +57,7 @@ def run_server(host, user, password, port):
             raise InvalidServerVersionException(version, remote_version)
 
         # start the server process using the global command
-        ssh.exec_command("linien_start_server")
+        ssh.exec_command("linien_start_server.sh")
         ssh.close()
 
 
