@@ -15,12 +15,12 @@ class VersionCheckerThread(QThread):
         our_version = version.parse(linien.__version__)
         latest_version = our_version
         print("Check whether new version is available.")
-        url_legacy = "https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/latest_version"  # noqa: E501
+        url_legacy = "https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/version-info.json"  # noqa: E501
         url = "https://raw.githubusercontent.com/linien-org/linien/master/version-info.json"  # noqa: E501
         try:
             with urlopen(url_legacy) as response:
-                response_content = response.read().decode().strip()
-                latest_version = version.parse(response_content)
+                response_content = json.loads(response.read())
+                latest_version = version.parse(response_content["latest"])
         except HTTPError:
             # after repo is moved to new location
             with urlopen(url) as response:
