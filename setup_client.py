@@ -26,7 +26,7 @@ setuptools.setup(
     ],
     install_requires=[
         "numpy>=1.19.1",
-        "paramiko>=2.7.1",
+        "paramiko>=2.9.2",
         "plumbum>=1.6.9",
         "rpyc>=4.0,<5.0",
         "scipy>=1.4.1",

@@ -6,7 +6,7 @@ click==7.1.2
 cryptography==3.3.2
 future==0.18.2
 numpy==1.21.0
-paramiko==2.7.1
+paramiko==2.9.2
 pefile==2019.4.18
 plumbum==1.6.9
 pycparser==2.20
