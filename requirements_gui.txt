@@ -20,3 +20,4 @@ scipy==1.4.1
 six==1.15.0
 uuid==1.30
 superqt==0.2.3
+packaging==21.3
