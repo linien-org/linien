@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1280</width>
+    <width>1184</width>
     <height>800</height>
    </rect>
   </property>
@@ -1044,7 +1044,7 @@ p, li { white-space: pre-wrap; }
           </size>
          </property>
          <property name="currentIndex">
-          <number>2</number>
+          <number>5</number>
          </property>
          <widget class="QWidget" name="generalPanel">
           <property name="enabled">
@@ -1054,8 +1054,8 @@ p, li { white-space: pre-wrap; }
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>338</width>
-            <height>510</height>
+            <width>98</width>
+            <height>28</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1063,7 +1063,7 @@ p, li { white-space: pre-wrap; }
           </attribute>
           <layout class="QVBoxLayout" name="verticalLayout_15">
            <item>
-            <widget class="GeneralPanel" name="widget_5" native="true"/>
+            <widget class="GeneralPanel" name="generalPage" native="true"/>
            </item>
           </layout>
          </widget>
@@ -1072,8 +1072,8 @@ p, li { white-space: pre-wrap; }
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>338</width>
-            <height>510</height>
+            <width>98</width>
+            <height>28</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1081,7 +1081,7 @@ p, li { white-space: pre-wrap; }
           </attribute>
           <layout class="QVBoxLayout" name="verticalLayout_3">
            <item>
-            <widget class="ModulationAndSweepPanel" name="widget_4" native="true"/>
+            <widget class="ModulationAndSweepPanel" name="modSpectroscopyPage" native="true"/>
            </item>
           </layout>
          </widget>
@@ -1090,8 +1090,8 @@ p, li { white-space: pre-wrap; }
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>338</width>
-            <height>510</height>
+            <width>98</width>
+            <height>28</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1099,7 +1099,7 @@ p, li { white-space: pre-wrap; }
           </attribute>
           <layout class="QVBoxLayout" name="verticalLayout_10">
            <item>
-            <widget class="OptimizationPanel" name="widget_6" native="true"/>
+            <widget class="OptimizationPanel" name="optimizationPage" native="true"/>
            </item>
           </layout>
          </widget>
@@ -1108,8 +1108,8 @@ p, li { white-space: pre-wrap; }
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>338</width>
-            <height>510</height>
+            <width>98</width>
+            <height>28</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -1123,7 +1123,7 @@ p, li { white-space: pre-wrap; }
           </attribute>
           <layout class="QVBoxLayout" name="verticalLayout_16">
            <item>
-            <widget class="ViewPanel" name="widget" native="true"/>
+            <widget class="ViewPanel" name="viewPage" native="true"/>
            </item>
           </layout>
          </widget>
@@ -1132,8 +1132,8 @@ p, li { white-space: pre-wrap; }
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>338</width>
-            <height>510</height>
+            <width>98</width>
+            <height>28</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -1147,9 +1147,32 @@ p, li { white-space: pre-wrap; }
           </attribute>
           <layout class="QVBoxLayout" name="verticalLayout_7">
            <item>
-            <widget class="LockingPanel" name="widget_3" native="true"/>
+            <widget class="LockingPanel" name="lockingPage" native="true"/>
            </item>
           </layout>
+         </widget>
+         <widget class="QWidget" name="relockingPanel">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>338</width>
+            <height>488</height>
+           </rect>
+          </property>
+          <attribute name="label">
+           <string>Automatic Relocking</string>
+          </attribute>
+          <widget class="RelockingPanel" name="relockingPage" native="true">
+           <property name="geometry">
+            <rect>
+             <x>10</x>
+             <y>0</y>
+             <width>311</width>
+             <height>401</height>
+            </rect>
+           </property>
+          </widget>
          </widget>
         </widget>
        </item>
@@ -1222,6 +1245,12 @@ p, li { white-space: pre-wrap; }
    <class>SweepControlWidget</class>
    <extends>QWidget</extends>
    <header location="global">sweep_control</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>RelockingPanel</class>
+   <extends>QWidget</extends>
+   <header location="global">relocking_panel.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
