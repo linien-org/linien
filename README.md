@@ -56,15 +56,6 @@ chmod +x linien-linux*
 ./linien-linux*
 ```
 
-As the linux world is highly heterogeneous, the standalone binary may not work on some systems (Ubuntu 18.04 or newer should work, other distributions may not). In this case flatpak install (see below) is recommended.
-
-### Installation with Flatpak (linux only)
-
-1. [Install flatpak](https://flatpak.org/setup/)
-1. Run `flatpak install flathub io.github.hermitdemschoenenleben.linien`
-1. Linien should now have been installed to your applications menu. You can launch it from there.
-1. If this doesn't work, run `flatpak run io.github.hermitdemschoenenleben.linien`
-
 ### Installation with pip
 
 Linien is written for python 3 and can be installed using python\'s
@@ -472,7 +463,6 @@ For building the FPGA image, you need to install Xilinx Vivado first. Then, call
 
 First, update the version number in the `checked_out_repo/linien/VERSION` file. Then you can build and upload the package to pypi using `scripts/upload_pypi.sh`. Finally, build the standalone client using `build_standalone_client.sh` (you have
 to do this on the platform you want to build the standalone client for). When on Windows 10, both scripts have to be started in Windows Powershell.
-Upload the standalone to a github release. Release the new version to flathub.
 
 Troubleshooting
 ---------------
