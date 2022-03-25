@@ -1,4 +1,5 @@
 # Copyright 2014-2015 Robert Jördens <jordens@gmail.com>
+# Copyright 2018-2022 Benjamin Wiegand <benjamin.wiegand@physik.hu-berlin.de>
 #
 # This file is part of Linien and based on redpid.
 #
