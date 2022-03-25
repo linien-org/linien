@@ -1,4 +1,6 @@
 # Copyright 2014-2015 Robert Jordens <jordens@gmail.com>
+# Copyright 2018-2022 Benjamin Wiegand <benjamin.wiegand@physik.hu-berlin.de>
+# Copyright 2021-2022 Bastian Leykauf <leykauf@physik.hu-berlin.de>
 #
 # This file is part of redpid.
 #
