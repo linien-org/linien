@@ -543,7 +543,7 @@ Linien is distributed in the hope that it will be useful, but WITHOUT ANY WARRAN
 
 You should have received a copy of the GNU General Public License along with Linien. If not, see <https://www.gnu.org/licenses/>.
 
-Development takes place at [Joint lab integrated quantum sensors](http://iqs.berlin) of Humboldt University Berlin.
+Development takes place at Humboldt University of Berlin.
 
 See Also
 --------
