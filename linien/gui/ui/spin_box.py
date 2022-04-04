@@ -1,4 +1,4 @@
-# Copyright 2021-2022 Bastian Leykauf <leykauf@physik.hu-berlin.de>
+# Copyright 2022 Bastian Leykauf <leykauf@physik.hu-berlin.de>
 #
 # This file is part of Linien and based on redpid.
 #
