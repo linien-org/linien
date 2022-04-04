@@ -1132,7 +1132,7 @@
         </property>
         <layout class="QHBoxLayout" name="horizontalLayout_9">
          <item>
-          <widget class="QSpinBox" name="control_signal_history_length">
+          <widget class="CustomSpinBox" name="control_signal_history_length">
            <property name="minimum">
             <number>10</number>
            </property>
