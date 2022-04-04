@@ -87,7 +87,7 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_4">
         <item>
-         <widget class="QDoubleSpinBox" name="demodulation_phase">
+         <widget class="CustomDoubleSpinBoxNoSign" name="demodulation_phase">
           <property name="maximum">
            <double>360.000000000000000</double>
           </property>
@@ -117,7 +117,7 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_3">
         <item>
-         <widget class="QDoubleSpinBox" name="signal_offset">
+         <widget class="CustomDoubleSpinBox" name="signal_offset">
           <property name="decimals">
            <number>3</number>
           </property>
@@ -129,9 +129,6 @@
           </property>
           <property name="singleStep">
            <double>0.100000000000000</double>
-          </property>
-          <property name="stepType">
-           <enum>QAbstractSpinBox::AdaptiveDecimalStepType</enum>
           </property>
          </widget>
         </item>
@@ -235,7 +232,7 @@
             <number>30</number>
            </property>
            <item>
-            <widget class="QSpinBox" name="filter_1_frequency">
+            <widget class="CustomSpinBox" name="filter_1_frequency">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                <horstretch>0</horstretch>
@@ -244,9 +241,6 @@
              </property>
              <property name="maximum">
               <number>50000000</number>
-             </property>
-             <property name="stepType">
-              <enum>QAbstractSpinBox::AdaptiveDecimalStepType</enum>
              </property>
              <property name="value">
               <number>100000</number>
@@ -325,7 +319,7 @@
             <number>30</number>
            </property>
            <item>
-            <widget class="QSpinBox" name="filter_2_frequency">
+            <widget class="CustomSpinBox" name="filter_2_frequency">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                <horstretch>0</horstretch>
@@ -334,9 +328,6 @@
              </property>
              <property name="maximum">
               <number>50000000</number>
-             </property>
-             <property name="stepType">
-              <enum>QAbstractSpinBox::AdaptiveDecimalStepType</enum>
              </property>
              <property name="value">
               <number>100000</number>
@@ -382,6 +373,23 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>CustomSpinBox</class>
+   <extends>QSpinBox</extends>
+   <header location="global">spin_box.h</header>
+  </customwidget>
+  <customwidget>
+   <class>CustomDoubleSpinBoxNoSign</class>
+   <extends>QDoubleSpinBox</extends>
+   <header location="global">spin_box.h</header>
+  </customwidget>
+  <customwidget>
+   <class>CustomDoubleSpinBox</class>
+   <extends>QDoubleSpinBox</extends>
+   <header location="global">spin_box.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

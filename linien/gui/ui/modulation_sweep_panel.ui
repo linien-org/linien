@@ -26,12 +26,9 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_6">
         <item>
-         <widget class="QDoubleSpinBox" name="modulation_frequency">
+         <widget class="CustomDoubleSpinBoxNoSign" name="modulation_frequency">
           <property name="decimals">
            <number>5</number>
-          </property>
-          <property name="stepType">
-           <enum>QAbstractSpinBox::AdaptiveDecimalStepType</enum>
           </property>
          </widget>
         </item>
@@ -66,7 +63,7 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
-         <widget class="QDoubleSpinBox" name="modulation_amplitude">
+         <widget class="CustomDoubleSpinBoxNoSign" name="modulation_amplitude">
           <property name="decimals">
            <number>3</number>
           </property>
@@ -75,9 +72,6 @@
           </property>
           <property name="singleStep">
            <double>0.100000000000000</double>
-          </property>
-          <property name="stepType">
-           <enum>QAbstractSpinBox::AdaptiveDecimalStepType</enum>
           </property>
          </widget>
         </item>
@@ -294,6 +288,11 @@
   </layout>
  </widget>
  <customwidgets>
+  <customwidget>
+   <class>CustomDoubleSpinBoxNoSign</class>
+   <extends>QDoubleSpinBox</extends>
+   <header location="global">spin_box.h</header>
+  </customwidget>
   <customwidget>
    <class>SpectroscopyChannelBPanel</class>
    <extends>QWidget</extends>

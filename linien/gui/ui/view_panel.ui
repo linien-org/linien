@@ -55,7 +55,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QDoubleSpinBox" name="plot_line_width">
+         <widget class="CustomDoubleSpinBoxNoSign" name="plot_line_width">
           <property name="decimals">
            <number>1</number>
           </property>
@@ -342,6 +342,11 @@
   <customwidget>
    <class>CustomSpinBox</class>
    <extends>QSpinBox</extends>
+   <header location="global">spin_box.h</header>
+  </customwidget>
+  <customwidget>
+   <class>CustomDoubleSpinBoxNoSign</class>
+   <extends>QDoubleSpinBox</extends>
    <header location="global">spin_box.h</header>
   </customwidget>
  </customwidgets>
