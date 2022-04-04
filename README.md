@@ -1,7 +1,7 @@
 Linien
 ======
 
-<img align="right" src="https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/docs/icon.png" width="20%">
+<img align="right" src="https://raw.githubusercontent.com/linien-org/linien/master/docs/icon.png" width="20%">
 
 User-friendly locking of lasers using RedPitaya (STEMlab 125-14) that just works.
 Linien aims to follow the UNIX philosophy of doing a single thing (locking using intelligent algorithms) very well.
@@ -20,20 +20,20 @@ Features
 -   **IQ demodulation**: Optimize demodulation phase in an instant
 -   **Noise analysis**: Record power spectral density (PSD) of the error signal for analyzing noise of the locked laser and for optimizing PID parameters
 -   **Lock detection**: Linien is capable of detecting loss of lock.
--   **Automatic relocking**: in that case, it relocks autonomously (temporarily disabled, use [v0.3.2](https://github.com/hermitdemschoenenleben/linien/releases/tag/v0.3.2) if you rely in this feature)
+-   **Automatic relocking**: in that case, it relocks autonomously (temporarily disabled, use [v0.3.2](https://github.com/linien-org/linien/releases/tag/v0.3.2) if you rely in this feature)
 -   **Machine learning** is used to tune the spectroscopy parameters in order to optimize the signal
 -   **Remote-controllable**: the client libraries can be used to control or monitor the spectroscopy lock with python.
 -   **Combined FMS+MTS**: Linien supports dual-channel spectroscopy that can be
     used to implement [combined
     FMS+MTS](https://arxiv.org/pdf/1701.01918.pdf)
 -   **Logging**: Use
-    [linien-influxdb](https://github.com/hermitdemschoenenleben/linien-influxdb)
+    [linien-influxdb](https://github.com/linien-org/linien-influxdb)
     to log the lock status to influxdb.
 -   **Second integrator** on (slow) analog output 0
 -   **Additional analog outputs** may be used using the GUI or python client (ANALOG_OUT 1, 2 and 3)
 -   **16 GPIO outputs** may be programmed (e.g. for controlling other devices)
 
-![image](https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/docs/screencast.gif)
+![image](https://raw.githubusercontent.com/linien-org/linien/master/docs/screencast.gif)
 
 Getting started: install Linien
 ---------------
@@ -49,7 +49,7 @@ If you want to use the python interface you should [install it using pip](#insta
 
 You can download standalone binaries for windows and linux on [the
 releases
-page](https://github.com/hermitdemschoenenleben/linien/releases) (download the corresponding binary in the assets section of the latest version). On linux mark it as executable before executing:
+page](https://github.com/linien-org/linien/releases) (download the corresponding binary in the assets section of the latest version). On linux mark it as executable before executing:
 
 ```bash
 chmod +x linien-linux*
@@ -94,12 +94,12 @@ Physical setup
 
 The default setup looks like this:
 
-![image](https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/docs/setup.png)
+![image](https://raw.githubusercontent.com/linien-org/linien/master/docs/setup.png)
 
 You can also configure Linien for different setups, e.g. if you want to
 have the modulation frequency and the control on the same output. Additionally, it is possible to set up a slow integrator on ANALOG OUT 0 (0 V to 1.8 V).
 
-![image](https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/docs/explain-pins.png)
+![image](https://raw.githubusercontent.com/linien-org/linien/master/docs/explain-pins.png)
 
 Using the application
 ---------------------
@@ -108,7 +108,7 @@ Using the application
 
 After launching Linien you should supply details of your RedPitaya. Its host address is usually given by <pre>rp-<b>XXXXXX.local</b></pre>, where **XXXXXX** are the last 6 digits of the device's MAC address. You will find them on a sticker on the ethernet port:
 
-![image](https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/docs/mac.jpg)
+![image](https://raw.githubusercontent.com/linien-org/linien/master/docs/mac.jpg)
 
 | :exclamation: If connecting using host name fails, try using RP's IP address instead |
 |--------------------------------------------------------------------------------------|
@@ -130,11 +130,11 @@ Connect your AC spectroscopy signal to FAST IN 1. If you also want to monitor th
 
 Then, adapt the output signals to your needs:
 
-![image](https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/docs/explain-pins.png)
+![image](https://raw.githubusercontent.com/linien-org/linien/master/docs/explain-pins.png)
 
 When you're done, head over to *Modulation, Sweep & Spectroscopy* to configure modulation frequency and amplitude. Once your setup is working, you should see something like this:
 
-![image](https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/docs/spectrum.jpg)
+![image](https://raw.githubusercontent.com/linien-org/linien/master/docs/spectrum.jpg)
 
 The bright red line is the demodulated spectroscopy signal. The dark red area is the signal strength obtained by [iq demodulation](https://en.wikipedia.org/wiki/In-phase_and_quadrature_components), i.e. the demodulation signal obtained when demodulating in phase at this point.
 
@@ -146,13 +146,13 @@ Fast mode is intended for bare PID operation (no demodulation or filtering), byp
 
 Linien may use machine learning to maximize the slope of a line. As for the autolock, click and drag over the line you want to optimize. Then, the line is centered and the optimization starts. Please note that this only works if initially a distinguished zero-crossing is visible.
 
-![image](https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/docs/optimization.gif)
+![image](https://raw.githubusercontent.com/linien-org/linien/master/docs/optimization.gif)
 
 ### Using the autolock
 
 In order to use the autolock, enter some PID parameters first. Note that the sign of the parameters is determined automatically. After clicking the green button, you can select the line you want to lock to by clicking and dragging over it: your selection should contain both extrema of the line. The autolock will then center this line, decrease the scan range and try to lock to the middle between minimum and maximum contained in your selection.
 
-![image](https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/docs/screencast.gif)
+![image](https://raw.githubusercontent.com/linien-org/linien/master/docs/screencast.gif)
 
 The following options are available:
  * **Determine signal offset**: If this checkbox is ticked, the autolock will adapt the y-offset of the signal such that the middle between minimum and maximum is at the zero crossing. This is especially useful if you have a large background signal (e.g. the Doppler background in FMS spectroscopy).
@@ -185,7 +185,7 @@ L(f) = kp + ki / f + kd * f
 with `kp=P/4096`, `ki=I/0.1s` and `kd=D / (2**6 * 125e6)`.
 Note that this equation does not account for filtering before the PID (cf. *Modulation, Sweep & Spectroscopy* tab).
 
-![image](https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/docs/transfer.png)
+![image](https://raw.githubusercontent.com/linien-org/linien/master/docs/transfer.png)
 
 Scripting interface
 -------------------
@@ -206,7 +206,7 @@ c = LinienClient(
 # read out the modulation frequency
 print(c.parameters.modulation_frequency.value / MHz)
 
-# have a look at https://github.com/hermitdemschoenenleben/linien/blob/master/linien/server/parameters.py
+# have a look at https://github.com/linien-org/linien/blob/master/linien/server/parameters.py
 # for a documentation of all parameters that can be accessed and modified
 
 # set modulation amplitude
@@ -274,7 +274,7 @@ plt.show()
 
 For a full list of parameters that can be controlled or accessed have a
 look at
-[parameters.py](https://github.com/hermitdemschoenenleben/linien/blob/master/linien/server/parameters.py). Remember that changed parameters are not written to the FPGA unless `c.connection.root.write_registers()` is called.
+[parameters.py](https://github.com/linien-org/linien/blob/master/linien/server/parameters.py). Remember that changed parameters are not written to the FPGA unless `c.connection.root.write_registers()` is called.
 
 ### Run the autolock
 
