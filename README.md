@@ -463,29 +463,6 @@ For building the FPGA image, you need to install Xilinx Vivado first. Then, call
 
 First, update the version number in the `checked_out_repo/linien/VERSION` file. Then you can build and upload the package to pypi using `scripts/upload_pypi.sh`. Finally, build the standalone client using `build_standalone_client.sh` (you have
 to do this on the platform you want to build the standalone client for). When on Windows 10, both scripts have to be started in Windows Powershell.
-
-Troubleshooting
----------------
-
-### Connection problems
-
-If the client fails to connect to a RedPitaya, first check whether you
-can ping it by executing
-
-```bash
-ping rp-f0xxxx.local
-```
-
-in a command line. If this works, check whether you can connect via SSH.
-On Windows, you have to [install a SSH client](https://www.putty.org),
-on linux you can execute
-
-```bash
-ssh rp-f0xxxx.local
-```
-
-on the command line.
-
 FAQs
 ----
 
@@ -509,7 +486,27 @@ Ethernet LED blinking [was found to impact analog outputs of RedPitaya](https://
 If you want to re-enable the LEDs, just stop the Linien server or restart your RedPitaya.
 
 Troubleshooting
-----
+---------------
+
+### Connection problems
+
+If the client fails to connect to a RedPitaya, first check whether you
+can ping it by executing
+
+```bash
+ping rp-f0xxxx.local
+```
+
+in a command line. If this works, check whether you can connect via SSH.
+On Windows, you have to [install a SSH client](https://www.putty.org),
+on linux you can execute
+
+```bash
+ssh rp-f0xxxx.local
+```
+
+on the command line.
+
 
 ### Updating or installing fails
 
