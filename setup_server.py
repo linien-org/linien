@@ -29,7 +29,7 @@ setuptools.setup(
     description="Server of linien that runs on RedPitaya.",
     long_description="Have a look at the 'linien' package for installation instructions.",  # noqa: E501
     long_description_content_type="text/x-rst",
-    url="https://hermitdemschoenenleben.github.io/linien/",
+    url="https://github.com/linien-org/linien",
     packages=[
         "linien",
         "linien.server",

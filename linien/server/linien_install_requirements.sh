@@ -20,7 +20,7 @@ mkdir linien
 echo 'installing pyrp3...'
 # install pyrp3
 cd /tmp/linien
-git clone https://github.com/hermitdemschoenenleben/pyrp3.git
+git clone https://github.com/linien-org/pyrp3.git
 cd pyrp3
 python3 setup.py install
 
@@ -35,7 +35,7 @@ rm -R /tmp/linien
 
 # https://github.com/RedPitaya/RedPitaya/issues/205
 echo 'building ethernet blinking fix'
-git clone https://github.com/hermitdemschoenenleben/mdio-tool.git
+git clone https://github.com/linien-org/mdio-tool.git
 cd mdio-tool
 cmake .
 make
