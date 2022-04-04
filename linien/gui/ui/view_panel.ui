@@ -55,7 +55,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QDoubleSpinBox" name="plot_line_width">
+         <widget class="CustomDoubleSpinBoxNoSign" name="plot_line_width">
           <property name="decimals">
            <number>1</number>
           </property>
@@ -85,7 +85,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QSpinBox" name="plot_line_opacity">
+         <widget class="CustomSpinBox" name="plot_line_opacity">
           <property name="maximum">
            <number>255</number>
           </property>
@@ -106,7 +106,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QSpinBox" name="plot_fill_opacity">
+         <widget class="CustomSpinBox" name="plot_fill_opacity">
           <property name="maximum">
            <number>255</number>
           </property>
@@ -338,6 +338,18 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>CustomSpinBox</class>
+   <extends>QSpinBox</extends>
+   <header location="global">spin_box.h</header>
+  </customwidget>
+  <customwidget>
+   <class>CustomDoubleSpinBoxNoSign</class>
+   <extends>QDoubleSpinBox</extends>
+   <header location="global">spin_box.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>
