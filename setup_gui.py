@@ -29,6 +29,8 @@ setuptools.setup(
     version=linien.__version__,
     author="Benjamin Wiegand",
     author_email="highwaychile@posteo.de",
+    maintainer="Bastian Leykauf",
+    maintainer_email="leykauf@physik.hu-berlin.de",
     description="Spectroscopy lock application using RedPitaya",
     long_description=long_description,
     long_description_content_type="text/markdown",

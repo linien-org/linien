@@ -26,6 +26,8 @@ setuptools.setup(
     version=linien.__version__,
     author="Benjamin Wiegand",
     author_email="highwaychile@posteo.de",
+    maintainer="Bastian Leykauf",
+    maintainer_email="leykauf@physik.hu-berlin.de",
     description="Server of linien that runs on RedPitaya.",
     long_description="Have a look at the 'linien' package for installation instructions.",  # noqa: E501
     long_description_content_type="text/x-rst",
