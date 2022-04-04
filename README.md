@@ -420,15 +420,20 @@ on the command line.
 
 Citation
 ----
+
+If you are using Linien, please cite us as follows:
+
 ```
-@misc{linien,
-  author = {Benjamin Wiegand},
-  title = {Linien - User-friendly spectroscopy locking},
-  year = {2020},
-  publisher = {GitHub},
-  journal = {GitHub repository},
-  howpublished = {\url{https://hermitdemschoenenleben.github.io/linien/}}
+@article{Wiegand2022,
+archivePrefix = {arXiv},
+arxivId = {2203.02947},
+author = {Wiegand, Benjamin and Leykauf, Bastian and J{\"{o}}rdens, Robert and Krutzik, Markus},
+eprint = {2203.02947},
+title = {{Linien: A versatile, user-friendly, open-source FPGA-based tool for frequency stabilization and spectroscopy parameter optimization}},
+url = {http://arxiv.org/abs/2203.02947},
+year = {2022}
 }
+
 ```
 
 License
