@@ -45,7 +45,7 @@ setuptools.setup(
     install_requires=[
         "click>=7.1.2",
         "numpy>=1.19.1",
-        "paramiko>=2.9.2",
+        "paramiko>=2.10.1",
         "plumbum>=1.6.9",
         "pyqtgraph>=0.10.0",
         "PyQt5>=5.12.0",
