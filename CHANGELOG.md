@@ -1,3 +1,9 @@
+## V 0.5.2
+- Better keyboard controls for spinboxes
+
+## V 0.5.1
+- Re-enable sweep for fast mode.
+
 ## V 0.5.0
 - **Better sweep controls** make it easier to adjust the sweep range and allow to stop the sweep altogether.
 - **A new, faster PID-only mode**  allows for a higher control bandwidth by skipping modulation/demodulation steps (useful for offset locks).

@@ -121,7 +121,7 @@ p, li { white-space: pre-wrap; }
              </widget>
             </item>
             <item>
-             <widget class="QDoubleSpinBox" name="sweep_center">
+             <widget class="CustomDoubleSpinBox" name="sweep_center">
               <property name="minimumSize">
                <size>
                 <width>65</width>
@@ -172,7 +172,7 @@ p, li { white-space: pre-wrap; }
              </widget>
             </item>
             <item>
-             <widget class="QDoubleSpinBox" name="sweep_amplitude">
+             <widget class="CustomDoubleSpinBox" name="sweep_amplitude">
               <property name="minimumSize">
                <size>
                 <width>65</width>
@@ -528,7 +528,7 @@ p, li { white-space: pre-wrap; }
        <item>
         <widget class="QLabel" name="new_version_available_label">
          <property name="text">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:14pt; font-weight:600; color:#3ebd46;&quot;&gt;New Linien version available:&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;a href=&quot;https://hermitdemschoenenleben.github.io/linien/&quot;&gt;&lt;span style=&quot; font-size:14pt; font-weight:600; text-decoration: underline; color:#1a5fb4;&quot;&gt;Download&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:14pt; font-weight:600; color:#3ebd46;&quot;&gt;New Linien version available:&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;a href=&quot;https://github.com/linien-org/linien/&quot;&gt;&lt;span style=&quot; font-size:14pt; font-weight:600; text-decoration: underline; color:#1a5fb4;&quot;&gt;Download&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="margin">
           <number>10</number>
@@ -1054,8 +1054,8 @@ p, li { white-space: pre-wrap; }
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>338</width>
-            <height>510</height>
+            <width>98</width>
+            <height>28</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1072,8 +1072,8 @@ p, li { white-space: pre-wrap; }
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>338</width>
-            <height>510</height>
+            <width>98</width>
+            <height>28</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1090,8 +1090,8 @@ p, li { white-space: pre-wrap; }
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>338</width>
-            <height>510</height>
+            <width>332</width>
+            <height>427</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1108,8 +1108,8 @@ p, li { white-space: pre-wrap; }
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>338</width>
-            <height>510</height>
+            <width>98</width>
+            <height>28</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -1132,8 +1132,8 @@ p, li { white-space: pre-wrap; }
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>338</width>
-            <height>510</height>
+            <width>98</width>
+            <height>28</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -1223,6 +1223,11 @@ p, li { white-space: pre-wrap; }
    <extends>QWidget</extends>
    <header location="global">sweep_control</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>CustomDoubleSpinBox</class>
+   <extends>QDoubleSpinBox</extends>
+   <header location="global">spin_box.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

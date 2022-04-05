@@ -1,3 +1,21 @@
+# Copyright 2018-2022 Benjamin Wiegand <benjamin.wiegand@physik.hu-berlin.de>
+# Copyright 2021-2022 Bastian Leykauf <leykauf@physik.hu-berlin.de>
+#
+# This file is part of Linien and based on redpid.
+#
+# Linien is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Linien is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Linien.  If not, see <http://www.gnu.org/licenses/>.
+
 from PyQt5 import QtWidgets
 
 from linien.common import FAST_AUTOLOCK
@@ -11,13 +29,9 @@ class LockingPanel(QtWidgets.QWidget, CustomWidget):
         self.load_ui("locking_panel.ui")
 
     def ready(self):
-        self.ids.kp.setKeyboardTracking(False)
         self.ids.kp.valueChanged.connect(self.kp_changed)
-        self.ids.ki.setKeyboardTracking(False)
         self.ids.ki.valueChanged.connect(self.ki_changed)
-        self.ids.kd.setKeyboardTracking(False)
         self.ids.kd.valueChanged.connect(self.kd_changed)
-        self.ids.kd.setKeyboardTracking(False)
         # self.ids.checkLockCheckbox.stateChanged.connect(self.check_lock_changed)
         # self.ids.watchLockCheckbox.stateChanged.connect(self.watch_lock_changed)
         # self.ids.watch_lock_threshold.valueChanged.connect(

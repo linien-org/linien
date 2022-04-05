@@ -1,13 +1,12 @@
 Linien
 ======
 
-<img align="right" src="https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/docs/icon.png" width="20%">
+<img align="right" src="https://raw.githubusercontent.com/linien-org/linien/master/docs/icon.png" width="20%">
 
 User-friendly locking of lasers using RedPitaya (STEMlab 125-14) that just works.
 Linien aims to follow the UNIX philosophy of doing a single thing (locking using intelligent algorithms) very well.
 It was mainly developed for locking spectroscopy signals but may also be used for Pound-Drever-Hall or other lock-in techniques as well as simple PID operation.
 Linien is built with Python and [Migen](https://github.com/m-labs/migen) and is based on [red pid](https://github.com/quartiq/redpid).
-Development takes place at [Joint lab integrated quantum sensors](http://iqs.berlin) of Humboldt University Berlin.
 
 Features
 --------
@@ -21,20 +20,20 @@ Features
 -   **IQ demodulation**: Optimize demodulation phase in an instant
 -   **Noise analysis**: Record power spectral density (PSD) of the error signal for analyzing noise of the locked laser and for optimizing PID parameters
 -   **Lock detection**: Linien is capable of detecting loss of lock.
--   **Automatic relocking**: in that case, it relocks autonomously (temporarily disabled, use [v0.3.2](https://github.com/hermitdemschoenenleben/linien/releases/tag/v0.3.2) if you rely in this feature)
+-   **Automatic relocking**: in that case, it relocks autonomously (temporarily disabled, use [v0.3.2](https://github.com/linien-org/linien/releases/tag/v0.3.2) if you rely in this feature)
 -   **Machine learning** is used to tune the spectroscopy parameters in order to optimize the signal
 -   **Remote-controllable**: the client libraries can be used to control or monitor the spectroscopy lock with python.
 -   **Combined FMS+MTS**: Linien supports dual-channel spectroscopy that can be
     used to implement [combined
     FMS+MTS](https://arxiv.org/pdf/1701.01918.pdf)
 -   **Logging**: Use
-    [linien-influxdb](https://github.com/hermitdemschoenenleben/linien-influxdb)
+    [linien-influxdb](https://github.com/linien-org/linien-influxdb)
     to log the lock status to influxdb.
 -   **Second integrator** on (slow) analog output 0
 -   **Additional analog outputs** may be used using the GUI or python client (ANALOG_OUT 1, 2 and 3)
 -   **16 GPIO outputs** may be programmed (e.g. for controlling other devices)
 
-![image](https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/docs/screencast.gif)
+![image](https://raw.githubusercontent.com/linien-org/linien/master/docs/screencast.gif)
 
 Getting started: install Linien
 ---------------
@@ -50,21 +49,12 @@ If you want to use the python interface you should [install it using pip](#insta
 
 You can download standalone binaries for windows and linux on [the
 releases
-page](https://github.com/hermitdemschoenenleben/linien/releases) (download the corresponding binary in the assets section of the latest version). On linux mark it as executable before executing:
+page](https://github.com/linien-org/linien/releases) (download the corresponding binary in the assets section of the latest version). On linux mark it as executable before executing:
 
 ```bash
 chmod +x linien-linux*
 ./linien-linux*
 ```
-
-As the linux world is highly heterogeneous, the standalone binary may not work on some systems (Ubuntu 18.04 or newer should work, other distributions may not). In this case flatpak install (see below) is recommended.
-
-### Installation with Flatpak (linux only)
-
-1. [Install flatpak](https://flatpak.org/setup/)
-1. Run `flatpak install flathub io.github.hermitdemschoenenleben.linien`
-1. Linien should now have been installed to your applications menu. You can launch it from there.
-1. If this doesn't work, run `flatpak run io.github.hermitdemschoenenleben.linien`
 
 ### Installation with pip
 
@@ -104,12 +94,12 @@ Physical setup
 
 The default setup looks like this:
 
-![image](https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/docs/setup.png)
+![image](https://raw.githubusercontent.com/linien-org/linien/master/docs/setup.png)
 
 You can also configure Linien for different setups, e.g. if you want to
 have the modulation frequency and the control on the same output. Additionally, it is possible to set up a slow integrator on ANALOG OUT 0 (0 V to 1.8 V).
 
-![image](https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/docs/explain-pins.png)
+![image](https://raw.githubusercontent.com/linien-org/linien/master/docs/explain-pins.png)
 
 Using the application
 ---------------------
@@ -118,7 +108,7 @@ Using the application
 
 After launching Linien you should supply details of your RedPitaya. Its host address is usually given by <pre>rp-<b>XXXXXX.local</b></pre>, where **XXXXXX** are the last 6 digits of the device's MAC address. You will find them on a sticker on the ethernet port:
 
-![image](https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/docs/mac.jpg)
+![image](https://raw.githubusercontent.com/linien-org/linien/master/docs/mac.jpg)
 
 | :exclamation: If connecting using host name fails, try using RP's IP address instead |
 |--------------------------------------------------------------------------------------|
@@ -140,11 +130,11 @@ Connect your AC spectroscopy signal to FAST IN 1. If you also want to monitor th
 
 Then, adapt the output signals to your needs:
 
-![image](https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/docs/explain-pins.png)
+![image](https://raw.githubusercontent.com/linien-org/linien/master/docs/explain-pins.png)
 
 When you're done, head over to *Modulation, Sweep & Spectroscopy* to configure modulation frequency and amplitude. Once your setup is working, you should see something like this:
 
-![image](https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/docs/spectrum.jpg)
+![image](https://raw.githubusercontent.com/linien-org/linien/master/docs/spectrum.jpg)
 
 The bright red line is the demodulated spectroscopy signal. The dark red area is the signal strength obtained by [iq demodulation](https://en.wikipedia.org/wiki/In-phase_and_quadrature_components), i.e. the demodulation signal obtained when demodulating in phase at this point.
 
@@ -156,13 +146,13 @@ Fast mode is intended for bare PID operation (no demodulation or filtering), byp
 
 Linien may use machine learning to maximize the slope of a line. As for the autolock, click and drag over the line you want to optimize. Then, the line is centered and the optimization starts. Please note that this only works if initially a distinguished zero-crossing is visible.
 
-![image](https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/docs/optimization.gif)
+![image](https://raw.githubusercontent.com/linien-org/linien/master/docs/optimization.gif)
 
 ### Using the autolock
 
 In order to use the autolock, enter some PID parameters first. Note that the sign of the parameters is determined automatically. After clicking the green button, you can select the line you want to lock to by clicking and dragging over it: your selection should contain both extrema of the line. The autolock will then center this line, decrease the scan range and try to lock to the middle between minimum and maximum contained in your selection.
 
-![image](https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/docs/screencast.gif)
+![image](https://raw.githubusercontent.com/linien-org/linien/master/docs/screencast.gif)
 
 The following options are available:
  * **Determine signal offset**: If this checkbox is ticked, the autolock will adapt the y-offset of the signal such that the middle between minimum and maximum is at the zero crossing. This is especially useful if you have a large background signal (e.g. the Doppler background in FMS spectroscopy).
@@ -195,7 +185,7 @@ L(f) = kp + ki / f + kd * f
 with `kp=P/4096`, `ki=I/0.1s` and `kd=D / (2**6 * 125e6)`.
 Note that this equation does not account for filtering before the PID (cf. *Modulation, Sweep & Spectroscopy* tab).
 
-![image](https://raw.githubusercontent.com/hermitdemschoenenleben/linien/master/docs/transfer.png)
+![image](https://raw.githubusercontent.com/linien-org/linien/master/docs/transfer.png)
 
 Scripting interface
 -------------------
@@ -216,7 +206,7 @@ c = LinienClient(
 # read out the modulation frequency
 print(c.parameters.modulation_frequency.value / MHz)
 
-# have a look at https://github.com/hermitdemschoenenleben/linien/blob/master/linien/server/parameters.py
+# have a look at https://github.com/linien-org/linien/blob/master/linien/server/parameters.py
 # for a documentation of all parameters that can be accessed and modified
 
 # set modulation amplitude
@@ -284,7 +274,7 @@ plt.show()
 
 For a full list of parameters that can be controlled or accessed have a
 look at
-[parameters.py](https://github.com/hermitdemschoenenleben/linien/blob/master/linien/server/parameters.py). Remember that changed parameters are not written to the FPGA unless `c.connection.root.write_registers()` is called.
+[parameters.py](https://github.com/linien-org/linien/blob/master/linien/server/parameters.py). Remember that changed parameters are not written to the FPGA unless `c.connection.root.write_registers()` is called.
 
 ### Run the autolock
 
@@ -376,126 +366,7 @@ Before installing a new version of Linien, open the previously installed client 
 Development
 -----------
 
-```bash
-git clone https://github.com/hermitdemschoenenleben/linien.git
-```
-
-Then, create a file named `checked_out_repo/linien/VERSION` which contains
-
-```
-dev
-```
-(no newlines).
-
-This ensures that local changes of the server's code are automatically uploaded to RedPitaya when you launch the client. Please note that this only works if `linien-server` is stopped and uninstalled from the RedPitaya which can be done via `ssh`.
-
-### Setting up the development environment
-
-It is recommended to setup a dedicated devolpment python environment with the same package versions as the build environments used to create the standalone executables. To do so either use [virtualenv](https://pypi.org/project/virtualenv/) or a conda environment with Python 3.7.10. With ocnda, this is achieved by running
-
-```
-conda create -n linien_dev python=3.7.10
-conda activate linien_dev
-```
-
-All necessary packages can then be installed with the provided requirement files. To install all packages for running the client and GUI, the local server and packages for [linting](https://flake8.pycqa.org) and [code formatting](https://black.readthedocs.io/en/stable/) run
-
-```
-pip install -r requirements_dev.txt
-```
-
-from within the python environment.
-
-To automatically checking commits for compliance with [black](https://black.readthedocs.io/en/stable/) code style, run
-
-```
-pre-commit install
-```
-
-from the repository's parent directory.
-
-### Architecture
-
-Linien contains three components:
-* The client: Connects to the server, runs the GUI, etc.
-* The server: Handles connections from the client, runs long-running tasks like the autolock or the optimization algorithm. Connects to the acquisition process for communication with the FPGA.
-* The acquisition process: Handles the low-level communication with the FPGA (reading / writing registers)
-
-The communication between the components takes place using [rpyc](https://rpyc.readthedocs.io/en/latest/).
-
-For development purposes, you can run the first two components on your local machine to simplify debugging. Only the acquisition process has to run on the RedPitaya. In a production version of linien, server and acquisition process run on RedPitaya.
-
-### Running the code
-
-Before running the development version check that no production version of the server is running on the RedPitaya by executing `linien_stop_server` on the RedPitaya. Now you need to have an FPGA bitstream at `linien/server/linien.bin`. You have two choices:
-* [Build the gateware](#building-the-fpga-image): this makes sense if you want to change the FPGA programming.
-* Use the gateware of the latest release: if you just want to work on the python client or server code without touching the FPGA gateware, this approach is right for you as it is way easier:
-    * Install linien-server using pip: `pip3 install linien-server`
-    * Find out where it was installed to: `python3 -c "import linien; print(linien.__path__)"`
-    * In that folder go to linien/server and copy this file to your development server folder.
-
-Now you can launch the client
-
-```
-python3 linien/gui/app.py
-```
-
-and you can connect to your RedPitaya.
-If you have set `checked_out_repo/linien/VERSION` to dev ([see above](#development)), this automatically uploads your local code to the RedPitaya and starts the server.
-The FPGA bitstream will also be transferred to the RedPitaya and loaded on the FPGA.
-
-### Run server locally
-
-For debugging it may be helpful to execute the server component on
-your machine (e.g. if you want to work on the autolock and want to plot the spectra). In order to make this work, you have to start `/linien/server/acquisition_process.py` on your RedPitaya using SSH. This process provides remote access to the FPGA registers. Then, you can run the server locally and connect to the FPGA registers:
-
-```
-python3 server/server.py --remote-rp=root:password@rp-f0xxxx.local
-```
-
-Now, you can start the client. **Important**: Be sure not to connect your client to the RedPitaya, but to "localhost" instead.
-
-### Fake server
-
-If you just want to test the GUI, there is also a fake server that you can run locally on your machine:
-
-```bash
-python3 server/server.py --fake
-```
-
-This fake server just outputs random data. Then you can connect to \"localhost\" using the client.
-
-### Building the FPGA image
-
-For building the FPGA image, you need to install Xilinx Vivado first. Then, call `scripts/build_fpga_image.sh`. In the end, the bitstream is located at `linien/server/linien.bin`. **Note**: So far, this was tested only with Linux. It should work on Windows 10, though, when calling the script inside Windows Powershell.
-
-### Releasing a new version
-
-First, update the version number in the `checked_out_repo/linien/VERSION` file. Then you can build and upload the package to pypi using `scripts/upload_pypi.sh`. Finally, build the standalone client using `build_standalone_client.sh` (you have
-to do this on the platform you want to build the standalone client for). When on Windows 10, both scripts have to be started in Windows Powershell.
-Upload the standalone to a github release. Release the new version to flathub.
-
-Troubleshooting
----------------
-
-### Connection problems
-
-If the client fails to connect to a RedPitaya, first check whether you
-can ping it by executing
-
-```bash
-ping rp-f0xxxx.local
-```
-
-in a command line. If this works, check whether you can connect via SSH.
-On Windows, you have to [install a SSH client](https://www.putty.org),
-on linux you can execute
-
-```bash
-ssh rp-f0xxxx.local
-```
-
-on the command line.
+Information about ddevelopment can be found in the [wiki](https://github.com/linien-org/linien/wiki/Development).
 
 FAQs
 ----
@@ -520,7 +391,27 @@ Ethernet LED blinking [was found to impact analog outputs of RedPitaya](https://
 If you want to re-enable the LEDs, just stop the Linien server or restart your RedPitaya.
 
 Troubleshooting
-----
+---------------
+
+### Connection problems
+
+If the client fails to connect to a RedPitaya, first check whether you
+can ping it by executing
+
+```bash
+ping rp-f0xxxx.local
+```
+
+in a command line. If this works, check whether you can connect via SSH.
+On Windows, you have to [install a SSH client](https://www.putty.org),
+on linux you can execute
+
+```bash
+ssh rp-f0xxxx.local
+```
+
+on the command line.
+
 
 ### Updating or installing fails
 
@@ -529,17 +420,37 @@ Troubleshooting
 
 Citation
 ----
+
+If you are using Linien, please cite us as follows:
+
 ```
-@misc{linien,
-  author = {Benjamin Wiegand},
-  title = {Linien - User-friendly spectroscopy locking},
-  year = {2020},
-  publisher = {GitHub},
-  journal = {GitHub repository},
-  howpublished = {\url{https://hermitdemschoenenleben.github.io/linien/}}
+@article{Wiegand2022,
+archivePrefix = {arXiv},
+arxivId = {2203.02947},
+author = {Wiegand, Benjamin and Leykauf, Bastian and J{\"{o}}rdens, Robert and Krutzik, Markus},
+eprint = {2203.02947},
+title = {{Linien: A versatile, user-friendly, open-source FPGA-based tool for frequency stabilization and spectroscopy parameter optimization}},
+url = {http://arxiv.org/abs/2203.02947},
+year = {2022}
 }
+
 ```
 
+License
+-------
+Linien ‒ User-friendly locking of lasers using RedPitaya (STEMlab 125-14) that just works.
+
+Copyright © 2014-2015 Robert Jördens
+Copyright © 2018-2022 Benjamin Wiegand
+Copyright © 2021-2022 Bastian Leykauf
+
+Linien is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+Linien is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with Linien. If not, see <https://www.gnu.org/licenses/>.
+
+Development takes place at Humboldt University of Berlin.
 
 See Also
 --------

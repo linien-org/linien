@@ -1,19 +1,36 @@
-# Copyright 2014-2015 Robert Jordens <jordens@gmail.com>
+# Copyright 2014-2015 Robert Jördens <jordens@gmail.com>
+# Copyright 2018-2022 Benjamin Wiegand <benjamin.wiegand@physik.hu-berlin.de>
+# Copyright 2021-2022 Bastian Leykauf <leykauf@physik.hu-berlin.de>
 #
-# This file is part of redpid.
+# This file is part of Linien and based on redpid.
 #
-# redpid is free software: you can redistribute it and/or modify
+# Linien is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
-# redpid is distributed in the hope that it will be useful,
+# Linien is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with redpid.  If not, see <http://www.gnu.org/licenses/>.
+# along with Linien.  If not, see <http://www.gnu.org/licenses/>.
+#
+# This file is part of Linien and based on redpid.
+#
+# Linien is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Linien is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 from migen import Cat, If, Module, Replicate, Signal
 from misoc.interconnect.csr import CSRStorage
