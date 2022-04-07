@@ -274,8 +274,7 @@ class LinienModule(Module, AutoCSR):
             self.fast_b.adc.eq(self.analog.adc_b),
         ]
 
-        # now, we combine the output of the two paths, with a variable
-        # factor each.
+        # now, we combine the output of the two paths, with a variable factor each.
         mixed = Signal(
             (2 + ((signal_width + 1) + self.logic.chain_a_factor.size), True)
         )
@@ -330,9 +329,8 @@ class LinienModule(Module, AutoCSR):
 
         for analog_idx in range(4):
             if analog_idx == 0:
-                # first analog out gets a special treatment bc it may
-                # contain signal of slow pid or sweep
-
+                # first analog out gets a special treatment bc it may contain signal of
+                # slow pid or sweep
                 self.comb += self.slow.pid.running.eq(
                     self.logic.autolock.lock_running.status
                 )
@@ -382,8 +380,8 @@ class LinienModule(Module, AutoCSR):
 
         self.sync += [
             self.logic.autolock.robust.input.eq(self.scopegen.scope_written_data),
-            # `writing_data_now` is intentionally delayed by one cycle here
-            # in order to prevent glitches
+            # `writing_data_now` is intentionally delayed by one cycle here in order to
+            # prevent glitches
             self.logic.autolock.robust.writing_data_now.eq(
                 self.scopegen.writing_data_now
             ),
@@ -409,6 +407,7 @@ class LinienModule(Module, AutoCSR):
             self.logic.slow_value.status.eq(self.slow.limit.y),
         ]
 
+        # Having this in a comb statement caused errors. See PR #251.
         self.sync += [
             self.logic.limit_fast1.x.eq(fast_outs[0]),
             self.logic.limit_fast2.x.eq(fast_outs[1]),
