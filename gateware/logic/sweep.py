@@ -16,21 +16,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
-#
-# This file is part of Linien and based on redpid.
-#
-# Linien is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# Linien is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 from migen import Cat, If, Module, Signal, bits_for
 from misoc.interconnect.csr import AutoCSR, CSRConstant, CSRStorage
@@ -56,23 +41,16 @@ class Sweep(Module):
         self.comb += [
             If(
                 self.run,
-                If(self.turn & ~turning,
-                    self.up.eq(~dir))
-                .Else(
-                    self.up.eq(dir)),)
-            .Else(
-                self.up.eq(1))
+                If(self.turn & ~turning, self.up.eq(~dir)).Else(self.up.eq(dir)),
+            ).Else(self.up.eq(1))
         ]
         self.sync += [
             self.trigger.eq(self.turn & self.up),
             turning.eq(self.turn),
             dir.eq(self.up),
-            If(~self.run,
-                self.y.eq(0))
-            .Elif(~self.hold,
-                If(self.up,
-                    self.y.eq(self.y + self.step),)
-                    .Else(
+            If(~self.run, self.y.eq(0)).Elif(
+                ~self.hold,
+                If(self.up, self.y.eq(self.y + self.step),).Else(
                     self.y.eq(self.y - self.step),
                 ),
             ),
@@ -116,9 +94,8 @@ class SweepCSR(Module, AutoCSR):
             self.limit.min.eq(Cat(self.min.storage, self.min.storage[-1])),
             self.limit.max.eq(Cat(self.max.storage, self.max.storage[-1])),
             self.sweep.turn.eq(self.limit.railed),
-            If(self.pause.storage,
+            If(
+                self.pause.storage,
                 self.y.eq(0),
-            ).Else(
-                self.y.eq(self.limit.y)
-            )
+            ).Else(self.y.eq(self.limit.y)),
         ]
