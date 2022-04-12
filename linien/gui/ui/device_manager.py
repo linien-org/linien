@@ -216,7 +216,7 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
         if version is not None:
             version_string = "==" + version
             # stop server if another version of linien is installed
-            stop_server_command = "linien_stop_server;"
+            stop_server_command = "linien_stop_server.sh;"
 
         self.ssh_command = execute_command_and_show_output(
             self,
