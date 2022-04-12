@@ -18,4 +18,4 @@ screen -S linien-server -d -m
 # start the server inside the screen session
 screen -r linien-server -X stuff $"cd $pth/server;\n"
 
-screen -r linien-server -X stuff $"bash linien_stop_ethernet_blinking; python3 server.py $1; bash linien_start_ethernet_blinking; \n"
+screen -r linien-server -X stuff $"bash linien_stop_ethernet_blinking.sh; python3 server.py $1; bash linien_start_ethernet_blinking.sh; \n"
