@@ -138,7 +138,7 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
                         A production version is installed on the RedPitaya, 
                         but the client uses a development version. Stop the 
                         server and uninstall the version on the RedPitaya using\n
-                        linien_stop_server;\n
+                        linien_stop_server.sh;\n
                         pip3 uninstall linien-server\n
                         before trying it again.
                         """  # noqa: W291
