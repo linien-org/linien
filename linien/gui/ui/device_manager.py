@@ -138,7 +138,7 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
                         A production version is installed on the RedPitaya, 
                         but the client uses a development version. Stop the 
                         server and uninstall the version on the RedPitaya using\n
-                        linien_stop_server;\n
+                        linien_stop_server.sh;\n
                         pip3 uninstall linien-server\n
                         before trying it again.
                         """  # noqa: W291
@@ -216,7 +216,7 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
         if version is not None:
             version_string = "==" + version
             # stop server if another version of linien is installed
-            stop_server_command = "linien_stop_server;"
+            stop_server_command = "linien_stop_server.sh;"
 
         self.ssh_command = execute_command_and_show_output(
             self,
