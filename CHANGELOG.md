@@ -1,3 +1,6 @@
+## V 0.5.3
+- Fix bug preventing proper starting and stopping of linien-server
+
 ## V 0.5.2
 - Better keyboard controls for spinboxes
 
