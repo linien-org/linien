@@ -160,7 +160,15 @@
      </property>
      <layout class="QVBoxLayout" name="loggingLayout">
       <item>
-       <widget class="CheckableComboBox" name="logParameterComboBox"/>
+       <layout class="QHBoxLayout" name="logParameterToolButtonLayout">
+        <item>
+         <widget class="LoggedParametersToolButton" name="logParametersToolButton">
+          <property name="text">
+           <string>Logged Parameters</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
       <item>
        <layout class="QHBoxLayout" name="loggingLayout_2">
@@ -229,8 +237,8 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>CheckableComboBox</class>
-   <extends>QComboBox</extends>
+   <class>LoggedParametersToolButton</class>
+   <extends>QToolButton</extends>
    <header location="global">logging_panel.h</header>
   </customwidget>
  </customwidgets>

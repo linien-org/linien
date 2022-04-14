@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtWidgets
 
 from linien.gui.widgets import CustomWidget
 
@@ -26,22 +26,23 @@ class LoggingPanel(QtWidgets.QWidget, CustomWidget):
         self.load_ui("logging_panel.ui")
 
     def ready(self):
-        for i in range(3):
-            self.ids.logParameterComboBox.addItem("parameter " + str(i))
-            item = self.ids.logParameterComboBox.model().item(i, 0)
-            item.setCheckState(QtCore.Qt.Unchecked)
+        logged_parameters_menu = LoggedParametersMenu()
+        self.ids.logParametersToolButton.setMenu(logged_parameters_menu)
+        self.ids.logParametersToolButton.setPopupMode(
+            QtWidgets.QToolButton.InstantPopup
+        )
 
 
-class CheckableComboBox(QtWidgets.QComboBox):
-    # taken from https://stackoverflow.com/questions/22775095/pyqt-how-to-set-combobox-items-be-checkable # noqa: E501
+# checkable menu for logged parameters, inspired by
+# https://stackoverflow.com/a/22775990/2750945
+class LoggedParametersToolButton(QtWidgets.QToolButton):
     def __init__(self, *args, **kwargs):
-        super(CheckableComboBox, self).__init__()
-        self.view().pressed.connect(self.handleItemPressed)
-        self.setModel(QtGui.QStandardItemModel(self))
+        super(LoggedParametersToolButton, self).__init__()
 
-    def handleItemPressed(self, index):
-        item = self.model().itemFromIndex(index)
-        if item.checkState() == QtCore.Qt.Checked:
-            item.setCheckState(QtCore.Qt.Unchecked)
-        else:
-            item.setCheckState(QtCore.Qt.Checked)
+
+class LoggedParametersMenu(QtWidgets.QMenu):
+    def __init__(self, *args, **kwargs):
+        super(LoggedParametersMenu, self).__init__()
+        for i in range(20):
+            action = self.addAction("Parameter " + str(i))
+            action.setCheckable(True)
