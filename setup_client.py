@@ -1,4 +1,5 @@
 # Copyright 2018-2022 Benjamin Wiegand <benjamin.wiegand@physik.hu-berlin.de>
+# Copyright 2022 Bastian Leykauf <leykauf@physik.hu-berlin.de>
 #
 # This file is part of Linien and based on redpid.
 #
@@ -29,6 +30,8 @@ setuptools.setup(
     version=linien.__version__,
     author="Benjamin Wiegand",
     author_email="highwaychile@posteo.de",
+    maintainer="Bastian Leykauf",
+    maintainer_email="leykauf@physik.hu-berlin.de",
     description="Python client for linien spectroscopy lock",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -43,7 +46,7 @@ setuptools.setup(
     ],
     install_requires=[
         "numpy>=1.19.1",
-        "paramiko>=2.9.2",
+        "paramiko>=2.10.1",
         "plumbum>=1.6.9",
         "rpyc>=4.0,<5.0",
         "scipy>=1.4.1",

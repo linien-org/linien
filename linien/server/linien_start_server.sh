@@ -8,7 +8,7 @@
 pth=`python3 -c 'import linien; print(linien.__path__[0]);'`
 
 # quit any remaining screen session
-if [ -x "$(command -v linien_stop_server)" ]; then
+if [ -x "$(command -v linien_stop_server.sh)" ]; then
     linien_stop_server
 fi
 screen -X -S linien-server quit
@@ -18,4 +18,4 @@ screen -S linien-server -d -m
 # start the server inside the screen session
 screen -r linien-server -X stuff $"cd $pth/server;\n"
 
-screen -r linien-server -X stuff $"bash linien_stop_ethernet_blinking; python3 server.py $1; bash linien_start_ethernet_blinking; \n"
+screen -r linien-server -X stuff $"bash linien_stop_ethernet_blinking.sh; python3 server.py $1; bash linien_start_ethernet_blinking.sh; \n"
