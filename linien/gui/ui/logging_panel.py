@@ -44,5 +44,5 @@ class LoggedParametersMenu(QtWidgets.QMenu):
     def __init__(self, *args, **kwargs):
         super(LoggedParametersMenu, self).__init__()
         for i in range(20):
-            action = self.addAction("Parameter " + str(i))
-            action.setCheckable(True)
+            action = QtWidgets.QAction("Parameter {}".format(i), self, checkable=True)
+            action = self.addAction(action)
