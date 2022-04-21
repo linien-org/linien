@@ -458,7 +458,7 @@ Development mainly takes place at Humboldt University of Berlin.
 This work is supported by the German Space Agency
 (DLR) with funds provided by the Federal Ministry of
 Economics and Technology (BMWi) under grant number
-DLR50WM2066
+DLR50WM2066.
 
 See Also
 --------
