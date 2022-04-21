@@ -453,7 +453,7 @@ You should have received a copy of the GNU General Public License along with Lin
 Acknowledgements
 ----------------
 
-Development takes place at Humboldt University of Berlin.
+Development mainly takes place at Humboldt University of Berlin.
 
 This work is supported by the German Space Agency
 (DLR) with funds provided by the Federal Ministry of
