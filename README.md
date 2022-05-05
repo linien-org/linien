@@ -454,7 +454,15 @@ Linien is distributed in the hope that it will be useful, but WITHOUT ANY WARRAN
 
 You should have received a copy of the GNU General Public License along with Linien. If not, see <https://www.gnu.org/licenses/>.
 
-Development takes place at Humboldt University of Berlin.
+Acknowledgements
+----------------
+
+Development mainly takes place at Humboldt University of Berlin.
+
+This work is supported by the German Space Agency
+(DLR) with funds provided by the Federal Ministry of
+Economics and Technology (BMWi) under grant number
+DLR50WM2066.
 
 See Also
 --------
