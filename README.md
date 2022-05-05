@@ -23,8 +23,8 @@ Features
     automatically lock to it. This algorithm is built to be noise and jitter tolerant.
 -   **IQ demodulation**: Optimize demodulation phase in an instant
 -   **Noise analysis**: Record power spectral density (PSD) of the error signal for analyzing noise of the locked laser and for optimizing PID parameters
--   **Lock detection**: Linien is capable of detecting loss of lock.
--   **Automatic relocking**: in that case, it relocks autonomously (temporarily disabled, use [v0.3.2](https://github.com/linien-org/linien/releases/tag/v0.3.2) if you rely in this feature)
+-   **Lock detection**: Linien is capable of detecting loss of lock (temporarily disabled, use [v0.3.2](https://github.com/linien-org/linien/releases/tag/v0.3.2) if you rely in this feature
+-   **Automatic relocking**: if lock is lost, it relocks autonomously (temporarily disabled, use [v0.3.2](https://github.com/linien-org/linien/releases/tag/v0.3.2) if you rely in this feature)
 -   **Machine learning** is used to tune the spectroscopy parameters in order to optimize the signal
 -   **Remote-controllable**: the client libraries can be used to control or monitor the spectroscopy lock with python.
 -   **Combined FMS+MTS**: Linien supports dual-channel spectroscopy that can be
@@ -399,22 +399,25 @@ Troubleshooting
 
 ### Connection problems
 
-If the client fails to connect to a RedPitaya, first check whether you
-can ping it by executing
+If the client fails to connect to a RedPitaya, first check whether you can ping it by
+executing
 
 ```bash
 ping rp-f0xxxx.local
 ```
 
-in a command line. If this works, check whether you can connect via SSH.
-On Windows, you have to [install a SSH client](https://www.putty.org),
-on linux you can execute
+in a command line. If this works, check whether you can connect via SSH:
 
 ```bash
 ssh rp-f0xxxx.local
 ```
 
-on the command line.
+on the command line. If this is successful, in order to to  check whether the
+`linien-server` is running, first confirm that there is a running `screen` session with
+the name `linien-server` by  executing `screen -ls`. If that is the case attach it by
+running `screen -r linien-server`. If any errors occurred on the server side, they will
+be displayed here. Please provide the output if you are reporting an
+[issue](https://github.com/linien-org/linien/issues)  related to connection problems.
 
 
 ### Updating or installing fails
