@@ -1,0 +1,25 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: "Linien"
+message: >-
+  If you are using Linien as part of a scientific
+  publication, please cite our paper
+  (https://doi.org/10.48550/arXiv.2203.02947).
+type: software
+authors:
+  - given-names: Benjamin
+    family-names: Wiegand
+    orcid: "https://orcid.org/0000-0001-6549-2307"
+    email: bwiegand@physik.hu-berlin.de
+    affiliation: Humboldt-Universität zu Berlin
+  - given-names: Bastian
+    family-names: Leykauf
+    email: leykauf@physik.hu-berlin.de
+    affiliation: Humbooldt-Universität zu Berlin
+    orcid: "https://orcid.org/0000-0002-4630-0602"
+  - given-names: Robert
+    family-names: Jördens
+    affiliation: "QUARTIQ GmbH: Berlin, DE"
+    orcid: "https://orcid.org/0000-0001-5333-0562"
