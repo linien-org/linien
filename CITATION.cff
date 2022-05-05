@@ -6,7 +6,7 @@ title: >-
 message: >-
   If you are using Linien as part of a scientific
   publication, please cite our article.
-type: software
+type: article
 authors:
   - given-names: Benjamin
     family-names: Wiegand
@@ -35,4 +35,4 @@ authors:
 identifiers:
   - type: doi
     value: "https://doi.org/10.48550/arXiv.2203.02947"
-    description: aa
+    description: arxiv DOI
