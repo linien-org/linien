@@ -2,8 +2,8 @@
 [![PyPI](https://img.shields.io/pypi/v/linien?color=blue)](https://pypi.org/project/linien/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-Linien
-======
+Linien ‒ User-friendly locking of lasers using RedPitaya (STEMlab 125-14) that just works
+=========================================================================================
 
 <img align="right" src="https://raw.githubusercontent.com/linien-org/linien/master/docs/icon.png" width="20%">
 
