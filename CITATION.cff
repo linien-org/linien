@@ -1,5 +1,4 @@
 cff-version: 1.2.0
-title: "Linien"
 message: "If you are using Linien as part of a scientific publication, please cite our article and  optionally the software."
 references:
   - type: article
