@@ -2,7 +2,10 @@ cff-version: 1.2.0
 message: "If you are using Linien as part of a scientific publication, please cite our article."
 type: article
 title: "Linien: A versatile, user-friendly, open-source FPGA-based tool for frequency stabilization and spectroscopy parameter optimization"
-doi: https://doi.org/10.48550/arXiv.2203.02947
+identifiers:
+  - type: doi
+    value: "https://doi.org/10.48550/arXiv.2203.02947"
+    description: arxiv DOI
 year: 2022
 authors:
   - given-names: Benjamin
