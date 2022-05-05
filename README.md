@@ -408,10 +408,10 @@ in a command line. If this works, check whether you can connect via SSH:
 ssh rp-f0xxxx.local
 ```
 
-on the command line. If this is succesful, in order to to  check whether the
+on the command line. If this is successful, in order to to  check whether the
 `linien-server` is running, first confirm that there is a running `screen` session with
 the name `linien-server` by  executing `screen -ls`. If that is the case attach it by
-running `screen -r linien-server`. If any errors occured on the server side, they will
+running `screen -r linien-server`. If any errors occurred on the server side, they will
 be displayed here. Please provide the output if you are reporting an
 [issue](https://github.com/linien-org/linien/issues)  related to connection problems.
 
