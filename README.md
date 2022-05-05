@@ -402,9 +402,7 @@ can ping it by executing
 ping rp-f0xxxx.local
 ```
 
-in a command line. If this works, check whether you can connect via SSH.
-On Windows, you have to [install a SSH client](https://www.putty.org),
-on linux you can execute
+in a command line. If this works, check whether you can connect via SSH:
 
 ```bash
 ssh rp-f0xxxx.local
