@@ -45,6 +45,7 @@ class ParameterStore:
             with open(PARAMETER_STORE_FN, "rb") as f:
                 data = pickle.load(f)
         except (FileNotFoundError, pickle.UnpicklingError, EOFError):
+            # FIXME: it should be somehow communicated that an error occurred
             return
 
         print("restore parameters")
