@@ -154,10 +154,9 @@ class RedPitayaControlService(BaseService):
                 print("ping", self.parameters.ping.value)
                 sleep(1)
 
-        t = threading.Thread(target=send_ping)
-        t.daemon = True
-        t.start()
-        self._periodic_timer = t
+        self._periodic_timer = threading.Thread(target=send_ping)
+        self._periodic_timer.daemon = True
+        self._periodic_timer.start()
 
     def _generate_signal_stats(self, to_plot):
         stats = {}
@@ -212,6 +211,15 @@ class RedPitayaControlService(BaseService):
         if not self.task_running():
             self.parameters.task.value = PSDAcquisition(self, self.parameters)
             self.parameters.task.value.run()
+
+    def exposed_start_logging(self):
+        def log_parameters():
+            # TODO: add the logging functionality
+            print("Start logging parameters...")
+
+        self._logging_thread = threading.Thread(target=log_parameters)
+        self._logging_thread.daemon = True
+        self._logging_thread.start()
 
     def exposed_start_pid_optimization(self):
         if not self.task_running():
