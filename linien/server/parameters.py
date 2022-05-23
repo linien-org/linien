@@ -136,7 +136,7 @@ class Parameters(BaseParameters):
         #   - `slow`:
         #       Output of slow additional integrator on slow analog output.
         #       Note that this value is not an array but a single point.
-        self.to_plot = Parameter(sync=False)
+        self.to_plot = Parameter(sync=False, loggable=False)
         # A dictionary that contains mean, standard deviation, minimum value and
         # maximum value for all the signals contained in `to_plot`.
         # Exemplary dictionary keys are `error_signal_mean`,
@@ -166,11 +166,10 @@ class Parameters(BaseParameters):
         # usage:
         #       parameters.analog_out_1.value = 1.2 * ANALOG_OUT_V
         # Minimum value is 0 and maximum 1.8 * ANALOG_OUT_V
-        # note that ANALOG_OUT_0 ís used for the slow PID and thus can't be
+        # note that ANALOG_OUT_0 ís used for the slow PID and thus can't be controlled
+        # manually.
         for i in range(4):
             if i == 0:
-                # ANALOG_OUT0 is used for slow PID --> it can't be controlled
-                # manually
                 continue
 
             setattr(

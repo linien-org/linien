@@ -29,6 +29,8 @@ class Parameter:
         wrap=False,
         sync=True,
         collapsed_sync=True,
+        loggable=True,
+        log=False,
     ):
         self.min = min_
         self.max = max_
@@ -38,6 +40,8 @@ class Parameter:
         self._listeners = set()
         self._collapsed_sync = collapsed_sync
         self.exposed_can_be_cached = sync
+        self.exposed_loggable = loggable
+        self.exposed_log = log
 
     @property
     def value(self):
@@ -111,7 +115,13 @@ class BaseParameters:
         as their values and if the parameters are suited to be cached registers
         a listener that pushes changes of these parameters to the client."""
         for name, element in self.get_all_parameters():
-            yield name, element, element.value, element.exposed_can_be_cached
+            yield (
+                name,
+                element,
+                element.value,
+                element.exposed_can_be_cached,
+                element.exposed_loggable,
+            )
             if element.exposed_can_be_cached:
                 self.register_remote_listener(uuid, name)
 

@@ -58,7 +58,7 @@ class RemoteParameters:
 
     The arguments for __init__ are:
 
-        `remote`:    The root of the rpyc connection ot the server
+        `remote`:    The root of the rpyc connection of the server
         `uuid`:      A random unique identifier for this client
         `use_cache`: A boolean indicating whether (most) parameters should be
                      cached locally. If this is not enabled, every access of
@@ -115,8 +115,10 @@ class RemoteParameters:
         # --> the `list` call prevents this and improves startup performance
         all_parameters = unpack(self.remote.exposed_init_parameter_sync(self.uuid))
 
-        for name, param, value, can_be_cached in all_parameters:
-            param = RemoteParameter(self, param, name, use_cache and can_be_cached)
+        for name, param, value, can_be_cached, loggable in all_parameters:
+            param = RemoteParameter(
+                self, param, name, use_cache and can_be_cached, loggable
+            )
             setattr(self, name, param)
             if use_cache and can_be_cached:
                 # obtain takes care that we really don't deal with netrefs
@@ -222,12 +224,18 @@ class RemoteParameter:
     parameter."""
 
     def __init__(
-        self, parent: RemoteParameters, remote_param, name: str, use_cache: bool
+        self,
+        parent: RemoteParameters,
+        remote_param,
+        name: str,
+        use_cache: bool,
+        loggable: bool,
     ):
         self._remote_param = remote_param
         self.name = name
         self.parent = parent
         self.use_cache = use_cache
+        self.loggable = loggable
 
     @property
     def value(self):
@@ -241,6 +249,10 @@ class RemoteParameter:
     def value(self, value):
         """Notify the server of the new value"""
         return self.parent._set_param(self.name, value)
+
+    @property
+    def log(self):
+        return self._remote_param.log
 
     def on_change(self, callback_on_change, call_listener_with_first_value=True):
         """Tells the server that `callback_on_change` should be called whenever

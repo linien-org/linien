@@ -17,6 +17,7 @@
 
 from PyQt5 import QtWidgets
 
+from linien.client.remote_parameters import RemoteParameter
 from linien.gui.widgets import CustomWidget
 
 
@@ -26,11 +27,15 @@ class LoggingPanel(QtWidgets.QWidget, CustomWidget):
         self.load_ui("logging_panel.ui")
 
     def ready(self):
-        logged_parameters_menu = LoggedParametersMenu()
-        self.ids.logParametersToolButton.setMenu(logged_parameters_menu)
         self.ids.logParametersToolButton.setPopupMode(
             QtWidgets.QToolButton.InstantPopup
         )
+
+    def connection_established(self):
+        self.parameters = self.app.parameters
+        self.logged_parameters_menu = LoggedParametersMenu()
+        self.logged_parameters_menu.create_menu_entries(self.parameters)
+        self.ids.logParametersToolButton.setMenu(self.logged_parameters_menu)
 
 
 # checkable menu for logged parameters, inspired by
@@ -43,6 +48,12 @@ class LoggedParametersToolButton(QtWidgets.QToolButton):
 class LoggedParametersMenu(QtWidgets.QMenu):
     def __init__(self, *args, **kwargs):
         super(LoggedParametersMenu, self).__init__()
-        for i in range(20):
-            action = QtWidgets.QAction("Parameter {}".format(i), self, checkable=True)
-            action = self.addAction(action)
+
+    def create_menu_entries(self, parameters):
+        params = [p for p in dir(parameters) if not p.startswith("_")]
+        for p_name in params:
+            p = getattr(parameters, p_name)
+            if isinstance(p, RemoteParameter):
+                if p.loggable:
+                    action = QtWidgets.QAction(p_name, self, checkable=True)
+                    action = self.addAction(action)
