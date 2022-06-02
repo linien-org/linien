@@ -172,7 +172,7 @@ class Platform(XilinxPlatform):
     def __init__(self):
         XilinxPlatform.__init__(self, "xc7z010-clg400-1", _io, toolchain="vivado")
         self.toolchain.pre_synthesis_commands.append(
-            "read_xdc -ref processing_system7_v5_4_processing_system7 ../verilog/system_processing_system7_0_0.xdc"
+            "read_xdc -ref processing_system7_v5_4_processing_system7 ../gateware/verilog/system_processing_system7_0_0.xdc"
         )
         self.toolchain.with_phys_opt = True
 
@@ -188,7 +188,7 @@ class Platform(XilinxPlatform):
             )
             for i in range(2):
                 try:
-                    adc = self.lookup_request("adc", i)
+                    _ = self.lookup_request("adc", i)
                     # self.add_platform_command("set_input_delay "
                     #    "-clock {clk} 3.4 [get_ports {data}]",
                     #    clk=clk125, data=adc[0])
