@@ -18,7 +18,7 @@
 
 import numpy as np
 
-from linien.common import get_lock_point
+from linien.common.common import get_lock_point
 from linien.server.approach_line import Approacher
 from linien.server.parameters import Parameters
 

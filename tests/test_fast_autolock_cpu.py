@@ -20,7 +20,7 @@ import pickle
 
 import numpy as np
 
-from linien.common import FAST_AUTOLOCK
+from linien.common.common import FAST_AUTOLOCK
 from linien.server.autolock.autolock import Autolock
 from linien.server.parameters import Parameters
 

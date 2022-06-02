@@ -289,7 +289,7 @@ import pickle
 import numpy as np
 
 from linien.client.connection import LinienClient
-from linien.common import FAST_AUTOLOCK
+from linien.common.common import FAST_AUTOLOCK
 
 from matplotlib import pyplot as plt
 from time import sleep

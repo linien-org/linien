@@ -32,7 +32,7 @@ from misoc.interconnect import csr_bus
 from misoc.interconnect.csr import AutoCSR, CSRStatus, CSRStorage
 
 from gateware.logic.autolock import FPGAAutolock
-from linien.common import ANALOG_OUT0
+from linien.common.common import ANALOG_OUT0
 
 from .logic.chains import FastChain, SlowChain, cross_connect
 from .logic.decimation import Decimate

@@ -19,7 +19,10 @@
 import numpy as np
 from pytest import raises
 
-from linien.common import SpectrumUncorrelatedException, determine_shift_by_correlation
+from linien.common.common import (
+    SpectrumUncorrelatedException,
+    determine_shift_by_correlation,
+)
 
 Y_SHIFT = 0
 

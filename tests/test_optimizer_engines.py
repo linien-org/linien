@@ -19,7 +19,7 @@
 import cma
 import numpy as np
 
-from linien.common import MHz, Vpp
+from linien.common.common import MHz, Vpp
 from linien.server.optimization.engine import (
     MultiDimensionalOptimizationEngine,
     OptimizerEngine,
