@@ -17,4 +17,4 @@ export PATH=$VIVADOPATH:$PATH
 python3 scripts/fpga_image_helper.py
 
 rm linien/server/linien.bin -f
-cp fpga_build/linien.bin linien/server
+cp fpga_build/linien.bin linien/linien-server/linien/server/
