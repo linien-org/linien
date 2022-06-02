@@ -37,7 +37,7 @@ from linien.common.common import (
     get_signal_strength_from_i_q,
     update_signal_history,
 )
-from linien.config import N_COLORS
+from linien.common.config import N_COLORS
 from linien.gui.config import COLORS, DEFAULT_PLOT_RATE_LIMIT
 from linien.gui.widgets import CustomWidget
 
