@@ -24,7 +24,7 @@ from time import time
 import numpy as np
 from PyQt5 import QtWidgets
 
-import linien
+import linien.gui
 from linien.common.common import check_plot_data
 from linien.common.config import N_COLORS
 from linien.gui.config import COLORS
@@ -50,7 +50,8 @@ class MainWindow(QtWidgets.QMainWindow, CustomWidget):
 
     def show(self, host, name):
         self.setWindowTitle(
-            "Linien spectroscopy lock %s: %s (%s)" % (linien.__version__, name, host)
+            "Linien spectroscopy lock %s: %s (%s)"
+            % (linien.gui.__version__, name, host)
         )
         super().show()
 
@@ -114,7 +115,7 @@ class MainWindow(QtWidgets.QMainWindow, CustomWidget):
             with open(fn, "w") as f:
                 json.dump(
                     {
-                        "linien-version": linien.__version__,
+                        "linien-version": linien.gui.__version__,
                         "time": time(),
                         "parameters": dict(
                             (k, getattr(self.parameters, k).value)

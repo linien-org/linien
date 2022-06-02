@@ -22,14 +22,14 @@ from urllib.request import urlopen
 from packaging import version
 from PyQt5.QtCore import QThread, pyqtSignal
 
-import linien
+import linien.gui
 
 
 class VersionCheckerThread(QThread):
     check_done = pyqtSignal(bool)
 
     def run(self):
-        our_version = version.parse(linien.__version__)
+        our_version = version.parse(linien.gui.__version__)
         latest_version = our_version
         print("Check whether new version is available.")
         url = "https://raw.githubusercontent.com/linien-org/linien/master/version-info.json"  # noqa: E501

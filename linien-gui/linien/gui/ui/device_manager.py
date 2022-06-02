@@ -22,7 +22,7 @@ from paramiko.ssh_exception import AuthenticationException as SSHAuthenticationE
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtCore import QThread, pyqtSignal
 
-import linien
+import linien.gui
 from linien.client.connection import LinienClient
 from linien.client.exceptions import (
     GeneralConnectionErrorException,
@@ -52,7 +52,7 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.load_ui("device_manager.ui")
-        self.setWindowTitle("Linien spectroscopy lock %s" % linien.__version__)
+        self.setWindowTitle("Linien spectroscopy lock %s" % linien.gui.__version__)
         set_window_icon(self)
 
     def ready(self):
@@ -104,7 +104,7 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
         self.connection_thread.client_connected.connect(client_connected)
 
         def server_not_installed():
-            client_version = linien.__version__
+            client_version = linien.client.__version__
             loading_dialog.hide()
             if not aborted:
                 display_question = (

@@ -22,13 +22,13 @@ import numpy as np
 import paramiko
 from plumbum import colors
 
-import linien
+import linien.client
 from linien.client.exceptions import (
     InvalidServerVersionException,
     ServerNotInstalledException,
 )
 from linien.common.common import hash_username_and_password
-from linien.config import REMOTE_BASE_PATH
+from linien.common.config import REMOTE_BASE_PATH
 
 
 def connect_ssh(host, user, password):
@@ -41,7 +41,7 @@ def connect_ssh(host, user, password):
 def run_server(host, user, password, port):
     ssh = connect_ssh(host, user, password)
 
-    version = linien.__version__
+    version = linien.client.__version__
 
     if version == "dev":
         # if we are in a development version, we upload the files from source
@@ -82,7 +82,7 @@ def run_server(host, user, password, port):
 def read_remote_version(ssh):
     """Reads the remote version of linien using SSH."""
     stdin, stdout, stderr = ssh.exec_command(
-        'python3 -c "import linien; print(linien.__version__);"'
+        'python3 -c "import linien.server; print(linien.server.__version__);"'
     )
     lines = stdout.readlines()
 

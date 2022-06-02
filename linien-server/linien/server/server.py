@@ -45,7 +45,7 @@ from linien.common.common import (
     unpack,
     update_signal_history,
 )
-from linien.config import DEFAULT_SERVER_PORT
+from linien.common.config import DEFAULT_SERVER_PORT
 from linien.server.optimization.optimization import OptimizeSpectroscopy
 from linien.server.parameter_store import ParameterStore
 from linien.server.pid_optimization.pid_optimization import (
@@ -250,9 +250,9 @@ class RedPitayaControlService(BaseService):
         raise SystemExit
 
     def exposed_get_server_version(self):
-        import linien
+        import linien.server
 
-        return linien.__version__
+        return linien.server.__version__
 
     def exposed_get_restorable_parameters(self):
         return self.parameters._restorable_parameters
@@ -334,9 +334,9 @@ class FakeRedPitayaControl(BaseService):
         return self.parameters._restorable_parameters
 
     def exposed_get_server_version(self):
-        import linien
+        import linien.server
 
-        return linien.__version__
+        return linien.server.__version__
 
     def pause_acquisition(self):
         pass

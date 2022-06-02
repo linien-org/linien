@@ -19,7 +19,7 @@
 import shutil
 import subprocess
 
-from linien.config import REMOTE_BASE_PATH
+from linien.common.config import REMOTE_BASE_PATH
 
 
 def stop_nginx():

@@ -20,7 +20,7 @@ import atexit
 import pickle
 from time import time
 
-import linien
+import linien.server
 
 PARAMETER_STORE_FN = "/linien_parameters.pickle"
 
@@ -71,7 +71,7 @@ class ParameterStore:
                     {
                         "parameters": parameters,
                         "time": time(),
-                        "version": linien.__version__,
+                        "version": linien.server.__version__,
                     },
                     f,
                 )

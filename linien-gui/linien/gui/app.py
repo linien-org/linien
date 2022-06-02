@@ -28,7 +28,7 @@ from pyqtgraph.Qt import QtCore
 # standalone windows executable
 sys.path += ["../", os.path.join("..", ".."), "."]
 
-import linien
+import linien.gui
 from linien.gui.widgets import CustomWidget, ui_path
 
 sys.path += [ui_path]
@@ -144,7 +144,7 @@ class QTApp(QtCore.QObject):
 
 
 def run_application():
-    print("Linien spectroscopy lock version " + (colors.bold | linien.__version__))
+    print("Linien spectroscopy lock version " + (colors.bold | linien.gui.__version__))
     gui = QTApp()
 
     # catch ctrl-c and shutdown

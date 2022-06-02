@@ -33,7 +33,7 @@ sys.path += ["../../"]
 from csr import PythonCSR
 
 from linien.common.common import DECIMATION, MAX_N_POINTS, N_POINTS
-from linien.config import ACQUISITION_PORT
+from linien.common.config import ACQUISITION_PORT
 
 
 def shutdown():

@@ -26,7 +26,7 @@ from typing import Callable
 import rpyc
 from plumbum import colors
 
-import linien
+import linien.client
 from linien.client.exceptions import (
     GeneralConnectionErrorException,
     InvalidServerVersionException,
@@ -38,7 +38,7 @@ from linien.client.utils import run_server
 
 # IMPORTANT: keep this import, because it eases interfacing with the python client
 from linien.common.common import ANALOG_OUT_V, MHz, Vpp, hash_username_and_password
-from linien.config import DEFAULT_SERVER_PORT
+from linien.common.config import DEFAULT_SERVER_PORT
 
 assert MHz
 assert Vpp
@@ -258,7 +258,7 @@ class LinienClient(RawRPYCClient):
 
         # now check that the remote version is the same as ours
         remote_version = self.connection.root.exposed_get_server_version()
-        client_version = linien.__version__
+        client_version = linien.client.__version__
 
         if remote_version != client_version:
             raise InvalidServerVersionException(client_version, remote_version)

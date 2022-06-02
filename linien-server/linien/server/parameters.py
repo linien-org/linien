@@ -23,7 +23,7 @@ from linien.common.common import (
     MHz,
     Vpp,
 )
-from linien.config import DEFAULT_COLORS, N_COLORS
+from linien.common.config import DEFAULT_COLORS, N_COLORS
 from linien.server.parameters_base import BaseParameters, Parameter
 
 

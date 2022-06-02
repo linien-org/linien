@@ -27,7 +27,7 @@ from time import sleep
 
 import rpyc
 
-from linien.config import ACQUISITION_PORT
+from linien.common.config import ACQUISITION_PORT
 from linien.server.utils import flash_fpga, start_nginx, stop_nginx
 
 

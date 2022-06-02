@@ -28,7 +28,7 @@ from linien.common.common import (
     MHz,
     convert_channel_mixing_value,
 )
-from linien.config import DEFAULT_SWEEP_SPEED
+from linien.common.config import DEFAULT_SWEEP_SPEED
 from linien.server.acquisition import AcquisitionMaster
 
 
