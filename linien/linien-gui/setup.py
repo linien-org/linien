@@ -16,29 +16,31 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
+import re
+
 import setuptools
 
-import linien
-
-assert linien.__version__ != "dev"
-
-with open("README.md", "r") as fh:
-    long_description = fh.read()
+VERSIONFILE = "linien/_version.py"
+verstrline = open(VERSIONFILE, "rt").read()
+VSRE = r"^__version__ = ['\"]([^'\"]*)['\"]"
+mo = re.search(VSRE, verstrline, re.M)
+if mo:
+    verstr = mo.group(1)
+else:
+    raise RuntimeError("Unable to find version string in %s." % (VERSIONFILE,))
 
 setuptools.setup(
-    name="linien",
-    version=linien.__version__,
+    name="linien-gui",
+    version=verstr,
     author="Benjamin Wiegand",
     author_email="highwaychile@posteo.de",
     maintainer="Bastian Leykauf",
     maintainer_email="leykauf@physik.hu-berlin.de",
     description="Spectroscopy lock application using RedPitaya",
-    long_description=long_description,
-    long_description_content_type="text/markdown",
+    long_description="Have a look at the 'linien' package for installation instructions.",  # noqa: E501
+    long_description_content_type="text/x-rst",
     url="https://github.com/linien-org/linien",
-    # IMPORTANT: any changes have to be made in setup_client_and_gui.py
-    # of flathub repo as well
-    packages=["linien", "linien.gui", "linien.gui.ui"],
+    packages=["linien.gui", "linien.gui.ui"],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
@@ -55,13 +57,11 @@ setuptools.setup(
         "rpyc>=4.0,<5.0",
         "scipy>=1.4.1",
         "superqt>=0.2.3",
-        "linien-python-client==" + linien.__version__,
+        "linien-client==%s" % verstr,
     ],
     package_data={
         # IMPORTANT: any changes have to be made in pyinstaller.spec, too
         # (for the standalone installer)
-        # IMPORTANT: any changes have to be made in setup_client_and_gui.py
-        # of flathub repo as well
-        "": ["*.ui", "VERSION", "*.ico"]
+        "": ["*.ui", "*.ico"]
     },
 )
