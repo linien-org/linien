@@ -9,7 +9,6 @@ __pycache__
 /*.v
 /dist
 .eggs
-linien-*
 
 .mypy_cache
 .vscode
