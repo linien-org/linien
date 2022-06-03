@@ -31,7 +31,7 @@ else:
 
 setuptools.setup(
     name="linien-server",
-    version=linien.server.__version__,
+    version=verstr,
     author="Benjamin Wiegand",
     author_email="highwaychile@posteo.de",
     maintainer="Bastian Leykauf",
@@ -41,7 +41,6 @@ setuptools.setup(
     long_description_content_type="text/x-rst",
     url="https://github.com/linien-org/linien",
     packages=[
-        "linien",
         "linien.server",
         "linien.server.autolock",
         "linien.server.optimization",
@@ -77,7 +76,6 @@ setuptools.setup(
             "linien_start_ethernet_blinking.sh",
             "linien_stop_ethernet_blinking.sh",
             "linien_install_requirements.sh",
-            "VERSION",
         ]
     },
 )
