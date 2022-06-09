@@ -63,6 +63,7 @@ setuptools.setup(
         "linien-common=={}".format(verstr),
     ],
     scripts=[
+        "linien/server/server.py",
         "linien/server/linien_start_server.sh",
         "linien/server/linien_stop_server.sh",
         "linien/server/linien_install_requirements.sh",
