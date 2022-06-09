@@ -57,7 +57,7 @@ setuptools.setup(
         "rpyc>=4.0,<5.0",
         "scipy>=1.4.1",
         "superqt>=0.2.3",
-        "linien-client==%s" % verstr,
+        "linien.client=={}".format(verstr),
     ],
     package_data={
         # IMPORTANT: any changes have to be made in pyinstaller.spec, too

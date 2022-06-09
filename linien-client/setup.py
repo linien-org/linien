@@ -54,6 +54,6 @@ setuptools.setup(
         "rpyc>=4.0,<5.0",
         "scipy>=1.4.1",
         "uuid>=1.30",
-        "linien-common==%s" % verstr,
+        "linien-common=={}".format(verstr),
     ],
 )

@@ -60,6 +60,7 @@ setuptools.setup(
         "pylpsd>=0.1.4",
         "numpy>=1.11.0",
         "scipy>=0.17.0",
+        "linien.common=={}".format(verstr),
     ],
     scripts=[
         "linien/server/linien_start_server.sh",
