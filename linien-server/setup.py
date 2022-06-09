@@ -41,10 +41,7 @@ setuptools.setup(
     long_description_content_type="text/x-rst",
     url="https://github.com/linien-org/linien",
     packages=[
-        "linien.server",
-        "linien.server.autolock",
-        "linien.server.optimization",
-        "linien.server.pid_optimization",
+        "linien_server",
     ],
     classifiers=[
         "Programming Language :: Python :: 3",

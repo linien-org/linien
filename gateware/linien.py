@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
+from linien_common.common import ANALOG_OUT0
 from migen import (
     Array,
     Cat,
@@ -32,7 +33,6 @@ from misoc.interconnect import csr_bus
 from misoc.interconnect.csr import AutoCSR, CSRStatus, CSRStorage
 
 from gateware.logic.autolock import FPGAAutolock
-from linien.common.common import ANALOG_OUT0
 
 from .logic.chains import FastChain, SlowChain, cross_connect
 from .logic.decimation import Decimate

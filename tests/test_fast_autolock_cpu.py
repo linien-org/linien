@@ -19,10 +19,9 @@
 import pickle
 
 import numpy as np
-
-from linien.common.common import FAST_AUTOLOCK
-from linien.server.autolock.autolock import Autolock
-from linien.server.parameters import Parameters
+from linien_common.common import FAST_AUTOLOCK
+from linien_server.autolock.autolock import Autolock
+from linien_server.parameters import Parameters
 
 Y_SHIFT = 4000
 

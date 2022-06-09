@@ -23,7 +23,7 @@ setuptools.setup(
     long_description="Have a look at the 'linien' package for installation instructions.",  # noqa: E501
     long_description_content_type="text/x-rst",
     url="https://github.com/linien-org/linien",
-    packages=["linien.common"],
+    packages=["linien_common"],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",

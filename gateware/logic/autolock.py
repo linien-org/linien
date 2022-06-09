@@ -16,15 +16,15 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-from migen import Array, If, Module, Signal, bits_for
-from misoc.interconnect.csr import AutoCSR, CSRStatus, CSRStorage
-
-from gateware.logic.autolock_utils import SumDiffCalculator
-from linien.common.common import (
+from linien_common.common import (
     AUTOLOCK_MAX_N_INSTRUCTIONS,
     FAST_AUTOLOCK,
     ROBUST_AUTOLOCK,
 )
+from migen import Array, If, Module, Signal, bits_for
+from misoc.interconnect.csr import AutoCSR, CSRStatus, CSRStorage
+
+from gateware.logic.autolock_utils import SumDiffCalculator
 
 ROBUST_AUTOLOCK_FPGA_DELAY = 3
 

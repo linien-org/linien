@@ -200,7 +200,7 @@ Then, you should start the Linien server on your RedPitaya. This can be done by 
 
 Once the server is up and running, you can connect using python:
 ```python
-from linien.client.connection import LinienClient, MHz, Vpp
+from linien_client.connection import LinienClient, MHz, Vpp
 c = LinienClient(
     {'host': 'rp-XXXXXX.local', 'username': 'root', 'password': 'change-it-to-something-else!'},
     # starts the server if it is not running
@@ -288,8 +288,8 @@ The script below shows an example of how to run the autolock using the scripting
 import pickle
 import numpy as np
 
-from linien.client.connection import LinienClient
-from linien.common.common import FAST_AUTOLOCK
+from linien_client.connection import LinienClient
+from linien_common.common import FAST_AUTOLOCK
 
 from matplotlib import pyplot as plt
 from time import sleep

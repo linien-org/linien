@@ -18,7 +18,7 @@
 
 from pathlib import Path
 
-from linien.common.common import FAST_AUTOLOCK
+from linien_common.common import FAST_AUTOLOCK
 from migen import run_simulation
 
 from gateware.linien import LinienLogic
