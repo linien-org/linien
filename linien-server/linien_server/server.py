@@ -16,14 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-import os
-import sys
-
-# add the two parent directories to the path so linien and autolock can be found
-dir_name = os.path.dirname(os.path.abspath(__file__))
-sys.path += [os.path.join(dir_name, "..", "..")]
-sys.path += [os.path.join(dir_name, "..")]
-
 import _thread
 import pickle
 import threading
@@ -33,7 +25,7 @@ from time import sleep
 import click
 import numpy as np
 import rpyc
-from autolock.autolock import Autolock
+from linien_server.autolock.autolock import Autolock
 from linien_common.common import (
     N_POINTS,
     check_plot_data,
@@ -48,7 +40,7 @@ from linien_server.pid_optimization.pid_optimization import (
     PIDOptimization,
     PSDAcquisition,
 )
-from parameters import Parameters
+from linien_server.parameters import Parameters
 from rpyc.utils.authenticators import AuthenticationError
 from rpyc.utils.server import ThreadedServer
 
@@ -98,7 +90,7 @@ class RedPitayaControlService(BaseService):
 
         super().__init__()
 
-        from registers import Registers
+        from linien_server.registers import Registers
 
         self.registers = Registers(**kwargs)
         self.registers.connect(self, self.parameters)

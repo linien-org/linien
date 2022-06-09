@@ -18,7 +18,6 @@
 
 import sys
 
-sys.path += ["../../"]
 import atexit
 import threading
 from enum import Enum

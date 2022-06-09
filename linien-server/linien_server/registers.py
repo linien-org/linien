@@ -17,8 +17,8 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 import numpy as np
-from csr import PitayaCSR
-from iir_coeffs import make_filter
+from .csr import PitayaCSR
+from .iir_coeffs import make_filter
 from linien_common.common import (
     ANALOG_OUT0,
     HIGH_PASS_FILTER,
@@ -27,8 +27,8 @@ from linien_common.common import (
     convert_channel_mixing_value,
 )
 from linien_common.config import DEFAULT_SWEEP_SPEED
-from linien_server.acquisition import AcquisitionMaster
-from utils import twos_complement
+from .acquisition import AcquisitionMaster
+from .utils import twos_complement
 
 
 class Registers:

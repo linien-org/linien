@@ -18,8 +18,8 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import csrmap
-from iir_coeffs import get_params
+from . import csrmap
+from .iir_coeffs import get_params
 
 
 class PitayaCSR:

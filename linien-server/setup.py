@@ -19,6 +19,7 @@
 import re
 
 import setuptools
+from setuptools import find_packages
 
 VERSIONFILE = "linien_server/_version.py"
 verstrline = open(VERSIONFILE, "rt").read()
@@ -40,9 +41,7 @@ setuptools.setup(
     long_description="Have a look at the 'linien' package for installation instructions.",  # noqa: E501
     long_description_content_type="text/x-rst",
     url="https://github.com/linien-org/linien",
-    packages=[
-        "linien_server",
-    ],
+    packages=find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
@@ -60,12 +59,12 @@ setuptools.setup(
         "linien-common=={}".format(verstr),
     ],
     scripts=[
-        "linien/server/server.py",
-        "linien/server/linien_start_server.sh",
-        "linien/server/linien_stop_server.sh",
-        "linien/server/linien_install_requirements.sh",
-        "linien/server/linien_start_ethernet_blinking.sh",
-        "linien/server/linien_stop_ethernet_blinking.sh",
+        "linien_server/server.py",
+        "linien_server/linien_start_server.sh",
+        "linien_server/linien_stop_server.sh",
+        "linien_server/linien_install_requirements.sh",
+        "linien_server/linien_start_ethernet_blinking.sh",
+        "linien_server/linien_stop_ethernet_blinking.sh",
     ],
     package_data={
         "": [

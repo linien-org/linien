@@ -29,8 +29,7 @@ from PyRedPitaya.board import RedPitaya
 from rpyc import Service
 from rpyc.utils.server import OneShotServer
 
-sys.path += ["../../"]
-from csr import PythonCSR
+from .csr import PythonCSR
 from linien_common.common import DECIMATION, MAX_N_POINTS, N_POINTS
 from linien_common.config import ACQUISITION_PORT
 
