@@ -19,6 +19,8 @@
 import shutil
 import subprocess
 
+from pathlib import Path
+
 from linien_common.config import REMOTE_BASE_PATH
 
 
@@ -32,7 +34,8 @@ def start_nginx():
 
 
 def flash_fpga():
-    shutil.copyfile("linien.bin", "/dev/xdevcfg")
+    filepath = Path(__file__).parent / "linien.bin"
+    shutil.copy(str(filepath.resolve()), "/dev/xdevcfg")
 
 
 def twos_complement(num, N_bits):
