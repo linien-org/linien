@@ -16,9 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys
-
 import atexit
+import sys
 import threading
 from enum import Enum
 from multiprocessing import Pipe, Process

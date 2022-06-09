@@ -25,7 +25,6 @@ from time import sleep
 import click
 import numpy as np
 import rpyc
-from linien_server.autolock.autolock import Autolock
 from linien_common.common import (
     N_POINTS,
     check_plot_data,
@@ -34,13 +33,14 @@ from linien_common.common import (
     update_signal_history,
 )
 from linien_common.config import DEFAULT_SERVER_PORT
+from linien_server.autolock.autolock import Autolock
 from linien_server.optimization.optimization import OptimizeSpectroscopy
 from linien_server.parameter_store import ParameterStore
+from linien_server.parameters import Parameters
 from linien_server.pid_optimization.pid_optimization import (
     PIDOptimization,
     PSDAcquisition,
 )
-from linien_server.parameters import Parameters
 from rpyc.utils.authenticators import AuthenticationError
 from rpyc.utils.server import ThreadedServer
 

@@ -18,7 +18,6 @@
 
 import shutil
 import subprocess
-
 from pathlib import Path
 
 from linien_common.config import REMOTE_BASE_PATH
