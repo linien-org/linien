@@ -20,7 +20,7 @@ import re
 
 import setuptools
 
-VERSIONFILE = "linien/gui/_version.py"
+VERSIONFILE = "linien_gui/_version.py"
 verstrline = open(VERSIONFILE, "rt").read()
 VSRE = r"^__version__ = ['\"]([^'\"]*)['\"]"
 mo = re.search(VSRE, verstrline, re.M)
