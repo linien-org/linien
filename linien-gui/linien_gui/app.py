@@ -28,7 +28,7 @@ from pyqtgraph.Qt import QtCore
 # standalone windows executable
 sys.path += ["../", os.path.join("..", ".."), "."]
 
-from widgets import CustomWidget, ui_path
+from linien_gui.widgets import CustomWidget, ui_path
 
 sys.path += [ui_path]
 
