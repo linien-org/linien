@@ -18,11 +18,10 @@
 
 from datetime import datetime
 
+from linien_gui.utils_gui import color_to_hex
+from linien_gui.widgets import CustomWidget
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtCore import pyqtSignal
-
-from linien.gui.utils_gui import color_to_hex
-from linien.gui.widgets import CustomWidget
 
 
 class PSDTableWidget(QtWidgets.QTableWidget, CustomWidget):

@@ -22,10 +22,9 @@ from os import path
 
 import numpy as np
 from linien_common.config import N_COLORS
+from linien_gui.utils_gui import color_to_hex, param2ui
+from linien_gui.widgets import CustomWidget
 from PyQt5 import QtGui, QtWidgets
-
-from linien.gui.utils_gui import color_to_hex, param2ui
-from linien.gui.widgets import CustomWidget
 
 
 class ViewPanel(QtWidgets.QWidget, CustomWidget):

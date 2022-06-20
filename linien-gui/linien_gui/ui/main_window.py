@@ -21,16 +21,15 @@ import pickle
 from math import log
 from time import time
 
+import linien_gui
 import numpy as np
 from linien_common.common import check_plot_data
 from linien_common.config import N_COLORS
+from linien_gui.config import COLORS
+from linien_gui.ui.plot_widget import INVALID_POWER
+from linien_gui.utils_gui import color_to_hex
+from linien_gui.widgets import CustomWidget
 from PyQt5 import QtWidgets
-
-import linien.gui
-from linien.gui.config import COLORS
-from linien.gui.ui.plot_widget import INVALID_POWER
-from linien.gui.utils_gui import color_to_hex
-from linien.gui.widgets import CustomWidget
 
 ZOOM_STEP = 0.9
 MAX_ZOOM = 50
@@ -51,7 +50,7 @@ class MainWindow(QtWidgets.QMainWindow, CustomWidget):
     def show(self, host, name):
         self.setWindowTitle(
             "Linien spectroscopy lock %s: %s (%s)"
-            % (linien.gui.__version__, name, host)
+            % (linien_gui.__version__, name, host)
         )
         super().show()
 
@@ -115,7 +114,7 @@ class MainWindow(QtWidgets.QMainWindow, CustomWidget):
             with open(fn, "w") as f:
                 json.dump(
                     {
-                        "linien-version": linien.gui.__version__,
+                        "linien-version": linien_gui.__version__,
                         "time": time(),
                         "parameters": dict(
                             (k, getattr(self.parameters, k).value)

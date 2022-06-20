@@ -23,10 +23,9 @@ from linien_common.common import (
     FAST_OUT2,
     convert_channel_mixing_value,
 )
+from linien_gui.utils_gui import param2ui
+from linien_gui.widgets import CustomWidget
 from PyQt5 import QtWidgets
-
-from linien.gui.utils_gui import param2ui
-from linien.gui.widgets import CustomWidget
 
 
 class GeneralPanel(QtWidgets.QWidget, CustomWidget):

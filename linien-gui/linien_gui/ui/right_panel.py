@@ -16,9 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
+from linien_gui.widgets import CustomWidget
 from PyQt5 import QtWidgets
-
-from linien.gui.widgets import CustomWidget
 
 
 class RightPanel(QtWidgets.QWidget, CustomWidget):

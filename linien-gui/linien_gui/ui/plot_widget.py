@@ -34,12 +34,11 @@ from linien_common.common import (
     update_signal_history,
 )
 from linien_common.config import N_COLORS
+from linien_gui.config import COLORS, DEFAULT_PLOT_RATE_LIMIT
+from linien_gui.widgets import CustomWidget
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import pyqtSignal
 from pyqtgraph.Qt import QtCore
-
-from linien.gui.config import COLORS, DEFAULT_PLOT_RATE_LIMIT
-from linien.gui.widgets import CustomWidget
 
 # NOTE: this is required for using a pen_width > 1.
 # There is a bug though that causes the plot to be way too small. Therefore,

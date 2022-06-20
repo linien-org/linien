@@ -18,9 +18,8 @@
 
 import numpy as np
 import pyqtgraph as pg
-
-from linien.gui.ui.plot_widget import V
-from linien.gui.widgets import CustomWidget
+from linien_gui.ui.plot_widget import V
+from linien_gui.widgets import CustomWidget
 
 
 class CustomLogAxis(pg.AxisItem):

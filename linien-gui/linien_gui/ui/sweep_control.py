@@ -16,9 +16,8 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 import superqt
+from linien_gui.widgets import CustomWidget
 from PyQt5 import QtWidgets
-
-from linien.gui.widgets import CustomWidget
 
 
 class SweepControlWidget(QtWidgets.QWidget, CustomWidget):

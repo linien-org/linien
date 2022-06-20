@@ -34,7 +34,7 @@ if platform.system().lower() != 'linux':
     pathex.append(qt_site_packages)"""
 
 
-a = Analysis(['linien/gui/app.py'],
+a = Analysis(['linien_gui/app.py'],
              pathex=pathex,
              binaries=[],
              datas=datas,

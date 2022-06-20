@@ -17,10 +17,9 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 from linien_common.common import HIGH_PASS_FILTER, LOW_PASS_FILTER
+from linien_gui.utils_gui import param2ui
+from linien_gui.widgets import CustomWidget
 from PyQt5 import QtWidgets
-
-from linien.gui.utils_gui import param2ui
-from linien.gui.widgets import CustomWidget
 
 
 class SpectroscopyPanel(QtWidgets.QWidget, CustomWidget):
