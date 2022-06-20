@@ -25,9 +25,8 @@ REPO_ROOT_DIR = Path(__file__).resolve().parents[1]
 sys.path.append(str(REPO_ROOT_DIR))  # need to explicitly cast to string
 
 from bit2bin import bit2bin
-
-from gateware.linien import RootModule
-from gateware.platform import Platform
+from hw_platform import Platform
+from linien_module import RootModule
 
 
 def py_csrconstants(map, fil):
