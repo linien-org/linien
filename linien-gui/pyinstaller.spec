@@ -7,9 +7,8 @@ block_cipher = None
 import platform
 
 datas= [
-    ('linien/VERSION', 'linien'),
-    ('linien/gui/ui/*', 'linien/gui/ui'),
-    ('linien/gui/icon.ico', 'linien/gui')
+    ('linien_gui/ui/*', 'linien_gui/ui'),
+    ('linien_gui/icon.ico', 'linien_gui')
 ]
 
 pathex = []
@@ -39,7 +38,7 @@ a = Analysis(['linien/gui/app.py'],
              pathex=pathex,
              binaries=[],
              datas=datas,
-             hiddenimports=['linien', 'linien_common.common', 'PyQt5.sip', 'superqt'],
+             hiddenimports=['linien_common', 'PyQt5.sip', 'superqt'],
              hookspath=[],
              runtime_hooks=[],
              excludes=[],
@@ -55,11 +54,11 @@ exe = EXE(pyz,
           a.zipfiles,
           a.datas,
           [],
-          name='linien-client',
+          name='linien-gui',
           debug=False,
           bootloader_ignore_signals=False,
           strip=False,
           upx=True,
           runtime_tmpdir=None,
           console=False,
-          icon="linien/gui/icon.ico")
+          icon="linien_gui/icon.ico")
