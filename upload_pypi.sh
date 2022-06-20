@@ -13,15 +13,6 @@ while true; do
     esac
 done
 
-while true; do
-    read -p "Did you update your VERSION file? [y/n]" yn
-    case $yn in
-        [Yy]* ) break;;
-        [Nn]* ) exit;;
-        * ) echo "Please answer yes or no.";;
-    esac
-done
-
 SCRIPT=`realpath $0`
 SCRIPTPATH=`dirname $SCRIPT`
 cd $SCRIPTPATH
