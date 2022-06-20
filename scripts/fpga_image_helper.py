@@ -18,14 +18,11 @@
 
 # this file compiles the FPGA image. You shouldn't call it directly though but
 # use `build_fpga_image.sh`
-import os
 import sys
+from pathlib import Path
 
-LINIEN_FOLDER = "/".join(os.path.abspath(__file__).split("/")[:-2])
-
-
-os.chdir(LINIEN_FOLDER)
-sys.path.append(LINIEN_FOLDER)
+REPO_ROOT_DIR = Path(__file__).resolve().parents[1]
+sys.path.append(str(REPO_ROOT_DIR))  # need to explicitly cast to string
 
 from bit2bin import bit2bin
 
@@ -66,14 +63,16 @@ if __name__ == "__main__":
     platform = Platform()
     root = RootModule(platform)
 
-    with open("linien-server/linien_server/csrmap.py", "w") as fil:
+    with open(
+        REPO_ROOT_DIR / "linien-server" / "linien_server" / "csrmap.py", "w"
+    ) as fil:
         py_csrconstants(root.linien.csrbanks.constants, fil)
         csr = get_csrmap(root.linien.csrbanks.banks)
         py_csrmap(csr, fil)
         fil.write("states = {}\n".format(repr(root.linien.state_names)))
         fil.write("signals = {}\n".format(repr(root.linien.signal_names)))
 
-    platform.add_source_dir("gateware/verilog")
-    build_dir = "fpga_build"
+    platform.add_source_dir(REPO_ROOT_DIR / "gateware" / "verilog")
+    build_dir = REPO_ROOT_DIR / "fpga_build"
     platform.build(root, build_name="top", build_dir=build_dir)
-    bit2bin("%s/top.bit" % build_dir, "%s/linien.bin" % build_dir, flip=True)
+    bit2bin(build_dir / "top.bit", build_dir / "linien.bin", flip=True)
