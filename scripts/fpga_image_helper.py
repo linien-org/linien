@@ -66,7 +66,7 @@ if __name__ == "__main__":
     platform = Platform()
     root = RootModule(platform)
 
-    with open("linien/linien-server/linien/server/csrmap.py", "w") as fil:
+    with open("linien-server/linien_server/csrmap.py", "w") as fil:
         py_csrconstants(root.linien.csrbanks.constants, fil)
         csr = get_csrmap(root.linien.csrbanks.banks)
         py_csrmap(csr, fil)
