@@ -18,11 +18,9 @@
 
 # this file compiles the FPGA image. You shouldn't call it directly though but
 # use `build_fpga_image.sh`
-import sys
 from pathlib import Path
 
 REPO_ROOT_DIR = Path(__file__).resolve().parents[1]
-sys.path.append(str(REPO_ROOT_DIR))  # need to explicitly cast to string
 
 from bit2bin import bit2bin
 from hw_platform import Platform

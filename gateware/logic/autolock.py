@@ -24,7 +24,7 @@ from linien_common.common import (
 from migen import Array, If, Module, Signal, bits_for
 from misoc.interconnect.csr import AutoCSR, CSRStatus, CSRStorage
 
-from gateware.logic.autolock_utils import SumDiffCalculator
+from .autolock_utils import SumDiffCalculator
 
 ROBUST_AUTOLOCK_FPGA_DELAY = 3
 
