@@ -75,4 +75,8 @@ if __name__ == "__main__":
     platform.add_source_dir(REPO_ROOT_DIR / "gateware" / "verilog")
     build_dir = REPO_ROOT_DIR / "fpga_build"
     platform.build(root, build_name="top", build_dir=build_dir)
-    bit2bin(build_dir / "top.bit", build_dir / "linien.bin", flip=True)
+    bit2bin(
+        build_dir / "top.bit",
+        REPO_ROOT_DIR / "linien-server" / "linien_server" / "linien.bin",
+        flip=True,
+    )
