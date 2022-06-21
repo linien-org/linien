@@ -18,7 +18,7 @@
 
 import re
 
-import setuptools
+from setuptools import find_packages, setup
 
 VERSIONFILE = "linien_client/_version.py"
 verstrline = open(VERSIONFILE, "rt").read()
@@ -30,7 +30,7 @@ else:
     raise RuntimeError("Unable to find version string in %s." % (VERSIONFILE,))
 
 
-setuptools.setup(
+setup(
     name="linien-client",
     version=verstr,
     author="Benjamin Wiegand",
@@ -41,7 +41,7 @@ setuptools.setup(
     long_description="Have a look at the 'linien' package for installation instructions.",  # noqa: E501
     long_description_content_type="text/x-rst",
     url="https://github.com/linien-org/linien/",
-    packages=["linien_client"],
+    packages=find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",

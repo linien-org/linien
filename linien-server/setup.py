@@ -18,8 +18,7 @@
 
 import re
 
-import setuptools
-from setuptools import find_packages
+from setuptools import find_packages, setup
 
 VERSIONFILE = "linien_server/_version.py"
 verstrline = open(VERSIONFILE, "rt").read()
@@ -30,7 +29,7 @@ if mo:
 else:
     raise RuntimeError("Unable to find version string in %s." % (VERSIONFILE,))
 
-setuptools.setup(
+setup(
     name="linien-server",
     version=verstr,
     author="Benjamin Wiegand",
