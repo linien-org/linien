@@ -1,9 +1,8 @@
 import re
-from pathlib import Path
 
 from setuptools import find_packages, setup
 
-VERSIONFILE = Path(__file__).parent / "linien_common" / "_version.py"
+VERSIONFILE = "linien_common/_version.py"
 verstrline = open(VERSIONFILE, "rt").read()
 VSRE = r"^__version__ = ['\"]([^'\"]*)['\"]"
 mo = re.search(VSRE, verstrline, re.M)
