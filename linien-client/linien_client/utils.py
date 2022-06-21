@@ -107,7 +107,7 @@ def upload_source_code(ssh):
             try:
                 ftp.lstat(remote_path)
             except IOError:
-                ftp.mkdir(os.path.join(remote_path.rstrip("/")))
+                ftp.mkdir(remote_path.rstrip("/"))
 
             for filename in filenames:
                 local_path = os.path.join(dirpath, filename)
