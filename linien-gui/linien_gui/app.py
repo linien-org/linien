@@ -35,9 +35,9 @@ from linien_gui.ui.main_window import MainWindow
 from linien_gui.ui.psd_window import PSDWindow
 from linien_gui.ui.version_checker import VersionCheckerThread
 from linien_gui.utils_gui import set_window_icon
-from linien_gui.widgets import CustomWidget, ui_path
+from linien_gui.widgets import UI_PATH, CustomWidget
 
-sys.path += [ui_path]
+sys.path += [str(UI_PATH)]
 
 
 class QTApp(QtCore.QObject):

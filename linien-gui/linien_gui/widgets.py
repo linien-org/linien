@@ -16,15 +16,13 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-import os
 import weakref
-from os import path
+from pathlib import Path
 
 from PyQt5 import uic
 from pyqtgraph.Qt import QtCore
 
-# add ui folder to path
-ui_path = os.path.join(*list(os.path.split(os.path.abspath(__file__))[:-1]) + ["ui"])
+UI_PATH = Path(__file__).parents[0].resolve() / "ui"
 
 
 class IDSelector:
@@ -71,4 +69,5 @@ class CustomWidget:
 
     def load_ui(self, name):
         assert name.endswith(".ui")
-        uic.loadUi(path.join(ui_path, name), self)
+        path = UI_PATH / name
+        uic.loadUi(str(path), self)
