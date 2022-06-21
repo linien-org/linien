@@ -17,6 +17,7 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+from pathlib import Path
 
 import linien_client
 import numpy as np
@@ -26,8 +27,7 @@ from linien_client.exceptions import (
     ServerNotInstalledException,
 )
 from linien_common.common import hash_username_and_password
-from linien_common.config import REMOTE_BASE_PATH
-from plumbum import colors
+from linien_common.config import REMOTE_DEV_PATH
 
 
 def connect_ssh(host, user, password):
@@ -42,45 +42,37 @@ def run_server(host, user, password, port):
 
     version = linien_client.__version__
 
-    if version == "dev":
-        # if we are in a development version, we upload the files from source
-        # directory directly to the RP.
+    if "dev" in version:
+        # If we are in a development version, we upload the files from source directory
+        # directly to the RP.
         upload_source_code(ssh)
 
-        # start the development code that was just uploaded.
-        # For that, go to the parent directory; an import of "linien" then
-        # points to that directory instead of any globally installed release
-        # version.
-        stdin, stdout, stderr = ssh.exec_command(
-            ("cd %s/../;" % REMOTE_BASE_PATH)
-            + (
-                "export LINIEN_AUTH_HASH=%s;"
-                % hash_username_and_password(user, password)
-            )
-            + ("bash %s/server/linien_start_server.sh %d" % (REMOTE_BASE_PATH, port))
+        # Install the development version in editable mode via pip
+        print("Installing development version of linien-common and linien-server")
+        _, _, stderr = ssh.exec_command(
+            f"""
+            export LINIEN_AUTH_HASH={hash_username_and_password(user, password)};
+            pip3 install -e {REMOTE_DEV_PATH}/linien-common;
+            pip3 install -e {REMOTE_DEV_PATH}/linien-server;
+            "bash linien_install_requirements.sh;"
+            """
         )
-        err = stderr.read()
-        if err:
-            print(colors.red | "Error starting the server")
-            print(err)
-    else:
-        # it is a release and not a dev version.
 
-        # read out version number of the server
-        remote_version = read_remote_version(ssh)
-        print("remote version", remote_version, "local version", version)
+    # read out version number of the server
+    remote_version = read_remote_version(ssh)
+    print("remote version", remote_version, "local version", version)
 
-        if version != remote_version:
-            raise InvalidServerVersionException(version, remote_version)
+    if version != remote_version:
+        raise InvalidServerVersionException(version, remote_version)
 
-        # start the server process using the global command
-        ssh.exec_command("linien_start_server.sh")
-        ssh.close()
+    # start the server process using the global command
+    ssh.exec_command("linien_start_server.sh")
+    ssh.close()
 
 
 def read_remote_version(ssh):
-    """Reads the remote version of linien using SSH."""
-    stdin, stdout, stderr = ssh.exec_command(
+    """Read the remote version of linien using SSH."""
+    _, stdout, _ = ssh.exec_command(
         'python3 -c "import linien_server; print(linien_server.__version__);"'
     )
     lines = stdout.readlines()
@@ -93,46 +85,36 @@ def read_remote_version(ssh):
 
 
 def upload_source_code(ssh):
-    """Uploads the application's source code to the remote server using SFTP."""
-    print("uploading dev source code...")
+    """Upload the application's source code to the remote server using SFTP."""
 
     ftp = ssh.open_sftp()
-
-    directory = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-
-    if not os.path.exists(os.path.join(directory, "server", "linien.bin")):
-        print(
-            colors.red | "Error: In order to run the development version, "
-            "you need the FPGA bitstream in server/linien.bin! "
-            "Consult README to see how you can get one."
-        )
-        raise Exception("FPGA bitstream missing")
-
+    repo_root_dir = Path(__file__).parents[2].resolve()
+    print("Uploading dev source code...")
     # upload the code required for running the server
-    for dirpath, dirnames, filenames in os.walk(directory):
-        # lstrip / so os.path.join does not think dir_path_rel is an absolute path.
-        dirpath_rel = dirpath.replace(directory, "").lstrip("/")
-        # Change direction of path slashes to work on the RedPitayas Linux system. This
-        # is necessary when deploying the server from a Windows machine.
-        dirpath_rel = dirpath_rel.lstrip("\\")
-        remote_path = os.path.join(REMOTE_BASE_PATH, dirpath_rel)
+    for pkg in ["linien-common", "linien-server"]:
+        for dirpath, _, filenames in os.walk(repo_root_dir / pkg):
+            # lstrip / so os.path.join does not think dir_path_rel is an absolute path.
+            dirpath_rel = dirpath.replace(str(repo_root_dir), "").lstrip("/")
+            # Change direction of path slashes to work on the RedPitayas Linux system.
+            # This is necessary when deploying the server from a Windows machine.
+            dirpath_rel = dirpath_rel.lstrip("\\")
+            remote_path = os.path.join(REMOTE_DEV_PATH, dirpath_rel)
+            remote_path = remote_path.replace("\\", "/")
 
-        remote_path = remote_path.replace("\\", "/")
+            if any(s in dirpath_rel for s in ["__", "."]):
+                continue
 
-        if "." in dirpath_rel or "__" in dirpath_rel:
-            continue
+            try:
+                ftp.lstat(remote_path)
+            except IOError:
+                ftp.mkdir(os.path.join(remote_path.rstrip("/")))
 
-        try:
-            ftp.lstat(remote_path)
-        except IOError:
-            ftp.mkdir(os.path.join(remote_path.rstrip("/")))
-
-        for filename in filenames:
-            local_path = os.path.join(dirpath, filename)
-            remote_filepath = os.path.join(remote_path, filename)
-            remote_filepath = remote_filepath.replace("\\", "/")
-            # put file
-            ftp.put(local_path, remote_filepath)
+            for filename in filenames:
+                local_path = os.path.join(dirpath, filename)
+                remote_filepath = os.path.join(remote_path, filename)
+                remote_filepath = remote_filepath.replace("\\", "/")
+                # put file
+                ftp.put(local_path, remote_filepath)
 
     ftp.close()
 
