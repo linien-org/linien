@@ -1,4 +1,5 @@
 #!/bin/bash
 
+# Close screen session and start ethernet blinking again, see https://github.com/RedPitaya/RedPitaya/issues/205
 screen -X -S linien-server quit
-bash linien_start_ethernet_blinking.sh
+mdio-tool w eth0 0x1b 0x0f00

@@ -8,5 +8,6 @@ screen -X -S linien-server quit
 # start a new one
 screen -S linien-server -d -m
 
-# start the server inside the screen session
-screen -r linien-server -X stuff $"bash linien_stop_ethernet_blinking.sh; server.py $1; bash linien_start_ethernet_blinking.sh; \n"
+# stop ethernet blinking and start the server inside the screen session. Start ethernet blinking again after server stopped.
+# Regarding ethernet blinking, see https://github.com/RedPitaya/RedPitaya/issues/205
+screen -r linien-server -X stuff $"mdio-tool w eth0 0x1b 0x0000; server.py $1; mdio-tool w eth0 0x1b 0x0f00; \n"
