@@ -28,9 +28,6 @@ from pyqtgraph.Qt import QtCore
 # standalone windows executable
 sys.path += ["../", os.path.join("..", ".."), "."]
 
-from linien_gui.widgets import CustomWidget, ui_path
-
-sys.path += [ui_path]
 
 import linien_gui
 from linien_gui.ui.device_manager import DeviceManager
@@ -38,6 +35,9 @@ from linien_gui.ui.main_window import MainWindow
 from linien_gui.ui.psd_window import PSDWindow
 from linien_gui.ui.version_checker import VersionCheckerThread
 from linien_gui.utils_gui import set_window_icon
+from linien_gui.widgets import CustomWidget, ui_path
+
+sys.path += [ui_path]
 
 
 class QTApp(QtCore.QObject):
