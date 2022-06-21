@@ -17,7 +17,9 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 import _thread
+import os
 import pickle
+import sys
 import threading
 from random import random
 from time import sleep
