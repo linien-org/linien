@@ -15,19 +15,9 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-import os
 import signal
 import sys
 from traceback import print_exc
-
-from plumbum import colors
-from PyQt5 import QtWidgets
-from pyqtgraph.Qt import QtCore
-
-# it may seem odd to include '.', but for some reason this is needed for
-# standalone windows executable
-sys.path += ["../", os.path.join("..", ".."), "."]
-
 
 import linien_gui
 from linien_gui.ui.device_manager import DeviceManager
@@ -36,6 +26,9 @@ from linien_gui.ui.psd_window import PSDWindow
 from linien_gui.ui.version_checker import VersionCheckerThread
 from linien_gui.utils_gui import set_window_icon
 from linien_gui.widgets import UI_PATH, CustomWidget
+from plumbum import colors
+from PyQt5 import QtWidgets
+from pyqtgraph.Qt import QtCore
 
 sys.path += [str(UI_PATH)]
 
