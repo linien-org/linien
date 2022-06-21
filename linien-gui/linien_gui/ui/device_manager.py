@@ -52,7 +52,9 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.load_ui("device_manager.ui")
-        self.setWindowTitle("Linien spectroscopy lock %s" % linien_gui.__version__)
+        self.setWindowTitle(
+            "Linien spectroscopy lock v{}".format(linien_gui.__version__)
+        )
         set_window_icon(self)
 
     def ready(self):
@@ -70,7 +72,7 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
         lst.clear()
 
         for device in devices:
-            lst.addItem("%s (%s)" % (device["name"], device["host"]))
+            lst.addItem("{} ({})".format(device["name"], device["host"]))
 
         if autoload and len(devices) == 1:
             self.connect_to_device(devices[0])
@@ -107,11 +109,9 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
             client_version = linien_client.__version__
             loading_dialog.hide()
             if not aborted:
-                display_question = (
-                    "The server is not yet installed on the device. "
-                    "Should it be installed? (Requires internet "
-                    "connection on RedPitaya)"
-                )
+                display_question = """
+                    The server is not yet installed on the device. Should it be
+                    installed? (Requires internet connection on RedPitaya)"""
                 if question_dialog(self, display_question, "Install server?"):
                     self.install_linien_server(
                         device,
@@ -124,24 +124,26 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
             loading_dialog.hide()
             if not aborted:
                 if client_version != "dev":
-                    display_question = (
-                        "Server version (%s) does not match the client (%s) version."
-                        "Should the corresponding server version be installed?"
-                        % (remote_version, client_version)
+                    display_question = """
+                        Server version ({}) does not match the client ({}) version.
+                        Should the corresponding server version be installed?
+                        """.format(
+                        remote_version, client_version
                     )
+
                     if question_dialog(
                         self, display_question, "Install corresponding version?"
                     ):
                         self.install_linien_server(device, version=client_version)
                 else:
                     display_error = """
-                        A production version is installed on the RedPitaya, 
-                        but the client uses a development version. Stop the 
+                        A production version is installed on the RedPitaya,
+                        but the client uses a development version. Stop the
                         server and uninstall the version on the RedPitaya using\n
                         linien_stop_server.sh;\n
                         pip3 uninstall linien-server\n
                         before trying it again.
-                        """  # noqa: W291
+                        """
                     error_dialog(self, display_error)
 
         self.connection_thread.invalid_server_version.connect(invalid_server_version)
@@ -149,12 +151,11 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
         def authentication_exception():
             loading_dialog.hide()
             if not aborted:
-                display_error = (
-                    "Error at authentication. "
-                    "Check username and password (by default both are 'root') "
-                    "and verify that you "
-                    "don't have any offending SSH keys in your known hosts file."
-                )
+                display_error = """
+                    Error at authentication.
+                    Check username and password (by default both are 'root')  and verify
+                    that you don't have any offending SSH keys in your known hosts file.
+                    """
                 error_dialog(self, display_error)
 
         self.connection_thread.authentication_exception.connect(
@@ -164,11 +165,10 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
         def general_connection_error():
             loading_dialog.hide()
             if not aborted:
-                display_error = (
-                    "Unable to connect to device. If you are connecting by"
-                    " hostname (i.e. rp-xxxxxx.local), try using IP "
-                    "address instead."
-                )
+                display_error = """
+                    Unable to connect to device. If you are connecting by hostname
+                    (i.e. `rp-xxxxxx.local`), try using IP address instead.
+                    """
                 error_dialog(self, display_error)
 
         self.connection_thread.general_connection_error.connect(
@@ -184,14 +184,13 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
         self.connection_thread.exception.connect(exception)
 
         def ask_for_parameter_restore():
-            question = (
-                "Linien on RedPitaya is running with different parameters than "
-                "the ones saved locally on this machine. Do you want to upload "
-                "the local parameters or keep the remote ones? Note that remote"
-                " parameters are only saved if Linien server was shut down "
-                "properly, not when unplugging the power plug. In this case, "
-                "you should update your local parameters."
-            )
+            question = """
+                Linien on RedPitaya is running with different parameters than the ones
+                saved locally on this machine. Do you want to upload the local
+                parameters or keep the remote ones? Note that remote parameters are only
+                saved if Linien server was shut down properly, not when unplugging the
+                power plug. In this case, you should update your local parameters.
+                """
             should_restore = ask_for_parameter_restore_dialog(
                 self, question, "Restore parameters?"
             )
@@ -217,18 +216,17 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
             version_string = "==" + version
             # stop server if another version of linien is installed
             stop_server_command = "linien_stop_server.sh;"
-
+        command = f"""
+            {stop_server_command}
+            pip3 install linien-server{version_string} --no-cache-dir;
+            linien_install_requirements.sh;
+            """
         self.ssh_command = execute_command_and_show_output(
             self,
             device["host"],
             device["username"],
             device["password"],
-            (
-                "%s "
-                "pip3 install linien-server%s --no-cache-dir; "
-                "linien_install_requirements.sh; "
-            )
-            % (stop_server_command, version_string),
+            command,
             lambda: self.connect_to_device(device),
         )
 
@@ -388,8 +386,9 @@ class ConnectionThread(QThread):
         self.continuously_write_parameters_to_disk()
 
     def restore_parameters(self, dry_run=False):
-        """Reads settings for a server that were cached locally. Sends them to
-        the server. If `dry_run` is...
+        """
+        Reads settings for a server that were cached locally. Sends them to the server.
+        If `dry_run` is...
 
             * `True`, this function returns a boolean indicating whether the
               local parameters differ from the ones on the server
@@ -412,9 +411,9 @@ class ConnectionThread(QThread):
                     else:
                         param.value = v
             else:
-                # this may happen if the settings were written with a different
-                # version of linien.
-                print("unable to restore parameter %s. Delete the cached value." % k)
+                # This may happen if the settings were written with a different version
+                # of linien.
+                print(f"Unable to restore parameter {k}. Delete the cached value.")
                 save_parameter(device_key, k, None, delete=True)
 
         if not dry_run:
@@ -423,10 +422,11 @@ class ConnectionThread(QThread):
         return differences
 
     def continuously_write_parameters_to_disk(self):
-        """Listens for changes of some parameters and permanently saves their
-        values on the client's disk. This data can be used to restore the status
-        later, if the client tries to connect to the server but it doesn't run
-        anymore."""
+        """
+        Listens for changes of some parameters and permanently saves their values on the
+        client's disk. This data can be used to restore the status later, if the client
+        tries to connect to the server but it doesn't run anymore.
+        """
         params = self.client.parameters.remote.exposed_get_restorable_parameters()
 
         for param in params:
