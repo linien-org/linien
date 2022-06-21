@@ -20,14 +20,11 @@ import re
 
 from setuptools import find_packages, setup
 
-VERSIONFILE = "linien_client/_version.py"
-verstrline = open(VERSIONFILE, "rt").read()
-VSRE = r"^__version__ = ['\"]([^'\"]*)['\"]"
-mo = re.search(VSRE, verstrline, re.M)
-if mo:
-    verstr = mo.group(1)
-else:
-    raise RuntimeError("Unable to find version string in %s." % (VERSIONFILE,))
+version_file = "linien_client/_version.py"
+with open(version_file, "rt") as f:
+    verstrline = f.read()
+mo = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", verstrline, re.M)
+verstr = mo.group(1)
 
 
 setup(
