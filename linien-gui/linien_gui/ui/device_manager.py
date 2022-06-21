@@ -18,6 +18,7 @@
 
 from traceback import print_exc
 
+import linien_client
 import linien_gui
 from linien_client.connection import LinienClient
 from linien_client.exceptions import (
