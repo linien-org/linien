@@ -20,7 +20,7 @@ import re
 
 from setuptools import find_packages, setup
 
-version_file = "linien_client/_version.py"
+version_file = "linien_gui/_version.py"
 with open(version_file, "rt") as f:
     verstrline = f.read()
 mo = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", verstrline, re.M)
