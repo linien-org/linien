@@ -200,7 +200,8 @@ Then, you should start the Linien server on your RedPitaya. This can be done by 
 
 Once the server is up and running, you can connect using python:
 ```python
-from linien_client.connection import LinienClient, MHz, Vpp
+from linien_client.connection import LinienClient
+from linien_common.common import  MHz, Vpp
 c = LinienClient(
     {'host': 'rp-XXXXXX.local', 'username': 'root', 'password': 'change-it-to-something-else!'},
     # starts the server if it is not running

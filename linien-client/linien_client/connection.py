@@ -35,7 +35,7 @@ from linien_client.exceptions import (
 from linien_client.remote_parameters import RemoteParameters
 
 # IMPORTANT: keep this import, because it eases interfacing with the python client
-from linien_common.common import ANALOG_OUT_V, MHz, Vpp, hash_username_and_password
+from linien_common.common import hash_username_and_password
 from linien_common.config import DEFAULT_SERVER_PORT
 from plumbum import colors
 
