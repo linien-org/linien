@@ -20,7 +20,6 @@ import os
 from pathlib import Path
 
 import linien_client
-import numpy as np
 import paramiko
 from linien_client.exceptions import (
     InvalidServerVersionException,
@@ -49,7 +48,7 @@ def run_server(host, user, password, port):
 
         # Install the development version in editable mode via pip
         print("Installing development version of linien-common and linien-server")
-        _, _, stderr = ssh.exec_command(
+        _ = ssh.exec_command(
             f"""
             export LINIEN_AUTH_HASH={hash_username_and_password(user, password)};
             pip3 install -e {REMOTE_DEV_PATH}/linien-common;
@@ -117,7 +116,3 @@ def upload_source_code(ssh):
                 ftp.put(local_path, remote_filepath)
 
     ftp.close()
-
-
-def peak_voltage_to_dBm(voltage):
-    return 10 + 20 * np.log10(voltage)

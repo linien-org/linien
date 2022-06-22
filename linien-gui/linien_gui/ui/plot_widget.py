@@ -21,7 +21,6 @@ from time import time
 
 import numpy as np
 import pyqtgraph as pg
-from linien_client.utils import peak_voltage_to_dBm
 from linien_common.common import (
     DECIMATION,
     N_POINTS,
@@ -56,6 +55,10 @@ V = 8192
 
 # pyqt signals enforce type, so...
 INVALID_POWER = -1000
+
+
+def peak_voltage_to_dBm(voltage):
+    return 10 + 20 * np.log10(voltage)
 
 
 class TimeXAxis(pg.AxisItem, CustomWidget):
