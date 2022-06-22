@@ -17,7 +17,7 @@
 
 import re
 
-from linien_client.utils import connect_ssh
+from linien_client.deploy import connect_ssh
 from plumbum import colors
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QDialog, QListWidget, QMessageBox, QVBoxLayout

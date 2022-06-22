@@ -25,6 +25,7 @@ from typing import Callable
 
 import linien_client
 import rpyc
+from linien_client.deploy import deploy_remote_server
 from linien_client.exceptions import (
     GeneralConnectionErrorException,
     InvalidServerVersionException,
@@ -32,23 +33,20 @@ from linien_client.exceptions import (
     ServerNotRunningException,
 )
 from linien_client.remote_parameters import RemoteParameters
-from linien_client.utils import run_server
 
 # IMPORTANT: keep this import, because it eases interfacing with the python client
 from linien_common.common import ANALOG_OUT_V, MHz, Vpp, hash_username_and_password
 from linien_common.config import DEFAULT_SERVER_PORT
 from plumbum import colors
 
-assert MHz
-assert Vpp
-assert ANALOG_OUT_V
-
 
 class RPYCClientWithAuthentication(rpyc.Service):
-    """An rpyc client that authenticates using a hash.
+    """
+    An rpyc client that authenticates using a hash.
 
     This class is run on the client side and exposes the client's unique id
-    to the server."""
+    to the server.
+    """
 
     def __init__(self, uuid, user, password):
         super().__init__()
@@ -64,11 +62,13 @@ class RPYCClientWithAuthentication(rpyc.Service):
 
 
 class RawRPYCClient:
-    """This class implements the basic functionality for connecting to a Linien
-    server using rpyc. See `LinienClient` for higher-level functionality.
+    """
+    This class implements the basic functionality for connecting to a Linien server
+    using rpyc. See `LinienClient` for higher-level functionality.
 
     Once connected, communication between server and client mainly takes place
-    using the `parameters` attribute."""
+    using the `parameters` attribute.
+    """
 
     def __init__(
         self,
@@ -104,8 +104,10 @@ class RawRPYCClient:
         use_parameter_cache: bool,
         call_on_error: Callable = None,
     ):
-        """This method just redirects to `connect_rpyc` and is intended to be
-        overridden in inheriting classes."""
+        """
+        This method just redirects to `connect_rpyc` and is intended to be overridden in
+        inheriting classes.
+        """
         return self._connect_rpyc(
             server,
             port,
@@ -130,8 +132,10 @@ class RawRPYCClient:
         self.parameters = cls(self.connection.root, self.uuid, use_parameter_cache)
 
     def _catch_network_errors(self, cls, call_on_error):
-        """This method can be used for patching RemoteParameters such
-        that network errors are redirected to `call_on_error`"""
+        """
+        This method can be used for patching RemoteParameters such that network errors
+        are redirected to `call_on_error`
+        """
         function_type = type(lambda x: x)
 
         for attr_name in dir(cls):
@@ -164,7 +168,8 @@ class LinienClient(RawRPYCClient):
         use_parameter_cache=False,
         on_connection_lost: Callable = None,
     ):
-        """Connect to a RedPitaya that runs linien server.
+        """
+        Connect to a RedPitaya that runs linien server.
 
         Takes the following arguments:
             * `device` should be a dictionary:
@@ -183,8 +188,8 @@ class LinienClient(RawRPYCClient):
         password = device.get("password")
 
         if self.host in ("localhost", "127.0.0.1"):
-            # RP is configured such that "localhost" doesn't point to
-            # 127.0.0.1 in all cases
+            # RP is configured such that "localhost" doesn't point to 127.0.0.1 in all
+            # cases
             self.host = "127.0.0.1"
         else:
             assert user and password, "username and passwort are required"
@@ -234,7 +239,7 @@ class LinienClient(RawRPYCClient):
 
                 if i == 0:
                     print("server is not running. Launching it!")
-                    run_server(host, user, password, port)
+                    deploy_remote_server(host, user, password, port)
                     sleep(3)
                 else:
                     if i < 20:
