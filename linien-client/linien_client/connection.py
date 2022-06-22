@@ -160,7 +160,7 @@ class RawRPYCClient:
         return cls
 
 
-class LinienClient(RawRPYCClient):
+class LinienClient:
     def __init__(
         self,
         device,
@@ -196,14 +196,21 @@ class LinienClient(RawRPYCClient):
 
         self.autostart_server = autostart_server
 
-        super().__init__(
+        self.use_parameter_cache = use_parameter_cache
+        self.uuid = "".join(random.choice(string.ascii_lowercase) for i in range(10))
+
+        # for exposing client's uuid to server
+        self.client_service = RPYCClientWithAuthentication(self.uuid, user, password)
+
+        self._connect(
             self.host,
             device.get("port", DEFAULT_SERVER_PORT),
             user,
             password,
-            use_parameter_cache=use_parameter_cache,
+            use_parameter_cache,
             call_on_error=on_connection_lost,
         )
+        self.connected = True
 
     def _connect(
         self, host, port, user, password, use_parameter_cache, call_on_error=None
@@ -268,6 +275,48 @@ class LinienClient(RawRPYCClient):
             raise InvalidServerVersionException(client_version, remote_version)
 
         print(colors.green | "connected established!")
+
+    def _connect_rpyc(
+        self, server, port, user, password, use_parameter_cache, call_on_error=None
+    ):
+        """Connect to the server using rpyc and instanciate `RemoteParameters`."""
+        self.connection = rpyc.connect(
+            server, port, service=self.client_service, config={"allow_pickle": True}
+        )
+
+        cls = RemoteParameters
+        if call_on_error:
+            cls = self._catch_network_errors(cls, call_on_error)
+
+        self.parameters = cls(self.connection.root, self.uuid, use_parameter_cache)
+
+    def _catch_network_errors(self, cls, call_on_error):
+        """
+        This method can be used for patching RemoteParameters such that network errors
+        are redirected to `call_on_error`
+        """
+        function_type = type(lambda x: x)
+
+        for attr_name in dir(cls):
+            # patch all methods that don't start with __
+            if not attr_name.startswith("__"):
+                attr = getattr(cls, attr_name)
+
+                if isinstance(attr, function_type):
+                    method = attr
+
+                    def wrapped(*args, method=method, **kwargs):
+                        try:
+                            return method(*args, **kwargs)
+                        except (EOFError,):
+                            print(colors.red | "Connection lost")
+                            self.connected = False
+                            call_on_error()
+                            raise
+
+                    setattr(cls, attr_name, wrapped)
+
+        return cls
 
     def disconnect(self):
         self.connection.close()
