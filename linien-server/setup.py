@@ -59,16 +59,12 @@ setup(
         "linien_server/linien_start_server.sh",
         "linien_server/linien_stop_server.sh",
         "linien_server/linien_install_requirements.sh",
-        "linien_server/linien_start_ethernet_blinking.sh",
-        "linien_server/linien_stop_ethernet_blinking.sh",
     ],
     package_data={
         "": [
             "linien.bin",
             "linien_start_server.sh",
             "linien_stop_server.sh",
-            "linien_start_ethernet_blinking.sh",
-            "linien_stop_ethernet_blinking.sh",
             "linien_install_requirements.sh",
         ]
     },
