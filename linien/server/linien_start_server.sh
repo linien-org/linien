@@ -9,7 +9,7 @@ pth=`python3 -c 'import linien; print(linien.__path__[0]);'`
 
 # quit any remaining screen session
 if [ -x "$(command -v linien_stop_server.sh)" ]; then
-    linien_stop_server
+    linien_stop_server.sh
 fi
 screen -X -S linien-server quit
 # start a new one
