@@ -51,7 +51,6 @@ setup(
         "plumbum>=1.6.9",
         "rpyc>=4.0,<5.0",
         "scipy>=1.4.1",
-        "uuid>=1.30",
         "linien-common=={}".format(verstr),
     ],
 )
