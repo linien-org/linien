@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-from linien_client.connection import MHz, Vpp
+from linien_common.common import MHz, Vpp
 from linien_gui.utils_gui import param2ui
 from linien_gui.widgets import CustomWidget
 from PyQt5 import QtWidgets

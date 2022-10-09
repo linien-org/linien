@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-from linien_client.connection import MHz, Vpp
+from linien_common.common import MHz, Vpp
 from linien_gui.utils_gui import param2ui
 from linien_gui.widgets import CustomWidget
 from PyQt5 import QtWidgets
@@ -162,13 +162,13 @@ class OptimizationPanel(QtWidgets.QWidget, CustomWidget):
         self.parameters.dual_channel.on_change(dual_channel_changed)
 
         def fast_mode_changed(fast_mode_enabled):
-            """Disables this panel if fast mode is enabled (nothing to optimize)"""
+            """Disable this panel if fast mode is enabled (nothing to optimize)."""
             self.setEnabled(not fast_mode_enabled)
 
         self.parameters.fast_mode.on_change(fast_mode_changed)
 
         def fast_mode_changed(fast_mode_enabled):
-            """Disables this panel if fast mode is enabled (nothing to optimize)"""
+            """Disable this panel if fast mode is enabled (nothing to optimize)."""
             self.setEnabled(not fast_mode_enabled)
 
         self.parameters.fast_mode.on_change(fast_mode_changed)

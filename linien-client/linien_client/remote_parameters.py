@@ -24,7 +24,8 @@ from rpyc import async_
 
 
 class RemoteParameters:
-    """A class that provides access to a remote `parameters.Parameters` instance.
+    """
+    A class that provides access to a remote `parameters.Parameters` instance.
 
     It clones the functionality of the remote `Parameters` instance. E.g.:
 

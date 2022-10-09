@@ -68,10 +68,12 @@ def save_parameter(device_key, param, value, delete=False):
     device.setdefault("params", {})
 
     if not delete:
+        # FIXME: This is the only part where rpyc is used in linien-gui. Remove it if
+        # possible.
         # rpyc obtain is for ensuring that we don't try to save a netref here
         try:
             device["params"][param] = rpyc.classic.obtain(value)
-        except:
+        except Exception:
             print("unable to obtain and save parameter", param)
     else:
         try:
