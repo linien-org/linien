@@ -18,7 +18,6 @@
 
 from traceback import print_exc
 
-import linien_client
 import linien_gui
 from linien_client.connection import LinienClient
 from linien_client.exceptions import (
@@ -27,6 +26,7 @@ from linien_client.exceptions import (
     RPYCAuthenticationException,
     ServerNotInstalledException,
 )
+from linien_common.config import DEFAULT_SERVER_PORT
 from linien_gui.config import (
     get_saved_parameters,
     load_device_data,
@@ -36,14 +36,13 @@ from linien_gui.config import (
 from linien_gui.dialogs import (
     LoadingDialog,
     ask_for_parameter_restore_dialog,
+    deploy_server_and_show_output,
     error_dialog,
-    execute_command_and_show_output,
     question_dialog,
 )
 from linien_gui.ui.new_device_dialog import NewDeviceDialog
 from linien_gui.utils_gui import set_window_icon
 from linien_gui.widgets import CustomWidget
-from paramiko.ssh_exception import AuthenticationException as SSHAuthenticationException
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtCore import QThread, pyqtSignal
 
@@ -52,9 +51,7 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.load_ui("device_manager.ui")
-        self.setWindowTitle(
-            "Linien spectroscopy lock v{}".format(linien_gui.__version__)
-        )
+        self.setWindowTitle(f"Linien spectroscopy lock v{linien_gui.__version__}")
         set_window_icon(self)
 
     def ready(self):
@@ -106,17 +103,13 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
         self.connection_thread.client_connected.connect(client_connected)
 
         def server_not_installed():
-            client_version = linien_client.__version__
             loading_dialog.hide()
             if not aborted:
                 display_question = """
                     The server is not yet installed on the device. Should it be
                     installed? (Requires internet connection on RedPitaya)"""
                 if question_dialog(self, display_question, "Install server?"):
-                    self.install_linien_server(
-                        device,
-                        version=client_version if client_version != "dev" else None,
-                    )
+                    self.install_linien_server(device)
 
         self.connection_thread.server_not_installed.connect(server_not_installed)
 
@@ -124,13 +117,11 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
             loading_dialog.hide()
             if not aborted:
                 if client_version != "dev":
-                    display_question = """
-                        Server version ({}) does not match the client ({}) version.
-                        Should the corresponding server version be installed?
-                        """.format(
-                        remote_version, client_version
-                    )
-
+                    display_question = f"""
+                        Server version ({remote_version}) does not match the client
+                        ({client_version}) version. Should the corresponding server
+                        version be installed?
+                        """
                     if question_dialog(
                         self, display_question, "Install corresponding version?"
                     ):
@@ -208,25 +199,12 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
 
         self.connection_thread.start()
 
-    def install_linien_server(self, device, version=None):
-        version_string = ""
-        stop_server_command = ""
-
-        if version is not None:
-            version_string = "==" + version
-            # stop server if another version of linien is installed
-            stop_server_command = "linien_stop_server.sh;"
-        command = f"""
-            {stop_server_command}
-            pip3 install linien-server{version_string} --no-cache-dir;
-            linien_install_requirements.sh;
-            """
-        self.ssh_command = execute_command_and_show_output(
+    def install_linien_server(self, device):
+        deploy_server_and_show_output(
             self,
             device["host"],
             device["username"],
             device["password"],
-            command,
             lambda: self.connect_to_device(device),
         )
 
@@ -335,14 +313,19 @@ class ConnectionThread(QThread):
     def run(self):
         try:
             client = LinienClient(
-                self.device,
+                host=self.device["host"],
+                user=self.device["username"],
+                password=self.device["password"],
+                port=self.device.get("port", DEFAULT_SERVER_PORT),
+                name=self.device.get("name", ""),
+            )
+            self.client = client
+            self.client.connect(
                 autostart_server=True,
                 use_parameter_cache=True,
-                on_connection_lost=self.on_connection_lost,
+                call_on_error=self.on_connection_lost,
             )
             self.client_connected.emit(client)
-
-            self.client = client
 
         except ServerNotInstalledException:
             return self.server_not_installed.emit()
@@ -350,7 +333,7 @@ class ConnectionThread(QThread):
         except InvalidServerVersionException as e:
             return self.invalid_server_version.emit(e.remote_version, e.client_version)
 
-        except (SSHAuthenticationException, RPYCAuthenticationException):
+        except RPYCAuthenticationException:
             return self.authentication_exception.emit()
 
         except GeneralConnectionErrorException:
@@ -360,20 +343,19 @@ class ConnectionThread(QThread):
             print_exc()
             return self.exception.emit()
 
-        # now, we are connected to the server. Check whether we have cached settings
-        # for this server. If yes, check whether they match with what is currently
-        # running. If there is a mismatch, ask the user whether the settings should
-        # be restored.
+        # now, we are connected to the server. Check whether we have cached settings for
+        # this server. If yes, check whether they match with what is currentlyrunning.
+        # If there is a mismatch, ask the user whether the settings should be restored.
 
         parameters_differ = self.restore_parameters(dry_run=True)
         if parameters_differ:
             self.ask_for_parameter_restore.emit()
         else:
             # if parameters don't differ, we can start monitoring remote parameter
-            # changes and write them to disk. We don't do this if parameters
-            # differ because we don't want to override our local settings with
-            # the remote one --> we wait until user has answered whether local
-            # parameters or remote ones should be used.
+            # changes and write them to disk. We don't do this if parameters differ
+            # because we don't want to override our local settings withthe remote one
+            # --> we wait until user has answered whether local parameters or remote
+            # ones should be used.
             self.continuously_write_parameters_to_disk()
 
     def on_connection_lost(self):

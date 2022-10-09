@@ -56,7 +56,7 @@ class QTApp(QtCore.QObject):
 
     def client_connected(self, client):
         self.device_manager.hide()
-        self.main_window.show(client.host, client.device["name"])
+        self.main_window.show(client.host, client.name)
 
         self.client = client
         self.control = client.control

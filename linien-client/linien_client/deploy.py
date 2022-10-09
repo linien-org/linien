@@ -21,29 +21,25 @@ from pathlib import Path
 
 import linien_client
 from fabric import Connection
+from invoke import UnexpectedExit
 from linien_client.exceptions import (
     InvalidServerVersionException,
     ServerNotInstalledException,
 )
 from linien_common.common import hash_username_and_password
 from linien_common.config import REMOTE_DEV_PATH
-from paramiko import AutoAddPolicy, SSHClient
 from patchwork.files import exists
 
 
-def connect_ssh(host: str, user: str, password: str) -> SSHClient:
-    ssh = SSHClient()
-    ssh.set_missing_host_key_policy(AutoAddPolicy())
-    ssh.connect(hostname=host, username=user, password=password)
-    return ssh
-
-
-def uninstall_remote_linien(conn: Connection) -> None:
+def uninstall_remote_server(conn: Connection) -> None:
     """Uninstalls linien-common and linien-server from the remote."""
 
     for pkg in ["linien-server", "linien-common"]:
         print(f"Uninstalling {pkg}...")
-        conn.run(f"pip3 uninstall {pkg}")
+        try:
+            conn.run(f"pip3 uninstall {pkg}")
+        except UnexpectedExit:
+            print("Something went wrong...")
 
 
 def upload_source_code(conn: Connection) -> None:
@@ -108,7 +104,7 @@ def read_remote_version(conn: Connection) -> str:
         'python3 -c "import linien_server; print(linien_server.__version__);"'
     )
     if result.ok:
-        print(result.stdout.strip())
+        return result.stdout.strip()
     else:
         raise ServerNotInstalledException()
 
@@ -128,7 +124,7 @@ def deploy_remote_server(host: str, user: str, password: str, port: int = 22):
             # If we are in a development version, we upload the files from source
             # directory to the RP and install linien-common and linien-server in
             # editable mode. Uninstall old versions before cleaning development folder.
-            uninstall_remote_linien(conn)
+            uninstall_remote_server(conn)
             upload_source_code(conn)
             install_dev_version(conn, user, password)
 

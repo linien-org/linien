@@ -15,12 +15,11 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-import re
 
-from linien_client.deploy import connect_ssh
-from plumbum import colors
+from typing import Callable
+
 from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtWidgets import QDialog, QListWidget, QMessageBox, QVBoxLayout
+from PyQt5.QtWidgets import QDialog, QListWidget, QMessageBox, QVBoxLayout, QWidget
 from pyqtgraph import QtCore
 
 
@@ -31,54 +30,19 @@ class SSHCommandOutputWidget(QListWidget):
         super().__init__(*args)
         self.setSelectionMode(self.NoSelection)
 
-    def execute(self, ssh, command):
-        self.stdin, self.stdout, self.stderr = ssh.exec_command(
-            command, bufsize=0, get_pty=True
-        )
-        self.addItem(">>> %s" % command)
-        self.show_output()
-
-    def show_output(self):
-        if self.stdout.channel.exit_status_ready():
-            return self.command_ended.emit()
-        else:
-            for output in (self.stdout, self.stderr):
-                toread = len(output.channel.in_buffer)
-                if toread == 0:
-                    continue
-                buf = output.read(toread).decode("utf8").rstrip("\n")
-
-                for part in buf.split("\n"):
-                    for subpart_i, subpart in enumerate(part.split("\r")):
-                        subpart = subpart.strip("\n").strip("\r").strip("\r\n")
-                        if subpart:
-                            print(
-                                (colors.red if output == self.stderr else colors.reset)
-                                | subpart
-                            )
-                            if subpart_i > 0:
-                                # delete previous item if \r is found
-                                self.takeItem(self.count() - 1)
-
-                            self.addItem(
-                                # filter out special things like color codes etc.
-                                re.sub(
-                                    r"\x1b(\[.*?[@-~]|\].*?(\x07|\x1b\\))", "", subpart
-                                )
-                            )
-
-                self.scrollToBottom()
-
-        QtCore.QTimer.singleShot(1000, self.show_output)
+    def show_stdout(self):
+        # FIXME: Redirect stdout and stderr to the widget.
+        # self.addItem()
+        # self.scrollToBottom()
+        return
+        self.command_ended.emit()
 
 
-def execute_command_and_show_output(parent, host, user, password, command, callback):
-    print((colors.bold | "Execute command: ") + command)
-
-    ssh = connect_ssh(host, user, password)
-
+def deploy_server_and_show_output(
+    parent: QWidget, host: str, user: str, password: str, callback: Callable
+):
     window = QDialog(parent)
-    window.setWindowTitle("Installing Linien server component")
+    window.setWindowTitle("Deploying Linien Server")
     window.resize(800, 600)
     window_layout = QVBoxLayout(window)
 
@@ -94,8 +58,7 @@ def execute_command_and_show_output(parent, host, user, password, command, callb
         callback()
 
     widget.command_ended.connect(after_command)
-
-    widget.execute(ssh, command)
+    widget.show_stdout()
 
     return window
 
@@ -103,11 +66,11 @@ def execute_command_and_show_output(parent, host, user, password, command, callb
 class LoadingDialog(QMessageBox):
     aborted = pyqtSignal()
 
-    def __init__(self, parent, host):
+    def __init__(self, parent: QWidget, host: str):
         super().__init__(parent)
 
         self.setIcon(QMessageBox.Information)
-        self.setText("Connecting to %s" % host)
+        self.setText(f"Connecting to {host}")
         self.setWindowTitle("Connecting")
         self.setModal(True)
         self.setWindowModality(QtCore.Qt.WindowModal)
@@ -123,7 +86,7 @@ class LoadingDialog(QMessageBox):
             self.close()
 
 
-def error_dialog(parent, error):
+def error_dialog(parent: QWidget, error):
     return QMessageBox.question(parent, "Error", error, QMessageBox.Ok, QMessageBox.Ok)
 
 

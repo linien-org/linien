@@ -45,9 +45,9 @@ setup(
     ],
     entry_points={"console_scripts": ["linien=linien.gui.app:run_application"]},
     install_requires=[
+        "appdirs>=1.4.4",
         "click>=7.1.2",
         "numpy>=1.19.1",
-        "paramiko>=2.10.1",
         "plumbum>=1.6.9",
         "pyqtgraph>=0.10.0",
         "PyQt5>=5.12.0",
