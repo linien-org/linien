@@ -125,7 +125,7 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
                     if question_dialog(
                         self, display_question, "Install corresponding version?"
                     ):
-                        self.install_linien_server(device, version=client_version)
+                        self.install_linien_server(device)
                 else:
                     display_error = """
                         A production version is installed on the RedPitaya,

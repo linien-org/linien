@@ -1,17 +1,9 @@
-import re
-
 from setuptools import find_packages, setup
-
-version_file = "linien_common/_version.py"
-with open(version_file, "rt") as f:
-    verstrline = f.read()
-mo = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", verstrline, re.M)
-verstr = mo.group(1)
-
 
 setup(
     name="linien-common",
-    version=verstr,
+    use_scm_version={"root": "..", "relative_to": __file__},
+    setup_requires=["setuptools_scm"],
     author="Benjamin Wiegand",
     author_email="highwaychile@posteo.de",
     maintainer="Bastian Leykauf",

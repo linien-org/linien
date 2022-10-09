@@ -17,6 +17,8 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+import traceback
+from distutils.core import run_setup
 from pathlib import Path
 
 import linien_client
@@ -40,9 +42,10 @@ def uninstall_remote_server(conn: Connection) -> None:
             conn.run(f"pip3 uninstall {pkg}")
         except UnexpectedExit:
             print("Something went wrong...")
+            print(traceback.print_exc())
 
 
-def upload_source_code(conn: Connection) -> None:
+def upload_dev_packages(conn: Connection) -> None:
     """Upload the application's source code to the remote server using SFTP."""
 
     if not exists(conn, REMOTE_DEV_PATH):
@@ -52,30 +55,29 @@ def upload_source_code(conn: Connection) -> None:
     conn.run(f"rm -rf {REMOTE_DEV_PATH}/*")
 
     repo_root_dir = Path(__file__).parents[2].resolve()
-    print("Uploading dev source code...")
-    # upload the code required for running the server
+    print("Deploying...")
+    # upload the entire git repo to make setuptools_scm work
     for pkg in ["linien-common", "linien-server"]:
-        for dirpath, _, filenames in os.walk(repo_root_dir / pkg):
-            # lstrip / so os.path.join does not think dir_path_rel is an absolute path.
-            dirpath_rel = dirpath.replace(str(repo_root_dir), "").lstrip("/")
-            # Change direction of path slashes to work on the RedPitayas Linux system.
-            # This is necessary when deploying the server from a Windows machine.
-            dirpath_rel = dirpath_rel.lstrip("\\")
-            remote_path = os.path.join(REMOTE_DEV_PATH, dirpath_rel)
-            remote_path = remote_path.replace("\\", "/")
+        print(f"Building {pkg}...")
+        # NOTE: `python -m build` had trouble with setuptools_scm
+        os.chdir(repo_root_dir / pkg)
+        _ = run_setup("setup.py", script_args=["sdist", "--format", "gztar"])
+        os.chdir(repo_root_dir / pkg / "dist")
+        print("Copying package to remote...")
+        # FIXME: There should be a better solution than `os.walk`
+        for dirpath, _, filenames in os.walk(repo_root_dir / pkg / "dist"):
+            pass
 
-            # filter directories that should not be copied
-            if any(s in dirpath_rel for s in ["__", "."]):
-                continue
+        if not exists(conn, REMOTE_DEV_PATH):
+            conn.run(f"mkdir -p {REMOTE_DEV_PATH}")
 
-            if not exists(conn, remote_path):
-                conn.run(f"mkdir -p {remote_path}")
+        filename = f"{pkg}-{linien_client.__version__}.tar.gz"
+        local_path = repo_root_dir / pkg / "dist" / filename
+        remote_filepath = os.path.join(REMOTE_DEV_PATH, filename)
+        remote_filepath = remote_filepath.replace("\\", "/")
+        conn.put(local_path, remote_filepath)
 
-            for filename in filenames:
-                local_path = os.path.join(dirpath, filename)
-                remote_filepath = os.path.join(remote_path, filename)
-                remote_filepath = remote_filepath.replace("\\", "/")
-                conn.put(local_path, remote_filepath)
+        os.chdir(repo_root_dir)
 
 
 def install_dev_version(conn: Connection, user: str, password: str) -> None:
@@ -85,8 +87,8 @@ def install_dev_version(conn: Connection, user: str, password: str) -> None:
     print("Installing development version of linien-common and linien-server")
     commands = [
         f"export LINIEN_AUTH_HASH={hash_username_and_password(user, password)}",
-        f"pip3 install -e {REMOTE_DEV_PATH}/linien-common",
-        f"pip3 install -e {REMOTE_DEV_PATH}/linien-server",
+        f"pip3 install {REMOTE_DEV_PATH}/linien-common-{linien_client.__version__}.tar.gz",  # noqa: E501
+        f"pip3 install {REMOTE_DEV_PATH}/linien-server-{linien_client.__version__}.tar.gz",  # noqa: E501
         "bash linien_install_requirements.sh",
     ]
     for cmd in commands:
@@ -125,7 +127,7 @@ def deploy_remote_server(host: str, user: str, password: str, port: int = 22):
             # directory to the RP and install linien-common and linien-server in
             # editable mode. Uninstall old versions before cleaning development folder.
             uninstall_remote_server(conn)
-            upload_source_code(conn)
+            upload_dev_packages(conn)
             install_dev_version(conn, user, password)
 
         remote_version = read_remote_version(conn)
