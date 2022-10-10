@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
+
 class RPYCAuthenticationException(Exception):
     def __init__(self):
         super().__init__(
