@@ -16,19 +16,19 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-import re
-
 from setuptools import find_packages, setup
+from setuptools_scm import get_version
 
-version_file = "linien_gui/_version.py"
-with open(version_file, "rt") as f:
-    verstrline = f.read()
-mo = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", verstrline, re.M)
-verstr = mo.group(1)
+version = get_version(root="..", relative_to=__file__)
 
 setup(
     name="linien-gui",
-    version=verstr,
+    use_scm_version={
+        "write_to": "linien-gui/linien_gui/_version.py",
+        "root": "..",
+        "relative_to": __file__,
+    },
+    setup_requires=["setuptools_scm"],
     author="Benjamin Wiegand",
     author_email="highwaychile@posteo.de",
     maintainer="Bastian Leykauf",
@@ -54,7 +54,7 @@ setup(
         "rpyc>=4.0,<5.0",
         "scipy>=1.4.1",
         "superqt>=0.2.3",
-        "linien_client=={}".format(verstr),
+        "linien_client=={}".format(version),
     ],
     package_data={
         # IMPORTANT: any changes have to be made in pyinstaller.spec, too

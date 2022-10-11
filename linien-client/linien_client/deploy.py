@@ -21,7 +21,6 @@ from pathlib import Path
 
 import linien_client
 from fabric import Connection
-from invoke import UnexpectedExit
 from linien_client.exceptions import (
     InvalidServerVersionException,
     ServerNotInstalledException,
@@ -31,31 +30,21 @@ from linien_common.config import REMOTE_DEV_PATH
 from patchwork.files import exists
 
 
-def uninstall_remote_server(conn: Connection) -> None:
-    """Uninstalls linien-common and linien-server from the remote."""
-
-    for pkg in ["linien-server", "linien-common"]:
-        print(f"Uninstalling {pkg}...")
-        try:
-            conn.run(f"pip3 uninstall {pkg}")
-        except UnexpectedExit:
-            print("Something went wrong...")
-
-
-def upload_source_code(conn: Connection) -> None:
+def copy_source_code_to_remote(conn: Connection) -> None:
     """Upload the application's source code to the remote server using SFTP."""
 
     if not exists(conn, REMOTE_DEV_PATH):
-        print("Creating remote development directory...")
+        print("Creating remote development directory.")
         conn.run(f"mkdir -p {REMOTE_DEV_PATH}")
     print("Cleaning remote development directory...")
     conn.run(f"rm -rf {REMOTE_DEV_PATH}/*")
 
     repo_root_dir = Path(__file__).parents[2].resolve()
-    print("Uploading dev source code...")
+    print("Copying dev source code to RedPitaya.")
     # upload the code required for running the server
-    for pkg in ["linien-common", "linien-server"]:
-        for dirpath, _, filenames in os.walk(repo_root_dir / pkg):
+    for dir in ["linien-common", "linien-server", ".git"]:
+        print(f"Copying {dir}.")
+        for dirpath, _, filenames in os.walk(repo_root_dir / dir):
             # lstrip / so os.path.join does not think dir_path_rel is an absolute path.
             dirpath_rel = dirpath.replace(str(repo_root_dir), "").lstrip("/")
             # Change direction of path slashes to work on the RedPitayas Linux system.
@@ -65,7 +54,7 @@ def upload_source_code(conn: Connection) -> None:
             remote_path = remote_path.replace("\\", "/")
 
             # filter directories that should not be copied
-            if any(s in dirpath_rel for s in ["__", "."]):
+            if "__" in dirpath_rel:
                 continue
 
             if not exists(conn, remote_path):
@@ -123,9 +112,8 @@ def deploy_remote_server(host: str, user: str, password: str, port: int = 22):
         if "dev" in version:
             # If we are in a development version, we upload the files from source
             # directory to the RP and install linien-common and linien-server in
-            # editable mode. Uninstall old versions before cleaning development folder.
-            uninstall_remote_server(conn)
-            upload_source_code(conn)
+            # editable mode.
+            copy_source_code_to_remote(conn)
             install_dev_version(conn, user, password)
 
         remote_version = read_remote_version(conn)
