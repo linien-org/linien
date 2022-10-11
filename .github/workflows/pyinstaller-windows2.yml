@@ -5,7 +5,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
       - uses: actions/checkout@v3
@@ -13,23 +13,21 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.x"
+          python-version: "3.7"
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          cd linien-common
-          pip install .
-          cd ../linien-client
-          pip install .
-          cd ../linien-gui
-          pip install .
-          cd ..
+      - run: pip install pyinstaller
 
-      - name: PyInstaller Windows
-        uses: JackMcKew/pyinstaller-action-windows@main
-        with:
-          path: linien-gui
+      - run: pip install .
+        working-directory: linien-common
+
+      - run: pip install .
+        working-directory: linien-client
+
+      - run: pip install .
+        working-directory: linien-gui
+
+      - run: pyinstaller pyinstaller.spec
+        working-directory: linien-gui
 
       - uses: actions/upload-artifact@v3
         with:
