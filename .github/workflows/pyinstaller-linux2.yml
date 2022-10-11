@@ -1,11 +1,11 @@
-name: Pyinstaller Windows (new)
+name: Pyinstaller Linux (new)
 
 on:
   workflow_dispatch:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
@@ -14,6 +14,8 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: "3.7"
+
+      - run: sudo apt-get install -y qttools5-dev-tools binutils
 
       - run: pip install pyinstaller
 
@@ -34,5 +36,5 @@ jobs:
 
       - uses: actions/upload-artifact@v3
         with:
-          name: linien-gui-windows
+          name: linien-gui-linux
           path: linien-gui/dist/*
