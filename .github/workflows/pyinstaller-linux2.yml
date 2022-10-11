@@ -3,6 +3,9 @@ name: Pyinstaller Linux (new)
 on:
   workflow_dispatch:
 
+env:
+  QT_DEBUG_PLUGINS: 1
+
 jobs:
   build:
     runs-on: ubuntu-latest
