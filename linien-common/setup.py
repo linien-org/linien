@@ -18,5 +18,10 @@ setup(
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
         "Operating System :: OS Independent",
     ],
-    install_requires=["numpy>=1.11.0", "scipy>=0.17.0", "plumbum>=1.6.9"],
+    install_requires=[
+        "numpy>=1.11.0",
+        "scipy>=0.17.0",
+        "plumbum>=1.6.9",
+        "setuptools_scm",
+    ],
 )

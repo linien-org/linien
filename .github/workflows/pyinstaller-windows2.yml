@@ -1,4 +1,4 @@
-name: Pyinstaller Windows
+name: Pyinstaller Windows (new)
 
 on:
   workflow_dispatch:
