@@ -1,6 +1,6 @@
 # -*- mode: python -*-
-# this spec file is for compiling a standalone version of linien using pyinstaller.
-# use `scripts/build_standalone_client.sh` for this purpose
+# This spec file is for compiling a standalone version of linien using pyinstaller.
+# Run with `pyinstaller pyinstaller.spec`
 
 block_cipher = None
 
@@ -11,7 +11,7 @@ a = Analysis(
     pathex=[],
     binaries=[],
     datas=datas,
-    hiddenimports=["linien_common", "PyQt5.sip", "superqt"],
+    hiddenimports=["PyQt5.sip", "superqt"],
     hookspath=[],
     runtime_hooks=[],
     excludes=[],
