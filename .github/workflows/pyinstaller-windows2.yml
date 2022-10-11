@@ -19,21 +19,15 @@ jobs:
 
       - name: Install linien-common
         working-directory: linien-common
-        run: |
-          pip install -r requirements.txt
-          pip install .
+        run: pip install .
 
       - name: Install linien-client
         working-directory: linien-client
-        run: |
-          pip install -r requirements.txt
-          pip install .
+        run: pip install .
 
       - name: Install linien-gui
         working-directory: linien-gui
-        run: |
-          pip install -r requirements.txt
-          pip install .
+        run: pip install .
 
       - run: pyinstaller pyinstaller.spec
         working-directory: linien-gui
