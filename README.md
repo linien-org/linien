@@ -42,56 +42,109 @@ Features
 Getting started: install Linien
 ---------------
 
-Linien runs on Windows and Linux. For most users the [standalone
-binaries](#standalone-binary) containing the graphical user interface
-are recommended.
-These binaries run on your lab PC and contain everything to get Linien running on your RedPitaya.
+Linien is written in a client-server architecture. The client is usually
+installed on your laptop or the lab's PC from which you control the server. The
+server is installed on a Redpitaya. There are 3 linien Pypi packages all
+together:
 
-If you want to use the python interface you should [install it using pip](#installation-with-pip).
+- `linien-server`: Runs on RedPitaya and reads the analog signals and runs the locking algorithms.
+- `linien-client`: A Python library to connect and control a running server.
+- `linien-gui`: The Python-based GUI that connects to a server and shows the signals and controls them in real time.
 
-### Standalone binary
+Using any compatible tool (`pip`/`pipx`/`conda`/`poetry`) you can install these
+pypi packages. For the server we don't recommend installing the pypi package as
+is on the red pitaya, but [use the GUI client to install the
+server](installing-the-server-via-the-client), or [installing it
+manually](Installing-the-server-manually).
+
+### Installing the client
+
+On your Lab PC, For most users the [standalone binaries](#client-standalone-binary)
+containing the graphical user interface is recommended.
+
+If you want to use the python interface you should [install it using pip](#client-installation-with-pip).
+
+#### Client standalone binary
 
 You can download standalone binaries for windows and linux on [the
 releases
 page](https://github.com/linien-org/linien/releases) (download the corresponding binary in the assets section of the latest version). On linux mark it as executable before executing:
+
+<!-- Perhaps we should drop support for the Linux executable? Linux users
+should be competent enough to install things via pip and manage them by their
+own -->
 
 ```bash
 chmod +x linien-linux*
 ./linien-linux*
 ```
 
-### Installation with pip
+#### Client installation with pip
 
-Linien is written for python 3 and can be installed using python\'s
-package manager pip:
-
-```bash
-pip3 install linien
-```
-
-On Linux, you may run the application by calling
+You can install `linien-client` and/or `linien-gui` with your favorite python package manager. All of the following instructions assume you use pip.
 
 ```bash
-linien
+pip3 install linien-gui # Will install the client as a dependency
 ```
 
-in a terminal.
-
+This should create a `linien` binary which launches the GUI.
 If this doesn\'t work, your local bin directory (e.g. \~/.local/bin) is
-probably missing in your PATH. In this case you can open Linien with
+probably missing in your `$PATH`. In this case you can open Linien with
 python:
 
 ```python
-from linien.gui.app import run_application
+from linien_client.gui.app import run_application
 run_application()
 ```
 
-In case you're only interested in the python client and don't want to install the graphical application, you may use the `linien-python-client`, a subset of the `linien` package:
+In case you're only interested in the python client and don't want to install the graphical application, you may use the `linien-client`, a subset of the `linien` package:
 
 ```bash
-pip3 install linien-python-client
+pip3 install linien-client
 ```
 
+### Installing the server via the client
+
+<!-- TODO: Make sure that's clear enough once the client is refactored -->
+
+The client is capable of installing the server by itself. To do that, hit the
+"Deploy" button. If you prefer to know what is going on under the hood, read
+how to [install the server manually](#installing-the-server-manually). If you
+suspect you have installation issues, that section may help you get through
+them.
+
+### Installing the server manually
+
+Every release includes a Debian package (`.deb` file) in the "assets" as it
+includes helper files to run the server in the background. To manually install
+the server, without the help of the client, [SSH to your
+redpitaya](https://redpitaya.readthedocs.io/en/latest/developerGuide/software/console/ssh/ssh.html),
+and run there:
+
+<!-- TODO: Create a debian package which will include mdio-tool and the systemd service file -->
+<!-- see https://stackoverflow.com/a/54836319/4935114 -->
+<!-- TODO: Make the "Deploy" button run these commands and show a success message -->
+```
+$ wget https://github.com/linien-org/linien-server/releases/latest/download/linien-server.deb
+$ dpkg -i linien-server.deb
+$ systemctl enable linien-server.service
+```
+
+#### Inspecting the server's log messages
+
+The server runs as a [systemd](https://systemd.io/) service, and therefor you
+can view the log messages it prints while it's running, by [SSHing to your
+redpitaya](https://redpitaya.readthedocs.io/en/latest/developerGuide/software/console/ssh/ssh.html) and running:
+
+```
+journalctl --unit=linien-server.service --follow
+```
+
+Or, to inspect the recent log messages and check if the server is running, run (on ssh):
+
+```
+systemctl status linien-server.service
+```
 
 Physical setup
 --------------
@@ -376,10 +429,7 @@ Information about ddevelopment can be found in the [wiki](https://github.com/lin
 FAQs
 ----
 
-### How to update to a new version?
-
-There's no need to install anything on RedPitaya manually.
-Run the new version of Linien on your computer and connect to RedPitaya. You will see a dialog that allows you to install the corresponding server component.
+<!-- How to update to a new version? --> 
 
 ### Can I run Linien and the RedPitaya web application / scpi interface at the same time?
 
