@@ -20,14 +20,16 @@
 class RPYCAuthenticationException(Exception):
     def __init__(self):
         super().__init__(
-            "Invalid credentials passed to LinienClient. Be sure to use the same username and password as when connecting via SSH."
+            "Invalid credentials passed to LinienClient. Be sure to use the same "
+            "username and password as when connecting via SSH."
         )
 
 
 class ServerNotRunningException(Exception):
     def __init__(self):
         super().__init__(
-            "The host was reached but no linien server is running. Use `autostart_server` if you want to change this."
+            "The host was reached but no linien server is running. Use "
+            "`autostart_server` if you want to change this."
         )
 
 
