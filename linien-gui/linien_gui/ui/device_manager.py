@@ -105,9 +105,10 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
         def server_not_installed():
             loading_dialog.hide()
             if not aborted:
-                display_question = """
-                    The server is not yet installed on the device. Should it be
-                    installed? (Requires internet connection on RedPitaya)"""
+                display_question = (
+                    "The server is not yet installed on the device. Should it be "
+                    "installed? (Requires internet connection on RedPitaya)"
+                )
                 if question_dialog(self, display_question, "Install server?"):
                     self.install_linien_server(device)
 
@@ -117,24 +118,24 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
             loading_dialog.hide()
             if not aborted:
                 if client_version != "dev":
-                    display_question = f"""
-                        Server version ({remote_version}) does not match the client
-                        ({client_version}) version. Should the corresponding server
-                        version be installed?
-                        """
+                    display_question = (
+                        f"Server version ({remote_version}) does not match the client "
+                        f"({client_version}) version. Should the corresponding server "
+                        f"version be installed?"
+                    )
                     if question_dialog(
                         self, display_question, "Install corresponding version?"
                     ):
                         self.install_linien_server(device)
                 else:
-                    display_error = """
-                        A production version is installed on the RedPitaya,
-                        but the client uses a development version. Stop the
-                        server and uninstall the version on the RedPitaya using\n
-                        linien_stop_server.sh;\n
-                        pip3 uninstall linien-server\n
-                        before trying it again.
-                        """
+                    display_error = (
+                        "A production version is installed on the RedPitaya, but the "
+                        "client uses a development version. Stop the server and "
+                        "uninstall the version on the RedPitaya using\n"
+                        "linien_stop_server.sh;\n"
+                        "pip3 uninstall linien-server\n"
+                        "before trying it again."
+                    )
                     error_dialog(self, display_error)
 
         self.connection_thread.invalid_server_version.connect(invalid_server_version)
@@ -142,11 +143,12 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
         def authentication_exception():
             loading_dialog.hide()
             if not aborted:
-                display_error = """
-                    Error at authentication.
-                    Check username and password (by default both are 'root')  and verify
-                    that you don't have any offending SSH keys in your known hosts file.
-                    """
+                display_error = (
+                    "Error at authentication.\n"
+                    "Check username and password (by default both are 'root')  and "
+                    "verify that you don't have any offending SSH keys in your known "
+                    "hosts file."
+                )
                 error_dialog(self, display_error)
 
         self.connection_thread.authentication_exception.connect(
@@ -156,10 +158,10 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
         def general_connection_error():
             loading_dialog.hide()
             if not aborted:
-                display_error = """
-                    Unable to connect to device. If you are connecting by hostname
-                    (i.e. `rp-xxxxxx.local`), try using IP address instead.
-                    """
+                display_error = (
+                    "Unable to connect to device. If you are connecting by hostname "
+                    "(i.e. `rp-xxxxxx.local`), try using IP address instead."
+                )
                 error_dialog(self, display_error)
 
         self.connection_thread.general_connection_error.connect(
@@ -175,13 +177,14 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
         self.connection_thread.exception.connect(exception)
 
         def ask_for_parameter_restore():
-            question = """
-                Linien on RedPitaya is running with different parameters than the ones
-                saved locally on this machine. Do you want to upload the local
-                parameters or keep the remote ones? Note that remote parameters are only
-                saved if Linien server was shut down properly, not when unplugging the
-                power plug. In this case, you should update your local parameters.
-                """
+            question = (
+                "Linien on RedPitaya is running with different parameters than the "
+                "ones saved locally on this machine. Do you want to upload the local "
+                "parameters or keep the remote ones? Note that remote parameters are "
+                "only saved if Linien server was shut down properly, not when "
+                "unplugging the power plug. In this case, you should update your local "
+                "parameters."
+            )
             should_restore = ask_for_parameter_restore_dialog(
                 self, question, "Restore parameters?"
             )
