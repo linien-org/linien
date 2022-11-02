@@ -20,8 +20,6 @@ import shutil
 import subprocess
 from pathlib import Path
 
-from linien_common.config import REMOTE_DEV_PATH
-
 
 def stop_nginx():
     subprocess.Popen(["systemctl", "stop", "redpitaya_nginx.service"]).wait()
