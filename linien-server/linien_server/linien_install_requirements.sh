@@ -11,29 +11,12 @@ while ! ping -c 1 -W 1 8.8.4.4; do
 done
 
 echo 'installing dependencies...'
+echo 'installing screen...'
 # the server is started in a screen session
 apt-get install screen
 
-cd /tmp
-mkdir linien
-
-echo 'installing pyrp3...'
-# install pyrp3
-cd /tmp/linien
-git clone https://github.com/linien-org/pyrp3.git
-cd pyrp3
-python3 setup.py install
-
-echo 'building monitor...'
-# build monitor shared library
-cd monitor
-make
-cp libmonitor.so /usr/lib/
-
-cd /tmp
-rm -R /tmp/linien
-
 # https://github.com/RedPitaya/RedPitaya/issues/205
+cd /tmp
 echo 'building ethernet blinking fix'
 git clone https://github.com/linien-org/mdio-tool.git
 cd mdio-tool

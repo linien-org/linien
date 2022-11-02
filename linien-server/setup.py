@@ -49,6 +49,7 @@ setup(
         "numpy>=1.11.0",
         "setuptools_scm>=5.0.2",
         "scipy>=0.17.0",
+        # "pyrp3>=1.1.0", # FIXME: Remove once pyrp3 is on PyPI
         "linien-common=={}".format(version),
     ],
     scripts=[
