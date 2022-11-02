@@ -79,8 +79,8 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
 
         if not devices:
             return
-
-        self.connect_to_device(devices[self.get_list_index()])
+        else:
+            self.connect_to_device(devices[self.get_list_index()])
 
     def connect_to_device(self, device):
         loading_dialog = LoadingDialog(self, device["host"])
@@ -88,12 +88,12 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
 
         aborted = {}
 
+        self.connection_thread = ConnectionThread(device)
+
         def was_aborted(*args):
             aborted["aborted"] = True
 
         loading_dialog.aborted.connect(was_aborted)
-
-        self.connection_thread = ConnectionThread(device)
 
         def client_connected(client):
             loading_dialog.hide()
@@ -102,7 +102,7 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
 
         self.connection_thread.client_connected.connect(client_connected)
 
-        def server_not_installed():
+        def handle_server_not_installed():
             loading_dialog.hide()
             if not aborted:
                 display_question = (
@@ -112,35 +112,30 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
                 if question_dialog(self, display_question, "Install server?"):
                     self.install_linien_server(device)
 
-        self.connection_thread.server_not_installed.connect(server_not_installed)
+        self.connection_thread.server_not_installed_exception.connect(
+            handle_server_not_installed
+        )
 
-        def invalid_server_version(remote_version, client_version):
+        def handle_invalid_server_version(
+            remote_version: str, client_version: str
+        ) -> None:
             loading_dialog.hide()
             if not aborted:
-                if client_version != "dev":
-                    display_question = (
-                        f"Server version ({remote_version}) does not match the client "
-                        f"({client_version}) version. Should the corresponding server "
-                        f"version be installed?"
-                    )
-                    if question_dialog(
-                        self, display_question, "Install corresponding version?"
-                    ):
-                        self.install_linien_server(device)
-                else:
-                    display_error = (
-                        "A production version is installed on the RedPitaya, but the "
-                        "client uses a development version. Stop the server and "
-                        "uninstall the version on the RedPitaya using\n"
-                        "linien_stop_server.sh;\n"
-                        "pip3 uninstall linien-server\n"
-                        "before trying it again."
-                    )
-                    error_dialog(self, display_error)
+                display_question = (
+                    f"Server version ({remote_version}) does not match the client "
+                    f"({client_version}) version. Should the corresponding server "
+                    f"version be installed?"
+                )
+                if question_dialog(
+                    self, display_question, "Install corresponding version?"
+                ):
+                    self.install_linien_server(device)
 
-        self.connection_thread.invalid_server_version.connect(invalid_server_version)
+        self.connection_thread.invalid_server_version_exception.connect(
+            handle_invalid_server_version
+        )
 
-        def authentication_exception():
+        def handle_authentication_exception():
             loading_dialog.hide()
             if not aborted:
                 display_error = (
@@ -152,10 +147,10 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
                 error_dialog(self, display_error)
 
         self.connection_thread.authentication_exception.connect(
-            authentication_exception
+            handle_authentication_exception
         )
 
-        def general_connection_error():
+        def handle_general_connection_error():
             loading_dialog.hide()
             if not aborted:
                 display_error = (
@@ -164,17 +159,17 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
                 )
                 error_dialog(self, display_error)
 
-        self.connection_thread.general_connection_error.connect(
-            general_connection_error
+        self.connection_thread.general_connection_exception.connect(
+            handle_general_connection_error
         )
 
-        def exception():
+        def handle_other_exception():
             loading_dialog.hide()
             if not aborted:
                 display_error = "Exception occured when connecting to the device."
                 error_dialog(self, display_error)
 
-        self.connection_thread.exception.connect(exception)
+        self.connection_thread.exception.connect(handle_other_exception)
 
         def ask_for_parameter_restore():
             question = (
@@ -194,11 +189,11 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
             ask_for_parameter_restore
         )
 
-        def connection_lost():
+        def handle_connection_lost():
             error_dialog(self, "Lost connection to the server!")
             self.app.close()
 
-        self.connection_thread.connection_lost.connect(connection_lost)
+        self.connection_thread.connection_lost.connect(handle_connection_lost)
 
         self.connection_thread.start()
 
@@ -300,10 +295,10 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
 
 class ConnectionThread(QThread):
     client_connected = pyqtSignal(object)
-    server_not_installed = pyqtSignal()
-    invalid_server_version = pyqtSignal(str, str)
+    server_not_installed_exception = pyqtSignal()
+    invalid_server_version_exception = pyqtSignal(str, str)
     authentication_exception = pyqtSignal()
-    general_connection_error = pyqtSignal()
+    general_connection_exception = pyqtSignal()
     exception = pyqtSignal()
     connection_lost = pyqtSignal()
     ask_for_parameter_restore = pyqtSignal()
@@ -331,16 +326,18 @@ class ConnectionThread(QThread):
             self.client_connected.emit(client)
 
         except ServerNotInstalledException:
-            return self.server_not_installed.emit()
+            return self.server_not_installed_exception.emit()
 
         except InvalidServerVersionException as e:
-            return self.invalid_server_version.emit(e.remote_version, e.client_version)
+            return self.invalid_server_version_exception.emit(
+                e.remote_version, e.client_version
+            )
 
         except RPYCAuthenticationException:
             return self.authentication_exception.emit()
 
         except GeneralConnectionErrorException:
-            return self.general_connection_error.emit()
+            return self.general_connection_exception.emit()
 
         except Exception:
             print_exc()
