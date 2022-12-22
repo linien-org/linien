@@ -35,25 +35,33 @@ def read_remote_version(conn: Connection) -> str:
         raise ServerNotInstalledException()
 
 
-def deploy_remote_server(host: str, user: str, password: str, port: int = 22):
+def start_remote_server(host: str, user: str, password: str, port: int = 22):
     with Connection(
         host, user=user, port=port, connect_kwargs={"password": password}
     ) as conn:
 
         local_version = linien_client.__version__
 
-        if "dev" in local_version:
-            # FIXME: just for testing
-            cmd = "ping 0 -c 3"
-            result = conn.run(cmd)
-            if result.ok:
-                print(f"Sucesfully executed '{result.command}'")
-
         remote_version = read_remote_version(conn)
-        print(f"Remote version: {remote_version}, local version: {local_version}")
 
         if local_version != remote_version:
-            raise InvalidServerVersionException(local_version, remote_version)
+            if "dev" in local_version:
+                print("Local version is dev version, skipping version check.")
+                print(
+                    f"Remote version: {remote_version}, local version: {local_version}"
+                )
+            else:
+                raise InvalidServerVersionException(local_version, remote_version)
 
         # start the server process
         conn.run("linien_start_server.sh")
+
+
+def install_remote_server(host: str, user: str, password: str, port: int = 22):
+    with Connection(
+        host, user=user, port=port, connect_kwargs={"password": password}
+    ) as conn:
+        # FIXME: just for testing
+        result = conn.run("ping 0 -c 3")
+        if result.ok:
+            print(f"Sucesfully executed '{result.command}'")

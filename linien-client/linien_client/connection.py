@@ -25,7 +25,7 @@ from typing import Callable
 
 import linien_client
 import rpyc
-from linien_client.deploy import deploy_remote_server
+from linien_client.deploy import start_remote_server
 from linien_client.exceptions import (
     GeneralConnectionErrorException,
     InvalidServerVersionException,
@@ -117,7 +117,7 @@ class LinienClient:
 
                 if i == 0:
                     print("Server is not running. Launching it!")
-                    deploy_remote_server(self.host, self.user, self.password)
+                    start_remote_server(self.host, self.user, self.password)
                     sleep(3)
                 else:
                     if i < 20:
