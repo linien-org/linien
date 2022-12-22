@@ -47,20 +47,19 @@ class ConnectionThread(QThread):
 
     def run(self):
         try:
-            client = LinienClient(
+            self.client = LinienClient(
                 host=self.device["host"],
                 user=self.device["username"],
                 password=self.device["password"],
                 port=self.device.get("port", DEFAULT_SERVER_PORT),
                 name=self.device.get("name", ""),
             )
-            self.client = client
             self.client.connect(
                 autostart_server=True,
                 use_parameter_cache=True,
                 call_on_error=self.on_connection_lost,
             )
-            self.client_connected.emit(client)
+            self.client_connected.emit(self.client)
 
         except ServerNotInstalledException:
             return self.server_not_installed_exception_raised.emit()
