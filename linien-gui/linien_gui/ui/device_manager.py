@@ -16,23 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-from traceback import print_exc
-
 import linien_gui
-from linien_client.connection import LinienClient
-from linien_client.exceptions import (
-    GeneralConnectionErrorException,
-    InvalidServerVersionException,
-    RPYCAuthenticationException,
-    ServerNotInstalledException,
-)
-from linien_common.config import DEFAULT_SERVER_PORT
-from linien_gui.config import (
-    get_saved_parameters,
-    load_device_data,
-    save_device_data,
-    save_parameter,
-)
+from linien_gui.config import load_device_data, save_device_data
+from linien_gui.connection_thread import ConnectionThread
 from linien_gui.dialogs import (
     LoadingDialog,
     ask_for_parameter_restore_dialog,
@@ -44,7 +30,6 @@ from linien_gui.ui.new_device_dialog import NewDeviceDialog
 from linien_gui.utils_gui import set_window_icon
 from linien_gui.widgets import CustomWidget
 from PyQt5 import QtCore, QtWidgets
-from PyQt5.QtCore import QThread, pyqtSignal
 
 
 class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
@@ -95,12 +80,11 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
 
         loading_dialog.aborted.connect(was_aborted)
 
-        def client_connected(client):
+        # Define slot functions to be connected ----------------------------------------
+        def on_client_connected(client):
             loading_dialog.hide()
             if not aborted:
                 self.app.client_connected(client)
-
-        self.connection_thread.client_connected.connect(client_connected)
 
         def handle_server_not_installed():
             loading_dialog.hide()
@@ -111,10 +95,6 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
                 )
                 if question_dialog(self, display_question, "Install server?"):
                     self.install_linien_server(device)
-
-        self.connection_thread.server_not_installed_exception_raised.connect(
-            handle_server_not_installed
-        )
 
         def handle_invalid_server_version(
             remote_version: str, client_version: str
@@ -131,10 +111,6 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
                 ):
                     self.install_linien_server(device)
 
-        self.connection_thread.invalid_server_version_exception_raised.connect(
-            handle_invalid_server_version
-        )
-
         def handle_authentication_exception():
             loading_dialog.hide()
             if not aborted:
@@ -146,10 +122,6 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
                 )
                 error_dialog(self, display_error)
 
-        self.connection_thread.authentication_exception_raised.connect(
-            handle_authentication_exception
-        )
-
         def handle_general_connection_error():
             loading_dialog.hide()
             if not aborted:
@@ -159,17 +131,11 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
                 )
                 error_dialog(self, display_error)
 
-        self.connection_thread.general_connection_exception_raised.connect(
-            handle_general_connection_error
-        )
-
         def handle_other_exception():
             loading_dialog.hide()
             if not aborted:
                 display_error = "Exception occured when connecting to the device."
                 error_dialog(self, display_error)
-
-        self.connection_thread.exception_raised.connect(handle_other_exception)
 
         def ask_for_parameter_restore():
             question = (
@@ -185,16 +151,32 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
             )
             self.connection_thread.answer_whether_to_restore_parameters(should_restore)
 
-        self.connection_thread.ask_for_parameter_restore.connect(
-            ask_for_parameter_restore
-        )
-
         def handle_connection_lost():
             error_dialog(self, "Lost connection to the server!")
             self.app.close()
 
+        # Connect slots to signals -----------------------------------------------------
+        self.connection_thread.client_connected.connect(on_client_connected)
+
+        self.connection_thread.server_not_installed_exception_raised.connect(
+            handle_server_not_installed
+        )
+        self.connection_thread.invalid_server_version_exception_raised.connect(
+            handle_invalid_server_version
+        )
+        self.connection_thread.authentication_exception_raised.connect(
+            handle_authentication_exception
+        )
+        self.connection_thread.general_connection_exception_raised.connect(
+            handle_general_connection_error
+        )
+        self.connection_thread.exception_raised.connect(handle_other_exception)
+        self.connection_thread.ask_for_parameter_restore.connect(
+            ask_for_parameter_restore
+        )
         self.connection_thread.connection_lost.connect(handle_connection_lost)
 
+        # Start the worker -------------------------------------------------------------
         self.connection_thread.start()
 
     def install_linien_server(self, device):
@@ -291,129 +273,3 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
             self.ids.moveDownButton,
         ]:
             btn.setEnabled(not disable_buttons)
-
-
-class ConnectionThread(QThread):
-    def __init__(self, device):
-        super().__init__()
-
-        self.device = device
-
-    client_connected = pyqtSignal(object)
-    server_not_installed_exception_raised = pyqtSignal()
-    invalid_server_version_exception_raised = pyqtSignal(str, str)
-    authentication_exception_raised = pyqtSignal()
-    general_connection_exception_raised = pyqtSignal()
-    exception_raised = pyqtSignal()
-    connection_lost = pyqtSignal()
-    ask_for_parameter_restore = pyqtSignal()
-
-    def run(self):
-        try:
-            client = LinienClient(
-                host=self.device["host"],
-                user=self.device["username"],
-                password=self.device["password"],
-                port=self.device.get("port", DEFAULT_SERVER_PORT),
-                name=self.device.get("name", ""),
-            )
-            self.client = client
-            self.client.connect(
-                autostart_server=True,
-                use_parameter_cache=True,
-                call_on_error=self.on_connection_lost,
-            )
-            self.client_connected.emit(client)
-
-        except ServerNotInstalledException:
-            return self.server_not_installed_exception_raised.emit()
-
-        except InvalidServerVersionException as e:
-            return self.invalid_server_version_exception_raised.emit(
-                e.remote_version, e.client_version
-            )
-
-        except RPYCAuthenticationException:
-            return self.authentication_exception_raised.emit()
-
-        except GeneralConnectionErrorException:
-            return self.general_connection_exception_raised.emit()
-
-        except Exception:
-            print_exc()
-            return self.exception_raised.emit()
-
-        # now, we are connected to the server. Check whether we have cached settings for
-        # this server. If yes, check whether they match with what is currentlyrunning.
-        # If there is a mismatch, ask the user whether the settings should be restored.
-
-        parameters_differ = self.restore_parameters(dry_run=True)
-        if parameters_differ:
-            self.ask_for_parameter_restore.emit()
-        else:
-            # if parameters don't differ, we can start monitoring remote parameter
-            # changes and write them to disk. We don't do this if parameters differ
-            # because we don't want to override our local settings withthe remote one
-            # --> we wait until user has answered whether local parameters or remote
-            # ones should be used.
-            self.continuously_write_parameters_to_disk()
-
-    def on_connection_lost(self):
-        self.connection_lost.emit()
-
-    def answer_whether_to_restore_parameters(self, should_restore):
-        if should_restore:
-            self.restore_parameters(dry_run=False)
-
-        self.continuously_write_parameters_to_disk()
-
-    def restore_parameters(self, dry_run=False):
-        """
-        Reads settings for a server that were cached locally. Sends them to the server.
-        If `dry_run` is...
-
-            * `True`, this function returns a boolean indicating whether the
-              local parameters differ from the ones on the server
-            * `False`, the local parameters are uploaded to the server
-        """
-        device_key = self.device["key"]
-        params = get_saved_parameters(device_key)
-        print("restoring parameters")
-
-        differences = False
-
-        for k, v in params.items():
-            if hasattr(self.client.parameters, k):
-                param = getattr(self.client.parameters, k)
-                if param.value != v:
-                    if dry_run:
-                        print("parameter", k, "differs")
-                        differences = True
-                        break
-                    else:
-                        param.value = v
-            else:
-                # This may happen if the settings were written with a different version
-                # of linien.
-                print(f"Unable to restore parameter {k}. Delete the cached value.")
-                save_parameter(device_key, k, None, delete=True)
-
-        if not dry_run:
-            self.client.control.write_registers()
-
-        return differences
-
-    def continuously_write_parameters_to_disk(self):
-        """
-        Listens for changes of some parameters and permanently saves their values on the
-        client's disk. This data can be used to restore the status later, if the client
-        tries to connect to the server but it doesn't run anymore.
-        """
-        params = self.client.parameters.remote.exposed_get_restorable_parameters()
-
-        for param in params:
-
-            def on_change(value, param=param):
-                save_parameter(self.device["key"], param, value)
-
-            getattr(self.client.parameters, param).on_change(on_change)
