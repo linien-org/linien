@@ -48,7 +48,9 @@ class SSHCommandOutputWidget(QListWidget):
         QtCore.QTimer.singleShot(100, lambda: self.run(thread))
 
 
-def deploy_server_and_show_output(parent: QWidget, device: dict, callback: Callable):
+def show_installation_progress_widget(
+    parent: QWidget, device: dict, callback: Callable
+):
 
     # Define and open dialog window
     window = QDialog(parent)
