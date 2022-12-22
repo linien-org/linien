@@ -112,7 +112,7 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
                 if question_dialog(self, display_question, "Install server?"):
                     self.install_linien_server(device)
 
-        self.connection_thread.server_not_installed_exception.connect(
+        self.connection_thread.server_not_installed_exception_raised.connect(
             handle_server_not_installed
         )
 
@@ -131,7 +131,7 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
                 ):
                     self.install_linien_server(device)
 
-        self.connection_thread.invalid_server_version_exception.connect(
+        self.connection_thread.invalid_server_version_exception_raised.connect(
             handle_invalid_server_version
         )
 
@@ -146,7 +146,7 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
                 )
                 error_dialog(self, display_error)
 
-        self.connection_thread.authentication_exception.connect(
+        self.connection_thread.authentication_exception_raised.connect(
             handle_authentication_exception
         )
 
@@ -159,7 +159,7 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
                 )
                 error_dialog(self, display_error)
 
-        self.connection_thread.general_connection_exception.connect(
+        self.connection_thread.general_connection_exception_raised.connect(
             handle_general_connection_error
         )
 
@@ -169,7 +169,7 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
                 display_error = "Exception occured when connecting to the device."
                 error_dialog(self, display_error)
 
-        self.connection_thread.exception.connect(handle_other_exception)
+        self.connection_thread.exception_raised.connect(handle_other_exception)
 
         def ask_for_parameter_restore():
             question = (
@@ -294,19 +294,19 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
 
 
 class ConnectionThread(QThread):
-    client_connected = pyqtSignal(object)
-    server_not_installed_exception = pyqtSignal()
-    invalid_server_version_exception = pyqtSignal(str, str)
-    authentication_exception = pyqtSignal()
-    general_connection_exception = pyqtSignal()
-    exception = pyqtSignal()
-    connection_lost = pyqtSignal()
-    ask_for_parameter_restore = pyqtSignal()
-
     def __init__(self, device):
         super().__init__()
 
         self.device = device
+
+    client_connected = pyqtSignal(object)
+    server_not_installed_exception_raised = pyqtSignal()
+    invalid_server_version_exception_raised = pyqtSignal(str, str)
+    authentication_exception_raised = pyqtSignal()
+    general_connection_exception_raised = pyqtSignal()
+    exception_raised = pyqtSignal()
+    connection_lost = pyqtSignal()
+    ask_for_parameter_restore = pyqtSignal()
 
     def run(self):
         try:
@@ -326,22 +326,22 @@ class ConnectionThread(QThread):
             self.client_connected.emit(client)
 
         except ServerNotInstalledException:
-            return self.server_not_installed_exception.emit()
+            return self.server_not_installed_exception_raised.emit()
 
         except InvalidServerVersionException as e:
-            return self.invalid_server_version_exception.emit(
+            return self.invalid_server_version_exception_raised.emit(
                 e.remote_version, e.client_version
             )
 
         except RPYCAuthenticationException:
-            return self.authentication_exception.emit()
+            return self.authentication_exception_raised.emit()
 
         except GeneralConnectionErrorException:
-            return self.general_connection_exception.emit()
+            return self.general_connection_exception_raised.emit()
 
         except Exception:
             print_exc()
-            return self.exception.emit()
+            return self.exception_raised.emit()
 
         # now, we are connected to the server. Check whether we have cached settings for
         # this server. If yes, check whether they match with what is currentlyrunning.
