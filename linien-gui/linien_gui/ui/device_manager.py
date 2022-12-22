@@ -22,8 +22,8 @@ from linien_gui.dialogs import (
     LoadingDialog,
     ask_for_parameter_restore_dialog,
     error_dialog,
-    install_server_and_show_output,
     question_dialog,
+    show_installation_progress_widget,
 )
 from linien_gui.threads import ConnectionThread
 from linien_gui.ui.new_device_dialog import NewDeviceDialog
@@ -94,7 +94,7 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
                     "installed? (Requires internet connection on RedPitaya)"
                 )
                 if question_dialog(self, display_question, "Install server?"):
-                    install_server_and_show_output(
+                    show_installation_progress_widget(
                         self, device, self.connect_to_device(device)
                     )
 
@@ -111,7 +111,7 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
                 if question_dialog(
                     self, display_question, "Install corresponding version?"
                 ):
-                    install_server_and_show_output(
+                    show_installation_progress_widget(
                         self, device, self.connect_to_device(device)
                     )
 
