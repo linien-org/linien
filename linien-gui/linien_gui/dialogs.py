@@ -15,37 +15,46 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-
+from time import sleep
 from typing import Callable
 
-from PyQt5.QtCore import pyqtSignal
+from linien_gui.threads import RemoteServerInstallationThread
+from PyQt5.QtCore import QThread, pyqtSignal
 from PyQt5.QtWidgets import QDialog, QListWidget, QMessageBox, QVBoxLayout, QWidget
 from pyqtgraph import QtCore
 
 
 class SSHCommandOutputWidget(QListWidget):
-    command_ended = pyqtSignal()
-
-    def __init__(self, *args):
-        super().__init__(*args)
+    def __init__(self, parent: QWidget):
+        super().__init__(parent)
         self.setSelectionMode(self.NoSelection)
 
-    def show_stdout(self):
-        # FIXME: Redirect stdout and stderr to the widget.
-        # self.addItem()
-        # self.scrollToBottom()
-        return
+    command_ended = pyqtSignal()
+
+    def run(self, thread: QThread):
+        thread.start()
+        self.read_output_and_update_widget(thread)
         self.command_ended.emit()
 
+    def read_output_and_update_widget(self, thread: QThread):
+        if thread.isFinished() and thread.out_stream.empty:
+            self.addItem("Finished. Close window to continue.")
+            return
+        else:
+            while not thread.out_stream.empty():
+                self.addItem(thread.out_stream.read().rstrip())
+                self.scrollToBottom()
+        # update widget every 100 ms
+        QtCore.QTimer.singleShot(100, lambda: self.run(thread))
 
-def deploy_server_and_show_output(
-    parent: QWidget, host: str, user: str, password: str, callback: Callable
-):
+
+def deploy_server_and_show_output(parent: QWidget, device: dict, callback: Callable):
+
+    # Define and open dialog window
     window = QDialog(parent)
     window.setWindowTitle("Deploying Linien Server")
     window.resize(800, 600)
     window_layout = QVBoxLayout(window)
-
     widget = SSHCommandOutputWidget(parent)
     window_layout.addWidget(widget)
     window.setLayout(window_layout)
@@ -53,12 +62,18 @@ def deploy_server_and_show_output(
     window.setWindowModality(QtCore.Qt.WindowModal)
     window.show()
 
+    # Define what happens after the command has finished
     def after_command():
+        # FIXME: This is a hack to make sure the window is shown for a little while
+        sleep(3)
         window.hide()
         callback()
 
     widget.command_ended.connect(after_command)
-    widget.show_stdout()
+
+    # Create and start thread
+    thread = RemoteServerInstallationThread(device)
+    widget.run(thread)
 
     return window
 

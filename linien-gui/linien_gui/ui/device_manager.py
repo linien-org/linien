@@ -18,14 +18,14 @@
 
 import linien_gui
 from linien_gui.config import load_device_data, save_device_data
-from linien_gui.connection_thread import ConnectionThread
 from linien_gui.dialogs import (
     LoadingDialog,
     ask_for_parameter_restore_dialog,
-    deploy_server_and_show_output,
     error_dialog,
+    install_server_and_show_output,
     question_dialog,
 )
+from linien_gui.threads import ConnectionThread
 from linien_gui.ui.new_device_dialog import NewDeviceDialog
 from linien_gui.utils_gui import set_window_icon
 from linien_gui.widgets import CustomWidget
@@ -94,7 +94,9 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
                     "installed? (Requires internet connection on RedPitaya)"
                 )
                 if question_dialog(self, display_question, "Install server?"):
-                    self.install_linien_server(device)
+                    install_server_and_show_output(
+                        self, device, self.connect_to_device(device)
+                    )
 
         def handle_invalid_server_version(
             remote_version: str, client_version: str
@@ -109,7 +111,9 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
                 if question_dialog(
                     self, display_question, "Install corresponding version?"
                 ):
-                    self.install_linien_server(device)
+                    install_server_and_show_output(
+                        self, device, self.connect_to_device(device)
+                    )
 
         def handle_authentication_exception():
             loading_dialog.hide()
@@ -178,15 +182,6 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
 
         # Start the worker -------------------------------------------------------------
         self.connection_thread.start()
-
-    def install_linien_server(self, device):
-        deploy_server_and_show_output(
-            self,
-            device["host"],
-            device["username"],
-            device["password"],
-            lambda: self.connect_to_device(device),
-        )
 
     def new_device(self):
         self.dialog = NewDeviceDialog()

@@ -16,9 +16,11 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
+from queue import Queue
 from traceback import print_exc
 
 from linien_client.connection import LinienClient
+from linien_client.deploy import install_remote_server
 from linien_client.exceptions import (
     GeneralConnectionErrorException,
     InvalidServerVersionException,
@@ -30,10 +32,42 @@ from linien_gui.config import get_saved_parameters, save_parameter
 from PyQt5.QtCore import QThread, pyqtSignal
 
 
+class FileLikeQueue(Queue):
+    """
+    A queue with the interface of a file-like object used to redirect output stream of
+    SSH calls to the GUI.
+    """
+
+    def write(self, data):
+        self.put(data)
+
+    def read(self):
+        return self.get()
+
+    def flush(self):
+        pass
+
+
+class RemoteServerInstallationThread(QThread):
+    def __init__(self, device):
+        """A thread that installs the linien server on a remote machine."""
+        super().__init__()
+        self.device = device
+
+    out_stream = FileLikeQueue()
+
+    def run(self):
+        _ = install_remote_server(
+            host=self.device["host"],
+            user=self.device["user"],
+            password=self.device["password"],
+            out_stream=self.out_stream,
+        )
+
+
 class ConnectionThread(QThread):
     def __init__(self, device):
         super().__init__()
-
         self.device = device
 
     client_connected = pyqtSignal(object)
