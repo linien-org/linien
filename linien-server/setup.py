@@ -39,6 +39,7 @@ setup(
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
         "Operating System :: OS Independent",
     ],
+    entry_points={"console_scripts": ["linien-server=linien_server.server:run_server"]},
     install_requires=[
         "click>=7.1.2",
         "cma>=3.0.3",
@@ -49,7 +50,6 @@ setup(
         "linien-common=={}".format(version),
     ],
     scripts=[
-        "linien_server/server.py",
         "linien_server/linien_start_server.sh",
         "linien_server/linien_stop_server.sh",
         "linien_server/linien_install_requirements.sh",
