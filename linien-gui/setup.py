@@ -47,12 +47,8 @@ setup(
     install_requires=[
         "appdirs>=1.4.4",
         "click>=7.1.2",
-        "numpy>=1.19.1",
-        "plumbum>=1.6.9",
         "pyqtgraph>=0.10.0",
         "PyQt5>=5.12.0",
-        "rpyc>=4.0,<5.0",
-        "scipy>=1.4.1",
         "superqt>=0.2.3",
         "linien_client=={}".format(version),
     ],

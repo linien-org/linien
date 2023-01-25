@@ -19,9 +19,7 @@ setup(
         "Operating System :: OS Independent",
     ],
     install_requires=[
-        "numpy>=1.11.0",
-        "scipy>=0.17.0",
         "plumbum>=1.6.9",
-        "setuptools_scm",
+        "setuptools_scm>=5.0.2",
     ],
 )

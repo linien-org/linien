@@ -40,16 +40,15 @@ setup(
         "Operating System :: OS Independent",
     ],
     install_requires=[
-        "rpyc>=4.0,<5.0",
-        "myhdl>=0.11",
         "click>=7.1.2",
         "cma>=3.0.3",
+        "myhdl>=0.11",
+        "numpy>=1.11.0",
         "plumbum>=1.6.9",
         "pylpsd>=0.1.4",
-        "numpy>=1.11.0",
-        "setuptools_scm>=5.0.2",
+        # "pyrp3>=1.1.0", # FIXME: Enable once pyrp3 is on PyPI
+        "rpyc>=4.0,<5.0",
         "scipy>=0.17.0",
-        # "pyrp3>=1.1.0", # FIXME: Remove once pyrp3 is on PyPI
         "linien-common=={}".format(version),
     ],
     scripts=[
