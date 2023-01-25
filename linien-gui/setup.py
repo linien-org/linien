@@ -43,7 +43,7 @@ setup(
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
         "Operating System :: OS Independent",
     ],
-    entry_points={"console_scripts": ["linien=linien.gui.app:run_application"]},
+    entry_points={"console_scripts": ["linien=linien_gui.app:run_application"]},
     install_requires=[
         "appdirs>=1.4.4",
         "click>=7.1.2",
