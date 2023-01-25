@@ -1,7 +1,0 @@
-fabric==2.7.0
-numpy==1.21.0
-patchwork==1.0.1
-plumbum==1.6.9
-rpyc==4.1.5
-setuptools_scm==7.0.5
-scipy==1.4.1
