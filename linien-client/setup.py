@@ -49,7 +49,6 @@ setup(
         "patchwork>=1.0.1",
         "rpyc>=4.0,<5.0",
         "scipy>=1.4.1",
-        "setuptools_scm>0.5.2",
         "linien-common=={}".format(version),
     ],
 )

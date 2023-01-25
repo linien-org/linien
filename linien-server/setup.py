@@ -43,12 +43,9 @@ setup(
         "click>=7.1.2",
         "cma>=3.0.3",
         "myhdl>=0.11",
-        "numpy>=1.11.0",
-        "plumbum>=1.6.9",
         "pylpsd>=0.1.4",
         # "pyrp3>=1.1.0", # FIXME: Enable once pyrp3 is on PyPI
         "rpyc>=4.0,<5.0",
-        "scipy>=0.17.0",
         "linien-common=={}".format(version),
     ],
     scripts=[
