@@ -265,7 +265,6 @@ def convert_channel_mixing_value(value):
 def combine_error_signal(
     error_signals, dual_channel, channel_mixing, combined_offset, chain_factor_width=8
 ):
-
     if not dual_channel:
         signal = error_signals[0]
     else:

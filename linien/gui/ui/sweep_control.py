@@ -100,7 +100,6 @@ class SweepSlider(superqt.QDoubleRangeSlider, CustomWidget):
         super().__init__(*args, **kwargs)
 
     def init(self):
-
         # set control boundaries
         self.setMinimum(-1.0)
         self.setMaximum(1.0)
