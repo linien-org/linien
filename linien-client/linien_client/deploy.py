@@ -42,18 +42,12 @@ def start_remote_server(host: str, user: str, password: str, port: int = 22):
         host, user=user, port=port, connect_kwargs={"password": password}
     ) as conn:
 
-        local_version = linien_client.__version__
+        local_version = linien_client.__version__.split("+")[0]
 
-        remote_version = read_remote_version(conn)
+        remote_version = read_remote_version(conn).split("+")[0]
 
         if local_version != remote_version:
-            if "dev" in local_version:
-                print("Local version is dev version, skipping version check.")
-                print(
-                    f"Remote version: {remote_version}, local version: {local_version}"
-                )
-            else:
-                raise InvalidServerVersionException(local_version, remote_version)
+            raise InvalidServerVersionException(local_version, remote_version)
 
         # start the server process
         conn.run("linien_start_server.sh")
@@ -65,9 +59,9 @@ def install_remote_server(
     with Connection(
         host, user=user, port=port, connect_kwargs={"password": password}
     ) as conn:
-        cmds = ["ping 0 -c 3"]
+        cmds = ["ping 8.8.8.8 -c 3"]
         for cmd in cmds:
-            out_stream.write(f">>{cmd}")
+            out_stream.write(f">> {cmd}\n")
             result = conn.run(cmd, out_stream=out_stream)
         if result.ok:
             print(f"Sucesfully executed '{result.command}'")

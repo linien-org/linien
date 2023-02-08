@@ -138,8 +138,8 @@ class LinienClient:
             raise GeneralConnectionErrorException()
 
         # now check that the remote version is the same as ours
-        remote_version = self.connection.root.exposed_get_server_version()
-        client_version = linien_client.__version__
+        remote_version = self.connection.root.exposed_get_server_version().split("+")[0]
+        client_version = linien_client.__version__.split("+")[0]
 
         if remote_version != client_version:
             raise InvalidServerVersionException(client_version, remote_version)
