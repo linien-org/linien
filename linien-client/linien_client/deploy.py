@@ -59,8 +59,9 @@ def install_remote_server(
     with Connection(
         host, user=user, port=port, connect_kwargs={"password": password}
     ) as conn:
+        local_version = linien_client.__version__.split("+")[0]
         cmds = [
-            "pip3 install linien-server==0.5.3 --no-cache-dir",
+            f"pip3 install linien-server=={local_version} --no-cache-dir",
             "linien_install_requirements.sh",
         ]
         for cmd in cmds:
