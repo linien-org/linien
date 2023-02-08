@@ -59,7 +59,7 @@ class RemoteServerInstallationThread(QThread):
     def run(self):
         _ = install_remote_server(
             host=self.device["host"],
-            user=self.device["user"],
+            user=self.device["username"],
             password=self.device["password"],
             out_stream=self.out_stream,
         )
