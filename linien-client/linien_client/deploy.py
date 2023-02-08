@@ -59,7 +59,10 @@ def install_remote_server(
     with Connection(
         host, user=user, port=port, connect_kwargs={"password": password}
     ) as conn:
-        cmds = ["ping 8.8.8.8 -c 3"]
+        cmds = [
+            "pip3 install linien-server==0.5.3 --no-cache-dir",
+            "linien_install_requirements.sh",
+        ]
         for cmd in cmds:
             out_stream.write(f">> {cmd}\n")
             result = conn.run(cmd, out_stream=out_stream)
