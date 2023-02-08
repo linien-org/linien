@@ -57,7 +57,7 @@ class RemoteServerInstallationThread(QThread):
     out_stream = FileLikeQueue()
 
     def run(self):
-        _ = install_remote_server(
+        install_remote_server(
             host=self.device["host"],
             user=self.device["username"],
             password=self.device["password"],

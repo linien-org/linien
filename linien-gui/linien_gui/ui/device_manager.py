@@ -95,7 +95,9 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
                 )
                 if question_dialog(self, display_question, "Install server?"):
                     show_installation_progress_widget(
-                        self, device, self.connect_to_device(device)
+                        parent=self,
+                        device=device,
+                        callback=lambda: self.connect_to_device(device),
                     )
 
         def handle_invalid_server_version(
@@ -112,7 +114,9 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
                     self, display_question, "Install corresponding version?"
                 ):
                     show_installation_progress_widget(
-                        self, device, self.connect_to_device(device)
+                        parent=self,
+                        device=device,
+                        callback=lambda: self.connect_to_device(device),
                     )
 
         def handle_authentication_exception():
