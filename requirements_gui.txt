@@ -3,7 +3,7 @@ appdirs==1.4.4
 bcrypt==3.2.0
 cffi==1.14.2
 click==8.1.2
-cryptography==3.3.2
+cryptography==39.0.1
 future==0.18.2
 numpy==1.21.0
 paramiko==2.10.1
