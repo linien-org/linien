@@ -19,7 +19,8 @@
 from setuptools import find_packages, setup
 from setuptools_scm import get_version
 
-version = get_version(root="..", relative_to=__file__)
+# remove git hash and dirty tag
+version = get_version(root="..", relative_to=__file__).split("+")[0]
 
 setup(
     name="linien-server",
