@@ -25,27 +25,29 @@ from pyqtgraph import QtCore
 
 
 class SSHCommandOutputWidget(QListWidget):
+
+    command_ended = pyqtSignal()
+
     def __init__(self, parent: QWidget):
         super().__init__(parent)
         self.setSelectionMode(self.NoSelection)
 
-    command_ended = pyqtSignal()
-
     def run(self, thread: QThread):
-        thread.start()
-        self.read_output_and_update_widget(thread)
-        self.command_ended.emit()
+        self.thread = thread
+        self.thread.start()
+        self.read_output_and_update_widget()
 
-    def read_output_and_update_widget(self, thread: QThread):
-        if thread.isFinished() and thread.out_stream.empty:
-            self.addItem("Finished. Close window to continue.")
-            return
+    def read_output_and_update_widget(self):
+        if self.thread.isFinished() and self.thread.out_stream.empty():
+            self.addItem("Finished.")
+            self.scrollToBottom()
+            # Show widget for some time before proceeding
+            QtCore.QTimer.singleShot(3000, self.command_ended.emit)
         else:
-            while not thread.out_stream.empty():
-                self.addItem(thread.out_stream.read().rstrip())
-                self.scrollToBottom()
-        # update widget every 100 ms
-        QtCore.QTimer.singleShot(100, lambda: self.run(thread))
+            self.addItem(self.thread.out_stream.read().rstrip())
+            self.scrollToBottom()
+            # update widget every 100 ms
+            QtCore.QTimer.singleShot(100, self.read_output_and_update_widget)
 
 
 def show_installation_progress_widget(
@@ -64,16 +66,9 @@ def show_installation_progress_widget(
     window.setWindowModality(QtCore.Qt.WindowModal)
     window.show()
 
-    # Define what happens after the command has finished
-    def after_command():
-        # FIXME: This is a hack to make sure the window is shown for a little while
-        sleep(3)
-        window.hide()
-        callback()
+    widget.command_ended.connect(callback)
+    widget.command_ended.connect(window.close)
 
-    widget.command_ended.connect(after_command)
-
-    # Create and start thread
     thread = RemoteServerInstallationThread(device)
     widget.run(thread)
 
