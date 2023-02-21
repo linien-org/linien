@@ -46,7 +46,7 @@ setup(
         "pylpsd>=0.1.4",
         # "pyrp3>=1.1.0", # FIXME: Enable once pyrp3 is on PyPI
         "rpyc>=4.0,<5.0",
-        f"linien-common=={version}",
+        "linien-common=={}".format(version),
     ],
     scripts=[
         "linien_server/linien_start_server.sh",
