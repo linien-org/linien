@@ -1,46 +1,47 @@
 name: Pyinstaller Linux
 
 on:
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
-    inputs:
-      version_name:
-        description: "Version name"
-        required: true
 
 env:
-  INPUT_VERSION_NAME: ${{ github.event.inputs.version_name }}
+  QT_DEBUG_PLUGINS: 1
+  DISPLAY: ":99"
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
   build:
-    # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
-      - name: create VERSION file
-        run: echo "$INPUT_VERSION_NAME" > linien/VERSION
-
-      # NOTE: we hardcode the version of requirements here because the new pip
-      #       resolver otherwise takes ages
-      # ANOTHER NOTE: scipy is fixed to 1.4.1 because of problems with pyinstaller
-      - name: create requirements file
-        run: cp requirements_gui.txt requirements.txt
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
 
       - name: Install dependencies
-        run: sudo apt-get install -y qttools5-dev-tools binutils
+        run: sudo apt-get install -y qt5-default qttools5-dev-tools binutils libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-xinerama0 libxcb-xfixes0 libegl1-mesa
 
-      - name: PyInstaller Linux
-        uses: JackMcKew/pyinstaller-action-linux@main
-        with:
-          path: .
+      - run: pip install pyinstaller
 
-      - uses: actions/upload-artifact@v2
+      - name: Install linien-common
+        working-directory: linien-common
+        run: pip install .
+
+      - name: Install linien-client
+        working-directory: linien-client
+        run: pip install .
+
+      - name: Install linien-gui
+        working-directory: linien-gui
+        run: pip install .
+
+      - run: pyinstaller pyinstaller.spec
+        working-directory: linien-gui
+
+      - uses: actions/upload-artifact@v3
         with:
-          name: my-exe
-          path: dist/linux
+          name: linien-gui-linux
+          path: linien-gui/dist/*
