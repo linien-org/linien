@@ -25,7 +25,6 @@ from pyqtgraph import QtCore
 
 
 class SSHCommandOutputWidget(QListWidget):
-
     command_ended = pyqtSignal()
 
     def __init__(self, parent: QWidget):
@@ -53,7 +52,6 @@ class SSHCommandOutputWidget(QListWidget):
 def show_installation_progress_widget(
     parent: QWidget, device: dict, callback: Callable
 ):
-
     # Define and open dialog window
     window = QDialog(parent)
     window.setWindowTitle("Deploying Linien Server")

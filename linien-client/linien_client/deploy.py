@@ -41,7 +41,6 @@ def start_remote_server(host: str, user: str, password: str, port: int = 22):
     with Connection(
         host, user=user, port=port, connect_kwargs={"password": password}
     ) as conn:
-
         local_version = linien_client.__version__.split("+")[0]
         remote_version = read_remote_version(conn).split("+")[0]
 
