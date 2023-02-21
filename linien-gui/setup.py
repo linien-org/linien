@@ -46,7 +46,7 @@ setup(
         "pyqtgraph>=0.10.0",
         "PyQt5>=5.12.0",
         "superqt>=0.2.3",
-        f"linien_client=={version}",
+        "linien_client=={}".format(version),
     ],
     package_data={
         # IMPORTANT: any changes have to be made in pyinstaller.spec, too
