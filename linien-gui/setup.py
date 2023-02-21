@@ -17,18 +17,13 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 from setuptools import find_packages, setup
-from setuptools_scm import get_version
 
-version = get_version(root="..", relative_to=__file__).split("+")[0]
+version = "0.6.0.dev0"
+
 
 setup(
     name="linien-gui",
-    use_scm_version={
-        "write_to": "linien-gui/linien_gui/_version.py",
-        "root": "..",
-        "relative_to": __file__,
-    },
-    setup_requires=["setuptools_scm"],
+    version=version,
     author="Benjamin Wiegand",
     author_email="highwaychile@posteo.de",
     maintainer="Bastian Leykauf",
@@ -51,11 +46,10 @@ setup(
         "pyqtgraph>=0.10.0",
         "PyQt5>=5.12.0",
         "superqt>=0.2.3",
-        "linien_client=={}".format(version),
+        f"linien_client=={version}",
     ],
     package_data={
         # IMPORTANT: any changes have to be made in pyinstaller.spec, too
-        # (for the standalone installer)
         "": ["*.ui", "*.ico"]
     },
 )

@@ -43,5 +43,3 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
-
-**/_version.py

@@ -17,14 +17,12 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 from setuptools import find_packages, setup
-from setuptools_scm import get_version
 
-version = get_version(root="..", relative_to=__file__).split("+")[0]
+version = "0.6.0.dev0"
 
 setup(
     name="linien-server",
-    use_scm_version={"root": "..", "relative_to": __file__},
-    setup_requires=["setuptools_scm"],
+    version=version,
     author="Benjamin Wiegand",
     author_email="highwaychile@posteo.de",
     maintainer="Bastian Leykauf",
@@ -48,7 +46,7 @@ setup(
         "pylpsd>=0.1.4",
         # "pyrp3>=1.1.0", # FIXME: Enable once pyrp3 is on PyPI
         "rpyc>=4.0,<5.0",
-        "linien-common=={}".format(version),
+        f"linien-common=={version}",
     ],
     scripts=[
         "linien_server/linien_start_server.sh",

@@ -2,8 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name="linien-common",
-    use_scm_version={"root": "..", "relative_to": __file__},
-    setup_requires=["setuptools_scm"],
+    version="0.6.0.dev0",
     author="Benjamin Wiegand",
     author_email="highwaychile@posteo.de",
     maintainer="Bastian Leykauf",
@@ -22,6 +21,6 @@ setup(
     install_requires=[
         "numpy>=1.11.0",
         "scipy>=0.17.0",
-        "setuptools_scm>=5.0.2",
+        "importlib_metadata>=2.1.3",
     ],
 )

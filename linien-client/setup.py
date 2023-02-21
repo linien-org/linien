@@ -17,23 +17,17 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 from setuptools import find_packages, setup
-from setuptools_scm import get_version
 
-version = get_version(root="..", relative_to=__file__).split("+")[0]
+version = "0.6.0.dev0"
 
 setup(
     name="linien-client",
-    use_scm_version={
-        "write_to": "linien-client/linien_client/_version.py",
-        "root": "..",
-        "relative_to": __file__,
-    },
-    setup_requires=["setuptools_scm"],
+    version=version,
     author="Benjamin Wiegand",
     author_email="highwaychile@posteo.de",
     maintainer="Bastian Leykauf",
     maintainer_email="leykauf@physik.hu-berlin.de",
-    description="Python client for linien spectroscopy lock",
+    description="Client for linien spectroscopy lock",
     long_description="Have a look at the 'linien' package for installation instructions.",  # noqa: E501
     long_description_content_type="text/x-rst",
     url="https://github.com/linien-org/linien/",
@@ -50,6 +44,6 @@ setup(
         "patchwork>=1.0.1",
         "rpyc>=4.0,<5.0",
         "scipy>=1.4.1",
-        "linien-common=={}".format(version),
+        f"linien-common=={version}",
     ],
 )
