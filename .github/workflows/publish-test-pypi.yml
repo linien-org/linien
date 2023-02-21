@@ -45,26 +45,26 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages_dir: linien-common/dist/
-          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+          password: ${{ secrets.TEST_PYPI_API_TOKEN_COMMON }}
           repository_url: https://test.pypi.org/legacy/
 
       - name: Publish linien-server to TestPyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages_dir: linien-server/dist/
-          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+          password: ${{ secrets.TEST_PYPI_API_TOKEN_SERVER }}
           repository_url: https://test.pypi.org/legacy/
 
       - name: Publish linien-client to TestPyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages_dir: linien-client/dist/
-          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+          password: ${{ secrets.TEST_PYPI_API_TOKEN_CLIENT }}
           repository_url: https://test.pypi.org/legacy/
 
       - name: Publish linien-gui to TestPyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages_dir: linien-gui/dist/
-          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+          password: ${{ secrets.TEST_PYPI_API_TOKEN_GUI }}
           repository_url: https://test.pypi.org/legacy/
