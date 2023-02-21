@@ -1,0 +1,283 @@
+# Copyright 2018-2022 Benjamin Wiegand <benjamin.wiegand@physik.hu-berlin.de>
+# Copyright 2021-2022 Bastian Leykauf <leykauf@physik.hu-berlin.de>
+#
+# This file is part of Linien and based on redpid.
+#
+# Linien is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Linien is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Linien.  If not, see <http://www.gnu.org/licenses/>.
+
+import _thread
+import os
+import pickle
+import sys
+import threading
+from random import random
+from time import sleep
+
+import numpy as np
+from linien_common.common import DECIMATION, MAX_N_POINTS, N_POINTS
+from linien_common.config import ACQUISITION_PORT
+from PyRedPitaya.board import RedPitaya
+from rpyc import Service
+from rpyc.utils.server import OneShotServer
+
+from .csr import PythonCSR
+
+
+def shutdown():
+    _thread.interrupt_main()
+    os._exit(0)
+
+
+class DataAcquisitionService(Service):
+    def __init__(self):
+        self.r = RedPitaya()
+        self.csr = PythonCSR(self.r)
+        self.csr_queue = []
+        self.csr_iir_queue = []
+
+        self.data = pickle.dumps(None)
+        self.data_was_raw = False
+        self.data_hash = None
+        self.data_uuid = None
+
+        super(DataAcquisitionService, self).__init__()
+
+        self.locked = False
+        self.exposed_set_sweep_speed(9)
+        # when self.locked is set to True, this doesn't mean that the lock is
+        # really on. It just means that the lock is requested and that the
+        # gateware waits until the sweep is at the correct position for the lock.
+        # Therefore, when self.locked is set, the acquisition process waits for
+        # confirmation from the gateware that the lock is actually running.
+        self.confirmed_that_in_lock = False
+
+        self.fetch_additional_signals = True
+        self.raw_acquisition_enabled = False
+        self.raw_acquisition_decimation = 0
+
+        self.dual_channel = False
+
+        self.acquisition_paused = False
+        self.skip_next_data = False
+
+        self.run()
+
+    def run(self):
+        def run_acquiry_loop():
+            while True:
+                while self.csr_queue:
+                    key, value = self.csr_queue.pop(0)
+                    self.csr.set(key, value)
+
+                while self.csr_iir_queue:
+                    args = self.csr_iir_queue.pop(0)
+                    self.csr.set_iir(*args)
+
+                if self.locked and not self.confirmed_that_in_lock:
+                    self.confirmed_that_in_lock = self.csr.get(
+                        "logic_autolock_lock_running"
+                    )
+                    if not self.confirmed_that_in_lock:
+                        sleep(0.05)
+                        continue
+
+                if self.acquisition_paused:
+                    sleep(0.05)
+                    continue
+
+                # copied from https://github.com/RedPitaya/RedPitaya/blob/14cca62dd58f29826ee89f4b28901602f5cdb1d8/api/src/oscilloscope.c#L115  # noqa: E501
+                # check whether scope was triggered
+                not_triggered = (self.r.scope.read(0x1 << 2) & 0x4) > 0
+                if not_triggered:
+                    sleep(0.05)
+                    continue
+
+                data, is_raw = self.read_data()
+
+                if self.acquisition_paused:
+                    # it may seem strange that we check this here a second time.
+                    # Reason: `read_data` takes some time and if in the mean time
+                    # acquisition was paused, we do not want to send the data
+                    continue
+
+                if self.skip_next_data:
+                    self.skip_next_data = False
+                else:
+                    self.data = pickle.dumps(data)
+                    self.data_was_raw = is_raw
+                    self.data_hash = random()
+
+                self.program_acquisition_and_rearm()
+
+        self.t = threading.Thread(target=run_acquiry_loop, args=())
+        self.t.daemon = True
+        self.t.start()
+
+    def program_acquisition_and_rearm(self, trigger_delay=16384):
+        """Programs the acquisition settings and rearms acquisition."""
+        if not self.locked:
+            target_decimation = 2 ** (self.sweep_speed + int(np.log2(DECIMATION)))
+
+            self.r.scope.data_decimation = target_decimation
+            self.r.scope.trigger_delay = int(trigger_delay / DECIMATION) - 1
+
+        elif self.raw_acquisition_enabled:
+            self.r.scope.data_decimation = 2**self.raw_acquisition_decimation
+            self.r.scope.trigger_delay = trigger_delay
+
+        else:
+            self.r.scope.data_decimation = 1
+            self.r.scope.trigger_delay = int(trigger_delay / DECIMATION) - 1
+
+        # trigger_source=6 means external trigger positive edge
+        self.r.scope.rearm(trigger_source=6)
+
+    def exposed_return_data(self, last_hash):
+        no_data_available = self.data_hash is None
+        data_not_changed = self.data_hash == last_hash
+        if data_not_changed or no_data_available or self.acquisition_paused:
+            return False, None, None, None, None
+        else:
+            return True, self.data_hash, self.data_was_raw, self.data, self.data_uuid
+
+    def exposed_set_sweep_speed(self, speed):
+        self.sweep_speed = speed
+        # if a slow acqisition is currently running and we change the sweep speed
+        # we don't want to wait until it finishes
+        self.program_acquisition_and_rearm()
+
+    def exposed_set_lock_status(self, locked):
+        self.locked = locked
+        self.confirmed_that_in_lock = False
+
+    def exposed_set_fetch_additional_signals(self, fetch):
+        self.fetch_additional_signals = fetch
+
+    def exposed_set_raw_acquisition(self, data):
+        self.raw_acquisition_enabled = data[0]
+        self.raw_acquisition_decimation = data[1]
+
+    def exposed_set_dual_channel(self, dual_channel):
+        self.dual_channel = dual_channel
+
+    def exposed_set_csr(self, key, value):
+        self.csr_queue.append((key, value))
+
+    def exposed_set_iir_csr(self, *args):
+        self.csr_iir_queue.append(args)
+
+    def exposed_pause_acquisition(self):
+        self.acquisition_paused = True
+        self.data_hash = None
+        self.data = None
+
+    def exposed_continue_acquisition(self, uuid):
+        self.program_acquisition_and_rearm()
+        sleep(0.01)
+        # resetting data here is not strictly required but we want to be on the
+        # safe side
+        self.data_hash = None
+        self.data = None
+        self.acquisition_paused = False
+        self.data_uuid = uuid
+        # if we are sweeping, we have to skip one data set because an incomplete
+        # sweep may have been recorded. When locked, this does not matter
+        self.skip_next_data = not self.confirmed_that_in_lock
+
+    def read_data(self):
+        write_pointer = self.r.scope.write_pointer_trigger
+
+        if self.raw_acquisition_enabled:
+            return self.read_data_raw(0x10000, write_pointer, MAX_N_POINTS), True
+
+        else:
+            signals = []
+
+            channel_offsets = [0x10000]
+            if self.fetch_additional_signals or self.locked:
+                channel_offsets.append(0x20000)
+
+            for channel_offset in channel_offsets:
+                channel_data = self.read_data_raw(
+                    channel_offset, write_pointer, N_POINTS
+                )
+
+                for sub_channel_idx in range(2):
+                    signals.append(channel_data[sub_channel_idx])
+
+            signals_named = {}
+
+            if not self.locked:
+                signals_named["error_signal_1"] = signals[0]
+
+                if self.fetch_additional_signals and len(signals) >= 3:
+                    signals_named["error_signal_1_quadrature"] = signals[2]
+
+                if self.dual_channel:
+                    signals_named["error_signal_2"] = signals[1]
+                    if self.fetch_additional_signals and len(signals) >= 3:
+                        signals_named["error_signal_2_quadrature"] = signals[3]
+                else:
+                    signals_named["monitor_signal"] = signals[1]
+
+            else:
+                signals_named["error_signal"] = signals[0]
+                signals_named["control_signal"] = signals[1]
+
+                if not self.dual_channel and len(signals) >= 3:
+                    signals_named["monitor_signal"] = signals[2]
+
+            slow_out = self.csr.get("logic_slow_value")
+            slow_out = slow_out if slow_out <= 8191 else slow_out - 16384
+            signals_named["slow"] = slow_out
+
+            return signals_named, False
+
+    def read_data_raw(self, offset, addr, data_length):
+        max_data_length = 16383
+        if data_length + addr > max_data_length:
+            to_read_later = data_length + addr - max_data_length
+            data_length -= to_read_later
+        else:
+            to_read_later = 0
+
+        # raw data contains two signals:
+        #   2'h0,adc_b_rd,2'h0,adc_a_rd
+        #   i.e.: 2 zero bits, channel b (14 bit), 2 zero bits, channel a (14 bit)
+        # .copy() is required, because np.frombuffer returns a readonly array
+        raw_data = self.r.scope.reads(offset + (4 * addr), data_length).copy()
+
+        # raw_data is an array of 32-bit ints
+        # we cast it to 16 bit --> each original int is split into two ints
+        raw_data.dtype = np.int16
+
+        # sign bit is at position 14, but we have 16 bit ints
+        raw_data[raw_data >= 2**13] -= 2**14
+
+        # order is such that we have first the signal a then signal b
+        signals = tuple(raw_data[signal_idx::2] for signal_idx in (0, 1))
+
+        if to_read_later > 0:
+            additional_raw_data = self.read_data_raw(offset, 0, to_read_later)
+            signals = tuple(
+                np.append(signals[signal_idx], additional_raw_data[signal_idx])
+                for signal_idx in range(2)
+            )
+
+        return signals
+
+
+if __name__ == "__main__":
+    t = OneShotServer(DataAcquisitionService(), port=ACQUISITION_PORT)
+    t.start()

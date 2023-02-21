@@ -17,10 +17,9 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 import numpy as np
-
-from linien.common import get_lock_point
-from linien.server.approach_line import Approacher
-from linien.server.parameters import Parameters
+from linien_common.common import get_lock_point
+from linien_server.approach_line import Approacher
+from linien_server.parameters import Parameters
 
 Y_SHIFT = 4000
 

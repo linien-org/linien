@@ -19,9 +19,8 @@
 from random import randint, random
 
 import numpy as np
+from linien_server.optimization.utils import get_max_slope, optimize_phase_from_iq
 from scipy.optimize import minimize_scalar
-
-from linien.server.optimization.utils import get_max_slope, optimize_phase_from_iq
 
 
 def test_get_max_slope():

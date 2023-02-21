@@ -1,2 +1,0 @@
-recursive-exclude test *
-recursive-exclude gateware *
