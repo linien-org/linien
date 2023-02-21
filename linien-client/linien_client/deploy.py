@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
 import sys
 
 import linien_client
@@ -26,34 +27,60 @@ from linien_client.exceptions import (
 )
 
 
-def read_remote_version(conn: Connection) -> str:
+def read_remote_version(
+    host: str, user: str, password: str, port: int = 22, out_stream=sys.stdout
+) -> str:
     """Read the remote version of linien."""
-    result = conn.run(
-        'python3 -c "import linien_server; print(linien_server.__version__);"'
-    )
+
+    if not out_stream:
+        # sys.stdout is not available in the pyinstaller build, redirect it to avoid
+        # AttributeError: 'NoneType' object has no attribute 'write'
+        out_stream = open(os.devnull, "w")
+
+    with Connection(
+        host, user=user, port=port, connect_kwargs={"password": password}
+    ) as conn:
+        result = conn.run(
+            'python3 -c "import linien_server; print(linien_server.__version__);"',
+            out_stream=out_stream,
+        )
     if result.ok:
         return result.stdout.strip()
     else:
         raise ServerNotInstalledException()
 
 
-def start_remote_server(host: str, user: str, password: str, port: int = 22):
+def start_remote_server(
+    host: str, user: str, password: str, port: int = 22, out_stream=sys.stdout
+) -> None:
+    """Start the remote linien server."""
+
+    if not out_stream:
+        # sys.stdout is not available in the pyinstaller build, redirect it to avoid
+        # AttributeError: 'NoneType' object has no attribute 'write'
+        out_stream = open(os.devnull, "w")
+
     with Connection(
         host, user=user, port=port, connect_kwargs={"password": password}
     ) as conn:
         local_version = linien_client.__version__.split("+")[0]
-        remote_version = read_remote_version(conn).split("+")[0]
+        remote_version = read_remote_version(host, user, password, port).split("+")[0]
 
         if (local_version != remote_version) and not ("dev" in local_version):
             raise InvalidServerVersionException(local_version, remote_version)
 
-        # start the server process
-        conn.run("linien_start_server.sh")
+        conn.run("linien_start_server.sh", out_stream=out_stream)
 
 
 def install_remote_server(
     host: str, user: str, password: str, port: int = 22, out_stream=sys.stdout
 ):
+    """Install the remote linien server."""
+
+    if not out_stream:
+        # sys.stdout is not available in the pyinstaller build
+        outstream = open(os.devnull, "w")
+
     with Connection(
         host, user=user, port=port, connect_kwargs={"password": password}
     ) as conn:
