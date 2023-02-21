@@ -1,40 +1,30 @@
-name: Pyinstaller Windows (new)
+name: Pyinstaller Windows
 
 on:
   workflow_dispatch:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
+      - uses: actions/checkout@v2
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v2
         with:
-          python-version: "3.7"
+          python-version: "3.x"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install setuptools wheel twine
 
-      - run: pip install pyinstaller
-
-      - name: Install linien-common
-        working-directory: linien-common
-        run: pip install .
-
-      - name: Install linien-client
-        working-directory: linien-client
-        run: pip install .
-
-      - name: Install linien-gui
-        working-directory: linien-gui
-        run: pip install .
-
-      - run: pyinstaller pyinstaller.spec
-        working-directory: linien-gui
-
-      - uses: actions/upload-artifact@v3
+      - name: PyInstaller Windows
+        uses: JackMcKew/pyinstaller-action-windows@main
         with:
-          name: linien-gui-windows
-          path: linien-gui/dist/*
+          path: linien-gui
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: my-exe
+          path: linien-gui/dist/windows
