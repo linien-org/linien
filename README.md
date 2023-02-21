@@ -420,6 +420,10 @@ running `screen -r linien-server`. If any errors occurred on the server side, th
 be displayed here. Please provide the output if you are reporting an
 [issue](https://github.com/linien-org/linien/issues)  related to connection problems.
 
+### Possible conflict with openSSH
+
+Note that there might be issues if openSSH server is running on the client, see
+[here](https://github.com/orgs/linien-org/discussions/286).
 
 ### Updating or installing fails
 
