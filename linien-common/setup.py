@@ -18,6 +18,7 @@ setup(
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
         "Operating System :: OS Independent",
     ],
+    python_requires=">=3.5",
     install_requires=[
         "numpy>=1.11.0",
         "plumbum>=1.6.9",

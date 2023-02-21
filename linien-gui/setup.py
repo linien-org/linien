@@ -44,6 +44,7 @@ setup(
         "Operating System :: OS Independent",
     ],
     entry_points={"console_scripts": ["linien=linien_gui.app:run_application"]},
+    python_requires=">=3.8",
     install_requires=[
         "appdirs>=1.4.4",
         "click>=7.1.2",
