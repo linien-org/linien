@@ -139,10 +139,12 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
                 )
                 error_dialog(self, display_error)
 
-        def handle_other_exception():
+        def handle_other_exception(exception):
             loading_dialog.hide()
             if not aborted:
-                display_error = "Exception occured when connecting to the device."
+                display_error = (
+                    f"Exception occured when connecting to the device:\n\n {exception}"
+                )
                 error_dialog(self, display_error)
 
         def ask_for_parameter_restore():
@@ -178,7 +180,7 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
         self.connection_thread.general_connection_exception_raised.connect(
             handle_general_connection_error
         )
-        self.connection_thread.exception_raised.connect(handle_other_exception)
+        self.connection_thread.other_exception_raised.connect(handle_other_exception)
         self.connection_thread.ask_for_parameter_restore.connect(
             ask_for_parameter_restore
         )

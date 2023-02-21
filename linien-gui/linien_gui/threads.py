@@ -16,8 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
+import traceback
 from queue import Queue
-from traceback import print_exc
 
 from linien_client.connection import LinienClient
 from linien_client.deploy import install_remote_server
@@ -75,7 +75,7 @@ class ConnectionThread(QThread):
     invalid_server_version_exception_raised = pyqtSignal(str, str)
     authentication_exception_raised = pyqtSignal()
     general_connection_exception_raised = pyqtSignal()
-    exception_raised = pyqtSignal()
+    other_exception_raised = pyqtSignal(str)
     connection_lost = pyqtSignal()
     ask_for_parameter_restore = pyqtSignal()
 
@@ -96,7 +96,7 @@ class ConnectionThread(QThread):
             self.client_connected.emit(self.client)
 
         except ServerNotInstalledException:
-            return self.server_not_installed_exception_raised.emit()
+            self.server_not_installed_exception_raised.emit()
 
         except InvalidServerVersionException as e:
             return self.invalid_server_version_exception_raised.emit(
@@ -104,14 +104,14 @@ class ConnectionThread(QThread):
             )
 
         except RPYCAuthenticationException:
-            return self.authentication_exception_raised.emit()
+            self.authentication_exception_raised.emit()
 
         except GeneralConnectionErrorException:
-            return self.general_connection_exception_raised.emit()
+            self.general_connection_exception_raised.emit()
 
         except Exception:
-            print_exc()
-            return self.exception_raised.emit()
+            traceback.print_exc()
+            self.other_exception_raised.emit(traceback.format_exc())
 
         # now, we are connected to the server. Check whether we have cached settings for
         # this server. If yes, check whether they match with what is currentlyrunning.
