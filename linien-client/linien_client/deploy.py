@@ -43,10 +43,9 @@ def start_remote_server(host: str, user: str, password: str, port: int = 22):
     ) as conn:
 
         local_version = linien_client.__version__.split("+")[0]
-
         remote_version = read_remote_version(conn).split("+")[0]
 
-        if local_version != remote_version:
+        if (local_version != remote_version) and not ("dev" in local_version):
             raise InvalidServerVersionException(local_version, remote_version)
 
         # start the server process

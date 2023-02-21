@@ -139,10 +139,10 @@ class LinienClient:
 
         # now check that the remote version is the same as ours
         remote_version = self.connection.root.exposed_get_server_version().split("+")[0]
-        client_version = linien_client.__version__.split("+")[0]
+        local_version = linien_client.__version__.split("+")[0]
 
-        if remote_version != client_version:
-            raise InvalidServerVersionException(client_version, remote_version)
+        if (remote_version != local_version) and not ("dev" in local_version):
+            raise InvalidServerVersionException(local_version, remote_version)
 
         self.connected = True
         print("Connection established!")
