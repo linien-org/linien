@@ -26,7 +26,6 @@ from linien_gui.ui.psd_window import PSDWindow
 from linien_gui.ui.version_checker import VersionCheckerThread
 from linien_gui.utils_gui import set_window_icon
 from linien_gui.widgets import UI_PATH, CustomWidget
-from plumbum import colors
 from PyQt5 import QtWidgets
 from pyqtgraph.Qt import QtCore
 
@@ -88,7 +87,7 @@ class QTApp(QtCore.QObject):
             try:
                 self.parameters.call_listeners()
             except Exception:
-                print(colors.red | "call_listeners() failed")
+                print("call_listeners() failed")
                 print_exc()
 
             QtCore.QTimer.singleShot(50, self.call_listeners)
@@ -128,15 +127,15 @@ class QTApp(QtCore.QObject):
 
     def new_version_available(self, new_version_available):
         if new_version_available:
-            print("new version available")
+            print("New version available")
             self.main_window.show_new_version_available()
         else:
-            print("no new version available")
+            print("No new version available")
             QtCore.QTimer.singleShot(1000 * 60 * 60, self.check_for_new_version)
 
 
 def run_application():
-    print("Linien spectroscopy lock version " + (colors.bold | linien_gui.__version__))
+    print(f"Linien spectroscopy lock version {linien_gui.__version__}")
     gui = QTApp()
 
     # catch ctrl-c and shutdown

@@ -35,7 +35,6 @@ from linien_client.exceptions import (
 from linien_client.remote_parameters import RemoteParameters
 from linien_common.common import hash_username_and_password
 from linien_common.config import DEFAULT_SERVER_PORT
-from plumbum import colors
 
 
 class RPYCClientWithAuthentication(rpyc.Service):
@@ -181,7 +180,7 @@ class LinienClient:
                         try:
                             return method(*args, **kwargs)
                         except (EOFError,):
-                            print(colors.red | "Connection lost")
+                            print("Connection lost")
                             self.connected = False
                             call_on_error()
                             raise
