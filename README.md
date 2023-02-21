@@ -433,19 +433,21 @@ Note that there might be issues if openSSH server is running on the client, see
 Citation
 ----
 
-If you are using Linien, please cite us as follows:
+If you are using Linien for your scientific work, please cite us as follows:
 
 ```
 @article{Wiegand2022,
-archivePrefix = {arXiv},
-arxivId = {2203.02947},
-author = {Wiegand, Benjamin and Leykauf, Bastian and J{\"{o}}rdens, Robert and Krutzik, Markus},
-eprint = {2203.02947},
-title = {{Linien: A versatile, user-friendly, open-source FPGA-based tool for frequency stabilization and spectroscopy parameter optimization}},
-url = {http://arxiv.org/abs/2203.02947},
-year = {2022}
+   author = {B. Wiegand and B. Leykauf and R. Jördens and M. Krutzik},
+   doi = {10.1063/5.0090384},
+   issn = {10897623},
+   issue = {6},
+   journal = {Review of Scientific Instruments},
+   month = {6},
+   pmid = {35778046},
+   title = {Linien: A versatile, user-friendly, open-source FPGA-based tool for frequency stabilization and spectroscopy parameter optimization},
+   volume = {93},
+   year = {2022},
 }
-
 ```
 
 License
