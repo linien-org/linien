@@ -22,8 +22,17 @@ import linien
 
 assert linien.__version__ != "dev"
 
+long_description = """
+
+    ---
+    **DEPRICATION NOTE**
+
+    This package has been moved to [linien-client](https://pypi.org/project/linien-client/) as of Linien v0.6.0. Please have a look at the [project repository](https://github.com/linien-org/linien) for up to date installation instructions.
+
+    ---
+    """
 with open("README.md", "r") as fh:
-    long_description = fh.read()
+    long_description += fh.read()
 
 setuptools.setup(
     name="linien-python-client",
