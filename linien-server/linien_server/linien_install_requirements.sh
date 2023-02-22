@@ -10,9 +10,8 @@ while ! ping -c 1 -W 1 8.8.4.4; do
    sleep 1
 done
 
-echo 'installing dependencies...'
-echo 'installing screen...'
 # the server is started in a screen session
+echo 'installing screen...'
 apt-get install screen
 
 echo 'installing pyrp3...'
@@ -26,5 +25,4 @@ cd mdio-tool
 git checkout 72bd5a915ff046a59ce4303c8de672e77622a86c
 cmake .
 make
-rm -f /usr/bin/mdio-tool
-mv mdio-tool /usr/bin
+mv -f mdio-tool /usr/bin
