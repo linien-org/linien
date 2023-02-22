@@ -21,7 +21,7 @@ pip3 install git+https://github.com/linien-org/pyrp3.git@7de325f2de2d744d7bd1181
 # https://github.com/RedPitaya/RedPitaya/issues/205
 cd /tmp
 echo 'building ethernet blinking fix'
-git clone https://github.com/linien-org/mdio-tool.git
+git clone https://github.com/linien-org/mdio-tool.git@72bd5a915ff046a59ce4303c8de672e77622a86c
 cd mdio-tool
 cmake .
 make
