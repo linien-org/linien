@@ -23,8 +23,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install build
-          pip install cma rpyc==4.1.5 click plumbum pylpsd numpy scipy paramiko
+          pip install build cma rpyc==4.1.5 click plumbum pylpsd numpy scipy paramiko packaging appdirs superqt pyqtgraph PyQt5
 
       - name: Build client
         run: |
