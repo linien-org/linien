@@ -1,4 +1,5 @@
 name: Publish Packages
+
 on:
   workflow_dispatch:
     inputs:
@@ -8,6 +9,7 @@ on:
 
 env:
   INPUT_VERSION_NAME: ${{ github.event.inputs.version_name }}
+
 
 permissions:
   contents: read
