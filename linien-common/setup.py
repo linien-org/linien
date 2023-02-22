@@ -7,9 +7,9 @@ setup(
     author_email="highwaychile@posteo.de",
     maintainer="Bastian Leykauf",
     maintainer_email="leykauf@physik.hu-berlin.de",
-    description="Part of linien that is used by all components.",
-    long_description="Have a look at the 'linien' package for installation instructions.",  # noqa: E501
-    long_description_content_type="text/x-rst",
+    description="Shared components of the Linien spectroscopy lock application.",
+    long_description="Have a look at the [project repository](https://github.com/linien-org/linien) for installation instructions.",  # noqa: E501
+    long_description_content_type="text/markdown",
     url="https://github.com/linien-org/linien",
     packages=find_packages(),
     classifiers=[
