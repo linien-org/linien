@@ -87,6 +87,8 @@ def install_remote_server(
     ) as conn:
         local_version = linien_client.__version__.split("+")[0]
         cmds = [
+            "pip3 uninstall linien-server -y",
+            "pip3 uninstall linien-common -y",
             f"pip3 install linien-server=={local_version} --no-cache-dir",
             "linien_install_requirements.sh",
         ]
