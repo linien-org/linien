@@ -5,11 +5,6 @@ if [[ $EUID -ne 0 ]]; then
    exit 1
 fi
 
-while ! ping -c 1 -W 1 8.8.4.4; do
-   echo "Not connected to the internet! RedPitaya needs to access the internet in order to proceed with the installation."
-   sleep 1
-done
-
 # the server is started in a screen session
 echo 'installing screen...'
 apt-get install screen
