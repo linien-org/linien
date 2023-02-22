@@ -52,12 +52,10 @@ def calculate_psd(sig, fs, algorithm):
     sig = sig.astype(np.float64)
 
     if algorithm == PSD_ALGORITHM_WELCH:
-
         f, Pxx = signal.welch(
             sig, fs, window=window, nperseg=num_pts, scaling="density"
         )
     elif algorithm == PSD_ALGORITHM_LPSD:
-
         fmin = fs / len(sig) * 10  # lowest frequency of interest
         fmax = fs / 20.0  # highest frequency of interest
 
