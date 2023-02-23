@@ -397,7 +397,6 @@ def run_server(port, fake=False, remote_rp=False):
         if secret is None:
             print("warning: no authentication set up")
         else:
-
             if received != secret.encode():
                 print("received invalid credentials: ", received)
 

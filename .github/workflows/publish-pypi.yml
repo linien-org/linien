@@ -1,7 +1,15 @@
-name: PublishPackages
+name: Publish Packages
 
 on:
   workflow_dispatch:
+    inputs:
+      version_name:
+        description: "Version name"
+        required: true
+
+env:
+  INPUT_VERSION_NAME: ${{ github.event.inputs.version_name }}
+
 
 permissions:
   contents: read
@@ -18,49 +26,45 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.x"
+          python-version: "3.7"
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install build
+          pip install build wheel cma rpyc==4.1.5 click plumbum pylpsd numpy scipy paramiko packaging appdirs superqt pyqtgraph PyQt5
 
-      - name: Build linien-common
-        working-directory: linien-common
-        run: python -m build
+      - name: create VERSION file
+        run: echo "$INPUT_VERSION_NAME" > linien/VERSION
 
-      - name: Build linien-server
-        working-directory: linien-server
-        run: python -m build
+      - name: Build client
+        run: |
+          rm -R build --force
+          rm -R dist --force
+          python3 setup_client.py sdist bdist_wheel
 
-      - name: Build linien-client
-        working-directory: linien-client
-        run: python -m build
-
-      - name: Build linien-gui
-        working-directory: linien-gui
-        run: python -m build
-
-      - name: Publish linien-common
+      - name: Publish client to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          packages_dir: linien-common/dist/
-          password: ${{ secrets.PYPI_API_TOKEN_COMMON }}
+          password: ${{ secrets.PYPI_API_TOKEN }}
 
-      - name: Publish linien-server
+      - name: Build GUI
+        run: |
+          rm -R build --force
+          rm -R dist --force
+          python3 setup_gui.py sdist bdist_wheel
+
+      - name: Publish GUI to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          packages_dir: linien-server/dist/
+          password: ${{ secrets.PYPI_API_TOKEN }}
+
+      - name: Build server
+        run: |
+          rm -R build --force
+          rm -R dist --force
+          python3 setup_server.py sdist bdist_wheel
+
+      - name: Publish server to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
           password: ${{ secrets.PYPI_API_TOKEN_SERVER }}
-
-      - name: Publish linien-client
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          packages_dir: linien-client/dist/
-          password: ${{ secrets.PYPI_API_TOKEN_CLIENT }}
-
-      - name: Publish linien-gui
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          packages_dir: linien-gui/dist/
-          password: ${{ secrets.PYPI_API_TOKEN_GUI }}
