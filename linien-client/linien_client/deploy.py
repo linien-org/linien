@@ -44,6 +44,7 @@ def read_remote_version(
             'python3 -c "import linien_server; print(linien_server.__version__);"',
             out_stream=out_stream,
             err_stream=out_stream,
+            warn=True,
         )
     if result.ok:
         return result.stdout.strip()
@@ -70,7 +71,12 @@ def start_remote_server(
         if (local_version != remote_version) and not ("dev" in local_version):
             raise InvalidServerVersionException(local_version, remote_version)
 
-        conn.run("linien_start_server.sh", out_stream=out_stream, err_stream=out_stream)
+        conn.run(
+            "linien_start_server.sh",
+            out_stream=out_stream,
+            err_stream=out_stream,
+            warn=True,
+        )
 
 
 def install_remote_server(
@@ -94,6 +100,8 @@ def install_remote_server(
         ]
         for cmd in cmds:
             out_stream.write(f">> {cmd}\n")
-            result = conn.run(cmd, out_stream=out_stream, err_stream=out_stream)
+            result = conn.run(
+                cmd, out_stream=out_stream, err_stream=out_stream, warn=True
+            )
             if result.ok:
                 print(f"Sucesfully executed '{result.command}'")
