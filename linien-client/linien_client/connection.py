@@ -120,11 +120,7 @@ class LinienClient:
                     sleep(3)
                 else:
                     if i < 20:
-                        print(
-                            """
-                            Server still not running, waiting (this may take some time).
-                            """
-                        )
+                        print("Server still not running, waiting (may take some time).")
                         sleep(1)
                     else:
                         print_exc()
