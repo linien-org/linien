@@ -10,7 +10,6 @@ on:
 env:
   INPUT_VERSION_NAME: ${{ github.event.inputs.version_name }}
 
-
 permissions:
   contents: read
 
@@ -21,7 +20,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          fetch-depth: 0
+          lfs: "true"
 
       - name: Set up Python
         uses: actions/setup-python@v4
