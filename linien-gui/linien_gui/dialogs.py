@@ -45,7 +45,7 @@ class SSHCommandOutputWidget(QListWidget):
         self.addItem("\nFinished.")
         self.scrollToBottom()
         # Show widget for some time before proceeding
-        QtCore.QTimer.singleShot(3000, self.command_ended.emit)        
+        QtCore.QTimer.singleShot(3000, self.command_ended.emit)
 
 
 def show_installation_progress_widget(
