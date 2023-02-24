@@ -33,20 +33,19 @@ class SSHCommandOutputWidget(QListWidget):
 
     def run(self, thread: QThread):
         self.thread = thread
+        self.thread.out_stream.new_item.connect(self.on_new_item_in_out_stream)
+        self.thread.finished.connect(self.on_thread_finished)
         self.thread.start()
-        self.read_output_and_update_widget()
 
-    def read_output_and_update_widget(self):
-        if self.thread.isFinished() and self.thread.out_stream.empty():
-            self.addItem("Finished.")
-            self.scrollToBottom()
-            # Show widget for some time before proceeding
-            QtCore.QTimer.singleShot(3000, self.command_ended.emit)
-        else:
-            self.addItem(self.thread.out_stream.read().rstrip())
-            self.scrollToBottom()
-            # update widget every 100 ms
-            QtCore.QTimer.singleShot(100, self.read_output_and_update_widget)
+    def on_new_item_in_out_stream(self, line: str):
+        self.addItem(line.rstrip())
+        self.scrollToBottom()
+
+    def on_thread_finished(self):
+        self.addItem("\nFinished.")
+        self.scrollToBottom()
+        # Show widget for some time before proceeding
+        QtCore.QTimer.singleShot(3000, self.command_ended.emit)        
 
 
 def show_installation_progress_widget(
