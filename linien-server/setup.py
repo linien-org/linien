@@ -18,7 +18,7 @@
 
 from setuptools import find_packages, setup
 
-version = "0.6.0rc3"
+version = "0.6.0rc4"
 
 setup(
     name="linien-server",
