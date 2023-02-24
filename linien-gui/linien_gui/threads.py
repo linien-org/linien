@@ -91,6 +91,18 @@ class ConnectionThread(QThread):
             )
             self.client_connected.emit(self.client)
 
+            # Check for locally cached settings for this server
+            parameters_differ = self.restore_parameters(dry_run=True)
+            if parameters_differ:
+                self.ask_for_parameter_restore.emit()
+            else:
+                # if parameters don't differ, we can start monitoring remote parameter
+                # changes and write them to disk. We don't do this if parameters differ
+                # because we don't want to override our local settings with the remote
+                # one --> we wait until user has answered whether local parameters or
+                # remote ones should be used.
+                self.continuously_write_parameters_to_disk()
+
         except ServerNotInstalledException:
             self.server_not_installed_exception_raised.emit()
 
@@ -108,21 +120,6 @@ class ConnectionThread(QThread):
         except Exception:
             traceback.print_exc()
             self.other_exception_raised.emit(traceback.format_exc())
-
-        # now, we are connected to the server. Check whether we have cached settings for
-        # this server. If yes, check whether they match with what is currentlyrunning.
-        # If there is a mismatch, ask the user whether the settings should be restored.
-
-        parameters_differ = self.restore_parameters(dry_run=True)
-        if parameters_differ:
-            self.ask_for_parameter_restore.emit()
-        else:
-            # if parameters don't differ, we can start monitoring remote parameter
-            # changes and write them to disk. We don't do this if parameters differ
-            # because we don't want to override our local settings with the remote one
-            # --> we wait until user has answered whether local parameters or remote
-            # ones should be used.
-            self.continuously_write_parameters_to_disk()
 
     def on_connection_lost(self):
         self.connection_lost.emit()
