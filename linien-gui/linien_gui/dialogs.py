@@ -20,12 +20,20 @@ from typing import Callable
 
 from linien_gui.threads import RemoteServerInstallationThread
 from PyQt5.QtCore import QThread, pyqtSignal
-from PyQt5.QtWidgets import QDialog, QListWidget, QMessageBox, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import (
+    QDialog,
+    QListWidget,
+    QMessageBox,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
+)
 from pyqtgraph import QtCore
 
 
 class SSHCommandOutputWidget(QListWidget):
-    command_ended = pyqtSignal()
+    command_finished = pyqtSignal()
+    enable_button = pyqtSignal()
 
     def __init__(self, parent: QWidget):
         super().__init__(parent)
@@ -44,27 +52,29 @@ class SSHCommandOutputWidget(QListWidget):
     def on_thread_finished(self):
         self.addItem("\nFinished.")
         self.scrollToBottom()
-        # Show widget for some time before proceeding
-        QtCore.QTimer.singleShot(3000, self.command_ended.emit)
+        self.command_finished.emit()
 
 
 def show_installation_progress_widget(
     parent: QWidget, device: dict, callback: Callable
 ):
-    # Define and open dialog window
     window = QDialog(parent)
     window.setWindowTitle("Deploying Linien Server")
     window.resize(800, 600)
     window_layout = QVBoxLayout(window)
     widget = SSHCommandOutputWidget(parent)
+    button = QPushButton("Continue")
+    button.setEnabled(False)
     window_layout.addWidget(widget)
+    window_layout.addWidget(button)
     window.setLayout(window_layout)
     window.setModal(True)
     window.setWindowModality(QtCore.Qt.WindowModal)
     window.show()
 
-    widget.command_ended.connect(callback)
-    widget.command_ended.connect(window.close)
+    widget.command_finished.connect(lambda: button.setEnabled(True))
+    button.clicked.connect(callback)
+    button.clicked.connect(window.close)
 
     thread = RemoteServerInstallationThread(device)
     widget.run(thread)
