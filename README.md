@@ -371,7 +371,7 @@ Before installing a new version of Linien, open the previously installed client 
 Development
 -----------
 
-Information about ddevelopment can be found in the [wiki](https://github.com/linien-org/linien/wiki/Development).
+Information about development can be found in the [wiki](https://github.com/linien-org/linien/wiki/Development).
 
 FAQs
 ----
