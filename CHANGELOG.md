@@ -1,3 +1,11 @@
+## V 0.6.0
+- Refactor package structure by @bleykauf in https://github.com/linien-org/linien/pull/277
+
+## V 0.5.3.post2
+- Pin specific commits for installation of  `pyrp3 and `mdio-tool` in `linien_install_requirements.sh`
+- Fix file extension in `linien_start_server.sh`, see #291. Thank you, @doronbehar!
+- Bump future from 0.18.2 to 0.18.3 by @dependabot in https://github.com/linien-org/linien/pull/305
+
 ## V 0.5.3
 - Fix bug preventing proper starting and stopping of linien-server
 
