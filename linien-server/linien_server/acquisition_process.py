@@ -27,7 +27,7 @@ from time import sleep
 import numpy as np
 from linien_common.common import DECIMATION, MAX_N_POINTS, N_POINTS
 from linien_common.config import ACQUISITION_PORT
-from PyRedPitaya.board import RedPitaya
+from pyrp3.board import RedPitaya
 from rpyc import Service
 from rpyc.utils.server import OneShotServer
 

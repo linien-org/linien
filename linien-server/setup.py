@@ -44,7 +44,7 @@ setup(
         "cma>=3.0.3",
         "myhdl>=0.11",
         "pylpsd>=0.1.4",
-        # "pyrp3>=1.1.0", # FIXME: Enable once pyrp3 is on PyPI
+        "pyrp3>=1.1.0",
         "rpyc>=4.0,<5.0",
         "linien-common=={}".format(version),
     ],
