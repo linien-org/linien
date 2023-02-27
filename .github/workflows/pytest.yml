@@ -1,0 +1,35 @@
+name: Run PyTest
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.10"
+
+      - name: Install linien-common
+        working-directory: linien-common
+        run: pip install .
+
+      - name: Install linien-server
+        working-directory: linien-server
+        run: pip install .
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest migen git+https://github.com/m-labs/misoc
+
+      - name: Test with pytest
+        run: |
+          pytest .
