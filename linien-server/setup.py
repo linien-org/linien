@@ -42,7 +42,6 @@ setup(
     install_requires=[
         "click>=7.1.2",
         "cma>=3.0.3",
-        "myhdl>=0.11",
         "pylpsd>=0.1.4",
         "pyrp3>=1.1.0;platform_machine=='armv7l'",  # only install on RedPitaya
         "rpyc>=4.0,<5.0",
