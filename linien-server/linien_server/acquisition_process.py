@@ -19,7 +19,6 @@
 import _thread
 import os
 import pickle
-import sys
 import threading
 from random import random
 from time import sleep
