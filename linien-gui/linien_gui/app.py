@@ -19,6 +19,7 @@ import signal
 import sys
 from traceback import print_exc
 
+import click
 import linien_gui
 from linien_gui.ui.device_manager import DeviceManager
 from linien_gui.ui.main_window import MainWindow
@@ -134,8 +135,9 @@ class QTApp(QtCore.QObject):
             QtCore.QTimer.singleShot(1000 * 60 * 60, self.check_for_new_version)
 
 
+@click.command()
+@click.version_option(linien_gui.__version__)
 def run_application():
-    print(f"Linien spectroscopy lock version {linien_gui.__version__}")
     gui = QTApp()
 
     # catch ctrl-c and shutdown
