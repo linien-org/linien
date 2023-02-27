@@ -17,7 +17,6 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 import traceback
-from queue import Queue
 
 from linien_client.connection import LinienClient
 from linien_client.deploy import install_remote_server
@@ -29,20 +28,17 @@ from linien_client.exceptions import (
 )
 from linien_common.config import DEFAULT_SERVER_PORT
 from linien_gui.config import get_saved_parameters, save_parameter
-from PyQt5.QtCore import QThread, pyqtSignal
+from PyQt5.QtCore import QObject, QThread, pyqtSignal
 
 
-class FileLikeQueue(Queue):
-    """
-    A queue with the interface of a file-like object used to redirect output stream of
-    SSH calls to the GUI.
-    """
+class RemoteOutStream(QObject):
+    new_item = pyqtSignal(str)
 
-    def write(self, data):
-        self.put(data)
+    def write(self, item):
+        self.new_item.emit(item)
 
     def read(self):
-        return self.get()
+        pass
 
     def flush(self):
         pass
@@ -54,7 +50,7 @@ class RemoteServerInstallationThread(QThread):
         super().__init__()
         self.device = device
 
-    out_stream = FileLikeQueue()
+    out_stream = RemoteOutStream()
 
     def run(self):
         install_remote_server(
@@ -95,11 +91,23 @@ class ConnectionThread(QThread):
             )
             self.client_connected.emit(self.client)
 
+            # Check for locally cached settings for this server
+            parameters_differ = self.restore_parameters(dry_run=True)
+            if parameters_differ:
+                self.ask_for_parameter_restore.emit()
+            else:
+                # if parameters don't differ, we can start monitoring remote parameter
+                # changes and write them to disk. We don't do this if parameters differ
+                # because we don't want to override our local settings with the remote
+                # one --> we wait until user has answered whether local parameters or
+                # remote ones should be used.
+                self.continuously_write_parameters_to_disk()
+
         except ServerNotInstalledException:
             self.server_not_installed_exception_raised.emit()
 
         except InvalidServerVersionException as e:
-            return self.invalid_server_version_exception_raised.emit(
+            self.invalid_server_version_exception_raised.emit(
                 e.remote_version, e.client_version
             )
 
@@ -112,21 +120,6 @@ class ConnectionThread(QThread):
         except Exception:
             traceback.print_exc()
             self.other_exception_raised.emit(traceback.format_exc())
-
-        # now, we are connected to the server. Check whether we have cached settings for
-        # this server. If yes, check whether they match with what is currentlyrunning.
-        # If there is a mismatch, ask the user whether the settings should be restored.
-
-        parameters_differ = self.restore_parameters(dry_run=True)
-        if parameters_differ:
-            self.ask_for_parameter_restore.emit()
-        else:
-            # if parameters don't differ, we can start monitoring remote parameter
-            # changes and write them to disk. We don't do this if parameters differ
-            # because we don't want to override our local settings with the remote one
-            # --> we wait until user has answered whether local parameters or remote
-            # ones should be used.
-            self.continuously_write_parameters_to_disk()
 
     def on_connection_lost(self):
         self.connection_lost.emit()

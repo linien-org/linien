@@ -18,7 +18,7 @@
 
 from setuptools import find_packages, setup
 
-version = "0.6.0.dev1"
+version = "0.6.0"
 
 setup(
     name="linien-server",
@@ -27,9 +27,9 @@ setup(
     author_email="highwaychile@posteo.de",
     maintainer="Bastian Leykauf",
     maintainer_email="leykauf@physik.hu-berlin.de",
-    description="Server of linien that runs on RedPitaya.",
-    long_description="Have a look at the 'linien' package for installation instructions.",  # noqa: E501
-    long_description_content_type="text/x-rst",
+    description="Server components of the Linien spectroscopy lock application.",
+    long_description="Have a look at the [project repository](https://github.com/linien-org/linien) for installation instructions.",  # noqa: E501
+    long_description_content_type="text/markdown",
     url="https://github.com/linien-org/linien",
     packages=find_packages(),
     classifiers=[
@@ -42,9 +42,8 @@ setup(
     install_requires=[
         "click>=7.1.2",
         "cma>=3.0.3",
-        "myhdl>=0.11",
         "pylpsd>=0.1.4",
-        # "pyrp3>=1.1.0", # FIXME: Enable once pyrp3 is on PyPI
+        "pyrp3>=1.1.0;platform_machine=='armv7l'",  # only install on RedPitaya
         "rpyc>=4.0,<5.0",
         "linien-common=={}".format(version),
     ],

@@ -1,15 +1,32 @@
+# Copyright 2023 Bastian Leykauf <leykauf@physik.hu-berlin.de>
+#
+# This file is part of Linien and based on redpid.
+#
+# Linien is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Linien is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Linien.  If not, see <http://www.gnu.org/licenses/>.
+
 from setuptools import find_packages, setup
 
 setup(
     name="linien-common",
-    version="0.6.0.dev1",
+    version="0.6.0",
     author="Benjamin Wiegand",
     author_email="highwaychile@posteo.de",
     maintainer="Bastian Leykauf",
     maintainer_email="leykauf@physik.hu-berlin.de",
-    description="Part of linien that is used by all components.",
-    long_description="Have a look at the 'linien' package for installation instructions.",  # noqa: E501
-    long_description_content_type="text/x-rst",
+    description="Shared components of the Linien spectroscopy lock application.",
+    long_description="Have a look at the [project repository](https://github.com/linien-org/linien) for installation instructions.",  # noqa: E501
+    long_description_content_type="text/markdown",
     url="https://github.com/linien-org/linien",
     packages=find_packages(),
     classifiers=[

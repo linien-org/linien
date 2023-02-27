@@ -1,5 +1,5 @@
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/linien-org/linien)
-[![PyPI](https://img.shields.io/pypi/v/linien?color=blue)](https://pypi.org/project/linien/)
+[![PyPI](https://img.shields.io/pypi/v/linien-gui?color=blue)](https://pypi.org/project/linien-gui/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 Linien ‒ User-friendly locking of lasers using RedPitaya (STEMlab 125-14) that just works
@@ -42,7 +42,7 @@ Features
 Getting started: install Linien
 ---------------
 
-Linien runs on Windows and Linux. For most users the [standalone
+Linien runs on Windows and Linux. For Windows users the [standalone
 binaries](#standalone-binary) containing the graphical user interface
 are recommended.
 These binaries run on your lab PC and contain everything to get Linien running on your RedPitaya.
@@ -51,45 +51,30 @@ If you want to use the python interface you should [install it using pip](#insta
 
 ### Standalone binary
 
-You can download standalone binaries for windows and linux on [the
+You can download standalone binaries for Windows on [the
 releases
-page](https://github.com/linien-org/linien/releases) (download the corresponding binary in the assets section of the latest version). On linux mark it as executable before executing:
-
-```bash
-chmod +x linien-linux*
-./linien-linux*
-```
+page](https://github.com/linien-org/linien/releases) (download the binary in the assets section of the latest version). For Linux users, we recommend installation via pip.
 
 ### Installation with pip
 
-Linien is written for python 3 and can be installed using python\'s
-package manager pip:
+Linien is written for python 3 and can be installed using python\'s package manager pip:
 
 ```bash
-pip3 install linien
+pip install linien-gui
 ```
 
-On Linux, you may run the application by calling
+The GUI can be started by calling 
 
 ```bash
 linien
 ```
 
-in a terminal.
+in a terminal (on both Linux and Windows).
 
-If this doesn\'t work, your local bin directory (e.g. \~/.local/bin) is
-probably missing in your PATH. In this case you can open Linien with
-python:
-
-```python
-from linien.gui.app import run_application
-run_application()
-```
-
-In case you're only interested in the python client and don't want to install the graphical application, you may use the `linien-python-client`, a subset of the `linien` package:
+In case you're only interested in the python client and don't want to install the graphical application, you may use the `linien-client` package:
 
 ```bash
-pip3 install linien-python-client
+pip install linien-client
 ```
 
 
@@ -371,7 +356,7 @@ Before installing a new version of Linien, open the previously installed client 
 Development
 -----------
 
-Information about ddevelopment can be found in the [wiki](https://github.com/linien-org/linien/wiki/Development).
+Information about development can be found in the [wiki](https://github.com/linien-org/linien/wiki/Development).
 
 FAQs
 ----
@@ -456,7 +441,7 @@ Linien ‒ User-friendly locking of lasers using RedPitaya (STEMlab 125-14) that
 
 Copyright © 2014-2015 Robert Jördens
 Copyright © 2018-2022 Benjamin Wiegand
-Copyright © 2021-2022 Bastian Leykauf
+Copyright © 2021-2023 Bastian Leykauf
 
 Linien is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 

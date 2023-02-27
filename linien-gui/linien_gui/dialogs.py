@@ -20,12 +20,20 @@ from typing import Callable
 
 from linien_gui.threads import RemoteServerInstallationThread
 from PyQt5.QtCore import QThread, pyqtSignal
-from PyQt5.QtWidgets import QDialog, QListWidget, QMessageBox, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import (
+    QDialog,
+    QListWidget,
+    QMessageBox,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
+)
 from pyqtgraph import QtCore
 
 
 class SSHCommandOutputWidget(QListWidget):
-    command_ended = pyqtSignal()
+    command_finished = pyqtSignal()
+    enable_button = pyqtSignal()
 
     def __init__(self, parent: QWidget):
         super().__init__(parent)
@@ -33,39 +41,40 @@ class SSHCommandOutputWidget(QListWidget):
 
     def run(self, thread: QThread):
         self.thread = thread
+        self.thread.out_stream.new_item.connect(self.on_new_item_in_out_stream)
+        self.thread.finished.connect(self.on_thread_finished)
         self.thread.start()
-        self.read_output_and_update_widget()
 
-    def read_output_and_update_widget(self):
-        if self.thread.isFinished() and self.thread.out_stream.empty():
-            self.addItem("Finished.")
-            self.scrollToBottom()
-            # Show widget for some time before proceeding
-            QtCore.QTimer.singleShot(3000, self.command_ended.emit)
-        else:
-            self.addItem(self.thread.out_stream.read().rstrip())
-            self.scrollToBottom()
-            # update widget every 100 ms
-            QtCore.QTimer.singleShot(100, self.read_output_and_update_widget)
+    def on_new_item_in_out_stream(self, line: str):
+        self.addItem(line.rstrip())
+        self.scrollToBottom()
+
+    def on_thread_finished(self):
+        self.addItem("\nFinished.")
+        self.scrollToBottom()
+        self.command_finished.emit()
 
 
 def show_installation_progress_widget(
     parent: QWidget, device: dict, callback: Callable
 ):
-    # Define and open dialog window
     window = QDialog(parent)
     window.setWindowTitle("Deploying Linien Server")
     window.resize(800, 600)
     window_layout = QVBoxLayout(window)
     widget = SSHCommandOutputWidget(parent)
+    button = QPushButton("Continue")
+    button.setEnabled(False)
     window_layout.addWidget(widget)
+    window_layout.addWidget(button)
     window.setLayout(window_layout)
     window.setModal(True)
     window.setWindowModality(QtCore.Qt.WindowModal)
     window.show()
 
-    widget.command_ended.connect(callback)
-    widget.command_ended.connect(window.close)
+    widget.command_finished.connect(lambda: button.setEnabled(True))
+    button.clicked.connect(callback)
+    button.clicked.connect(window.close)
 
     thread = RemoteServerInstallationThread(device)
     widget.run(thread)

@@ -116,7 +116,7 @@ def test_pid(plt):
             ys = []
             for offset in (0, 2000):
                 x = offset + (np.sin(np.linspace(-np.pi, np.pi, 100)) * 4000).astype(
-                    np.int
+                    int
                 )
                 y = []
 

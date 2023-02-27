@@ -18,7 +18,7 @@
 
 from setuptools import find_packages, setup
 
-version = "0.6.0.dev1"
+version = "0.6.0"
 
 setup(
     name="linien-client",
@@ -27,9 +27,9 @@ setup(
     author_email="highwaychile@posteo.de",
     maintainer="Bastian Leykauf",
     maintainer_email="leykauf@physik.hu-berlin.de",
-    description="Client for linien spectroscopy lock",
-    long_description="Have a look at the 'linien' package for installation instructions.",  # noqa: E501
-    long_description_content_type="text/x-rst",
+    description="Client components of the Linien spectroscopy lock application.",
+    long_description="Have a look at the [project repository](https://github.com/linien-org/linien) for installation instructions.",  # noqa: E501
+    long_description_content_type="text/markdown",
     url="https://github.com/linien-org/linien/",
     packages=find_packages(),
     classifiers=[

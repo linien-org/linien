@@ -43,6 +43,8 @@ def read_remote_version(
         result = conn.run(
             'python3 -c "import linien_server; print(linien_server.__version__);"',
             out_stream=out_stream,
+            err_stream=out_stream,
+            warn=True,
         )
     if result.ok:
         return result.stdout.strip()
@@ -69,7 +71,12 @@ def start_remote_server(
         if (local_version != remote_version) and not ("dev" in local_version):
             raise InvalidServerVersionException(local_version, remote_version)
 
-        conn.run("linien_start_server.sh", out_stream=out_stream)
+        conn.run(
+            "linien_start_server.sh",
+            out_stream=out_stream,
+            err_stream=out_stream,
+            warn=True,
+        )
 
 
 def install_remote_server(
@@ -79,18 +86,23 @@ def install_remote_server(
 
     if not out_stream:
         # sys.stdout is not available in the pyinstaller build
-        outstream = open(os.devnull, "w")
+        out_stream = open(os.devnull, "w")
 
     with Connection(
         host, user=user, port=port, connect_kwargs={"password": password}
     ) as conn:
         local_version = linien_client.__version__.split("+")[0]
         cmds = [
+            "linien_stop_server.sh",
+            "pip3 uninstall linien-server -y",
+            "pip3 uninstall linien-common -y",
             f"pip3 install linien-server=={local_version} --no-cache-dir",
             "linien_install_requirements.sh",
         ]
         for cmd in cmds:
             out_stream.write(f">> {cmd}\n")
-            result = conn.run(cmd, out_stream=out_stream)
-        if result.ok:
-            print(f"Sucesfully executed '{result.command}'")
+            result = conn.run(
+                cmd, out_stream=out_stream, err_stream=out_stream, warn=True
+            )
+            if result.ok:
+                print(f"Sucesfully executed '{result.command}'")
