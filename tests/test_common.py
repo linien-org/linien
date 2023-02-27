@@ -17,9 +17,11 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 import numpy as np
+from linien_common.common import (
+    SpectrumUncorrelatedException,
+    determine_shift_by_correlation,
+)
 from pytest import raises
-
-from linien.common import SpectrumUncorrelatedException, determine_shift_by_correlation
 
 Y_SHIFT = 0
 

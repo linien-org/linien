@@ -18,12 +18,12 @@
 
 from pathlib import Path
 
+from linien_common.common import FAST_AUTOLOCK
 from migen import run_simulation
 
-from gateware.linien import LinienLogic
+from gateware.linien_module import LinienLogic
 from gateware.logic.pid import PID
 from gateware.logic.sweep import SweepCSR
-from linien.common import FAST_AUTOLOCK
 
 VCD_DIR = Path(__file__).parent / "vcd"
 
