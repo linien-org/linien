@@ -35,6 +35,7 @@ from linien_common.common import (
     update_signal_history,
 )
 from linien_common.config import DEFAULT_SERVER_PORT
+from linien_server import __version__
 from linien_server.autolock.autolock import Autolock
 from linien_server.optimization.optimization import OptimizeSpectroscopy
 from linien_server.parameter_store import ParameterStore
@@ -339,19 +340,21 @@ class FakeRedPitayaControl(BaseService):
 
 
 @click.command()
+@click.version_option(__version__)
 @click.argument("port", default=DEFAULT_SERVER_PORT, type=int, required=False)
 @click.option(
     "--fake", is_flag=True, help="Runs a fake server that just returns random data"
 )
 @click.option(
     "--remote-rp",
-    help="Allows to run the server locally for development and "
-    "connects to a RedPitaya. Specify the RP's credentials "
-    "as follows: "
-    "--remote-rp=root:myPassword@rp-f0xxxx.local",
+    help=(
+        "Allows to run the server locally for development and connects to a RedPitaya. "
+        "Specify the RP's credentials as follows: "
+        "--remote-rp=root:myPassword@rp-f0xxxx.local"
+    ),
 )
 def run_server(port, fake=False, remote_rp=False):
-    print("start server at port", port)
+    print("Start server on port", port)
 
     if fake:
         print("starting fake server")
