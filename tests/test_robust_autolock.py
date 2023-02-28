@@ -1,22 +1,40 @@
+# Copyright 2018-2022 Benjamin Wiegand <benjamin.wiegand@physik.hu-berlin.de>
+# Copyright 2021-2022 Bastian Leykauf <leykauf@physik.hu-berlin.de>
+#
+# This file is part of Linien and based on redpid.
+#
+# Linien is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Linien is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Linien.  If not, see <http://www.gnu.org/licenses/>.
+
 from pathlib import Path
 
 import numpy as np
 import pytest
-from migen import run_simulation
-
-from gateware.logic.autolock import RobustAutolock
-from gateware.logic.autolock_utils import DynamicDelay, SumDiffCalculator
-from linien.server.autolock.robust import (
+from linien_server.autolock.robust import (
     calculate_autolock_instructions,
     get_lock_position_from_autolock_instructions,
 )
-from linien.server.autolock.utils import (
+from linien_server.autolock.utils import (
     crop_spectra_to_same_view,
     get_diff_at_time_scale,
     get_lock_region,
     get_time_scale,
     sum_up_spectrum,
 )
+from migen import run_simulation
+
+from gateware.logic.autolock import RobustAutolock
+from gateware.logic.autolock_utils import DynamicDelay, SumDiffCalculator
 
 VCD_DIR = Path(__file__).parent / "vcd"
 FPGA_DELAY_SUMDIFF_CALCULATOR = 2

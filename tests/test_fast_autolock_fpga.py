@@ -1,11 +1,29 @@
+# Copyright 2018-2022 Benjamin Wiegand <benjamin.wiegand@physik.hu-berlin.de>
+# Copyright 2021-2022 Bastian Leykauf <leykauf@physik.hu-berlin.de>
+#
+# This file is part of Linien and based on redpid.
+#
+# Linien is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Linien is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Linien.  If not, see <http://www.gnu.org/licenses/>.
+
 from pathlib import Path
 
+from linien_common.common import FAST_AUTOLOCK
 from migen import run_simulation
 
-from gateware.linien import LinienLogic
+from gateware.linien_module import LinienLogic
 from gateware.logic.pid import PID
 from gateware.logic.sweep import SweepCSR
-from linien.common import FAST_AUTOLOCK
 
 VCD_DIR = Path(__file__).parent / "vcd"
 

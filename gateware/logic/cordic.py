@@ -1,19 +1,21 @@
-# Copyright 2014-2015 Robert Jordens <jordens@gmail.com>
+# Copyright 2014-2015 Robert Jördens <jordens@gmail.com>
+# Copyright 2018-2022 Benjamin Wiegand <benjamin.wiegand@physik.hu-berlin.de>
+# Copyright 2021-2022 Bastian Leykauf <leykauf@physik.hu-berlin.de>
 #
-# This file is part of redpid.
+# This file is part of Linien and based on redpid.
 #
-# redpid is free software: you can redistribute it and/or modify
+# Linien is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
-# redpid is distributed in the hope that it will be useful,
+# Linien is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with redpid.  If not, see <http://www.gnu.org/licenses/>.
+# along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 from math import atan, atanh, log, pi, sqrt
 
@@ -281,7 +283,7 @@ class TwoQuadrantCordic(Module):
     def _constants(self, stages, bits):
         if self.func_mode == "circular":
             s = range(stages)
-            a = [atan(2 ** -i) for i in s]
+            a = [atan(2**-i) for i in s]
             g = [sqrt(1 + 2 ** (-2 * i)) for i in s]
             # zmax = sum(a)
             # use pi anyway as the input z can cause overflow
@@ -289,7 +291,7 @@ class TwoQuadrantCordic(Module):
             zmax = pi
         elif self.func_mode == "linear":
             s = range(stages)
-            a = [2 ** -i for i in s]
+            a = [2**-i for i in s]
             g = [1 for i in s]
             # zmax = sum(a)
             # use 2 anyway as this simplifies a and scaling
@@ -303,7 +305,7 @@ class TwoQuadrantCordic(Module):
                     s.append(j)
                     j = 3 * j + 1
                 s.append(i + 1)
-            a = [atanh(2 ** -i) for i in s]
+            a = [atanh(2**-i) for i in s]
             g = [sqrt(1 - 2 ** (-2 * i)) for i in s]
             zmax = sum(a) * 2
         # round here helps the width=2**i - 1 case but hurts the

@@ -1,9 +1,26 @@
+# Copyright 2018-2022 Benjamin Wiegand <benjamin.wiegand@physik.hu-berlin.de>
+# Copyright 2021-2022 Bastian Leykauf <leykauf@physik.hu-berlin.de>
+#
+# This file is part of Linien and based on redpid.
+#
+# Linien is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Linien is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Linien.  If not, see <http://www.gnu.org/licenses/>.
+
 from random import randint, random
 
 import numpy as np
+from linien_server.optimization.utils import get_max_slope, optimize_phase_from_iq
 from scipy.optimize import minimize_scalar
-
-from linien.server.optimization.utils import get_max_slope, optimize_phase_from_iq
 
 
 def test_get_max_slope():

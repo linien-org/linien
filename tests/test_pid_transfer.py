@@ -1,3 +1,21 @@
+# Copyright 2018-2022 Benjamin Wiegand <benjamin.wiegand@physik.hu-berlin.de>
+# Copyright 2021-2022 Bastian Leykauf <leykauf@physik.hu-berlin.de>
+#
+# This file is part of Linien and based on redpid.
+#
+# Linien is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Linien is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Linien.  If not, see <http://www.gnu.org/licenses/>.
+
 from pathlib import Path
 
 import numpy as np
@@ -18,7 +36,7 @@ def test_pid_transfer(plt):
 
         x = np.random.uniform(-amplitude, amplitude, samples)
         scale = 2 ** (len(pid.input) - 1) - 1
-        x = (scale * np.array(x)).astype(np.int)
+        x = (scale * np.array(x)).astype(int)
         y = np.array([0] * len(x))
 
         def plot_transfer(x, y, label=None):
@@ -72,9 +90,7 @@ def test_pid_transfer(plt):
                 out = yield pid.pid_out
                 y[_] = out
 
-            f, plot_color = plot_transfer(
-                x.astype(np.float), y.astype(np.float), label=label
-            )
+            f, plot_color = plot_transfer(x.astype(float), y.astype(float), label=label)
             plot_theory(f, p, i, d, plot_color)
 
         yield from do_test(p=1)

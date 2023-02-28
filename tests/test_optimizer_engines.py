@@ -1,12 +1,29 @@
+# Copyright 2018-2022 Benjamin Wiegand <benjamin.wiegand@physik.hu-berlin.de>
+# Copyright 2021-2022 Bastian Leykauf <leykauf@physik.hu-berlin.de>
+#
+# This file is part of Linien and based on redpid.
+#
+# Linien is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Linien is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Linien.  If not, see <http://www.gnu.org/licenses/>.
+
 import cma
 import numpy as np
-
-from linien.common import MHz, Vpp
-from linien.server.optimization.engine import (
+from linien_common.common import MHz, Vpp
+from linien_server.optimization.engine import (
     MultiDimensionalOptimizationEngine,
     OptimizerEngine,
 )
-from linien.server.parameters import Parameters
+from linien_server.parameters import Parameters
 
 
 def test_multi():
