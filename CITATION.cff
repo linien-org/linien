@@ -46,8 +46,9 @@ preferred-citation:
         Berlin & Ferdinand-Braun-Institut gGmbH,
         Leibniz-Institut für Höchstfrequenztechnik
   doi: "10.1063/5.0090384"
+  url: "https://doi.org/10.1063/5.0090384"
   journal: "Review of Scientific Instruments"
   volume: 93
-  number: 6
-  start: 063001
+  issue: 6
+  start: "063001"
   year: 2022
