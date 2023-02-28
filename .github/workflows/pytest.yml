@@ -2,6 +2,10 @@ name: Run PyTest
 
 on:
   push:
+    paths:
+      - gateware/**
+      - linien-common/**
+      - linien-server/**
 
 permissions:
   contents: read
