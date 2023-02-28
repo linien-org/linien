@@ -18,20 +18,6 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 from linien_common.common import ANALOG_OUT0
-from migen import (
-    Array,
-    Cat,
-    ClockDomain,
-    ClockDomainsRenamer,
-    If,
-    Module,
-    Mux,
-    Signal,
-    bits_for,
-)
-from misoc.interconnect import csr_bus
-from misoc.interconnect.csr import AutoCSR, CSRStatus, CSRStorage
-
 from logic.autolock import FPGAAutolock
 from logic.chains import FastChain, SlowChain, cross_connect
 from logic.decimation import Decimate
@@ -48,6 +34,19 @@ from lowlevel.gpio import Gpio
 from lowlevel.pitaya_ps import PitayaPS, Sys2CSR, SysCDC, SysInterconnect
 from lowlevel.scopegen import ScopeGen
 from lowlevel.xadc import XADC
+from migen import (
+    Array,
+    Cat,
+    ClockDomain,
+    ClockDomainsRenamer,
+    If,
+    Module,
+    Mux,
+    Signal,
+    bits_for,
+)
+from misoc.interconnect import csr_bus
+from misoc.interconnect.csr import AutoCSR, CSRStatus, CSRStorage
 
 
 class LinienLogic(Module, AutoCSR):
@@ -313,9 +312,7 @@ class LinienModule(Module, AutoCSR):
 
         fast_outs = list(Signal((width + 4, True)) for channel in (0, 1))
 
-        self.comb += self.slow.pid.running.eq(
-                    self.logic.autolock.lock_running.status
-                )
+        self.comb += self.slow.pid.running.eq(self.logic.autolock.lock_running.status)
         slow_pid_out = Signal((width, True))
         self.comb += slow_pid_out.eq(self.slow.output)
 
@@ -335,8 +332,6 @@ class LinienModule(Module, AutoCSR):
                     self.logic.control_slow_channel.storage == channel, slow_pid_out, 0
                 )
             )
-            
-
 
         for analog_idx in range(4):
             if analog_idx == 0:
@@ -352,9 +347,11 @@ class LinienModule(Module, AutoCSR):
                 slow_out = Signal((width + 3, True))
                 self.comb += [
                     slow_out.eq(
-                        #control_slow_channel=2 -> ANALOG_OUT0
+                        # control_slow_channel=2 -> ANALOG_OUT0
                         Mux(
-                            self.logic.control_slow_channel.storage == 2, slow_pid_out, 0
+                            self.logic.control_slow_channel.storage == 2,
+                            slow_pid_out,
+                            0,
                         )
                         + Mux(
                             self.logic.sweep_channel.storage == ANALOG_OUT0,
