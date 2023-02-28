@@ -32,7 +32,7 @@ def bit2bin(bit, bin, flip=False):
     bitfile = open(bit, "rb")
 
     (l,) = struct.unpack(">H", bitfile.read(2))
-    if l != 9:
+    if l != 9:  # noqa E741
         raise ValueError("Missing <0009> header, not a bit file")
 
     bitfile.read(l)
