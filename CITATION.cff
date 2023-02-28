@@ -45,7 +45,9 @@ preferred-citation:
         Institut für Physik, Humboldt-Universität zu
         Berlin & Ferdinand-Braun-Institut gGmbH,
         Leibniz-Institut für Höchstfrequenztechnik
-  identifiers:
-    - type: doi
-      value: "https://doi.org/10.48550/arXiv.2203.02947"
-      description: arxiv DOI
+  doi: "10.1063/5.0090384"
+  journal: "Review of Scientific Instruments"
+  volume: 93
+  number: 6
+  start: 063001
+  year: 2022
