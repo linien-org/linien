@@ -3,7 +3,7 @@ repos:
     rev: 23.1.0
     hooks:
       - id: black
-        exclude: ^(gateware/logic/|gateware/lowlevel/|linien/server/csrmap.py)
+        exclude: ^(gateware/logic/|gateware/lowlevel/|gateware/linien_module.py|linien-server/linien_server/csrmap.py)
 
   - repo: https://github.com/pycqa/isort
     rev: 5.12.0
