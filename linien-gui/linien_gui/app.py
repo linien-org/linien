@@ -25,7 +25,7 @@ from linien_gui.ui.device_manager import DeviceManager
 from linien_gui.ui.main_window import MainWindow
 from linien_gui.ui.psd_window import PSDWindow
 from linien_gui.ui.version_checker import VersionCheckerThread
-from linien_gui.utils_gui import set_window_icon
+from linien_gui.utils import set_window_icon
 from linien_gui.widgets import UI_PATH, CustomWidget
 from PyQt5 import QtWidgets
 from pyqtgraph.Qt import QtCore

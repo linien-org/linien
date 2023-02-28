@@ -17,7 +17,7 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 from linien_common.common import FAST_AUTOLOCK
-from linien_gui.utils_gui import param2ui
+from linien_gui.utils import param2ui
 from linien_gui.widgets import CustomWidget
 from PyQt5 import QtWidgets
 

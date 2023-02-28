@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>1058</height>
+    <height>1054</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -31,7 +31,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QCheckBox" name="fast_mode">
+       <widget class="QCheckBox" name="fastModeCheckBox">
         <property name="text">
          <string>enable fast mode</string>
         </property>
@@ -68,12 +68,18 @@
          </widget>
         </item>
         <item>
-         <widget class="QComboBox" name="control_channel">
+         <widget class="QComboBox" name="controlChannelComboBox">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>100</width>
+            <height>0</height>
+           </size>
           </property>
           <item>
            <property name="text">
@@ -105,7 +111,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QComboBox" name="sweep_channel">
+         <widget class="QComboBox" name="sweepChannelComboBox">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -147,12 +153,18 @@
          </widget>
         </item>
         <item>
-         <widget class="QComboBox" name="mod_channel">
+         <widget class="QComboBox" name="modulationChannelComboBox">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>100</width>
+            <height>0</height>
+           </size>
           </property>
           <item>
            <property name="text">
@@ -184,14 +196,14 @@
          </widget>
         </item>
         <item>
-         <widget class="QComboBox" name="slow_control_channel">
+         <widget class="QComboBox" name="slowControlComboBox">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
-                    <item>
+          <item>
            <property name="text">
             <string>FAST OUT 1</string>
            </property>
@@ -216,7 +228,7 @@
        </layout>
       </item>
       <item>
-       <widget class="QGroupBox" name="polarity_selector">
+       <widget class="QGroupBox" name="polaritySelectorGroupBox">
         <property name="styleSheet">
          <string notr="true">background: #ffe7b5</string>
         </property>
@@ -247,7 +259,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QWidget" name="polarity_container_fast_out1" native="true">
+          <widget class="QWidget" name="polarityContainerFastOut1" native="true">
            <layout class="QHBoxLayout" name="horizontalLayout_10">
             <property name="spacing">
              <number>6</number>
@@ -278,7 +290,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QComboBox" name="polarity_fast_out1">
+             <widget class="QComboBox" name="polarityComboBoxFastOut1">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -301,7 +313,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QWidget" name="polarity_container_fast_out2" native="true">
+          <widget class="QWidget" name="polarityContainerFastOut2" native="true">
            <layout class="QHBoxLayout" name="horizontalLayout_12">
             <property name="leftMargin">
              <number>0</number>
@@ -329,7 +341,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QComboBox" name="polarity_fast_out2">
+             <widget class="QComboBox" name="polarityComboBoxFastOut2">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -352,7 +364,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QWidget" name="polarity_container_analog_out0" native="true">
+          <widget class="QWidget" name="polarityContainerAnalogOut0" native="true">
            <layout class="QHBoxLayout" name="horizontalLayout_11">
             <property name="leftMargin">
              <number>0</number>
@@ -380,7 +392,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QComboBox" name="polarity_analog_out0">
+             <widget class="QComboBox" name="polarityComboBoxAnalogOut0">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -494,14 +506,14 @@
           </widget>
          </item>
          <item>
-          <widget class="QCheckBox" name="dual_channel">
+          <widget class="QCheckBox" name="dualChannelCheckBox">
            <property name="text">
             <string>use as second error signal</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QGroupBox" name="dual_channel_mixing">
+          <widget class="QGroupBox" name="dualChannelMixingGroupBox">
            <property name="title">
             <string>Mixing of channel 1 and 2</string>
            </property>
@@ -581,7 +593,7 @@
              </layout>
             </item>
             <item>
-             <widget class="QSlider" name="channel_mixing_slider">
+             <widget class="QSlider" name="channelMixingSlider">
               <property name="maximum">
                <number>255</number>
               </property>
@@ -670,7 +682,7 @@
          </widget>
         </item>
         <item>
-         <widget class="CustomDoubleSpinBoxNoSign" name="analog_out_1">
+         <widget class="CustomDoubleSpinBoxNoSign" name="analogOutComboBox1">
           <property name="keyboardTracking">
            <bool>false</bool>
           </property>
@@ -713,7 +725,7 @@
          </widget>
         </item>
         <item>
-         <widget class="CustomDoubleSpinBoxNoSign" name="analog_out_2">
+         <widget class="CustomDoubleSpinBoxNoSign" name="analogOutComboBox2">
           <property name="keyboardTracking">
            <bool>false</bool>
           </property>
@@ -756,7 +768,7 @@
          </widget>
         </item>
         <item>
-         <widget class="CustomDoubleSpinBoxNoSign" name="analog_out_3">
+         <widget class="CustomDoubleSpinBoxNoSign" name="analogOutComboBox3">
           <property name="keyboardTracking">
            <bool>false</bool>
           </property>

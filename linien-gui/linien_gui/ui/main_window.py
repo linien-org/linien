@@ -27,7 +27,7 @@ from linien_common.common import check_plot_data
 from linien_common.config import N_COLORS
 from linien_gui.config import COLORS
 from linien_gui.ui.plot_widget import INVALID_POWER
-from linien_gui.utils_gui import color_to_hex
+from linien_gui.utils import color_to_hex
 from linien_gui.widgets import CustomWidget
 from PyQt5 import QtWidgets
 

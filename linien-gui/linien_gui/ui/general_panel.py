@@ -23,7 +23,7 @@ from linien_common.common import (
     FAST_OUT2,
     convert_channel_mixing_value,
 )
-from linien_gui.utils_gui import param2ui
+from linien_gui.utils import param2ui
 from linien_gui.widgets import CustomWidget
 from PyQt5 import QtWidgets
 
@@ -34,42 +34,47 @@ class GeneralPanel(QtWidgets.QWidget, CustomWidget):
         self.load_ui("general_panel.ui")
 
     def ready(self):
-        self.ids.channel_mixing_slider.valueChanged.connect(self.channel_mixing_changed)
-        self.ids.fast_mode.stateChanged.connect(self.fast_mode_changed)
-        self.ids.dual_channel.stateChanged.connect(self.dual_channel_changed)
+        self.ids.channelMixingSlider.valueChanged.connect(
+            self.on_channel_mixing_changed
+        )
+        self.ids.fastModeCheckBox.stateChanged.connect(self.on_fast_mode_changed)
+        self.ids.dualChannelCheckBox.stateChanged.connect(self.on_dual_channel_changed)
 
-        self.ids.mod_channel.currentIndexChanged.connect(self.mod_channel_changed)
-        self.ids.control_channel.currentIndexChanged.connect(
+        self.ids.modulationChannelComboBox.currentIndexChanged.connect(
+            self.on_mod_channel_changed
+        )
+        self.ids.controlChannelComboBox.currentIndexChanged.connect(
             self.control_channel_changed
         )
-        self.ids.sweep_channel.currentIndexChanged.connect(self.sweep_channel_changed)
-        self.ids.slow_control_channel.currentIndexChanged.connect(
-            self.slow_control_channel_changed
+        self.ids.sweepChannelComboBox.currentIndexChanged.connect(
+            self.on_sweep_channel_changed
+        )
+        self.ids.slowControlComboBox.currentIndexChanged.connect(
+            self.on_slow_control_channel_changed
         )
 
-        self.ids.polarity_fast_out1.currentIndexChanged.connect(
-            self.polarity_fast_out1_changed
+        self.ids.polarityComboBoxFastOut1.currentIndexChanged.connect(
+            self.on_polarity_fast_out1_changed
         )
-        self.ids.polarity_fast_out2.currentIndexChanged.connect(
-            self.polarity_fast_out2_changed
+        self.ids.polarityComboBoxFastOut2.currentIndexChanged.connect(
+            self.on_polarity_fast_out2_changed
         )
-        self.ids.polarity_analog_out0.currentIndexChanged.connect(
-            self.polarity_analog_out0_changed
+        self.ids.polarityComboBoxAnalogOut0.currentIndexChanged.connect(
+            self.on_polarity_analog_out0_changed
         )
 
         for idx in range(4):
             if idx == 0:
                 continue
-            element = getattr(self.ids, "analog_out_%d" % idx)
+            element = getattr(self.ids, f"analogOutComboBox{idx}")
             element.setKeyboardTracking(False)
             element.valueChanged.connect(
                 lambda value, idx=idx: self.change_analog_out(idx)
             )
 
     def change_analog_out(self, idx):
-        name = "analog_out_%d" % idx
-        getattr(self.parameters, name).value = int(
-            getattr(self.ids, name).value() / ANALOG_OUT_V
+        getattr(self.parameters, f"analog_out_{idx}").value = int(
+            getattr(self.ids, f"analogOutComboBox{idx}").value() / ANALOG_OUT_V
         )
         self.control.write_registers()
 
@@ -77,12 +82,12 @@ class GeneralPanel(QtWidgets.QWidget, CustomWidget):
         self.parameters = self.app.parameters
         self.control = self.app.control
 
-        param2ui(self.parameters.fast_mode, self.ids.fast_mode)
+        param2ui(self.parameters.fast_mode, self.ids.fastModeCheckBox)
 
-        param2ui(self.parameters.fast_mode, self.ids.fast_mode)
+        param2ui(self.parameters.fast_mode, self.ids.fastModeCheckBox)
 
         def dual_channel_changed(value):
-            self.ids.dual_channel_mixing.setVisible(value)
+            self.ids.dualChannelMixingGroupBox.setVisible(value)
             self.ids.fast_in_1_status.setText(
                 "error signal" if not value else "error signal 1"
             )
@@ -92,25 +97,29 @@ class GeneralPanel(QtWidgets.QWidget, CustomWidget):
             return value
 
         param2ui(
-            self.parameters.dual_channel, self.ids.dual_channel, dual_channel_changed
+            self.parameters.dual_channel,
+            self.ids.dualChannelCheckBox,
+            dual_channel_changed,
         )
 
         param2ui(
             self.parameters.channel_mixing,
-            self.ids.channel_mixing_slider,
+            self.ids.channelMixingSlider,
             lambda value: value + 128,
         )
         # this is required to update the descriptive labels in the beginning
-        self.channel_mixing_changed()
+        self.on_channel_mixing_changed()
 
-        param2ui(self.parameters.mod_channel, self.ids.mod_channel)
-        param2ui(self.parameters.control_channel, self.ids.control_channel)
-        param2ui(self.parameters.sweep_channel, self.ids.sweep_channel)
-        param2ui(self.parameters.control_slow_channel, self.ids.slow_control_channel)
+        param2ui(self.parameters.mod_channel, self.ids.modulationChannelComboBox)
+        param2ui(self.parameters.control_channel, self.ids.controlChannelComboBox)
+        param2ui(self.parameters.sweep_channel, self.ids.sweepChannelComboBox)
+        param2ui(self.parameters.control_slow_channel, self.ids.slowControlComboBox)
 
-        param2ui(self.parameters.polarity_fast_out1, self.ids.polarity_fast_out1)
-        param2ui(self.parameters.polarity_fast_out2, self.ids.polarity_fast_out2)
-        param2ui(self.parameters.polarity_analog_out0, self.ids.polarity_analog_out0)
+        param2ui(self.parameters.polarity_fast_out1, self.ids.polarityComboBoxFastOut1)
+        param2ui(self.parameters.polarity_fast_out2, self.ids.polarityComboBoxFastOut2)
+        param2ui(
+            self.parameters.polarity_analog_out0, self.ids.polarityComboBoxAnalogOut0
+        )
 
         def show_polarity_settings(*args):
             used_channels = set(
@@ -123,14 +132,14 @@ class GeneralPanel(QtWidgets.QWidget, CustomWidget):
             if self.parameters.pid_on_slow_enabled.value:
                 used_channels.add(self.parameters.control_slow_channel.value)
 
-            self.ids.polarity_selector.setVisible(len(used_channels) > 1)
+            self.ids.polaritySelectorGroupBox.setVisible(len(used_channels) > 1)
 
             def set_visibility(element, channel_id):
                 element.setVisible(channel_id in used_channels)
 
-            set_visibility(self.ids.polarity_container_fast_out1, FAST_OUT1)
-            set_visibility(self.ids.polarity_container_fast_out2, FAST_OUT2)
-            set_visibility(self.ids.polarity_container_analog_out0, ANALOG_OUT0)
+            set_visibility(self.ids.polarityContainerFastOut1, FAST_OUT1)
+            set_visibility(self.ids.polarityContainerFastOut2, FAST_OUT2)
+            set_visibility(self.ids.polarityContainerAnalogOut0, ANALOG_OUT0)
 
         self.parameters.control_channel.on_change(show_polarity_settings)
         self.parameters.sweep_channel.on_change(show_polarity_settings)
@@ -140,10 +149,9 @@ class GeneralPanel(QtWidgets.QWidget, CustomWidget):
         for idx in range(4):
             if idx == 0:
                 continue
-            name = "analog_out_%d" % idx
             param2ui(
-                getattr(self.parameters, name),
-                getattr(self.ids, name),
+                getattr(self.parameters, f"analog_out_{idx}"),
+                getattr(self.ids, f"analogOutComboBox{idx}"),
                 process_value=lambda v: ANALOG_OUT_V * v,
             )
 
@@ -158,28 +166,29 @@ class GeneralPanel(QtWidgets.QWidget, CustomWidget):
 
         self.parameters.fast_mode.on_change(fast_mode_changed)
 
-    def channel_mixing_changed(self):
-        value = int(self.ids.channel_mixing_slider.value()) - 128
+    def on_channel_mixing_changed(self):
+        value = int(self.ids.channelMixingSlider.value()) - 128
         self.parameters.channel_mixing.value = value
         self.control.write_registers()
 
-        self.update_channel_mixing_slider(value)
-
-    def fast_mode_changed(self):
-        self.parameters.fast_mode.value = int(self.ids.fast_mode.checkState() > 0)
-        self.control.write_registers()
-
-    def dual_channel_changed(self):
-        self.parameters.dual_channel.value = int(self.ids.dual_channel.checkState() > 0)
-        self.control.write_registers()
-
-    def update_channel_mixing_slider(self, value):
+        # update channel mixing slider
         a_value, b_value = convert_channel_mixing_value(value)
+        self.ids.chain_a_factor.setText(f"{a_value}")
+        self.ids.chain_b_factor.setText(f"{b_value}")
 
-        self.ids.chain_a_factor.setText("%d" % a_value)
-        self.ids.chain_b_factor.setText("%d" % b_value)
+    def on_fast_mode_changed(self):
+        self.parameters.fast_mode.value = int(
+            self.ids.fastModeCheckBox.checkState() > 0
+        )
+        self.control.write_registers()
 
-    def mod_channel_changed(self, channel):
+    def on_dual_channel_changed(self):
+        self.parameters.dual_channel.value = int(
+            self.ids.dualChannelCheckBox.checkState() > 0
+        )
+        self.control.write_registers()
+
+    def on_mod_channel_changed(self, channel):
         self.parameters.mod_channel.value = channel
         self.control.write_registers()
 
@@ -187,27 +196,27 @@ class GeneralPanel(QtWidgets.QWidget, CustomWidget):
         self.parameters.control_channel.value = channel
         self.control.write_registers()
 
-    def slow_control_channel_changed(self, channel):
-        self.parameters.control_slow_channel.value = channel
-        self.control.write_registers()
+    def on_slow_control_channel_changed(self, channel):
         if channel > 2:
+            # disabled state
             self.parameters.pid_on_slow_enabled.value = False
         else:
+            self.parameters.control_slow_channel.value = channel
             self.parameters.pid_on_slow_enabled.value = True
         self.control.write_registers()
 
-    def sweep_channel_changed(self, channel):
+    def on_sweep_channel_changed(self, channel):
         self.parameters.sweep_channel.value = channel
         self.control.write_registers()
 
-    def polarity_fast_out1_changed(self, polarity):
+    def on_polarity_fast_out1_changed(self, polarity):
         self.parameters.polarity_fast_out1.value = bool(polarity)
         self.control.write_registers()
 
-    def polarity_fast_out2_changed(self, polarity):
+    def on_polarity_fast_out2_changed(self, polarity):
         self.parameters.polarity_fast_out2.value = bool(polarity)
         self.control.write_registers()
 
-    def polarity_analog_out0_changed(self, polarity):
+    def on_polarity_analog_out0_changed(self, polarity):
         self.parameters.polarity_analog_out0.value = bool(polarity)
         self.control.write_registers()
