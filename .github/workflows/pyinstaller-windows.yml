@@ -2,6 +2,11 @@ name: Pyinstaller Windows
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - linien-common/**
+      - linien-client/**
+      - linien-gui/**
 
 jobs:
   build:
