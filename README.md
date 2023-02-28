@@ -1,5 +1,5 @@
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/linien-org/linien)
-[![PyPI](https://img.shields.io/pypi/v/linien?color=blue)](https://pypi.org/project/linien/)
+[![PyPI](https://img.shields.io/pypi/v/linien-gui?color=blue)](https://pypi.org/project/linien-gui/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 Linien ‒ User-friendly locking of lasers using RedPitaya (STEMlab 125-14) that just works
@@ -42,7 +42,7 @@ Features
 Getting started: install Linien
 ---------------
 
-Linien runs on Windows and Linux. For most users the [standalone
+Linien runs on Windows and Linux. For Windows users the [standalone
 binaries](#standalone-binary) containing the graphical user interface
 are recommended.
 These binaries run on your lab PC and contain everything to get Linien running on your RedPitaya.
@@ -51,45 +51,30 @@ If you want to use the python interface you should [install it using pip](#insta
 
 ### Standalone binary
 
-You can download standalone binaries for windows and linux on [the
+You can download standalone binaries for Windows on [the
 releases
-page](https://github.com/linien-org/linien/releases) (download the corresponding binary in the assets section of the latest version). On linux mark it as executable before executing:
-
-```bash
-chmod +x linien-linux*
-./linien-linux*
-```
+page](https://github.com/linien-org/linien/releases) (download the binary in the assets section of the latest version). For Linux users, we recommend installation via pip.
 
 ### Installation with pip
 
-Linien is written for python 3 and can be installed using python\'s
-package manager pip:
+Linien is written for python 3 and can be installed using python\'s package manager pip:
 
 ```bash
-pip3 install linien
+pip install linien-gui
 ```
 
-On Linux, you may run the application by calling
+The GUI can be started by calling 
 
 ```bash
 linien
 ```
 
-in a terminal.
+in a terminal (on both Linux and Windows).
 
-If this doesn\'t work, your local bin directory (e.g. \~/.local/bin) is
-probably missing in your PATH. In this case you can open Linien with
-python:
-
-```python
-from linien.gui.app import run_application
-run_application()
-```
-
-In case you're only interested in the python client and don't want to install the graphical application, you may use the `linien-python-client`, a subset of the `linien` package:
+In case you're only interested in the python client and don't want to install the graphical application, you may use the `linien-client` package:
 
 ```bash
-pip3 install linien-python-client
+pip install linien-client
 ```
 
 
@@ -200,7 +185,8 @@ Then, you should start the Linien server on your RedPitaya. This can be done by 
 
 Once the server is up and running, you can connect using python:
 ```python
-from linien.client.connection import LinienClient, MHz, Vpp
+from linien_client.connection import LinienClient
+from linien_common.common import  MHz, Vpp
 c = LinienClient(
     {'host': 'rp-XXXXXX.local', 'username': 'root', 'password': 'change-it-to-something-else!'},
     # starts the server if it is not running
@@ -288,8 +274,8 @@ The script below shows an example of how to run the autolock using the scripting
 import pickle
 import numpy as np
 
-from linien.client.connection import LinienClient
-from linien.common import FAST_AUTOLOCK
+from linien_client.connection import LinienClient
+from linien_common.common import FAST_AUTOLOCK
 
 from matplotlib import pyplot as plt
 from time import sleep
@@ -370,7 +356,7 @@ Before installing a new version of Linien, open the previously installed client 
 Development
 -----------
 
-Information about ddevelopment can be found in the [wiki](https://github.com/linien-org/linien/wiki/Development).
+Information about development can be found in the [wiki](https://github.com/linien-org/linien/wiki/Development).
 
 FAQs
 ----
@@ -419,6 +405,10 @@ running `screen -r linien-server`. If any errors occurred on the server side, th
 be displayed here. Please provide the output if you are reporting an
 [issue](https://github.com/linien-org/linien/issues)  related to connection problems.
 
+### Possible conflict with openSSH
+
+Note that there might be issues if openSSH server is running on the client, see
+[here](https://github.com/orgs/linien-org/discussions/286).
 
 ### Updating or installing fails
 
@@ -428,19 +418,21 @@ be displayed here. Please provide the output if you are reporting an
 Citation
 ----
 
-If you are using Linien, please cite us as follows:
+If you are using Linien for your scientific work, please cite us as follows:
 
 ```
 @article{Wiegand2022,
-archivePrefix = {arXiv},
-arxivId = {2203.02947},
-author = {Wiegand, Benjamin and Leykauf, Bastian and J{\"{o}}rdens, Robert and Krutzik, Markus},
-eprint = {2203.02947},
-title = {{Linien: A versatile, user-friendly, open-source FPGA-based tool for frequency stabilization and spectroscopy parameter optimization}},
-url = {http://arxiv.org/abs/2203.02947},
-year = {2022}
+   author = {B. Wiegand and B. Leykauf and R. Jördens and M. Krutzik},
+   doi = {10.1063/5.0090384},
+   issn = {10897623},
+   issue = {6},
+   journal = {Review of Scientific Instruments},
+   month = {6},
+   pmid = {35778046},
+   title = {Linien: A versatile, user-friendly, open-source FPGA-based tool for frequency stabilization and spectroscopy parameter optimization},
+   volume = {93},
+   year = {2022},
 }
-
 ```
 
 License
@@ -449,7 +441,7 @@ Linien ‒ User-friendly locking of lasers using RedPitaya (STEMlab 125-14) that
 
 Copyright © 2014-2015 Robert Jördens
 Copyright © 2018-2022 Benjamin Wiegand
-Copyright © 2021-2022 Bastian Leykauf
+Copyright © 2021-2023 Bastian Leykauf
 
 Linien is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 

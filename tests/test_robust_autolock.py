@@ -20,21 +20,21 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from migen import run_simulation
-
-from gateware.logic.autolock import RobustAutolock
-from gateware.logic.autolock_utils import DynamicDelay, SumDiffCalculator
-from linien.server.autolock.robust import (
+from linien_server.autolock.robust import (
     calculate_autolock_instructions,
     get_lock_position_from_autolock_instructions,
 )
-from linien.server.autolock.utils import (
+from linien_server.autolock.utils import (
     crop_spectra_to_same_view,
     get_diff_at_time_scale,
     get_lock_region,
     get_time_scale,
     sum_up_spectrum,
 )
+from migen import run_simulation
+
+from gateware.logic.autolock import RobustAutolock
+from gateware.logic.autolock_utils import DynamicDelay, SumDiffCalculator
 
 VCD_DIR = Path(__file__).parent / "vcd"
 FPGA_DELAY_SUMDIFF_CALCULATOR = 2

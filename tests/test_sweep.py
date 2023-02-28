@@ -214,7 +214,6 @@ def test_pause_sweep(dut, plt):
         yield dut.max.storage.eq(1024)
         yield dut.run.storage.eq(1)
         for i in range(n):
-
             if i == 50:
                 # pause sweep
                 yield dut.pause.storage.eq(1)
