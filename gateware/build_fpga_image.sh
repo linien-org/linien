@@ -15,4 +15,5 @@ fi
 export PATH=$VIVADOPATH:$PATH
 
 rm linien-server/linien_server/linien.bin -f
-python3 gateware/fpga_image_helper.py
+# run with -m option to avoid errors related to relative imports without breaking pytest
+python3 -m gateware.fpga_image_helper
