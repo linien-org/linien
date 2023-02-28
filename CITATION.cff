@@ -1,0 +1,54 @@
+cff-version: 1.2.0
+message: If you are using Linien as part of a scientific publication, please cite our article.
+authors:
+  - given-names: Benjamin
+    family-names: Wiegand
+    email: bwiegand@physik.hu-berlin.de
+    affiliation: Institut für Physik, Humboldt-Universität zu Berlin
+    orcid: "https://orcid.org/0000-0001-6549-2307"
+  - family-names: Leykauf
+    given-names: Bastian
+    email: leykauf@physik.hu-berlin.de
+    affiliation: Institut für Physik, Humboldt-Universität zu Berlin
+    orcid: "https://orcid.org/0000-0002-4630-0602"
+  - family-names: Jördens
+    given-names: Robert
+    affiliation: '"QUARTIQ GmbH'
+    orcid: "https://orcid.org/0000-0001-5333-0562"
+preferred-citation:
+  type: article
+  title: >-
+    Linien: A versatile, user-friendly, open-source FPGA-based tool for frequency
+    stabilization and spectroscopy parameter optimization
+  authors:
+    - given-names: Benjamin
+      family-names: Wiegand
+      email: bwiegand@physik.hu-berlin.de
+      affiliation: >-
+        Institut für Physik, Humboldt-Universität zu
+        Berlin
+      orcid: "https://orcid.org/0000-0001-6549-2307"
+    - family-names: Leykauf
+      given-names: Bastian
+      email: leykauf@physik.hu-berlin.de
+      affiliation: >-
+        Institut für Physik, Humboldt-Universität zu
+        Berlin
+      orcid: "https://orcid.org/0000-0002-4630-0602"
+    - family-names: Jördens
+      given-names: Robert
+      affiliation: '"QUARTIQ GmbH'
+      orcid: "https://orcid.org/0000-0001-5333-0562"
+    - family-names: Krutzik
+      given-names: Markus
+      affiliation: >-
+        Institut für Physik, Humboldt-Universität zu
+        Berlin & Ferdinand-Braun-Institut gGmbH,
+        Leibniz-Institut für Höchstfrequenztechnik
+  doi: "10.1063/5.0090384"
+  url: "https://doi.org/10.1063/5.0090384"
+  journal: "Review of Scientific Instruments"
+  volume: 93
+  issue: 6
+  start: "063001"
+  year: 2022
