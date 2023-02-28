@@ -76,6 +76,7 @@ class LinienLogic(Module, AutoCSR):
         self.mod_channel = CSRStorage(1)
         self.control_channel = CSRStorage(1)
         self.sweep_channel = CSRStorage(2)
+        self.control_slow_channel = CSRStorage(2)
 
         self.fast_mode = CSRStorage(1)
 
@@ -312,6 +313,12 @@ class LinienModule(Module, AutoCSR):
 
         fast_outs = list(Signal((width + 4, True)) for channel in (0, 1))
 
+        self.comb += self.slow.pid.running.eq(
+                    self.logic.autolock.lock_running.status
+                )
+        slow_pid_out = Signal((width, True))
+        self.comb += slow_pid_out.eq(self.slow.output)
+
         for channel, fast_out in enumerate(fast_outs):
             self.comb += fast_out.eq(
                 Mux(self.logic.control_channel.storage == channel, pid_out, 0)
@@ -324,7 +331,12 @@ class LinienModule(Module, AutoCSR):
                     self.logic.out_offset_signed,
                     0,
                 )
+                + Mux(
+                    self.logic.control_slow_channel.storage == channel, slow_pid_out, 0
+                )
             )
+            
+
 
         for analog_idx in range(4):
             if analog_idx == 0:
@@ -340,7 +352,10 @@ class LinienModule(Module, AutoCSR):
                 slow_out = Signal((width + 3, True))
                 self.comb += [
                     slow_out.eq(
-                        slow_pid_out
+                        #control_slow_channel=2 -> ANALOG_OUT0
+                        Mux(
+                            self.logic.control_slow_channel.storage == 2, slow_pid_out, 0
+                        )
                         + Mux(
                             self.logic.sweep_channel.storage == ANALOG_OUT0,
                             self.logic.sweep.y,

@@ -106,7 +106,7 @@ class GeneralPanel(QtWidgets.QWidget, CustomWidget):
         param2ui(self.parameters.mod_channel, self.ids.mod_channel)
         param2ui(self.parameters.control_channel, self.ids.control_channel)
         param2ui(self.parameters.sweep_channel, self.ids.sweep_channel)
-        param2ui(self.parameters.pid_on_slow_enabled, self.ids.slow_control_channel)
+        param2ui(self.parameters.control_slow_channel, self.ids.slow_control_channel)
 
         param2ui(self.parameters.polarity_fast_out1, self.ids.polarity_fast_out1)
         param2ui(self.parameters.polarity_fast_out2, self.ids.polarity_fast_out2)
@@ -121,7 +121,7 @@ class GeneralPanel(QtWidgets.QWidget, CustomWidget):
             )
 
             if self.parameters.pid_on_slow_enabled.value:
-                used_channels.add(ANALOG_OUT0)
+                used_channels.add(self.parameters.control_slow_channel.value)
 
             self.ids.polarity_selector.setVisible(len(used_channels) > 1)
 
@@ -135,7 +135,7 @@ class GeneralPanel(QtWidgets.QWidget, CustomWidget):
         self.parameters.control_channel.on_change(show_polarity_settings)
         self.parameters.sweep_channel.on_change(show_polarity_settings)
         self.parameters.mod_channel.on_change(show_polarity_settings)
-        self.parameters.pid_on_slow_enabled.on_change(show_polarity_settings)
+        self.parameters.control_slow_channel.on_change(show_polarity_settings)
 
         for idx in range(4):
             if idx == 0:
@@ -188,7 +188,12 @@ class GeneralPanel(QtWidgets.QWidget, CustomWidget):
         self.control.write_registers()
 
     def slow_control_channel_changed(self, channel):
-        self.parameters.pid_on_slow_enabled.value = bool(channel)
+        self.parameters.control_slow_channel.value = channel
+        self.control.write_registers()
+        if channel>2:
+            self.parameters.pid_on_slow_enabled.value = False
+        else:
+            self.parameters.pid_on_slow_enabled.value = True
         self.control.write_registers()
 
     def sweep_channel_changed(self, channel):

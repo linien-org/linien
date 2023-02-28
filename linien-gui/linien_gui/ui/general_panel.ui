@@ -191,14 +191,24 @@
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
+                    <item>
+           <property name="text">
+            <string>FAST OUT 1</string>
+           </property>
+          </item>
           <item>
            <property name="text">
-            <string>disabled</string>
+            <string>FAST OUT 2</string>
            </property>
           </item>
           <item>
            <property name="text">
             <string>ANALOG OUT 0</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>disabled</string>
            </property>
           </item>
          </widget>
