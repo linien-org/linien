@@ -190,7 +190,7 @@ class GeneralPanel(QtWidgets.QWidget, CustomWidget):
     def slow_control_channel_changed(self, channel):
         self.parameters.control_slow_channel.value = channel
         self.control.write_registers()
-        if channel > 2:
+        if channel>2:
             self.parameters.pid_on_slow_enabled.value = False
         else:
             self.parameters.pid_on_slow_enabled.value = True

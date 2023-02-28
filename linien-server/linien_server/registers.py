@@ -276,8 +276,7 @@ class Registers:
         )
         slow_slope = (
             1
-            if channel_polarity(control_slow_channel)
-            == channel_polarity(control_channel)
+            if channel_polarity(control_slow_channel) == channel_polarity(control_channel)
             else -1
         )
 
