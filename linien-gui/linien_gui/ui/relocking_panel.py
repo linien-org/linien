@@ -3,10 +3,9 @@
 #     get_name_automatic_relocking_max_parameter,
 #     get_name_automatic_relocking_min_parameter,
 # )
-from PyQt5 import QtCore, QtWidgets
-
 # from linien.gui.utils_gui import param2ui
 from linien.gui.widgets import CustomWidget
+from PyQt5 import QtCore, QtWidgets
 
 
 class RelockingPanel(QtWidgets.QWidget, CustomWidget):
