@@ -2,6 +2,7 @@ name: Run PyTest
 
 on:
   push:
+    workflow_dispatch:
     paths:
       - gateware/**
       - linien-common/**
