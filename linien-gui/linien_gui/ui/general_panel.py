@@ -108,6 +108,7 @@ class GeneralPanel(QtWidgets.QWidget, CustomWidget):
         self.parameters.sweep_channel.on_change(self.show_polarity_settings)
         self.parameters.mod_channel.on_change(self.show_polarity_settings)
         self.parameters.control_slow_channel.on_change(self.show_polarity_settings)
+        self.parameters.pid_on_slow_enabled.on_change(self.show_polarity_settings)
 
         for idx in range(4):
             if idx == 0:
@@ -189,18 +190,15 @@ class GeneralPanel(QtWidgets.QWidget, CustomWidget):
         self.control.write_registers()
 
     def show_polarity_settings(self, *args):
-        used_channels = set(
-            (
-                self.parameters.control_channel.value,
-                self.parameters.sweep_channel.value,
-            )
-        )
+        used_channels = {
+            self.parameters.control_channel.value,
+            self.parameters.sweep_channel.value,
+        }
 
         if self.parameters.pid_on_slow_enabled.value:
             used_channels.add(self.parameters.control_slow_channel.value)
 
         self.polaritySelectorGroupBox.setVisible(len(used_channels) > 1)
-
         self.polarityContainerFastOut1.setVisible(FAST_OUT1 in used_channels)
         self.polarityContainerFastOut2.setVisible(FAST_OUT2 in used_channels)
         self.polarityContainerAnalogOut0.setVisible(ANALOG_OUT0 in used_channels)
