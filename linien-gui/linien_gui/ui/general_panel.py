@@ -40,7 +40,7 @@ class GeneralPanel(QtWidgets.QWidget, CustomWidget):
             self.on_mod_channel_changed
         )
         self.controlChannelComboBox.currentIndexChanged.connect(
-            self.control_channel_changed
+            self.on_control_channel_changed
         )
         self.sweepChannelComboBox.currentIndexChanged.connect(
             self.on_sweep_channel_changed
@@ -70,8 +70,6 @@ class GeneralPanel(QtWidgets.QWidget, CustomWidget):
     def on_connection_established(self):
         self.parameters = self.app.parameters
         self.control = self.app.control
-
-        param2ui(self.parameters.fast_mode, self.fastModeCheckBox)
 
         param2ui(self.parameters.fast_mode, self.fastModeCheckBox)
 
@@ -106,30 +104,10 @@ class GeneralPanel(QtWidgets.QWidget, CustomWidget):
         param2ui(self.parameters.polarity_fast_out2, self.polarityComboBoxFastOut2)
         param2ui(self.parameters.polarity_analog_out0, self.polarityComboBoxAnalogOut0)
 
-        def show_polarity_settings(*args):
-            used_channels = set(
-                (
-                    self.parameters.control_channel.value,
-                    self.parameters.sweep_channel.value,
-                )
-            )
-
-            if self.parameters.pid_on_slow_enabled.value:
-                used_channels.add(self.parameters.control_slow_channel.value)
-
-            self.polaritySelectorGroupBox.setVisible(len(used_channels) > 1)
-
-            def set_visibility(element, channel_id):
-                element.setVisible(channel_id in used_channels)
-
-            set_visibility(self.polarityContainerFastOut1, FAST_OUT1)
-            set_visibility(self.polarityContainerFastOut2, FAST_OUT2)
-            set_visibility(self.polarityContainerAnalogOut0, ANALOG_OUT0)
-
-        self.parameters.control_channel.on_change(show_polarity_settings)
-        self.parameters.sweep_channel.on_change(show_polarity_settings)
-        self.parameters.mod_channel.on_change(show_polarity_settings)
-        self.parameters.control_slow_channel.on_change(show_polarity_settings)
+        self.parameters.control_channel.on_change(self.show_polarity_settings)
+        self.parameters.sweep_channel.on_change(self.show_polarity_settings)
+        self.parameters.mod_channel.on_change(self.show_polarity_settings)
+        self.parameters.control_slow_channel.on_change(self.show_polarity_settings)
 
         for idx in range(4):
             if idx == 0:
@@ -140,7 +118,7 @@ class GeneralPanel(QtWidgets.QWidget, CustomWidget):
                 process_value=lambda v: ANALOG_OUT_V * v,
             )
 
-        def fast_mode_changed(fast_mode_enabled):
+        def on_fast_mode_changed(fast_mode_enabled):
             """Disables controls that are irrelevant if fast mode is enabled"""
             widgets_to_disable = (
                 self.output_ports_group,
@@ -149,7 +127,7 @@ class GeneralPanel(QtWidgets.QWidget, CustomWidget):
             for widget in widgets_to_disable:
                 widget.setEnabled(not fast_mode_enabled)
 
-        self.parameters.fast_mode.on_change(fast_mode_changed)
+        self.parameters.fast_mode.on_change(on_fast_mode_changed)
 
     def on_analog_out_changed(self, idx):
         getattr(self.parameters, f"analog_out_{idx}").value = int(
@@ -181,7 +159,7 @@ class GeneralPanel(QtWidgets.QWidget, CustomWidget):
         self.parameters.mod_channel.value = channel
         self.control.write_registers()
 
-    def control_channel_changed(self, channel):
+    def on_control_channel_changed(self, channel):
         self.parameters.control_channel.value = channel
         self.control.write_registers()
 
@@ -209,3 +187,23 @@ class GeneralPanel(QtWidgets.QWidget, CustomWidget):
     def on_polarity_analog_out0_changed(self, polarity):
         self.parameters.polarity_analog_out0.value = bool(polarity)
         self.control.write_registers()
+
+    def show_polarity_settings(self, *args):
+        used_channels = set(
+            (
+                self.parameters.control_channel.value,
+                self.parameters.sweep_channel.value,
+            )
+        )
+
+        if self.parameters.pid_on_slow_enabled.value:
+            used_channels.add(self.parameters.control_slow_channel.value)
+
+        self.polaritySelectorGroupBox.setVisible(len(used_channels) > 1)
+
+        def set_visibility(element, channel_id):
+            element.setVisible(channel_id in used_channels)
+
+        set_visibility(self.polarityContainerFastOut1, FAST_OUT1)
+        set_visibility(self.polarityContainerFastOut2, FAST_OUT2)
+        set_visibility(self.polarityContainerAnalogOut0, ANALOG_OUT0)
