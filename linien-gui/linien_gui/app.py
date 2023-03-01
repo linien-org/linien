@@ -68,7 +68,7 @@ class QTApp(QtCore.QObject):
     def init(self):
         for instance in CustomWidget.instances:
             try:
-                instance.connection_established()
+                instance.on_connection_established()
             except Exception:
                 print(
                     (
