@@ -34,8 +34,6 @@ sys.path += [str(UI_PATH)]
 
 
 class QTApp(QtCore.QObject):
-    ready = QtCore.pyqtSignal(bool)
-
     def __init__(self):
         self.app = QtWidgets.QApplication(sys.argv)
 
@@ -62,10 +60,6 @@ class QTApp(QtCore.QObject):
         self.control = client.control
         self.parameters = client.parameters
 
-        self.ready.connect(self.init)
-        self.ready.emit(True)
-
-    def init(self):
         for instance in CustomWidget.instances:
             try:
                 instance.on_connection_established()
