@@ -201,9 +201,6 @@ class GeneralPanel(QtWidgets.QWidget, CustomWidget):
 
         self.polaritySelectorGroupBox.setVisible(len(used_channels) > 1)
 
-        def set_visibility(element, channel_id):
-            element.setVisible(channel_id in used_channels)
-
-        set_visibility(self.polarityContainerFastOut1, FAST_OUT1)
-        set_visibility(self.polarityContainerFastOut2, FAST_OUT2)
-        set_visibility(self.polarityContainerAnalogOut0, ANALOG_OUT0)
+        self.polarityContainerFastOut1.setVisible(FAST_OUT1 in used_channels)
+        self.polarityContainerFastOut2.setVisible(FAST_OUT2 in used_channels)
+        self.polarityContainerAnalogOut0.setVisible(ANALOG_OUT0 in used_channels)
