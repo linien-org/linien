@@ -81,7 +81,7 @@ class QTApp(QtCore.QObject):
         if hasattr(self, "client") and self.client and self.client.connected:
             try:
                 self.parameters.call_listeners()
-            except Exception:
+            except AttributeError:
                 print("call_listeners() failed")
                 print_exc()
 
@@ -100,8 +100,7 @@ class QTApp(QtCore.QObject):
         self.close()
 
     def open_psd_window(self):
-        # first hiding it, then showing it brings it to foregroud if it is in
-        # background
+        # first hiding it, then showing it brings it to foregroud if it is in background
         self.psd_window.hide()
         self.psd_window.show()
 
