@@ -65,7 +65,7 @@ class OptimizationPanel(QtWidgets.QWidget, CustomWidget):
 
             getattr(self.ids, param_name).stateChanged.connect(optim_enabled_changed)
 
-    def connection_established(self):
+    def on_connection_established(self):
         self.parameters = self.app.parameters
         self.control = self.app.control
 

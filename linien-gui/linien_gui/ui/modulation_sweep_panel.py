@@ -40,7 +40,7 @@ class ModulationAndSweepPanel(QtWidgets.QWidget, CustomWidget):
 
         self.ids.spectroscopyTabs.setCurrentIndex(0)
 
-    def connection_established(self):
+    def on_connection_established(self):
         self.parameters = self.app.parameters
         self.control = self.app.control
 

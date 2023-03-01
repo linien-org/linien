@@ -152,7 +152,7 @@ class MainWindow(QtWidgets.QMainWindow, CustomWidget):
 
             self.control.write_registers()
 
-    def connection_established(self):
+    def on_connection_established(self):
         self.control = self.app.control
         self.parameters = self.app.parameters
 

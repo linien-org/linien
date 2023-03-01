@@ -30,16 +30,14 @@ from PyQt5 import QtWidgets
 
 class GeneralPanel(QtWidgets.QWidget, CustomWidget):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super(GeneralPanel, self).__init__(*args, **kwargs)
         self.load_ui("general_panel.ui")
 
-    def ready(self):
         self.ids.channelMixingSlider.valueChanged.connect(
             self.on_channel_mixing_changed
         )
         self.ids.fastModeCheckBox.stateChanged.connect(self.on_fast_mode_changed)
         self.ids.dualChannelCheckBox.stateChanged.connect(self.on_dual_channel_changed)
-
         self.ids.modulationChannelComboBox.currentIndexChanged.connect(
             self.on_mod_channel_changed
         )
@@ -52,7 +50,6 @@ class GeneralPanel(QtWidgets.QWidget, CustomWidget):
         self.ids.slowControlComboBox.currentIndexChanged.connect(
             self.on_slow_control_channel_changed
         )
-
         self.ids.polarityComboBoxFastOut1.currentIndexChanged.connect(
             self.on_polarity_fast_out1_changed
         )
@@ -69,16 +66,10 @@ class GeneralPanel(QtWidgets.QWidget, CustomWidget):
             element = getattr(self.ids, f"analogOutComboBox{idx}")
             element.setKeyboardTracking(False)
             element.valueChanged.connect(
-                lambda value, idx=idx: self.change_analog_out(idx)
+                lambda _, idx=idx: self.on_analog_out_changed(idx)
             )
 
-    def change_analog_out(self, idx):
-        getattr(self.parameters, f"analog_out_{idx}").value = int(
-            getattr(self.ids, f"analogOutComboBox{idx}").value() / ANALOG_OUT_V
-        )
-        self.control.write_registers()
-
-    def connection_established(self):
+    def on_connection_established(self):
         self.parameters = self.app.parameters
         self.control = self.app.control
 
@@ -86,7 +77,7 @@ class GeneralPanel(QtWidgets.QWidget, CustomWidget):
 
         param2ui(self.parameters.fast_mode, self.ids.fastModeCheckBox)
 
-        def dual_channel_changed(value):
+        def on_dual_channel_changed(value):
             self.ids.dualChannelMixingGroupBox.setVisible(value)
             self.ids.fast_in_1_status.setText(
                 "error signal" if not value else "error signal 1"
@@ -99,7 +90,7 @@ class GeneralPanel(QtWidgets.QWidget, CustomWidget):
         param2ui(
             self.parameters.dual_channel,
             self.ids.dualChannelCheckBox,
-            dual_channel_changed,
+            on_dual_channel_changed,
         )
 
         param2ui(
@@ -165,6 +156,12 @@ class GeneralPanel(QtWidgets.QWidget, CustomWidget):
                 widget.setEnabled(not fast_mode_enabled)
 
         self.parameters.fast_mode.on_change(fast_mode_changed)
+
+    def on_analog_out_changed(self, idx):
+        getattr(self.parameters, f"analog_out_{idx}").value = int(
+            getattr(self.ids, f"analogOutComboBox{idx}").value() / ANALOG_OUT_V
+        )
+        self.control.write_registers()
 
     def on_channel_mixing_changed(self):
         value = int(self.ids.channelMixingSlider.value()) - 128

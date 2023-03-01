@@ -80,7 +80,7 @@ class TimeXAxis(pg.AxisItem, CustomWidget):
     def lock(self):
         return self.parameters.lock
 
-    def connection_established(self):
+    def on_connection_established(self):
         # we have to wait until parameters (of parent) is available
         QtCore.QTimer.singleShot(100, self.listen_to_parameter_changes)
 
@@ -227,7 +227,7 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         x, y = pos.x(), pos.y()
         return x, y
 
-    def connection_established(self):
+    def on_connection_established(self):
         self.parameters = self.app.parameters
         self.control = self.app.control
 
