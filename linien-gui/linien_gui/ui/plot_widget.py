@@ -39,14 +39,13 @@ from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import pyqtSignal
 from pyqtgraph.Qt import QtCore
 
-# NOTE: this is required for using a pen_width > 1.
-# There is a bug though that causes the plot to be way too small. Therefore,
-# we call PlotWidget.resize() after a while
+# NOTE: this is required for using a pen_width > 1. There is a bug though that causes
+# the plot to be way too small. Therefore, we call PlotWidget.resize() after a while
 pg.setConfigOptions(
     useOpenGL=True,
-    # by default, pyqtgraph tries to clean some things up using atexit.
-    # This causes problems with rpyc objects as their connection is already
-    # closed. Therefore, we disable this cleanup.
+    # by default, pyqtgraph tries to clean some things up using atexit. This causes
+    # problems with rpyc objects as their connection is already closed. Therefore, we
+    # disable this cleanup.
     exitCleanup=False,
 )
 
@@ -124,12 +123,8 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
             **kwargs
         )
 
-        # self.hideAxis("bottom")
-        # self.hideAxis('left')
         self.getAxis("bottom").enableAutoSIPrefix(False)
 
-        # self.setMouseEnabled(x=False, y=False)
-        # self.setMenuEnabled(False)
         self.showGrid(x=True, y=True)
         self.setLabel("bottom", "time", units="s")
 
@@ -150,12 +145,11 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
 
         self.getViewBox().setLimits(xMin=0, xMax=2048, yMin=-1, yMax=1)
 
-        # NOTE: increasing the pen width requires OpenGL, otherwise painting
-        # gets horribly slow.
-        # See: https://github.com/pyqtgraph/pyqtgraph/issues/533
+        # NOTE: increasing the pen width requires OpenGL, otherwise painting gets
+        # horribly slow. See: https://github.com/pyqtgraph/pyqtgraph/issues/533
         # OpenGL is enabled in the beginning of this file.
-        # NOTE: OpenGL has a bug that causes the plot to be way too small.
-        # Therefore, self.resize() is called below.
+        # NOTE: OpenGL has a bug that causes the plot to be way too small. Therefore,
+        # self.resize() is called below.
 
         self.crosshair = pg.InfiniteLine(pos=N_POINTS / 2, pen=pg.mkPen("w", width=1))
         self.addItem(self.crosshair)
@@ -421,17 +415,16 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
             time_beginning - self.last_plot_time <= self.plot_rate_limit
             and not self._plot_paused
         ):
-            # don't plot too often at it only causes unnecessary load
-            # this does not apply if plot is paused, because in this case we want
-            # to collect all the data that we can get in order to pass it to the
-            # autolock
+            # don't plot too often at it only causes unnecessary load this does not
+            # apply if plot is paused, because in this case we want to collect all the
+            # data that we can get in order to pass it to the autolock
             return
 
         self.last_plot_time = time_beginning
 
-        # NOTE: this is necessary if OpenGL is activated. Otherwise, the
-        # plot is way too small. This command apparently causes a repaint
-        # and works fine even though the values are nonsense.
+        # NOTE: this is necessary if OpenGL is activated. Otherwise, the plot is way too
+        # small. This command apparently causes a repaint and works fine even though the
+        # values are nonsense.
         if not self._fixed_opengl_bug:
             self._fixed_opengl_bug = True
             self.resize(
@@ -451,8 +444,8 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
             if not check_plot_data(self.parameters.lock.value, to_plot):
                 return
 
-            # we also call this if the laser is not locked because it resets
-            # the history in this case
+            # we also call this if the laser is not locked because it resets the history
+            # in this case
             history, slow_history = self.update_signal_history(to_plot)
 
             if self.parameters.lock.value:
@@ -668,8 +661,8 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
             self.lock_target_line.setVisible(False)
 
     def keyPressEvent(self, event):
-        # we listen here in addition to the main window because some events
-        # are only caught here
+        # we listen here in addition to the main window because some events are only
+        # caught here
         self.keyPressed.emit(event.key())
 
     def update_signal_history(self, to_plot):
