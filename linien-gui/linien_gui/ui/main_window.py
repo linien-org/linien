@@ -25,7 +25,7 @@ import linien_gui
 import numpy as np
 from linien_common.common import check_plot_data
 from linien_common.config import N_COLORS
-from linien_gui.config import COLORS
+from linien_gui.config import Color
 from linien_gui.ui.plot_widget import INVALID_POWER
 from linien_gui.utils import color_to_hex
 from linien_gui.widgets import CustomWidget
@@ -187,24 +187,26 @@ class MainWindow(QtWidgets.QMainWindow, CustomWidget):
         self.parameters.lock.on_change(lambda *args: self.reset_std_history())
 
         def update_legend_color(*args):
-            def set_color(el, color_name):
+            def set_color(el, color: Color):
                 return el.setStyleSheet(
                     "color: "
                     + color_to_hex(
-                        getattr(
-                            self.parameters, "plot_color_%d" % COLORS[color_name]
-                        ).value
+                        getattr(self.parameters, f"plot_color_{color.value}").value
                     )
                 )
 
-            set_color(self.ids.legend_spectrum_1, "spectrum_1")
-            set_color(self.ids.legend_spectrum_2, "spectrum_2")
-            set_color(self.ids.legend_spectrum_combined, "spectrum_combined")
-            set_color(self.ids.legend_error_signal, "spectrum_combined")
-            set_color(self.ids.legend_control_signal, "control_signal")
-            set_color(self.ids.legend_control_signal_history, "control_signal_history")
-            set_color(self.ids.legend_slow_signal_history, "slow_history")
-            set_color(self.ids.legend_monitor_signal_history, "monitor_signal_history")
+            set_color(self.ids.legend_spectrum_1, Color.SPECTRUM1)
+            set_color(self.ids.legend_spectrum_2, Color.SPECTRUM2)
+            set_color(self.ids.legend_spectrum_combined, Color.SPECTRUM_COMBINED)
+            set_color(self.ids.legend_error_signal, Color.SPECTRUM_COMBINED)
+            set_color(self.ids.legend_control_signal, Color.CONTROL_SIGNAL)
+            set_color(
+                self.ids.legend_control_signal_history, Color.CONTROL_SIGNAL_HISTORY
+            )
+            set_color(self.ids.legend_slow_signal_history, Color.SLOW_HISTORY)
+            set_color(
+                self.ids.legend_monitor_signal_history, Color.MONITOR_SIGNAL_HISTORY
+            )
 
         for color_idx in range(N_COLORS):
             getattr(self.parameters, "plot_color_%d" % color_idx).on_change(

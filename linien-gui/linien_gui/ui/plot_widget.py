@@ -33,7 +33,7 @@ from linien_common.common import (
     update_signal_history,
 )
 from linien_common.config import N_COLORS
-from linien_gui.config import COLORS, DEFAULT_PLOT_RATE_LIMIT
+from linien_gui.config import DEFAULT_PLOT_RATE_LIMIT, Color
 from linien_gui.widgets import CustomWidget
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import pyqtSignal
@@ -120,7 +120,7 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         super().__init__(
             *args,
             axisItems={"bottom": TimeXAxis(orientation="bottom", parent=self)},
-            **kwargs
+            **kwargs,
         )
 
         self.getAxis("bottom").enableAutoSIPrefix(False)
@@ -225,21 +225,20 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         self.parameters = self.app.parameters
         self.control = self.app.control
 
-        def set_pens(color):
+        def set_pens(*args):
             pen_width = self.parameters.plot_line_width.value
 
-            for curve, name in {
-                self.signal1: "spectrum_1",
-                self.signal2: "spectrum_2",
-                self.combined_signal: "spectrum_combined",
-                self.control_signal: "control_signal",
-                self.control_signal_history: "control_signal_history",
-                self.slow_history: "slow_history",
-                self.monitor_signal_history: "monitor_signal_history",
+            for curve, color in {
+                self.signal1: Color.SPECTRUM1,
+                self.signal2: Color.SPECTRUM2,
+                self.combined_signal: Color.SPECTRUM_COMBINED,
+                self.control_signal: Color.CONTROL_SIGNAL,
+                self.control_signal_history: Color.CONTROL_SIGNAL_HISTORY,
+                self.slow_history: Color.SLOW_HISTORY,
+                self.monitor_signal_history: Color.MONITOR_SIGNAL_HISTORY,
             }.items():
-                color_idx = COLORS[name]
                 r, g, b, *stuff = getattr(
-                    self.parameters, "plot_color_%d" % color_idx
+                    self.parameters, f"plot_color_{color.value}"
                 ).value
                 a = self.parameters.plot_line_opacity.value
                 curve.setPen(pg.mkPen((r, g, b, a), width=pen_width))
@@ -377,7 +376,7 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
                             # transmitted which blocks the autolock
                             *sorted([x0, x]),
                             pickle.dumps(last_combined_error_signal),
-                            additional_spectra=pickle.dumps(self._cached_plot_data)
+                            additional_spectra=pickle.dumps(self._cached_plot_data),
                         )
 
                         (
