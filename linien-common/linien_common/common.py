@@ -58,9 +58,9 @@ class SpectrumUncorrelatedException(Exception):
 
 def downsample_history(times, values, max_time_diff, max_N=N_POINTS):
     """
-    The history should not grow too much. When recording for long intervals,
-    we want to throw away some datapoints that were recorded with a sampling rate
-    that is too high. This function takes care of this.
+    The history should not grow too much. When recording for long intervals, we want to
+    throw away some datapoints that were recorded with a sampling rate that is too high.
+    This function takes care of this.
     """
     last_time = None
 

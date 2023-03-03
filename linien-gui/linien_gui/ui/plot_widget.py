@@ -414,7 +414,7 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
             time_beginning - self.last_plot_time <= self.plot_rate_limit
             and not self._plot_paused
         ):
-            # don't plot too often at it only causes unnecessary load this does not
+            # don't plot too often as it only causes unnecessary load this does not
             # apply if plot is paused, because in this case we want to collect all the
             # data that we can get in order to pass it to the autolock
             return
