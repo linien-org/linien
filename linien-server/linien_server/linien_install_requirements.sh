@@ -14,7 +14,7 @@ cd /tmp
 echo 'building ethernet blinking fix'
 git clone https://github.com/linien-org/mdio-tool.git
 cd mdio-tool
-git checkout 72bd5a915ff046a59ce4303c8de672e77622a86c
+git checkout v1.0.0
 cmake .
 make
 mv -f mdio-tool /usr/bin
