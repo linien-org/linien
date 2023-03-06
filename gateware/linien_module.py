@@ -52,44 +52,37 @@ from .lowlevel.xadc import XADC
 
 class LinienLogic(Module, AutoCSR):
     def __init__(self, width=14, signal_width=25, chain_factor_width=8, coeff_width=25):
-        self.init_csr(width, signal_width, chain_factor_width)
+        self.init_csr(width, chain_factor_width)
         self.init_submodules(width, signal_width)
         self.connect_pid()
         self.connect_everything(width, signal_width, coeff_width)
 
-    def init_csr(self, width, signal_width, chain_factor_width):
-        factor_reset = 1 << (chain_factor_width - 1)
-        # we use chain_factor_width + 1 for the single channel mode
+    def init_csr(self, width, chain_factor_width):
         self.dual_channel = CSRStorage(1)
-        self.chain_a_factor = CSRStorage(chain_factor_width + 1, reset=factor_reset)
-        self.chain_b_factor = CSRStorage(chain_factor_width + 1, reset=factor_reset)
-
-        self.chain_a_offset = CSRStorage(width)
-        self.chain_b_offset = CSRStorage(width)
-        self.chain_a_offset_signed = Signal((width, True))
-        self.chain_b_offset_signed = Signal((width, True))
-        self.combined_offset = CSRStorage(width)
-        self.combined_offset_signed = Signal((width, True))
-        self.out_offset = CSRStorage(width)
-        self.out_offset_signed = Signal((width, True))
-
         self.mod_channel = CSRStorage(1)
         self.control_channel = CSRStorage(1)
         self.sweep_channel = CSRStorage(2)
         self.control_slow_channel = CSRStorage(2)
-
         self.fast_mode = CSRStorage(1)
+
+        # we use chain_factor_width + 1 for the single channel mode
+        factor_reset = 1 << (chain_factor_width - 1)
+        self.chain_a_factor = CSRStorage(chain_factor_width + 1, reset=factor_reset)
+        self.chain_b_factor = CSRStorage(chain_factor_width + 1, reset=factor_reset)
+        self.chain_a_offset = CSRStorage(width)
+        self.chain_b_offset = CSRStorage(width)
+        self.combined_offset = CSRStorage(width)
+        self.combined_offset_signed = Signal((width, True))
+        self.out_offset = CSRStorage(width)
+        self.slow_decimation = CSRStorage(bits_for(16))
+        for i in range(1, 4):
+            setattr(self, f"analog_out_{i}", CSRStorage(15, name=f"analog_out_{i}"))
 
         self.slow_value = CSRStatus(width)
 
-        max_decimation = 16
-        self.slow_decimation = CSRStorage(bits_for(max_decimation))
-
-        for i in range(4):
-            if i == 0:
-                continue
-            name = "analog_out_%d" % i
-            setattr(self, name, CSRStorage(15, name=name))
+        self.chain_a_offset_signed = Signal((width, True))
+        self.chain_b_offset_signed = Signal((width, True))
+        self.out_offset_signed = Signal((width, True))
 
     def init_submodules(self, width, signal_width):
         self.submodules.mod = Modulate(width=width)
@@ -98,7 +91,6 @@ class LinienLogic(Module, AutoCSR):
         self.submodules.limit_fast1 = LimitCSR(width=width, guard=5)
         self.submodules.limit_fast2 = LimitCSR(width=width, guard=5)
         self.submodules.pid = PID(width=signal_width)
-
         self.submodules.autolock = FPGAAutolock(width=width, max_delay=8191)
 
     def connect_pid(self):
@@ -121,8 +113,8 @@ class LinienLogic(Module, AutoCSR):
         combined_error_signal = Signal((signal_width, True))
         self.control_signal = Signal((signal_width, True))
 
-        # additional IIR filter that prevents aliasing effects when recording
-        # PSD of error signal
+        # additional IIR filter that prevents aliasing effects when recording PSD of
+        # error signal
         self.submodules.raw_acquisition_iir = Iir(
             width=signal_width,
             coeff_width=coeff_width,
@@ -167,7 +159,8 @@ class LinienLogic(Module, AutoCSR):
 class LinienModule(Module, AutoCSR):
     def __init__(self, platform):
         width = 14
-        signal_width, coeff_width = 25, 25
+        signal_width = 25
+        coeff_width = 25
         chain_factor_bits = 8
 
         self.init_submodules(
