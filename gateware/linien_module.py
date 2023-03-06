@@ -108,8 +108,6 @@ class LinienLogic(Module, AutoCSR):
         ]
 
     def connect_everything(self, width, signal_width, coeff_width):
-        s = signal_width - width
-
         combined_error_signal = Signal((signal_width, True))
         self.control_signal = Signal((signal_width, True))
 
@@ -151,7 +149,7 @@ class LinienLogic(Module, AutoCSR):
                 Array([self.limit_fast1.y, self.limit_fast2.y])[
                     self.control_channel.storage
                 ]
-                << s
+                << signal_width - width
             ),
         ]
 
@@ -185,7 +183,7 @@ class LinienModule(Module, AutoCSR):
             pwm = platform.request("pwm", i)
             ds = sys_double(DeltaSigma(width=15))
             self.comb += pwm.eq(ds.out)
-            setattr(self.submodules, "ds%i" % i, ds)
+            setattr(self.submodules, f"ds{i}", ds)
 
         exp = platform.request("exp")
         self.submodules.gpio_n = Gpio(exp.n)
