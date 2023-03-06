@@ -348,9 +348,8 @@ class LinienModule(Module, AutoCSR):
                 slow_out = Signal((width + 3, True))
                 self.comb += [
                     slow_out.eq(
-                        # control_slow_channel=2 -> ANALOG_OUT0
                         Mux(
-                            self.logic.control_slow_channel.storage == 2,
+                            self.logic.control_slow_channel.storage == ANALOG_OUT0,
                             slow_pid_out,
                             0,
                         )
@@ -370,8 +369,8 @@ class LinienModule(Module, AutoCSR):
 
                 slow_out_shifted = Signal(15)
                 self.sync += slow_out_shifted.eq(
-                    # ds0 apparently has 16 bit, but only allowing positive
-                    # values --> "15 bit"?
+                    # ds0 apparently has 16 bit, but only allowing positive  values
+                    # --> "15 bit"?
                     (self.slow.limit.y << 1)
                     + (1 << 14)
                 )
