@@ -62,31 +62,23 @@ def test_iq():
 
     def generate_fake_data(spectrum, phase=0):
         data = np.array([])
-
         sin = get_sin(phase=phase)
-
         for point in spectrum:
             data = np.append(data, point * sin)
-
         return data
 
     def demod(data, phase=0):
         sin = get_sin(phase=phase)
-
         block_size = len(sin)
-        N_points = round(len(data) / block_size)
-
+        n_points = round(len(data) / block_size)
         demodulated_data = []
-
-        for N in range(N_points):
-            data_slice = data[N * block_size : (N + 1) * block_size]
+        for n in range(n_points):
+            data_slice = data[n * block_size : (n + 1) * block_size]
             demodulated = np.mean(sin * data_slice)
             demodulated_data.append(demodulated)
-
         return demodulated_data
 
     final_zoom_factor = 10
-
     sweep_amplitude = 1.0
     max_val = np.pi * 5 * sweep_amplitude
     x = np.linspace(-1 * max_val, 1 * max_val, 100)
@@ -100,7 +92,7 @@ def test_iq():
     spectrum3 = spectrum_for_testing(x + RNG.random() * 3)
     data3 = generate_fake_data(spectrum3, phase=RNG.integers(0, 360))  # noqa: F841
 
-    combined = data  # + data2 + data3
+    combined = data + data2 + data3
 
     def get_slope(signal):
         return get_max_slope(signal, final_zoom_factor)
