@@ -91,36 +91,33 @@ def test_iq():
     max_val = np.pi * 5 * sweep_amplitude
     x = np.linspace(-1 * max_val, 1 * max_val, 100)
 
-    for iteration in range(1):
-        spectrum = spectrum_for_testing(x) * 2
-        data = generate_fake_data(spectrum, phase=30)  # phase=randint(0, 360))
+    spectrum = spectrum_for_testing(x) * 2
+    data = generate_fake_data(spectrum, phase=30)  # phase=randint(0, 360))
 
-        spectrum2 = spectrum_for_testing(x + RNG.random() * 3)
-        data2 = generate_fake_data(spectrum2, phase=RNG.integers(0, 360))  # noqa: F841
+    spectrum2 = spectrum_for_testing(x + RNG.random() * 3)
+    data2 = generate_fake_data(spectrum2, phase=RNG.integers(0, 360))  # noqa: F841
 
-        spectrum3 = spectrum_for_testing(x + RNG.random() * 3)
-        data3 = generate_fake_data(spectrum3, phase=RNG.integers(0, 360))  # noqa: F841
+    spectrum3 = spectrum_for_testing(x + RNG.random() * 3)
+    data3 = generate_fake_data(spectrum3, phase=RNG.integers(0, 360))  # noqa: F841
 
-        combined = data  # + data2 + data3
+    combined = data  # + data2 + data3
 
-        def get_slope(signal):
-            return get_max_slope(signal, final_zoom_factor)
+    def get_slope(signal):
+        return get_max_slope(signal, final_zoom_factor)
 
-        min_result = minimize_scalar(
-            lambda phase: -1 * get_slope(demod(combined, phase=phase)),
-            method="Bounded",
-            bounds=(0, 360),
-        )
+    min_result = minimize_scalar(
+        lambda phase: -1 * get_slope(demod(combined, phase=phase)),
+        method="Bounded",
+        bounds=(0, 360),
+    )
 
-        i = demod(combined)
-        q = demod(combined, phase=90)
+    i = demod(combined)
+    q = demod(combined, phase=90)
 
-        optimized_phase, optimized_slope = optimize_phase_from_iq(
-            i, q, final_zoom_factor
-        )
+    optimized_phase, optimized_slope = optimize_phase_from_iq(i, q, final_zoom_factor)
 
-        assert abs(min_result.x - optimized_phase) <= 0.1
-        assert abs(abs(min_result.fun) - optimized_slope) / optimized_slope <= 0.001
+    assert abs(min_result.x - optimized_phase) <= 0.1
+    assert abs(abs(min_result.fun) - optimized_slope) / optimized_slope <= 0.001
 
 
 if __name__ == "__main__":
