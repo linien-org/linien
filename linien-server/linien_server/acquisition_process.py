@@ -239,7 +239,7 @@ class DataAcquisitionService(Service):
 
             slow_out = self.csr.get("logic_slow_value")
             slow_out = slow_out if slow_out <= 8191 else slow_out - 16384
-            signals_named["slow"] = slow_out
+            signals_named["slow_control_signal"] = slow_out
 
             return signals_named, False
 

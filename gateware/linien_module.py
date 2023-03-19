@@ -215,7 +215,7 @@ class LinienModule(Module, AutoCSR):
         self.submodules.decimate = sys_double(Decimate(max_decimation))
         self.clock_domains.cd_decimated_clock = ClockDomain()
         decimated_clock = ClockDomainsRenamer("decimated_clock")
-        self.submodules.slow = decimated_clock(SlowChain())
+        self.submodules.slow_chain = decimated_clock(SlowChain())
 
         self.submodules.scopegen = ScopeGen(signal_width)
 
@@ -224,7 +224,7 @@ class LinienModule(Module, AutoCSR):
             [
                 ("fast_a", self.fast_a),
                 ("fast_b", self.fast_b),
-                ("slow", self.slow),
+                ("slow", self.slow_chain),
                 ("scopegen", self.scopegen),
                 ("logic", self.logic),
                 ("robust", self.logic.autolock.robust),
@@ -304,9 +304,11 @@ class LinienModule(Module, AutoCSR):
 
         fast_outs = list(Signal((width + 4, True)) for channel in (0, 1))
 
-        self.comb += self.slow.pid.running.eq(self.logic.autolock.lock_running.status)
+        self.comb += self.slow_chain.pid.running.eq(
+            self.logic.autolock.lock_running.status
+        )
         slow_pid_out = Signal((width, True))
-        self.comb += slow_pid_out.eq(self.slow.output)
+        self.comb += slow_pid_out.eq(self.slow_chain.output)
 
         for channel, fast_out in enumerate(fast_outs):
             self.comb += fast_out.eq(
@@ -329,12 +331,12 @@ class LinienModule(Module, AutoCSR):
             if analog_idx == 0:
                 # first analog out gets a special treatment bc it may contain signal of
                 # slow pid or sweep
-                self.comb += self.slow.pid.running.eq(
+                self.comb += self.slow_chain.pid.running.eq(
                     self.logic.autolock.lock_running.status
                 )
 
                 slow_pid_out = Signal((width, True))
-                self.comb += slow_pid_out.eq(self.slow.output)
+                self.comb += slow_pid_out.eq(self.slow_chain.output)
 
                 slow_out = Signal((width + 3, True))
                 self.comb += [
@@ -355,14 +357,14 @@ class LinienModule(Module, AutoCSR):
                             0,
                         )
                     ),
-                    self.slow.limit.x.eq(slow_out),
+                    self.slow_chain.limit.x.eq(slow_out),
                 ]
 
                 slow_out_shifted = Signal(15)
                 self.sync += slow_out_shifted.eq(
                     # ds0 apparently has 16 bit, but only allowing positive  values
                     # --> "15 bit"?
-                    (self.slow.limit.y << 1)
+                    (self.slow_chain.limit.y << 1)
                     + (1 << 14)
                 )
 
@@ -403,10 +405,10 @@ class LinienModule(Module, AutoCSR):
             self.analog.dac_a.eq(self.logic.limit_fast1.y),
             self.analog.dac_b.eq(self.logic.limit_fast2.y),
             # SLOW OUT
-            self.slow.input.eq(self.logic.control_signal >> s),
+            self.slow_chain.input.eq(self.logic.control_signal >> s),
             self.decimate.decimation.eq(self.logic.slow_decimation.storage),
             self.cd_decimated_clock.clk.eq(self.decimate.output),
-            self.logic.slow_value.status.eq(self.slow.limit.y),
+            self.logic.slow_value.status.eq(self.slow_chain.limit.y),
         ]
 
         # Having this in a comb statement caused errors. See PR #251.

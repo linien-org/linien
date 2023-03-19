@@ -103,8 +103,8 @@ def update_signal_history(
         control_history["values"].append(np.mean(to_plot["control_signal"]))
         control_history["times"].append(time())
 
-        if "slow" in to_plot:
-            control_history["slow_values"].append(to_plot["slow"])
+        if "slow_control_signal" in to_plot:
+            control_history["slow_values"].append(to_plot["slow_control_signal"])
             control_history["slow_times"].append(time())
 
         if "monitor_signal" in to_plot:

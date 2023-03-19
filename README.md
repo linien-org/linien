@@ -33,7 +33,7 @@ Features
 -   **Logging**: Use
     [linien-influxdb](https://github.com/linien-org/linien-influxdb)
     to log the lock status to influxdb.
--   **Second integrator** on (slow) analog output 0
+-   **Second integrator** for slow control of piezo in an ECDL
 -   **Additional analog outputs** may be used using the GUI or python client (ANALOG_OUT 1, 2 and 3)
 -   **16 GPIO outputs** may be programmed (e.g. for controlling other devices)
 

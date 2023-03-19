@@ -135,7 +135,7 @@ class Parameters(BaseParameters):
         #       Error signal that is fed into the PID controller.
         #   - `control_signal`:
         #       Output of the PID controller.
-        #   - `slow`:
+        #   - `slow_control_signal`:
         #       Output of slow additional integrator on slow analog output.
         #       Note that this value is not an array but a single point.
         self.to_plot = Parameter(sync=False)
