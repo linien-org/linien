@@ -16,11 +16,11 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-from random import randint, random
-
 import numpy as np
 from linien_server.optimization.utils import get_max_slope, optimize_phase_from_iq
 from scipy.optimize import minimize_scalar
+
+RNG = np.random.default_rng(seed=0)
 
 
 def test_get_max_slope():
@@ -95,11 +95,11 @@ def test_iq():
         spectrum = spectrum_for_testing(x) * 2
         data = generate_fake_data(spectrum, phase=30)  # phase=randint(0, 360))
 
-        spectrum2 = spectrum_for_testing(x + random() * 3)
-        data2 = generate_fake_data(spectrum2, phase=randint(0, 360))  # noqa: F841
+        spectrum2 = spectrum_for_testing(x + RNG.random() * 3)
+        data2 = generate_fake_data(spectrum2, phase=RNG.integers(0, 360))  # noqa: F841
 
-        spectrum3 = spectrum_for_testing(x + random() * 3)
-        data3 = generate_fake_data(spectrum3, phase=randint(0, 360))  # noqa: F841
+        spectrum3 = spectrum_for_testing(x + RNG.random() * 3)
+        data3 = generate_fake_data(spectrum3, phase=RNG.integers(0, 360))  # noqa: F841
 
         combined = data  # + data2 + data3
 
