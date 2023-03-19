@@ -102,9 +102,9 @@ def test_approacher(plt):
             )
 
             found = False
-
-            for i in range(100):
-                shift = target_shift * (1 + (0.025 * np.random.randn()))
+            rng = np.random.default_rng(seed=0)
+            for _ in range(100):
+                shift = target_shift * (1 + (0.025 * rng.standard_normal()))
                 error_signal = _get_signal(shift)[:]
                 approacher.approach_line(error_signal)
 

@@ -39,6 +39,8 @@ from gateware.logic.autolock_utils import DynamicDelay, SumDiffCalculator
 VCD_DIR = Path(__file__).parent / "vcd"
 FPGA_DELAY_SUMDIFF_CALCULATOR = 2
 
+RNG = np.random.default_rng(seed=0)
+
 
 def peak(x):
     return np.exp(-np.abs(x)) * np.sin(x)
@@ -55,7 +57,11 @@ def atomic_spectrum(noise_level):
     smaller_peaks = (peak(x - 10) * 1024) - (peak(x + 10) * 1024)
     target_idxs = (328, 350)
     return (
-        as_int(central_peak + smaller_peaks + (np.random.randn(len(x)) * noise_level)),
+        as_int(
+            central_peak
+            + smaller_peaks
+            + (RNG.standard_normalrandn(len(x)) * noise_level)
+        ),
         target_idxs,
     )
 
@@ -66,17 +72,17 @@ def pfd_spectrum(noise_level):
     y[y > 3000] = 3000
     y[y < -3000] = -3000
     target_idxs = (220, 300)
-    return as_int(y + (np.random.randn(len(x)) * noise_level)), target_idxs
+    return as_int(y + (RNG.standard_normal(len(x)) * noise_level)), target_idxs
 
 
 def add_noise(spectrum, level):
-    return as_int(spectrum + (np.random.randn(len(spectrum)) * level))
+    return as_int(spectrum + (RNG.standard_normal(len(spectrum)) * level))
 
 
 def add_jitter(spectrum, level=None, exact_value=None):
     assert (level is not None) or (exact_value is not None)
     if exact_value is None:
-        exact_value = int(round(np.random.randn() * level))
+        exact_value = int(round(RNG.standard_normal() * level))
 
     shift = exact_value
     return np.roll(spectrum, shift)
@@ -87,8 +93,10 @@ def test_get_description(plt, debug=True):
     def get_lock_position_from_autolock_instructions_by_simulating_fpga(
         spectrum, description, time_scale, initial_spectrum, final_wait_time
     ):
-        """This function simulated the behavior of `RobustAutolock` on FPGA
-        and allows to find out whether FPGA would lock to the correct point."""
+        """
+        This function simulated the behavior of `RobustAutolock` on FPGA and allows to
+        find out whether FPGA would lock to the correct point.
+        """
         result = {}
 
         def tb(dut):
@@ -141,7 +149,8 @@ def test_get_description(plt, debug=True):
                 plt.plot(spectrum)
 
             jitters = [
-                0 if i == 0 else int(round(np.random.randn() * 50)) for i in range(10)
+                0 if i == 0 else int(round(RNG.standard_normal() * 50))
+                for i in range(10)
             ]
 
             spectra_with_jitter = [
