@@ -30,11 +30,11 @@ VCD_DIR = Path(__file__).parent / "vcd"
 @pytest.mark.slow
 def test_pid_transfer(plt):
     def pid_testbench(pid):
-        np.random.seed(299792458)
+        rng = np.random.default_rng(seed=299792458)
         amplitude = 0.01
         samples = 1 << 12
 
-        x = np.random.uniform(-amplitude, amplitude, samples)
+        x = rng.uniform(-amplitude, amplitude, samples)
         scale = 2 ** (len(pid.input) - 1) - 1
         x = (scale * np.array(x)).astype(int)
         y = np.array([0] * len(x))

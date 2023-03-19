@@ -350,7 +350,7 @@ except:
 Updating Linien
 ---------------
 
-Before installing a new version of Linien, open the previously installed client and click the "Shutdown server" button. Don't worry, your settings and parameters will be saved. Then you may install the latest client on your local PC as described in the [getting started](#getting-started) section above. The next time you connect to RedPitaya, Linien will install the matching server version.
+Before installing a new version of Linien, open the previously installed client and click the "Shutdown server" button. Don't worry, your settings and parameters will be saved. Then you may install the latest client on your local PC as described in the [getting started](#getting-started-install-linien) section above. The next time you connect to RedPitaya, Linien will install the matching server version.
 
 
 Development
