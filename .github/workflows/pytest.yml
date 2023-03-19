@@ -6,6 +6,7 @@ on:
       - gateware/**
       - linien-common/**
       - linien-server/**
+      - tests/**
 
 permissions:
   contents: read
