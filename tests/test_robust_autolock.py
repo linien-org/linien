@@ -58,9 +58,7 @@ def atomic_spectrum(noise_level):
     target_idxs = (328, 350)
     return (
         as_int(
-            central_peak
-            + smaller_peaks
-            + (RNG.standard_normalrandn(len(x)) * noise_level)
+            central_peak + smaller_peaks + (RNG.standard_normal(len(x)) * noise_level)
         ),
         target_idxs,
     )
