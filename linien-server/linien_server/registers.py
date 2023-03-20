@@ -132,7 +132,7 @@ class Registers:
             logic_mod_channel=params["mod_channel"],
             logic_sweep_channel=params["sweep_channel"],
             logic_control_slow_channel=params["control_slow_channel"],
-            slow_pid_reset=not params["pid_on_slow_enabled"],
+            slow_chain_pid_reset=not params["pid_on_slow_enabled"],
             logic_analog_out_1=params["analog_out_1"],
             logic_analog_out_2=params["analog_out_2"],
             logic_analog_out_3=params["analog_out_3"],
@@ -366,10 +366,10 @@ class Registers:
 
     def set_slow_pid(self, strength, slope, reset=None):
         sign = slope
-        self.set("slow_pid_ki", strength * sign)
+        self.set("slow_chain_pid_ki", strength * sign)
 
         if reset is not None:
-            self.set("slow_pid_reset", reset)
+            self.set("slow_chain_pid_reset", reset)
 
     def set(self, key, value):
         self.acquisition.set_csr(key, value)
