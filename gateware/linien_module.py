@@ -224,7 +224,7 @@ class LinienModule(Module, AutoCSR):
             [
                 ("fast_a", self.fast_a),
                 ("fast_b", self.fast_b),
-                ("slow", self.slow_chain),
+                ("slow_chain", self.slow_chain),
                 ("scopegen", self.scopegen),
                 ("logic", self.logic),
                 ("robust", self.logic.autolock.robust),
@@ -238,7 +238,7 @@ class LinienModule(Module, AutoCSR):
             "gpio_p": 31,
             "fast_a": 0,
             "fast_b": 1,
-            "slow": 2,
+            "slow_chain": 2,
             "scopegen": 6,
             "noise": 7,
             "logic": 8,
