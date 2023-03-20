@@ -33,7 +33,8 @@ from .utils import twos_complement
 
 
 class Registers:
-    """This class provides low-level access to the FPGA registers.
+    """
+    This class provides low-level access to the FPGA registers.
 
     High-level applications should not access this class directly but instead
     communicate by manipulating `Parameters` / `RemoteParameters`.
@@ -78,11 +79,6 @@ class Registers:
 
         use_ssh = self.host is not None and self.host not in ("localhost", "127.0.0.1")
         self.acquisition = AcquisitionMaster(use_ssh, self.host)
-
-    def run_data_acquisition(self, on_change):
-        """Starts a background process that continuously reads out error /
-        control signal of the FPGA. For every result, `on_change` is called."""
-        self.acquisition.run_data_acquisition(on_change)
 
     def write_registers(self):
         """Writes data from `parameters` to the FPGA."""
@@ -173,8 +169,8 @@ class Registers:
         for instruction_idx, [wait_for, peak_height] in enumerate(
             params["autolock_instructions"]
         ):
-            new["logic_autolock_robust_peak_height_%d" % instruction_idx] = peak_height
-            new["logic_autolock_robust_wait_for_%d" % instruction_idx] = wait_for
+            new[f"logic_autolock_robust_peak_height_{instruction_idx}"] = peak_height
+            new[f"logic_autolock_robust_wait_for_{instruction_idx}"] = wait_for
 
         if lock:
             # display combined error signal and control signal
@@ -237,7 +233,7 @@ class Registers:
             "logic_raw_acquisition_iir",
             *make_filter(
                 "LP", f=params["acquisition_raw_filter_frequency"] / fpga_base_freq, k=1
-            )
+            ),
         )
 
         for k, v in new.items():
@@ -282,16 +278,12 @@ class Registers:
         )
 
         for chain in ("a", "b"):
-            automatic = params["filter_automatic_%s" % chain]
+            automatic = params[f"filter_automatic_{chain}"]
             # iir_idx means iir_c or iir_d
             for iir_idx in range(2):
                 # iir_sub_idx means in-phase signal or quadrature signal
                 for iir_sub_idx in range(2):
-                    iir_name = "fast_%s_iir_%s_%d" % (
-                        chain,
-                        ("c", "d")[iir_idx],
-                        iir_sub_idx + 1,
-                    )
+                    iir_name = f"fast_{chain}_iir_{('c', 'd')[iir_idx]}_{iir_sub_idx+1}"
 
                     if automatic:
                         filter_enabled = True
@@ -308,12 +300,10 @@ class Registers:
                         if filter_frequency < 10:
                             filter_enabled = False
                     else:
-                        filter_enabled = params[
-                            "filter_%d_enabled_%s" % (iir_idx + 1, chain)
-                        ]
-                        filter_type = params["filter_%d_type_%s" % (iir_idx + 1, chain)]
+                        filter_enabled = params[f"filter_{iir_idx+1}_enabled_{chain}"]
+                        filter_type = params[f"filter_{iir_idx+1}_type_{chain}"]
                         filter_frequency = params[
-                            "filter_%d_frequency_%s" % (iir_idx + 1, chain)
+                            f"filter_{iir_idx+1}_frequency_{chain}"
                         ]
 
                     if not filter_enabled:
@@ -324,18 +314,18 @@ class Registers:
                                 iir_name,
                                 *make_filter(
                                     "LP", f=filter_frequency / fpga_base_freq, k=1
-                                )
+                                ),
                             )
                         elif filter_type == HIGH_PASS_FILTER:
                             self.set_iir(
                                 iir_name,
                                 *make_filter(
                                     "HP", f=filter_frequency / fpga_base_freq, k=1
-                                )
+                                ),
                             )
                         else:
                             raise Exception(
-                                "unknown filter %s for %s" % (filter_type, iir_name)
+                                f"unknown filter {filter_type} for {iir_name}"
                             )
 
         if lock_changed:

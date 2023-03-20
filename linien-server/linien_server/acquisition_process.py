@@ -119,9 +119,9 @@ class DataAcquisitionService(Service):
 
                 self.program_acquisition_and_rearm()
 
-        self.t = threading.Thread(target=run_acquiry_loop, args=())
-        self.t.daemon = True
-        self.t.start()
+        self.thread = threading.Thread(target=run_acquiry_loop, args=())
+        self.thread.daemon = True
+        self.thread.start()
 
     def program_acquisition_and_rearm(self, trigger_delay=16384):
         """Programs the acquisition settings and rearms acquisition."""
@@ -212,7 +212,7 @@ class DataAcquisitionService(Service):
                     channel_offset, write_pointer, N_POINTS
                 )
 
-                for sub_channel_idx in range(2):
+                for sub_channel_idx in (0, 1):
                     signals.append(channel_data[sub_channel_idx])
 
             signals_named = {}
@@ -265,13 +265,13 @@ class DataAcquisitionService(Service):
         raw_data[raw_data >= 2**13] -= 2**14
 
         # order is such that we have first the signal a then signal b
-        signals = tuple(raw_data[signal_idx::2] for signal_idx in (0, 1))
+        signals = (raw_data[signal_idx::2] for signal_idx in (0, 1))
 
         if to_read_later > 0:
             additional_raw_data = self.read_data_raw(offset, 0, to_read_later)
-            signals = tuple(
+            signals = (
                 np.append(signals[signal_idx], additional_raw_data[signal_idx])
-                for signal_idx in range(2)
+                for signal_idx in (0, 1)
             )
 
         return signals

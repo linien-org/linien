@@ -361,11 +361,10 @@ class LinienModule(Module, AutoCSR):
                 ]
 
                 slow_out_shifted = Signal(15)
+                # ds0 apparently has 16 bit, but only allowing positive  values
+                # --> "15 bit"?
                 self.sync += slow_out_shifted.eq(
-                    # ds0 apparently has 16 bit, but only allowing positive  values
-                    # --> "15 bit"?
-                    (self.slow_chain.limit.y << 1)
-                    + (1 << 14)
+                    (self.slow_chain.limit.y << 1) + (1 << 14)
                 )
 
                 analog_out = slow_out_shifted
