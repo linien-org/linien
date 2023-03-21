@@ -18,7 +18,7 @@
 
 from setuptools import find_packages, setup
 
-version = "0.7.0rc1"
+version = "0.7.0rc2"
 
 setup(
     name="linien-server",
