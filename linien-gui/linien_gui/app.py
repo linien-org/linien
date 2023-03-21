@@ -25,7 +25,7 @@ from linien_gui.ui.device_manager import DeviceManager
 from linien_gui.ui.main_window import MainWindow
 from linien_gui.ui.psd_window import PSDWindow
 from linien_gui.ui.version_checker import VersionCheckerThread
-from linien_gui.utils_gui import set_window_icon
+from linien_gui.utils import set_window_icon
 from linien_gui.widgets import UI_PATH, CustomWidget
 from PyQt5 import QtWidgets
 from pyqtgraph.Qt import QtCore
@@ -34,8 +34,6 @@ sys.path += [str(UI_PATH)]
 
 
 class QTApp(QtCore.QObject):
-    ready = QtCore.pyqtSignal(bool)
-
     def __init__(self):
         self.app = QtWidgets.QApplication(sys.argv)
 
@@ -62,13 +60,9 @@ class QTApp(QtCore.QObject):
         self.control = client.control
         self.parameters = client.parameters
 
-        self.ready.connect(self.init)
-        self.ready.emit(True)
-
-    def init(self):
         for instance in CustomWidget.instances:
             try:
-                instance.connection_established()
+                instance.on_connection_established()
             except Exception:
                 print(
                     (
@@ -87,7 +81,7 @@ class QTApp(QtCore.QObject):
         if hasattr(self, "client") and self.client and self.client.connected:
             try:
                 self.parameters.call_listeners()
-            except Exception:
+            except AttributeError:
                 print("call_listeners() failed")
                 print_exc()
 
@@ -106,8 +100,7 @@ class QTApp(QtCore.QObject):
         self.close()
 
     def open_psd_window(self):
-        # first hiding it, then showing it brings it to foregroud if it is in
-        # background
+        # first hiding it, then showing it brings it to foregroud if it is in background
         self.psd_window.hide()
         self.psd_window.show()
 

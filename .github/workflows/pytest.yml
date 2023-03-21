@@ -1,6 +1,7 @@
 name: Run PyTest
 
 on:
+  workflow_dispatch:
   push:
     paths:
       - gateware/**

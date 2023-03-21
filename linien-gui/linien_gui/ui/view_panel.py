@@ -22,7 +22,7 @@ from os import path
 
 import numpy as np
 from linien_common.config import N_COLORS
-from linien_gui.utils_gui import color_to_hex, param2ui
+from linien_gui.utils import color_to_hex, param2ui
 from linien_gui.widgets import CustomWidget
 from PyQt5 import QtGui, QtWidgets
 
@@ -58,7 +58,7 @@ class ViewPanel(QtWidgets.QWidget, CustomWidget):
         print("set color", color_idx, color.getRgb())
         param.value = (r, g, b, a)
 
-    def connection_established(self):
+    def on_connection_established(self):
         self.parameters = self.app.parameters
         self.control = self.app.control
 

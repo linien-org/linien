@@ -18,7 +18,7 @@
 
 from datetime import datetime
 
-from linien_gui.utils_gui import color_to_hex
+from linien_gui.utils import color_to_hex
 from linien_gui.widgets import CustomWidget
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtCore import pyqtSignal
@@ -35,7 +35,7 @@ class PSDTableWidget(QtWidgets.QTableWidget, CustomWidget):
 
         self.uuids = []
 
-    def connection_established(self):
+    def on_connection_established(self):
         self.parameters = self.app.parameters
         self.control = self.app.control
 

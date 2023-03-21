@@ -199,7 +199,7 @@ class Autolock:
                 control_signal = plot_data["control_signal"]
 
                 return self.after_lock(
-                    error_signal, control_signal, plot_data.get("slow")
+                    error_signal, control_signal, plot_data.get("slow_control_signal")
                 )
 
         except Exception:

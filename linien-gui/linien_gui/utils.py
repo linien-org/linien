@@ -31,13 +31,14 @@ from pyqtgraph.Qt import QtGui
 
 
 def param2ui(parameter, element, process_value=lambda x: x):
-    """Updates ui elements according to parameter values.
+    """
+    Updates ui elements according to parameter values.
 
     Listens to parameter changes and sets the value of `element` automatically.
-    Optionally, the value can be processed using `process_value`.
-    This function should be used because it automatically blocks signal
-    emission from the target element; otherwise this can cause nasty
-    endless loops when quickly changing a paramater multiple times.
+    Optionally, the value can be processed using `process_value`. This function should
+    be used because it automatically blocks signal emission from the target element;
+    otherwise this can cause nasty endless loops when quickly changing a paramater
+    multiple times.
     """
 
     def on_change(value, element=element):
@@ -52,7 +53,7 @@ def param2ui(parameter, element, process_value=lambda x: x):
         elif isinstance(element, (QTabWidget, QComboBox)):
             element.setCurrentIndex(int(value))
         else:
-            raise Exception("unsupported element type %s" % type(element))
+            raise TypeError(f"Unsupported element type {type(element)}")
 
         element.blockSignals(False)
 

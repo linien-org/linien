@@ -1,5 +1,6 @@
 # Copyright 2018-2022 Benjamin Wiegand <benjamin.wiegand@physik.hu-berlin.de>
-# Copyright 2021-2022 Bastian Leykauf <leykauf@physik.hu-berlin.de>
+# Copyright 2021-2023 Bastian Leykauf <leykauf@physik.hu-berlin.de>
+# Copyright 2022 Christian Freier <christian.freier@nomadatomics.com>
 #
 # This file is part of Linien and based on redpid.
 #
@@ -18,7 +19,6 @@
 
 import numpy as np
 from linien_common.common import (
-    ANALOG_OUT0,
     HIGH_PASS_FILTER,
     LOW_PASS_FILTER,
     MHz,
@@ -33,7 +33,8 @@ from .utils import twos_complement
 
 
 class Registers:
-    """This class provides low-level access to the FPGA registers.
+    """
+    This class provides low-level access to the FPGA registers.
 
     High-level applications should not access this class directly but instead
     communicate by manipulating `Parameters` / `RemoteParameters`.
@@ -78,11 +79,6 @@ class Registers:
 
         use_ssh = self.host is not None and self.host not in ("localhost", "127.0.0.1")
         self.acquisition = AcquisitionMaster(use_ssh, self.host)
-
-    def run_data_acquisition(self, on_change):
-        """Starts a background process that continuously reads out error /
-        control signal of the FPGA. For every result, `on_change` is called."""
-        self.acquisition.run_data_acquisition(on_change)
 
     def write_registers(self):
         """Writes data from `parameters` to the FPGA."""
@@ -131,7 +127,8 @@ class Registers:
             logic_control_channel=params["control_channel"],
             logic_mod_channel=params["mod_channel"],
             logic_sweep_channel=params["sweep_channel"],
-            slow_pid_reset=not params["pid_on_slow_enabled"],
+            logic_control_slow_channel=params["control_slow_channel"],
+            slow_chain_pid_reset=not params["pid_on_slow_enabled"],
             logic_analog_out_1=params["analog_out_1"],
             logic_analog_out_2=params["analog_out_2"],
             logic_analog_out_3=params["analog_out_3"],
@@ -236,7 +233,7 @@ class Registers:
             "logic_raw_acquisition_iir",
             *make_filter(
                 "LP", f=params["acquisition_raw_filter_frequency"] / fpga_base_freq, k=1
-            )
+            ),
         )
 
         for k, v in new.items():
@@ -253,9 +250,10 @@ class Registers:
         ki = params["i"]
         kd = params["d"]
         slope = params["target_slope_rising"]
-        control_channel, sweep_channel = (
+        control_channel, sweep_channel, control_slow_channel = (
             params["control_channel"],
             params["sweep_channel"],
+            params["control_slow_channel"],
         )
 
         def channel_polarity(channel):
@@ -274,7 +272,8 @@ class Registers:
         )
         slow_slope = (
             1
-            if channel_polarity(ANALOG_OUT0) == channel_polarity(control_channel)
+            if channel_polarity(control_slow_channel)
+            == channel_polarity(control_channel)
             else -1
         )
 
@@ -321,14 +320,14 @@ class Registers:
                                 iir_name,
                                 *make_filter(
                                     "LP", f=filter_frequency / fpga_base_freq, k=1
-                                )
+                                ),
                             )
                         elif filter_type == HIGH_PASS_FILTER:
                             self.set_iir(
                                 iir_name,
                                 *make_filter(
                                     "HP", f=filter_frequency / fpga_base_freq, k=1
-                                )
+                                ),
                             )
                         else:
                             raise Exception(
@@ -363,10 +362,10 @@ class Registers:
 
     def set_slow_pid(self, strength, slope, reset=None):
         sign = slope
-        self.set("slow_pid_ki", strength * sign)
+        self.set("slow_chain_pid_ki", strength * sign)
 
         if reset is not None:
-            self.set("slow_pid_reset", reset)
+            self.set("slow_chain_pid_reset", reset)
 
     def set(self, key, value):
         self.acquisition.set_csr(key, value)

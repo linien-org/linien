@@ -1,5 +1,6 @@
 # Copyright 2018-2022 Benjamin Wiegand <benjamin.wiegand@physik.hu-berlin.de>
 # Copyright 2021-2022 Bastian Leykauf <leykauf@physik.hu-berlin.de>
+# Copyright 2023 Christian Freier <christian.freier@nomadatomics.com>
 #
 # This file is part of Linien and based on redpid.
 #
@@ -94,6 +95,7 @@ class Parameters(BaseParameters):
             "mod_channel",
             "control_channel",
             "sweep_channel",
+            "control_slow_channel",
             "polarity_fast_out1",
             "polarity_fast_out2",
             "polarity_analog_out0",

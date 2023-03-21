@@ -17,7 +17,6 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 import atexit
-import sys
 import threading
 from enum import Enum
 from multiprocessing import Pipe, Process
@@ -47,41 +46,43 @@ class AcquisitionProcessSignals(Enum):
 
 class AcquisitionMaster:
     def __init__(self, use_ssh, host):
-        self.on_acquisition = None
+        self.on_new_data_received = None
 
         def receive_acquired_data(conn):
             while True:
                 is_raw, received_data, data_uuid = conn.recv()
-                if self.on_acquisition is not None:
-                    self.on_acquisition(is_raw, received_data, data_uuid)
+                if self.on_new_data_received is not None:
+                    self.on_new_data_received(is_raw, received_data, data_uuid)
 
-        self.acq_process, child_pipe = Pipe()
-        p = Process(
-            target=self.connect_acquisition_process, args=(child_pipe, use_ssh, host)
+        self.parent_conn, child_conn = Pipe()
+        process = Process(
+            target=self.connect_acquisition_process, args=(child_conn, use_ssh, host)
         )
-        p.daemon = True
-        p.start()
+        process.daemon = True
+        process.start()
 
         # wait until connection is established
-        self.acq_process.recv()
+        self.parent_conn.recv()
 
-        t = threading.Thread(target=receive_acquired_data, args=(self.acq_process,))
-        t.daemon = True
-        t.start()
+        thread = threading.Thread(
+            target=receive_acquired_data, args=(self.parent_conn,)
+        )
+        thread.daemon = True
+        thread.start()
 
         atexit.register(self.shutdown)
 
-    def run_data_acquisition(self, on_acquisition):
-        self.on_acquisition = on_acquisition
+    def run_data_acquisition(self, on_new_data_received):
+        self.on_new_data_received = on_new_data_received
 
     def connect_acquisition_process(self, pipe, use_ssh, host):
         if use_ssh:
-            # for debugging, acquisition process may be launched manually on the
-            # server and rpyc can be used to connect to it
+            # for debugging, acquisition process may be launched manually on the server
+            # and rpyc can be used to connect to it
             acquisition_rpyc = rpyc.connect(host, ACQUISITION_PORT)
             acquisition = acquisition_rpyc.root
         else:
-            # this is what happens in production mode
+            # This is what happens in production mode
             from linien_server.acquisition_process import DataAcquisitionService
 
             stop_nginx()
@@ -91,9 +92,8 @@ class AcquisitionMaster:
         # tell the main thread that we're ready
         pipe.send(True)
 
-        # run a loop that listens for acquired data and transmits them
-        # to the main thread. Also redirects calls from the main thread
-        # to the acquiry process.
+        # Run a loop that listens for acquired data and transmits them to the main
+        # thread. Also redirects calls from the main thread sto the acquiry process.
         last_hash = None
         while True:
             # check whether the main thread sent a command to the acquiry process
@@ -136,40 +136,40 @@ class AcquisitionMaster:
             sleep(0.05)
 
     def shutdown(self):
-        if self.acq_process:
-            self.acq_process.send((AcquisitionProcessSignals.SHUTDOWN,))
+        if self.parent_conn:
+            self.parent_conn.send((AcquisitionProcessSignals.SHUTDOWN,))
 
         start_nginx()
 
     def set_sweep_speed(self, speed):
-        self.acq_process.send((AcquisitionProcessSignals.SET_SWEEP_SPEED, speed))
+        self.parent_conn.send((AcquisitionProcessSignals.SET_SWEEP_SPEED, speed))
 
     def lock_status_changed(self, status):
-        if self.acq_process:
-            self.acq_process.send((AcquisitionProcessSignals.SET_LOCK_STATUS, status))
+        if self.parent_conn:
+            self.parent_conn.send((AcquisitionProcessSignals.SET_LOCK_STATUS, status))
 
     def fetch_additional_signals_changed(self, status):
-        if self.acq_process:
-            self.acq_process.send((AcquisitionProcessSignals.FETCH_QUADRATURES, status))
+        if self.parent_conn:
+            self.parent_conn.send((AcquisitionProcessSignals.FETCH_QUADRATURES, status))
 
     def set_csr(self, key, value):
-        self.acq_process.send((AcquisitionProcessSignals.SET_CSR, (key, value)))
+        self.parent_conn.send((AcquisitionProcessSignals.SET_CSR, (key, value)))
 
     def set_iir_csr(self, *args):
-        self.acq_process.send((AcquisitionProcessSignals.SET_IIR_CSR, args))
+        self.parent_conn.send((AcquisitionProcessSignals.SET_IIR_CSR, args))
 
     def pause_acquisition(self):
-        self.acq_process.send((AcquisitionProcessSignals.PAUSE_ACQUISIITON, True))
+        self.parent_conn.send((AcquisitionProcessSignals.PAUSE_ACQUISIITON, True))
 
     def continue_acquisition(self, uuid):
-        self.acq_process.send((AcquisitionProcessSignals.CONTINUE_ACQUISITION, uuid))
+        self.parent_conn.send((AcquisitionProcessSignals.CONTINUE_ACQUISITION, uuid))
 
     def set_raw_acquisition(self, enabled, decimation=None):
         if decimation is None:
             decimation = 0
-        self.acq_process.send(
+        self.parent_conn.send(
             (AcquisitionProcessSignals.SET_RAW_ACQUISITION, (enabled, decimation))
         )
 
     def set_dual_channel(self, enabled):
-        self.acq_process.send((AcquisitionProcessSignals.SET_DUAL_CHANNEL, enabled))
+        self.parent_conn.send((AcquisitionProcessSignals.SET_DUAL_CHANNEL, enabled))
