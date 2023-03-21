@@ -95,7 +95,7 @@ class Parameters(BaseParameters):
             "mod_channel",
             "control_channel",
             "sweep_channel",
-            "control_slow_channel",
+            "slow_control_channel",
             "polarity_fast_out1",
             "polarity_fast_out2",
             "polarity_analog_out0",
@@ -167,6 +167,14 @@ class Parameters(BaseParameters):
         """
         Configures the output of the lock signal. A value of 0 means FAST OUT 1 and a 
         value of 1 corresponds to FAST OUT 2
+        """
+
+        self.slow_control_channel = Parameter(start=2, min_=0, max_=2)
+        """
+        Configures the output of the slow PID control:
+            0 --> FAST OUT 1
+            1 --> FAST OUT 2
+            2 --> ANALOG OUT 0 (slow channel)        
         """
 
         self.gpio_p_out = Parameter(start=0, min_=0, max_=0b11111111)

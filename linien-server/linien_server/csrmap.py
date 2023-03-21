@@ -163,7 +163,7 @@ csr = {
     'logic_mod_channel': (8, 0x001, 1, True),
     'logic_control_channel': (8, 0x002, 1, True),
     'logic_sweep_channel': (8, 0x003, 2, True),
-    'logic_control_slow_channel': (8, 0x004, 2, True),
+    'logic_slow_control_channel': (8, 0x004, 2, True),
     'logic_fast_mode': (8, 0x005, 1, True),
     'logic_chain_a_factor': (8, 0x006, 9, True),
     'logic_chain_b_factor': (8, 0x008, 9, True),
