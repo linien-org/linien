@@ -1,4 +1,4 @@
-name: Publish Packages
+name: Upload Packages to PyPI
 
 on:
   workflow_dispatch:
