@@ -1,6 +1,6 @@
 # Copyright 2014-2015 Robert Jördens <jordens@gmail.com>
 # Copyright 2018-2022 Benjamin Wiegand <benjamin.wiegand@physik.hu-berlin.de>
-# Copyright 2021-2022 Bastian Leykauf <leykauf@physik.hu-berlin.de>
+# Copyright 2021-2023 Bastian Leykauf <leykauf@physik.hu-berlin.de>
 #
 # This file is part of Linien and based on redpid.
 #
@@ -291,6 +291,7 @@ class LinienModule(Module, AutoCSR):
             mixed_limited.eq(self.logic.limit_error_signal.y),
         ]
 
+        # FAST PID ---------------------------------------------------------------------
         pid_out = Signal((width, True))
         self.comb += [
             If(
@@ -302,84 +303,84 @@ class LinienModule(Module, AutoCSR):
             pid_out.eq(self.logic.pid.pid_out >> s),
         ]
 
-        fast_outs = list(Signal((width + 4, True)) for channel in (0, 1))
+        # SLOW PID ---------------------------------------------------------------------
+        self.comb += [
+            self.slow_chain.pid.running.eq(self.logic.autolock.lock_running.status),
+            self.slow_chain.input.eq(self.logic.control_signal >> s),
+            self.decimate.decimation.eq(self.logic.slow_decimation.storage),
+            self.cd_decimated_clock.clk.eq(self.decimate.output),
+            self.logic.slow_value.status.eq(self.slow_chain.output),
+        ]
 
-        self.comb += self.slow_chain.pid.running.eq(
-            self.logic.autolock.lock_running.status
-        )
-        slow_pid_out = Signal((width, True))
-        self.comb += slow_pid_out.eq(self.slow_chain.output)
-
-        for channel, fast_out in enumerate(fast_outs):
+        # FAST OUTPUTS -----------------------------------------------------------------
+        fast_outs = [Signal((width + 4, True)), Signal((width + 4, True))]
+        for n_channel, fast_out in enumerate(fast_outs):
             self.comb += fast_out.eq(
-                Mux(self.logic.control_channel.storage == channel, pid_out, 0)
-                + Mux(self.logic.mod_channel.storage == channel, self.logic.mod.y, 0)
-                + Mux(
-                    self.logic.sweep_channel.storage == channel, self.logic.sweep.y, 0
+                Mux(
+                    self.logic.control_channel.storage == n_channel,
+                    pid_out,
+                    0,
                 )
                 + Mux(
-                    self.logic.sweep_channel.storage == channel,
+                    self.logic.mod_channel.storage == n_channel,
+                    self.logic.mod.y,
+                    0,
+                )
+                + Mux(
+                    self.logic.sweep_channel.storage == n_channel,
+                    self.logic.sweep.y,
+                    0,
+                )
+                + Mux(
+                    self.logic.sweep_channel.storage == n_channel,
                     self.logic.out_offset_signed,
                     0,
                 )
                 + Mux(
-                    self.logic.control_slow_channel.storage == channel, slow_pid_out, 0
+                    self.logic.control_slow_channel.storage == n_channel,
+                    self.slow_chain.output,
+                    0,
                 )
             )
 
-        for analog_idx in range(4):
-            if analog_idx == 0:
-                # first analog out gets a special treatment bc it may contain signal of
-                # slow pid or sweep
-                self.comb += self.slow_chain.pid.running.eq(
-                    self.logic.autolock.lock_running.status
+        # ANALOG OUTPUTS ---------------------------------------------------------------
+        # ANALOG OUT 0 gets a special treatment because it may contain signal of  slow
+        # pid or sweep
+        analog_out = Signal((width + 3, True))
+        self.comb += [
+            analog_out.eq(
+                Mux(
+                    self.logic.sweep_channel.storage == ANALOG_OUT0,
+                    self.logic.sweep.y,
+                    0,
                 )
-
-                slow_pid_out = Signal((width, True))
-                self.comb += slow_pid_out.eq(self.slow_chain.output)
-
-                slow_out = Signal((width + 3, True))
-                self.comb += [
-                    slow_out.eq(
-                        Mux(
-                            self.logic.control_slow_channel.storage == ANALOG_OUT0,
-                            slow_pid_out,
-                            0,
-                        )
-                        + Mux(
-                            self.logic.sweep_channel.storage == ANALOG_OUT0,
-                            self.logic.sweep.y,
-                            0,
-                        )
-                        + Mux(
-                            self.logic.sweep_channel.storage == ANALOG_OUT0,
-                            self.logic.out_offset_signed,
-                            0,
-                        )
-                    ),
-                    self.slow_chain.limit.x.eq(slow_out),
-                ]
-
-                slow_out_shifted = Signal(15)
-                # ds0 apparently has 16 bit, but only allowing positive  values
-                # --> "15 bit"?
-                self.sync += slow_out_shifted.eq(
-                    (self.slow_chain.limit.y << 1) + (1 << 14)
+                + Mux(
+                    self.logic.sweep_channel.storage == ANALOG_OUT0,
+                    self.logic.out_offset_signed,
+                    0,
                 )
+                + Mux(
+                    self.logic.control_slow_channel.storage == ANALOG_OUT0,
+                    self.slow_chain.output,
+                    0,
+                )
+            ),
+        ]
+        # NOTE: not sure why limit is used
+        self.comb += self.slow_chain.limit.x.eq(analog_out)
+        # ds0 apparently has 16 bit, but only allowing positive  values --> "15 bit"?
+        slow_out_shifted = Signal(15)
+        self.sync += slow_out_shifted.eq((self.slow_chain.limit.y << 1) + (1 << 14))
+        self.comb += self.ds0.data.eq(slow_out_shifted)
 
-                analog_out = slow_out_shifted
-            else:
-                # 15 bit
-                dc_source = [
-                    None,
-                    self.logic.analog_out_1.storage,
-                    self.logic.analog_out_2.storage,
-                    self.logic.analog_out_3.storage,
-                ][analog_idx]
-                analog_out = dc_source
+        # connect other analog outputs
+        self.comb += [
+            self.ds1.data.eq(self.logic.analog_out_1.storage),
+            self.ds2.data.eq(self.logic.analog_out_2.storage),
+            self.ds3.data.eq(self.logic.analog_out_3.storage),
+        ]
 
-            dss = [self.ds0, self.ds1, self.ds2, self.ds3]
-            self.comb += dss[analog_idx].data.eq(analog_out)
+        # ------------------------------------------------------------------------------
 
         self.sync += [
             self.logic.autolock.robust.input.eq(self.scopegen.scope_written_data),
@@ -403,11 +404,6 @@ class LinienModule(Module, AutoCSR):
             ),
             self.analog.dac_a.eq(self.logic.limit_fast1.y),
             self.analog.dac_b.eq(self.logic.limit_fast2.y),
-            # SLOW OUT
-            self.slow_chain.input.eq(self.logic.control_signal >> s),
-            self.decimate.decimation.eq(self.logic.slow_decimation.storage),
-            self.cd_decimated_clock.clk.eq(self.decimate.output),
-            self.logic.slow_value.status.eq(self.slow_chain.limit.y),
         ]
 
         # Having this in a comb statement caused errors. See PR #251.
