@@ -167,10 +167,10 @@ class RedPitayaControlService(BaseService):
         stats = {}
 
         for signal_name, signal in to_plot.items():
-            stats[f"{signal_name}_mean"] = np.mean(signal)
-            stats[f"{signal_name}_std"] = np.std(signal)
-            stats[f"{signal_name}_max"] = np.max(signal)
-            stats[f"{signal_name}_min"] = np.min(signal)
+            stats["%s_mean" % signal_name] = np.mean(signal)
+            stats["%s_std" % signal_name] = np.std(signal)
+            stats["%s_max" % signal_name] = np.max(signal)
+            stats["%s_min" % signal_name] = np.min(signal)
 
         self.parameters.signal_stats.value = stats
 
