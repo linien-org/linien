@@ -265,11 +265,11 @@ class DataAcquisitionService(Service):
         raw_data[raw_data >= 2**13] -= 2**14
 
         # order is such that we have first the signal a then signal b
-        signals = (raw_data[signal_idx::2] for signal_idx in (0, 1))
+        signals = tuple(raw_data[signal_idx::2] for signal_idx in (0, 1))
 
         if to_read_later > 0:
             additional_raw_data = self.read_data_raw(offset, 0, to_read_later)
-            signals = (
+            signals = tuple(
                 np.append(signals[signal_idx], additional_raw_data[signal_idx])
                 for signal_idx in (0, 1)
             )
