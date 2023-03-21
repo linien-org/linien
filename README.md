@@ -33,7 +33,7 @@ Features
 -   **Logging**: Use
     [linien-influxdb](https://github.com/linien-org/linien-influxdb)
     to log the lock status to influxdb.
--   **Second integrator** on (slow) analog output 0
+-   **Second integrator** for slow control of piezo in an ECDL
 -   **Additional analog outputs** may be used using the GUI or python client (ANALOG_OUT 1, 2 and 3)
 -   **16 GPIO outputs** may be programmed (e.g. for controlling other devices)
 
@@ -350,7 +350,7 @@ except:
 Updating Linien
 ---------------
 
-Before installing a new version of Linien, open the previously installed client and click the "Shutdown server" button. Don't worry, your settings and parameters will be saved. Then you may install the latest client on your local PC as described in the [getting started](#getting-started) section above. The next time you connect to RedPitaya, Linien will install the matching server version.
+Before installing a new version of Linien, open the previously installed client and click the "Shutdown server" button. Don't worry, your settings and parameters will be saved. Then you may install the latest client on your local PC as described in the [getting started](#getting-started-install-linien) section above. The next time you connect to RedPitaya, Linien will install the matching server version.
 
 
 Development
@@ -439,9 +439,10 @@ License
 -------
 Linien ‒ User-friendly locking of lasers using RedPitaya (STEMlab 125-14) that just works.
 
-Copyright © 2014-2015 Robert Jördens
-Copyright © 2018-2022 Benjamin Wiegand
-Copyright © 2021-2023 Bastian Leykauf
+Copyright © 2014-2015 Robert Jördens\
+Copyright © 2018-2022 Benjamin Wiegand\
+Copyright © 2021-2023 Bastian Leykauf\
+Copyright © 2022 Christian Freier
 
 Linien is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 

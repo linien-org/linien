@@ -24,6 +24,7 @@ from linien_common.common import (
 from pytest import raises
 
 Y_SHIFT = 0
+RNG = np.random.default_rng(seed=0)
 
 
 def peak(x):
@@ -44,7 +45,7 @@ def get_signal(sweep_amplitude, center, shift):
 
 
 def add_noise(spectrum, level):
-    return spectrum + (np.random.randn(len(spectrum)) * level)
+    return spectrum + (RNG.standard_normal(len(spectrum)) * level)
 
 
 def test_determine_shift_by_correlation():

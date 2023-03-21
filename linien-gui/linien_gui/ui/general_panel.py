@@ -1,5 +1,6 @@
 # Copyright 2018-2022 Benjamin Wiegand <benjamin.wiegand@physik.hu-berlin.de>
-# Copyright 2021-2022 Bastian Leykauf <leykauf@physik.hu-berlin.de>
+# Copyright 2021-2023 Bastian Leykauf <leykauf@physik.hu-berlin.de>
+# Copyright 2022 Christian Freier <christian.freier@nomadatomics.com>
 #
 # This file is part of Linien and based on redpid.
 #
@@ -23,186 +24,182 @@ from linien_common.common import (
     FAST_OUT2,
     convert_channel_mixing_value,
 )
-from linien_gui.utils_gui import param2ui
+from linien_gui.utils import param2ui
 from linien_gui.widgets import CustomWidget
 from PyQt5 import QtWidgets
 
 
 class GeneralPanel(QtWidgets.QWidget, CustomWidget):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super(GeneralPanel, self).__init__(*args, **kwargs)
         self.load_ui("general_panel.ui")
 
-    def ready(self):
-        self.ids.channel_mixing_slider.valueChanged.connect(self.channel_mixing_changed)
-        self.ids.fast_mode.stateChanged.connect(self.fast_mode_changed)
-        self.ids.dual_channel.stateChanged.connect(self.dual_channel_changed)
-
-        self.ids.mod_channel.currentIndexChanged.connect(self.mod_channel_changed)
-        self.ids.control_channel.currentIndexChanged.connect(
-            self.control_channel_changed
+        self.channelMixingSlider.valueChanged.connect(self.on_channel_mixing_changed)
+        self.fastModeCheckBox.stateChanged.connect(self.on_fast_mode_changed)
+        self.dualChannelCheckBox.stateChanged.connect(self.on_dual_channel_changed)
+        self.modulationChannelComboBox.currentIndexChanged.connect(
+            self.on_mod_channel_changed
         )
-        self.ids.sweep_channel.currentIndexChanged.connect(self.sweep_channel_changed)
-        self.ids.slow_control_channel.currentIndexChanged.connect(
-            self.slow_control_channel_changed
+        self.controlChannelComboBox.currentIndexChanged.connect(
+            self.on_control_channel_changed
         )
-
-        self.ids.polarity_fast_out1.currentIndexChanged.connect(
-            self.polarity_fast_out1_changed
+        self.sweepChannelComboBox.currentIndexChanged.connect(
+            self.on_sweep_channel_changed
         )
-        self.ids.polarity_fast_out2.currentIndexChanged.connect(
-            self.polarity_fast_out2_changed
+        self.slowControlComboBox.currentIndexChanged.connect(
+            self.on_slow_control_channel_changed
         )
-        self.ids.polarity_analog_out0.currentIndexChanged.connect(
-            self.polarity_analog_out0_changed
+        self.polarityComboBoxFastOut1.currentIndexChanged.connect(
+            self.on_polarity_fast_out1_changed
+        )
+        self.polarityComboBoxFastOut2.currentIndexChanged.connect(
+            self.on_polarity_fast_out2_changed
+        )
+        self.polarityComboBoxAnalogOut0.currentIndexChanged.connect(
+            self.on_polarity_analog_out0_changed
         )
 
         for idx in range(4):
             if idx == 0:
                 continue
-            element = getattr(self.ids, "analog_out_%d" % idx)
+            element = getattr(self, f"analogOutComboBox{idx}")
             element.setKeyboardTracking(False)
             element.valueChanged.connect(
-                lambda value, idx=idx: self.change_analog_out(idx)
+                lambda _, idx=idx: self.on_analog_out_changed(idx)
             )
 
-    def change_analog_out(self, idx):
-        name = "analog_out_%d" % idx
-        getattr(self.parameters, name).value = int(
-            getattr(self.ids, name).value() / ANALOG_OUT_V
-        )
-        self.control.write_registers()
-
-    def connection_established(self):
+    def on_connection_established(self):
         self.parameters = self.app.parameters
         self.control = self.app.control
 
-        param2ui(self.parameters.fast_mode, self.ids.fast_mode)
+        param2ui(self.parameters.fast_mode, self.fastModeCheckBox)
 
-        param2ui(self.parameters.fast_mode, self.ids.fast_mode)
-
-        def dual_channel_changed(value):
-            self.ids.dual_channel_mixing.setVisible(value)
-            self.ids.fast_in_1_status.setText(
+        def on_dual_channel_changed(value):
+            self.dualChannelMixingGroupBox.setVisible(value)
+            self.fast_in_1_status.setText(
                 "error signal" if not value else "error signal 1"
             )
-            self.ids.fast_in_2_status.setText(
-                "monitor" if not value else "error signal 2"
-            )
+            self.fast_in_2_status.setText("monitor" if not value else "error signal 2")
             return value
 
         param2ui(
-            self.parameters.dual_channel, self.ids.dual_channel, dual_channel_changed
+            self.parameters.dual_channel,
+            self.dualChannelCheckBox,
+            on_dual_channel_changed,
         )
 
         param2ui(
             self.parameters.channel_mixing,
-            self.ids.channel_mixing_slider,
+            self.channelMixingSlider,
             lambda value: value + 128,
         )
         # this is required to update the descriptive labels in the beginning
-        self.channel_mixing_changed()
+        self.on_channel_mixing_changed()
 
-        param2ui(self.parameters.mod_channel, self.ids.mod_channel)
-        param2ui(self.parameters.control_channel, self.ids.control_channel)
-        param2ui(self.parameters.sweep_channel, self.ids.sweep_channel)
-        param2ui(self.parameters.pid_on_slow_enabled, self.ids.slow_control_channel)
+        param2ui(self.parameters.mod_channel, self.modulationChannelComboBox)
+        param2ui(self.parameters.control_channel, self.controlChannelComboBox)
+        param2ui(self.parameters.sweep_channel, self.sweepChannelComboBox)
+        param2ui(self.parameters.slow_control_channel, self.slowControlComboBox)
 
-        param2ui(self.parameters.polarity_fast_out1, self.ids.polarity_fast_out1)
-        param2ui(self.parameters.polarity_fast_out2, self.ids.polarity_fast_out2)
-        param2ui(self.parameters.polarity_analog_out0, self.ids.polarity_analog_out0)
+        param2ui(self.parameters.polarity_fast_out1, self.polarityComboBoxFastOut1)
+        param2ui(self.parameters.polarity_fast_out2, self.polarityComboBoxFastOut2)
+        param2ui(self.parameters.polarity_analog_out0, self.polarityComboBoxAnalogOut0)
 
-        def show_polarity_settings(*args):
-            used_channels = set(
-                (
-                    self.parameters.control_channel.value,
-                    self.parameters.sweep_channel.value,
-                )
-            )
-
-            if self.parameters.pid_on_slow_enabled.value:
-                used_channels.add(ANALOG_OUT0)
-
-            self.ids.polarity_selector.setVisible(len(used_channels) > 1)
-
-            def set_visibility(element, channel_id):
-                element.setVisible(channel_id in used_channels)
-
-            set_visibility(self.ids.polarity_container_fast_out1, FAST_OUT1)
-            set_visibility(self.ids.polarity_container_fast_out2, FAST_OUT2)
-            set_visibility(self.ids.polarity_container_analog_out0, ANALOG_OUT0)
-
-        self.parameters.control_channel.on_change(show_polarity_settings)
-        self.parameters.sweep_channel.on_change(show_polarity_settings)
-        self.parameters.mod_channel.on_change(show_polarity_settings)
-        self.parameters.pid_on_slow_enabled.on_change(show_polarity_settings)
+        self.parameters.control_channel.on_change(self.show_polarity_settings)
+        self.parameters.sweep_channel.on_change(self.show_polarity_settings)
+        self.parameters.mod_channel.on_change(self.show_polarity_settings)
+        self.parameters.slow_control_channel.on_change(self.show_polarity_settings)
+        self.parameters.pid_on_slow_enabled.on_change(self.show_polarity_settings)
 
         for idx in range(4):
             if idx == 0:
                 continue
-            name = "analog_out_%d" % idx
             param2ui(
-                getattr(self.parameters, name),
-                getattr(self.ids, name),
+                getattr(self.parameters, f"analog_out_{idx}"),
+                getattr(self, f"analogOutComboBox{idx}"),
                 process_value=lambda v: ANALOG_OUT_V * v,
             )
 
-        def fast_mode_changed(fast_mode_enabled):
+        def on_fast_mode_changed(fast_mode_enabled):
             """Disables controls that are irrelevant if fast mode is enabled"""
             widgets_to_disable = (
-                self.ids.output_ports_group,
-                self.ids.input_ports_group,
+                self.output_ports_group,
+                self.input_ports_group,
             )
             for widget in widgets_to_disable:
                 widget.setEnabled(not fast_mode_enabled)
 
-        self.parameters.fast_mode.on_change(fast_mode_changed)
+        self.parameters.fast_mode.on_change(on_fast_mode_changed)
 
-    def channel_mixing_changed(self):
-        value = int(self.ids.channel_mixing_slider.value()) - 128
+    def on_analog_out_changed(self, idx):
+        getattr(self.parameters, f"analog_out_{idx}").value = int(
+            getattr(self, f"analogOutComboBox{idx}").value() / ANALOG_OUT_V
+        )
+        self.control.write_registers()
+
+    def on_channel_mixing_changed(self):
+        value = int(self.channelMixingSlider.value()) - 128
         self.parameters.channel_mixing.value = value
         self.control.write_registers()
 
-        self.update_channel_mixing_slider(value)
-
-    def fast_mode_changed(self):
-        self.parameters.fast_mode.value = int(self.ids.fast_mode.checkState() > 0)
-        self.control.write_registers()
-
-    def dual_channel_changed(self):
-        self.parameters.dual_channel.value = int(self.ids.dual_channel.checkState() > 0)
-        self.control.write_registers()
-
-    def update_channel_mixing_slider(self, value):
+        # update channel mixing slider
         a_value, b_value = convert_channel_mixing_value(value)
+        self.chain_a_factor.setText(f"{a_value}")
+        self.chain_b_factor.setText(f"{b_value}")
 
-        self.ids.chain_a_factor.setText("%d" % a_value)
-        self.ids.chain_b_factor.setText("%d" % b_value)
+    def on_fast_mode_changed(self):
+        self.parameters.fast_mode.value = int(self.fastModeCheckBox.checkState() > 0)
+        self.control.write_registers()
 
-    def mod_channel_changed(self, channel):
+    def on_dual_channel_changed(self):
+        self.parameters.dual_channel.value = int(
+            self.dualChannelCheckBox.checkState() > 0
+        )
+        self.control.write_registers()
+
+    def on_mod_channel_changed(self, channel):
         self.parameters.mod_channel.value = channel
         self.control.write_registers()
 
-    def control_channel_changed(self, channel):
+    def on_control_channel_changed(self, channel):
         self.parameters.control_channel.value = channel
         self.control.write_registers()
 
-    def slow_control_channel_changed(self, channel):
-        self.parameters.pid_on_slow_enabled.value = bool(channel)
+    def on_slow_control_channel_changed(self, channel):
+        if channel > 2:
+            # disabled state
+            self.parameters.pid_on_slow_enabled.value = False
+        else:
+            self.parameters.slow_control_channel.value = channel
+            self.parameters.pid_on_slow_enabled.value = True
         self.control.write_registers()
 
-    def sweep_channel_changed(self, channel):
+    def on_sweep_channel_changed(self, channel):
         self.parameters.sweep_channel.value = channel
         self.control.write_registers()
 
-    def polarity_fast_out1_changed(self, polarity):
+    def on_polarity_fast_out1_changed(self, polarity):
         self.parameters.polarity_fast_out1.value = bool(polarity)
         self.control.write_registers()
 
-    def polarity_fast_out2_changed(self, polarity):
+    def on_polarity_fast_out2_changed(self, polarity):
         self.parameters.polarity_fast_out2.value = bool(polarity)
         self.control.write_registers()
 
-    def polarity_analog_out0_changed(self, polarity):
+    def on_polarity_analog_out0_changed(self, polarity):
         self.parameters.polarity_analog_out0.value = bool(polarity)
         self.control.write_registers()
+
+    def show_polarity_settings(self, *args):
+        used_channels = {
+            self.parameters.control_channel.value,
+            self.parameters.sweep_channel.value,
+        }
+
+        if self.parameters.pid_on_slow_enabled.value:
+            used_channels.add(self.parameters.slow_control_channel.value)
+
+        self.polaritySelectorGroupBox.setVisible(len(used_channels) > 1)
+        self.polarityContainerFastOut1.setVisible(FAST_OUT1 in used_channels)
+        self.polarityContainerFastOut2.setVisible(FAST_OUT2 in used_channels)
+        self.polarityContainerAnalogOut0.setVisible(ANALOG_OUT0 in used_channels)

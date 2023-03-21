@@ -27,7 +27,7 @@ from linien_gui.dialogs import (
 )
 from linien_gui.threads import ConnectionThread
 from linien_gui.ui.new_device_dialog import NewDeviceDialog
-from linien_gui.utils_gui import set_window_icon
+from linien_gui.utils import set_window_icon
 from linien_gui.widgets import CustomWidget
 from PyQt5 import QtCore, QtWidgets
 

@@ -22,7 +22,7 @@ from time import time
 import linien_gui
 from linien_common.common import PSD_ALGORITHM_LPSD, PSD_ALGORITHM_WELCH
 from linien_gui.dialogs import error_dialog
-from linien_gui.utils_gui import RandomColorChoser, param2ui, set_window_icon
+from linien_gui.utils import RandomColorChoser, param2ui, set_window_icon
 from linien_gui.widgets import CustomWidget
 from PyQt5 import QtWidgets
 
@@ -72,7 +72,7 @@ class PSDWindow(QtWidgets.QMainWindow, CustomWidget):
             index
         ]
 
-    def connection_established(self):
+    def on_connection_established(self):
         self.parameters = self.app.parameters
         self.control = self.app.control
 

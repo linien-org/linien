@@ -1,6 +1,7 @@
 # Copyright 2014-2015 Robert Jördens <jordens@gmail.com>
 # Copyright 2018-2022 Benjamin Wiegand <benjamin.wiegand@physik.hu-berlin.de>
-# Copyright 2021-2022 Bastian Leykauf <leykauf@physik.hu-berlin.de>
+# Copyright 2021-2023 Bastian Leykauf <leykauf@physik.hu-berlin.de>
+# Copyright 2022 Christian Freier <christian.freier@nomadatomics.com>
 #
 # This file is part of Linien and based on redpid.
 #
@@ -52,43 +53,37 @@ from .lowlevel.xadc import XADC
 
 class LinienLogic(Module, AutoCSR):
     def __init__(self, width=14, signal_width=25, chain_factor_width=8, coeff_width=25):
-        self.init_csr(width, signal_width, chain_factor_width)
+        self.init_csr(width, chain_factor_width)
         self.init_submodules(width, signal_width)
         self.connect_pid()
         self.connect_everything(width, signal_width, coeff_width)
 
-    def init_csr(self, width, signal_width, chain_factor_width):
-        factor_reset = 1 << (chain_factor_width - 1)
-        # we use chain_factor_width + 1 for the single channel mode
+    def init_csr(self, width, chain_factor_width):
         self.dual_channel = CSRStorage(1)
-        self.chain_a_factor = CSRStorage(chain_factor_width + 1, reset=factor_reset)
-        self.chain_b_factor = CSRStorage(chain_factor_width + 1, reset=factor_reset)
-
-        self.chain_a_offset = CSRStorage(width)
-        self.chain_b_offset = CSRStorage(width)
-        self.chain_a_offset_signed = Signal((width, True))
-        self.chain_b_offset_signed = Signal((width, True))
-        self.combined_offset = CSRStorage(width)
-        self.combined_offset_signed = Signal((width, True))
-        self.out_offset = CSRStorage(width)
-        self.out_offset_signed = Signal((width, True))
-
         self.mod_channel = CSRStorage(1)
         self.control_channel = CSRStorage(1)
         self.sweep_channel = CSRStorage(2)
-
+        self.slow_control_channel = CSRStorage(2)
         self.fast_mode = CSRStorage(1)
+
+        # we use chain_factor_width + 1 for the single channel mode
+        factor_reset = 1 << (chain_factor_width - 1)
+        self.chain_a_factor = CSRStorage(chain_factor_width + 1, reset=factor_reset)
+        self.chain_b_factor = CSRStorage(chain_factor_width + 1, reset=factor_reset)
+        self.chain_a_offset = CSRStorage(width)
+        self.chain_b_offset = CSRStorage(width)
+        self.combined_offset = CSRStorage(width)
+        self.combined_offset_signed = Signal((width, True))
+        self.out_offset = CSRStorage(width)
+        self.slow_decimation = CSRStorage(bits_for(16))
+        for i in range(1, 4):
+            setattr(self, f"analog_out_{i}", CSRStorage(15, name=f"analog_out_{i}"))
 
         self.slow_value = CSRStatus(width)
 
-        max_decimation = 16
-        self.slow_decimation = CSRStorage(bits_for(max_decimation))
-
-        for i in range(4):
-            if i == 0:
-                continue
-            name = "analog_out_%d" % i
-            setattr(self, name, CSRStorage(15, name=name))
+        self.chain_a_offset_signed = Signal((width, True))
+        self.chain_b_offset_signed = Signal((width, True))
+        self.out_offset_signed = Signal((width, True))
 
     def init_submodules(self, width, signal_width):
         self.submodules.mod = Modulate(width=width)
@@ -97,7 +92,6 @@ class LinienLogic(Module, AutoCSR):
         self.submodules.limit_fast1 = LimitCSR(width=width, guard=5)
         self.submodules.limit_fast2 = LimitCSR(width=width, guard=5)
         self.submodules.pid = PID(width=signal_width)
-
         self.submodules.autolock = FPGAAutolock(width=width, max_delay=8191)
 
     def connect_pid(self):
@@ -115,13 +109,11 @@ class LinienLogic(Module, AutoCSR):
         ]
 
     def connect_everything(self, width, signal_width, coeff_width):
-        s = signal_width - width
-
         combined_error_signal = Signal((signal_width, True))
         self.control_signal = Signal((signal_width, True))
 
-        # additional IIR filter that prevents aliasing effects when recording
-        # PSD of error signal
+        # additional IIR filter that prevents aliasing effects when recording PSD of
+        # error signal
         self.submodules.raw_acquisition_iir = Iir(
             width=signal_width,
             coeff_width=coeff_width,
@@ -158,7 +150,7 @@ class LinienLogic(Module, AutoCSR):
                 Array([self.limit_fast1.y, self.limit_fast2.y])[
                     self.control_channel.storage
                 ]
-                << s
+                << signal_width - width
             ),
         ]
 
@@ -166,7 +158,8 @@ class LinienLogic(Module, AutoCSR):
 class LinienModule(Module, AutoCSR):
     def __init__(self, platform):
         width = 14
-        signal_width, coeff_width = 25, 25
+        signal_width = 25
+        coeff_width = 25
         chain_factor_bits = 8
 
         self.init_submodules(
@@ -191,7 +184,7 @@ class LinienModule(Module, AutoCSR):
             pwm = platform.request("pwm", i)
             ds = sys_double(DeltaSigma(width=15))
             self.comb += pwm.eq(ds.out)
-            setattr(self.submodules, "ds%i" % i, ds)
+            setattr(self.submodules, f"ds{i}", ds)
 
         exp = platform.request("exp")
         self.submodules.gpio_n = Gpio(exp.n)
@@ -223,7 +216,7 @@ class LinienModule(Module, AutoCSR):
         self.submodules.decimate = sys_double(Decimate(max_decimation))
         self.clock_domains.cd_decimated_clock = ClockDomain()
         decimated_clock = ClockDomainsRenamer("decimated_clock")
-        self.submodules.slow = decimated_clock(SlowChain())
+        self.submodules.slow_chain = decimated_clock(SlowChain())
 
         self.submodules.scopegen = ScopeGen(signal_width)
 
@@ -232,7 +225,7 @@ class LinienModule(Module, AutoCSR):
             [
                 ("fast_a", self.fast_a),
                 ("fast_b", self.fast_b),
-                ("slow", self.slow),
+                ("slow_chain", self.slow_chain),
                 ("scopegen", self.scopegen),
                 ("logic", self.logic),
                 ("robust", self.logic.autolock.robust),
@@ -246,7 +239,7 @@ class LinienModule(Module, AutoCSR):
             "gpio_p": 31,
             "fast_a": 0,
             "fast_b": 1,
-            "slow": 2,
+            "slow_chain": 2,
             "scopegen": 6,
             "noise": 7,
             "logic": 8,
@@ -299,6 +292,7 @@ class LinienModule(Module, AutoCSR):
             mixed_limited.eq(self.logic.limit_error_signal.y),
         ]
 
+        # FAST PID ---------------------------------------------------------------------
         pid_out = Signal((width, True))
         self.comb += [
             If(
@@ -310,72 +304,84 @@ class LinienModule(Module, AutoCSR):
             pid_out.eq(self.logic.pid.pid_out >> s),
         ]
 
-        fast_outs = list(Signal((width + 4, True)) for channel in (0, 1))
+        # SLOW PID ---------------------------------------------------------------------
+        self.comb += [
+            self.slow_chain.pid.running.eq(self.logic.autolock.lock_running.status),
+            self.slow_chain.input.eq(self.logic.control_signal >> s),
+            self.decimate.decimation.eq(self.logic.slow_decimation.storage),
+            self.cd_decimated_clock.clk.eq(self.decimate.output),
+            self.logic.slow_value.status.eq(self.slow_chain.output),
+        ]
 
-        for channel, fast_out in enumerate(fast_outs):
+        # FAST OUTPUTS -----------------------------------------------------------------
+        fast_outs = [Signal((width + 4, True)), Signal((width + 4, True))]
+        for n_channel, fast_out in enumerate(fast_outs):
             self.comb += fast_out.eq(
-                Mux(self.logic.control_channel.storage == channel, pid_out, 0)
-                + Mux(self.logic.mod_channel.storage == channel, self.logic.mod.y, 0)
-                + Mux(
-                    self.logic.sweep_channel.storage == channel, self.logic.sweep.y, 0
+                Mux(
+                    self.logic.control_channel.storage == n_channel,
+                    pid_out,
+                    0,
                 )
                 + Mux(
-                    self.logic.sweep_channel.storage == channel,
+                    self.logic.mod_channel.storage == n_channel,
+                    self.logic.mod.y,
+                    0,
+                )
+                + Mux(
+                    self.logic.sweep_channel.storage == n_channel,
+                    self.logic.sweep.y,
+                    0,
+                )
+                + Mux(
+                    self.logic.sweep_channel.storage == n_channel,
                     self.logic.out_offset_signed,
+                    0,
+                )
+                + Mux(
+                    self.logic.slow_control_channel.storage == n_channel,
+                    self.slow_chain.output,
                     0,
                 )
             )
 
-        for analog_idx in range(4):
-            if analog_idx == 0:
-                # first analog out gets a special treatment bc it may contain signal of
-                # slow pid or sweep
-                self.comb += self.slow.pid.running.eq(
-                    self.logic.autolock.lock_running.status
+        # ANALOG OUTPUTS ---------------------------------------------------------------
+        # ANALOG OUT 0 gets a special treatment because it may contain signal of  slow
+        # pid or sweep
+        analog_out = Signal((width + 3, True))
+        self.comb += [
+            analog_out.eq(
+                Mux(
+                    self.logic.sweep_channel.storage == ANALOG_OUT0,
+                    self.logic.sweep.y,
+                    0,
                 )
-
-                slow_pid_out = Signal((width, True))
-                self.comb += slow_pid_out.eq(self.slow.output)
-
-                slow_out = Signal((width + 3, True))
-                self.comb += [
-                    slow_out.eq(
-                        slow_pid_out
-                        + Mux(
-                            self.logic.sweep_channel.storage == ANALOG_OUT0,
-                            self.logic.sweep.y,
-                            0,
-                        )
-                        + Mux(
-                            self.logic.sweep_channel.storage == ANALOG_OUT0,
-                            self.logic.out_offset_signed,
-                            0,
-                        )
-                    ),
-                    self.slow.limit.x.eq(slow_out),
-                ]
-
-                slow_out_shifted = Signal(15)
-                self.sync += slow_out_shifted.eq(
-                    # ds0 apparently has 16 bit, but only allowing positive
-                    # values --> "15 bit"?
-                    (self.slow.limit.y << 1)
-                    + (1 << 14)
+                + Mux(
+                    self.logic.sweep_channel.storage == ANALOG_OUT0,
+                    self.logic.out_offset_signed,
+                    0,
                 )
+                + Mux(
+                    self.logic.slow_control_channel.storage == ANALOG_OUT0,
+                    self.slow_chain.output,
+                    0,
+                )
+            ),
+        ]
+        # NOTE: not sure why limit is used
+        self.comb += self.slow_chain.limit.x.eq(analog_out)
+        # ds0 apparently has 16 bit, but only allowing positive  values --> "15 bit"?
+        slow_out_shifted = Signal(15)
+        self.sync += slow_out_shifted.eq((self.slow_chain.limit.y << 1) + (1 << 14))
+        self.comb += self.ds0.data.eq(slow_out_shifted)
 
-                analog_out = slow_out_shifted
-            else:
-                # 15 bit
-                dc_source = [
-                    None,
-                    self.logic.analog_out_1.storage,
-                    self.logic.analog_out_2.storage,
-                    self.logic.analog_out_3.storage,
-                ][analog_idx]
-                analog_out = dc_source
+        # connect other analog outputs
+        self.comb += [
+            self.ds1.data.eq(self.logic.analog_out_1.storage),
+            self.ds2.data.eq(self.logic.analog_out_2.storage),
+            self.ds3.data.eq(self.logic.analog_out_3.storage),
+        ]
 
-            dss = [self.ds0, self.ds1, self.ds2, self.ds3]
-            self.comb += dss[analog_idx].data.eq(analog_out)
+        # ------------------------------------------------------------------------------
 
         self.sync += [
             self.logic.autolock.robust.input.eq(self.scopegen.scope_written_data),
@@ -399,11 +405,6 @@ class LinienModule(Module, AutoCSR):
             ),
             self.analog.dac_a.eq(self.logic.limit_fast1.y),
             self.analog.dac_b.eq(self.logic.limit_fast2.y),
-            # SLOW OUT
-            self.slow.input.eq(self.logic.control_signal >> s),
-            self.decimate.decimation.eq(self.logic.slow_decimation.storage),
-            self.cd_decimated_clock.clk.eq(self.decimate.output),
-            self.logic.slow_value.status.eq(self.slow.limit.y),
         ]
 
         # Having this in a comb statement caused errors. See PR #251.

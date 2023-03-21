@@ -70,27 +70,26 @@ class FastChain(Module, AutoCSR):
         def init_submodule(name, submodule):
             setattr(self.submodules, name, submodule)
 
-        # iterate over in-phase and quadrature signal
-        # both have filters and limits
+        # iterate over in-phase and quadrature signal; both have filters and limits
         for sub_channel_idx in (0, 1):
             x_limit = LimitCSR(width=signal_width, guard=1)
-            init_submodule("x_limit_%d" % (sub_channel_idx + 1), x_limit)
+            setattr(self.submodules, f"x_limit_{sub_channel_idx+1}", x_limit)
             iir_c = Iir(
                 width=signal_width,
                 coeff_width=coeff_width,
                 shift=coeff_width - 2,
                 order=1,
             )
-            init_submodule("iir_c_%d" % (sub_channel_idx + 1), iir_c)
+            setattr(self.submodules, f"iir_c_{sub_channel_idx+1}", iir_c)
             iir_d = Iir(
                 width=signal_width,
                 coeff_width=coeff_width,
                 shift=coeff_width - 2,
                 order=2,
             )
-            init_submodule("iir_d_%d" % (sub_channel_idx + 1), iir_d)
+            setattr(self.submodules, f"iir_d_{sub_channel_idx+1}", iir_d)
             y_limit = LimitCSR(width=signal_width, guard=3)
-            init_submodule("y_limit_%d" % (sub_channel_idx + 1), y_limit)
+            setattr(self.submodules, f"y_limit_{sub_channel_idx+1}", y_limit)
 
             self.comb += [
                 x_limit.x.eq(([self.demod.i, self.demod.q][sub_channel_idx] << s) + dx),
@@ -116,8 +115,6 @@ class FastChain(Module, AutoCSR):
 
 class SlowChain(Module, AutoCSR):
     def __init__(self, width=14, signal_width=25):
-        s = signal_width - width
-
         self.input = Signal((width, True))
         self.output = Signal((width, True))
 
@@ -134,12 +131,12 @@ class SlowChain(Module, AutoCSR):
         self.comb += [
             self.pid.input.eq(self.input),
             self.output.eq(self.pid.pid_out),
-            out.eq(self.limit.y << s),
+            out.eq(self.limit.y << signal_width - width),
         ]
 
 
 def cross_connect(gpio, chains):
-    state_names = ["force"] + ["di%i" % i for i in range(len(gpio.i))]
+    state_names = ["force"] + [f"di{i}" for i in range(len(gpio.i))]
     states = [1, gpio.i]
     signal_names = ["zero"]
     signals = Array([0])
@@ -147,15 +144,15 @@ def cross_connect(gpio, chains):
     for n, c in chains:
         for s in c.state_out:
             states.append(s)
-            state_names.append("%s_%s" % (n, s.backtrace[-1][0]))
+            state_names.append(f"{n}{s.backtrace[-1][0]}")
         for s in c.signal_out:
             signals.append(s)
             name = s.backtrace[-1][0]
-            signal_names.append("%s_%s" % (n, name))
+            signal_names.append(f"{n}_{name}")
             sig = CSRStatus(len(s), name=name)
-            clr = CSR(name="%s_clr" % name)
-            max = CSRStatus(len(s), name="%s_max" % name)
-            min = CSRStatus(len(s), name="%s_min" % name)
+            clr = CSR(name=f"{name}_clr")
+            max = CSRStatus(len(s), name=f"{name}_max")
+            min = CSRStatus(len(s), name=f"{name}_min")
             # setattr(c, sig.name, sig)
             setattr(c, clr.name, clr)
             setattr(c, max.name, max)
@@ -170,27 +167,30 @@ def cross_connect(gpio, chains):
     gpio.state = CSRStatus(len(state))
     gpio.state_clr = CSR()
     gpio.sync += [
-        If(gpio.state_clr.re, gpio.state.status.eq(0),).Else(
+        If(
+            gpio.state_clr.re,
+            gpio.state.status.eq(0),
+        ).Else(
             gpio.state.status.eq(gpio.state.status | state),
         )
     ]
 
     # connect gpio output to "doi%i_en"
     for i, s in enumerate(gpio.o):
-        csr = CSRStorage(len(state), name="do%i_en" % i)
+        csr = CSRStorage(len(state), name=f"do{i}_en")
         setattr(gpio, csr.name, csr)
         gpio.sync += s.eq((state & csr.storage) != 0)
 
     # connect state ins to "%s_en" and signal ins to "%s_sel"
     for n, c in chains:
         for s in c.state_in:
-            csr = CSRStorage(len(state), name="%s_en" % s.backtrace[-1][0])
+            csr = CSRStorage(len(state), name=f"{s.backtrace[-1][0]}_en")
             setattr(c, csr.name, csr)
             c.sync += s.eq((state & csr.storage) != 0)
 
         for s in c.signal_in:
             csr = CSRStorage(
-                bits_for(len(signals) - 1), name="%s_sel" % s.backtrace[-1][0]
+                bits_for(len(signals) - 1), name=f"{s.backtrace[-1][0]}_sel"
             )
             setattr(c, csr.name, csr)
             c.sync += s.eq(signals[csr.storage])

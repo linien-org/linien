@@ -109,7 +109,7 @@ class PSDPlotWidget(pg.PlotWidget, CustomWidget):
 
         self.recalculate_min_max()
 
-    def connection_established(self):
+    def on_connection_established(self):
         self.parameters = self.app.parameters
         self.control = self.app.control
 
