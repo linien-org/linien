@@ -325,14 +325,14 @@ class Parameters(BaseParameters):
         for channel in ("a", "b"):
             setattr(
                 self,
-                f"demodulation_phase_{channel}",
+                "demodulation_phase_%s" % channel,
                 Parameter(min_=0, max_=360, start=0x0, wrap=True),
             )
             """The demodulation phase in degree (0-360)"""
 
             setattr(
                 self,
-                f"demodulation_multiplier_{channel}",
+                "demodulation_multiplier_%s" % channel,
                 Parameter(min_=0, max_=15, start=1),
             )
             """
@@ -341,19 +341,19 @@ class Parameters(BaseParameters):
             """
 
             setattr(
-                self, f"offset_{channel}", Parameter(min_=-8191, max_=8191, start=0)
+                self, "offset_%s" % channel, Parameter(min_=-8191, max_=8191, start=0)
             )
             """
             The vertical offset for a channel. A value of -8191 shifts the data down by
             1V, a value of +8191 moves it up.
             """
 
-            setattr(self, f"invert_{channel}", Parameter(start=False))
+            setattr(self, "invert_%s" % channel, Parameter(start=False))
             """A boolean indicating whether the channel data should be inverted."""
 
             # - -----   FILTER PARAMETERS   -----
 
-            setattr(self, f"filter_automatic_{channel}", Parameter(start=True))
+            setattr(self, "filter_automatic_%s" % channel, Parameter(start=True))
             """
             After demodulation of the signal, Linien may apply up to two IIR filters.
             `filter_automatic` is a boolean indicating whether Linien should
@@ -363,10 +363,10 @@ class Parameters(BaseParameters):
             modulation frequency.            
             """
 
-            for filter_i in [1, 2]:
+            for filter_i in (1, 2):
                 setattr(
                     self,
-                    f"filter_{filter_i}_enabled_{channel}",
+                    "filter_%d_enabled_%s" % (filter_i, channel),
                     Parameter(start=False),
                 )
                 """
@@ -376,7 +376,9 @@ class Parameters(BaseParameters):
                 demodulation phase. Instead, a filter with unity gain is installed.
                 """
 
-                setattr(self, f"filter_{filter_i}_type_{channel}", Parameter(start=0))
+                setattr(
+                    self, "filter_%d_type_%s" % (filter_i, channel), Parameter(start=0)
+                )
                 """
                 Either `LOW_PASS_FILTER` or `HIGH_PASS_FILTER` from
                 linien_common.common` module."""
