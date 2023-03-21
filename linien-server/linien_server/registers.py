@@ -127,7 +127,7 @@ class Registers:
             logic_control_channel=params["control_channel"],
             logic_mod_channel=params["mod_channel"],
             logic_sweep_channel=params["sweep_channel"],
-            logic_control_slow_channel=params["control_slow_channel"],
+            logic_slow_control_channel=params["slow_control_channel"],
             slow_chain_pid_reset=not params["pid_on_slow_enabled"],
             logic_analog_out_1=params["analog_out_1"],
             logic_analog_out_2=params["analog_out_2"],
@@ -250,10 +250,10 @@ class Registers:
         ki = params["i"]
         kd = params["d"]
         slope = params["target_slope_rising"]
-        control_channel, sweep_channel, control_slow_channel = (
+        control_channel, sweep_channel, slow_control_channel = (
             params["control_channel"],
             params["sweep_channel"],
-            params["control_slow_channel"],
+            params["slow_control_channel"],
         )
 
         def channel_polarity(channel):
@@ -272,7 +272,7 @@ class Registers:
         )
         slow_slope = (
             1
-            if channel_polarity(control_slow_channel)
+            if channel_polarity(slow_control_channel)
             == channel_polarity(control_channel)
             else -1
         )

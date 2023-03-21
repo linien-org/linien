@@ -63,7 +63,7 @@ class LinienLogic(Module, AutoCSR):
         self.mod_channel = CSRStorage(1)
         self.control_channel = CSRStorage(1)
         self.sweep_channel = CSRStorage(2)
-        self.control_slow_channel = CSRStorage(2)
+        self.slow_control_channel = CSRStorage(2)
         self.fast_mode = CSRStorage(1)
 
         # we use chain_factor_width + 1 for the single channel mode
@@ -338,7 +338,7 @@ class LinienModule(Module, AutoCSR):
                     0,
                 )
                 + Mux(
-                    self.logic.control_slow_channel.storage == n_channel,
+                    self.logic.slow_control_channel.storage == n_channel,
                     self.slow_chain.output,
                     0,
                 )
@@ -361,7 +361,7 @@ class LinienModule(Module, AutoCSR):
                     0,
                 )
                 + Mux(
-                    self.logic.control_slow_channel.storage == ANALOG_OUT0,
+                    self.logic.slow_control_channel.storage == ANALOG_OUT0,
                     self.slow_chain.output,
                     0,
                 )

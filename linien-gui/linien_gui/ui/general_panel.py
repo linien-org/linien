@@ -99,7 +99,7 @@ class GeneralPanel(QtWidgets.QWidget, CustomWidget):
         param2ui(self.parameters.mod_channel, self.modulationChannelComboBox)
         param2ui(self.parameters.control_channel, self.controlChannelComboBox)
         param2ui(self.parameters.sweep_channel, self.sweepChannelComboBox)
-        param2ui(self.parameters.control_slow_channel, self.slowControlComboBox)
+        param2ui(self.parameters.slow_control_channel, self.slowControlComboBox)
 
         param2ui(self.parameters.polarity_fast_out1, self.polarityComboBoxFastOut1)
         param2ui(self.parameters.polarity_fast_out2, self.polarityComboBoxFastOut2)
@@ -108,7 +108,7 @@ class GeneralPanel(QtWidgets.QWidget, CustomWidget):
         self.parameters.control_channel.on_change(self.show_polarity_settings)
         self.parameters.sweep_channel.on_change(self.show_polarity_settings)
         self.parameters.mod_channel.on_change(self.show_polarity_settings)
-        self.parameters.control_slow_channel.on_change(self.show_polarity_settings)
+        self.parameters.slow_control_channel.on_change(self.show_polarity_settings)
         self.parameters.pid_on_slow_enabled.on_change(self.show_polarity_settings)
 
         for idx in range(4):
@@ -170,7 +170,7 @@ class GeneralPanel(QtWidgets.QWidget, CustomWidget):
             # disabled state
             self.parameters.pid_on_slow_enabled.value = False
         else:
-            self.parameters.control_slow_channel.value = channel
+            self.parameters.slow_control_channel.value = channel
             self.parameters.pid_on_slow_enabled.value = True
         self.control.write_registers()
 
@@ -197,7 +197,7 @@ class GeneralPanel(QtWidgets.QWidget, CustomWidget):
         }
 
         if self.parameters.pid_on_slow_enabled.value:
-            used_channels.add(self.parameters.control_slow_channel.value)
+            used_channels.add(self.parameters.slow_control_channel.value)
 
         self.polaritySelectorGroupBox.setVisible(len(used_channels) > 1)
         self.polarityContainerFastOut1.setVisible(FAST_OUT1 in used_channels)

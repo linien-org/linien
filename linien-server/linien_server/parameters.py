@@ -95,7 +95,7 @@ class Parameters(BaseParameters):
             "mod_channel",
             "control_channel",
             "sweep_channel",
-            "control_slow_channel",
+            "slow_control_channel",
             "polarity_fast_out1",
             "polarity_fast_out2",
             "polarity_analog_out0",
@@ -169,7 +169,7 @@ class Parameters(BaseParameters):
         value of 1 corresponds to FAST OUT 2
         """
 
-        self.control_slow_channel = Parameter(start=2, min_=0, max_=2)
+        self.slow_control_channel = Parameter(start=2, min_=0, max_=2)
         """
         Configures the output of the slow PID control:
             0 --> FAST OUT 1
