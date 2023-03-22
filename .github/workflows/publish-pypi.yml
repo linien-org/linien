@@ -1,4 +1,4 @@
-name: PublishPackages
+name: Upload Packages to PyPI
 
 on:
   workflow_dispatch:
@@ -44,23 +44,23 @@ jobs:
       - name: Publish linien-common
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          packages_dir: linien-common/dist/
+          packages-dir: linien-common/dist/
           password: ${{ secrets.PYPI_API_TOKEN_COMMON }}
 
       - name: Publish linien-server
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          packages_dir: linien-server/dist/
+          packages-dir: linien-server/dist/
           password: ${{ secrets.PYPI_API_TOKEN_SERVER }}
 
       - name: Publish linien-client
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          packages_dir: linien-client/dist/
+          packages-dir: linien-client/dist/
           password: ${{ secrets.PYPI_API_TOKEN_CLIENT }}
 
       - name: Publish linien-gui
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          packages_dir: linien-gui/dist/
+          packages-dir: linien-gui/dist/
           password: ${{ secrets.PYPI_API_TOKEN_GUI }}

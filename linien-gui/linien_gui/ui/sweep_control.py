@@ -28,7 +28,7 @@ class SweepControlWidget(QtWidgets.QWidget, CustomWidget):
         # initialize sweep slider boundaries
         self.ids.sweep_slider.init()
 
-    def connection_established(self):
+    def on_connection_established(self):
         self.control = self.app.control
         self.parameters = self.app.parameters
 

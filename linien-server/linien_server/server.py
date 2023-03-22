@@ -1,5 +1,5 @@
 # Copyright 2018-2022 Benjamin Wiegand <benjamin.wiegand@physik.hu-berlin.de>
-# Copyright 2021-2022 Bastian Leykauf <leykauf@physik.hu-berlin.de>
+# Copyright 2021-2023 Bastian Leykauf <leykauf@physik.hu-berlin.de>
 #
 # This file is part of Linien and based on redpid.
 #
@@ -49,8 +49,10 @@ from rpyc.utils.server import ThreadedServer
 
 
 class BaseService(rpyc.Service):
-    """A service that provides functionality for seamless integration of
-    parameter access on the client."""
+    """
+    A service that provides functionality for seamless integration of parameter access
+    on the client.
+    """
 
     def __init__(self):
         self.parameters = Parameters()
@@ -102,7 +104,7 @@ class RedPitayaControlService(BaseService):
         """Starts a background process that keeps polling control and error
         signal. Every received value is pushed to `parameters.to_plot`."""
 
-        def data_received(is_raw, plot_data, data_uuid):
+        def on_new_data_received(is_raw, plot_data, data_uuid):
             # When a parameter is changed, `pause_acquisition` is set.
             # This means that the we should skip new data until we are sure that
             # it was recorded with the new settings.
@@ -138,14 +140,16 @@ class RedPitayaControlService(BaseService):
                 else:
                     self.parameters.acquisition_raw_data.value = plot_data
 
-        self.registers.run_data_acquisition(data_received)
+        # each time new data is acquired, this function is called
+        self.registers.acquisition.on_new_data_received = on_new_data_received
         self.pause_acquisition()
         self.continue_acquisition()
 
     def run_periodic_timer(self):
-        """Starts a timer that increases the `ping` parameter once per second.
-        Its purpose is to allow for periodic tasks on the server:
-        just register an `on_change` listener for this parameter.
+        """
+        Start a timer that increases the `ping` parameter once per second. Its purpose
+        is to allow for periodic tasks on the server: just register an `on_change`
+        listener for this parameter.
         """
 
         def send_ping():
@@ -154,9 +158,10 @@ class RedPitayaControlService(BaseService):
                 print("ping", self.parameters.ping.value)
                 sleep(1)
 
-        self._periodic_timer = threading.Thread(target=send_ping)
-        self._periodic_timer.daemon = True
-        self._periodic_timer.start()
+        thread = threading.Thread(target=send_ping)
+        thread.daemon = True
+        thread.start()
+        self._periodic_timer = thread
 
     def _generate_signal_stats(self, to_plot):
         stats = {}
@@ -170,7 +175,7 @@ class RedPitayaControlService(BaseService):
         self.parameters.signal_stats.value = stats
 
     def exposed_write_registers(self):
-        """Syncs the parameters with the FPGA registers."""
+        """Sync the parameters with the FPGA registers."""
         self.registers.write_registers()
 
     def task_running(self):

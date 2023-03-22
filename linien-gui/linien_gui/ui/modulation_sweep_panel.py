@@ -17,7 +17,7 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 from linien_common.common import MHz, Vpp
-from linien_gui.utils_gui import param2ui
+from linien_gui.utils import param2ui
 from linien_gui.widgets import CustomWidget
 from PyQt5 import QtWidgets
 
@@ -40,7 +40,7 @@ class ModulationAndSweepPanel(QtWidgets.QWidget, CustomWidget):
 
         self.ids.spectroscopyTabs.setCurrentIndex(0)
 
-    def connection_established(self):
+    def on_connection_established(self):
         self.parameters = self.app.parameters
         self.control = self.app.control
 

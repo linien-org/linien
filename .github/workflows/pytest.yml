@@ -2,6 +2,12 @@ name: Run PyTest
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - gateware/**
+      - linien-common/**
+      - linien-server/**
+      - tests/**
 
 permissions:
   contents: read
