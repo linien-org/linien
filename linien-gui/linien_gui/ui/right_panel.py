@@ -24,7 +24,7 @@ class RightPanel(QtWidgets.QWidget, CustomWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def connection_established(self):
+    def on_connection_established(self):
         self.parameters = self.app.parameters
         self.control = self.app.control
 

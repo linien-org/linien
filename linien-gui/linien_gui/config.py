@@ -17,21 +17,23 @@
 
 import os
 import pickle
+from enum import Enum
 
 import appdirs
 import rpyc
 
-COLORS = {
-    "spectrum_1": 0,
-    "spectrum_2": 1,
-    "spectrum_combined": 2,
-    "control_signal": 0,
-    "control_signal_history": 1,
-    "slow_history": 3,
-    "monitor_signal_history": 4,
-}
 # don't plot more often than once per `DEFAULT_PLOT_RATE_LIMIT` seconds
 DEFAULT_PLOT_RATE_LIMIT = 0.1
+
+
+class Color(Enum):
+    SPECTRUM1 = 0
+    SPECTRUM2 = 1
+    SPECTRUM_COMBINED = 2
+    CONTROL_SIGNAL = 0
+    CONTROL_SIGNAL_HISTORY = 1
+    SLOW_HISTORY = 3
+    MONITOR_SIGNAL_HISTORY = 4
 
 
 def get_data_folder():

@@ -22,9 +22,9 @@ from pathlib import Path
 
 REPO_ROOT_DIR = Path(__file__).resolve().parents[1]
 
-from bit2bin import bit2bin
-from hw_platform import Platform
-from linien_module import RootModule
+from .bit2bin import bit2bin
+from .hw_platform import Platform
+from .linien_module import RootModule
 
 
 def py_csrconstants(map, fil):
