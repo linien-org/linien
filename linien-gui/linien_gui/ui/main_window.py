@@ -49,8 +49,7 @@ class MainWindow(QtWidgets.QMainWindow, CustomWidget):
 
     def show(self, host, name):
         self.setWindowTitle(
-            "Linien spectroscopy lock %s: %s (%s)"
-            % (linien_gui.__version__, name, host)
+            f"Linien spectroscopy lock {linien_gui.__version__}: {name} ({host})"
         )
         super().show()
 
@@ -126,13 +125,11 @@ class MainWindow(QtWidgets.QMainWindow, CustomWidget):
 
     def import_parameters(self):
         options = QtWidgets.QFileDialog.Options()
-        # options |= QtWidgets.QFileDialog.DontUseNativeDialog
-        default_ext = ".json"
         fn, _ = QtWidgets.QFileDialog.getOpenFileName(
             self,
             "QFileDialog.getSaveFileName()",
             "",
-            "JSON (*%s)" % default_ext,
+            "JSON (*.json)",
             options=options,
         )
         if fn:
