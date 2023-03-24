@@ -28,8 +28,8 @@ from linien_common.config import N_COLORS
 from linien_gui.config import Color
 from linien_gui.ui.plot_widget import INVALID_POWER
 from linien_gui.utils import color_to_hex
-from linien_gui.widgets import CustomWidget
-from PyQt5 import QtWidgets
+from linien_gui.widgets import UI_PATH, CustomWidget
+from PyQt5 import QtWidgets, uic
 
 ZOOM_STEP = 0.9
 MAX_ZOOM = 50
@@ -43,7 +43,7 @@ def sweep_amplitude_to_zoom_step(amplitude):
 class MainWindow(QtWidgets.QMainWindow, CustomWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.load_ui("main_window.ui")
+        uic.loadUi(UI_PATH / "main_window.ui", self)
 
         self.reset_std_history()
 

@@ -28,14 +28,14 @@ from linien_gui.dialogs import (
 from linien_gui.threads import ConnectionThread
 from linien_gui.ui.new_device_dialog import NewDeviceDialog
 from linien_gui.utils import set_window_icon
-from linien_gui.widgets import CustomWidget
-from PyQt5 import QtCore, QtWidgets
+from linien_gui.widgets import UI_PATH, CustomWidget
+from PyQt5 import QtCore, QtWidgets, uic
 
 
 class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.load_ui("device_manager.ui")
+        uic.loadUi(UI_PATH / "device_manager.ui", self)
         self.setWindowTitle(f"Linien spectroscopy lock v{linien_gui.__version__}")
         set_window_icon(self)
 

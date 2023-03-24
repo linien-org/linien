@@ -18,14 +18,14 @@
 
 from linien_common.common import MHz, Vpp
 from linien_gui.utils import param2ui
-from linien_gui.widgets import CustomWidget
-from PyQt5 import QtWidgets
+from linien_gui.widgets import UI_PATH, CustomWidget
+from PyQt5 import QtWidgets, uic
 
 
 class ModulationAndSweepPanel(QtWidgets.QWidget, CustomWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.load_ui("modulation_sweep_panel.ui")
+        uic.loadUi(UI_PATH / "modulation_sweep_panel.ui", self)
 
     def ready(self):
         self.ids.modulation_frequency.setKeyboardTracking(False)

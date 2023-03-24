@@ -23,14 +23,14 @@ from os import path
 import numpy as np
 from linien_common.config import N_COLORS
 from linien_gui.utils import color_to_hex, param2ui
-from linien_gui.widgets import CustomWidget
-from PyQt5 import QtGui, QtWidgets
+from linien_gui.widgets import UI_PATH, CustomWidget
+from PyQt5 import QtGui, QtWidgets, uic
 
 
 class ViewPanel(QtWidgets.QWidget, CustomWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.load_ui("view_panel.ui")
+        uic.loadUi(UI_PATH / "view_panel.ui", self)
 
     def ready(self):
         self.ids.export_select_file.clicked.connect(self.do_export_select_file)

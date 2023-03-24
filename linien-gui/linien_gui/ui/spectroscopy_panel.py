@@ -18,14 +18,14 @@
 
 from linien_common.common import HIGH_PASS_FILTER, LOW_PASS_FILTER
 from linien_gui.utils import param2ui
-from linien_gui.widgets import CustomWidget
-from PyQt5 import QtWidgets
+from linien_gui.widgets import UI_PATH, CustomWidget
+from PyQt5 import QtWidgets, uic
 
 
 class SpectroscopyPanel(QtWidgets.QWidget, CustomWidget):
     def __init__(self, *args):
         super().__init__(*args)
-        self.load_ui("spectroscopy_panel.ui")
+        uic.loadUi(UI_PATH / "spectroscopy_panel.ui", self)
 
         def change_filter_frequency(filter_i):
             self.get_param("filter_%d_frequency" % filter_i).value = getattr(

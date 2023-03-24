@@ -23,14 +23,14 @@ import linien_gui
 from linien_common.common import PSD_ALGORITHM_LPSD, PSD_ALGORITHM_WELCH
 from linien_gui.dialogs import error_dialog
 from linien_gui.utils import RandomColorChoser, param2ui, set_window_icon
-from linien_gui.widgets import CustomWidget
-from PyQt5 import QtWidgets
+from linien_gui.widgets import UI_PATH, CustomWidget
+from PyQt5 import QtWidgets, uic
 
 
 class PSDWindow(QtWidgets.QMainWindow, CustomWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.load_ui("psd_window.ui")
+        uic.loadUi(UI_PATH / "psd_window.ui", self)
         self.setWindowTitle("Linien: Noise analysis")
         set_window_icon(self)
         self.random_color_choser = RandomColorChoser()

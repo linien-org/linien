@@ -18,14 +18,14 @@
 
 from linien_common.common import FAST_AUTOLOCK
 from linien_gui.utils import param2ui
-from linien_gui.widgets import CustomWidget
-from PyQt5 import QtWidgets
+from linien_gui.widgets import UI_PATH, CustomWidget
+from PyQt5 import QtWidgets, uic
 
 
 class LockingPanel(QtWidgets.QWidget, CustomWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.load_ui("locking_panel.ui")
+        uic.loadUi(UI_PATH / "locking_panel.ui", self)
 
     def ready(self):
         self.ids.kp.valueChanged.connect(self.kp_changed)

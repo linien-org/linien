@@ -25,14 +25,14 @@ from linien_common.common import (
     convert_channel_mixing_value,
 )
 from linien_gui.utils import param2ui
-from linien_gui.widgets import CustomWidget
-from PyQt5 import QtWidgets
+from linien_gui.widgets import UI_PATH, CustomWidget
+from PyQt5 import QtWidgets, uic
 
 
 class GeneralPanel(QtWidgets.QWidget, CustomWidget):
     def __init__(self, *args, **kwargs):
         super(GeneralPanel, self).__init__(*args, **kwargs)
-        self.load_ui("general_panel.ui")
+        uic.loadUi(UI_PATH / "general_panel.ui", self)
 
         self.channelMixingSlider.valueChanged.connect(self.on_channel_mixing_changed)
         self.fastModeCheckBox.stateChanged.connect(self.on_fast_mode_changed)

@@ -20,14 +20,14 @@ import string
 
 from linien_common.config import DEFAULT_SERVER_PORT
 from linien_gui.config import load_device_data, save_device_data
-from linien_gui.widgets import CustomWidget
-from PyQt5 import QtWidgets
+from linien_gui.widgets import UI_PATH, CustomWidget
+from PyQt5 import QtWidgets, uic
 
 
 class NewDeviceDialog(QtWidgets.QDialog, CustomWidget):
     def __init__(self, initial_device=None):
         super().__init__()
-        self.load_ui("new_device_dialog.ui")
+        uic.loadUi(UI_PATH / "new_device_dialog.ui", self)
 
         if initial_device is not None:
             self.ids.deviceName.setText(initial_device["name"])

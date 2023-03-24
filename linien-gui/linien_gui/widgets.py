@@ -66,8 +66,3 @@ class CustomWidget:
     @app.setter
     def app(self, app):
         self._app = app
-
-    def load_ui(self, name):
-        assert name.endswith(".ui")
-        path = UI_PATH / name
-        uic.loadUi(str(path), self)
