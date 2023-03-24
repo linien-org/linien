@@ -161,7 +161,7 @@ class MainWindow(QtWidgets.QMainWindow, CustomWidget):
             optimization = self.parameters.optimization_running.value
             locked = self.parameters.lock.value
 
-            self.get_widget("sweep_control").setVisible(
+            self.get_widget("sweepControlWidget").setVisible(
                 not al_running and not locked and not optimization
             )
             self.get_widget("top_lock_panel").setVisible(locked)

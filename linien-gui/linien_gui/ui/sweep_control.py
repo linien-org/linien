@@ -26,19 +26,19 @@ class SweepControlWidget(QtWidgets.QWidget, CustomWidget):
 
     def ready(self):
         # initialize sweep slider boundaries
-        self.ids.sweep_slider.init()
+        self.ids.sweepSlider.init()
 
     def on_connection_established(self):
         self.control = self.app.control
         self.parameters = self.app.parameters
 
-        self.ids.sweep_slider.valueChanged.connect(self.update_sweep_range)
+        self.ids.sweepSlider.valueChanged.connect(self.update_sweep_range)
         # NOTE: The keyboardTracking property of the QDoubleSpinBoxes has been set to
         # False, to avoid signal emission when editing the field. Signals are still
         # emitted when using the arrow buttons. See also the editingFinished method.
-        self.ids.sweep_center.valueChanged.connect(self.update_sweep_center)
-        self.ids.sweep_amplitude.valueChanged.connect(self.update_sweep_amplitude)
-        self.ids.sweep_start_stop_button.clicked.connect(self.pause_or_resume_sweep)
+        self.ids.sweepCenterSpinBox.valueChanged.connect(self.update_sweep_center)
+        self.ids.sweepAmplitudeSpinBox.valueChanged.connect(self.update_sweep_amplitude)
+        self.ids.sweepStartStopPushButton.clicked.connect(self.pause_or_resume_sweep)
 
         # initialize sweep controls
         self.display_sweep_status()
@@ -56,21 +56,21 @@ class SweepControlWidget(QtWidgets.QWidget, CustomWidget):
 
         # block signals to avoid infinite loops when changing sweep parameters, see also
         # param2ui
-        self.ids.sweep_slider.blockSignals(True)
-        self.ids.sweep_amplitude.blockSignals(True)
-        self.ids.sweep_center.blockSignals(True)
+        self.ids.sweepSlider.blockSignals(True)
+        self.ids.sweepAmplitudeSpinBox.blockSignals(True)
+        self.ids.sweepCenterSpinBox.blockSignals(True)
 
-        self.ids.sweep_slider.setValue((min_, max_))
-        self.ids.sweep_center.setValue(center)
-        self.ids.sweep_amplitude.setValue(amplitude)
+        self.ids.sweepSlider.setValue((min_, max_))
+        self.ids.sweepCenterSpinBox.setValue(center)
+        self.ids.sweepAmplitudeSpinBox.setValue(amplitude)
         if self.parameters.sweep_pause.value:
-            self.ids.sweep_start_stop_button.setText("Start")
+            self.ids.sweepStartStopPushButton.setText("Start")
         else:
-            self.ids.sweep_start_stop_button.setText("Pause")
+            self.ids.sweepStartStopPushButton.setText("Pause")
 
-        self.ids.sweep_slider.blockSignals(False)
-        self.ids.sweep_center.blockSignals(False)
-        self.ids.sweep_amplitude.blockSignals(False)
+        self.ids.sweepSlider.blockSignals(False)
+        self.ids.sweepCenterSpinBox.blockSignals(False)
+        self.ids.sweepAmplitudeSpinBox.blockSignals(False)
 
     def pause_or_resume_sweep(self):
         # If sweep is paused, resume it or vice versa.
