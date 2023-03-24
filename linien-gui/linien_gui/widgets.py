@@ -19,7 +19,6 @@
 import weakref
 from pathlib import Path
 
-from PyQt5 import uic
 from pyqtgraph.Qt import QtCore
 
 UI_PATH = Path(__file__).parents[0].resolve() / "ui"
