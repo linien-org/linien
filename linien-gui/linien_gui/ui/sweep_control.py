@@ -17,16 +17,20 @@
 
 import superqt
 from linien_gui.widgets import CustomWidget
-from PyQt5 import QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 
-class SweepControlWidget(QtWidgets.QWidget, CustomWidget):
+class SweepControlWidget(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        QtCore.QTimer.singleShot(100, self.ready)
 
     def ready(self):
         # initialize sweep slider boundaries
+        self.app = self.window()._app
+        self.ids = self.app.main_window
         self.ids.sweepSlider.init()
+        self.app.connection_established.connect(self.on_connection_established)
 
     def on_connection_established(self):
         self.control = self.app.control
