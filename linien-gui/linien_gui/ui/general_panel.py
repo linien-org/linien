@@ -59,9 +59,7 @@ class GeneralPanel(QtWidgets.QWidget, CustomWidget):
             self.on_polarity_analog_out0_changed
         )
 
-        for idx in range(4):
-            if idx == 0:
-                continue
+        for idx in range(1, 4):
             element = getattr(self, f"analogOutComboBox{idx}")
             element.setKeyboardTracking(False)
             element.valueChanged.connect(
@@ -111,9 +109,7 @@ class GeneralPanel(QtWidgets.QWidget, CustomWidget):
         self.parameters.slow_control_channel.on_change(self.show_polarity_settings)
         self.parameters.pid_on_slow_enabled.on_change(self.show_polarity_settings)
 
-        for idx in range(4):
-            if idx == 0:
-                continue
+        for idx in range(1, 4):
             param2ui(
                 getattr(self.parameters, f"analog_out_{idx}"),
                 getattr(self, f"analogOutComboBox{idx}"),
