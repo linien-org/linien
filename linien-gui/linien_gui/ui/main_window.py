@@ -27,9 +27,9 @@ from linien_common.common import check_plot_data
 from linien_common.config import N_COLORS
 from linien_gui.config import Color
 from linien_gui.ui.plot_widget import INVALID_POWER
-from linien_gui.utils import color_to_hex
-from linien_gui.widgets import CustomWidget
-from PyQt5 import QtWidgets
+from linien_gui.utils import color_to_hex, set_window_icon
+from linien_gui.widgets import UI_PATH
+from PyQt5 import QtWidgets, uic
 
 ZOOM_STEP = 0.9
 MAX_ZOOM = 50
@@ -40,17 +40,53 @@ def sweep_amplitude_to_zoom_step(amplitude):
     return round(log(amplitude, ZOOM_STEP))
 
 
-class MainWindow(QtWidgets.QMainWindow, CustomWidget):
+class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.load_ui("main_window.ui")
+        super(MainWindow, self).__init__(*args, **kwargs)
+        uic.loadUi(UI_PATH / "main_window.ui", self)
+        set_window_icon(self)
+        self.app = QtWidgets.QApplication.instance()
+        self.app.connection_established.connect(self.on_connection_established)
 
         self.reset_std_history()
 
+        # handle keyboard events
+        self.setFocus()
+
+        self.export_parameters_button.clicked.connect(
+            self.export_parameters_select_file
+        )
+        self.import_parameters_button.clicked.connect(self.import_parameters)
+
+        def display_power(power, element):
+            if power == INVALID_POWER:
+                element.hide()
+            else:
+                element.show()
+                element.setText(f"{power:.2f}")
+
+        def display_power_channel_1(power):
+            el = self.power_channel_1
+            display_power(power, el)
+
+        def display_power_channel_2(power):
+            el = self.power_channel_2
+            display_power(power, el)
+
+        self.graphicsView.signal_power1.connect(display_power_channel_1)
+        self.graphicsView.signal_power2.connect(display_power_channel_2)
+        self.graphicsView.keyPressed.connect(self.handle_key_press)
+
+        # by default we hide it and just show when a new version is available
+        self.newVersionAvailableLabel.hide()
+
+    def on_connection_established(self):
+        self.control = self.app.control
+        self.parameters = self.app.parameters
+
     def show(self, host, name):
         self.setWindowTitle(
-            "Linien spectroscopy lock %s: %s (%s)"
-            % (linien_gui.__version__, name, host)
+            f"Linien spectroscopy lock {linien_gui.__version__}: {name} ({host})"
         )
         super().show()
 
@@ -58,40 +94,8 @@ class MainWindow(QtWidgets.QMainWindow, CustomWidget):
         self.app.close_all_secondary_windows()
         super().closeEvent(*args, **kwargs)
 
-    def ready(self):
-        # handle keyboard events
-        self.setFocus()
-
-        self.ids.export_parameters_button.clicked.connect(
-            self.export_parameters_select_file
-        )
-        self.ids.import_parameters_button.clicked.connect(self.import_parameters)
-
-        def display_power(power, element):
-            if power == INVALID_POWER:
-                element.hide()
-            else:
-                element.show()
-                text = "%.2f" % power
-                element.setText(text)
-
-        def display_power_channel_1(power):
-            el = self.ids.power_channel_1
-            display_power(power, el)
-
-        def display_power_channel_2(power):
-            el = self.ids.power_channel_2
-            display_power(power, el)
-
-        self.ids.graphicsView.signal_power1.connect(display_power_channel_1)
-        self.ids.graphicsView.signal_power2.connect(display_power_channel_2)
-        self.ids.graphicsView.keyPressed.connect(self.handle_key_press)
-
-        # by default we hide it and just show when a new version is available
-        self.ids.new_version_available_label.hide()
-
     def show_new_version_available(self):
-        self.ids.new_version_available_label.show()
+        self.newVersionAvailableLabel.show()
 
     def handle_key_press(self, key):
         print("key pressed", key)
@@ -126,13 +130,11 @@ class MainWindow(QtWidgets.QMainWindow, CustomWidget):
 
     def import_parameters(self):
         options = QtWidgets.QFileDialog.Options()
-        # options |= QtWidgets.QFileDialog.DontUseNativeDialog
-        default_ext = ".json"
         fn, _ = QtWidgets.QFileDialog.getOpenFileName(
             self,
             "QFileDialog.getSaveFileName()",
             "",
-            "JSON (*%s)" % default_ext,
+            "JSON (*.json)",
             options=options,
         )
         if fn:
@@ -152,20 +154,16 @@ class MainWindow(QtWidgets.QMainWindow, CustomWidget):
 
             self.control.write_registers()
 
-    def on_connection_established(self):
-        self.control = self.app.control
-        self.parameters = self.app.parameters
-
         def change_sweep_control_visibility(*args):
             al_running = self.parameters.autolock_running.value
             optimization = self.parameters.optimization_running.value
             locked = self.parameters.lock.value
 
-            self.get_widget("sweep_control").setVisible(
+            self.sweepControlWidget.setVisible(
                 not al_running and not locked and not optimization
             )
-            self.get_widget("top_lock_panel").setVisible(locked)
-            self.get_widget("statusbar_unlocked").setVisible(
+            self.top_lock_panel.setVisible(locked)
+            self.statusbar_unlocked.setVisible(
                 not al_running and not locked and not optimization
             )
 
@@ -176,13 +174,13 @@ class MainWindow(QtWidgets.QMainWindow, CustomWidget):
         self.parameters.to_plot.on_change(self.update_std)
 
         self.parameters.pid_on_slow_enabled.on_change(
-            lambda v: self.ids.legend_slow_signal_history.setVisible(v)
+            lambda v: self.legend_slow_signal_history.setVisible(v)
         )
         self.parameters.dual_channel.on_change(
-            lambda v: self.ids.legend_monitor_signal_history.setVisible(not v)
+            lambda v: self.legend_monitor_signal_history.setVisible(not v)
         )
 
-        self.ids.settings_toolbox.setCurrentIndex(0)
+        self.settings_toolbox.setCurrentIndex(0)
 
         self.parameters.lock.on_change(lambda *args: self.reset_std_history())
 
@@ -195,32 +193,28 @@ class MainWindow(QtWidgets.QMainWindow, CustomWidget):
                     )
                 )
 
-            set_color(self.ids.legend_spectrum_1, Color.SPECTRUM1)
-            set_color(self.ids.legend_spectrum_2, Color.SPECTRUM2)
-            set_color(self.ids.legend_spectrum_combined, Color.SPECTRUM_COMBINED)
-            set_color(self.ids.legend_error_signal, Color.SPECTRUM_COMBINED)
-            set_color(self.ids.legend_control_signal, Color.CONTROL_SIGNAL)
-            set_color(
-                self.ids.legend_control_signal_history, Color.CONTROL_SIGNAL_HISTORY
-            )
-            set_color(self.ids.legend_slow_signal_history, Color.SLOW_HISTORY)
-            set_color(
-                self.ids.legend_monitor_signal_history, Color.MONITOR_SIGNAL_HISTORY
-            )
+            set_color(self.legend_spectrum_1, Color.SPECTRUM1)
+            set_color(self.legend_spectrum_2, Color.SPECTRUM2)
+            set_color(self.legend_spectrum_combined, Color.SPECTRUM_COMBINED)
+            set_color(self.legend_error_signal, Color.SPECTRUM_COMBINED)
+            set_color(self.legend_control_signal, Color.CONTROL_SIGNAL)
+            set_color(self.legend_control_signal_history, Color.CONTROL_SIGNAL_HISTORY)
+            set_color(self.legend_slow_signal_history, Color.SLOW_HISTORY)
+            set_color(self.legend_monitor_signal_history, Color.MONITOR_SIGNAL_HISTORY)
 
         for color_idx in range(N_COLORS):
-            getattr(self.parameters, "plot_color_%d" % color_idx).on_change(
+            getattr(self.parameters, f"plot_color_{color_idx}").on_change(
                 update_legend_color
             )
 
         def update_legend_text(dual_channel):
-            self.ids.legend_spectrum_1.setText(
+            self.legend_spectrum_1.setText(
                 "error signal" if not dual_channel else "error signal 1"
             )
-            self.ids.legend_spectrum_2.setText(
+            self.legend_spectrum_2.setText(
                 "monitor" if not dual_channel else "error signal 2"
             )
-            self.ids.legend_spectrum_combined.setVisible(dual_channel)
+            self.legend_spectrum_combined.setVisible(dual_channel)
 
         self.parameters.dual_channel.on_change(update_legend_text)
 
@@ -242,10 +236,8 @@ class MainWindow(QtWidgets.QMainWindow, CustomWidget):
                 ]
 
                 if error_signal is not None and control_signal is not None:
-                    self.ids.error_std.setText("%.2f" % np.mean(self.error_std_history))
-                    self.ids.control_std.setText(
-                        "%.2f" % np.mean(self.control_std_history)
-                    )
+                    self.error_std.setText("%.2f" % np.mean(self.error_std_history))
+                    self.control_std.setText(f"{np.mean(self.control_std_history):.2f}")
 
     def reset_std_history(self):
         self.error_std_history = []

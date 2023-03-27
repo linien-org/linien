@@ -26,7 +26,7 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_6">
         <item>
-         <widget class="CustomDoubleSpinBoxNoSign" name="modulation_frequency">
+         <widget class="CustomDoubleSpinBoxNoSign" name="modulationFrequencySpinBox">
           <property name="decimals">
            <number>5</number>
           </property>
@@ -63,7 +63,7 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
-         <widget class="CustomDoubleSpinBoxNoSign" name="modulation_amplitude">
+         <widget class="CustomDoubleSpinBoxNoSign" name="modulationAmplitudeSpinBox">
           <property name="decimals">
            <number>3</number>
           </property>
@@ -96,7 +96,7 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_5">
         <item>
-         <widget class="QComboBox" name="sweep_speed">
+         <widget class="QComboBox" name="sweepSpeedComboBox">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
             <horstretch>0</horstretch>

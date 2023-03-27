@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>1261</height>
+    <height>1086</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -196,7 +196,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QComboBox" name="optimization_channel_selector">
+             <widget class="QComboBox" name="optimizationChannelComboBox">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -219,7 +219,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="start_optimization_btn">
+          <widget class="QPushButton" name="startOptimizationPushButton">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -340,7 +340,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="optimization_use_new_parameters">
+       <widget class="QPushButton" name="useOptimizedParametersPushButton">
         <property name="minimumSize">
          <size>
           <width>0</width>
