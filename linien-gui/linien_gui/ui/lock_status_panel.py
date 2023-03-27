@@ -23,12 +23,11 @@ from PyQt5 import QtCore, QtWidgets
 class LockStatusPanel(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         super(LockStatusPanel, self).__init__(*args, **kwargs)
+        self.app = QtWidgets.QApplication.instance()
+        self.app.connection_established.connect(self.on_connection_established)
         QtCore.QTimer.singleShot(100, self.ready)
 
     def ready(self):
-        self.app = QtWidgets.QApplication.instance()
-        self.app.connection_established.connect(self.on_connection_established)
-
         self.parent = self.parent()
         self.parent.stopLockPushButton.clicked.connect(self.on_stop_lock)
         self.parent.controlSignalHistoryLengthSpinBox.setKeyboardTracking(False)
