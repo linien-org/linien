@@ -26,7 +26,7 @@ from PyQt5 import QtWidgets, uic
 
 class NewDeviceDialog(QtWidgets.QDialog):
     def __init__(self, initial_device=None):
-        super().__init__()
+        super(NewDeviceDialog, self).__init__()
         uic.loadUi(UI_PATH / "new_device_dialog.ui", self)
 
         if initial_device is not None:

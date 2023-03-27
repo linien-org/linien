@@ -21,7 +21,7 @@ from PyQt5 import QtCore, QtWidgets
 
 class SweepControlWidget(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super(SweepControlWidget, self).__init__(*args, **kwargs)
         QtCore.QTimer.singleShot(100, self.ready)
 
     def ready(self):
@@ -105,7 +105,7 @@ class SweepControlWidget(QtWidgets.QWidget):
 
 class SweepSlider(superqt.QDoubleRangeSlider):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super(SweepSlider, self).__init__(*args, **kwargs)
 
     def ready(self):
         # set control boundaries

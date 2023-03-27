@@ -24,7 +24,7 @@ from PyQt5 import QtWidgets, uic
 
 class OptimizationPanel(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super(OptimizationPanel, self).__init__(*args, **kwargs)
         uic.loadUi(UI_PATH / "optimization_panel.ui", self)
         self.app = QtWidgets.QApplication.instance()
         self.app.connection_established.connect(self.on_connection_established)

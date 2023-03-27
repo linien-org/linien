@@ -24,7 +24,7 @@ from PyQt5 import QtWidgets, uic
 
 class LockingPanel(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super(LockingPanel, self).__init__(*args, **kwargs)
         uic.loadUi(UI_PATH / "locking_panel.ui", self)
         self.app = QtWidgets.QApplication.instance()
         self.app.connection_established.connect(self.on_connection_established)

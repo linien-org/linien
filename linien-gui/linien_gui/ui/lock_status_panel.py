@@ -22,7 +22,7 @@ from PyQt5 import QtCore, QtWidgets
 
 class LockStatusPanel(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super(LockStatusPanel, self).__init__(*args, **kwargs)
         QtCore.QTimer.singleShot(100, self.ready)
 
     def ready(self):

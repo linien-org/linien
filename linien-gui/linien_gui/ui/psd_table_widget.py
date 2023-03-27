@@ -27,7 +27,7 @@ class PSDTableWidget(QtWidgets.QTableWidget):
     show_or_hide_curve = pyqtSignal(str, bool)
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super(PSDTableWidget, self).__init__(*args, **kwargs)
         self.app = QtWidgets.QApplication.instance()
         self.app.connection_established.connect(self.on_connection_established)
 

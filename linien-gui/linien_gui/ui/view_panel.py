@@ -29,7 +29,7 @@ from PyQt5 import QtGui, QtWidgets, uic
 
 class ViewPanel(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super(ViewPanel, self).__init__(*args, **kwargs)
         uic.loadUi(UI_PATH / "view_panel.ui", self)
         self.app = QtWidgets.QApplication.instance()
         self.app.connection_established.connect(self.on_connection_established)

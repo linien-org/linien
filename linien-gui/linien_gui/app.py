@@ -37,7 +37,7 @@ class LinienApp(QtWidgets.QApplication):
     connection_established = pyqtSignal()
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super(LinienApp, self).__init__(*args, **kwargs)
 
         self.main_window = MainWindow()
         self.device_manager = DeviceManager()

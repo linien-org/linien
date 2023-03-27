@@ -75,7 +75,7 @@ class CustomLogAxis(pg.AxisItem):
 
 class PSDPlotWidget(pg.PlotWidget):
     def __init__(self, *args, **kwargs):
-        super().__init__(
+        super(PSDPlotWidget, self).__init__(
             *args,
             axisItems={
                 "bottom": CustomLogAxis(orientation="bottom"),

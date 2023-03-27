@@ -29,7 +29,7 @@ from PyQt5 import QtWidgets, uic
 
 class PSDWindow(QtWidgets.QMainWindow):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super(PSDWindow, self).__init__(*args, **kwargs)
         uic.loadUi(UI_PATH / "psd_window.ui", self)
         self.setWindowTitle("Linien: Noise analysis")
         set_window_icon(self)

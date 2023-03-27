@@ -24,7 +24,7 @@ from PyQt5 import QtWidgets, uic
 
 class ModulationAndSweepPanel(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super(ModulationAndSweepPanel, self).__init__(*args, **kwargs)
         uic.loadUi(UI_PATH / "modulation_sweep_panel.ui", self)
         self.app = QtWidgets.QApplication.instance()
         self.app.connection_established.connect(self.on_connection_established)

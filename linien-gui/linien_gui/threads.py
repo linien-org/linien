@@ -47,7 +47,7 @@ class RemoteOutStream(QObject):
 class RemoteServerInstallationThread(QThread):
     def __init__(self, device):
         """A thread that installs the linien server on a remote machine."""
-        super().__init__()
+        super(RemoteServerInstallationThread, self).__init__()
         self.device = device
 
     out_stream = RemoteOutStream()
@@ -63,7 +63,7 @@ class RemoteServerInstallationThread(QThread):
 
 class ConnectionThread(QThread):
     def __init__(self, device):
-        super().__init__()
+        super(ConnectionThread, self).__init__()
         self.device = device
 
     client_connected = pyqtSignal(object)

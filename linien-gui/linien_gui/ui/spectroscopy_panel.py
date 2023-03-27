@@ -24,7 +24,7 @@ from PyQt5 import QtWidgets, uic
 
 class SpectroscopyPanel(QtWidgets.QWidget):
     def __init__(self, *args):
-        super().__init__(*args)
+        super(SpectroscopyPanel, self).__init__(*args)
         uic.loadUi(UI_PATH / "spectroscopy_panel.ui", self)
         self.app = QtWidgets.QApplication.instance()
 

@@ -106,7 +106,7 @@ class PlotWidget(pg.PlotWidget):
     keyPressed = pyqtSignal(int)
 
     def __init__(self, *args, **kwargs):
-        super().__init__(
+        super(PlotWidget, self).__init__(
             *args,
             axisItems={"bottom": TimeXAxis(parent=self, orientation="bottom")},
             **kwargs,

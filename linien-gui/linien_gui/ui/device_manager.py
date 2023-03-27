@@ -34,7 +34,7 @@ from PyQt5 import QtCore, QtWidgets, uic
 
 class DeviceManager(QtWidgets.QMainWindow):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super(DeviceManager, self).__init__(*args, **kwargs)
         uic.loadUi(UI_PATH / "device_manager.ui", self)
         self.setWindowTitle(f"Linien spectroscopy lock v{linien_gui.__version__}")
         set_window_icon(self)

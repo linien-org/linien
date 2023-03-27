@@ -42,7 +42,7 @@ def sweep_amplitude_to_zoom_step(amplitude):
 
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super(MainWindow, self).__init__(*args, **kwargs)
         uic.loadUi(UI_PATH / "main_window.ui", self)
         set_window_icon(self)
         self.app = QtWidgets.QApplication.instance()
