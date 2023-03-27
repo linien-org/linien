@@ -19,7 +19,7 @@
 import numpy as np
 import pyqtgraph as pg
 from linien_gui.ui.plot_widget import V
-from PyQt5 import QtCore, QtWidgets
+from PyQt5 import QtWidgets
 
 
 class CustomLogAxis(pg.AxisItem):
@@ -83,6 +83,8 @@ class PSDPlotWidget(pg.PlotWidget):
             },
             **kwargs
         )
+        self.app = QtWidgets.QApplication.instance()
+        self.app.connection_established.connect(self.on_connection_established)
 
         self.curves = {}
 
@@ -108,12 +110,6 @@ class PSDPlotWidget(pg.PlotWidget):
             element.setZValue(10000)
 
         self.recalculate_min_max()
-
-        QtCore.QTimer.singleShot(100, self.ready)
-
-    def ready(self):
-        self.app = QtWidgets.QApplication.instance()
-        self.app.connection_established.connect(self.on_connection_established)
 
     def on_connection_established(self):
         self.parameters = self.app.parameters

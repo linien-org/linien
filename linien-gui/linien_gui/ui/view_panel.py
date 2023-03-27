@@ -24,16 +24,13 @@ import numpy as np
 from linien_common.config import N_COLORS
 from linien_gui.utils import color_to_hex, param2ui
 from linien_gui.widgets import UI_PATH
-from PyQt5 import QtCore, QtGui, QtWidgets, uic
+from PyQt5 import QtGui, QtWidgets, uic
 
 
 class ViewPanel(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         uic.loadUi(UI_PATH / "view_panel.ui", self)
-        QtCore.QTimer.singleShot(100, self.ready)
-
-    def ready(self):
         self.app = QtWidgets.QApplication.instance()
         self.app.connection_established.connect(self.on_connection_established)
 

@@ -19,18 +19,16 @@
 from linien_common.common import MHz, Vpp
 from linien_gui.utils import param2ui
 from linien_gui.widgets import UI_PATH
-from PyQt5 import QtCore, QtWidgets, uic
+from PyQt5 import QtWidgets, uic
 
 
 class OptimizationPanel(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         uic.loadUi(UI_PATH / "optimization_panel.ui", self)
-        QtCore.QTimer.singleShot(100, self.ready)
-
-    def ready(self):
         self.app = QtWidgets.QApplication.instance()
         self.app.connection_established.connect(self.on_connection_established)
+
         self.startOptimizationPushButton.clicked.connect(self.start_optimization)
         self.useOptimizedParametersPushButton.clicked.connect(self.use_new_parameters)
         self.optimization_abort.clicked.connect(self.abort)

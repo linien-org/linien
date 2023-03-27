@@ -19,18 +19,16 @@
 from linien_common.common import FAST_AUTOLOCK
 from linien_gui.utils import param2ui
 from linien_gui.widgets import UI_PATH
-from PyQt5 import QtCore, QtWidgets, uic
+from PyQt5 import QtWidgets, uic
 
 
 class LockingPanel(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         uic.loadUi(UI_PATH / "locking_panel.ui", self)
-        QtCore.QTimer.singleShot(100, self.ready)
-
-    def ready(self):
         self.app = QtWidgets.QApplication.instance()
         self.app.connection_established.connect(self.on_connection_established)
+
         self.kpSpinBox.valueChanged.connect(self.kp_changed)
         self.kiSpinBox.valueChanged.connect(self.ki_changed)
         self.kdSpinBox.valueChanged.connect(self.kd_changed)

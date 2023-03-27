@@ -21,7 +21,7 @@ from PyQt5 import QtCore, QtWidgets
 
 class RightPanel(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super(RightPanel, self).__init__(*args, **kwargs)
         QtCore.QTimer.singleShot(100, self.ready)
 
     def ready(self):

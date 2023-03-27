@@ -65,9 +65,6 @@ class TimeXAxis(pg.AxisItem):
     def __init__(self, *args, parent=None, **kwargs):
         pg.AxisItem.__init__(self, *args, **kwargs)
         self.parent = parent
-        QtCore.QTimer.singleShot(100, self.ready)
-
-    def ready(self):
         self.app = QtWidgets.QApplication.instance()
         self.app.connection_established.connect(self.on_connection_established)
 
@@ -114,9 +111,10 @@ class PlotWidget(pg.PlotWidget):
             axisItems={"bottom": TimeXAxis(parent=self, orientation="bottom")},
             **kwargs,
         )
+        self.app = QtWidgets.QApplication.instance()
+        self.app.connection_established.connect(self.on_connection_established)
 
         self.getAxis("bottom").enableAutoSIPrefix(False)
-
         self.showGrid(x=True, y=True)
         self.setLabel("bottom", "time", units="s")
 
@@ -207,12 +205,6 @@ class PlotWidget(pg.PlotWidget):
         self._plot_paused = False
         self._cached_plot_data = []
         self._should_reposition_reset_view_button = False
-
-        QtCore.QTimer.singleShot(100, self.ready)
-
-    def ready(self):
-        self.app = QtWidgets.QApplication.instance()
-        self.app.connection_established.connect(self.on_connection_established)
 
     def on_connection_established(self):
         self.parameters = self.app.parameters

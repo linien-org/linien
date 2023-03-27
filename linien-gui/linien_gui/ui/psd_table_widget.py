@@ -28,17 +28,13 @@ class PSDTableWidget(QtWidgets.QTableWidget):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.app = QtWidgets.QApplication.instance()
+        self.app.connection_established.connect(self.on_connection_established)
 
         self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.AdjustToContents)
 
         self.uuids = []
-
-        QtCore.QTimer.singleShot(100, self.ready)
-
-    def ready(self):
-        self.app = QtWidgets.QApplication.instance()
-        self.app.connection_established.connect(self.on_connection_established)
 
     def on_connection_established(self):
         self.parameters = self.app.parameters

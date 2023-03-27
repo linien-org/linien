@@ -19,13 +19,14 @@
 from linien_common.common import HIGH_PASS_FILTER, LOW_PASS_FILTER
 from linien_gui.utils import param2ui
 from linien_gui.widgets import UI_PATH
-from PyQt5 import QtCore, QtWidgets, uic
+from PyQt5 import QtWidgets, uic
 
 
 class SpectroscopyPanel(QtWidgets.QWidget):
     def __init__(self, *args):
         super().__init__(*args)
         uic.loadUi(UI_PATH / "spectroscopy_panel.ui", self)
+        self.app = QtWidgets.QApplication.instance()
 
         def change_filter_frequency(filter_i):
             self.get_param(f"filter_{filter_i}_frequency").value = getattr(
@@ -58,10 +59,6 @@ class SpectroscopyPanel(QtWidgets.QWidget):
                     lambda *args, fct=fct, filter_i=filter_i: fct(filter_i),
                 )
 
-        QtCore.QTimer.singleShot(100, self.ready)
-
-    def ready(self):
-        self.app = QtWidgets.QApplication.instance()
         self.signalOffsetSpinBox.setKeyboardTracking(False)
         self.signalOffsetSpinBox.valueChanged.connect(self.change_signal_offset)
         self.demodulationPhaseSpinBox.setKeyboardTracking(False)
