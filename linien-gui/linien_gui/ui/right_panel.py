@@ -28,7 +28,7 @@ class RightPanel(QtWidgets.QWidget):
         self.app = self.window().app
         self.app.connection_established.connect(self.on_connection_established)
         self.main_window = self.window()
-        self.main_window.closeButton.clicked.connect(self.close_app)
+        self.main_window.closeButton.clicked.connect(self.app.quit)
         self.main_window.shutdownButton.clicked.connect(self.shutdown_server)
         self.main_window.openDeviceManagerButton.clicked.connect(
             self.open_device_manager
@@ -51,9 +51,6 @@ class RightPanel(QtWidgets.QWidget):
             )
 
         self.parameters.lock.on_change(highlight_psd_button)
-
-    def close_app(self):
-        self.app.close()
 
     def shutdown_server(self):
         self.app.shutdown()

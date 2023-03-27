@@ -30,6 +30,7 @@ class OptimizationPanel(QtWidgets.QWidget):
 
     def ready(self):
         self.app = self.window().app
+        self.app.connection_established.connect(self.on_connection_established)
         self.startOptimizationPushButton.clicked.connect(self.start_optimization)
         self.useOptimizedParametersPushButton.clicked.connect(self.use_new_parameters)
         self.optimization_abort.clicked.connect(self.abort)

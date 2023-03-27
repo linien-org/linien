@@ -25,7 +25,6 @@ from linien_gui.ui.device_manager import DeviceManager
 from linien_gui.ui.main_window import MainWindow
 from linien_gui.ui.psd_window import PSDWindow
 from linien_gui.ui.version_checker import VersionCheckerThread
-from linien_gui.utils import set_window_icon
 from linien_gui.widgets import UI_PATH
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import pyqtSignal
@@ -34,26 +33,18 @@ from pyqtgraph.Qt import QtCore
 sys.path += [str(UI_PATH)]
 
 
-class QTApp(QtCore.QObject):
+class LinienApp(QtWidgets.QApplication):
     connection_established = pyqtSignal()
 
-    def __init__(self):
-        self.app = QtWidgets.QApplication(sys.argv)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
         self.main_window = MainWindow()
-        self.main_window.app = self
-        set_window_icon(self.main_window)
-
         self.device_manager = DeviceManager()
-        self.device_manager.app = self
+        self.psd_window = PSDWindow()
         self.device_manager.show()
 
-        self.psd_window = PSDWindow()
-        self.psd_window.app = self
-
-        self.app.aboutToQuit.connect(lambda: self.app.quit())
-
-        super().__init__()
+        self.aboutToQuit.connect(self.quit)
 
     def client_connected(self, client):
         self.device_manager.hide()
@@ -79,12 +70,9 @@ class QTApp(QtCore.QObject):
 
             QtCore.QTimer.singleShot(50, self.call_listeners)
 
-    def close(self):
-        self.app.quit()
-
     def shutdown(self):
         self.client.control.shutdown()
-        self.close()
+        self.quit()
 
     def open_psd_window(self):
         # first hiding it, then showing it brings it to foregroud if it is in background
@@ -118,11 +106,11 @@ class QTApp(QtCore.QObject):
 @click.command()
 @click.version_option(linien_gui.__version__)
 def run_application():
-    gui = QTApp()
+    app = LinienApp(sys.argv)
 
     # catch ctrl-c and shutdown
     signal.signal(signal.SIGINT, signal.SIG_DFL)
-    sys.exit(gui.app.exec_())
+    sys.exit(app.exec_())
 
 
 if __name__ == "__main__":

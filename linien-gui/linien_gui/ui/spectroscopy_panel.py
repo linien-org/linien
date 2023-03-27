@@ -100,9 +100,6 @@ class SpectroscopyPanel(QtWidgets.QWidget):
         self.parameters = self.app.parameters
         self.control = self.app.control
 
-        # self.close_button.clicked.connect(self.close_app)
-        # self.shutdown_button.clicked.connect(self.shutdown_server)
-
         param2ui(self.get_param("demodulation_phase"), self.demodulationPhaseSpinBox)
         param2ui(
             self.get_param("demodulation_multiplier"),

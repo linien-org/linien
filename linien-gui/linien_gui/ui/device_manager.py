@@ -38,6 +38,7 @@ class DeviceManager(QtWidgets.QMainWindow):
         uic.loadUi(UI_PATH / "device_manager.ui", self)
         self.setWindowTitle(f"Linien spectroscopy lock v{linien_gui.__version__}")
         set_window_icon(self)
+        self.app = QtWidgets.QApplication.instance()
         QtCore.QTimer.singleShot(100, self.ready)
 
     def ready(self):
@@ -164,7 +165,7 @@ class DeviceManager(QtWidgets.QMainWindow):
 
         def handle_connection_lost():
             error_dialog(self, "Lost connection to the server!")
-            self.app.close()
+            self.app.quit()
 
         # Connect slots to signals -----------------------------------------------------
         self.connection_thread.client_connected.connect(on_client_connected)

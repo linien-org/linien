@@ -27,7 +27,7 @@ from linien_common.common import check_plot_data
 from linien_common.config import N_COLORS
 from linien_gui.config import Color
 from linien_gui.ui.plot_widget import INVALID_POWER
-from linien_gui.utils import color_to_hex
+from linien_gui.utils import color_to_hex, set_window_icon
 from linien_gui.widgets import UI_PATH
 from PyQt5 import QtCore, QtWidgets, uic
 
@@ -44,6 +44,9 @@ class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         uic.loadUi(UI_PATH / "main_window.ui", self)
+        set_window_icon(self)
+        self.app = QtWidgets.QApplication.instance()
+
         self.reset_std_history()
         QtCore.QTimer.singleShot(100, self.ready)
 

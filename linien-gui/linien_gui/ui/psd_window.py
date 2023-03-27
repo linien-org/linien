@@ -33,6 +33,8 @@ class PSDWindow(QtWidgets.QMainWindow):
         uic.loadUi(UI_PATH / "psd_window.ui", self)
         self.setWindowTitle("Linien: Noise analysis")
         set_window_icon(self)
+        self.app = QtWidgets.QApplication.instance()
+
         self.random_color_choser = RandomColorChoser()
         self.colors = {}
         self.data = {}
