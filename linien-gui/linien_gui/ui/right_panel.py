@@ -28,7 +28,6 @@ class RightPanel(QtWidgets.QWidget):
         self.app = self.window()._app
         self.app.connection_established.connect(self.on_connection_established)
         self.main_window = self.window()
-        self.ids = self
         self.main_window.closeButton.clicked.connect(self.close_app)
         self.main_window.shutdownButton.clicked.connect(self.shutdown_server)
         self.main_window.openDeviceManagerButton.clicked.connect(
@@ -67,13 +66,13 @@ class RightPanel(QtWidgets.QWidget):
 
     def autolock_status_changed(self, value):
         if value:
-            self.ids.settings_toolbox.setCurrentWidget(self.ids.lockingPanel)
+            self.settings_toolbox.setCurrentWidget(self.lockingPanel)
 
         self.enable_or_disable_panels()
 
     def optimization_status_changed(self, value):
         if value:
-            self.ids.settings_toolbox.setCurrentWidget(self.ids.optimizationPanel)
+            self.settings_toolbox.setCurrentWidget(self.optimizationPanel)
 
         self.enable_or_disable_panels()
 

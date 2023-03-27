@@ -27,11 +27,11 @@ class LockStatusPanel(QtWidgets.QWidget):
 
     def ready(self):
         self.app = self.window()._app
-        self.ids = self.parent()
+        self.parent = self.parent()
         self.app.connection_established.connect(self.on_connection_established)
-        self.ids.stopLockPushButton.clicked.connect(self.on_stop_lock)
-        self.ids.controlSignalHistoryLengthSpinBox.setKeyboardTracking(False)
-        self.ids.controlSignalHistoryLengthSpinBox.valueChanged.connect(
+        self.parent.stopLockPushButton.clicked.connect(self.on_stop_lock)
+        self.parent.controlSignalHistoryLengthSpinBox.setKeyboardTracking(False)
+        self.parent.controlSignalHistoryLengthSpinBox.valueChanged.connect(
             self.on_control_signal_history_length_changed
         )
 
@@ -60,7 +60,7 @@ class LockStatusPanel(QtWidgets.QWidget):
                 watching = False
 
             def set_text(text):
-                self.ids.lock_status.setText(text)
+                self.parent.lock_status.setText(text)
 
             if not running and locked:
                 set_text("Locked!")
@@ -87,7 +87,7 @@ class LockStatusPanel(QtWidgets.QWidget):
 
         param2ui(
             self.parameters.control_signal_history_length,
-            self.ids.controlSignalHistoryLengthSpinBox,
+            self.parent.controlSignalHistoryLengthSpinBox,
         )
 
     def on_stop_lock(self):
@@ -102,5 +102,5 @@ class LockStatusPanel(QtWidgets.QWidget):
 
     def on_control_signal_history_length_changed(self):
         self.parameters.control_signal_history_length.value = (
-            self.ids.controlSignalHistoryLengthSpinBox.value()
+            self.parent.controlSignalHistoryLengthSpinBox.value()
         )
