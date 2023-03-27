@@ -17,18 +17,81 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
+import atexit
+import pickle
+from time import time
+
+import linien_server
 from linien_common.common import (
     AUTO_DETECT_AUTOLOCK_MODE,
     FAST_AUTOLOCK,
     PSD_ALGORITHM_LPSD,
     MHz,
     Vpp,
+    pack,
 )
 from linien_common.config import DEFAULT_COLORS, N_COLORS
-from linien_server.parameters_base import BaseParameters, Parameter
 
 
-class Parameters(BaseParameters):
+class Parameter:
+    """Represents a single parameter and is used by `Parameters`."""
+
+    def __init__(
+        self,
+        min_=None,
+        max_=None,
+        start=None,
+        wrap=False,
+        sync=True,
+        collapsed_sync=True,
+    ):
+        self.min = min_
+        self.max = max_
+        self.wrap = wrap
+        self._value = start
+        self._start = start
+        self._listeners = set()
+        self._collapsed_sync = collapsed_sync
+        self.exposed_can_be_cached = sync
+
+    @property
+    def value(self):
+        return self._value
+
+    @value.setter
+    def value(self, value):
+        # check bounds
+        if self.min is not None and value < self.min:
+            value = self.min if not self.wrap else self.max
+        if self.max is not None and value > self.max:
+            value = self.max if not self.wrap else self.min
+
+        self._value = value
+
+        # we copy it because a listener could remove a listener --> this would
+        # cause an error in this loop
+        for listener in self._listeners.copy():
+            listener(value)
+
+    def on_change(self, function, call_listener_with_first_value=True):
+        self._listeners.add(function)
+
+        if call_listener_with_first_value:
+            if self._value is not None:
+                function(self._value)
+
+    def remove_listener(self, function):
+        if function in self._listeners:
+            self._listeners.remove(function)
+
+    def exposed_reset(self):
+        self.value = self._start
+
+    def register_remote_listener(self, remote_uuid):
+        pass
+
+
+class Parameters:
     """
     This class defines the parameters of the Linien server. They represent the public
     interface and can be used to control the behavior of the server.
@@ -52,7 +115,8 @@ class Parameters(BaseParameters):
     """
 
     def __init__(self):
-        super().__init__()
+        self._remote_listener_queue = {}
+        self._remote_listener_callbacks = {}
 
         # parameters whose values are saved by the client and restored if the client
         # connects to the RedPitaya with no server running:
@@ -165,7 +229,7 @@ class Parameters(BaseParameters):
 
         self.control_channel = Parameter(start=1, min_=0, max_=1)
         """
-        Configures the output of the lock signal. A value of 0 means FAST OUT 1 and a 
+        Configures the output of the lock signal. A value of 0 means FAST OUT 1 and a
         value of 1 corresponds to FAST OUT 2
         """
 
@@ -174,7 +238,7 @@ class Parameters(BaseParameters):
         Configures the output of the slow PID control:
             0 --> FAST OUT 1
             1 --> FAST OUT 2
-            2 --> ANALOG OUT 0 (slow channel)        
+            2 --> ANALOG OUT 0 (slow channel)
         """
 
         self.gpio_p_out = Parameter(start=0, min_=0, max_=0b11111111)
@@ -328,7 +392,7 @@ class Parameters(BaseParameters):
         corresponds to equal ratio
                    -128             only channel A being active
                    128              only channel B being active
-        Integer values [-128, ..., 128] are allowed.        
+        Integer values [-128, ..., 128] are allowed.
         """
 
         # The following parameters exist twice, i.e. once per channel
@@ -370,7 +434,7 @@ class Parameters(BaseParameters):
             automatically determine suitable filter for a given modulation frequency or
             whether the user may configure the filters himself. If automatic mode is
             enabled, two low pass filters are installed with a frequency of half the
-            modulation frequency.            
+            modulation frequency.
             """
 
             for filter_i in (1, 2):
@@ -406,7 +470,7 @@ class Parameters(BaseParameters):
         """
         After combining channels A and B and before passing the result to the PID,
         `combined_offset` is added. It uses the same units as the channel offsets, i.e.
-        a value of -8191 shifts the data down by 1V, a value of +8191 moves it up.       
+        a value of -8191 shifts the data down by 1V, a value of +8191 moves it up.
         """
 
         self.p = Parameter(start=50, max_=8191)
@@ -515,3 +579,124 @@ class Parameters(BaseParameters):
                 "plot_color_%d" % color_idx,
                 Parameter(start=DEFAULT_COLORS[color_idx]),
             )
+
+    def __iter__(self):
+        for name, param in self.get_all_parameters():
+            yield name, param.value
+
+    def get_all_parameters(self):
+        for name, element in self.__dict__.items():
+            if isinstance(element, Parameter):
+                yield name, element
+
+    def init_parameter_sync(self, uuid):
+        """To be called by a remote client: Yields all parameters as well
+        as their values and if the parameters are suited to be cached registers
+        a listener that pushes changes of these parameters to the client."""
+        for name, element in self.get_all_parameters():
+            yield name, element, element.value, element.exposed_can_be_cached
+            if element.exposed_can_be_cached:
+                self.register_remote_listener(uuid, name)
+
+    def register_remote_listener(self, uuid, param_name):
+        self._remote_listener_queue.setdefault(uuid, [])
+        self._remote_listener_callbacks.setdefault(uuid, [])
+
+        def on_change(value, uuid=uuid, param_name=param_name):
+            if uuid in self._remote_listener_queue:
+                self._remote_listener_queue[uuid].append((param_name, value))
+
+        param = getattr(self, param_name)
+        param.on_change(on_change)
+
+        self._remote_listener_callbacks[uuid].append((param, on_change))
+
+    def unregister_remote_listeners(self, uuid):
+        for param, callback in self._remote_listener_callbacks[uuid]:
+            param.remove_listener(callback)
+
+        del self._remote_listener_queue[uuid]
+        del self._remote_listener_callbacks[uuid]
+
+    def get_listener_queue(self, uuid):
+        queue = self._remote_listener_queue.get(uuid, [])
+        self._remote_listener_queue[uuid] = []
+
+        # filter out multiple values for collapsible parameters
+        already_has_value = []
+        for idx in reversed(range(len(queue))):
+            param_name, value = queue[idx]
+            if self._get_param(param_name)._collapsed_sync:
+                if param_name in already_has_value:
+                    del queue[idx]
+                else:
+                    already_has_value.append(param_name)
+
+        return pack(queue)
+
+    def _get_param(self, param_name):
+        param = getattr(self, param_name)
+        assert isinstance(param, Parameter)
+        return param
+
+
+PARAMETER_STORE_FN = "/linien_parameters.pickle"
+
+
+class ParameterStore:
+    """This class installs an `atexit` listener that persists parameters to disk
+    when the server shuts down. Once it restarts the parameters are restored."""
+
+    def __init__(self, parameters):
+        self.parameters = parameters
+        self.restore_parameters()
+        self.setup_listener()
+
+    def setup_listener(self):
+        """Listen for shutdown"""
+        atexit.register(self.save_parameters)
+
+    def restore_parameters(self):
+        """When the server starts, this method restores previously saved
+        parameters (if any)."""
+        try:
+            with open(PARAMETER_STORE_FN, "rb") as f:
+                data = pickle.load(f)
+        except (FileNotFoundError, pickle.UnpicklingError, EOFError):
+            return
+
+        print("restore parameters")
+
+        for param_name, value in data["parameters"].items():
+            try:
+                getattr(self.parameters, param_name).value = value
+            except AttributeError:
+                # ignore parameters that don't exist (anymore)
+                continue
+
+    def save_parameters(self):
+        """Gather all parameters and store them on disk."""
+        print("save parameters")
+        parameters = {}
+
+        for param_name in self.parameters._restorable_parameters:
+            param = getattr(self.parameters, param_name)
+            parameters[param_name] = param.value
+
+        try:
+            with open(PARAMETER_STORE_FN, "wb") as f:
+                pickle.dump(
+                    {
+                        "parameters": parameters,
+                        "time": time(),
+                        "version": linien_server.__version__,
+                    },
+                    f,
+                )
+        except PermissionError:
+            # this may happen if the server doesn't run on RedPitaya but on the
+            # developer's machine. As it is not a critical problem, just print
+            # the exception and ignore it
+            from traceback import print_exc
+
+            print_exc()

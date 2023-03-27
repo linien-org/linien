@@ -38,8 +38,7 @@ from linien_common.config import DEFAULT_SERVER_PORT
 from linien_server import __version__
 from linien_server.autolock.autolock import Autolock
 from linien_server.optimization.optimization import OptimizeSpectroscopy
-from linien_server.parameter_store import ParameterStore
-from linien_server.parameters import Parameters
+from linien_server.parameters import Parameters, ParameterStore
 from linien_server.pid_optimization.pid_optimization import (
     PIDOptimization,
     PSDAcquisition,
