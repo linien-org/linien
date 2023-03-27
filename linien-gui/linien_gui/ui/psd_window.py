@@ -23,11 +23,11 @@ import linien_gui
 from linien_common.common import PSD_ALGORITHM_LPSD, PSD_ALGORITHM_WELCH
 from linien_gui.dialogs import error_dialog
 from linien_gui.utils import RandomColorChoser, param2ui, set_window_icon
-from linien_gui.widgets import UI_PATH, CustomWidget
+from linien_gui.widgets import UI_PATH
 from PyQt5 import QtCore, QtWidgets, uic
 
 
-class PSDWindow(QtWidgets.QMainWindow, CustomWidget):
+class PSDWindow(QtWidgets.QMainWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         uic.loadUi(UI_PATH / "psd_window.ui", self)
@@ -40,6 +40,8 @@ class PSDWindow(QtWidgets.QMainWindow, CustomWidget):
         QtCore.QTimer.singleShot(100, self.ready)
 
     def ready(self):
+        self.app.connection_established.connect(self.on_connection_established)
+
         self.start_psd_button.clicked.connect(self.start_psd)
         self.stop_psd_button.clicked.connect(self.stop_psd)
 
@@ -55,20 +57,6 @@ class PSDWindow(QtWidgets.QMainWindow, CustomWidget):
         )
 
         self.psd_algorithm.currentIndexChanged.connect(self.change_psd_algorithm)
-
-    def closeEvent(self, event, *args, **kwargs):
-        # we never realy want to close the window (which destroys its content)  but just
-        # to hide it
-        event.ignore()
-        self.hide()
-
-    def change_maximum_measurement_time(self, index):
-        self.parameters.psd_acquisition_max_decimation.value = 12 + index
-
-    def change_psd_algorithm(self, index):
-        self.parameters.psd_algorithm.value = [PSD_ALGORITHM_LPSD, PSD_ALGORITHM_WELCH][
-            index
-        ]
 
     def on_connection_established(self):
         self.parameters = self.app.parameters
@@ -102,6 +90,20 @@ class PSDWindow(QtWidgets.QMainWindow, CustomWidget):
                 self.container_psd_not_running.show()
 
         self.parameters.psd_acquisition_running.on_change(update_status)
+
+    def closeEvent(self, event, *args, **kwargs):
+        # we never realy want to close the window (which destroys its content)  but just
+        # to hide it
+        event.ignore()
+        self.hide()
+
+    def change_maximum_measurement_time(self, index):
+        self.parameters.psd_acquisition_max_decimation.value = 12 + index
+
+    def change_psd_algorithm(self, index):
+        self.parameters.psd_algorithm.value = [PSD_ALGORITHM_LPSD, PSD_ALGORITHM_WELCH][
+            index
+        ]
 
     def psd_data_received(self, data_pickled):
         if data_pickled is None:

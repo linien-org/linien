@@ -28,7 +28,7 @@ from linien_common.config import N_COLORS
 from linien_gui.config import Color
 from linien_gui.ui.plot_widget import INVALID_POWER
 from linien_gui.utils import color_to_hex
-from linien_gui.widgets import UI_PATH, CustomWidget
+from linien_gui.widgets import UI_PATH
 from PyQt5 import QtCore, QtWidgets, uic
 
 ZOOM_STEP = 0.9
@@ -40,7 +40,7 @@ def sweep_amplitude_to_zoom_step(amplitude):
     return round(log(amplitude, ZOOM_STEP))
 
 
-class MainWindow(QtWidgets.QMainWindow, CustomWidget):
+class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         uic.loadUi(UI_PATH / "main_window.ui", self)
@@ -48,6 +48,8 @@ class MainWindow(QtWidgets.QMainWindow, CustomWidget):
         QtCore.QTimer.singleShot(100, self.ready)
 
     def ready(self):
+        self.app.connection_established.connect(self.on_connection_established)
+
         # handle keyboard events
         self.setFocus()
 
@@ -77,6 +79,10 @@ class MainWindow(QtWidgets.QMainWindow, CustomWidget):
 
         # by default we hide it and just show when a new version is available
         self.newVersionAvailableLabel.hide()
+
+    def on_connection_established(self):
+        self.control = self.app.control
+        self.parameters = self.app.parameters
 
     def show(self, host, name):
         self.setWindowTitle(
@@ -147,10 +153,6 @@ class MainWindow(QtWidgets.QMainWindow, CustomWidget):
                 getattr(self.parameters, k).value = v
 
             self.control.write_registers()
-
-    def on_connection_established(self):
-        self.control = self.app.control
-        self.parameters = self.app.parameters
 
         def change_sweep_control_visibility(*args):
             al_running = self.parameters.autolock_running.value

@@ -68,7 +68,7 @@ class GeneralPanel(QtWidgets.QWidget):
         QtCore.QTimer.singleShot(100, self.ready)
 
     def ready(self):
-        self.app = self.window()._app
+        self.app = self.window().app
         self.app.connection_established.connect(self.on_connection_established)
 
     def on_connection_established(self):

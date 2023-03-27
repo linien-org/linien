@@ -16,32 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-import weakref
 from pathlib import Path
 
-from pyqtgraph.Qt import QtCore
-
 UI_PATH = Path(__file__).parents[0].resolve() / "ui"
-
-
-class CustomWidget:
-    instances = []
-
-    def __init__(self, *args, **kwargs):
-        self.__class__.instances.append(weakref.proxy(self))
-        super().__init__(*args, **kwargs)
-
-    def on_connection_established(self):
-        # This is executed the client succesfully established a connection to the server
-        # and can be extended by inheritting classes.
-        pass
-
-    @property
-    def app(self):
-        # this property is set manually. Probably there is a more elegant way
-        # to solve this...
-        return self.window()._app
-
-    @app.setter
-    def app(self, app):
-        self._app = app

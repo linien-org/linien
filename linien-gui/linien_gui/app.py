@@ -26,7 +26,7 @@ from linien_gui.ui.main_window import MainWindow
 from linien_gui.ui.psd_window import PSDWindow
 from linien_gui.ui.version_checker import VersionCheckerThread
 from linien_gui.utils import set_window_icon
-from linien_gui.widgets import UI_PATH, CustomWidget
+from linien_gui.widgets import UI_PATH
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import pyqtSignal
 from pyqtgraph.Qt import QtCore
@@ -64,19 +64,6 @@ class QTApp(QtCore.QObject):
         self.parameters = client.parameters
 
         self.connection_established.emit()
-
-        for instance in CustomWidget.instances:
-            try:
-                instance.on_connection_established()
-            except Exception:
-                print(
-                    (
-                        "The error below happend when calling on_connection_established"
-                        " of a widget. This may happen if the widget was recently "
-                        "destroyed."
-                    )
-                )
-                print_exc()
 
         self.call_listeners()
 
