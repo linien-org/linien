@@ -16,25 +16,24 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 from linien_client.remote_parameters import RemoteParameter
-from linien_gui.widgets import CustomWidget
-from PyQt5 import QtWidgets
+from linien_gui.widgets import UI_PATH
+from PyQt5 import QtWidgets, uic
 
 
-class LoggingPanel(QtWidgets.QWidget, CustomWidget):
+class LoggingPanel(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.load_ui("logging_panel.ui")
+        uic.loadUi(UI_PATH / "logging_panel.ui", self)
+        self.app = QtWidgets.QApplication.instance()
+        self.app.connection_established.connect(self.on_connection_established)
 
-    def ready(self):
-        self.ids.logParametersToolButton.setPopupMode(
-            QtWidgets.QToolButton.InstantPopup
-        )
+        self.logParametersToolButton.setPopupMode(QtWidgets.QToolButton.InstantPopup)
 
-    def connection_established(self):
+    def on_connection_established(self):
         self.parameters = self.app.parameters
         self.logged_parameters_menu = LoggedParametersMenu()
         self.logged_parameters_menu.create_menu_entries(self.parameters)
-        self.ids.logParametersToolButton.setMenu(self.logged_parameters_menu)
+        self.logParametersToolButton.setMenu(self.logged_parameters_menu)
 
 
 # checkable menu for logged parameters, inspired by
