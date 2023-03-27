@@ -17,14 +17,16 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 import atexit
+import shutil
+import subprocess
 import threading
 from enum import Enum
 from multiprocessing import Pipe, Process
+from pathlib import Path
 from time import sleep
 
 import rpyc
 from linien_common.config import ACQUISITION_PORT
-from linien_server.utils import flash_fpga, start_nginx, stop_nginx
 
 
 class AcquisitionConnectionError(Exception):
@@ -173,3 +175,17 @@ class AcquisitionMaster:
 
     def set_dual_channel(self, enabled):
         self.parent_conn.send((AcquisitionProcessSignals.SET_DUAL_CHANNEL, enabled))
+
+
+def stop_nginx():
+    subprocess.Popen(["systemctl", "stop", "redpitaya_nginx.service"]).wait()
+    subprocess.Popen(["systemctl", "stop", "redpitaya_scpi.service"]).wait()
+
+
+def start_nginx():
+    subprocess.Popen(["systemctl", "start", "redpitaya_nginx.service"])
+
+
+def flash_fpga():
+    filepath = Path(__file__).parent / "linien.bin"
+    shutil.copy(str(filepath.resolve()), "/dev/xdevcfg")

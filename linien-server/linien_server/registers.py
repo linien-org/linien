@@ -29,7 +29,6 @@ from linien_common.config import DEFAULT_SWEEP_SPEED
 from .acquisition import AcquisitionMaster
 from .csr import PitayaCSR
 from .iir_coeffs import make_filter
-from .utils import twos_complement
 
 
 class Registers:
@@ -376,3 +375,11 @@ class Registers:
             # do it too often
             self.acquisition.set_iir_csr(iir_name, *args)
             self._iir_cache[iir_name] = args
+
+
+def twos_complement(num, N_bits):
+    max_ = 1 << (N_bits - 1)
+    full = 2 * max_
+    if num < 0:
+        num += full
+    return num
