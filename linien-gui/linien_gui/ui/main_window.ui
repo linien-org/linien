@@ -33,10 +33,10 @@
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_17">
          <item>
-          <widget class="SweepControlWidget" name="sweep_control" native="true">
+          <widget class="SweepControlWidget" name="sweepControlWidget" native="true">
            <layout class="QHBoxLayout" name="horizontalLayout_3">
             <item>
-             <widget class="QLabel" name="label_9">
+             <widget class="QLabel" name="sweepLabel">
               <property name="font">
                <font>
                 <weight>75</weight>
@@ -49,7 +49,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="sweep_start_stop_button">
+             <widget class="QPushButton" name="sweepStartStopPushButton">
               <property name="toolTip">
                <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
@@ -79,7 +79,7 @@ p, li { white-space: pre-wrap; }
              </spacer>
             </item>
             <item>
-             <widget class="SweepSlider" name="sweep_slider">
+             <widget class="SweepSlider" name="sweepSlider">
               <property name="minimumSize">
                <size>
                 <width>350</width>
@@ -108,7 +108,7 @@ p, li { white-space: pre-wrap; }
              </spacer>
             </item>
             <item>
-             <widget class="QLabel" name="label_2">
+             <widget class="QLabel" name="sweepCenterLabel">
               <property name="font">
                <font>
                 <weight>75</weight>
@@ -121,7 +121,7 @@ p, li { white-space: pre-wrap; }
              </widget>
             </item>
             <item>
-             <widget class="CustomDoubleSpinBox" name="sweep_center">
+             <widget class="CustomDoubleSpinBox" name="sweepCenterSpinBox">
               <property name="minimumSize">
                <size>
                 <width>65</width>
@@ -159,7 +159,7 @@ p, li { white-space: pre-wrap; }
              </widget>
             </item>
             <item>
-             <widget class="QLabel" name="label_3">
+             <widget class="QLabel" name="sweepAmplitudeLabel">
               <property name="font">
                <font>
                 <weight>75</weight>
@@ -172,7 +172,7 @@ p, li { white-space: pre-wrap; }
              </widget>
             </item>
             <item>
-             <widget class="CustomDoubleSpinBox" name="sweep_amplitude">
+             <widget class="CustomDoubleSpinBox" name="sweepAmplitudeSpinBox">
               <property name="minimumSize">
                <size>
                 <width>65</width>
@@ -526,7 +526,7 @@ p, li { white-space: pre-wrap; }
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_11">
        <item>
-        <widget class="QLabel" name="new_version_available_label">
+        <widget class="QLabel" name="newVersionAvailableLabel">
          <property name="text">
           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:14pt; font-weight:600; color:#3ebd46;&quot;&gt;New Linien version available:&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;a href=&quot;https://github.com/linien-org/linien/&quot;&gt;&lt;span style=&quot; font-size:14pt; font-weight:600; text-decoration: underline; color:#1a5fb4;&quot;&gt;Download&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>

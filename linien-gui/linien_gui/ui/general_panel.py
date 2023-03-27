@@ -25,14 +25,16 @@ from linien_common.common import (
     convert_channel_mixing_value,
 )
 from linien_gui.utils import param2ui
-from linien_gui.widgets import CustomWidget
-from PyQt5 import QtWidgets
+from linien_gui.widgets import UI_PATH
+from PyQt5 import QtWidgets, uic
 
 
-class GeneralPanel(QtWidgets.QWidget, CustomWidget):
+class GeneralPanel(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         super(GeneralPanel, self).__init__(*args, **kwargs)
-        self.load_ui("general_panel.ui")
+        uic.loadUi(UI_PATH / "general_panel.ui", self)
+        self.app = QtWidgets.QApplication.instance()
+        self.app.connection_established.connect(self.on_connection_established)
 
         self.channelMixingSlider.valueChanged.connect(self.on_channel_mixing_changed)
         self.fastModeCheckBox.stateChanged.connect(self.on_fast_mode_changed)
@@ -59,9 +61,7 @@ class GeneralPanel(QtWidgets.QWidget, CustomWidget):
             self.on_polarity_analog_out0_changed
         )
 
-        for idx in range(4):
-            if idx == 0:
-                continue
+        for idx in range(1, 4):
             element = getattr(self, f"analogOutComboBox{idx}")
             element.setKeyboardTracking(False)
             element.valueChanged.connect(
@@ -111,9 +111,7 @@ class GeneralPanel(QtWidgets.QWidget, CustomWidget):
         self.parameters.slow_control_channel.on_change(self.show_polarity_settings)
         self.parameters.pid_on_slow_enabled.on_change(self.show_polarity_settings)
 
-        for idx in range(4):
-            if idx == 0:
-                continue
+        for idx in range(1, 4):
             param2ui(
                 getattr(self.parameters, f"analog_out_{idx}"),
                 getattr(self, f"analogOutComboBox{idx}"),

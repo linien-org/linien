@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>292</width>
-    <height>807</height>
+    <height>814</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -35,7 +35,7 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_5">
         <item>
-         <widget class="QComboBox" name="demodulation_frequency">
+         <widget class="QComboBox" name="demodulationFrequencyComboBox">
           <property name="styleSheet">
            <string notr="true"/>
           </property>
@@ -87,7 +87,7 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_4">
         <item>
-         <widget class="CustomDoubleSpinBoxNoSign" name="demodulation_phase">
+         <widget class="CustomDoubleSpinBoxNoSign" name="demodulationPhaseSpinBox">
           <property name="maximum">
            <double>360.000000000000000</double>
           </property>
@@ -117,7 +117,7 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_3">
         <item>
-         <widget class="CustomDoubleSpinBox" name="signal_offset">
+         <widget class="CustomDoubleSpinBox" name="signalOffsetSpinBox">
           <property name="decimals">
            <number>3</number>
           </property>
@@ -157,7 +157,7 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
-       <widget class="QCheckBox" name="filter_automatic">
+       <widget class="QCheckBox" name="automaticFilterCheckBox">
         <property name="text">
          <string>Automatic</string>
         </property>
@@ -362,7 +362,7 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_4">
       <item>
-       <widget class="QCheckBox" name="invert">
+       <widget class="QCheckBox" name="invertCheckBox">
         <property name="text">
          <string>Invert the signal</string>
         </property>
@@ -375,13 +375,13 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>CustomSpinBox</class>
-   <extends>QSpinBox</extends>
+   <class>CustomDoubleSpinBoxNoSign</class>
+   <extends>QDoubleSpinBox</extends>
    <header location="global">spin_box.h</header>
   </customwidget>
   <customwidget>
-   <class>CustomDoubleSpinBoxNoSign</class>
-   <extends>QDoubleSpinBox</extends>
+   <class>CustomSpinBox</class>
+   <extends>QSpinBox</extends>
    <header location="global">spin_box.h</header>
   </customwidget>
   <customwidget>

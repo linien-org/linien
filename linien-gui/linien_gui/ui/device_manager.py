@@ -28,19 +28,18 @@ from linien_gui.dialogs import (
 from linien_gui.threads import ConnectionThread
 from linien_gui.ui.new_device_dialog import NewDeviceDialog
 from linien_gui.utils import set_window_icon
-from linien_gui.widgets import CustomWidget
-from PyQt5 import QtCore, QtWidgets
+from linien_gui.widgets import UI_PATH
+from PyQt5 import QtCore, QtWidgets, uic
 
 
-class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
+class DeviceManager(QtWidgets.QMainWindow):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.load_ui("device_manager.ui")
+        super(DeviceManager, self).__init__(*args, **kwargs)
+        uic.loadUi(UI_PATH / "device_manager.ui", self)
         self.setWindowTitle(f"Linien spectroscopy lock v{linien_gui.__version__}")
         set_window_icon(self)
-
-    def ready(self):
-        self.load_device_data(autoload=True)
+        self.app = QtWidgets.QApplication.instance()
+        QtCore.QTimer.singleShot(100, lambda: self.load_device_data(autoload=True))
 
     def keyPressEvent(self, event):
         key = event.key()
@@ -50,7 +49,7 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
 
     def load_device_data(self, autoload=False):
         devices = load_device_data()
-        lst = self.ids.deviceList
+        lst = self.deviceList
         lst.clear()
 
         for device in devices:
@@ -163,7 +162,7 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
 
         def handle_connection_lost():
             error_dialog(self, "Lost connection to the server!")
-            self.app.close()
+            self.app.quit()
 
         # Connect slots to signals -----------------------------------------------------
         self.connection_thread.client_connected.connect(on_client_connected)
@@ -240,10 +239,10 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
         devices = devices[:new_index] + [device] + devices[new_index:]
         save_device_data(devices)
         self.load_device_data()
-        self.ids.deviceList.setCurrentRow(new_index)
+        self.deviceList.setCurrentRow(new_index)
 
     def get_list_index(self):
-        return self.ids.deviceList.currentIndex().row()
+        return self.deviceList.currentIndex().row()
 
     def remove_device(self):
         devices = load_device_data()
@@ -267,10 +266,10 @@ class DeviceManager(QtWidgets.QMainWindow, CustomWidget):
                 disable_buttons = False
 
         for btn in [
-            self.ids.connectButton,
-            self.ids.removeButton,
-            self.ids.editButton,
-            self.ids.moveUpButton,
-            self.ids.moveDownButton,
+            self.connectButton,
+            self.removeButton,
+            self.editButton,
+            self.moveUpButton,
+            self.moveDownButton,
         ]:
             btn.setEnabled(not disable_buttons)

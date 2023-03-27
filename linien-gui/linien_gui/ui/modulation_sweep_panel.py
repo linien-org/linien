@@ -18,27 +18,28 @@
 
 from linien_common.common import MHz, Vpp
 from linien_gui.utils import param2ui
-from linien_gui.widgets import CustomWidget
-from PyQt5 import QtWidgets
+from linien_gui.widgets import UI_PATH
+from PyQt5 import QtWidgets, uic
 
 
-class ModulationAndSweepPanel(QtWidgets.QWidget, CustomWidget):
+class ModulationAndSweepPanel(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.load_ui("modulation_sweep_panel.ui")
+        super(ModulationAndSweepPanel, self).__init__(*args, **kwargs)
+        uic.loadUi(UI_PATH / "modulation_sweep_panel.ui", self)
+        self.app = QtWidgets.QApplication.instance()
+        self.app.connection_established.connect(self.on_connection_established)
 
-    def ready(self):
-        self.ids.modulation_frequency.setKeyboardTracking(False)
-        self.ids.modulation_frequency.valueChanged.connect(
+        self.modulationFrequencySpinBox.setKeyboardTracking(False)
+        self.modulationFrequencySpinBox.valueChanged.connect(
             self.change_modulation_frequency
         )
-        self.ids.modulation_amplitude.setKeyboardTracking(False)
-        self.ids.modulation_amplitude.valueChanged.connect(
+        self.modulationAmplitudeSpinBox.setKeyboardTracking(False)
+        self.modulationAmplitudeSpinBox.valueChanged.connect(
             self.change_modulation_amplitude
         )
-        self.ids.sweep_speed.currentIndexChanged.connect(self.change_sweep_speed)
+        self.sweepSpeedComboBox.currentIndexChanged.connect(self.change_sweep_speed)
 
-        self.ids.spectroscopyTabs.setCurrentIndex(0)
+        self.spectroscopyTabs.setCurrentIndex(0)
 
     def on_connection_established(self):
         self.parameters = self.app.parameters
@@ -46,24 +47,24 @@ class ModulationAndSweepPanel(QtWidgets.QWidget, CustomWidget):
 
         param2ui(
             self.parameters.modulation_frequency,
-            self.ids.modulation_frequency,
+            self.modulationFrequencySpinBox,
             lambda value: value / MHz,
         )
         param2ui(
             self.parameters.modulation_amplitude,
-            self.ids.modulation_amplitude,
+            self.modulationAmplitudeSpinBox,
             lambda value: value / Vpp,
         )
-        param2ui(self.parameters.sweep_speed, self.ids.sweep_speed)
+        param2ui(self.parameters.sweep_speed, self.sweepSpeedComboBox)
 
         self.parameters.dual_channel.on_change(self.dual_channel_changed)
 
         def fast_mode_changed(fast_mode_enabled):
             """Disables controls that are irrelevant if fast mode is enabled"""
             widgets_to_disable = (
-                self.ids.modulation_frequency_group,
-                self.ids.modulation_amplitude_group,
-                self.ids.spectroscopyTabs,
+                self.modulation_frequency_group,
+                self.modulation_amplitude_group,
+                self.spectroscopyTabs,
             )
             for widget in widgets_to_disable:
                 widget.setEnabled(not fast_mode_enabled)
@@ -73,9 +74,9 @@ class ModulationAndSweepPanel(QtWidgets.QWidget, CustomWidget):
         def fast_mode_changed(fast_mode_enabled):
             """Disables controls that are irrelevant if fast mode is enabled"""
             widgets_to_disable = (
-                self.ids.modulation_frequency_group,
-                self.ids.modulation_amplitude_group,
-                self.ids.spectroscopyTabs,
+                self.modulation_frequency_group,
+                self.modulation_amplitude_group,
+                self.spectroscopyTabs,
             )
             for widget in widgets_to_disable:
                 widget.setEnabled(not fast_mode_enabled)
@@ -84,13 +85,13 @@ class ModulationAndSweepPanel(QtWidgets.QWidget, CustomWidget):
 
     def change_modulation_frequency(self):
         self.parameters.modulation_frequency.value = (
-            self.ids.modulation_frequency.value() * MHz
+            self.modulationFrequencySpinBox.value() * MHz
         )
         self.control.write_registers()
 
     def change_modulation_amplitude(self):
         self.parameters.modulation_amplitude.value = (
-            self.ids.modulation_amplitude.value() * Vpp
+            self.modulationAmplitudeSpinBox.value() * Vpp
         )
         self.control.write_registers()
 
@@ -99,5 +100,5 @@ class ModulationAndSweepPanel(QtWidgets.QWidget, CustomWidget):
         self.control.write_registers()
 
     def dual_channel_changed(self, value):
-        self.ids.spectroscopyBPanel.setEnabled(value)
-        self.ids.spectroscopyBPanelDisabled.setVisible(not value)
+        self.spectroscopyBPanel.setEnabled(value)
+        self.spectroscopyBPanelDisabled.setVisible(not value)
