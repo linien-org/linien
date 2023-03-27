@@ -24,21 +24,12 @@ from pyqtgraph.Qt import QtCore
 UI_PATH = Path(__file__).parents[0].resolve() / "ui"
 
 
-class IDSelector:
-    def __init__(self, parent):
-        self.parent = parent
-
-    def __getattr__(self, name):
-        return self.parent.get_widget(name)
-
-
 class CustomWidget:
     instances = []
 
     def __init__(self, *args, **kwargs):
         self.__class__.instances.append(weakref.proxy(self))
         super().__init__(*args, **kwargs)
-        self.ids = IDSelector(self)
         QtCore.QTimer.singleShot(100, self.ready)
 
     def ready(self):
@@ -48,10 +39,6 @@ class CustomWidget:
         # This is executed the client succesfully established a connection to the server
         # and can be extended by inheritting classes.
         pass
-
-    def get_widget(self, name):
-        """Queries a widget by name."""
-        return self.findChild(QtCore.QObject, name)
 
     @property
     def app(self):
