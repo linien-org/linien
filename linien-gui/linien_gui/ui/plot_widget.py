@@ -34,7 +34,6 @@ from linien_common.common import (
 )
 from linien_common.config import N_COLORS
 from linien_gui.config import DEFAULT_PLOT_RATE_LIMIT, Color
-from linien_gui.widgets import CustomWidget
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import pyqtSignal
 from pyqtgraph.Qt import QtCore
@@ -60,32 +59,25 @@ def peak_voltage_to_dBm(voltage):
     return 10 + 20 * np.log10(voltage)
 
 
-class TimeXAxis(pg.AxisItem, CustomWidget):
+class TimeXAxis(pg.AxisItem):
     """Plots x axis as time in seconds instead of point number."""
 
     def __init__(self, *args, parent=None, **kwargs):
         pg.AxisItem.__init__(self, *args, **kwargs)
         self.parent = parent
+        QtCore.QTimer.singleShot(100, self.ready)
 
-    @property
-    def parameters(self):
-        return self.parent.parameters
-
-    @property
-    def sweep_speed(self):
-        return self.parameters.sweep_speed
-
-    @property
-    def lock(self):
-        return self.parameters.lock
+    def ready(self):
+        self.app = self.parent.window().app
+        self.app.connection_established.connect(self.on_connection_established)
 
     def on_connection_established(self):
         # we have to wait until parameters (of parent) is available
         QtCore.QTimer.singleShot(100, self.listen_to_parameter_changes)
 
     def listen_to_parameter_changes(self):
-        self.sweep_speed.on_change(self.force_repaint_tick_strings)
-        self.lock.on_change(self.force_repaint_tick_strings)
+        self.parent.parameters.sweep_speed.on_change(self.force_repaint_tick_strings)
+        self.parent.parameters.lock.on_change(self.force_repaint_tick_strings)
         self.force_repaint_tick_strings()
 
     def force_repaint_tick_strings(self, *args):
@@ -93,8 +85,8 @@ class TimeXAxis(pg.AxisItem, CustomWidget):
         self.update()
 
     def tickStrings(self, values, scale, spacing):
-        locked = self.lock.value
-        sweep_speed = self.sweep_speed.value if not locked else 0
+        locked = self.parent.parameters.lock.value
+        sweep_speed = self.parent.parameters.sweep_speed.value if not locked else 0
         time_between_points = (1 / 125e6) * 2 ** (sweep_speed) * DECIMATION
         values = [v * time_between_points for v in values]
         spacing *= time_between_points
@@ -111,7 +103,7 @@ class TimeXAxis(pg.AxisItem, CustomWidget):
         return strings
 
 
-class PlotWidget(pg.PlotWidget, CustomWidget):
+class PlotWidget(pg.PlotWidget):
     signal_power1 = pyqtSignal(float)
     signal_power2 = pyqtSignal(float)
     keyPressed = pyqtSignal(int)
@@ -119,7 +111,7 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(
             *args,
-            axisItems={"bottom": TimeXAxis(orientation="bottom", parent=self)},
+            axisItems={"bottom": TimeXAxis(parent=self, orientation="bottom")},
             **kwargs,
         )
 
@@ -216,10 +208,11 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
         self._cached_plot_data = []
         self._should_reposition_reset_view_button = False
 
-    def _to_data_coords(self, event):
-        pos = self.plotItem.vb.mapSceneToView(event.pos())
-        x, y = pos.x(), pos.y()
-        return x, y
+        QtCore.QTimer.singleShot(100, self.ready)
+
+    def ready(self):
+        self.app = self.window().app
+        self.app.connection_established.connect(self.on_connection_established)
 
     def on_connection_established(self):
         self.parameters = self.app.parameters
@@ -279,6 +272,11 @@ class PlotWidget(pg.PlotWidget, CustomWidget):
             self.crosshair.setVisible(not automatic_mode)
 
         self.parameters.automatic_mode.on_change(show_or_hide_crosshair)
+
+    def _to_data_coords(self, event):
+        pos = self.plotItem.vb.mapSceneToView(event.pos())
+        x, y = pos.x(), pos.y()
+        return x, y
 
     def mouseMoveEvent(self, event):
         if not self.selection_running:

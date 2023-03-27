@@ -40,9 +40,6 @@ class PSDWindow(QtWidgets.QMainWindow, CustomWidget):
 
     def ready(self):
         self.ids.start_psd_button.clicked.connect(self.start_psd)
-        """self.ids.start_pid_optimization_button.clicked.connect(
-            self.start_pid_optimization
-        )"""
         self.ids.stop_psd_button.clicked.connect(self.stop_psd)
 
         self.ids.curve_table.show_or_hide_curve.connect(
@@ -59,8 +56,8 @@ class PSDWindow(QtWidgets.QMainWindow, CustomWidget):
         self.ids.psd_algorithm.currentIndexChanged.connect(self.change_psd_algorithm)
 
     def closeEvent(self, event, *args, **kwargs):
-        # we never realy want to close the window (which destroys its content)
-        # but just to hide it
+        # we never realy want to close the window (which destroys its content)  but just
+        # to hide it
         event.ignore()
         self.hide()
 

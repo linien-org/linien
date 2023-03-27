@@ -19,12 +19,11 @@
 from datetime import datetime
 
 from linien_gui.utils import color_to_hex
-from linien_gui.widgets import CustomWidget
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtCore import pyqtSignal
 
 
-class PSDTableWidget(QtWidgets.QTableWidget, CustomWidget):
+class PSDTableWidget(QtWidgets.QTableWidget):
     show_or_hide_curve = pyqtSignal(str, bool)
 
     def __init__(self, *args, **kwargs):
@@ -34,6 +33,12 @@ class PSDTableWidget(QtWidgets.QTableWidget, CustomWidget):
         self.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.AdjustToContents)
 
         self.uuids = []
+
+        QtCore.QTimer.singleShot(100, self.ready)
+
+    def ready(self):
+        self.app = self.window().app
+        self.app.connection_established.connect(self.on_connection_established)
 
     def on_connection_established(self):
         self.parameters = self.app.parameters

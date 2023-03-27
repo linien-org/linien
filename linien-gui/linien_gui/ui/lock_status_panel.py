@@ -17,19 +17,22 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 from linien_gui.utils import param2ui
-from linien_gui.widgets import CustomWidget
-from PyQt5 import QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 
-class LockStatusPanel(QtWidgets.QWidget, CustomWidget):
+class LockStatusPanel(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        QtCore.QTimer.singleShot(100, self.ready)
 
     def ready(self):
-        self.ids.stop_lock.clicked.connect(self.stop_lock)
-        self.ids.control_signal_history_length.setKeyboardTracking(False)
-        self.ids.control_signal_history_length.valueChanged.connect(
-            self.control_signal_history_length_changed
+        self.app = self.window()._app
+        self.ids = self.parent()
+        self.app.connection_established.connect(self.on_connection_established)
+        self.ids.stopLockPushButton.clicked.connect(self.on_stop_lock)
+        self.ids.controlSignalHistoryLengthSpinBox.setKeyboardTracking(False)
+        self.ids.controlSignalHistoryLengthSpinBox.valueChanged.connect(
+            self.on_control_signal_history_length_changed
         )
 
     def on_connection_established(self):
@@ -65,9 +68,7 @@ class LockStatusPanel(QtWidgets.QWidget, CustomWidget):
                 set_text("Locked! Watching continuously...")
             if running and not watching and not locked and preparing:
                 if not retrying:
-                    set_text(
-                        "Autolock is running... Analyzing data (%d %%)" % percentage
-                    )
+                    set_text(f"Autolock is running... Analyzing data ({percentage} %%)")
                 else:
                     set_text("Trying again to lock...")
 
@@ -86,10 +87,10 @@ class LockStatusPanel(QtWidgets.QWidget, CustomWidget):
 
         param2ui(
             self.parameters.control_signal_history_length,
-            self.ids.control_signal_history_length,
+            self.ids.controlSignalHistoryLengthSpinBox,
         )
 
-    def stop_lock(self):
+    def on_stop_lock(self):
         self.parameters.fetch_additional_signals.value = True
 
         if self.parameters.task.value is not None:
@@ -99,7 +100,7 @@ class LockStatusPanel(QtWidgets.QWidget, CustomWidget):
 
         self.control.exposed_start_sweep()
 
-    def control_signal_history_length_changed(self):
+    def on_control_signal_history_length_changed(self):
         self.parameters.control_signal_history_length.value = (
-            self.ids.control_signal_history_length.value()
+            self.ids.controlSignalHistoryLengthSpinBox.value()
         )

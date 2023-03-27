@@ -16,7 +16,6 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 import superqt
-from linien_gui.widgets import CustomWidget
 from PyQt5 import QtCore, QtWidgets
 
 
@@ -27,9 +26,9 @@ class SweepControlWidget(QtWidgets.QWidget):
 
     def ready(self):
         # initialize sweep slider boundaries
-        self.app = self.window()._app
+        self.app = self.window().app
         self.ids = self.app.main_window
-        self.ids.sweepSlider.init()
+        self.ids.sweepSlider.ready()
         self.app.connection_established.connect(self.on_connection_established)
 
     def on_connection_established(self):
@@ -98,11 +97,11 @@ class SweepControlWidget(QtWidgets.QWidget):
         self.control.write_registers()
 
 
-class SweepSlider(superqt.QDoubleRangeSlider, CustomWidget):
+class SweepSlider(superqt.QDoubleRangeSlider):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def init(self):
+    def ready(self):
         # set control boundaries
         self.setMinimum(-1.0)
         self.setMaximum(1.0)

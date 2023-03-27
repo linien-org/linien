@@ -25,11 +25,11 @@ from linien_common.common import (
     convert_channel_mixing_value,
 )
 from linien_gui.utils import param2ui
-from linien_gui.widgets import UI_PATH, CustomWidget
-from PyQt5 import QtWidgets, uic
+from linien_gui.widgets import UI_PATH
+from PyQt5 import QtCore, QtWidgets, uic
 
 
-class GeneralPanel(QtWidgets.QWidget, CustomWidget):
+class GeneralPanel(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         super(GeneralPanel, self).__init__(*args, **kwargs)
         uic.loadUi(UI_PATH / "general_panel.ui", self)
@@ -65,6 +65,11 @@ class GeneralPanel(QtWidgets.QWidget, CustomWidget):
             element.valueChanged.connect(
                 lambda _, idx=idx: self.on_analog_out_changed(idx)
             )
+        QtCore.QTimer.singleShot(100, self.ready)
+
+    def ready(self):
+        self.app = self.window()._app
+        self.app.connection_established.connect(self.on_connection_established)
 
     def on_connection_established(self):
         self.parameters = self.app.parameters

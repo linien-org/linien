@@ -18,40 +18,38 @@
 
 from linien_common.common import FAST_AUTOLOCK
 from linien_gui.utils import param2ui
-from linien_gui.widgets import UI_PATH, CustomWidget
-from PyQt5 import QtWidgets, uic
+from linien_gui.widgets import UI_PATH
+from PyQt5 import QtCore, QtWidgets, uic
 
 
-class LockingPanel(QtWidgets.QWidget, CustomWidget):
+class LockingPanel(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         uic.loadUi(UI_PATH / "locking_panel.ui", self)
+        QtCore.QTimer.singleShot(100, self.ready)
 
     def ready(self):
-        self.ids.kp.valueChanged.connect(self.kp_changed)
-        self.ids.ki.valueChanged.connect(self.ki_changed)
-        self.ids.kd.valueChanged.connect(self.kd_changed)
-        # self.ids.checkLockCheckbox.stateChanged.connect(self.check_lock_changed)
-        # self.ids.watchLockCheckbox.stateChanged.connect(self.watch_lock_changed)
-        # self.ids.watch_lock_threshold.valueChanged.connect(
-        #    self.watch_lock_threshold_changed
-        # )
-        self.ids.lock_control_container.currentChanged.connect(self.lock_mode_changed)
+        self.app = self.window()._app
+        self.app.connection_established.connect(self.on_connection_established)
+        self.kpSpinBox.valueChanged.connect(self.kp_changed)
+        self.kiSpinBox.valueChanged.connect(self.ki_changed)
+        self.kdSpinBox.valueChanged.connect(self.kd_changed)
+        self.lock_control_container.currentChanged.connect(self.lock_mode_changed)
 
-        self.ids.selectLineToLock.clicked.connect(self.start_autolock_selection)
-        self.ids.abortLineSelection.clicked.connect(self.stop_autolock_selection)
+        self.selectLineToLock.clicked.connect(self.start_autolock_selection)
+        self.abortLineSelection.clicked.connect(self.stop_autolock_selection)
 
-        self.ids.manualLockButton.clicked.connect(self.start_manual_lock)
-        self.ids.autoOffsetCheckbox.stateChanged.connect(self.auto_offset_changed)
+        self.manualLockButton.clicked.connect(self.start_manual_lock)
+        self.autoOffsetCheckbox.stateChanged.connect(self.auto_offset_changed)
 
-        self.ids.pid_on_slow_strength.setKeyboardTracking(False)
-        self.ids.pid_on_slow_strength.valueChanged.connect(
+        self.pid_on_slow_strength.setKeyboardTracking(False)
+        self.pid_on_slow_strength.valueChanged.connect(
             self.pid_on_slow_strength_changed
         )
 
-        self.ids.reset_lock_failed_state.clicked.connect(self.reset_lock_failed)
+        self.reset_lock_failed_state.clicked.connect(self.reset_lock_failed)
 
-        self.ids.autolock_mode_preference.currentIndexChanged.connect(
+        self.autolock_mode_preference.currentIndexChanged.connect(
             self.autolock_mode_preference_changed
         )
 
@@ -59,29 +57,20 @@ class LockingPanel(QtWidgets.QWidget, CustomWidget):
         self.parameters = self.app.parameters
         self.control = self.app.control
 
-        param2ui(self.parameters.p, self.ids.kp)
-        param2ui(self.parameters.i, self.ids.ki)
-        param2ui(self.parameters.d, self.ids.kd)
+        param2ui(self.parameters.p, self.kpSpinBox)
+        param2ui(self.parameters.i, self.kiSpinBox)
+        param2ui(self.parameters.d, self.kdSpinBox)
 
-        # param2ui(params.check_lock, self.ids.checkLockCheckbox)
-        # param2ui(params.watch_lock, self.ids.watchLockCheckbox)
-        # param2ui(
-        #    params.watch_lock_threshold,
-        #    self.ids.watch_lock_threshold,
-        #    lambda v: v * 100,
-        # )
-        param2ui(self.parameters.autolock_determine_offset, self.ids.autoOffsetCheckbox)
+        param2ui(self.parameters.autolock_determine_offset, self.autoOffsetCheckbox)
         param2ui(
             self.parameters.automatic_mode,
-            self.ids.lock_control_container,
+            self.lock_control_container,
             lambda value: 0 if value else 1,
         )
-        param2ui(self.parameters.pid_on_slow_strength, self.ids.pid_on_slow_strength)
+        param2ui(self.parameters.pid_on_slow_strength, self.pid_on_slow_strength)
 
         def slow_pid_visibility(*args):
-            self.ids.slow_pid_group.setVisible(
-                self.parameters.pid_on_slow_enabled.value
-            )
+            self.slow_pid_group.setVisible(self.parameters.pid_on_slow_enabled.value)
 
         self.parameters.pid_on_slow_enabled.on_change(slow_pid_visibility)
 
@@ -92,11 +81,11 @@ class LockingPanel(QtWidgets.QWidget, CustomWidget):
             task_running = (task is not None) and (not al_failed)
 
             if locked or task_running or al_failed:
-                self.ids.lock_control_container.hide()
+                self.lock_control_container.hide()
             else:
-                self.ids.lock_control_container.show()
+                self.lock_control_container.show()
 
-            self.ids.lock_failed.setVisible(al_failed)
+            self.lock_failed.setVisible(al_failed)
 
         for param in (
             self.parameters.lock,
@@ -107,33 +96,33 @@ class LockingPanel(QtWidgets.QWidget, CustomWidget):
         ):
             param.on_change(lock_status_changed)
 
-        param2ui(self.parameters.target_slope_rising, self.ids.button_slope_rising)
+        param2ui(self.parameters.target_slope_rising, self.button_slope_rising)
         param2ui(
             self.parameters.target_slope_rising,
-            self.ids.button_slope_falling,
+            self.button_slope_falling,
             lambda value: not value,
         )
 
         def autolock_selection_status_changed(value):
-            self.ids.auto_mode_activated.setVisible(value)
-            self.ids.auto_mode_not_activated.setVisible(not value)
+            self.auto_mode_activated.setVisible(value)
+            self.auto_mode_not_activated.setVisible(not value)
 
         self.parameters.autolock_selection.on_change(autolock_selection_status_changed)
 
         param2ui(
-            self.parameters.autolock_mode_preference, self.ids.autolock_mode_preference
+            self.parameters.autolock_mode_preference, self.autolock_mode_preference
         )
 
     def kp_changed(self):
-        self.parameters.p.value = self.ids.kp.value()
+        self.parameters.p.value = self.kpSpinBox.value()
         self.control.write_registers()
 
     def ki_changed(self):
-        self.parameters.i.value = self.ids.ki.value()
+        self.parameters.i.value = self.kiSpinBox.value()
         self.control.write_registers()
 
     def kd_changed(self):
-        self.parameters.d.value = self.ids.kd.value()
+        self.parameters.d.value = self.kdSpinBox.value()
         self.control.write_registers()
 
     def lock_mode_changed(self, idx):
@@ -143,9 +132,7 @@ class LockingPanel(QtWidgets.QWidget, CustomWidget):
         self.parameters.autolock_mode_preference.value = idx
 
     def start_manual_lock(self):
-        self.parameters.target_slope_rising.value = (
-            self.ids.button_slope_rising.isChecked()
-        )
+        self.parameters.target_slope_rising.value = self.button_slope_rising.isChecked()
         self.parameters.fetch_additional_signals.value = False
         self.parameters.autolock_mode.value = FAST_AUTOLOCK
         self.parameters.autolock_target_position.value = 0
@@ -154,13 +141,11 @@ class LockingPanel(QtWidgets.QWidget, CustomWidget):
 
     def auto_offset_changed(self):
         self.parameters.autolock_determine_offset.value = int(
-            self.ids.autoOffsetCheckbox.checkState()
+            self.autoOffsetCheckbox.checkState()
         )
 
     def pid_on_slow_strength_changed(self):
-        self.parameters.pid_on_slow_strength.value = (
-            self.ids.pid_on_slow_strength.value()
-        )
+        self.parameters.pid_on_slow_strength.value = self.pid_on_slow_strength.value()
         self.control.write_registers()
 
     def start_autolock_selection(self):
@@ -168,11 +153,6 @@ class LockingPanel(QtWidgets.QWidget, CustomWidget):
 
     def stop_autolock_selection(self):
         self.parameters.autolock_selection.value = False
-
-    """def watch_lock_threshold_changed(self):
-        self.parameters.watch_lock_threshold.value = (
-            self.ids.watch_lock_threshold.value() / 100.0
-        )"""
 
     def reset_lock_failed(self):
         self.parameters.autolock_failed.value = False

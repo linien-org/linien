@@ -37,11 +37,8 @@ class CustomWidget:
 
     def __init__(self, *args, **kwargs):
         self.__class__.instances.append(weakref.proxy(self))
-
         super().__init__(*args, **kwargs)
-
         self.ids = IDSelector(self)
-
         QtCore.QTimer.singleShot(100, self.ready)
 
     def ready(self):
