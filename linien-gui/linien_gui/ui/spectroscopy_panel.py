@@ -61,7 +61,7 @@ class SpectroscopyPanel(QtWidgets.QWidget):
         QtCore.QTimer.singleShot(100, self.ready)
 
     def ready(self):
-        self.app = self.window().app
+        self.app = QtWidgets.QApplication.instance()
         self.signalOffsetSpinBox.setKeyboardTracking(False)
         self.signalOffsetSpinBox.valueChanged.connect(self.change_signal_offset)
         self.demodulationPhaseSpinBox.setKeyboardTracking(False)

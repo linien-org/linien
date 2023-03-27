@@ -26,9 +26,10 @@ class LockStatusPanel(QtWidgets.QWidget):
         QtCore.QTimer.singleShot(100, self.ready)
 
     def ready(self):
-        self.app = self.window().app
-        self.parent = self.parent()
+        self.app = QtWidgets.QApplication.instance()
         self.app.connection_established.connect(self.on_connection_established)
+
+        self.parent = self.parent()
         self.parent.stopLockPushButton.clicked.connect(self.on_stop_lock)
         self.parent.controlSignalHistoryLengthSpinBox.setKeyboardTracking(False)
         self.parent.controlSignalHistoryLengthSpinBox.valueChanged.connect(

@@ -29,7 +29,7 @@ from linien_gui.config import Color
 from linien_gui.ui.plot_widget import INVALID_POWER
 from linien_gui.utils import color_to_hex, set_window_icon
 from linien_gui.widgets import UI_PATH
-from PyQt5 import QtCore, QtWidgets, uic
+from PyQt5 import QtWidgets, uic
 
 ZOOM_STEP = 0.9
 MAX_ZOOM = 50
@@ -46,12 +46,9 @@ class MainWindow(QtWidgets.QMainWindow):
         uic.loadUi(UI_PATH / "main_window.ui", self)
         set_window_icon(self)
         self.app = QtWidgets.QApplication.instance()
+        self.app.connection_established.connect(self.on_connection_established)
 
         self.reset_std_history()
-        QtCore.QTimer.singleShot(100, self.ready)
-
-    def ready(self):
-        self.app.connection_established.connect(self.on_connection_established)
 
         # handle keyboard events
         self.setFocus()

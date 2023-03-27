@@ -26,13 +26,15 @@ from linien_common.common import (
 )
 from linien_gui.utils import param2ui
 from linien_gui.widgets import UI_PATH
-from PyQt5 import QtCore, QtWidgets, uic
+from PyQt5 import QtWidgets, uic
 
 
 class GeneralPanel(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         super(GeneralPanel, self).__init__(*args, **kwargs)
         uic.loadUi(UI_PATH / "general_panel.ui", self)
+        self.app = QtWidgets.QApplication.instance()
+        self.app.connection_established.connect(self.on_connection_established)
 
         self.channelMixingSlider.valueChanged.connect(self.on_channel_mixing_changed)
         self.fastModeCheckBox.stateChanged.connect(self.on_fast_mode_changed)
@@ -65,11 +67,6 @@ class GeneralPanel(QtWidgets.QWidget):
             element.valueChanged.connect(
                 lambda _, idx=idx: self.on_analog_out_changed(idx)
             )
-        QtCore.QTimer.singleShot(100, self.ready)
-
-    def ready(self):
-        self.app = self.window().app
-        self.app.connection_established.connect(self.on_connection_established)
 
     def on_connection_established(self):
         self.parameters = self.app.parameters

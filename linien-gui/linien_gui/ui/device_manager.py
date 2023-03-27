@@ -39,10 +39,7 @@ class DeviceManager(QtWidgets.QMainWindow):
         self.setWindowTitle(f"Linien spectroscopy lock v{linien_gui.__version__}")
         set_window_icon(self)
         self.app = QtWidgets.QApplication.instance()
-        QtCore.QTimer.singleShot(100, self.ready)
-
-    def ready(self):
-        self.load_device_data(autoload=True)
+        QtCore.QTimer.singleShot(100, lambda: self.load_device_data(autoload=True))
 
     def keyPressEvent(self, event):
         key = event.key()

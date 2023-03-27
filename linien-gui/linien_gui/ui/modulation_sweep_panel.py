@@ -29,7 +29,7 @@ class ModulationAndSweepPanel(QtWidgets.QWidget):
         QtCore.QTimer.singleShot(100, self.ready)
 
     def ready(self):
-        self.app = self.window().app
+        self.app = QtWidgets.QApplication.instance()
         self.app.connection_established.connect(self.on_connection_established)
 
         self.modulationFrequencySpinBox.setKeyboardTracking(False)

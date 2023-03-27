@@ -29,7 +29,7 @@ class OptimizationPanel(QtWidgets.QWidget):
         QtCore.QTimer.singleShot(100, self.ready)
 
     def ready(self):
-        self.app = self.window().app
+        self.app = QtWidgets.QApplication.instance()
         self.app.connection_established.connect(self.on_connection_established)
         self.startOptimizationPushButton.clicked.connect(self.start_optimization)
         self.useOptimizedParametersPushButton.clicked.connect(self.use_new_parameters)

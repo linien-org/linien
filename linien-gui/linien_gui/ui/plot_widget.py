@@ -68,7 +68,7 @@ class TimeXAxis(pg.AxisItem):
         QtCore.QTimer.singleShot(100, self.ready)
 
     def ready(self):
-        self.app = self.parent.window().app
+        self.app = QtWidgets.QApplication.instance()
         self.app.connection_established.connect(self.on_connection_established)
 
     def on_connection_established(self):
@@ -211,7 +211,7 @@ class PlotWidget(pg.PlotWidget):
         QtCore.QTimer.singleShot(100, self.ready)
 
     def ready(self):
-        self.app = self.window().app
+        self.app = QtWidgets.QApplication.instance()
         self.app.connection_established.connect(self.on_connection_established)
 
     def on_connection_established(self):

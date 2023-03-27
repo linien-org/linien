@@ -25,7 +25,7 @@ class RightPanel(QtWidgets.QWidget):
         QtCore.QTimer.singleShot(100, self.ready)
 
     def ready(self):
-        self.app = self.window().app
+        self.app = QtWidgets.QApplication.instance()
         self.app.connection_established.connect(self.on_connection_established)
         self.main_window = self.window()
         self.main_window.closeButton.clicked.connect(self.app.quit)
