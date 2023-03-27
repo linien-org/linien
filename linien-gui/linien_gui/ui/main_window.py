@@ -29,7 +29,7 @@ from linien_gui.config import Color
 from linien_gui.ui.plot_widget import INVALID_POWER
 from linien_gui.utils import color_to_hex
 from linien_gui.widgets import UI_PATH, CustomWidget
-from PyQt5 import QtWidgets, uic
+from PyQt5 import QtCore, QtWidgets, uic
 
 ZOOM_STEP = 0.9
 MAX_ZOOM = 50
@@ -44,18 +44,8 @@ class MainWindow(QtWidgets.QMainWindow, CustomWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         uic.loadUi(UI_PATH / "main_window.ui", self)
-
         self.reset_std_history()
-
-    def show(self, host, name):
-        self.setWindowTitle(
-            f"Linien spectroscopy lock {linien_gui.__version__}: {name} ({host})"
-        )
-        super().show()
-
-    def closeEvent(self, *args, **kwargs):
-        self.app.close_all_secondary_windows()
-        super().closeEvent(*args, **kwargs)
+        QtCore.QTimer.singleShot(100, self.ready)
 
     def ready(self):
         # handle keyboard events
@@ -87,6 +77,16 @@ class MainWindow(QtWidgets.QMainWindow, CustomWidget):
 
         # by default we hide it and just show when a new version is available
         self.newVersionAvailableLabel.hide()
+
+    def show(self, host, name):
+        self.setWindowTitle(
+            f"Linien spectroscopy lock {linien_gui.__version__}: {name} ({host})"
+        )
+        super().show()
+
+    def closeEvent(self, *args, **kwargs):
+        self.app.close_all_secondary_windows()
+        super().closeEvent(*args, **kwargs)
 
     def show_new_version_available(self):
         self.newVersionAvailableLabel.show()

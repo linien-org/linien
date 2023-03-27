@@ -30,10 +30,6 @@ class CustomWidget:
     def __init__(self, *args, **kwargs):
         self.__class__.instances.append(weakref.proxy(self))
         super().__init__(*args, **kwargs)
-        QtCore.QTimer.singleShot(100, self.ready)
-
-    def ready(self):
-        pass
 
     def on_connection_established(self):
         # This is executed the client succesfully established a connection to the server
