@@ -40,6 +40,8 @@ def shutdown():
 
 class AcquisitionService(Service):
     def __init__(self):
+        super(AcquisitionService, self).__init__()
+
         self.red_pitaya = RedPitaya()
         self.csr = PythonCSR(self.red_pitaya)
         self.csr_queue = []
@@ -49,8 +51,6 @@ class AcquisitionService(Service):
         self.data_was_raw = False
         self.data_hash = None
         self.data_uuid = None
-
-        super(AcquisitionService, self).__init__()
 
         self.locked = False
         self.exposed_set_sweep_speed(9)
@@ -73,126 +73,55 @@ class AcquisitionService(Service):
         self.run()
 
     def run(self):
-        def run_acquiry_loop():
-            while True:
-                while self.csr_queue:
-                    key, value = self.csr_queue.pop(0)
-                    self.csr.set(key, value)
-
-                while self.csr_iir_queue:
-                    args = self.csr_iir_queue.pop(0)
-                    self.csr.set_iir(*args)
-
-                if self.locked and not self.confirmed_that_in_lock:
-                    self.confirmed_that_in_lock = self.csr.get(
-                        "logic_autolock_lock_running"
-                    )
-                    if not self.confirmed_that_in_lock:
-                        sleep(0.05)
-                        continue
-
-                if self.acquisition_paused:
-                    sleep(0.05)
-                    continue
-
-                # copied from https://github.com/RedPitaya/RedPitaya/blob/14cca62dd58f29826ee89f4b28901602f5cdb1d8/api/src/oscilloscope.c#L115  # noqa: E501
-                # check whether scope was triggered
-                not_triggered = (self.red_pitaya.scope.read(0x1 << 2) & 0x4) > 0
-                if not_triggered:
-                    sleep(0.05)
-                    continue
-
-                data, is_raw = self.read_data()
-
-                if self.acquisition_paused:
-                    # it may seem strange that we check this here a second time. Reason:
-                    # `read_data` takes some time and if in the mean time acquisition
-                    # was paused, we do not want to send the data
-                    continue
-
-                if self.skip_next_data:
-                    self.skip_next_data = False
-                else:
-                    self.data = pickle.dumps(data)
-                    self.data_was_raw = is_raw
-                    self.data_hash = random()
-
-                self.program_acquisition_and_rearm()
-
-        self.thread = threading.Thread(target=run_acquiry_loop, args=())
+        self.thread = threading.Thread(target=self.acquisition_loop, args=())
         self.thread.daemon = True
         self.thread.start()
 
-    def program_acquisition_and_rearm(self, trigger_delay=16384):
-        """Programs the acquisition settings and rearms acquisition."""
-        if not self.locked:
-            target_decimation = 2 ** (self.sweep_speed + int(np.log2(DECIMATION)))
+    def acquisition_loop(self):
+        while True:
+            while self.csr_queue:
+                key, value = self.csr_queue.pop(0)
+                self.csr.set(key, value)
 
-            self.red_pitaya.scope.data_decimation = target_decimation
-            self.red_pitaya.scope.trigger_delay = int(trigger_delay / DECIMATION) - 1
+            while self.csr_iir_queue:
+                args = self.csr_iir_queue.pop(0)
+                self.csr.set_iir(*args)
 
-        elif self.raw_acquisition_enabled:
-            self.red_pitaya.scope.data_decimation = 2**self.raw_acquisition_decimation
-            self.red_pitaya.scope.trigger_delay = trigger_delay
+            if self.locked and not self.confirmed_that_in_lock:
+                self.confirmed_that_in_lock = self.csr.get(
+                    "logic_autolock_lock_running"
+                )
+                if not self.confirmed_that_in_lock:
+                    sleep(0.05)
+                    continue
 
-        else:
-            self.red_pitaya.scope.data_decimation = 1
-            self.red_pitaya.scope.trigger_delay = int(trigger_delay / DECIMATION) - 1
+            if self.acquisition_paused:
+                sleep(0.05)
+                continue
 
-        # trigger_source=6 means external trigger positive edge
-        self.red_pitaya.scope.rearm(trigger_source=6)
+            # copied from https://github.com/RedPitaya/RedPitaya/blob/14cca62dd58f29826ee89f4b28901602f5cdb1d8/api/src/oscilloscope.c#L115  # noqa: E501
+            # check whether scope was triggered
+            not_triggered = (self.red_pitaya.scope.read(0x1 << 2) & 0x4) > 0
+            if not_triggered:
+                sleep(0.05)
+                continue
 
-    def exposed_return_data(self, last_hash):
-        no_data_available = self.data_hash is None
-        data_not_changed = self.data_hash == last_hash
-        if data_not_changed or no_data_available or self.acquisition_paused:
-            return False, None, None, None, None
-        else:
-            return True, self.data_hash, self.data_was_raw, self.data, self.data_uuid
+            data, is_raw = self.read_data()
 
-    def exposed_set_sweep_speed(self, speed):
-        self.sweep_speed = speed
-        # if a slow acqisition is currently running and we change the sweep speed we
-        # don't want to wait until it finishes
-        self.program_acquisition_and_rearm()
+            if self.acquisition_paused:
+                # it may seem strange that we check this here a second time. Reason:
+                # `read_data` takes some time and if in the mean time acquisition
+                # was paused, we do not want to send the data
+                continue
 
-    def exposed_set_lock_status(self, locked):
-        self.locked = locked
-        self.confirmed_that_in_lock = False
+            if self.skip_next_data:
+                self.skip_next_data = False
+            else:
+                self.data = pickle.dumps(data)
+                self.data_was_raw = is_raw
+                self.data_hash = random()
 
-    def exposed_set_fetch_additional_signals(self, fetch):
-        self.fetch_additional_signals = fetch
-
-    def exposed_set_raw_acquisition(self, data):
-        self.raw_acquisition_enabled = data[0]
-        self.raw_acquisition_decimation = data[1]
-
-    def exposed_set_dual_channel(self, dual_channel):
-        self.dual_channel = dual_channel
-
-    def exposed_set_csr(self, key, value):
-        self.csr_queue.append((key, value))
-
-    def exposed_set_iir_csr(self, *args):
-        self.csr_iir_queue.append(args)
-
-    def exposed_pause_acquisition(self):
-        self.acquisition_paused = True
-        self.data_hash = None
-        self.data = None
-
-    def exposed_continue_acquisition(self, uuid):
-        self.program_acquisition_and_rearm()
-        sleep(0.01)
-        # resetting data here is not strictly required but we want to be on the safe
-        # side
-        self.data_hash = None
-        self.data = None
-        self.acquisition_paused = False
-        self.data_uuid = uuid
-        # if we are sweeping, we have to skip one data set because an incomplete sweep
-        # may have been recorded. When locked, this does not matter
-        self.skip_next_data = not self.confirmed_that_in_lock
+            self.program_acquisition_and_rearm()
 
     def read_data(self):
         write_pointer = self.red_pitaya.scope.write_pointer_trigger
@@ -275,6 +204,77 @@ class AcquisitionService(Service):
             )
 
         return signals
+
+    def program_acquisition_and_rearm(self, trigger_delay=16384):
+        """Programs the acquisition settings and rearms acquisition."""
+        if not self.locked:
+            target_decimation = 2 ** (self.sweep_speed + int(np.log2(DECIMATION)))
+
+            self.red_pitaya.scope.data_decimation = target_decimation
+            self.red_pitaya.scope.trigger_delay = int(trigger_delay / DECIMATION) - 1
+
+        elif self.raw_acquisition_enabled:
+            self.red_pitaya.scope.data_decimation = 2**self.raw_acquisition_decimation
+            self.red_pitaya.scope.trigger_delay = trigger_delay
+
+        else:
+            self.red_pitaya.scope.data_decimation = 1
+            self.red_pitaya.scope.trigger_delay = int(trigger_delay / DECIMATION) - 1
+
+        # trigger_source=6 means external trigger positive edge
+        self.red_pitaya.scope.rearm(trigger_source=6)
+
+    def exposed_return_data(self, last_hash):
+        no_data_available = self.data_hash is None
+        data_not_changed = self.data_hash == last_hash
+        if data_not_changed or no_data_available or self.acquisition_paused:
+            return False, None, None, None, None
+        else:
+            return True, self.data_hash, self.data_was_raw, self.data, self.data_uuid
+
+    def exposed_set_sweep_speed(self, speed):
+        self.sweep_speed = speed
+        # if a slow acqisition is currently running and we change the sweep speed we
+        # don't want to wait until it finishes
+        self.program_acquisition_and_rearm()
+
+    def exposed_set_lock_status(self, locked):
+        self.locked = locked
+        self.confirmed_that_in_lock = False
+
+    def exposed_set_fetch_additional_signals(self, fetch):
+        self.fetch_additional_signals = fetch
+
+    def exposed_set_raw_acquisition(self, data):
+        self.raw_acquisition_enabled = data[0]
+        self.raw_acquisition_decimation = data[1]
+
+    def exposed_set_dual_channel(self, dual_channel):
+        self.dual_channel = dual_channel
+
+    def exposed_set_csr(self, key, value):
+        self.csr_queue.append((key, value))
+
+    def exposed_set_iir_csr(self, *args):
+        self.csr_iir_queue.append(args)
+
+    def exposed_pause_acquisition(self):
+        self.acquisition_paused = True
+        self.data_hash = None
+        self.data = None
+
+    def exposed_continue_acquisition(self, uuid):
+        self.program_acquisition_and_rearm()
+        sleep(0.01)
+        # resetting data here is not strictly required but we want to be on the safe
+        # side
+        self.data_hash = None
+        self.data = None
+        self.acquisition_paused = False
+        self.data_uuid = uuid
+        # if we are sweeping, we have to skip one data set because an incomplete sweep
+        # may have been recorded. When locked, this does not matter
+        self.skip_next_data = not self.confirmed_that_in_lock
 
 
 if __name__ == "__main__":

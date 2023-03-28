@@ -96,61 +96,61 @@ class RedPitayaControlService(BaseService):
         self._cached_data = {}
         self.exposed_is_locked = None
 
-        super().__init__()
+        super(RedPitayaControlService, self).__init__()
 
         self.registers = Registers(**kwargs)
         self.registers.connect(self, self.parameters)
+        self._connect_acquisition_to_parameters()
+        self._start_periodic_timer()
+        self.exposed_write_registers()
 
-    def run_acquiry_loop(self):
+    def _connect_acquisition_to_parameters(self):
         """
-        Startsa background process that keeps polling control and error signal. Every
-        received value is pushed to `parameters.to_plot`.
+        Connect the acquisition loopo to the parameters: Every received value is pushed
+        to `parameters.to_plot`.
         """
-
-        def on_new_data_received(is_raw, plot_data, data_uuid):
-            # When a parameter is changed, `pause_acquisition` is set. This means that
-            # the we should skip new data until we are sure that it was recorded with
-            # the new settings.
-            if not self.parameters.pause_acquisition.value:
-                if data_uuid != self.data_uuid:
-                    return
-
-                data_loaded = pickle.loads(plot_data)
-
-                if not is_raw:
-                    is_locked = self.parameters.lock.value
-
-                    if not check_plot_data(is_locked, data_loaded):
-                        print(
-                            "warning: incorrect data received for lock state, ignoring!"
-                        )
-                        return
-
-                    self.parameters.to_plot.value = plot_data
-                    self._generate_signal_stats(data_loaded)
-
-                    # update signal history (if in locked state)
-                    (
-                        self.parameters.control_signal_history.value,
-                        self.parameters.monitor_signal_history.value,
-                    ) = update_signal_history(
-                        self.parameters.control_signal_history.value,
-                        self.parameters.monitor_signal_history.value,
-                        data_loaded,
-                        is_locked,
-                        self.parameters.control_signal_history_length.value,
-                    )
-                else:
-                    self.parameters.acquisition_raw_data.value = plot_data
-
         # each time new data is acquired, this function is called
         self.registers.acquisition_controller.on_new_data_received = (
-            on_new_data_received
+            self._on_new_data_received
         )
         self.pause_acquisition()
         self.continue_acquisition()
 
-    def run_periodic_timer(self):
+    def _on_new_data_received(self, is_raw, plot_data, data_uuid):
+        # When a parameter is changed, `pause_acquisition` is set. This means that
+        # the we should skip new data until we are sure that it was recorded with
+        # the new settings.
+        if not self.parameters.pause_acquisition.value:
+            if data_uuid != self.data_uuid:
+                return
+
+            data_loaded = pickle.loads(plot_data)
+
+            if not is_raw:
+                is_locked = self.parameters.lock.value
+
+                if not check_plot_data(is_locked, data_loaded):
+                    print("warning: incorrect data received for lock state, ignoring!")
+                    return
+
+                self.parameters.to_plot.value = plot_data
+                self._generate_signal_stats(data_loaded)
+
+                # update signal history (if in locked state)
+                (
+                    self.parameters.control_signal_history.value,
+                    self.parameters.monitor_signal_history.value,
+                ) = update_signal_history(
+                    self.parameters.control_signal_history.value,
+                    self.parameters.monitor_signal_history.value,
+                    data_loaded,
+                    is_locked,
+                    self.parameters.control_signal_history_length.value,
+                )
+            else:
+                self.parameters.acquisition_raw_data.value = plot_data
+
+    def _start_periodic_timer(self):
         """
         Start a timer that increases the `ping` parameter once per second. Its purpose
         is to allow for periodic tasks on the server: just register an `on_change`
@@ -293,11 +293,13 @@ class FakeRedPitayaControlService(BaseService):
         super().__init__()
         self.exposed_is_locked = None
 
+        self._connect_acquisition_to_parameters()
+
     def exposed_write_registers(self):
         pass
 
-    def run_acquiry_loop(self):
-        def run():
+    def _connect_acquisition_to_parameters(self):
+        def write_random_data_to_parameters():
             while True:
                 max_ = randint(0, 8191)
                 gen = lambda: np.array([randint(-max_, max_) for _ in range(N_POINTS)])
@@ -311,12 +313,9 @@ class FakeRedPitayaControlService(BaseService):
                 )
                 sleep(0.1)
 
-        t = threading.Thread(target=run)
-        t.daemon = True
-        t.start()
-
-    def run_periodic_timer(self):
-        pass
+        thread = threading.Thread(target=write_random_data_to_parameters)
+        thread.daemon = True
+        thread.start()
 
     def exposed_shutdown(self):
         _thread.interrupt_main()
@@ -337,6 +336,31 @@ class FakeRedPitayaControlService(BaseService):
 
     def continue_acquisition(self):
         pass
+
+
+def authenticate_username_and_password(sock):
+    failed_auth_counter = {"c": 0}
+    # when a client starts the server, it supplies this hash via an environment
+    # variable
+    secret = os.environ.get("LINIEN_AUTH_HASH")
+    # client always sends auth hash, even if we run in non-auth mode --> always read
+    # 64 bytes, otherwise rpyc connection can't be established
+    received = sock.recv(64)
+    # as a protection against brute force, we don't accept requests after too many
+    # failed auth requests
+    if failed_auth_counter["c"] > 1000:
+        print("received too many failed auth requests!")
+        sys.exit(1)
+
+    if secret is None:
+        print("warning: no authentication set up")
+    else:
+        if received != secret.encode():
+            print("received invalid credentials: ", received)
+            failed_auth_counter["c"] += 1
+            raise AuthenticationError("invalid username / password")
+        print("authentication successful")
+    return sock, None
 
 
 @click.command()
@@ -375,48 +399,13 @@ def run_server(port, fake=False, remote_rp=False):
         else:
             control = RedPitayaControlService()
 
-    control.run_acquiry_loop()
-    control.run_periodic_timer()
-    control.exposed_write_registers()
-
-    failed_auth_counter = {"c": 0}
-
-    def username_and_password_authenticator(sock):
-        # when a client starts the server, it supplies this hash via an environment
-        # variable
-        secret = os.environ.get("LINIEN_AUTH_HASH")
-
-        # client always sends auth hash, even if we run in non-auth mode --> always read
-        # 64 bytes, otherwise rpyc connection can't be established
-        received = sock.recv(64)
-
-        # as a protection against brute force, we don't accept requests after too many
-        # failed auth requests
-        if failed_auth_counter["c"] > 1000:
-            print("received too many failed auth requests!")
-            sys.exit(1)
-
-        if secret is None:
-            print("warning: no authentication set up")
-        else:
-            if received != secret.encode():
-                print("received invalid credentials: ", received)
-
-                failed_auth_counter["c"] += 1
-
-                raise AuthenticationError("invalid username / password")
-
-            print("authentication successful")
-
-        return sock, None
-
-    t = ThreadedServer(
+    thread = ThreadedServer(
         control,
         port=port,
-        authenticator=username_and_password_authenticator,
+        authenticator=authenticate_username_and_password,
         protocol_config={"allow_pickle": True},
     )
-    t.start()
+    thread.start()
 
 
 if __name__ == "__main__":
