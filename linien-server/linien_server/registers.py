@@ -26,10 +26,9 @@ from linien_common.common import (
 )
 from linien_common.config import DEFAULT_SWEEP_SPEED
 
-from .acquisition import AcquisitionMaster
+from .acquisition.controller import AcquisitionController
 from .csr import PitayaCSR
 from .iir_coeffs import make_filter
-from .utils import twos_complement
 
 
 class Registers:
@@ -44,7 +43,7 @@ class Registers:
         self.host = host
         self.user = user
         self.password = password
-        self.acquisition = None
+        self.acquisition_controller = None
 
         self._last_sweep_speed = None
         self._last_raw_acquisition_settings = None
@@ -57,28 +56,28 @@ class Registers:
 
         self.csr = PitayaCSR()
 
-        def lock_status_changed(v):
-            if self.acquisition is not None:
-                self.acquisition.lock_status_changed(v)
+        def on_lock_status_changed(v):
+            if self.acquisition_controller is not None:
+                self.acquisition_controller.set_lock_status(v)
 
-        self.parameters.lock.on_change(lock_status_changed)
+        self.parameters.lock.on_change(on_lock_status_changed)
 
-        def fetch_additional_signals_changed(v):
-            if self.acquisition is not None:
-                self.acquisition.fetch_additional_signals_changed(v)
+        def on_fetch_additional_signals_changed(v):
+            if self.acquisition_controller is not None:
+                self.acquisition_controller.fetch_additional_signals(v)
 
         self.parameters.fetch_additional_signals.on_change(
-            fetch_additional_signals_changed
+            on_fetch_additional_signals_changed
         )
 
-        def dual_channel_changed(dual_channel):
-            if self.acquisition is not None:
-                self.acquisition.set_dual_channel(dual_channel)
+        def on_dual_channel_changed(dual_channel):
+            if self.acquisition_controller is not None:
+                self.acquisition_controller.set_dual_channel(dual_channel)
 
-        self.parameters.dual_channel.on_change(dual_channel_changed)
+        self.parameters.dual_channel.on_change(on_dual_channel_changed)
 
         use_ssh = self.host is not None and self.host not in ("localhost", "127.0.0.1")
-        self.acquisition = AcquisitionMaster(use_ssh, self.host)
+        self.acquisition_controller = AcquisitionController(use_ssh, self.host)
 
     def write_registers(self):
         """Writes data from `parameters` to the FPGA."""
@@ -99,8 +98,8 @@ class Registers:
         self.control.exposed_is_locked = lock
 
         new = dict(
-            # sweep run is 1 by default. The gateware automatically takes care
-            # of stopping the sweep run after `request_lock` is set by setting
+            # sweep run is 1 by default. The gateware automatically takes care of
+            # stopping the sweep run after `request_lock` is set by setting
             # `sweep.clear`
             logic_sweep_run=1,
             logic_sweep_pause=int(params["sweep_pause"]),
@@ -187,8 +186,8 @@ class Registers:
                 }
             )
         else:
-            # display both demodulated error signals (if dual channel mode)
-            # OR: display demodulated error signal 1 + monitor signal
+            # display both demodulated error signals (if dual channel mode) OR: display
+            # demodulated error signal 1 + monitor signal
             new.update(
                 {
                     "scopegen_adc_a_sel": self.csr.signal("fast_a_out_i"),
@@ -217,7 +216,7 @@ class Registers:
         sweep_changed = params["sweep_speed"] != self._last_sweep_speed
         if sweep_changed:
             self._last_sweep_speed = params["sweep_speed"]
-            self.acquisition.set_sweep_speed(params["sweep_speed"])
+            self.acquisition_controller.set_sweep_speed(params["sweep_speed"])
 
         raw_acquisition_settings = (
             params["acquisition_raw_enabled"],
@@ -225,7 +224,7 @@ class Registers:
         )
         if raw_acquisition_settings != self._last_raw_acquisition_settings:
             self._last_raw_acquisition_settings = raw_acquisition_settings
-            self.acquisition.set_raw_acquisition(*raw_acquisition_settings)
+            self.acquisition_controller.set_raw_acquisition(*raw_acquisition_settings)
 
         fpga_base_freq = 125e6
 
@@ -240,9 +239,9 @@ class Registers:
             self.set(k, int(v))
 
         if not lock and sweep_changed:
-            # reset sweep for a short time if the scan range was changed
-            # this is needed because otherwise it may take too long before
-            # the new scan range is reached --> no scope trigger is sent
+            # reset sweep for a short time if the scan range was changed this is needed
+            # because otherwise it may take too long before the new scan range is
+            # reached --> no scope trigger is sent
             self.set("logic_sweep_run", 0)
             self.set("logic_sweep_run", 1)
 
@@ -297,10 +296,10 @@ class Registers:
                         )
 
                         # if the filter frequency is too low (< 10Hz), the IIR doesn't
-                        # work properly anymore. In that case, don't filter.
-                        # This is also helpful if the raw (not demodulated) signal
-                        # should be displayed which can be achieved by setting
-                        # modulation frequency to 0.
+                        # work properly anymore. In that case, don't filter. This is
+                        # also helpful if the raw (not demodulated) signal should be
+                        # displayed which can be achieved by setting modulation
+                        # frequency to 0.
                         if filter_frequency < 10:
                             filter_enabled = False
                     else:
@@ -368,11 +367,19 @@ class Registers:
             self.set("slow_chain_pid_reset", reset)
 
     def set(self, key, value):
-        self.acquisition.set_csr(key, value)
+        self.acquisition_controller.set_csr(key, value)
 
     def set_iir(self, iir_name, *args):
         if self._iir_cache.get(iir_name) != args:
-            # as setting iir parameters takes some time, take care that we don't
-            # do it too often
-            self.acquisition.set_iir_csr(iir_name, *args)
+            # as setting iir parameters takes some time, take care that we don't  do it
+            # too often
+            self.acquisition_controller.set_iir_csr(iir_name, *args)
             self._iir_cache[iir_name] = args
+
+
+def twos_complement(num, N_bits):
+    max_ = 1 << (N_bits - 1)
+    full = 2 * max_
+    if num < 0:
+        num += full
+    return num
