@@ -108,8 +108,10 @@ class RemoteParameters:
         super().__setattr__(name, value)
 
     def _mimic_remote_parameters(self, use_cache: bool):
-        """For every remote parameter, instanciate a `RemoteParameter` object
-        that allows to mimics the functionality of the remote parameter."""
+        """
+        For every remote parameter, instanciate a `RemoteParameter` object that allows
+        to mimics the functionality of the remote parameter.
+        """
         # when directly iterating over `exposed_init_parameter_sync`, each iteration
         # triggers a request as it is a netref over an iterator
         # --> the `list` call prevents this and improves startup performance
@@ -220,8 +222,9 @@ class RemoteParameters:
 
 
 class RemoteParameter:
-    """A helper class for `RemoteParameters`, representing a single remote
-    parameter."""
+    """
+    A helper class for `RemoteParameters`, representing a single remote parameter.
+    """
 
     def __init__(
         self,

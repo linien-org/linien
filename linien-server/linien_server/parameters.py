@@ -678,12 +678,12 @@ class ParameterStore:
 
     def save_parameters(self):
         """Gather all parameters and store them on disk."""
+
         print("save parameters")
         parameters = {}
-
-        for param_name in self.parameters._restorable_parameters:
-            param = getattr(self.parameters, param_name)
-            parameters[param_name] = param.value
+        for name, _ in self.parameters.get_all_restorable_parameters():
+            param = getattr(self.parameters, name)
+            parameters[name] = param.value
 
         try:
             with open(PARAMETER_STORE_FN, "wb") as f:
@@ -697,8 +697,8 @@ class ParameterStore:
                 )
         except PermissionError:
             # this may happen if the server doesn't run on RedPitaya but on the
-            # developer's machine. As it is not a critical problem, just print
-            # the exception and ignore it
+            # developer's machine. As it is not a critical problem, just print the
+            # exception and ignore it
             from traceback import print_exc
 
             print_exc()

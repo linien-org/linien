@@ -78,6 +78,9 @@ class BaseService(rpyc.Service):
     def exposed_init_parameter_sync(self, uuid):
         return pack(list(self.parameters.init_parameter_sync(uuid)))
 
+    def exposed_get_restorable_parameters(self):
+        return self.parameters.get_all_restorable_parameters()
+
     def exposed_register_remote_listener(self, uuid, param_name):
         return self.parameters.register_remote_listener(uuid, param_name)
 
@@ -260,9 +263,6 @@ class RedPitayaControlService(BaseService):
         # we use SystemExit instead of os._exit because we want to call atexit handlers
         raise SystemExit
 
-    def exposed_get_restorable_parameters(self):
-        return self.parameters._restorable_parameters
-
     def exposed_pause_acquisition(self):
         self.pause_acquisition()
 
@@ -336,9 +336,6 @@ class FakeRedPitayaControlService(BaseService):
     def exposed_start_optimization(self, x0, x1, spectrum):
         print("start optimization")
         self.parameters.optimization_running.value = True
-
-    def exposed_get_restorable_parameters(self):
-        return self.parameters._restorable_parameters
 
     def pause_acquisition(self):
         pass
