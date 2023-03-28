@@ -30,7 +30,7 @@ from linien_common.common import (
     Vpp,
     pack,
 )
-from linien_common.config import DEFAULT_COLORS, N_COLORS
+from linien_common.config import DEFAULT_COLORS
 
 
 class Parameter:
@@ -44,6 +44,7 @@ class Parameter:
         wrap=False,
         sync=True,
         collapsed_sync=True,
+        restorable=False,
     ):
         self.min = min_
         self.max = max_
@@ -53,6 +54,7 @@ class Parameter:
         self._listeners = set()
         self.exposed_can_be_cached = sync
         self._collapsed_sync = collapsed_sync
+        self.restorable = restorable
 
     @property
     def value(self):
@@ -118,67 +120,6 @@ class Parameters:
         self._remote_listener_queue = {}
         self._remote_listener_callbacks = {}
 
-        # parameters whose values are saved by the client and restored if the client
-        # connects to the RedPitaya with no server running:
-        self._restorable_parameters = (
-            "fast_mode",
-            "modulation_amplitude",
-            "modulation_frequency",
-            "sweep_speed",
-            "demodulation_phase_a",
-            "demodulation_multiplier_a",
-            "demodulation_phase_b",
-            "demodulation_multiplier_b",
-            "offset_a",
-            "offset_b",
-            "invert_a",
-            "invert_b",
-            "filter_1_enabled_a",
-            "filter_1_enabled_b",
-            "filter_1_frequency_a",
-            "filter_1_frequency_b",
-            "filter_1_type_a",
-            "filter_1_type_b",
-            "filter_2_enabled_a",
-            "filter_2_enabled_b",
-            "filter_2_frequency_a",
-            "filter_2_frequency_b",
-            "filter_2_type_a",
-            "filter_2_type_b",
-            "filter_automatic_a",
-            "filter_automatic_b",
-            "p",
-            "i",
-            "d",
-            "watch_lock",
-            "watch_lock_threshold",
-            "dual_channel",
-            "channel_mixing",
-            "pid_on_slow_enabled",
-            "pid_on_slow_strength",
-            "mod_channel",
-            "control_channel",
-            "sweep_channel",
-            "slow_control_channel",
-            "polarity_fast_out1",
-            "polarity_fast_out2",
-            "polarity_analog_out0",
-            "check_lock",
-            "analog_out_1",
-            "analog_out_2",
-            "analog_out_3",
-            "plot_line_width",
-            "plot_color_0",
-            "plot_color_1",
-            "plot_color_2",
-            "plot_color_3",
-            "plot_line_opacity",
-            "plot_fill_opacity",
-            "autolock_determine_offset",
-            "autolock_mode_preference",
-            "psd_acquisition_max_decimation",
-        )
-
         self.to_plot = Parameter(sync=False)
         """
         The `to_plot` parameter is a pickled dictionary that contains signalsvthat may
@@ -213,13 +154,13 @@ class Parameters:
 
         #           --------- GENERAL PARAMETERS ---------
 
-        self.mod_channel = Parameter(start=0, min_=0, max_=1)
+        self.mod_channel = Parameter(start=0, min_=0, max_=1, restorable=True)
         """
         Configures the output of the modulation frequency. A value of 0 means FAST OUT 1
         and a value of 1 corresponds to FAST OUT 2
         """
 
-        self.sweep_channel = Parameter(start=1, min_=0, max_=2)
+        self.sweep_channel = Parameter(start=1, min_=0, max_=2, restorable=True)
         """
         Configures the output of the scan sweep:
             0 --> FAST OUT 1
@@ -227,13 +168,13 @@ class Parameters:
             2 --> ANALOG OUT 0 (slow channel)
         """
 
-        self.control_channel = Parameter(start=1, min_=0, max_=1)
+        self.control_channel = Parameter(start=1, min_=0, max_=1, restorable=True)
         """
         Configures the output of the lock signal. A value of 0 means FAST OUT 1 and a
         value of 1 corresponds to FAST OUT 2
         """
 
-        self.slow_control_channel = Parameter(start=2, min_=0, max_=2)
+        self.slow_control_channel = Parameter(start=2, min_=0, max_=2, restorable=True)
         """
         Configures the output of the slow PID control:
             0 --> FAST OUT 1
@@ -255,19 +196,25 @@ class Parameters:
         """
 
         # ANALOG_OUT0 is used for slow PID --> it can't be controlled manually
-        self.analog_out_1 = Parameter(start=0, min_=0, max_=(2**15) - 1)
+        self.analog_out_1 = Parameter(
+            start=0, min_=0, max_=(2**15) - 1, restorable=True
+        )
         """
         parameters for setting ANALOG_OUT 1 voltage.
         Usage: `parameters.analog_out_1.value = 1.2 * ANALOG_OUT_V`
         Minimum value is 0 and maximum 1.8 * ANALOG_OUT_V
         """
-        self.analog_out_2 = Parameter(start=0, min_=0, max_=(2**15) - 1)
+        self.analog_out_2 = Parameter(
+            start=0, min_=0, max_=(2**15) - 1, restorable=True
+        )
         """
         parameters for setting ANALOG_OUT 1 voltage.
         Usage: `parameters.analog_out_2.value = 1.2 * ANALOG_OUT_V`
         Minimum value is 0 and maximum 1.8 * ANALOG_OUT_V
         """
-        self.analog_out_3 = Parameter(start=0, min_=0, max_=(2**15) - 1)
+        self.analog_out_3 = Parameter(
+            start=0, min_=0, max_=(2**15) - 1, restorable=True
+        )
         """
         parameters for setting ANALOG_OUT 1 voltage.
         Usage: `parameters.analog_out_3.value = 1.2 * ANALOG_OUT_V`
@@ -277,21 +224,21 @@ class Parameters:
         self.lock = Parameter(start=False)
         """If `True`, this parameter turns off the sweep and starts the PID"""
 
-        self.polarity_fast_out1 = Parameter(start=False)
+        self.polarity_fast_out1 = Parameter(start=False, restorable=True)
         """
         Defines whether tuning the voltage up correspond to tuning the laser frequency
         up or down. Setting these values correctly is only required when using both, a
         fast out and a the slow output for PID
         """
 
-        self.polarity_fast_out2 = Parameter(start=False)
+        self.polarity_fast_out2 = Parameter(start=False, restorable=True)
         """
         Defines whether tuning the voltage up correspond to tuning the laser frequency
         up or down. Setting these values correctly is only required when using both, a
         fast out and a the slow output for PID
         """
 
-        self.polarity_analog_out0 = Parameter(start=False)
+        self.polarity_analog_out0 = Parameter(start=False, restorable=True)
         """
         Defines whether tuning the voltage up correspond to tuning the laser frequency
         up or down. Setting these values correctly is only required when using both, a
@@ -345,7 +292,7 @@ class Parameters:
         [-1, +1] of this parameter is mapped to the interval [0V, +1.8V].
         """
 
-        self.sweep_speed = Parameter(min_=0, max_=32, start=8)
+        self.sweep_speed = Parameter(min_=0, max_=32, start=8, restorable=True)
         """
         The sweep speed in internal units. The actual speed is given by
         f_real = 3.8 kHz / (2 ** sweep_speed)
@@ -357,14 +304,18 @@ class Parameters:
 
         #           --------- MODULATION PARAMETERS ---------
 
-        self.modulation_amplitude = Parameter(min_=0, max_=(1 << 14) - 1, start=1 * Vpp)
+        self.modulation_amplitude = Parameter(
+            min_=0, max_=(1 << 14) - 1, start=1 * Vpp, restorable=True
+        )
         """
         The amplitude of the modulation in internal units. Use Vpp for conversion to
         volts peak-peak, e.g: `parameters.modulation_amplitude.value = 0.5 * Vpp`
         Values between 0 and 2 * Vpp are allowed.
         """
 
-        self.modulation_frequency = Parameter(min_=0, max_=0xFFFFFFFF, start=15 * MHz)
+        self.modulation_frequency = Parameter(
+            min_=0, max_=0xFFFFFFFF, start=15 * MHz, restorable=True
+        )
         """
         Frequency of the modulation in internal units. Use MHz for conversion to
         human-readable frequency, e.g:
@@ -375,18 +326,18 @@ class Parameters:
         """
 
         #           --------- DEMODULATION AND FILTER PARAMETERS ---------
-        self.fast_mode = Parameter(start=False)
+        self.fast_mode = Parameter(start=False, restorable=True)
         """
         Fast mode allows to bypass demodulation and IIR filtering of the fast channels.
         """
 
-        self.dual_channel = Parameter(start=False)
+        self.dual_channel = Parameter(start=False, restorable=True)
         """
         Linien allows for two simulataneous demodulation channels. By default, only one
         is enabled. This is controlled by `dual_channel`.
         """
 
-        self.channel_mixing = Parameter(start=0)
+        self.channel_mixing = Parameter(start=0, restorable=True)
         """
         If in dual channel mode, what is the mixing ratio between them? A value of 0
         corresponds to equal ratio
@@ -396,75 +347,132 @@ class Parameters:
         """
 
         # The following parameters exist twice, i.e. once per channel
-        for channel in ("a", "b"):
-            setattr(
-                self,
-                "demodulation_phase_%s" % channel,
-                Parameter(min_=0, max_=360, start=0x0, wrap=True),
-            )
-            """The demodulation phase in degree (0-360)"""
+        self.demodulation_phase_a = Parameter(
+            min_=0, max_=360, start=0x0, wrap=True, restorable=True
+        )
+        """The demodulation phase for channel A in degree (0-360)"""
 
-            setattr(
-                self,
-                "demodulation_multiplier_%s" % channel,
-                Parameter(min_=0, max_=15, start=1),
-            )
-            """
-            This parameter allows for multi-f (e.g. 3f or 5f) demodulation. Default
-            value is 1, indicating that 1f demodulation is used.
-            """
+        self.demodulation_phase_b = Parameter(
+            min_=0, max_=360, start=0x0, wrap=True, restorable=True
+        )
+        """The demodulation phase for channel B in degree (0-360)"""
 
-            setattr(
-                self, "offset_%s" % channel, Parameter(min_=-8191, max_=8191, start=0)
-            )
-            """
-            The vertical offset for a channel. A value of -8191 shifts the data down by
-            1V, a value of +8191 moves it up.
-            """
+        self.demodulation_multiplier_a = Parameter(
+            min_=0, max_=15, start=1, restorable=True
+        )
+        """
+        This parameter allows for multi-f (e.g. 3f or 5f) demodulation. Default value is
+        1, indicating that 1f demodulation is used.
+        """
 
-            setattr(self, "invert_%s" % channel, Parameter(start=False))
-            """A boolean indicating whether the channel data should be inverted."""
+        self.demodulation_multiplier_b = Parameter(
+            min_=0, max_=15, start=1, restorable=True
+        )
+        """
+        This parameter allows for multi-f (e.g. 3f or 5f) demodulation. Default value is
+        1, indicating that 1f demodulation is used.
+        """
 
-            # - -----   FILTER PARAMETERS   -----
-
-            setattr(self, "filter_automatic_%s" % channel, Parameter(start=True))
-            """
-            After demodulation of the signal, Linien may apply up to two IIR filters.
-            `filter_automatic` is a boolean indicating whether Linien should
-            automatically determine suitable filter for a given modulation frequency or
-            whether the user may configure the filters himself. If automatic mode is
-            enabled, two low pass filters are installed with a frequency of half the
-            modulation frequency.
+        self.offset_a = Parameter(min_=-8191, max_=8191, start=0, restorable=True)
+        """
+        The vertical offset for channel A. A value of -8191 shifts the data down by 1V,
+        a value of +8191 moves it up.
             """
 
-            for filter_i in (1, 2):
-                setattr(
-                    self,
-                    "filter_%d_enabled_%s" % (filter_i, channel),
-                    Parameter(start=False),
-                )
-                """
-                Should this filter be enabled? Note that disabling a filter does not
-                bypass it as this would change the propagation time of the signal
-                through the FPGA which is unfavorable as it leads to a mismatch of the
-                demodulation phase. Instead, a filter with unity gain is installed.
-                """
+        self.offset_b = Parameter(min_=-8191, max_=8191, start=0, restorable=True)
+        """
+        The vertical offset for channel B. A value of -8191 shifts the data down by 1V,
+        a value of +8191 moves it up.
+            """
 
-                setattr(
-                    self, "filter_%d_type_%s" % (filter_i, channel), Parameter(start=0)
-                )
-                """
-                Either `LOW_PASS_FILTER` or `HIGH_PASS_FILTER` from
-                linien_common.common` module."""
+        self.invert_a = Parameter(start=False, restorable=True)
+        """A boolean indicating whether the channel A data should be inverted."""
 
-                setattr(
-                    self,
-                    "filter_%d_frequency_%s" % (filter_i, channel),
-                    Parameter(start=10000),
-                )
-                """The filter frequency in units of Hz"""
+        self.invert_b = Parameter(start=False, restorable=True)
+        """A boolean indicating whether the channel B data should be inverted."""
 
-        #           --------- LOCK AND PID PARAMETERS ---------
+        # - -----   FILTER PARAMETERS   ------------------------------------------------
+        self.filter_automatic_a = Parameter(start=True, restorable=True)
+        """
+        After demodulation of the signal, Linien may apply up to two IIR filters.
+        `filter_automatic` is a boolean indicating whether Linien should automatically
+        determine suitable filter for a given modulation frequency or whether the user
+        may configure the filters himself. If automatic mode is enabled, two low pass
+        filters are installed with a frequency of half the modulation frequency.
+        """
+
+        self.filter_automatic_b = Parameter(start=True, restorable=True)
+        """
+        After demodulation of the signal, Linien may apply up to two IIR filters.
+        `filter_automatic` is a boolean indicating whether Linien should automatically
+        determine suitable filter for a given modulation frequency or whether the user
+        may configure the filters himself. If automatic mode is enabled, two low pass
+        filters are installed with a frequency of half the modulation frequency.
+        """
+
+        self.filter_1_enabled_a = Parameter(start=False, restorable=True)
+        """
+        Should this filter be enabled? Note that disabling a filter does not bypass it
+        as this would change the propagation time of the signal through the FPGA which
+        is unfavorable as it leads to a mismatch of the demodulation phase. Instead, a
+        filter with unity gain is installed.
+        """
+
+        self.filter_2_enabled_a = Parameter(start=False, restorable=True)
+        """
+        Should this filter be enabled? Note that disabling a filter does not bypass it
+        as this would change the propagation time of the signal through the FPGA which
+        is unfavorable as it leads to a mismatch of the demodulation phase. Instead, a
+        filter with unity gain is installed.
+        """
+
+        self.filter_1_enabled_b = Parameter(start=False, restorable=True)
+        """
+        Should this filter be enabled? Note that disabling a filter does not bypass it
+        as this would change the propagation time of the signal through the FPGA which
+        is unfavorable as it leads to a mismatch of the demodulation phase. Instead, a
+        filter with unity gain is installed.
+        """
+
+        self.filter_2_enabled_b = Parameter(start=False, restorable=True)
+        """
+        Should this filter be enabled? Note that disabling a filter does not bypass it
+        as this would change the propagation time of the signal through the FPGA which
+        is unfavorable as it leads to a mismatch of the demodulation phase. Instead, a
+        filter with unity gain is installed.
+        """
+
+        self.filter_1_frequency_a = Parameter(start=10000, restorable=True)
+        """The filter frequency in units of Hz"""
+
+        self.filter_2_frequency_a = Parameter(start=10000, restorable=True)
+        """The filter frequency in units of Hz"""
+
+        self.filter_1_frequency_b = Parameter(start=10000, restorable=True)
+        """The filter frequency in units of Hz"""
+
+        self.filter_2_frequency_b = Parameter(start=10000, restorable=True)
+        """The filter frequency in units of Hz"""
+
+        self.filter_1_type_a = Parameter(start=0, restorable=True)
+        """
+        Either `LOW_PASS_FILTER` or `HIGH_PASS_FILTER` of linien_common.common` module.
+        """
+
+        self.filter_2_type_a = Parameter(start=0, restorable=True)
+        """
+        Either `LOW_PASS_FILTER` or `HIGH_PASS_FILTER` of linien_common.common` module.
+        """
+
+        self.filter_1_type_b = Parameter(start=0, restorable=True)
+        """
+        Either `LOW_PASS_FILTER` or `HIGH_PASS_FILTER` of linien_common.common` module.
+        """
+        self.filter_2_type_b = Parameter(start=0, restorable=True)
+        """
+        Either `LOW_PASS_FILTER` or `HIGH_PASS_FILTER` of linien_common.common` module.
+        """
+        # ------------------- LOCK AND PID PARAMETERS ----------------------------------
 
         self.combined_offset = Parameter(min_=-8191, max_=8191, start=0)
         """
@@ -473,47 +481,49 @@ class Parameters:
         a value of -8191 shifts the data down by 1V, a value of +8191 moves it up.
         """
 
-        self.p = Parameter(start=50, max_=8191)
+        self.p = Parameter(start=50, max_=8191, restorable=True)
         """
         Proportional part of PID parameters. Range is [0, 8191]. In order to change sign
         of PID parameters, use `target_slope_rising`
         """
 
-        self.i = Parameter(start=5, max_=8191)
+        self.i = Parameter(start=5, max_=8191, restorable=True)
         """
-        Integral part of PID parameters. Range is [0, 8191]. In order to change sign
-        of PID parameters, use `target_slope_rising`
+        Integral part of PID parameters. Range is [0, 8191]. In order to change sign of
+        PID parameters, use `target_slope_rising`
         """
 
-        self.d = Parameter(start=0, max_=8191)
+        self.d = Parameter(start=0, max_=8191, restorable=True)
         """
-        Derivate part of PID parameters. Range is [0, 8191]. In order to change sign
-        of PID parameters, use `target_slope_rising`
+        Derivate part of PID parameters. Range is [0, 8191]. In order to change sign of
+        PID parameters, use `target_slope_rising`
         """
 
         self.target_slope_rising = Parameter(start=True)
         """A boolean that inverts the sign of the PID parameters"""
 
-        self.pid_on_slow_enabled = Parameter(start=False)
+        self.pid_on_slow_enabled = Parameter(start=False, restorable=True)
         """Whether the PID on ANALOG_OUT 0 is enabled."""
 
-        self.pid_on_slow_strength = Parameter(start=0)
+        self.pid_on_slow_strength = Parameter(start=0, restorable=True)
         """
         Strength of the (slow) PID on ANALOG_OUT 0. This strength corresponds to the
         strength of the integrator. Maximum value is 8191.
         """
 
-        self.check_lock = Parameter(start=True)
-        self.watch_lock = Parameter(start=True)
-        self.watch_lock_threshold = Parameter(start=0.01)
+        self.check_lock = Parameter(start=True, restorable=True)
+        self.watch_lock = Parameter(start=True, restorable=True)
+        self.watch_lock_threshold = Parameter(start=0.01, restorable=True)
 
-        #           --------- AUTOLOCK PARAMETERS ---------
+        # ------------------- AUTOLOCK PARAMETERS --------------------------------------
         # These parameters are used internally by the optimization algorithm and usually
         # should not be manipulated
         self.task = Parameter(start=None, sync=False)
         self.automatic_mode = Parameter(start=True)
         self.autolock_target_position = Parameter(start=0)
-        self.autolock_mode_preference = Parameter(start=AUTO_DETECT_AUTOLOCK_MODE)
+        self.autolock_mode_preference = Parameter(
+            start=AUTO_DETECT_AUTOLOCK_MODE, restorable=True
+        )
         self.autolock_mode = Parameter(start=FAST_AUTOLOCK)
         self.autolock_time_scale = Parameter(start=0)
         self.autolock_instructions = Parameter(start=[], sync=False)
@@ -526,10 +536,10 @@ class Parameters:
         self.autolock_failed = Parameter(start=False)
         self.autolock_locked = Parameter(start=False)
         self.autolock_retrying = Parameter(start=False)
-        self.autolock_determine_offset = Parameter(start=True)
+        self.autolock_determine_offset = Parameter(start=True, restorable=True)
         self.autolock_initial_sweep_amplitude = Parameter(start=1)
 
-        #           --------- OPTIMIZATION PARAMETERS ---------
+        #           --------- OPTIMIZATION PARAMETERS ----------------------------------
         # These parameters are used internally by the optimization algorithm and usually
         # should not be manipulated
         self.optimization_selection = Parameter(start=False)
@@ -566,19 +576,19 @@ class Parameters:
         self.psd_algorithm = Parameter(start=PSD_ALGORITHM_LPSD)
         self.psd_acquisition_running = Parameter(start=False)
         self.psd_optimization_running = Parameter(start=False)
-        self.psd_acquisition_max_decimation = Parameter(start=18, min_=1, max_=32)
+        self.psd_acquisition_max_decimation = Parameter(
+            start=18, min_=1, max_=32, restorable=True
+        )
 
         #           --------- PARAMETERS OF GUI ---------
-        self.plot_line_width = Parameter(start=2, min_=0.1, max_=100)
-        self.plot_line_opacity = Parameter(start=230, min_=0, max_=255)
-        self.plot_fill_opacity = Parameter(start=70, min_=0, max_=255)
+        self.plot_line_width = Parameter(start=2, min_=0.1, max_=100, restorable=True)
+        self.plot_line_opacity = Parameter(start=230, min_=0, max_=255, restorable=True)
+        self.plot_fill_opacity = Parameter(start=70, min_=0, max_=255, restorable=True)
 
-        for color_idx in range(N_COLORS):
-            setattr(
-                self,
-                "plot_color_%d" % color_idx,
-                Parameter(start=DEFAULT_COLORS[color_idx]),
-            )
+        self.plot_color_0 = Parameter(start=DEFAULT_COLORS[0], restorable=True)
+        self.plot_color_1 = Parameter(start=DEFAULT_COLORS[1], restorable=True)
+        self.plot_color_2 = Parameter(start=DEFAULT_COLORS[2], restorable=True)
+        self.plot_color_3 = Parameter(start=DEFAULT_COLORS[3], restorable=True)
 
     def __iter__(self):
         for name, param in self.get_all_parameters():
@@ -587,6 +597,11 @@ class Parameters:
     def get_all_parameters(self):
         for name, element in self.__dict__.items():
             if isinstance(element, Parameter):
+                yield name, element
+
+    def get_all_restorable_parameters(self):
+        for name, element in self.get_all_parameters(self):
+            if name in self._restorable_parameters:
                 yield name, element
 
     def init_parameter_sync(self, uuid):
