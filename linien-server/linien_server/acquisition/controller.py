@@ -69,9 +69,6 @@ class AcquisitionController:
 
         atexit.register(self.shutdown)
 
-    def run_data_acquisition(self, on_new_data_received):
-        self.on_new_data_received = on_new_data_received
-
     def receive_acquired_data(self, conn):
         while True:
             is_raw, received_data, data_uuid = conn.recv()
