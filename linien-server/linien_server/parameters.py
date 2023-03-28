@@ -32,6 +32,8 @@ from linien_common.common import (
 )
 from linien_common.config import DEFAULT_COLORS
 
+PARAMETER_STORE_FN = "/linien_parameters.pickle"
+
 
 class Parameter:
     """Represents a single parameter and is used by `Parameters`."""
@@ -643,21 +645,12 @@ class Parameters:
         already_has_value = []
         for idx in reversed(range(len(queue))):
             param_name, value = queue[idx]
-            if self._get_param(param_name)._collapsed_sync:
+            if getattr(self, param_name)._collapsed_sync:
                 if param_name in already_has_value:
                     del queue[idx]
                 else:
                     already_has_value.append(param_name)
-
         return pack(queue)
-
-    def _get_param(self, param_name):
-        param = getattr(self, param_name)
-        assert isinstance(param, Parameter)
-        return param
-
-
-PARAMETER_STORE_FN = "/linien_parameters.pickle"
 
 
 class ParameterStore:
