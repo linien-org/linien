@@ -30,10 +30,6 @@ from linien_common.config import ACQUISITION_PORT
 from linien_server.acquisition.service import AcquisitionService
 
 
-class AcquisitionConnectionError(Exception):
-    pass
-
-
 class AcquisitionProcessSignals(Enum):
     SHUTDOWN = 0
     SET_SWEEP_SPEED = 2
