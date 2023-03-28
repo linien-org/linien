@@ -51,32 +51,32 @@ class AcquisitionController:
     def __init__(self, use_ssh, host):
         self.on_new_data_received = None
 
-        def receive_acquired_data(conn):
-            while True:
-                is_raw, received_data, data_uuid = conn.recv()
-                if self.on_new_data_received is not None:
-                    self.on_new_data_received(is_raw, received_data, data_uuid)
-
         self.parent_conn, child_conn = Pipe()
-        process = Process(
+        acqusition_service_process = Process(
             target=self.connect_acquisition_service, args=(child_conn, use_ssh, host)
         )
-        process.daemon = True
-        process.start()
+        acqusition_service_process.daemon = True
+        acqusition_service_process.start()
 
         # wait until connection is established
         self.parent_conn.recv()
 
-        thread = threading.Thread(
-            target=receive_acquired_data, args=(self.parent_conn,)
+        receive_data_thread = threading.Thread(
+            target=self.receive_acquired_data, args=(self.parent_conn,)
         )
-        thread.daemon = True
-        thread.start()
+        receive_data_thread.daemon = True
+        receive_data_thread.start()
 
         atexit.register(self.shutdown)
 
     def run_data_acquisition(self, on_new_data_received):
         self.on_new_data_received = on_new_data_received
+
+    def receive_acquired_data(self, conn):
+        while True:
+            is_raw, received_data, data_uuid = conn.recv()
+            if self.on_new_data_received is not None:
+                self.on_new_data_received(is_raw, received_data, data_uuid)
 
     def connect_acquisition_service(self, pipe, use_ssh, host):
         if use_ssh:
@@ -136,6 +136,12 @@ class AcquisitionController:
 
             sleep(0.05)
 
+    def pause_acquisition(self):
+        self.parent_conn.send((AcquisitionProcessSignals.PAUSE_ACQUISIITON, True))
+
+    def continue_acquisition(self, uuid):
+        self.parent_conn.send((AcquisitionProcessSignals.CONTINUE_ACQUISITION, uuid))
+
     def shutdown(self):
         if self.parent_conn:
             self.parent_conn.send((AcquisitionProcessSignals.SHUTDOWN,))
@@ -157,12 +163,6 @@ class AcquisitionController:
 
     def set_iir_csr(self, *args):
         self.parent_conn.send((AcquisitionProcessSignals.SET_IIR_CSR, args))
-
-    def pause_acquisition(self):
-        self.parent_conn.send((AcquisitionProcessSignals.PAUSE_ACQUISIITON, True))
-
-    def continue_acquisition(self, uuid):
-        self.parent_conn.send((AcquisitionProcessSignals.CONTINUE_ACQUISITION, uuid))
 
     def set_raw_acquisition(self, enabled, decimation=None):
         if decimation is None:
