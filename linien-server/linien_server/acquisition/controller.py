@@ -80,12 +80,12 @@ class AcquisitionController:
             # for debugging, acquisition process may be launched manually on the server
             # and rpyc can be used to connect to it
             acquisition_rpyc = rpyc.connect(host, ACQUISITION_PORT)
-            acquisition = acquisition_rpyc.root
+            acquisition_service = acquisition_rpyc.root
         else:
             # This is what happens in production mode
             stop_nginx()
             flash_fpga()
-            acquisition = AcquisitionService()
+            acquisition_service = AcquisitionService()
 
         # tell the main thread that we're ready
         pipe.send(True)
@@ -101,23 +101,23 @@ class AcquisitionController:
                     raise SystemExit()
                 elif data[0] == AcquisitionProcessSignals.SET_SWEEP_SPEED:
                     speed = data[1]
-                    acquisition.exposed_set_sweep_speed(speed)
+                    acquisition_service.exposed_set_sweep_speed(speed)
                 elif data[0] == AcquisitionProcessSignals.SET_LOCK_STATUS:
-                    acquisition.exposed_set_lock_status(data[1])
+                    acquisition_service.exposed_set_lock_status(data[1])
                 elif data[0] == AcquisitionProcessSignals.FETCH_QUADRATURES:
-                    acquisition.exposed_set_fetch_additional_signals(data[1])
+                    acquisition_service.exposed_set_fetch_additional_signals(data[1])
                 elif data[0] == AcquisitionProcessSignals.SET_RAW_ACQUISITION:
-                    acquisition.exposed_set_raw_acquisition(data[1])
+                    acquisition_service.exposed_set_raw_acquisition(data[1])
                 elif data[0] == AcquisitionProcessSignals.SET_DUAL_CHANNEL:
-                    acquisition.exposed_set_dual_channel(data[1])
+                    acquisition_service.exposed_set_dual_channel(data[1])
                 elif data[0] == AcquisitionProcessSignals.SET_CSR:
-                    acquisition.exposed_set_csr(*data[1])
+                    acquisition_service.exposed_set_csr(*data[1])
                 elif data[0] == AcquisitionProcessSignals.SET_IIR_CSR:
-                    acquisition.exposed_set_iir_csr(*data[1])
+                    acquisition_service.exposed_set_iir_csr(*data[1])
                 elif data[0] == AcquisitionProcessSignals.PAUSE_ACQUISIITON:
-                    acquisition.exposed_pause_acquisition()
+                    acquisition_service.exposed_pause_acquisition()
                 elif data[0] == AcquisitionProcessSignals.CONTINUE_ACQUISITION:
-                    acquisition.exposed_continue_acquisition(data[1])
+                    acquisition_service.exposed_continue_acquisition(data[1])
 
             # load acquired data and send it to the main thread
             (
@@ -126,7 +126,7 @@ class AcquisitionController:
                 data_was_raw,
                 new_data,
                 data_uuid,
-            ) = acquisition.exposed_return_data(last_hash)
+            ) = acquisition_service.exposed_return_data(last_hash)
             if new_data_returned:
                 last_hash = new_hash
                 pipe.send((data_was_raw, new_data, data_uuid))
@@ -147,11 +147,11 @@ class AcquisitionController:
     def set_sweep_speed(self, speed):
         self.parent_conn.send((AcquisitionProcessSignals.SET_SWEEP_SPEED, speed))
 
-    def lock_status_changed(self, status):
+    def set_lock_status(self, status):
         if self.parent_conn:
             self.parent_conn.send((AcquisitionProcessSignals.SET_LOCK_STATUS, status))
 
-    def fetch_additional_signals_changed(self, status):
+    def fetch_additional_signals(self, status):
         if self.parent_conn:
             self.parent_conn.send((AcquisitionProcessSignals.FETCH_QUADRATURES, status))
 
@@ -161,9 +161,7 @@ class AcquisitionController:
     def set_iir_csr(self, *args):
         self.parent_conn.send((AcquisitionProcessSignals.SET_IIR_CSR, args))
 
-    def set_raw_acquisition(self, enabled, decimation=None):
-        if decimation is None:
-            decimation = 0
+    def set_raw_acquisition(self, enabled, decimation=0):
         self.parent_conn.send(
             (AcquisitionProcessSignals.SET_RAW_ACQUISITION, (enabled, decimation))
         )

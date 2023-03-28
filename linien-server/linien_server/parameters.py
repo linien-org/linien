@@ -51,8 +51,8 @@ class Parameter:
         self._value = start
         self._start = start
         self._listeners = set()
-        self._collapsed_sync = collapsed_sync
         self.exposed_can_be_cached = sync
+        self._collapsed_sync = collapsed_sync
 
     @property
     def value(self):
@@ -80,15 +80,15 @@ class Parameter:
             if self._value is not None:
                 function(self._value)
 
+    def register_remote_listener(self, remote_uuid):
+        pass
+
     def remove_listener(self, function):
         if function in self._listeners:
             self._listeners.remove(function)
 
     def exposed_reset(self):
         self.value = self._start
-
-    def register_remote_listener(self, remote_uuid):
-        pass
 
 
 class Parameters:
@@ -590,9 +590,11 @@ class Parameters:
                 yield name, element
 
     def init_parameter_sync(self, uuid):
-        """To be called by a remote client: Yields all parameters as well
-        as their values and if the parameters are suited to be cached registers
-        a listener that pushes changes of these parameters to the client."""
+        """
+        To be called by a remote client: Yields all parameters as well as their values
+        and if the parameters are suited to be cached registers a listener that pushes
+        changes of these parameters to the client.
+        """
         for name, element in self.get_all_parameters():
             yield name, element, element.value, element.exposed_can_be_cached
             if element.exposed_can_be_cached:
