@@ -27,6 +27,7 @@ from time import sleep
 
 import rpyc
 from linien_common.config import ACQUISITION_PORT
+from linien_server.acquisition_process import AcquisitionService
 
 
 class AcquisitionConnectionError(Exception):
@@ -46,7 +47,7 @@ class AcquisitionProcessSignals(Enum):
     SET_DUAL_CHANNEL = 9
 
 
-class AcquisitionMaster:
+class AcquisitionController:
     def __init__(self, use_ssh, host):
         self.on_new_data_received = None
 
@@ -58,7 +59,7 @@ class AcquisitionMaster:
 
         self.parent_conn, child_conn = Pipe()
         process = Process(
-            target=self.connect_acquisition_process, args=(child_conn, use_ssh, host)
+            target=self.connect_acquisition_service, args=(child_conn, use_ssh, host)
         )
         process.daemon = True
         process.start()
@@ -77,7 +78,7 @@ class AcquisitionMaster:
     def run_data_acquisition(self, on_new_data_received):
         self.on_new_data_received = on_new_data_received
 
-    def connect_acquisition_process(self, pipe, use_ssh, host):
+    def connect_acquisition_service(self, pipe, use_ssh, host):
         if use_ssh:
             # for debugging, acquisition process may be launched manually on the server
             # and rpyc can be used to connect to it
@@ -85,11 +86,9 @@ class AcquisitionMaster:
             acquisition = acquisition_rpyc.root
         else:
             # This is what happens in production mode
-            from linien_server.acquisition_process import DataAcquisitionService
-
             stop_nginx()
             flash_fpga()
-            acquisition = DataAcquisitionService()
+            acquisition = AcquisitionService()
 
         # tell the main thread that we're ready
         pipe.send(True)
@@ -140,7 +139,6 @@ class AcquisitionMaster:
     def shutdown(self):
         if self.parent_conn:
             self.parent_conn.send((AcquisitionProcessSignals.SHUTDOWN,))
-
         start_nginx()
 
     def set_sweep_speed(self, speed):

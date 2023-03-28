@@ -38,7 +38,7 @@ def shutdown():
     os._exit(0)
 
 
-class DataAcquisitionService(Service):
+class AcquisitionService(Service):
     def __init__(self):
         self.red_pitaya = RedPitaya()
         self.csr = PythonCSR(self.red_pitaya)
@@ -50,7 +50,7 @@ class DataAcquisitionService(Service):
         self.data_hash = None
         self.data_uuid = None
 
-        super(DataAcquisitionService, self).__init__()
+        super(AcquisitionService, self).__init__()
 
         self.locked = False
         self.exposed_set_sweep_speed(9)
@@ -278,5 +278,5 @@ class DataAcquisitionService(Service):
 
 
 if __name__ == "__main__":
-    t = OneShotServer(DataAcquisitionService(), port=ACQUISITION_PORT)
+    t = OneShotServer(AcquisitionService(), port=ACQUISITION_PORT)
     t.start()

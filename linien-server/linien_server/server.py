@@ -140,7 +140,9 @@ class RedPitayaControlService(BaseService):
                     self.parameters.acquisition_raw_data.value = plot_data
 
         # each time new data is acquired, this function is called
-        self.registers.acquisition.on_new_data_received = on_new_data_received
+        self.registers.acquisition_controller.on_new_data_received = (
+            on_new_data_received
+        )
         self.pause_acquisition()
         self.continue_acquisition()
 
@@ -240,7 +242,7 @@ class RedPitayaControlService(BaseService):
 
     def exposed_shutdown(self):
         """Kills the server."""
-        self.registers.acquisition.shutdown()
+        self.registers.acquisition_controller.shutdown()
         _thread.interrupt_main()
         # we use SystemExit instead of os._exit because we want to call atexit
         # handlers
@@ -272,14 +274,14 @@ class RedPitayaControlService(BaseService):
         `continue_acquisition`."""
         self.parameters.pause_acquisition.value = True
         self.data_uuid = random()
-        self.registers.acquisition.pause_acquisition()
+        self.registers.acquisition_controller.pause_acquisition()
 
     def continue_acquisition(self):
         """Continue acquisition after a short delay, when we are sure that the
         new parameters values have been written to the FPGA and that data that
         is now recorded is recorded with the correct parameters."""
         self.parameters.pause_acquisition.value = False
-        self.registers.acquisition.continue_acquisition(self.data_uuid)
+        self.registers.acquisition_controller.continue_acquisition(self.data_uuid)
 
 
 class FakeRedPitayaControl(BaseService):

@@ -26,7 +26,7 @@ from linien_common.common import (
 )
 from linien_common.config import DEFAULT_SWEEP_SPEED
 
-from .acquisition import AcquisitionMaster
+from .acquisition.controller import AcquisitionController
 from .csr import PitayaCSR
 from .iir_coeffs import make_filter
 
@@ -43,7 +43,7 @@ class Registers:
         self.host = host
         self.user = user
         self.password = password
-        self.acquisition = None
+        self.acquisition_controller = None
 
         self._last_sweep_speed = None
         self._last_raw_acquisition_settings = None
@@ -57,27 +57,27 @@ class Registers:
         self.csr = PitayaCSR()
 
         def lock_status_changed(v):
-            if self.acquisition is not None:
-                self.acquisition.lock_status_changed(v)
+            if self.acquisition_controller is not None:
+                self.acquisition_controller.lock_status_changed(v)
 
         self.parameters.lock.on_change(lock_status_changed)
 
         def fetch_additional_signals_changed(v):
-            if self.acquisition is not None:
-                self.acquisition.fetch_additional_signals_changed(v)
+            if self.acquisition_controller is not None:
+                self.acquisition_controller.fetch_additional_signals_changed(v)
 
         self.parameters.fetch_additional_signals.on_change(
             fetch_additional_signals_changed
         )
 
         def dual_channel_changed(dual_channel):
-            if self.acquisition is not None:
-                self.acquisition.set_dual_channel(dual_channel)
+            if self.acquisition_controller is not None:
+                self.acquisition_controller.set_dual_channel(dual_channel)
 
         self.parameters.dual_channel.on_change(dual_channel_changed)
 
         use_ssh = self.host is not None and self.host not in ("localhost", "127.0.0.1")
-        self.acquisition = AcquisitionMaster(use_ssh, self.host)
+        self.acquisition_controller = AcquisitionController(use_ssh, self.host)
 
     def write_registers(self):
         """Writes data from `parameters` to the FPGA."""
@@ -216,7 +216,7 @@ class Registers:
         sweep_changed = params["sweep_speed"] != self._last_sweep_speed
         if sweep_changed:
             self._last_sweep_speed = params["sweep_speed"]
-            self.acquisition.set_sweep_speed(params["sweep_speed"])
+            self.acquisition_controller.set_sweep_speed(params["sweep_speed"])
 
         raw_acquisition_settings = (
             params["acquisition_raw_enabled"],
@@ -224,7 +224,7 @@ class Registers:
         )
         if raw_acquisition_settings != self._last_raw_acquisition_settings:
             self._last_raw_acquisition_settings = raw_acquisition_settings
-            self.acquisition.set_raw_acquisition(*raw_acquisition_settings)
+            self.acquisition_controller.set_raw_acquisition(*raw_acquisition_settings)
 
         fpga_base_freq = 125e6
 
@@ -367,13 +367,13 @@ class Registers:
             self.set("slow_chain_pid_reset", reset)
 
     def set(self, key, value):
-        self.acquisition.set_csr(key, value)
+        self.acquisition_controller.set_csr(key, value)
 
     def set_iir(self, iir_name, *args):
         if self._iir_cache.get(iir_name) != args:
             # as setting iir parameters takes some time, take care that we don't
             # do it too often
-            self.acquisition.set_iir_csr(iir_name, *args)
+            self.acquisition_controller.set_iir_csr(iir_name, *args)
             self._iir_cache[iir_name] = args
 
 
