@@ -600,8 +600,8 @@ class Parameters:
                 yield name, element
 
     def get_all_restorable_parameters(self):
-        for name, element in self.get_all_parameters(self):
-            if name in self._restorable_parameters:
+        for name, element in self.get_all_parameters():
+            if element.restorable:
                 yield name, element
 
     def init_parameter_sync(self, uuid):
