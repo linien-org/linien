@@ -304,7 +304,7 @@ class Parameters:
         self.sweep_pause = Parameter(start=False)
         """If set to `True`, this parameter pauses the sweep at the `sweep_center`."""
 
-        #           --------- MODULATION PARAMETERS ---------
+        # ------------------- MODULATION PARAMETERS ------------------------------------
 
         self.modulation_amplitude = Parameter(
             min_=0, max_=(1 << 14) - 1, start=1 * Vpp, restorable=True
@@ -327,7 +327,7 @@ class Parameters:
         the DAC.
         """
 
-        #           --------- DEMODULATION AND FILTER PARAMETERS ---------
+        # ------------------- DEMODULATION AND FILTER PARAMETERS -----------------------
         self.fast_mode = Parameter(start=False, restorable=True)
         """
         Fast mode allows to bypass demodulation and IIR filtering of the fast channels.
@@ -393,7 +393,7 @@ class Parameters:
         self.invert_b = Parameter(start=False, restorable=True)
         """A boolean indicating whether the channel B data should be inverted."""
 
-        # - -----   FILTER PARAMETERS   ------------------------------------------------
+        # -------   FILTER PARAMETERS   ------------------------------------------------
         self.filter_automatic_a = Parameter(start=True, restorable=True)
         """
         After demodulation of the signal, Linien may apply up to two IIR filters.
@@ -541,7 +541,7 @@ class Parameters:
         self.autolock_determine_offset = Parameter(start=True, restorable=True)
         self.autolock_initial_sweep_amplitude = Parameter(start=1)
 
-        #           --------- OPTIMIZATION PARAMETERS ----------------------------------
+        # ------------------- OPTIMIZATION PARAMETERS ----------------------------------
         # These parameters are used internally by the optimization algorithm and usually
         # should not be manipulated
         self.optimization_selection = Parameter(start=False)
@@ -558,7 +558,7 @@ class Parameters:
         self.optimization_channel = Parameter(start=0)
         self.optimization_failed = Parameter(start=False)
 
-        #           --------- PID OPTIMIZATION PARAMETERS ---------
+        # ------------------- PID OPTIMIZATION PARAMETERS ------------------------------
         # These parameters are used internally by the optimization algorithm and usually
         # should not be manipulated
         self.acquisition_raw_enabled = Parameter(start=False)
@@ -582,7 +582,7 @@ class Parameters:
             start=18, min_=1, max_=32, restorable=True
         )
 
-        #           --------- PARAMETERS OF GUI ---------
+        # ------------------- PARAMETERS OF GUI ----------------------------------------
         self.plot_line_width = Parameter(start=2, min_=0.1, max_=100, restorable=True)
         self.plot_line_opacity = Parameter(start=230, min_=0, max_=255, restorable=True)
         self.plot_fill_opacity = Parameter(start=70, min_=0, max_=255, restorable=True)
@@ -654,8 +654,10 @@ class Parameters:
 
 
 class ParameterStore:
-    """This class installs an `atexit` listener that persists parameters to disk
-    when the server shuts down. Once it restarts the parameters are restored."""
+    """
+    This class installs an `atexit` listener that persists parameters to disk when the
+    server shuts down. Once it restarts the parameters are restored.
+    """
 
     def __init__(self, parameters):
         self.parameters = parameters
@@ -667,8 +669,10 @@ class ParameterStore:
         atexit.register(self.save_parameters)
 
     def restore_parameters(self):
-        """When the server starts, this method restores previously saved
-        parameters (if any)."""
+        """
+        When the server starts, this method restores previously saved parameters (if
+        any).
+        """
         try:
             with open(PARAMETER_STORE_FN, "rb") as f:
                 data = pickle.load(f)
