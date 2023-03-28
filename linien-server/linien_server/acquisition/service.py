@@ -30,7 +30,7 @@ from pyrp3.board import RedPitaya
 from rpyc import Service
 from rpyc.utils.server import OneShotServer
 
-from .csr import PythonCSR
+from ..csr import PythonCSR
 
 
 def shutdown():

@@ -27,7 +27,7 @@ from time import sleep
 
 import rpyc
 from linien_common.config import ACQUISITION_PORT
-from linien_server.acquisition_process import AcquisitionService
+from linien_server.acquisition.service import AcquisitionService
 
 
 class AcquisitionConnectionError(Exception):

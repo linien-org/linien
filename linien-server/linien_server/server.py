@@ -21,7 +21,7 @@ import os
 import pickle
 import sys
 import threading
-from random import random
+from random import randint, random
 from time import sleep
 
 import click
@@ -43,6 +43,7 @@ from linien_server.pid_optimization.pid_optimization import (
     PIDOptimization,
     PSDAcquisition,
 )
+from linien_server.registers import Registers
 from rpyc.utils.authenticators import AuthenticationError
 from rpyc.utils.server import ThreadedServer
 
@@ -64,6 +65,9 @@ class BaseService(rpyc.Service):
     def on_disconnect(self, client):
         uuid = self._uuid_mapping[client]
         self.parameters.unregister_remote_listeners(uuid)
+
+    def exposed_get_server_version(self):
+        return __version__
 
     def exposed_get_param(self, param_name):
         return pack(self.parameters._get_param(param_name).value)
@@ -94,19 +98,19 @@ class RedPitayaControlService(BaseService):
 
         super().__init__()
 
-        from linien_server.registers import Registers
-
         self.registers = Registers(**kwargs)
         self.registers.connect(self, self.parameters)
 
     def run_acquiry_loop(self):
-        """Starts a background process that keeps polling control and error
-        signal. Every received value is pushed to `parameters.to_plot`."""
+        """
+        Startsa background process that keeps polling control and error signal. Every
+        received value is pushed to `parameters.to_plot`.
+        """
 
         def on_new_data_received(is_raw, plot_data, data_uuid):
-            # When a parameter is changed, `pause_acquisition` is set.
-            # This means that the we should skip new data until we are sure that
-            # it was recorded with the new settings.
+            # When a parameter is changed, `pause_acquisition` is set. This means that
+            # the we should skip new data until we are sure that it was recorded with
+            # the new settings.
             if not self.parameters.pause_acquisition.value:
                 if data_uuid != self.data_uuid:
                     return
@@ -241,17 +245,11 @@ class RedPitayaControlService(BaseService):
         self.continue_acquisition()
 
     def exposed_shutdown(self):
-        """Kills the server."""
+        """Kill the server."""
         self.registers.acquisition_controller.shutdown()
         _thread.interrupt_main()
-        # we use SystemExit instead of os._exit because we want to call atexit
-        # handlers
+        # we use SystemExit instead of os._exit because we want to call atexit handlers
         raise SystemExit
-
-    def exposed_get_server_version(self):
-        import linien_server
-
-        return linien_server.__version__
 
     def exposed_get_restorable_parameters(self):
         return self.parameters._restorable_parameters
@@ -263,28 +261,34 @@ class RedPitayaControlService(BaseService):
         self.continue_acquisition()
 
     def exposed_set_csr_direct(self, k, v):
-        """Directly sets a CSR register. This method is intended for debugging.
-        Normally, the FPGA should be controlled via manipulation of parameters."""
+        """
+        Directly sets a CSR register. This method is intended for debugging. Normally,
+        the FPGA should be controlled via manipulation of parameters.
+        """
         self.registers.set(k, v)
 
     def pause_acquisition(self):
-        """Pause continuous acquisition. Call this before changing a parameter
-        that alters the error / control signal. This way, no inconsistent signals
-        reach the application. After setting the new parameter values, call
-        `continue_acquisition`."""
+        """
+        Pause continuous acquisition. Call this before changing a parameter that alters
+        the error / control signal. This way, no inconsistent signals reach the
+        application. After setting the new parameter values, call
+        `continue_acquisition`.
+        """
         self.parameters.pause_acquisition.value = True
         self.data_uuid = random()
         self.registers.acquisition_controller.pause_acquisition()
 
     def continue_acquisition(self):
-        """Continue acquisition after a short delay, when we are sure that the
-        new parameters values have been written to the FPGA and that data that
-        is now recorded is recorded with the correct parameters."""
+        """
+        Continue acquisition after a short delay, when we are sure that the new
+        parameters values have been written to the FPGA and that data that is now
+        recorded is recorded with the correct parameters.
+        """
         self.parameters.pause_acquisition.value = False
         self.registers.acquisition_controller.continue_acquisition(self.data_uuid)
 
 
-class FakeRedPitayaControl(BaseService):
+class FakeRedPitayaControlService(BaseService):
     def __init__(self):
         super().__init__()
         self.exposed_is_locked = None
@@ -293,10 +297,6 @@ class FakeRedPitayaControl(BaseService):
         pass
 
     def run_acquiry_loop(self):
-        import threading
-        from random import randint
-        from time import sleep
-
         def run():
             while True:
                 max_ = randint(0, 8191)
@@ -332,11 +332,6 @@ class FakeRedPitayaControl(BaseService):
     def exposed_get_restorable_parameters(self):
         return self.parameters._restorable_parameters
 
-    def exposed_get_server_version(self):
-        import linien_server
-
-        return linien_server.__version__
-
     def pause_acquisition(self):
         pass
 
@@ -363,7 +358,7 @@ def run_server(port, fake=False, remote_rp=False):
 
     if fake:
         print("starting fake server")
-        control = FakeRedPitayaControl()
+        control = FakeRedPitayaControlService()
     else:
         if remote_rp is not None:
             assert (
@@ -391,12 +386,12 @@ def run_server(port, fake=False, remote_rp=False):
         # variable
         secret = os.environ.get("LINIEN_AUTH_HASH")
 
-        # client always sends auth hash, even if we run in non-auth mode
-        # --> always read 64 bytes, otherwise rpyc connection can't be established
+        # client always sends auth hash, even if we run in non-auth mode --> always read
+        # 64 bytes, otherwise rpyc connection can't be established
         received = sock.recv(64)
 
-        # as a protection against brute force, we don't accept requests after
-        # too many failed auth requests
+        # as a protection against brute force, we don't accept requests after too many
+        # failed auth requests
         if failed_auth_counter["c"] > 1000:
             print("received too many failed auth requests!")
             sys.exit(1)
