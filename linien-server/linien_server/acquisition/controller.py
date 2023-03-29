@@ -27,7 +27,6 @@ from time import sleep
 
 import rpyc
 from linien_common.config import ACQUISITION_PORT
-from linien_server.acquisition.service import AcquisitionService
 
 
 class AcquisitionProcessSignals(Enum):
@@ -79,6 +78,8 @@ class AcquisitionController:
             acquisition_service = acquisition_rpyc.root
         else:
             # This is what happens in production mode
+            from linien_server.acquisition.service import AcquisitionService
+
             stop_nginx()
             flash_fpga()
             acquisition_service = AcquisitionService()
