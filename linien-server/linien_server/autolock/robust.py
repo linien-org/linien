@@ -34,7 +34,6 @@ from linien_server.autolock.utils import (
     sign,
     sum_up_spectrum,
 )
-from linien_server.utils import sweep_speed_to_time
 
 
 class LockPositionNotFound(Exception):
@@ -275,3 +274,12 @@ def get_lock_position_from_autolock_instructions(
                 return idx + final_wait_time
 
     raise LockPositionNotFound()
+
+
+def sweep_speed_to_time(sweep_speed):
+    """Sweep speed is an arbitrary unit (cf. `parameters.py`).
+    This function converts it to the duration of the sweep in seconds.
+    """
+    f_real = 3.8e3 / (2**sweep_speed)
+    duration = 1 / f_real
+    return duration

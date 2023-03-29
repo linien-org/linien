@@ -21,9 +21,10 @@ import traceback
 
 import numpy as np
 from linien_common.common import determine_shift_by_correlation, get_lock_point
-from linien_server.approach_line import Approacher
-from linien_server.optimization.engine import OptimizerEngine
-from linien_server.optimization.utils import FINAL_ZOOM_FACTOR
+
+from .approach_line import Approacher
+from .engine import OptimizerEngine
+from .utils import FINAL_ZOOM_FACTOR
 
 
 class OptimizeSpectroscopy:
