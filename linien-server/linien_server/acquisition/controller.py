@@ -176,5 +176,5 @@ def start_nginx():
 
 
 def flash_fpga():
-    filepath = Path(__file__).parent / "linien.bin"
+    filepath = Path(__file__).parents[1] / "linien.bin"
     shutil.copy(str(filepath.resolve()), "/dev/xdevcfg")
