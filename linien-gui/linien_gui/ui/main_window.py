@@ -84,6 +84,72 @@ class MainWindow(QtWidgets.QMainWindow):
         self.control = self.app.control
         self.parameters = self.app.parameters
 
+        self.parameters.lock.on_change(self.change_sweep_control_visibility)
+        self.parameters.autolock_running.on_change(self.change_sweep_control_visibility)
+        self.parameters.optimization_running.on_change(
+            self.change_sweep_control_visibility
+        )
+
+        self.parameters.to_plot.on_change(self.update_std)
+
+        self.parameters.pid_on_slow_enabled.on_change(
+            lambda v: self.legend_slow_signal_history.setVisible(v)
+        )
+        self.parameters.dual_channel.on_change(
+            lambda v: self.legend_monitor_signal_history.setVisible(not v)
+        )
+
+        self.settings_toolbox.setCurrentIndex(0)
+
+        self.parameters.lock.on_change(lambda *args: self.reset_std_history())
+
+        for color_idx in range(N_COLORS):
+            getattr(self.parameters, f"plot_color_{color_idx}").on_change(
+                self.update_legend_color
+            )
+
+        self.parameters.dual_channel.on_change(self.update_legend_text)
+
+    def change_sweep_control_visibility(self, *args):
+        al_running = self.parameters.autolock_running.value
+        optimization = self.parameters.optimization_running.value
+        locked = self.parameters.lock.value
+
+        self.sweepControlWidget.setVisible(
+            not al_running and not locked and not optimization
+        )
+        self.top_lock_panel.setVisible(locked)
+        self.statusbar_unlocked.setVisible(
+            not al_running and not locked and not optimization
+        )
+
+    def update_legend_color(self, *args):
+        def set_color(el, color: Color):
+            return el.setStyleSheet(
+                "color: "
+                + color_to_hex(
+                    getattr(self.parameters, f"plot_color_{color.value}").value
+                )
+            )
+
+        set_color(self.legend_spectrum_1, Color.SPECTRUM1)
+        set_color(self.legend_spectrum_2, Color.SPECTRUM2)
+        set_color(self.legend_spectrum_combined, Color.SPECTRUM_COMBINED)
+        set_color(self.legend_error_signal, Color.SPECTRUM_COMBINED)
+        set_color(self.legend_control_signal, Color.CONTROL_SIGNAL)
+        set_color(self.legend_control_signal_history, Color.CONTROL_SIGNAL_HISTORY)
+        set_color(self.legend_slow_signal_history, Color.SLOW_HISTORY)
+        set_color(self.legend_monitor_signal_history, Color.MONITOR_SIGNAL_HISTORY)
+
+    def update_legend_text(self, dual_channel):
+        self.legend_spectrum_1.setText(
+            "error signal" if not dual_channel else "error signal 1"
+        )
+        self.legend_spectrum_2.setText(
+            "monitor" if not dual_channel else "error signal 2"
+        )
+        self.legend_spectrum_combined.setVisible(dual_channel)
+
     def show(self, host, name):
         self.setWindowTitle(
             f"Linien spectroscopy lock {linien_gui.__version__}: {name} ({host})"
@@ -153,70 +219,6 @@ class MainWindow(QtWidgets.QMainWindow):
                 getattr(self.parameters, k).value = v
 
             self.control.write_registers()
-
-        def change_sweep_control_visibility(*args):
-            al_running = self.parameters.autolock_running.value
-            optimization = self.parameters.optimization_running.value
-            locked = self.parameters.lock.value
-
-            self.sweepControlWidget.setVisible(
-                not al_running and not locked and not optimization
-            )
-            self.top_lock_panel.setVisible(locked)
-            self.statusbar_unlocked.setVisible(
-                not al_running and not locked and not optimization
-            )
-
-        self.parameters.lock.on_change(change_sweep_control_visibility)
-        self.parameters.autolock_running.on_change(change_sweep_control_visibility)
-        self.parameters.optimization_running.on_change(change_sweep_control_visibility)
-
-        self.parameters.to_plot.on_change(self.update_std)
-
-        self.parameters.pid_on_slow_enabled.on_change(
-            lambda v: self.legend_slow_signal_history.setVisible(v)
-        )
-        self.parameters.dual_channel.on_change(
-            lambda v: self.legend_monitor_signal_history.setVisible(not v)
-        )
-
-        self.settings_toolbox.setCurrentIndex(0)
-
-        self.parameters.lock.on_change(lambda *args: self.reset_std_history())
-
-        def update_legend_color(*args):
-            def set_color(el, color: Color):
-                return el.setStyleSheet(
-                    "color: "
-                    + color_to_hex(
-                        getattr(self.parameters, f"plot_color_{color.value}").value
-                    )
-                )
-
-            set_color(self.legend_spectrum_1, Color.SPECTRUM1)
-            set_color(self.legend_spectrum_2, Color.SPECTRUM2)
-            set_color(self.legend_spectrum_combined, Color.SPECTRUM_COMBINED)
-            set_color(self.legend_error_signal, Color.SPECTRUM_COMBINED)
-            set_color(self.legend_control_signal, Color.CONTROL_SIGNAL)
-            set_color(self.legend_control_signal_history, Color.CONTROL_SIGNAL_HISTORY)
-            set_color(self.legend_slow_signal_history, Color.SLOW_HISTORY)
-            set_color(self.legend_monitor_signal_history, Color.MONITOR_SIGNAL_HISTORY)
-
-        for color_idx in range(N_COLORS):
-            getattr(self.parameters, f"plot_color_{color_idx}").on_change(
-                update_legend_color
-            )
-
-        def update_legend_text(dual_channel):
-            self.legend_spectrum_1.setText(
-                "error signal" if not dual_channel else "error signal 1"
-            )
-            self.legend_spectrum_2.setText(
-                "monitor" if not dual_channel else "error signal 2"
-            )
-            self.legend_spectrum_combined.setVisible(dual_channel)
-
-        self.parameters.dual_channel.on_change(update_legend_text)
 
     def update_std(self, to_plot, max_std_history_length=10):
         if self.parameters.lock.value and to_plot:
