@@ -278,5 +278,5 @@ class AcquisitionService(Service):
 
 if __name__ == "__main__":
     t = OneShotServer(AcquisitionService(), port=ACQUISITION_PORT)
-    print("Starting AcquisitionService on port " + ACQUISITION_PORT)
+    print("Starting AcquisitionService on port " + str(ACQUISITION_PORT))
     t.start()
