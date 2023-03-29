@@ -26,11 +26,10 @@ from time import sleep
 import numpy as np
 from linien_common.common import DECIMATION, MAX_N_POINTS, N_POINTS
 from linien_common.config import ACQUISITION_PORT
+from linien_server.csr import PythonCSR
 from pyrp3.board import RedPitaya
 from rpyc import Service
 from rpyc.utils.server import OneShotServer
-
-from ..csr import PythonCSR
 
 
 def shutdown():
@@ -279,4 +278,5 @@ class AcquisitionService(Service):
 
 if __name__ == "__main__":
     t = OneShotServer(AcquisitionService(), port=ACQUISITION_PORT)
+    print("Starting AcquisitionService on port " + str(ACQUISITION_PORT))
     t.start()
