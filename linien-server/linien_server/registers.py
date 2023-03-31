@@ -39,10 +39,8 @@ class Registers:
     communicate by manipulating `Parameters` / `RemoteParameters`.
     """
 
-    def __init__(self, host=None, user=None, password=None):
+    def __init__(self, host=None):
         self.host = host
-        self.user = user
-        self.password = password
         self.acquisition_controller = None
 
         self._last_sweep_speed = None
@@ -56,28 +54,26 @@ class Registers:
 
         self.csr = PitayaCSR()
 
-        def on_lock_status_changed(v):
-            if self.acquisition_controller is not None:
-                self.acquisition_controller.set_lock_status(v)
-
-        self.parameters.lock.on_change(on_lock_status_changed)
-
-        def on_fetch_additional_signals_changed(v):
-            if self.acquisition_controller is not None:
-                self.acquisition_controller.fetch_additional_signals(v)
-
+        self.parameters.lock.on_change(self.on_lock_status_changed)
         self.parameters.fetch_additional_signals.on_change(
-            on_fetch_additional_signals_changed
+            self.on_fetch_additional_signals_changed
         )
-
-        def on_dual_channel_changed(dual_channel):
-            if self.acquisition_controller is not None:
-                self.acquisition_controller.set_dual_channel(dual_channel)
-
-        self.parameters.dual_channel.on_change(on_dual_channel_changed)
+        self.parameters.dual_channel.on_change(self.on_dual_channel_changed)
 
         use_ssh = self.host is not None and self.host not in ("localhost", "127.0.0.1")
         self.acquisition_controller = AcquisitionController(use_ssh, self.host)
+
+    def on_lock_status_changed(self, v):
+        if self.acquisition_controller is not None:
+            self.acquisition_controller.set_lock_status(v)
+
+    def on_dual_channel_changed(self, dual_channel):
+        if self.acquisition_controller is not None:
+            self.acquisition_controller.set_dual_channel(dual_channel)
+
+    def on_fetch_additional_signals_changed(self, v):
+        if self.acquisition_controller is not None:
+            self.acquisition_controller.fetch_additional_signals(v)
 
     def write_registers(self):
         """Writes data from `parameters` to the FPGA."""
