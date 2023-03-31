@@ -1,5 +1,9 @@
-Linien
-======
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/linien-org/linien)
+[![PyPI](https://img.shields.io/pypi/v/linien-gui?color=blue)](https://pypi.org/project/linien-gui/)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
+Linien ‒ User-friendly locking of lasers using RedPitaya (STEMlab 125-14) that just works
+=========================================================================================
 
 <img align="right" src="https://raw.githubusercontent.com/linien-org/linien/master/docs/icon.png" width="20%">
 
@@ -19,8 +23,8 @@ Features
     automatically lock to it. This algorithm is built to be noise and jitter tolerant.
 -   **IQ demodulation**: Optimize demodulation phase in an instant
 -   **Noise analysis**: Record power spectral density (PSD) of the error signal for analyzing noise of the locked laser and for optimizing PID parameters
--   **Lock detection**: Linien is capable of detecting loss of lock.
--   **Automatic relocking**: in that case, it relocks autonomously (temporarily disabled, use [v0.3.2](https://github.com/linien-org/linien/releases/tag/v0.3.2) if you rely in this feature)
+-   **Lock detection**: Linien is capable of detecting loss of lock (temporarily disabled, use [v0.3.2](https://github.com/linien-org/linien/releases/tag/v0.3.2) if you rely in this feature
+-   **Automatic relocking**: if lock is lost, it relocks autonomously (temporarily disabled, use [v0.3.2](https://github.com/linien-org/linien/releases/tag/v0.3.2) if you rely in this feature)
 -   **Machine learning** is used to tune the spectroscopy parameters in order to optimize the signal
 -   **Remote-controllable**: the client libraries can be used to control or monitor the spectroscopy lock with python.
 -   **Combined FMS+MTS**: Linien supports dual-channel spectroscopy that can be
@@ -29,7 +33,7 @@ Features
 -   **Logging**: Use
     [linien-influxdb](https://github.com/linien-org/linien-influxdb)
     to log the lock status to influxdb.
--   **Second integrator** on (slow) analog output 0
+-   **Second integrator** for slow control of piezo in an ECDL
 -   **Additional analog outputs** may be used using the GUI or python client (ANALOG_OUT 1, 2 and 3)
 -   **16 GPIO outputs** may be programmed (e.g. for controlling other devices)
 
@@ -38,7 +42,7 @@ Features
 Getting started: install Linien
 ---------------
 
-Linien runs on Windows and Linux. For most users the [standalone
+Linien runs on Windows and Linux. For Windows users the [standalone
 binaries](#standalone-binary) containing the graphical user interface
 are recommended.
 These binaries run on your lab PC and contain everything to get Linien running on your RedPitaya.
@@ -47,45 +51,30 @@ If you want to use the python interface you should [install it using pip](#insta
 
 ### Standalone binary
 
-You can download standalone binaries for windows and linux on [the
+You can download standalone binaries for Windows on [the
 releases
-page](https://github.com/linien-org/linien/releases) (download the corresponding binary in the assets section of the latest version). On linux mark it as executable before executing:
-
-```bash
-chmod +x linien-linux*
-./linien-linux*
-```
+page](https://github.com/linien-org/linien/releases) (download the binary in the assets section of the latest version). For Linux users, we recommend installation via pip.
 
 ### Installation with pip
 
-Linien is written for python 3 and can be installed using python\'s
-package manager pip:
+Linien is written for python 3 and can be installed using python\'s package manager pip:
 
 ```bash
-pip3 install linien
+pip install linien-gui
 ```
 
-On Linux, you may run the application by calling
+The GUI can be started by calling 
 
 ```bash
 linien
 ```
 
-in a terminal.
+in a terminal (on both Linux and Windows).
 
-If this doesn\'t work, your local bin directory (e.g. \~/.local/bin) is
-probably missing in your PATH. In this case you can open Linien with
-python:
-
-```python
-from linien.gui.app import run_application
-run_application()
-```
-
-In case you're only interested in the python client and don't want to install the graphical application, you may use the `linien-python-client`, a subset of the `linien` package:
+In case you're only interested in the python client and don't want to install the graphical application, you may use the `linien-client` package:
 
 ```bash
-pip3 install linien-python-client
+pip install linien-client
 ```
 
 
@@ -196,7 +185,8 @@ Then, you should start the Linien server on your RedPitaya. This can be done by 
 
 Once the server is up and running, you can connect using python:
 ```python
-from linien.client.connection import LinienClient, MHz, Vpp
+from linien_client.connection import LinienClient
+from linien_common.common import  MHz, Vpp
 c = LinienClient(
     {'host': 'rp-XXXXXX.local', 'username': 'root', 'password': 'change-it-to-something-else!'},
     # starts the server if it is not running
@@ -284,8 +274,8 @@ The script below shows an example of how to run the autolock using the scripting
 import pickle
 import numpy as np
 
-from linien.client.connection import LinienClient
-from linien.common import FAST_AUTOLOCK
+from linien_client.connection import LinienClient
+from linien_common.common import FAST_AUTOLOCK
 
 from matplotlib import pyplot as plt
 from time import sleep
@@ -360,13 +350,13 @@ except:
 Updating Linien
 ---------------
 
-Before installing a new version of Linien, open the previously installed client and click the "Shutdown server" button. Don't worry, your settings and parameters will be saved. Then you may install the latest client on your local PC as described in the [getting started](#getting-started) section above. The next time you connect to RedPitaya, Linien will install the matching server version.
+Before installing a new version of Linien, open the previously installed client and click the "Shutdown server" button. Don't worry, your settings and parameters will be saved. Then you may install the latest client on your local PC as described in the [getting started](#getting-started-install-linien) section above. The next time you connect to RedPitaya, Linien will install the matching server version.
 
 
 Development
 -----------
 
-Information about ddevelopment can be found in the [wiki](https://github.com/linien-org/linien/wiki/Development).
+Information about development can be found in the [wiki](https://github.com/linien-org/linien/wiki/Development).
 
 FAQs
 ----
@@ -395,23 +385,30 @@ Troubleshooting
 
 ### Connection problems
 
-If the client fails to connect to a RedPitaya, first check whether you
-can ping it by executing
+If the client fails to connect to a RedPitaya, first check whether you can ping it by
+executing
 
 ```bash
 ping rp-f0xxxx.local
 ```
 
-in a command line. If this works, check whether you can connect via SSH.
-On Windows, you have to [install a SSH client](https://www.putty.org),
-on linux you can execute
+in a command line. If this works, check whether you can connect via SSH:
 
 ```bash
 ssh rp-f0xxxx.local
 ```
 
-on the command line.
+on the command line. If this is successful, in order to to  check whether the
+`linien-server` is running, first confirm that there is a running `screen` session with
+the name `linien-server` by  executing `screen -ls`. If that is the case attach it by
+running `screen -r linien-server`. If any errors occurred on the server side, they will
+be displayed here. Please provide the output if you are reporting an
+[issue](https://github.com/linien-org/linien/issues)  related to connection problems.
 
+### Possible conflict with openSSH
+
+Note that there might be issues if openSSH server is running on the client, see
+[here](https://github.com/orgs/linien-org/discussions/286).
 
 ### Updating or installing fails
 
@@ -421,28 +418,31 @@ on the command line.
 Citation
 ----
 
-If you are using Linien, please cite us as follows:
+If you are using Linien for your scientific work, please cite us as follows:
 
 ```
 @article{Wiegand2022,
-archivePrefix = {arXiv},
-arxivId = {2203.02947},
-author = {Wiegand, Benjamin and Leykauf, Bastian and J{\"{o}}rdens, Robert and Krutzik, Markus},
-eprint = {2203.02947},
-title = {{Linien: A versatile, user-friendly, open-source FPGA-based tool for frequency stabilization and spectroscopy parameter optimization}},
-url = {http://arxiv.org/abs/2203.02947},
-year = {2022}
+   author = {B. Wiegand and B. Leykauf and R. Jördens and M. Krutzik},
+   doi = {10.1063/5.0090384},
+   issn = {10897623},
+   issue = {6},
+   journal = {Review of Scientific Instruments},
+   month = {6},
+   pmid = {35778046},
+   title = {Linien: A versatile, user-friendly, open-source FPGA-based tool for frequency stabilization and spectroscopy parameter optimization},
+   volume = {93},
+   year = {2022},
 }
-
 ```
 
 License
 -------
 Linien ‒ User-friendly locking of lasers using RedPitaya (STEMlab 125-14) that just works.
 
-Copyright © 2014-2015 Robert Jördens
-Copyright © 2018-2022 Benjamin Wiegand
-Copyright © 2021-2022 Bastian Leykauf
+Copyright © 2014-2015 Robert Jördens\
+Copyright © 2018-2022 Benjamin Wiegand\
+Copyright © 2021-2023 Bastian Leykauf\
+Copyright © 2022 Christian Freier
 
 Linien is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 
@@ -450,7 +450,15 @@ Linien is distributed in the hope that it will be useful, but WITHOUT ANY WARRAN
 
 You should have received a copy of the GNU General Public License along with Linien. If not, see <https://www.gnu.org/licenses/>.
 
-Development takes place at Humboldt University of Berlin.
+Acknowledgements
+----------------
+
+Development mainly takes place at Humboldt University of Berlin.
+
+This work is supported by the German Space Agency
+(DLR) with funds provided by the Federal Ministry of
+Economics and Technology (BMWi) under grant number
+DLR50WM2066.
 
 See Also
 --------

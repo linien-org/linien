@@ -4,7 +4,8 @@ exclude = '''
   /(
     gateware/logic
    | gateware/lowlevel
-   | linien/server/csrmap.py
+   | gateware/linien_module.py
+   | linien-server/linien_server/csrmap.py
    )/
 )
 '''

@@ -30,13 +30,13 @@ VCD_DIR = Path(__file__).parent / "vcd"
 @pytest.mark.slow
 def test_pid_transfer(plt):
     def pid_testbench(pid):
-        np.random.seed(299792458)
+        rng = np.random.default_rng(seed=299792458)
         amplitude = 0.01
         samples = 1 << 12
 
-        x = np.random.uniform(-amplitude, amplitude, samples)
+        x = rng.uniform(-amplitude, amplitude, samples)
         scale = 2 ** (len(pid.input) - 1) - 1
-        x = (scale * np.array(x)).astype(np.int)
+        x = (scale * np.array(x)).astype(int)
         y = np.array([0] * len(x))
 
         def plot_transfer(x, y, label=None):
@@ -90,9 +90,7 @@ def test_pid_transfer(plt):
                 out = yield pid.pid_out
                 y[_] = out
 
-            f, plot_color = plot_transfer(
-                x.astype(np.float), y.astype(np.float), label=label
-            )
+            f, plot_color = plot_transfer(x.astype(float), y.astype(float), label=label)
             plot_theory(f, p, i, d, plot_color)
 
         yield from do_test(p=1)

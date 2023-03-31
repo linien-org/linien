@@ -1,0 +1,66 @@
+name: Upload Packages to PyPI
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          lfs: "true"
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install build wheel
+
+      - name: Build linien-common
+        working-directory: linien-common
+        run: python -m build
+
+      - name: Build linien-server
+        working-directory: linien-server
+        run: python -m build
+
+      - name: Build linien-client
+        working-directory: linien-client
+        run: python -m build
+
+      - name: Build linien-gui
+        working-directory: linien-gui
+        run: python -m build
+
+      - name: Publish linien-common
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: linien-common/dist/
+          password: ${{ secrets.PYPI_API_TOKEN_COMMON }}
+
+      - name: Publish linien-server
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: linien-server/dist/
+          password: ${{ secrets.PYPI_API_TOKEN_SERVER }}
+
+      - name: Publish linien-client
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: linien-client/dist/
+          password: ${{ secrets.PYPI_API_TOKEN_CLIENT }}
+
+      - name: Publish linien-gui
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: linien-gui/dist/
+          password: ${{ secrets.PYPI_API_TOKEN_GUI }}

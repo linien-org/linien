@@ -17,10 +17,9 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 import numpy as np
-
-from linien.common import get_lock_point
-from linien.server.approach_line import Approacher
-from linien.server.parameters import Parameters
+from linien_common.common import get_lock_point
+from linien_server.optimization.approach_line import Approacher
+from linien_server.parameters import Parameters
 
 Y_SHIFT = 4000
 
@@ -103,9 +102,9 @@ def test_approacher(plt):
             )
 
             found = False
-
-            for i in range(100):
-                shift = target_shift * (1 + (0.025 * np.random.randn()))
+            rng = np.random.default_rng(seed=0)
+            for _ in range(100):
+                shift = target_shift * (1 + (0.025 * rng.standard_normal()))
                 error_signal = _get_signal(shift)[:]
                 approacher.approach_line(error_signal)
 

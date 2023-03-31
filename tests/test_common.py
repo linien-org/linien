@@ -17,11 +17,14 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 import numpy as np
+from linien_common.common import (
+    SpectrumUncorrelatedException,
+    determine_shift_by_correlation,
+)
 from pytest import raises
 
-from linien.common import SpectrumUncorrelatedException, determine_shift_by_correlation
-
 Y_SHIFT = 0
+RNG = np.random.default_rng(seed=0)
 
 
 def peak(x):
@@ -42,7 +45,7 @@ def get_signal(sweep_amplitude, center, shift):
 
 
 def add_noise(spectrum, level):
-    return spectrum + (np.random.randn(len(spectrum)) * level)
+    return spectrum + (RNG.standard_normal(len(spectrum)) * level)
 
 
 def test_determine_shift_by_correlation():

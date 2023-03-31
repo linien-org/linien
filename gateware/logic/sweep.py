@@ -17,8 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-from migen import Cat, If, Module, Signal, bits_for
-from misoc.interconnect.csr import AutoCSR, CSRConstant, CSRStorage
+from migen import Cat, If, Module, Signal
+from misoc.interconnect.csr import AutoCSR, CSRStorage
 
 from .limit import Limit
 
