@@ -43,12 +43,12 @@ class AcquisitionProcessSignals(Enum):
 
 
 class AcquisitionController:
-    def __init__(self, use_ssh, host):
+    def __init__(self, host=None):
         self.on_new_data_received = None
 
         self.parent_conn, child_conn = Pipe()
         acqusition_service_process = Process(
-            target=self.connect_acquisition_service, args=(child_conn, use_ssh, host)
+            target=self.connect_acquisition_service, args=(child_conn, host)
         )
         acqusition_service_process.daemon = True
         acqusition_service_process.start()
@@ -70,8 +70,8 @@ class AcquisitionController:
             if self.on_new_data_received is not None:
                 self.on_new_data_received(is_raw, received_data, data_uuid)
 
-    def connect_acquisition_service(self, pipe, use_ssh, host):
-        if use_ssh:
+    def connect_acquisition_service(self, pipe, host=None):
+        if host is not None:
             # for debugging, acquisition process may be launched manually on the server
             # and rpyc can be used to connect to it
             acquisition_rpyc = rpyc.connect(host, ACQUISITION_PORT)

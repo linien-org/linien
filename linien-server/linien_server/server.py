@@ -98,8 +98,7 @@ class RedPitayaControlService(BaseService):
 
         super(RedPitayaControlService, self).__init__()
 
-        self.registers = Registers(host=host)
-        self.registers.connect(self, self.parameters)
+        self.registers = Registers(control=self, parameters=self.parameters, host=host)
         self._connect_acquisition_to_parameters()
         self._start_periodic_timer()
         self.exposed_write_registers()
