@@ -17,12 +17,10 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 import atexit
-import shutil
 import subprocess
 import threading
 from enum import Enum
 from multiprocessing import Pipe, Process
-from pathlib import Path
 from time import sleep
 
 import rpyc
@@ -80,8 +78,6 @@ class AcquisitionController:
             # This is what happens in production mode
             from linien_server.acquisition.service import AcquisitionService
 
-            stop_nginx()
-            flash_fpga()
             acquisition_service = AcquisitionService()
 
         # tell the main thread that we're ready
@@ -174,8 +170,3 @@ def stop_nginx():
 
 def start_nginx():
     subprocess.Popen(["systemctl", "start", "redpitaya_nginx.service"])
-
-
-def flash_fpga():
-    filepath = Path(__file__).parents[1] / "linien.bin"
-    shutil.copy(str(filepath.resolve()), "/dev/xdevcfg")

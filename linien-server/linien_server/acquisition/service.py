@@ -19,7 +19,10 @@
 import _thread
 import os
 import pickle
+import shutil
+import subprocess
 import threading
+from pathlib import Path
 from random import random
 from time import sleep
 
@@ -40,6 +43,8 @@ def shutdown():
 class AcquisitionService(Service):
     def __init__(self):
         super(AcquisitionService, self).__init__()
+        stop_nginx()
+        flash_fpga()
 
         self.red_pitaya = RedPitaya()
         self.csr = PythonCSR(self.red_pitaya)
@@ -274,6 +279,16 @@ class AcquisitionService(Service):
         # if we are sweeping, we have to skip one data set because an incomplete sweep
         # may have been recorded. When locked, this does not matter
         self.skip_next_data = not self.confirmed_that_in_lock
+
+
+def flash_fpga():
+    filepath = Path(__file__).parents[1] / "linien.bin"
+    shutil.copy(str(filepath.resolve()), "/dev/xdevcfg")
+
+
+def stop_nginx():
+    subprocess.Popen(["systemctl", "stop", "redpitaya_nginx.service"]).wait()
+    subprocess.Popen(["systemctl", "stop", "redpitaya_scpi.service"]).wait()
 
 
 if __name__ == "__main__":
