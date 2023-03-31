@@ -92,13 +92,13 @@ class BaseService(rpyc.Service):
 class RedPitayaControlService(BaseService):
     """Control server that runs on the RP that provides high-level methods."""
 
-    def __init__(self, **kwargs):
+    def __init__(self, host=None, user=None, password=None):
         self._cached_data = {}
         self.exposed_is_locked = None
 
         super(RedPitayaControlService, self).__init__()
 
-        self.registers = Registers(**kwargs)
+        self.registers = Registers(host, user, password)
         self.registers.connect(self, self.parameters)
         self._connect_acquisition_to_parameters()
         self._start_periodic_timer()
@@ -385,10 +385,6 @@ def run_server(port, fake=False, remote_rp=False):
         control = FakeRedPitayaControlService()
     else:
         if remote_rp is not None:
-            assert (
-                "@" in remote_rp and ":" in remote_rp
-            ), "invalid format, should be root:myPassword@rp-f0xxxx.local"
-
             username, tmp = remote_rp.split(":", 1)
             r_host, r_password = "".join(reversed(tmp)).split("@", 1)
             host = "".join(reversed(r_host))
