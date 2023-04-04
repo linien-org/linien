@@ -282,8 +282,8 @@ class AcquisitionService(Service):
 
 
 def flash_fpga():
-    filepath = Path(__file__).parents[1] / "linien.bin"
-    shutil.copy(str(filepath.resolve()), "/dev/xdevcfg")
+    filepath = Path(__file__).resolve().parents[1] / "linien.bin"
+    shutil.copy(str(filepath), "/dev/xdevcfg")
 
 
 def stop_nginx():
