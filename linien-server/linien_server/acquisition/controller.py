@@ -82,30 +82,6 @@ class AcquisitionController:
         last_hash = None
         while True:
             # check whether the main thread sent a command to the acquisition process
-            while pipe.poll():
-                data = pipe.recv()
-                if data[0] == AcquisitionProcessSignals.SHUTDOWN:
-                    raise SystemExit()
-                elif data[0] == AcquisitionProcessSignals.SET_SWEEP_SPEED:
-                    self.acquisition_service.exposed_set_sweep_speed(data[1])
-                elif data[0] == AcquisitionProcessSignals.SET_LOCK_STATUS:
-                    self.acquisition_service.exposed_set_lock_status(data[1])
-                elif data[0] == AcquisitionProcessSignals.FETCH_QUADRATURES:
-                    self.acquisition_service.exposed_set_fetch_additional_signals(
-                        data[1]
-                    )
-                elif data[0] == AcquisitionProcessSignals.SET_RAW_ACQUISITION:
-                    self.acquisition_service.exposed_set_raw_acquisition(data[1])
-                elif data[0] == AcquisitionProcessSignals.SET_DUAL_CHANNEL:
-                    self.acquisition_service.exposed_set_dual_channel(data[1])
-                elif data[0] == AcquisitionProcessSignals.SET_CSR:
-                    self.acquisition_service.exposed_set_csr(*data[1])
-                elif data[0] == AcquisitionProcessSignals.SET_IIR_CSR:
-                    self.acquisition_service.exposed_set_iir_csr(*data[1])
-                elif data[0] == AcquisitionProcessSignals.PAUSE_ACQUISIITON:
-                    self.acquisition_service.exposed_pause_acquisition()
-                elif data[0] == AcquisitionProcessSignals.CONTINUE_ACQUISITION:
-                    self.acquisition_service.exposed_continue_acquisition(data[1])
 
             (
                 new_data_returned,
@@ -122,40 +98,38 @@ class AcquisitionController:
             sleep(0.05)
 
     def pause_acquisition(self):
-        self.parent_conn.send((AcquisitionProcessSignals.PAUSE_ACQUISIITON, True))
+        self.acquisition_service.exposed_pause_acquisition()
 
     def continue_acquisition(self, uuid):
-        self.parent_conn.send((AcquisitionProcessSignals.CONTINUE_ACQUISITION, uuid))
+        self.acquisition_service.exposed_continue_acquisition(uuid)
 
     def shutdown(self):
         if self.parent_conn:
-            self.parent_conn.send((AcquisitionProcessSignals.SHUTDOWN,))
+            raise SystemExit()
         start_nginx()
 
     def set_sweep_speed(self, speed):
-        self.parent_conn.send((AcquisitionProcessSignals.SET_SWEEP_SPEED, speed))
+        self.acquisition_service.exposed_set_sweep_speed(speed)
 
     def set_lock_status(self, status):
         if self.parent_conn:
-            self.parent_conn.send((AcquisitionProcessSignals.SET_LOCK_STATUS, status))
+            self.acquisition_service.exposed_set_lock_status(status)
 
     def fetch_additional_signals(self, status):
         if self.parent_conn:
-            self.parent_conn.send((AcquisitionProcessSignals.FETCH_QUADRATURES, status))
+            self.acquisition_service.exposed_set_fetch_additional_signals(status)
 
     def set_csr(self, key, value):
-        self.parent_conn.send((AcquisitionProcessSignals.SET_CSR, (key, value)))
+        self.acquisition_service.exposed_set_csr(key, value)
 
     def set_iir_csr(self, *args):
-        self.parent_conn.send((AcquisitionProcessSignals.SET_IIR_CSR, args))
+        self.acquisition_service.exposed_set_iir_csr(*args)
 
     def set_raw_acquisition(self, enabled, decimation=0):
-        self.parent_conn.send(
-            (AcquisitionProcessSignals.SET_RAW_ACQUISITION, (enabled, decimation))
-        )
+        self.acquisition_service.exposed_set_raw_acquisition((enabled, decimation))
 
     def set_dual_channel(self, enabled):
-        self.parent_conn.send((AcquisitionProcessSignals.SET_DUAL_CHANNEL, enabled))
+        self.acquisition_service.exposed_set_dual_channel(enabled)
 
 
 def stop_nginx():
