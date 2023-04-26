@@ -18,8 +18,8 @@
 
 import atexit
 import subprocess
-import threading
 from multiprocessing import Process
+from threading import Thread
 from time import sleep
 
 import rpyc
@@ -51,7 +51,7 @@ class AcquisitionController:
                 i = i + 1
                 sleep(1)
 
-        acqusition_service_process = threading.Thread(
+        acqusition_service_process = Thread(
             target=self.run_acquisition_loop, daemon=True
         )
         acqusition_service_process.start()
