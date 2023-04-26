@@ -48,7 +48,7 @@ class AcquisitionController:
     def __init__(self, host="127.0.0.1"):
         self.on_new_data_received = None
 
-        acquisition_server_process = Process(target=self.start_acquisition_server)
+        acquisition_server_process = Process(target=self.start_acquisition_service)
         acquisition_server_process.daemon = True
         acquisition_server_process.start()
 
@@ -66,42 +66,22 @@ class AcquisitionController:
 
         self.parent_conn, child_conn = Pipe()
         acqusition_service_process = threading.Thread(
-            target=self.connect_acquisition_service, args=(child_conn,)
+            target=self.run_acquisition_loop, args=(child_conn,)
         )
         acqusition_service_process.daemon = True
         acqusition_service_process.start()
 
-        # wait until connection is established
-        self.parent_conn.recv()
-
-        receive_data_thread = threading.Thread(
-            target=self.receive_acquired_data, args=(self.parent_conn,)
-        )
-        receive_data_thread.daemon = True
-        receive_data_thread.start()
-
         atexit.register(self.shutdown)
 
-    def start_acquisition_server(self):
+    def start_acquisition_service(self):
         threaded_server = ThreadedServer(AcquisitionService(), port=ACQUISITION_PORT)
         print("Starting AcquisitionService on port " + str(ACQUISITION_PORT))
         threaded_server.start()
 
-    def receive_acquired_data(self, conn):
-        while True:
-            is_raw, received_data, data_uuid = conn.recv()
-            if self.on_new_data_received is not None:
-                self.on_new_data_received(is_raw, received_data, data_uuid)
-
-    def connect_acquisition_service(self, pipe):
-        # tell the main thread that we're ready
-        pipe.send(True)
-
-        # Run a loop that listens for acquired data and transmits them to the main
-        # thread. Also redirects calls from the main thread sto the acquiry process.
+    def run_acquisition_loop(self, pipe):
         last_hash = None
         while True:
-            # check whether the main thread sent a command to the acquiry process
+            # check whether the main thread sent a command to the acquisition process
             while pipe.poll():
                 data = pipe.recv()
                 if data[0] == AcquisitionProcessSignals.SHUTDOWN:
@@ -127,7 +107,6 @@ class AcquisitionController:
                 elif data[0] == AcquisitionProcessSignals.CONTINUE_ACQUISITION:
                     self.acquisition_service.exposed_continue_acquisition(data[1])
 
-            # load acquired data and send it to the main thread
             (
                 new_data_returned,
                 new_hash,
@@ -137,7 +116,8 @@ class AcquisitionController:
             ) = self.acquisition_service.exposed_return_data(last_hash)
             if new_data_returned:
                 last_hash = new_hash
-                pipe.send((data_was_raw, new_data, data_uuid))
+            if self.on_new_data_received is not None:
+                self.on_new_data_received(data_was_raw, new_data, data_uuid)
 
             sleep(0.05)
 
