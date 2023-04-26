@@ -45,16 +45,28 @@ class AcquisitionProcessSignals(Enum):
 
 
 class AcquisitionController:
-    def __init__(self, host=None):
+    def __init__(self, host="127.0.0.1"):
         self.on_new_data_received = None
 
         acquisition_server_process = Process(target=self.start_acquisition_server)
         acquisition_server_process.daemon = True
         acquisition_server_process.start()
 
+        print("Connecting AcquisitionService...")
+        i = 0
+        while i < MAX_CONNECTION_ATTEMPTS:
+            try:
+                acquisition_rpyc = rpyc.connect(host, ACQUISITION_PORT)
+                self.acquisition_service = acquisition_rpyc.root
+                break
+            except ConnectionRefusedError:
+                print("AcquisitionService not yet established, trying again...")
+                i = i + 1
+                sleep(1)
+
         self.parent_conn, child_conn = Pipe()
-        acqusition_service_process = Process(
-            target=self.connect_acquisition_service, args=(child_conn, host)
+        acqusition_service_process = threading.Thread(
+            target=self.connect_acquisition_service, args=(child_conn,)
         )
         acqusition_service_process.daemon = True
         acqusition_service_process.start()
@@ -81,18 +93,7 @@ class AcquisitionController:
             if self.on_new_data_received is not None:
                 self.on_new_data_received(is_raw, received_data, data_uuid)
 
-    def connect_acquisition_service(self, pipe, host="127.0.0.1"):
-        print("Connecting AcquisitionService...")
-        i = 0
-        while i < MAX_CONNECTION_ATTEMPTS:
-            try:
-                acquisition_rpyc = rpyc.connect(host, ACQUISITION_PORT)
-                acquisition_service = acquisition_rpyc.root
-                break
-            except ConnectionRefusedError:
-                print("AcquisitionService not yet established, trying again...")
-                i = i + 1
-                sleep(1)
+    def connect_acquisition_service(self, pipe):
         # tell the main thread that we're ready
         pipe.send(True)
 
@@ -106,24 +107,25 @@ class AcquisitionController:
                 if data[0] == AcquisitionProcessSignals.SHUTDOWN:
                     raise SystemExit()
                 elif data[0] == AcquisitionProcessSignals.SET_SWEEP_SPEED:
-                    speed = data[1]
-                    acquisition_service.exposed_set_sweep_speed(speed)
+                    self.acquisition_service.exposed_set_sweep_speed(data[1])
                 elif data[0] == AcquisitionProcessSignals.SET_LOCK_STATUS:
-                    acquisition_service.exposed_set_lock_status(data[1])
+                    self.acquisition_service.exposed_set_lock_status(data[1])
                 elif data[0] == AcquisitionProcessSignals.FETCH_QUADRATURES:
-                    acquisition_service.exposed_set_fetch_additional_signals(data[1])
+                    self.acquisition_service.exposed_set_fetch_additional_signals(
+                        data[1]
+                    )
                 elif data[0] == AcquisitionProcessSignals.SET_RAW_ACQUISITION:
-                    acquisition_service.exposed_set_raw_acquisition(data[1])
+                    self.acquisition_service.exposed_set_raw_acquisition(data[1])
                 elif data[0] == AcquisitionProcessSignals.SET_DUAL_CHANNEL:
-                    acquisition_service.exposed_set_dual_channel(data[1])
+                    self.acquisition_service.exposed_set_dual_channel(data[1])
                 elif data[0] == AcquisitionProcessSignals.SET_CSR:
-                    acquisition_service.exposed_set_csr(*data[1])
+                    self.acquisition_service.exposed_set_csr(*data[1])
                 elif data[0] == AcquisitionProcessSignals.SET_IIR_CSR:
-                    acquisition_service.exposed_set_iir_csr(*data[1])
+                    self.acquisition_service.exposed_set_iir_csr(*data[1])
                 elif data[0] == AcquisitionProcessSignals.PAUSE_ACQUISIITON:
-                    acquisition_service.exposed_pause_acquisition()
+                    self.acquisition_service.exposed_pause_acquisition()
                 elif data[0] == AcquisitionProcessSignals.CONTINUE_ACQUISITION:
-                    acquisition_service.exposed_continue_acquisition(data[1])
+                    self.acquisition_service.exposed_continue_acquisition(data[1])
 
             # load acquired data and send it to the main thread
             (
@@ -132,7 +134,7 @@ class AcquisitionController:
                 data_was_raw,
                 new_data,
                 data_uuid,
-            ) = acquisition_service.exposed_return_data(last_hash)
+            ) = self.acquisition_service.exposed_return_data(last_hash)
             if new_data_returned:
                 last_hash = new_hash
                 pipe.send((data_was_raw, new_data, data_uuid))
