@@ -1,5 +1,5 @@
 # Copyright 2018-2022 Benjamin Wiegand <benjamin.wiegand@physik.hu-berlin.de>
-# Copyright 2021-2022 Bastian Leykauf <leykauf@physik.hu-berlin.de>
+# Copyright 2021-2023 Bastian Leykauf <leykauf@physik.hu-berlin.de>
 #
 # This file is part of Linien and based on redpid.
 #
@@ -25,6 +25,10 @@ from time import sleep
 
 import rpyc
 from linien_common.config import ACQUISITION_PORT
+from linien_server.acquisition.service import AcquisitionService
+from rpyc.utils.server import ThreadedServer
+
+MAX_CONNECTION_ATTEMPTS = 10
 
 
 class AcquisitionProcessSignals(Enum):
@@ -44,6 +48,10 @@ class AcquisitionController:
     def __init__(self, host=None):
         self.on_new_data_received = None
 
+        acquisition_server_process = Process(target=self.start_acquisition_server)
+        acquisition_server_process.daemon = True
+        acquisition_server_process.start()
+
         self.parent_conn, child_conn = Pipe()
         acqusition_service_process = Process(
             target=self.connect_acquisition_service, args=(child_conn, host)
@@ -62,24 +70,29 @@ class AcquisitionController:
 
         atexit.register(self.shutdown)
 
+    def start_acquisition_server(self):
+        threaded_server = ThreadedServer(AcquisitionService(), port=ACQUISITION_PORT)
+        print("Starting AcquisitionService on port " + str(ACQUISITION_PORT))
+        threaded_server.start()
+
     def receive_acquired_data(self, conn):
         while True:
             is_raw, received_data, data_uuid = conn.recv()
             if self.on_new_data_received is not None:
                 self.on_new_data_received(is_raw, received_data, data_uuid)
 
-    def connect_acquisition_service(self, pipe, host=None):
-        if host is not None:
-            # for debugging, acquisition process may be launched manually on the server
-            # and rpyc can be used to connect to it
-            acquisition_rpyc = rpyc.connect(host, ACQUISITION_PORT)
-            acquisition_service = acquisition_rpyc.root
-        else:
-            # This is what happens in production mode
-            from linien_server.acquisition.service import AcquisitionService
-
-            acquisition_service = AcquisitionService()
-
+    def connect_acquisition_service(self, pipe, host="127.0.0.1"):
+        print("Connecting AcquisitionService...")
+        i = 0
+        while i < MAX_CONNECTION_ATTEMPTS:
+            try:
+                acquisition_rpyc = rpyc.connect(host, ACQUISITION_PORT)
+                acquisition_service = acquisition_rpyc.root
+                break
+            except ConnectionRefusedError:
+                print("AcquisitionService not yet established, trying again...")
+                i = i + 1
+                sleep(1)
         # tell the main thread that we're ready
         pipe.send(True)
 

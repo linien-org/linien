@@ -1,5 +1,5 @@
 # Copyright 2018-2022 Benjamin Wiegand <benjamin.wiegand@physik.hu-berlin.de>
-# Copyright 2021-2022 Bastian Leykauf <leykauf@physik.hu-berlin.de>
+# Copyright 2021-2023 Bastian Leykauf <leykauf@physik.hu-berlin.de>
 #
 # This file is part of Linien and based on redpid.
 #
@@ -32,7 +32,7 @@ from linien_common.config import ACQUISITION_PORT
 from linien_server.csr import PythonCSR
 from pyrp3.board import RedPitaya
 from rpyc import Service
-from rpyc.utils.server import OneShotServer
+from rpyc.utils.server import ThreadedServer
 
 
 def shutdown():
@@ -292,6 +292,6 @@ def stop_nginx():
 
 
 if __name__ == "__main__":
-    t = OneShotServer(AcquisitionService(), port=ACQUISITION_PORT)
+    threaded_server = ThreadedServer(AcquisitionService(), port=ACQUISITION_PORT)
     print("Starting AcquisitionService on port " + str(ACQUISITION_PORT))
-    t.start()
+    threaded_server.start()
