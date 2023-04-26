@@ -19,8 +19,7 @@
 import atexit
 import subprocess
 import threading
-from enum import Enum
-from multiprocessing import Pipe, Process
+from multiprocessing import Process
 from time import sleep
 
 import rpyc
@@ -29,19 +28,6 @@ from linien_server.acquisition.service import AcquisitionService
 from rpyc.utils.server import ThreadedServer
 
 MAX_CONNECTION_ATTEMPTS = 10
-
-
-class AcquisitionProcessSignals(Enum):
-    SHUTDOWN = 0
-    SET_SWEEP_SPEED = 2
-    SET_LOCK_STATUS = 3
-    SET_CSR = 4
-    SET_IIR_CSR = 5
-    PAUSE_ACQUISIITON = 5.5
-    CONTINUE_ACQUISITION = 6
-    FETCH_QUADRATURES = 7
-    SET_RAW_ACQUISITION = 8
-    SET_DUAL_CHANNEL = 9
 
 
 class AcquisitionController:
@@ -53,21 +39,20 @@ class AcquisitionController:
         )
         acquisition_server_process.start()
 
+        self.acquisition_service = None
         print("Connecting AcquisitionService...")
         i = 0
         while i < MAX_CONNECTION_ATTEMPTS:
             try:
-                acquisition_rpyc = rpyc.connect(host, ACQUISITION_PORT)
-                self.acquisition_service = acquisition_rpyc.root
+                self.acquisition_service = rpyc.connect(host, ACQUISITION_PORT).root
                 break
             except ConnectionRefusedError:
                 print("AcquisitionService not yet established, trying again...")
                 i = i + 1
                 sleep(1)
 
-        self.parent_conn, child_conn = Pipe()
         acqusition_service_process = threading.Thread(
-            target=self.run_acquisition_loop, args=(child_conn,), daemon=True
+            target=self.run_acquisition_loop, daemon=True
         )
         acqusition_service_process.start()
 
@@ -78,11 +63,9 @@ class AcquisitionController:
         print("Starting AcquisitionService on port " + str(ACQUISITION_PORT))
         threaded_server.start()
 
-    def run_acquisition_loop(self, pipe):
+    def run_acquisition_loop(self):
         last_hash = None
         while True:
-            # check whether the main thread sent a command to the acquisition process
-
             (
                 new_data_returned,
                 new_hash,
@@ -112,11 +95,11 @@ class AcquisitionController:
         self.acquisition_service.exposed_set_sweep_speed(speed)
 
     def set_lock_status(self, status):
-        if self.parent_conn:
+        if self.acquisition_service:
             self.acquisition_service.exposed_set_lock_status(status)
 
     def fetch_additional_signals(self, status):
-        if self.parent_conn:
+        if self.acquisition_service:
             self.acquisition_service.exposed_set_fetch_additional_signals(status)
 
     def set_csr(self, key, value):
