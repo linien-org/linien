@@ -48,9 +48,8 @@ class AcquisitionController:
     def __init__(self, host="127.0.0.1"):
         self.on_new_data_received = None
 
-        acquisition_server_process = Process(
-            target=self.start_acquisition_service, daemon=True
-        )
+        acquisition_server_process = Process(target=self.start_acquisition_service)
+        acquisition_server_process.daemon = True
         acquisition_server_process.start()
 
         print("Connecting AcquisitionService...")
@@ -67,8 +66,9 @@ class AcquisitionController:
 
         self.parent_conn, child_conn = Pipe()
         acqusition_service_process = threading.Thread(
-            target=self.run_acquisition_loop, args=(child_conn,), daemon=True
+            target=self.run_acquisition_loop, args=(child_conn,)
         )
+        acqusition_service_process.daemon = True
         acqusition_service_process.start()
 
         atexit.register(self.shutdown)
