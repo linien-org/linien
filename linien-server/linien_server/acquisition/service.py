@@ -30,7 +30,7 @@ import numpy as np
 from linien_common.common import DECIMATION, MAX_N_POINTS, N_POINTS
 from linien_common.config import ACQUISITION_PORT
 from linien_server.csr import PythonCSR
-from pyrp3.board import RedPitaya
+from pyrp3.board import RedPitaya, TriggerSource
 from rpyc import Service
 from rpyc.utils.server import ThreadedServer
 
@@ -225,8 +225,7 @@ class AcquisitionService(Service):
             self.red_pitaya.scope.data_decimation = 1
             self.red_pitaya.scope.trigger_delay = int(trigger_delay / DECIMATION) - 1
 
-        # trigger_source=6 means external trigger positive edge
-        self.red_pitaya.scope.rearm(trigger_source=6)
+        self.red_pitaya.scope.rearm(trigger_source=TriggerSource.ext_posedge)
 
     def exposed_return_data(self, last_hash):
         no_data_available = self.data_hash is None
