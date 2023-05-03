@@ -30,7 +30,8 @@ import numpy as np
 from linien_common.common import DECIMATION, MAX_N_POINTS, N_POINTS
 from linien_common.config import ACQUISITION_PORT
 from linien_server.csr import PythonCSR
-from pyrp3.board import RedPitaya, TriggerSource
+from pyrp3.board import RedPitaya
+from pyrp3.instrument import TriggerSource
 from rpyc import Service
 from rpyc.utils.server import ThreadedServer
 
