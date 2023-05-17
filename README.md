@@ -182,19 +182,21 @@ Note that this equation does not account for filtering before the PID (cf. *Modu
 Scripting interface
 -------------------
 
-In addition to the GUI, Linien can also be controlled using python. For that purpose, installation via pip is required (see above).
+In addition to the GUI, Linien can also be controlled using Python. For that purpose, installation via pip is required (see above).
 
-Then, you should start the Linien server on your RedPitaya. This can be done by running the GUI client and connecting to the device (see above). Alternatively, `LinienClient` has the option `autostart_server`.
+Then, you should start the Linien server on your RedPitaya. This can be done by running the GUI client and connecting to the device (see above). Alternatively, the `connect` method of `LinienClient` has the option `autostart_server`.
 
 Once the server is up and running, you can connect using python:
 ```python
 from linien_client.connection import LinienClient
-from linien_common.common import  MHz, Vpp
+from linien_common.common import  MHz, Vpp, ANALOG_OUT_V
+
 c = LinienClient(
-    {'host': 'rp-XXXXXX.local', 'username': 'root', 'password': 'change-it-to-something-else!'},
-    # starts the server if it is not running
-    autostart_server=True
+    host="rp-xxxxxx.local",
+    user="root",
+    password="root"
 )
+c.connect(autostart_server=True, use_parameter_cache=True)
 
 # read out the modulation frequency
 print(c.parameters.modulation_frequency.value / MHz)
@@ -284,9 +286,11 @@ from matplotlib import pyplot as plt
 from time import sleep
 
 c = LinienClient(
-    {"host": "HOST", "username": "USER", "password": "PASSWORD"},
-    autostart_server=False,
+    host="rp-xxxxxx.local",
+    user="root",
+    password="root"
 )
+c.connect(autostart_server=True, use_parameter_cache=True)
 
 c.parameters.autolock_mode_preference.value = FAST_AUTOLOCK
 
