@@ -18,50 +18,31 @@
 
 import atexit
 import subprocess
-from multiprocessing import Process
 from threading import Thread
 from time import sleep
 
 import rpyc
 from linien_common.config import ACQUISITION_PORT
-from linien_server.acquisition.service import AcquisitionService
-from rpyc.utils.server import ThreadedServer
-
-MAX_CONNECTION_ATTEMPTS = 10
 
 
 class AcquisitionController:
     def __init__(self, host="127.0.0.1"):
         self.on_new_data_received = None
 
-        acquisition_server_process = Process(
-            target=self.start_acquisition_service, daemon=True
-        )
-        acquisition_server_process.start()
+        if host == "127.0.0.1":
+            # AcquisitionService is imported only on the Red Pitaya since pyrp3 is not
+            # available on Windows
+            from linien_server.acquisition.service import AcquisitionService
 
-        self.acquisition_service = None
-        print("Connecting AcquisitionService...")
-        i = 0
-        while i < MAX_CONNECTION_ATTEMPTS:
-            try:
-                self.acquisition_service = rpyc.connect(host, ACQUISITION_PORT).root
-                break
-            except ConnectionRefusedError:
-                print("AcquisitionService not yet established, trying again...")
-                i = i + 1
-                sleep(1)
+            self.acquisition_service = AcquisitionService()
+        else:
+            # AcquisitionService has to be started manually on the Red Pitaya
+            self.acquisition_service = rpyc.connect(host, ACQUISITION_PORT).root
 
-        acqusition_service_process = Thread(
-            target=self.run_acquisition_loop, daemon=True
-        )
-        acqusition_service_process.start()
+        acqusition_thread = Thread(target=self.run_acquisition_loop, daemon=True)
+        acqusition_thread.start()
 
         atexit.register(self.shutdown)
-
-    def start_acquisition_service(self):
-        threaded_server = ThreadedServer(AcquisitionService(), port=ACQUISITION_PORT)
-        print("Starting AcquisitionService on port " + str(ACQUISITION_PORT))
-        threaded_server.start()
 
     def run_acquisition_loop(self):
         last_hash = None
@@ -77,7 +58,6 @@ class AcquisitionController:
                 last_hash = new_hash
             if self.on_new_data_received is not None:
                 self.on_new_data_received(data_was_raw, new_data, data_uuid)
-
             sleep(0.05)
 
     def pause_acquisition(self):
