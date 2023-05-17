@@ -95,14 +95,13 @@ class BaseService(rpyc.Service):
 class RedPitayaControlService(BaseService):
     """Control server that runs on the RP that provides high-level methods."""
 
-    def __init__(self, **kwargs):
+    def __init__(self, host=None):
         self._cached_data = {}
         self.exposed_is_locked = None
 
         super(RedPitayaControlService, self).__init__()
 
-        self.registers = Registers(**kwargs)
-        self.registers.connect(self, self.parameters)
+        self.registers = Registers(control=self, parameters=self.parameters, host=host)
         self._connect_acquisition_to_parameters()
         self._start_periodic_timer()
         self.exposed_write_registers()
@@ -376,34 +375,20 @@ def authenticate_username_and_password(sock):
     "--fake", is_flag=True, help="Runs a fake server that just returns random data"
 )
 @click.option(
-    "--remote-rp",
+    "--host",
     help=(
         "Allows to run the server locally for development and connects to a RedPitaya. "
-        "Specify the RP's credentials as follows: "
-        "--remote-rp=root:myPassword@rp-f0xxxx.local"
+        "Specify the RP's host as follows: --host=rp-f0xxxx.local"
     ),
 )
-def run_server(port, fake=False, remote_rp=False):
+def run_server(port, fake=False, host=None):
     print("Start server on port", port)
 
     if fake:
         print("starting fake server")
         control = FakeRedPitayaControlService()
     else:
-        if remote_rp is not None:
-            assert (
-                "@" in remote_rp and ":" in remote_rp
-            ), "invalid format, should be root:myPassword@rp-f0xxxx.local"
-
-            username, tmp = remote_rp.split(":", 1)
-            r_host, r_password = "".join(reversed(tmp)).split("@", 1)
-            host = "".join(reversed(r_host))
-            password = "".join(reversed(r_password))
-            control = RedPitayaControlService(
-                host=host, user=username, password=password
-            )
-        else:
-            control = RedPitayaControlService()
+        control = RedPitayaControlService(host=host)
 
     thread = ThreadedServer(
         control,

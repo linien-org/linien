@@ -1,5 +1,5 @@
 # Copyright 2018-2022 Benjamin Wiegand <benjamin.wiegand@physik.hu-berlin.de>
-# Copyright 2021-2022 Bastian Leykauf <leykauf@physik.hu-berlin.de>
+# Copyright 2021-2023 Bastian Leykauf <leykauf@physik.hu-berlin.de>
 #
 # This file is part of Linien and based on redpid.
 #
@@ -19,7 +19,10 @@
 import _thread
 import os
 import pickle
+import shutil
+import subprocess
 import threading
+from pathlib import Path
 from random import random
 from time import sleep
 
@@ -28,8 +31,9 @@ from linien_common.common import DECIMATION, MAX_N_POINTS, N_POINTS
 from linien_common.config import ACQUISITION_PORT
 from linien_server.csr import PythonCSR
 from pyrp3.board import RedPitaya
+from pyrp3.instrument import TriggerSource
 from rpyc import Service
-from rpyc.utils.server import OneShotServer
+from rpyc.utils.server import ThreadedServer
 
 
 def shutdown():
@@ -40,6 +44,8 @@ def shutdown():
 class AcquisitionService(Service):
     def __init__(self):
         super(AcquisitionService, self).__init__()
+        stop_nginx()
+        flash_fpga()
 
         self.red_pitaya = RedPitaya()
         self.csr = PythonCSR(self.red_pitaya)
@@ -98,10 +104,7 @@ class AcquisitionService(Service):
                 sleep(0.05)
                 continue
 
-            # copied from https://github.com/RedPitaya/RedPitaya/blob/14cca62dd58f29826ee89f4b28901602f5cdb1d8/api/src/oscilloscope.c#L115  # noqa: E501
-            # check whether scope was triggered
-            not_triggered = (self.red_pitaya.scope.read(0x1 << 2) & 0x4) > 0
-            if not_triggered:
+            if not self.triggered:
                 sleep(0.05)
                 continue
 
@@ -121,6 +124,11 @@ class AcquisitionService(Service):
                 self.data_hash = random()
 
             self.program_acquisition_and_rearm()
+
+    @property
+    def triggered(self):
+        # copied from https://github.com/RedPitaya/RedPitaya/blob/14cca62dd58f29826ee89f4b28901602f5cdb1d8/api/src/oscilloscope.c#L115  # noqa: E501
+        return (self.red_pitaya.scope.read(0x1 << 2) & 0x4) <= 0
 
     def read_data(self):
         write_pointer = self.red_pitaya.scope.write_pointer_trigger
@@ -220,8 +228,7 @@ class AcquisitionService(Service):
             self.red_pitaya.scope.data_decimation = 1
             self.red_pitaya.scope.trigger_delay = int(trigger_delay / DECIMATION) - 1
 
-        # trigger_source=6 means external trigger positive edge
-        self.red_pitaya.scope.rearm(trigger_source=6)
+        self.red_pitaya.scope.rearm(trigger_source=TriggerSource.ext_posedge)
 
     def exposed_return_data(self, last_hash):
         no_data_available = self.data_hash is None
@@ -276,7 +283,17 @@ class AcquisitionService(Service):
         self.skip_next_data = not self.confirmed_that_in_lock
 
 
+def flash_fpga():
+    filepath = Path(__file__).resolve().parents[1] / "linien.bin"
+    shutil.copy(str(filepath), "/dev/xdevcfg")
+
+
+def stop_nginx():
+    subprocess.Popen(["systemctl", "stop", "redpitaya_nginx.service"]).wait()
+    subprocess.Popen(["systemctl", "stop", "redpitaya_scpi.service"]).wait()
+
+
 if __name__ == "__main__":
-    t = OneShotServer(AcquisitionService(), port=ACQUISITION_PORT)
-    print("Starting AcquisitionService on port " + str(ACQUISITION_PORT))
-    t.start()
+    threaded_server = ThreadedServer(AcquisitionService(), port=ACQUISITION_PORT)
+    print("Starting AcquisitionService on port ", ACQUISITION_PORT)
+    threaded_server.start()
