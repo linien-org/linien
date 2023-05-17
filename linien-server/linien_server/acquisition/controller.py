@@ -26,10 +26,10 @@ from linien_common.config import ACQUISITION_PORT
 
 
 class AcquisitionController:
-    def __init__(self, host="127.0.0.1"):
+    def __init__(self, host=None):
         self.on_new_data_received = None
 
-        if host == "127.0.0.1":
+        if host is None:
             # AcquisitionService is imported only on the Red Pitaya since pyrp3 is not
             # available on Windows
             from linien_server.acquisition.service import AcquisitionService

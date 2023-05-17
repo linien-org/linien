@@ -375,7 +375,7 @@ def authenticate_username_and_password(sock):
         "Specify the RP's host as follows: --host=rp-f0xxxx.local"
     ),
 )
-def run_server(port, fake=False, host="127.0.0.1"):
+def run_server(port, fake=False, host=None):
     print("Start server on port", port)
 
     if fake:
