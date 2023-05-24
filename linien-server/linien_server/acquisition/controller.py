@@ -67,9 +67,8 @@ class AcquisitionController:
         self.acquisition_service.exposed_continue_acquisition(uuid)
 
     def shutdown(self):
-        if self.parent_conn:
-            raise SystemExit()
         start_nginx()
+        raise SystemExit()
 
     def set_sweep_speed(self, speed):
         self.acquisition_service.exposed_set_sweep_speed(speed)
