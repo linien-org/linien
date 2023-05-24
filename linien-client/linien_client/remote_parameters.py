@@ -205,8 +205,7 @@ class RemoteParameters:
                 if param.use_cache:
                     param._update_cache(value)
 
-            # iterate over all canged parameters and call the respective
-            # callback functions
+            # iterate over all canged parameters and call respective callback functions
             for param_name, value in queue:
                 if param_name in self._listeners:
                     for listener in self._listeners[param_name]:
@@ -216,16 +215,9 @@ class RemoteParameters:
             self._async_listener_registering is not None
             and self._async_listener_registering.ready
         ):
-            # registration of listeners was successful on the remote side
-            # now we can clear the async call object such that a new one may
-            # be issued (if required)
+            # Registration of listeners was successful on the remote side. Now we can
+            # clear the async call object such that a new one may be issued if required.
             self._async_listener_registering = None
-
-    def _get_param(self, param_name):
-        return unpack(self.remote.exposed_get_param(param_name))
-
-    def _set_param(self, param_name, value):
-        return self.remote.exposed_set_param(param_name, pack(value))
 
 
 class RemoteParameter:
@@ -250,12 +242,12 @@ class RemoteParameter:
         """Return the locally cached value (if it exists). Otherwise ask the server."""
         if hasattr(self, "_cached_value"):
             return self._cached_value
-        return self.parent._get_param(self.name)
+        return unpack(self.parent.remote.exposed_get_param(self.name))
 
     @value.setter
     def value(self, value):
         """Notify the server of the new value"""
-        return self.parent._set_param(self.name, value)
+        return self.parent.remote.exposed_set_param(self.name, pack(value))
 
     @property
     def log(self):
