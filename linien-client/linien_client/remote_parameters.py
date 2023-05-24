@@ -74,13 +74,23 @@ class RemoteParameters:
     def __init__(self, remote, uuid: str, use_cache: bool):
         self.remote = remote
         self.uuid = uuid
+
         self._async_listener_queue = None
         self._async_listener_registering = None
-
         self._listeners_pending_remote_registration = []
         self._listeners = {}
 
-        self._mimic_remote_parameters(use_cache)
+        # mimic functionality of `parameters.Parameters`:
+        all_parameters = unpack(self.remote.exposed_init_parameter_sync(self.uuid))
+        for name, param, value, can_be_cached, loggable in all_parameters:
+            param = RemoteParameter(
+                self, param, name, use_cache and can_be_cached, loggable
+            )
+            setattr(self, name, param)
+            if use_cache and can_be_cached:
+                # obtain takes care that we really don't deal with netrefs (np.float64
+                # is not automatically serialized)
+                param._update_cache(rpyc.classic.obtain(value))
         self._attributes_locked = True
 
         self.call_listeners()
@@ -108,29 +118,7 @@ class RemoteParameters:
             )
         super().__setattr__(name, value)
 
-    def _mimic_remote_parameters(self, use_cache: bool):
-        """
-        For every remote parameter, instanciate a `RemoteParameter` object that allows
-        to mimics the functionality of the remote parameter.
-        """
-        # when directly iterating over `exposed_init_parameter_sync`, each iteration
-        # triggers a request as it is a netref over an iterator
-        # --> the `list` call prevents this and improves startup performance
-        all_parameters = unpack(self.remote.exposed_init_parameter_sync(self.uuid))
-
-        for name, param, value, can_be_cached, loggable in all_parameters:
-            param = RemoteParameter(
-                self, param, name, use_cache and can_be_cached, loggable
-            )
-            setattr(self, name, param)
-            if use_cache and can_be_cached:
-                # obtain takes care that we really don't deal with netrefs
-                # (np.float64 is not automatically serialized)
-                param._update_cache(rpyc.classic.obtain(value))
-
-        self._attributes_locked = True
-
-    def _register_listener(self, param, callback: Callable):
+    def register_listener(self, param, callback: Callable):
         """
         Tell the server to notify our client (identified by `self.uuid`) when `param`
         changes. Registers a function `callback` that will be called in this case.
@@ -250,7 +238,7 @@ class RemoteParameter:
         return self.parent.remote.exposed_set_param(self.name, pack(value))
 
     @property
-    def log(self):
+    def log(self) -> bool:
         return self._remote_param.log
 
     def on_change(
@@ -260,7 +248,7 @@ class RemoteParameter:
         Tell the server that `callback_on_change` should be called whenever the
         parameter changes.
         """
-        self.parent._register_listener(self, callback_on_change)
+        self.parent.register_listener(self, callback_on_change)
 
         if call_listener_with_first_value:
             # call the callback with the initial value
