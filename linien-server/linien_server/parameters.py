@@ -703,10 +703,9 @@ class ParameterStore:
 
         print("save parameters")
         parameters = {}
-        for name, value in self.parameters:
+        for name, _ in self.parameters.get_all_restorable_parameters():
             param = getattr(self.parameters, name)
-            if param.restorable:
-                parameters[name] = value
+            parameters[name] = param.value
 
         try:
             with open(PARAMETER_STORE_FN, "wb") as f:
