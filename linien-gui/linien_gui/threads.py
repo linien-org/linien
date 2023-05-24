@@ -101,7 +101,7 @@ class ConnectionThread(QThread):
                 # because we don't want to override our local settings with the remote
                 # one --> we wait until user has answered whether local parameters or
                 # remote ones should be used.
-                self.write_parameters_to_disk_on_change()
+                self.write_restorable_parameters_to_disk_on_change()
 
         except ServerNotInstalledException:
             self.server_not_installed_exception_raised.emit()
@@ -128,7 +128,7 @@ class ConnectionThread(QThread):
         if should_restore:
             self.restore_parameters(dry_run=False)
 
-        self.write_parameters_to_disk_on_change()
+        self.write_restorable_parameters_to_disk_on_change()
 
     def restore_parameters(self, dry_run=False):
         """
@@ -165,7 +165,7 @@ class ConnectionThread(QThread):
 
         return differences
 
-    def write_parameters_to_disk_on_change(self):
+    def write_restorable_parameters_to_disk_on_change(self):
         """
         Listens for changes of some parameters and permanently saves their values on the
         client's disk. This data can be used to restore the status later, if the client

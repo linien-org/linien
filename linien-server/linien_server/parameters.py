@@ -615,15 +615,16 @@ class Parameters:
         and if the parameters are suited to be cached registers a listener that pushes
         changes of these parameters to the client.
         """
-        for name, element in self.get_all_parameters():
+        for name, param in self.get_all_parameters():
             yield (
                 name,
-                element,
-                element.value,
-                element.exposed_can_be_cached,
-                element.loggable,
+                param,
+                param.value,
+                param.exposed_can_be_cached,
+                param.restorable,
+                param.loggable,
             )
-            if element.exposed_can_be_cached:
+            if param.exposed_can_be_cached:
                 self.register_remote_listener(uuid, name)
 
     def register_remote_listener(self, uuid, param_name):
