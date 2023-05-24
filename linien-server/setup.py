@@ -44,7 +44,6 @@ setup(
         "cma>=3.0.3",
         "pylpsd>=0.1.4",
         "pyrp3>=1.1.0;platform_machine=='armv7l'",  # only install on RedPitaya
-        "rpyc>=4.0,<5.0",
         "linien-common=={}".format(version),
     ],
     scripts=[
