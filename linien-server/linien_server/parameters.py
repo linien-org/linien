@@ -596,17 +596,12 @@ class Parameters:
         self.plot_color_4 = Parameter(start=DEFAULT_COLORS[4], restorable=True)
 
     def __iter__(self):
-        for name, param in self.get_all_parameters():
+        for name, param in self._get_all_parameters():
             yield name, param.value
 
-    def get_all_parameters(self):
+    def _get_all_parameters(self):
         for name, param in self.__dict__.items():
             if isinstance(param, Parameter):
-                yield name, param
-
-    def get_all_restorable_parameters(self):
-        for name, param in self.get_all_parameters():
-            if param.restorable:
                 yield name, param
 
     def init_parameter_sync(self, uuid):
@@ -615,7 +610,7 @@ class Parameters:
         and if the parameters are suited to be cached registers a listener that pushes
         changes of these parameters to the client.
         """
-        for name, param in self.get_all_parameters():
+        for name, param in self._get_all_parameters():
             yield (
                 name,
                 param,

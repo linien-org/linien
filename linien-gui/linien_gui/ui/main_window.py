@@ -182,14 +182,17 @@ class MainWindow(QtWidgets.QMainWindow):
                 fn = fn + default_ext
 
             with open(fn, "w") as f:
+                parameters = {}
+                for name, value in self.parameters:
+                    param = getattr(self.parameters, name)
+                    if param.restorable:
+                        parameters[name] = value
+
                 json.dump(
                     {
                         "linien-version": linien_gui.__version__,
                         "time": time(),
-                        "parameters": dict(
-                            (k, getattr(self.parameters, k).value)
-                            for k in self.parameters.remote.exposed_get_restorable_parameters()  # noqa: E501
-                        ),
+                        "parameters": parameters,
                     },
                     f,
                 )
@@ -209,14 +212,14 @@ class MainWindow(QtWidgets.QMainWindow):
 
             assert "linien-version" in data, "invalid parameter file"
 
-            restorable = self.parameters.remote.exposed_get_restorable_parameters()
-            for k, v in data["parameters"].items():
-                if k not in restorable:
-                    print("ignore key", k)
+            for param_name, value in data["parameters"].items():
+                param = getattr(self.parameters, param_name)
+                if not param.restorable:
+                    print(f"ignore key {param_name}")
                     continue
 
-                print("restoring", k)
-                getattr(self.parameters, k).value = v
+                print(f"restoring {param_name}")
+                getattr(self.parameters, param_name).value = value
 
             self.control.write_registers()
 
