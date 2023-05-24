@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-from typing import Callable, Iterator
+from typing import Any, Callable, Iterator, Tuple
 
 import rpyc
 from linien_common.common import pack, unpack
@@ -100,10 +100,10 @@ class RemoteParameters:
 
         self.call_listeners()
 
-    def __iter__(self) -> Iterator["RemoteParameter"]:
-        for param in self.__dict__:
+    def __iter__(self) -> Iterator[Tuple[str, Any]]:
+        for param_name, param in self.__dict__.items():
             if isinstance(param, RemoteParameter):
-                yield param
+                yield param_name, param.value
 
     def __setattr__(self, name, value):
         """
