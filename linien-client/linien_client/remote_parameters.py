@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-from typing import Callable
+from typing import Callable, Iterator
 
 import rpyc
 from linien_common.common import pack, unpack
@@ -82,9 +82,14 @@ class RemoteParameters:
 
         # mimic functionality of `parameters.Parameters`:
         all_parameters = unpack(self.remote.exposed_init_parameter_sync(self.uuid))
-        for name, param, value, can_be_cached, loggable in all_parameters:
+        for name, param, value, can_be_cached, restorable, loggable in all_parameters:
             param = RemoteParameter(
-                self, param, name, use_cache and can_be_cached, loggable
+                parent=self,
+                remote_param=param,
+                name=name,
+                use_cache=use_cache and can_be_cached,
+                restorable=restorable,
+                loggable=loggable,
             )
             setattr(self, name, param)
             if use_cache and can_be_cached:
@@ -94,6 +99,11 @@ class RemoteParameters:
         self._attributes_locked = True
 
         self.call_listeners()
+
+    def __iter__(self) -> Iterator["RemoteParameter"]:
+        for param in self.__dict__:
+            if isinstance(param, RemoteParameter):
+                yield param
 
     def __setattr__(self, name, value):
         """
@@ -106,7 +116,7 @@ class RemoteParameters:
             and self._attributes_locked
             and not name.startswith("_")
         ):
-            raise Exception(
+            raise AttributeError(
                 "Parameters are locked! Did you mean to set the value of this parameter"
                 f" instead, i.e. parameters.{name}.value = {value}"
             )
@@ -211,12 +221,14 @@ class RemoteParameter:
         remote_param,
         name: str,
         use_cache: bool,
+        restorable: bool,
         loggable: bool,
     ):
         self._remote_param = remote_param
         self.name = name
         self.parent = parent
         self.use_cache = use_cache
+        self.restorable = restorable
         self.loggable = loggable
 
     @property
