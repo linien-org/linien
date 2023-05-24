@@ -49,6 +49,9 @@ These binaries run on your lab PC and contain everything to get Linien running o
 
 If you want to use the python interface you should [install it using pip](#installation-with-pip).
 
+| :exclamation: Note that Linien currently does not work with RedPitaya OS 2.00. Please make sure that your RedPitaya is running version 1.04.|
+|---------------------------------------------------------------------------------------------------------------------------------------------|
+
 ### Standalone binary
 
 You can download standalone binaries for Windows on [the
