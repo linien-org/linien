@@ -593,7 +593,7 @@ class Parameters:
         self.plot_color_1 = Parameter(start=DEFAULT_COLORS[1], restorable=True)
         self.plot_color_2 = Parameter(start=DEFAULT_COLORS[2], restorable=True)
         self.plot_color_3 = Parameter(start=DEFAULT_COLORS[3], restorable=True)
-        self.plot_color_4 = Parameter(start=DEFAULT_COLORS[4], restorable=True)
+        self.plot_color_4 = Parameter(start=DEFAULT_COLORS[4], restorable=False)
 
     def __iter__(self):
         for name, param in self.get_all_parameters():
