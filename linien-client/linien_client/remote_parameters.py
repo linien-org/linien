@@ -97,15 +97,9 @@ class RemoteParameters:
 
     def __setattr__(self, name, value):
         """
-        In order to set the value of a parameter,
-
-            parameters.my_param.value = 123
-
-        is used. In order to prevent accidentally forgetting the .value part, i.e.
-
-            parameters.my_param = 123
-
-        we raise an error in this case.
+        In order to set the value of a parameter, `parameters.my_param.value = 123` is
+        used. In order to prevent accidentally forgetting the .value part, i.e.
+        `parameters.my_param = 123` we raise an error in this case.
         """
         if (
             hasattr(self, "_attributes_locked")
@@ -113,8 +107,8 @@ class RemoteParameters:
             and not name.startswith("_")
         ):
             raise Exception(
-                "Parameters are locked! Did you mean to set the value of this "
-                f"parameter instead, i.e. parameters.{name}.value = {value}"
+                "Parameters are locked! Did you mean to set the value of this parameter"
+                f" instead, i.e. parameters.{name}.value = {value}"
             )
         super().__setattr__(name, value)
 
