@@ -598,7 +598,7 @@ class Parameters:
     def __iter__(self):
         for name, param in self.__dict__.items():
             if isinstance(param, Parameter):
-                yield name, param
+                yield name, param.value
 
     def get_all_restorable_parameters(self):
         for name, param in self:
