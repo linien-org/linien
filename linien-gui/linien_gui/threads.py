@@ -45,7 +45,7 @@ class RemoteOutStream(QObject):
 
 
 class RemoteServerInstallationThread(QThread):
-    def __init__(self, device):
+    def __init__(self, device: dict):
         """A thread that installs the linien server on a remote machine."""
         super(RemoteServerInstallationThread, self).__init__()
         self.device = device
@@ -62,7 +62,7 @@ class RemoteServerInstallationThread(QThread):
 
 
 class ConnectionThread(QThread):
-    def __init__(self, device):
+    def __init__(self, device: dict):
         super(ConnectionThread, self).__init__()
         self.device = device
 
@@ -101,7 +101,7 @@ class ConnectionThread(QThread):
                 # because we don't want to override our local settings with the remote
                 # one --> we wait until user has answered whether local parameters or
                 # remote ones should be used.
-                self.continuously_write_parameters_to_disk()
+                self.write_parameters_to_disk_on_change()
 
         except ServerNotInstalledException:
             self.server_not_installed_exception_raised.emit()
@@ -128,7 +128,7 @@ class ConnectionThread(QThread):
         if should_restore:
             self.restore_parameters(dry_run=False)
 
-        self.continuously_write_parameters_to_disk()
+        self.write_parameters_to_disk_on_change()
 
     def restore_parameters(self, dry_run=False):
         """
@@ -139,8 +139,7 @@ class ConnectionThread(QThread):
               local parameters differ from the ones on the server
             * `False`, the local parameters are uploaded to the server
         """
-        device_key = self.device["key"]
-        params = get_saved_parameters(device_key)
+        params = get_saved_parameters(self.device["key"])
         print("restoring parameters")
 
         differences = False
@@ -159,24 +158,25 @@ class ConnectionThread(QThread):
                 # This may happen if the settings were written with a different version
                 # of linien.
                 print(f"Unable to restore parameter {k}. Delete the cached value.")
-                save_parameter(device_key, k, None, delete=True)
+                save_parameter(self.device["key"], k, None, delete=True)
 
         if not dry_run:
             self.client.control.write_registers()
 
         return differences
 
-    def continuously_write_parameters_to_disk(self):
+    def write_parameters_to_disk_on_change(self):
         """
         Listens for changes of some parameters and permanently saves their values on the
         client's disk. This data can be used to restore the status later, if the client
         tries to connect to the server but it doesn't run anymore.
         """
-        params = self.client.parameters.remote.exposed_get_restorable_parameters()
+        for (
+            param_name,
+            _,
+        ) in self.client.parameters.remote.exposed_get_restorable_parameters():
 
-        for param in params:
+            def on_change(value, param_name=param_name):
+                save_parameter(self.device["key"], param_name, value)
 
-            def on_change(value, param=param):
-                save_parameter(self.device["key"], param, value)
-
-            getattr(self.client.parameters, param).on_change(on_change)
+            getattr(self.client.parameters, param_name).on_change(on_change)

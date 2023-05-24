@@ -47,6 +47,7 @@ class Parameter:
         sync=True,
         collapsed_sync=True,
         restorable=False,
+        loggable=False,
     ):
         self.min = min_
         self.max = max_
@@ -57,6 +58,7 @@ class Parameter:
         self.exposed_can_be_cached = sync
         self._collapsed_sync = collapsed_sync
         self.restorable = restorable
+        self.loggable = loggable
 
     @property
     def value(self):
@@ -146,7 +148,7 @@ class Parameters:
               value is not an array but a single point.
         """
 
-        self.signal_stats = Parameter(sync=False)
+        self.signal_stats = Parameter(sync=False, loggable=True)
         """
         A dictionary that contains mean, standard deviation, minimum value and maximum
         value for all the signals contained in `to_plot`. Exemplary dictionary keys are
@@ -278,7 +280,7 @@ class Parameters:
         listener for this parameter.
         """
 
-        #           --------- SWEEP PARAMETERS ---------
+        # ------------------- SWEEP PARAMETERS -----------------------------------------
 
         self.sweep_amplitude = Parameter(min_=0.001, max_=1, start=1)
         """
@@ -316,7 +318,7 @@ class Parameters:
         """
 
         self.modulation_frequency = Parameter(
-            min_=0, max_=0xFFFFFFFF, start=15 * MHz, restorable=True
+            min_=0, max_=0xFFFFFFFF, start=15 * MHz, restorable=True, loggable=True
         )
         """
         Frequency of the modulation in internal units. Use MHz for conversion to
@@ -483,19 +485,19 @@ class Parameters:
         a value of -8191 shifts the data down by 1V, a value of +8191 moves it up.
         """
 
-        self.p = Parameter(start=50, max_=8191, restorable=True)
+        self.p = Parameter(start=50, max_=8191, restorable=True, loggable=True)
         """
         Proportional part of PID parameters. Range is [0, 8191]. In order to change sign
         of PID parameters, use `target_slope_rising`
         """
 
-        self.i = Parameter(start=5, max_=8191, restorable=True)
+        self.i = Parameter(start=5, max_=8191, restorable=True, loggable=True)
         """
         Integral part of PID parameters. Range is [0, 8191]. In order to change sign of
         PID parameters, use `target_slope_rising`
         """
 
-        self.d = Parameter(start=0, max_=8191, restorable=True)
+        self.d = Parameter(start=0, max_=8191, restorable=True, loggable=True)
         """
         Derivate part of PID parameters. Range is [0, 8191]. In order to change sign of
         PID parameters, use `target_slope_rising`
@@ -509,8 +511,8 @@ class Parameters:
 
         self.pid_on_slow_strength = Parameter(start=0, restorable=True)
         """
-        Strength of the (slow) PID on ANALOG_OUT 0. This strength corresponds to the
-        strength of the integrator. Maximum value is 8191.
+        Strength of the slow PID. This strength corresponds to the strength of the
+        integrator. Maximum value is 8191.
         """
 
         self.check_lock = Parameter(start=True, restorable=True)
@@ -591,20 +593,21 @@ class Parameters:
         self.plot_color_1 = Parameter(start=DEFAULT_COLORS[1], restorable=True)
         self.plot_color_2 = Parameter(start=DEFAULT_COLORS[2], restorable=True)
         self.plot_color_3 = Parameter(start=DEFAULT_COLORS[3], restorable=True)
+        self.plot_color_4 = Parameter(start=DEFAULT_COLORS[4], restorable=True)
 
     def __iter__(self):
         for name, param in self.get_all_parameters():
             yield name, param.value
 
     def get_all_parameters(self):
-        for name, element in self.__dict__.items():
-            if isinstance(element, Parameter):
-                yield name, element
+        for name, param in self.__dict__.items():
+            if isinstance(param, Parameter):
+                yield name, param
 
     def get_all_restorable_parameters(self):
-        for name, element in self.get_all_parameters():
-            if element.restorable:
-                yield name, element
+        for name, param in self.get_all_parameters():
+            if param.restorable:
+                yield name, param
 
     def init_parameter_sync(self, uuid):
         """
@@ -613,7 +616,13 @@ class Parameters:
         changes of these parameters to the client.
         """
         for name, element in self.get_all_parameters():
-            yield name, element, element.value, element.exposed_can_be_cached
+            yield (
+                name,
+                element,
+                element.value,
+                element.exposed_can_be_cached,
+                element.loggable,
+            )
             if element.exposed_can_be_cached:
                 self.register_remote_listener(uuid, name)
 

@@ -70,10 +70,10 @@ class BaseService(rpyc.Service):
         return __version__
 
     def exposed_get_param(self, param_name):
-        return pack(self.parameters._get_param(param_name).value)
+        return pack(getattr(self.parameters, param_name).value)
 
     def exposed_set_param(self, param_name, value):
-        self.parameters._get_param(param_name).value = unpack(value)
+        getattr(self.parameters, param_name).value = unpack(value)
 
     def exposed_init_parameter_sync(self, uuid):
         return pack(list(self.parameters.init_parameter_sync(uuid)))
@@ -119,9 +119,9 @@ class RedPitayaControlService(BaseService):
         self.continue_acquisition()
 
     def _on_new_data_received(self, is_raw, plot_data, data_uuid):
-        # When a parameter is changed, `pause_acquisition` is set. This means that
-        # the we should skip new data until we are sure that it was recorded with
-        # the new settings.
+        # When a parameter is changed, `pause_acquisition` is set. This means that the
+        # we should skip new data until we are sure that it was recorded with the new
+        # settings.
         if not self.parameters.pause_acquisition.value:
             if data_uuid != self.data_uuid:
                 return

@@ -66,7 +66,7 @@ class DeviceManager(QtWidgets.QMainWindow):
         else:
             self.connect_to_device(devices[self.get_list_index()])
 
-    def connect_to_device(self, device):
+    def connect_to_device(self, device: dict):
         loading_dialog = LoadingDialog(self, device["host"])
         loading_dialog.show()
 

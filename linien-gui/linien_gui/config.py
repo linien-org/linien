@@ -18,6 +18,7 @@
 import os
 import pickle
 from enum import Enum
+from typing import List
 
 import appdirs
 import rpyc
@@ -38,10 +39,8 @@ class Color(Enum):
 
 def get_data_folder():
     folder_name = appdirs.user_data_dir("linien")
-
     if not os.path.exists(folder_name):
         os.makedirs(folder_name)
-
     return folder_name
 
 
@@ -54,7 +53,7 @@ def save_device_data(devices):
         pickle.dump(devices, f)
 
 
-def load_device_data():
+def load_device_data() -> List[dict]:
     try:
         with open(get_devices_filename(), "rb") as f:
             devices = pickle.load(f)
@@ -64,29 +63,30 @@ def load_device_data():
     return devices
 
 
-def save_parameter(device_key, param, value, delete=False):
+def save_parameter(
+    device_key: dict, param_name: str, value: object, delete: bool = False
+):
     devices = load_device_data()
     device = [d for d in devices if d["key"] == device_key][0]
     device.setdefault("params", {})
 
     if not delete:
         # FIXME: This is the only part where rpyc is used in linien-gui. Remove it if
-        # possible.
-        # rpyc obtain is for ensuring that we don't try to save a netref here
+        # possible. rpyc obtain is for ensuring that we don't try to save a netref here
         try:
-            device["params"][param] = rpyc.classic.obtain(value)
+            device["params"][param_name] = rpyc.classic.obtain(value)
         except Exception:
-            print("unable to obtain and save parameter", param)
+            print("unable to obtain and save parameter", param_name)
     else:
         try:
-            del device["params"][param]
+            del device["params"][param_name]
         except KeyError:
             pass
 
     save_device_data(devices)
 
 
-def get_saved_parameters(device_key):
+def get_saved_parameters(device_key: dict):
     devices = load_device_data()
     device = [d for d in devices if d["key"] == device_key][0]
     device.setdefault("params", {})
