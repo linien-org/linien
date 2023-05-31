@@ -171,11 +171,11 @@ class ConnectionThread(QThread):
         client's disk. This data can be used to restore the status later, if the client
         tries to connect to the server but it doesn't run anymore.
         """
-        for param_name, _ in self.client.parameters:
-            param = getattr(self.client.parameters, param_name)
-            if param.restorable:
+        for parameter_name, _ in self.client.parameters:
+            parameter = getattr(self.client.parameters, parameter_name)
+            if parameter.restorable:
 
-                def on_change(value, param_name: str = param_name) -> None:
-                    save_parameter(self.device["key"], param_name, value)
+                def on_change(value, parameter_name: str = parameter_name) -> None:
+                    save_parameter(self.device["key"], parameter_name, value)
 
-            param.on_change(on_change)
+                parameter.on_change(on_change)
