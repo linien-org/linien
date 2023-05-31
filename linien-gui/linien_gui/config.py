@@ -26,6 +26,15 @@ import rpyc
 # don't plot more often than once per `DEFAULT_PLOT_RATE_LIMIT` seconds
 DEFAULT_PLOT_RATE_LIMIT = 0.1
 
+DEFAULT_COLORS = [
+    (200, 0, 0, 200),
+    (0, 200, 0, 200),
+    (0, 0, 200, 200),
+    (200, 200, 0, 200),
+    (200, 0, 200, 200),
+]
+N_COLORS = len(DEFAULT_COLORS)
+
 
 class Color(Enum):
     SPECTRUM1 = 0
@@ -35,6 +44,58 @@ class Color(Enum):
     CONTROL_SIGNAL_HISTORY = 1
     SLOW_HISTORY = 3
     MONITOR_SIGNAL_HISTORY = 4
+
+
+class Setting:
+    def __init__(
+        self,
+        min_=None,
+        max_=None,
+        start=None,
+    ):
+        self.min = min_
+        self.max = max_
+        self._value = start
+        self.start = start
+        self._listeners = set()
+
+    @property
+    def value(self):
+        return self._value
+
+    @value.setter
+    def value(self, value):
+        if self.min is not None and value < self.min:
+            self._value = self.min
+        if self.max is not None and value > self.max:
+            self._value = self.max
+
+        # We copy it because a listener could remove a listener --> this would cause an
+        # error in this loop.
+        for listener in self._listeners.copy():
+            listener(value)
+
+    def on_change(self, function, call_listener_with_first_value=True):
+        self._listeners.add(function)
+
+        if call_listener_with_first_value:
+            if self._value is not None:
+                function(self._value)
+
+    def remove_listener(self, function):
+        if function in self._listeners:
+            self._listeners.remove(function)
+
+
+class Settings:
+    plot_line_width = Setting(start=2, min_=0.1, max_=100)
+    plot_line_opacity = Setting(start=230, min_=0, max_=255)
+    plot_fill_opacity = Setting(start=70, min_=0, max_=255)
+    plot_color_0 = Setting(start=DEFAULT_COLORS[0])
+    plot_color_1 = Setting(start=DEFAULT_COLORS[1])
+    plot_color_2 = Setting(start=DEFAULT_COLORS[2])
+    plot_color_3 = Setting(start=DEFAULT_COLORS[3])
+    plot_color_4 = Setting(start=DEFAULT_COLORS[4])
 
 
 def get_data_folder():

@@ -30,7 +30,6 @@ from linien_common.common import (
     Vpp,
     pack,
 )
-from linien_common.config import DEFAULT_COLORS
 
 PARAMETER_STORE_FN = "/linien_parameters.pickle"
 
@@ -74,8 +73,8 @@ class Parameter:
 
         self._value = value
 
-        # we copy it because a listener could remove a listener --> this would
-        # cause an error in this loop
+        # We copy it because a listener could remove a listener --> this would cause an
+        # error in this loop.
         for listener in self._listeners.copy():
             listener(value)
 
@@ -156,7 +155,7 @@ class Parameters:
         `error_signal_2_max`.
         """
 
-        #           --------- GENERAL PARAMETERS ---------
+        # ------------------- GENERAL PARAMETERS ---------------------------------------
 
         self.mod_channel = Parameter(start=0, min_=0, max_=1, restorable=True)
         """
@@ -583,17 +582,6 @@ class Parameters:
         self.psd_acquisition_max_decimation = Parameter(
             start=18, min_=1, max_=32, restorable=True
         )
-
-        # ------------------- PARAMETERS OF GUI ----------------------------------------
-        self.plot_line_width = Parameter(start=2, min_=0.1, max_=100, restorable=True)
-        self.plot_line_opacity = Parameter(start=230, min_=0, max_=255, restorable=True)
-        self.plot_fill_opacity = Parameter(start=70, min_=0, max_=255, restorable=True)
-
-        self.plot_color_0 = Parameter(start=DEFAULT_COLORS[0], restorable=True)
-        self.plot_color_1 = Parameter(start=DEFAULT_COLORS[1], restorable=True)
-        self.plot_color_2 = Parameter(start=DEFAULT_COLORS[2], restorable=True)
-        self.plot_color_3 = Parameter(start=DEFAULT_COLORS[3], restorable=True)
-        self.plot_color_4 = Parameter(start=DEFAULT_COLORS[4], restorable=False)
 
     def __iter__(self):
         for name, param in self.get_all_parameters():

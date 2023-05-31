@@ -32,8 +32,7 @@ from linien_common.common import (
     get_signal_strength_from_i_q,
     update_signal_history,
 )
-from linien_common.config import N_COLORS
-from linien_gui.config import DEFAULT_PLOT_RATE_LIMIT, Color
+from linien_gui.config import DEFAULT_PLOT_RATE_LIMIT, N_COLORS, Color
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import pyqtSignal
 from pyqtgraph.Qt import QtCore
@@ -211,7 +210,7 @@ class PlotWidget(pg.PlotWidget):
         self.control = self.app.control
 
         def set_pens(*args):
-            pen_width = self.parameters.plot_line_width.value
+            pen_width = self.app.settings.plot_line_width.value
 
             for curve, color in {
                 self.signal1: Color.SPECTRUM1,
@@ -223,15 +222,15 @@ class PlotWidget(pg.PlotWidget):
                 self.monitor_signal_history: Color.MONITOR_SIGNAL_HISTORY,
             }.items():
                 r, g, b, *stuff = getattr(
-                    self.parameters, f"plot_color_{color.value}"
+                    self.app.settings, f"plot_color_{color.value}"
                 ).value
-                a = self.parameters.plot_line_opacity.value
+                a = self.app.settings.plot_line_opacity.value
                 curve.setPen(pg.mkPen((r, g, b, a), width=pen_width))
 
         for color_idx in range(N_COLORS):
-            getattr(self.parameters, "plot_color_%d" % color_idx).on_change(set_pens)
-        self.parameters.plot_line_width.on_change(set_pens)
-        self.parameters.plot_line_opacity.on_change(set_pens)
+            getattr(self.app.settings, f"plot_color_{color_idx}").on_change(set_pens)
+        self.app.settings.plot_line_width.on_change(set_pens)
+        self.app.settings.plot_line_opacity.on_change(set_pens)
 
         self.control_signal_history_data = self.parameters.control_signal_history.value
         self.monitor_signal_history_data = self.parameters.monitor_signal_history.value
@@ -520,7 +519,7 @@ class PlotWidget(pg.PlotWidget):
                                 self.signal_strength_a2,
                                 self.signal_strength_a_fill,
                                 self.parameters.offset_a.value,
-                                self.parameters.plot_color_0.value,
+                                self.app.settings.plot_color_0.value,
                             )
                             / V
                         )
@@ -546,7 +545,7 @@ class PlotWidget(pg.PlotWidget):
                                 self.signal_strength_b2,
                                 self.signal_strength_b_fill,
                                 self.parameters.offset_b.value,
-                                self.parameters.plot_color_1.value,
+                                self.app.settings.plot_color_1.value,
                             )
                             / V
                         )
@@ -598,7 +597,7 @@ class PlotWidget(pg.PlotWidget):
         upper = (channel_offset / V) + signal_strength_scaled
         lower = (channel_offset / V) - 1 * signal_strength_scaled
 
-        brush = pg.mkBrush(r, g, b, self.parameters.plot_fill_opacity.value)
+        brush = pg.mkBrush(r, g, b, self.app.settings.plot_fill_opacity.value)
         fill.setBrush(brush)
 
         invisible_pen = pg.mkPen("k", width=0.00001)

@@ -24,8 +24,7 @@ from time import time
 import linien_gui
 import numpy as np
 from linien_common.common import check_plot_data
-from linien_common.config import N_COLORS
-from linien_gui.config import Color
+from linien_gui.config import N_COLORS, Color
 from linien_gui.ui.plot_widget import INVALID_POWER
 from linien_gui.utils import color_to_hex, set_window_icon
 from linien_gui.widgets import UI_PATH
@@ -104,7 +103,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.parameters.lock.on_change(lambda *args: self.reset_std_history())
 
         for color_idx in range(N_COLORS):
-            getattr(self.parameters, f"plot_color_{color_idx}").on_change(
+            getattr(self.app.settings, f"plot_color_{color_idx}").on_change(
                 self.update_legend_color
             )
 
@@ -128,7 +127,7 @@ class MainWindow(QtWidgets.QMainWindow):
             return el.setStyleSheet(
                 "color: "
                 + color_to_hex(
-                    getattr(self.parameters, f"plot_color_{color.value}").value
+                    getattr(self.app.settings, f"plot_color_{color.value}").value
                 )
             )
 
