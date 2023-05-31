@@ -221,7 +221,7 @@ class PlotWidget(pg.PlotWidget):
                 self.slow_history: Color.SLOW_HISTORY,
                 self.monitor_signal_history: Color.MONITOR_SIGNAL_HISTORY,
             }.items():
-                r, g, b, *stuff = getattr(
+                r, g, b, _ = getattr(
                     self.app.settings, f"plot_color_{color.value}"
                 ).value
                 a = self.app.settings.plot_line_opacity.value

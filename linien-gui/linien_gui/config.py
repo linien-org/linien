@@ -66,9 +66,10 @@ class Setting:
     @value.setter
     def value(self, value):
         if self.min is not None and value < self.min:
-            self._value = self.min
+            value = self.min
         if self.max is not None and value > self.max:
-            self._value = self.max
+            value = self.max
+        self._value = value
 
         # We copy it because a listener could remove a listener --> this would cause an
         # error in this loop.
