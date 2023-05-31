@@ -21,7 +21,7 @@ from traceback import print_exc
 
 import click
 import linien_gui
-from linien_gui.config import Settings
+from linien_gui.config import load_settings
 from linien_gui.ui.device_manager import DeviceManager
 from linien_gui.ui.main_window import MainWindow
 from linien_gui.ui.psd_window import PSDWindow
@@ -40,7 +40,8 @@ class LinienApp(QtWidgets.QApplication):
     def __init__(self, *args, **kwargs):
         super(LinienApp, self).__init__(*args, **kwargs)
 
-        self.settings = Settings()
+        self.settings = load_settings()
+
         self.main_window = MainWindow()
         self.device_manager = DeviceManager()
         self.psd_window = PSDWindow()

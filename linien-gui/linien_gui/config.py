@@ -15,13 +15,15 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-import os
+import json
 import pickle
 from enum import Enum
-from typing import List
+from typing import Callable, Iterator, List, Tuple
 
-import appdirs
 import rpyc
+from app_paths import AppPaths
+
+USER_DATA_PATH = AppPaths.get_paths("linien", roaming=False).user_data
 
 # don't plot more often than once per `DEFAULT_PLOT_RATE_LIMIT` seconds
 DEFAULT_PLOT_RATE_LIMIT = 0.1
@@ -76,7 +78,9 @@ class Setting:
         for listener in self._listeners.copy():
             listener(value)
 
-    def on_change(self, function, call_listener_with_first_value=True):
+    def on_change(
+        self, function: Callable, call_listener_with_first_value: bool = True
+    ):
         self._listeners.add(function)
 
         if call_listener_with_first_value:
@@ -89,35 +93,57 @@ class Setting:
 
 
 class Settings:
-    plot_line_width = Setting(start=2, min_=0.1, max_=100)
-    plot_line_opacity = Setting(start=230, min_=0, max_=255)
-    plot_fill_opacity = Setting(start=70, min_=0, max_=255)
-    plot_color_0 = Setting(start=DEFAULT_COLORS[0])
-    plot_color_1 = Setting(start=DEFAULT_COLORS[1])
-    plot_color_2 = Setting(start=DEFAULT_COLORS[2])
-    plot_color_3 = Setting(start=DEFAULT_COLORS[3])
-    plot_color_4 = Setting(start=DEFAULT_COLORS[4])
+    def __init__(self):
+        self.plot_line_width = Setting(start=2, min_=0.1, max_=100)
+        self.plot_line_opacity = Setting(start=230, min_=0, max_=255)
+        self.plot_fill_opacity = Setting(start=70, min_=0, max_=255)
+        self.plot_color_0 = Setting(start=DEFAULT_COLORS[0])
+        self.plot_color_1 = Setting(start=DEFAULT_COLORS[1])
+        self.plot_color_2 = Setting(start=DEFAULT_COLORS[2])
+        self.plot_color_3 = Setting(start=DEFAULT_COLORS[3])
+        self.plot_color_4 = Setting(start=DEFAULT_COLORS[4])
+
+        # save changed settings to disk
+        for _, setting in self:
+            setting.on_change(
+                lambda _: save_settings(self), call_listener_with_first_value=False
+            )
+
+    def __iter__(self) -> Iterator[Tuple[str, Setting]]:
+        for name, setting in self.__dict__.items():
+            if isinstance(setting, Setting):
+                yield name, setting
 
 
-def get_data_folder():
-    folder_name = appdirs.user_data_dir("linien")
-    if not os.path.exists(folder_name):
-        os.makedirs(folder_name)
-    return folder_name
+def save_settings(settings: Settings) -> None:
+    print("Saving settings")
+    data = {name: setting.value for name, setting in settings}
+    with open(USER_DATA_PATH / "settings.json", "w") as f:
+        json.dump(data, f, indent=0)
 
 
-def get_devices_filename():
-    return os.path.join(get_data_folder(), "devices")
+def load_settings() -> Settings:
+    settings = Settings()
+    try:
+        with open(USER_DATA_PATH / "settings.json", "r") as f:
+            data = json.load(f)
+            for name, value in data.items():
+                if name in settings.__dict__:
+                    getattr(settings, name).value = value
+    except FileNotFoundError:
+        save_settings(settings)
+
+    return settings
 
 
-def save_device_data(devices):
-    with open(get_devices_filename(), "wb") as f:
+def save_device_data(devices) -> None:
+    with open(USER_DATA_PATH / "devices", "wb") as f:
         pickle.dump(devices, f)
 
 
 def load_device_data() -> List[dict]:
     try:
-        with open(get_devices_filename(), "rb") as f:
+        with open(USER_DATA_PATH / "devices", "rb") as f:
             devices = pickle.load(f)
     except (FileNotFoundError, pickle.UnpicklingError, EOFError):
         devices = []
