@@ -40,7 +40,7 @@ setup(
     entry_points={"console_scripts": ["linien=linien_gui.app:run_application"]},
     python_requires=">=3.8",
     install_requires=[
-        "apppaths>=0.0.7 ",
+        "app_paths>=0.0.7 ",
         "click>=7.1.2",
         "pyqtgraph>=0.10.0",
         "PyQt5>=5.12.0",
