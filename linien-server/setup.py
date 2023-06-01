@@ -40,6 +40,7 @@ setup(
     entry_points={"console_scripts": ["linien-server=linien_server.server:run_server"]},
     python_requires=">=3.5",
     install_requires=[
+        "appdirs>=1.4.4",
         "click>=7.1.2",
         "cma>=3.0.3",
         "pylpsd>=0.1.4",

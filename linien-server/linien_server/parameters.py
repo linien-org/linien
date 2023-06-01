@@ -19,9 +19,11 @@
 
 import atexit
 import pickle
+from pathlib import Path
 from time import time
 
 import linien_server
+from appdirs import AppDirs
 from linien_common.common import (
     AUTO_DETECT_AUTOLOCK_MODE,
     FAST_AUTOLOCK,
@@ -31,7 +33,8 @@ from linien_common.common import (
     pack,
 )
 
-PARAMETER_STORE_FN = "/linien_parameters.pickle"
+USER_DATA_PATH = Path(AppDirs("linien").user_data_dir)
+PARAMETER_STORE_FILENAME = "linien_parameters.pickle"
 
 
 class Parameter:
@@ -660,10 +663,6 @@ class ParameterStore:
     def __init__(self, parameters):
         self.parameters = parameters
         self.restore_parameters()
-        self.setup_listener()
-
-    def setup_listener(self):
-        """Listen for shutdown"""
         atexit.register(self.save_parameters)
 
     def restore_parameters(self):
@@ -672,7 +671,7 @@ class ParameterStore:
         any).
         """
         try:
-            with open(PARAMETER_STORE_FN, "rb") as f:
+            with open(USER_DATA_PATH / PARAMETER_STORE_FILENAME, "rb") as f:
                 data = pickle.load(f)
         except (FileNotFoundError, pickle.UnpicklingError, EOFError):
             return
@@ -696,20 +695,12 @@ class ParameterStore:
             if param.restorable:
                 parameters[name] = value
 
-        try:
-            with open(PARAMETER_STORE_FN, "wb") as f:
-                pickle.dump(
-                    {
-                        "parameters": parameters,
-                        "time": time(),
-                        "version": linien_server.__version__,
-                    },
-                    f,
-                )
-        except PermissionError:
-            # this may happen if the server doesn't run on RedPitaya but on the
-            # developer's machine. As it is not a critical problem, just print the
-            # exception and ignore it
-            from traceback import print_exc
-
-            print_exc()
+        with open(USER_DATA_PATH / PARAMETER_STORE_FILENAME, "wb") as f:
+            pickle.dump(
+                {
+                    "parameters": parameters,
+                    "time": time(),
+                    "version": linien_server.__version__,
+                },
+                f,
+            )
