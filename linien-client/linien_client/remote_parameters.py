@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-from typing import Callable
+from typing import Callable, Dict, List
 
 import rpyc
 from linien_common.common import pack, unpack
@@ -78,8 +78,8 @@ class RemoteParameters:
         self._async_listener_queue = None
         self._async_listener_registering = None
 
-        self._listeners_pending_remote_registration = []
-        self._listeners = {}
+        self._listeners_pending_remote_registration: List[str] = []
+        self._listeners: Dict[str, List[Callable]] = {}
 
         self._mimic_remote_parameters(use_cache)
         self._attributes_locked = True
@@ -87,7 +87,8 @@ class RemoteParameters:
         self.call_listeners()
 
     def __setattr__(self, name, value):
-        """In order to set the value of a parameter,
+        """
+        In order to set the value of a parameter,
 
             parameters.my_param.value = 123
 
@@ -95,7 +96,8 @@ class RemoteParameters:
 
             parameters.my_param = 123
 
-        we raise an error in this case."""
+        we raise an error in this case.
+        """
         if (
             hasattr(self, "_attributes_locked")
             and self._attributes_locked
@@ -125,14 +127,15 @@ class RemoteParameters:
 
         self._attributes_locked = True
 
-    def _register_listener(self, param, callback: Callable):
-        """Tells the server to notify our client (identified by `self.uuid`)
-        when `param` changes. Registers a function `callback` that will be
-        called in this case."""
+    def _register_listener(self, param: "RemoteParameter", callback: Callable):
+        """
+        Tell the server to notify our client (identified by `self.uuid`) when `param`
+        changes. Registers a function `callback` that will be called in this case.
+        """
         if param.name not in self._listeners:
-            # parameters that use the cache don't have to be registered on remote
-            # side because the client automatically listens for changes.
-            # This happens using `init_parameter_sync`
+            # parameters that use the cache don't have to be registered on remote side
+            # because the client automatically listens for changes. This happens using
+            # `init_parameter_sync`.
             if not param.use_cache:
                 self._listeners_pending_remote_registration.append(param.name)
 

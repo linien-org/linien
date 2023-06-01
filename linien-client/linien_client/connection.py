@@ -21,7 +21,7 @@ import string
 from socket import gaierror
 from time import sleep
 from traceback import print_exc
-from typing import Callable
+from typing import Callable, Optional
 
 import linien_client
 import rpyc
@@ -88,7 +88,7 @@ class LinienClient:
         self,
         autostart_server: bool,
         use_parameter_cache: bool,
-        call_on_error: Callable = None,
+        call_on_error: Optional[Callable] = None,
     ) -> None:
         self.connection = None
 
