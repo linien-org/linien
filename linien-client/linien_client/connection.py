@@ -18,7 +18,6 @@
 
 import random
 import string
-from dataclasses import dataclass
 from socket import gaierror
 from time import sleep
 from traceback import print_exc
@@ -36,15 +35,6 @@ from linien_client.exceptions import (
 from linien_client.remote_parameters import RemoteParameters
 from linien_common.common import hash_username_and_password
 from linien_common.config import DEFAULT_SERVER_PORT
-
-
-@dataclass
-class Device:
-    host: str
-    user: str
-    password: str
-    port: int = DEFAULT_SERVER_PORT
-    name: str = ""
 
 
 class RPYCClientWithAuthentication(rpyc.Service):
@@ -78,12 +68,16 @@ class LinienClient:
         name: str = "",
     ):
         """Connect to a RedPitaya that runs linien server."""
-        self.device = Device(host, user, password, port, name)
+        self.host = host
+        self.user = user
+        self.password = password
+        self.port = port
+        self.name = name
 
-        if self.device.host in ("localhost", "127.0.0.1"):
+        if self.host in ("localhost", "127.0.0.1"):
             # RP is configured such that "localhost" doesn't point to 127.0.0.1 in all
             # cases
-            self.device.host = "127.0.0.1"
+            self.host = "127.0.0.1"
 
         self.uuid = "".join(random.choice(string.ascii_lowercase) for _ in range(10))
 
@@ -102,11 +96,11 @@ class LinienClient:
         while True:
             i += 1
             try:
-                print(f"Try to connect to {self.device.host}:{self.device.port}")
+                print(f"Try to connect to {self.host}:{self.port}")
 
                 self.connection = rpyc.connect(
-                    self.device.host,
-                    self.device.port,
+                    self.host,
+                    self.port,
                     service=self.client_service,
                     config={"allow_pickle": True},
                 )
@@ -123,7 +117,7 @@ class LinienClient:
                 break
             except gaierror:
                 # host not found
-                print(f"Error: host {self.device.host} not found")
+                print(f"Error: host {self.host} not found")
                 break
             except EOFError:
                 print("EOFError! Probably authentication failed")
@@ -135,9 +129,7 @@ class LinienClient:
 
                 if i == 0:
                     print("Server is not running. Launching it!")
-                    start_remote_server(
-                        self.device.host, self.device.user, self.device.password
-                    )
+                    start_remote_server(self.host, self.user, self.password)
                     sleep(3)
                 else:
                     if i < 20:
