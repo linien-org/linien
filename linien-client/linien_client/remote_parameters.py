@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-from typing import Any, Callable, Iterator, Tuple
+from typing import Any, Callable, Dict, Iterator, List, Tuple
 
 import rpyc
 from linien_common.common import pack, unpack
@@ -77,8 +77,9 @@ class RemoteParameters:
 
         self._async_listener_queue = None
         self._async_listener_registering = None
-        self._listeners_pending_remote_registration = []
-        self._listeners = {}
+
+        self._listeners_pending_remote_registration: List[str] = []
+        self._listeners: Dict[str, List[Callable]] = {}
 
         # mimic functionality of `parameters.Parameters`:
         all_parameters = unpack(self.remote.exposed_init_parameter_sync(self.uuid))
@@ -128,9 +129,9 @@ class RemoteParameters:
         changes. Registers a function `callback` that will be called in this case.
         """
         if param.name not in self._listeners:
-            # parameters that use the cache don't have to be registered on remote
-            # side because the client automatically listens for changes.
-            # This happens using `init_parameter_sync`
+            # parameters that use the cache don't have to be registered on remote side
+            # because the client automatically listens for changes. This happens using
+            # `init_parameter_sync`.
             if not param.use_cache:
                 self._listeners_pending_remote_registration.append(param.name)
 

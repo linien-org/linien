@@ -18,7 +18,7 @@
 from typing import Callable
 
 from linien_gui.threads import RemoteServerInstallationThread
-from PyQt5.QtCore import QThread, pyqtSignal
+from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import (
     QDialog,
     QListWidget,
@@ -38,7 +38,7 @@ class SSHCommandOutputWidget(QListWidget):
         super(SSHCommandOutputWidget, self).__init__(parent)
         self.setSelectionMode(self.NoSelection)
 
-    def run(self, thread: QThread):
+    def run(self, thread: RemoteServerInstallationThread):
         self.thread = thread
         self.thread.out_stream.new_item.connect(self.on_new_item_in_out_stream)
         self.thread.finished.connect(self.on_thread_finished)
