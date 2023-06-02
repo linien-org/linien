@@ -38,7 +38,7 @@ class SSHCommandOutputWidget(QListWidget):
         super(SSHCommandOutputWidget, self).__init__(parent)
         self.setSelectionMode(self.NoSelection)
 
-    def run(self, thread: RemoteServerInstallationThread):
+    def run(self, thread):
         self.thread = thread
         self.thread.out_stream.new_item.connect(self.on_new_item_in_out_stream)
         self.thread.finished.connect(self.on_thread_finished)

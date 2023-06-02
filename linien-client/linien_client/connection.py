@@ -156,7 +156,8 @@ class LinienClient:
         print("Connection established!")
 
     def disconnect(self) -> None:
-        self.connection.close()
+        if self.connection is not None:
+            self.connection.close()
         self.connected = False
 
     def _catch_network_errors(self, cls, call_on_error):
