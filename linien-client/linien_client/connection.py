@@ -21,7 +21,7 @@ import string
 from socket import gaierror
 from time import sleep
 from traceback import print_exc
-from typing import Callable
+from typing import Callable, Optional
 
 import linien_client
 import rpyc
@@ -45,7 +45,7 @@ class RPYCClientWithAuthentication(rpyc.Service):
     server.
     """
 
-    def __init__(self, uuid, user, password):
+    def __init__(self, uuid: str, user: str, password: str):
         super().__init__()
 
         self.exposed_uuid = uuid
@@ -88,7 +88,7 @@ class LinienClient:
         self,
         autostart_server: bool,
         use_parameter_cache: bool,
-        call_on_error: Callable = None,
+        call_on_error: Optional[Callable] = None,
     ) -> None:
         self.connection = None
 
@@ -97,10 +97,22 @@ class LinienClient:
             i += 1
             try:
                 print(f"Try to connect to {self.host}:{self.port}")
-                self._connect_rpyc(
-                    use_parameter_cache,
-                    call_on_error=call_on_error,
+
+                self.connection = rpyc.connect(
+                    self.host,
+                    self.port,
+                    service=self.client_service,
+                    config={"allow_pickle": True},
                 )
+
+                cls = RemoteParameters
+                if call_on_error:
+                    cls = self._catch_network_errors(cls, call_on_error)
+
+                self.parameters = cls(
+                    self.connection.root, self.uuid, use_parameter_cache
+                )
+
                 self.control = self.connection.root
                 break
             except gaierror:
@@ -110,6 +122,7 @@ class LinienClient:
             except EOFError:
                 print("EOFError! Probably authentication failed")
                 raise RPYCAuthenticationException()
+            # FIXME: replace with more specific exceptions
             except Exception:
                 if not autostart_server:
                     raise ServerNotRunningException()
@@ -142,20 +155,9 @@ class LinienClient:
         self.connected = True
         print("Connection established!")
 
-    def _connect_rpyc(self, use_parameter_cache, call_on_error=None):
-        """Connect to the server using rpyc and instanciate `RemoteParameters`."""
-        self.connection = rpyc.connect(
-            self.host,
-            self.port,
-            service=self.client_service,
-            config={"allow_pickle": True},
-        )
-
-        cls = RemoteParameters
-        if call_on_error:
-            cls = self._catch_network_errors(cls, call_on_error)
-
-        self.parameters = cls(self.connection.root, self.uuid, use_parameter_cache)
+    def disconnect(self) -> None:
+        self.connection.close()
+        self.connected = False
 
     def _catch_network_errors(self, cls, call_on_error):
         """
@@ -184,7 +186,3 @@ class LinienClient:
                     setattr(cls, attr_name, wrapped)
 
         return cls
-
-    def disconnect(self) -> None:
-        self.connection.close()
-        self.connected = False
