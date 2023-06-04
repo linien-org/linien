@@ -20,7 +20,7 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Install Linien
-        uses: ./.github/actions/install-linien
+        uses: /home/runner/work/linien/linien/.github/actions/install-linien
 
       - name: Install dependencies
         run: |
