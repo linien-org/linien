@@ -17,10 +17,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Check out repository
+        uses: actions/checkout@v3
 
       - name: Install Linien
-        uses: /home/runner/work/linien/linien/.github/actions/install-linien
+        uses: ./.github/actions/install-linien
 
       - name: Install dependencies
         run: |
