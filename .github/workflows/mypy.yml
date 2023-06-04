@@ -19,6 +19,9 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
+        with:
+          repository: linien-org/linien
+          path: linien
 
       - name: Install Linien
         uses: ./.github/actions/install-linien
