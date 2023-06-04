@@ -73,7 +73,7 @@ def show_installation_progress_widget(
 
     widget.command_finished.connect(lambda: button.setEnabled(True))
     button.clicked.connect(callback)
-    button.clicked.connect(window.close)  # type: ignore[arg-type]
+    button.clicked.connect(window.close)
 
     thread = RemoteServerInstallationThread(device)
     widget.run(thread)
