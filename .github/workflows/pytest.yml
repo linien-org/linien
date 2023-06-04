@@ -34,19 +34,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pytest migen pytest-plt git+https://github.com/m-labs/misoc mypy types-appdirs  
+          pip install pytest migen pytest-plt git+https://github.com/m-labs/misoc
 
       - name: Test with pytest
         run: pytest .
-
-      - name: mypy for linien-common
-        run: mypy linien-common
-
-      - name: mypy for linien-server
-        run: mypy linien-server
-
-      - name: mypy for linien-client
-        run: mypy linien-client
-
-      - name: mypy for linien-gui
-        run: mypy linien-gui

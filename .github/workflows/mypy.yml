@@ -25,13 +25,34 @@ jobs:
 
       - name: Install linien-common
         working-directory: linien-common
-        run: pip install -e .
+        run: pip install .
+
+
+      - name: Install linien-server
+        working-directory: linien-server
+        run: pip install .
+
+      - name: Install linien-client
+        working-directory: linien-client
+        run: pip install .
+
+      - name: Install linien-gui
+        working-directory: linien-gui
+        run: pip install .
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install mypy types-appdirs  
+          pip install mypy types-appdirs
 
       - name: mypy for linien-common
-        run: mypy linien-common
+        run: mypy linien-common/linien_common
 
+      - name: mypy for linien-server
+        run: mypy linien-server/linien_server
+
+      - name: mypy for linien-client
+        run: mypy linien-client/linien_client
+
+      - name: mypy for linien-gui
+        run: mypy linien-gui/linien_gui      
