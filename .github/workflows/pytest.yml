@@ -5,6 +5,7 @@ on:
   push:
     paths:
       - .github/workflows/pytest.yml
+      - .github/actions/install-linien/**
       - gateware/**
       - linien-common/**
       - linien-server/**

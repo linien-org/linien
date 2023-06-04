@@ -5,6 +5,7 @@ on:
   push:
     paths:
       - .github/workflows/mypy.yml
+      - .github/actions/install-linien/**
       - linien-common/**
       - linien-client/**
       - linien-gui/**
@@ -24,10 +25,8 @@ jobs:
       - name: Install Linien
         uses: ./.github/actions/install-linien
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install mypy types-appdirs pyqt5-stubs
+      - name: Install additional dependencies
+        run: pip install mypy types-appdirs pyqt5-stubs
 
       - name: mypy for linien-common
         run: mypy linien-common/linien_common
