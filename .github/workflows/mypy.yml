@@ -17,6 +17,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - uses: actions/checkout@v3
+
       - name: Install Linien
         uses: ././.github/actions/install-linien
 
