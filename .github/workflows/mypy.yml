@@ -25,7 +25,7 @@ jobs:
 
       - name: Install linien-common
         working-directory: linien-common
-        run: pip install .
+        run: pip install -e .
 
       - name: Install dependencies
         run: |
