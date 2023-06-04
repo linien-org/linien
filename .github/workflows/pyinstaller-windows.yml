@@ -22,6 +22,9 @@ jobs:
       - name: Install Linien
         uses: ./.github/actions/install-linien
 
+      - name: Install Pyinstaller
+        run: pip install pyinstaller
+
       - run: pyinstaller pyinstaller.spec
         working-directory: linien-gui
 
