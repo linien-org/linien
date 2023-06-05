@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
+import _thread
 import os
 import pickle
 import sys
@@ -250,6 +251,8 @@ class RedPitayaControlService(BaseService):
         self.stop_event.set()
         self.ping_thread.join()
         self.registers.acquisition_controller.stop_acquisition()
+        # FIXME: hacky way to trigger atexit handlers for saving parameters
+        _thread.interrupt_main()
         raise SystemExit()
 
     def exposed_pause_acquisition(self):
