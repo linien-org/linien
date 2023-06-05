@@ -257,10 +257,7 @@ class RedPitayaControlService(BaseService):
 
     def exposed_shutdown(self):
         """Kill the server."""
-        self.registers.acquisition_controller.shutdown()
-        _thread.interrupt_main()
-        # we use SystemExit instead of os._exit because we want to call atexit handlers
-        raise SystemExit
+        raise SystemExit()
 
     def exposed_pause_acquisition(self):
         self.pause_acquisition()

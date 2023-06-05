@@ -17,7 +17,6 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 import atexit
-import subprocess
 from threading import Thread
 from time import sleep
 
@@ -66,10 +65,6 @@ class AcquisitionController:
     def continue_acquisition(self, uuid):
         self.acquisition_service.exposed_continue_acquisition(uuid)
 
-    def shutdown(self):
-        start_nginx()
-        print("started nginx")
-
     def set_sweep_speed(self, speed):
         self.acquisition_service.exposed_set_sweep_speed(speed)
 
@@ -92,7 +87,3 @@ class AcquisitionController:
 
     def set_dual_channel(self, enabled):
         self.acquisition_service.exposed_set_dual_channel(enabled)
-
-
-def start_nginx():
-    subprocess.Popen(["systemctl", "start", "redpitaya_nginx.service"])

@@ -688,7 +688,7 @@ class ParameterStore:
     def save_parameters(self):
         """Gather all parameters and store them on disk."""
 
-        print("save parameters")
+        print("Saving parameters.")
         # make sure that USER_DATA_PATH exists
         USER_DATA_PATH.mkdir(parents=True, exist_ok=True)
         parameters = {}
@@ -706,3 +706,4 @@ class ParameterStore:
                 },
                 f,
             )
+        print("Parameters saved.")

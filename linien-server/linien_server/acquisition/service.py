@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
+import atexit
 import pickle
 import shutil
 import subprocess
@@ -38,6 +39,7 @@ class AcquisitionService(Service):
     def __init__(self):
         super(AcquisitionService, self).__init__()
         stop_nginx()
+        atexit.register(start_nginx)
         flash_fpga()
 
         self.red_pitaya = RedPitaya()
@@ -292,6 +294,10 @@ class AcquisitionService(Service):
 def flash_fpga():
     filepath = Path(__file__).resolve().parents[1] / "linien.bin"
     shutil.copy(str(filepath), "/dev/xdevcfg")
+
+
+def start_nginx():
+    subprocess.Popen(["systemctl", "start", "redpitaya_nginx.service"])
 
 
 def stop_nginx():
