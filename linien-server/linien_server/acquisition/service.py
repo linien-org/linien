@@ -73,15 +73,19 @@ class AcquisitionService(Service):
         self.dual_channel = False
 
         self.pause_acquisition = Event()
-        self.skip_next_data = False
+        self.skip_next_data = Event()
 
         self.thread = Thread(
-            target=self.acquisition_loop, args=(self.pause_acquisition,)
+            target=self.acquisition_loop,
+            args=(
+                self.pause_acquisition,
+                self.skip_next_data,
+            ),
         )
         self.thread.daemon = True
         self.thread.start()
 
-    def acquisition_loop(self, pause_acquisition: Event):
+    def acquisition_loop(self, pause_acquisition: Event, skip_next_data: Event):
         while True:
             while self.csr_queue:
                 key, value = self.csr_queue.pop(0)
@@ -115,8 +119,8 @@ class AcquisitionService(Service):
                 # was paused, we do not want to send the data
                 continue
 
-            if self.skip_next_data:
-                self.skip_next_data = False
+            if skip_next_data.is_set():
+                skip_next_data.clear()
             else:
                 self.data = pickle.dumps(data)
                 self.data_was_raw = is_raw
@@ -279,7 +283,10 @@ class AcquisitionService(Service):
         self.data_uuid = uuid
         # if we are sweeping, we have to skip one data set because an incomplete sweep
         # may have been recorded. When locked, this does not matter
-        self.skip_next_data = not self.confirmed_that_in_lock
+        if self.confirmed_that_in_lock:
+            self.skip_next_data.clear()
+        else:
+            self.skip_next_data.set()
 
 
 def flash_fpga():
