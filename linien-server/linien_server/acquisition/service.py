@@ -74,6 +74,7 @@ class AcquisitionService(Service):
 
         self.pause_acquisition = Event()
         self.skip_next_data = Event()
+        self.stop_acquisition = Event()
 
         self.thread = Thread(
             target=self.acquisition_loop,
@@ -85,8 +86,10 @@ class AcquisitionService(Service):
         self.thread.daemon = True
         self.thread.start()
 
-    def acquisition_loop(self, pause_acquisition: Event, skip_next_data: Event):
-        while True:
+    def acquisition_loop(
+        self, stop_acquisition: Event, pause_acquisition: Event, skip_next_data: Event
+    ):
+        while not stop_acquisition.is_set():
             while self.csr_queue:
                 key, value = self.csr_queue.pop(0)
                 self.csr.set(key, value)
@@ -266,6 +269,9 @@ class AcquisitionService(Service):
 
     def exposed_set_iir_csr(self, *args):
         self.csr_iir_queue.append(args)
+
+    def exposed_stop_acquisition(self) -> None:
+        self.stop_acquisition.set()
 
     def exposed_pause_acquisition(self):
         self.pause_acquisition.set()
