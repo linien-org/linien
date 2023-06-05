@@ -16,7 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-from threading import Thread
+import atexit
+from threading import Event, Thread
 from time import sleep
 
 import rpyc
@@ -37,12 +38,16 @@ class AcquisitionController:
             # AcquisitionService has to be started manually on the Red Pitaya
             self.acquisition_service = rpyc.connect(host, ACQUISITION_PORT).root
 
-        acqusition_thread = Thread(target=self.run_acquisition_loop, daemon=True)
-        acqusition_thread.start()
+        self.stop_event = Event()
+        self.acqusition_thread = Thread(
+            target=self.receive_data_loop, args=(self.stop_event,), daemon=True
+        )
+        self.acqusition_thread.start()
+        atexit.register(self.stop_acquisition)
 
-    def run_acquisition_loop(self):
+    def receive_data_loop(self, stop_event: Event):
         last_hash = None
-        while True:
+        while not stop_event.is_set():
             (
                 new_data_returned,
                 new_hash,
@@ -55,6 +60,11 @@ class AcquisitionController:
             if self.on_new_data_received is not None:
                 self.on_new_data_received(data_was_raw, new_data, data_uuid)
             sleep(0.05)
+
+    def stop_acquisition(self):
+        self.stop_event.set()
+        self.acqusition_thread.join()
+        self.acquisition_service.exposed_stop_acquisition()
 
     def pause_acquisition(self):
         self.acquisition_service.exposed_pause_acquisition()

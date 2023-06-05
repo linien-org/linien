@@ -16,7 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-import atexit
 import pickle
 import shutil
 import subprocess
@@ -39,7 +38,6 @@ class AcquisitionService(Service):
     def __init__(self):
         super(AcquisitionService, self).__init__()
         stop_nginx()
-        atexit.register(start_nginx)
         flash_fpga()
 
         self.red_pitaya = RedPitaya()
@@ -67,25 +65,25 @@ class AcquisitionService(Service):
 
         self.dual_channel = False
 
-        self.stop_acquisition = Event()
-        self.pause_acquisition = Event()
-        self.skip_next_data = Event()
+        self.stop_event = Event()
+        self.pause_event = Event()
+        self.skip_next_data_event = Event()
 
         self.thread = Thread(
             target=self.acquisition_loop,
             args=(
-                self.stop_acquisition,
-                self.pause_acquisition,
-                self.skip_next_data,
+                self.stop_event,
+                self.pause_event,
+                self.skip_next_data_event,
             ),
+            daemon=True,
         )
-        self.thread.daemon = True
         self.thread.start()
 
     def acquisition_loop(
-        self, stop_acquisition: Event, pause_acquisition: Event, skip_next_data: Event
+        self, stop_event: Event, pause_event: Event, skip_next_data_event: Event
     ):
-        while not stop_acquisition.is_set():
+        while not stop_event.is_set():
             while self.csr_queue:
                 key, value = self.csr_queue.pop(0)
                 self.csr.set(key, value)
@@ -102,7 +100,7 @@ class AcquisitionService(Service):
                     sleep(0.05)
                     continue
 
-            if pause_acquisition.is_set():
+            if pause_event.is_set():
                 sleep(0.05)
                 continue
 
@@ -112,14 +110,14 @@ class AcquisitionService(Service):
 
             data, is_raw = self.read_data()
 
-            if pause_acquisition.is_set():
+            if pause_event.is_set():
                 # it may seem strange that we check this here a second time. Reason:
                 # `read_data` takes some time and if in the mean time acquisition
                 # was paused, we do not want to send the data
                 continue
 
-            if skip_next_data.is_set():
-                skip_next_data.clear()
+            if skip_next_data_event.is_set():
+                skip_next_data_event.clear()
             else:
                 self.data = pickle.dumps(data)
                 self.data_was_raw = is_raw
@@ -235,7 +233,7 @@ class AcquisitionService(Service):
     def exposed_return_data(self, last_hash):
         no_data_available = self.data_hash is None
         data_not_changed = self.data_hash == last_hash
-        if data_not_changed or no_data_available or self.pause_acquisition.is_set():
+        if data_not_changed or no_data_available or self.pause_event.is_set():
             return False, None, None, None, None
         else:
             return True, self.data_hash, self.data_was_raw, self.data, self.data_uuid
@@ -267,10 +265,12 @@ class AcquisitionService(Service):
         self.csr_iir_queue.append(args)
 
     def exposed_stop_acquisition(self) -> None:
-        self.stop_acquisition.set()
+        self.stop_event.set()
+        self.thread.join()
+        start_nginx()
 
     def exposed_pause_acquisition(self):
-        self.pause_acquisition.set()
+        self.pause_event.set()
         self.data_hash = None
         self.data = None
 
@@ -281,14 +281,14 @@ class AcquisitionService(Service):
         # side
         self.data_hash = None
         self.data = None
-        self.pause_acquisition.clear()
+        self.pause_event.clear()
         self.data_uuid = uuid
         # if we are sweeping, we have to skip one data set because an incomplete sweep
         # may have been recorded. When locked, this does not matter
         if self.confirmed_that_in_lock:
-            self.skip_next_data.clear()
+            self.skip_next_data_event.clear()
         else:
-            self.skip_next_data.set()
+            self.skip_next_data_event.set()
 
 
 def flash_fpga():
@@ -297,10 +297,12 @@ def flash_fpga():
 
 
 def start_nginx():
+    print("Starting nginx")
     subprocess.Popen(["systemctl", "start", "redpitaya_nginx.service"])
 
 
 def stop_nginx():
+    print("Stopping nginx")
     subprocess.Popen(["systemctl", "stop", "redpitaya_nginx.service"]).wait()
     subprocess.Popen(["systemctl", "stop", "redpitaya_scpi.service"]).wait()
 
