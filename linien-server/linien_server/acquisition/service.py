@@ -76,7 +76,7 @@ class AcquisitionService(Service):
         self.skip_next_data = False
 
         self.thread = Thread(
-            target=self.acquisition_loop, args=(self.pause_acquisition)
+            target=self.acquisition_loop, args=(self.pause_acquisition,)
         )
         self.thread.daemon = True
         self.thread.start()
