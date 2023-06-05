@@ -36,6 +36,9 @@ from linien_common.common import (
 USER_DATA_PATH = Path(AppDirs("linien").user_data_dir)
 PARAMETER_STORE_FILENAME = "linien_parameters.pickle"
 
+# make sure that USER_DATA_PATH exists
+USER_DATA_PATH.mkdir(parents=True, exist_ok=True)
+
 
 class Parameter:
     """Represents a single parameter and is used by `Parameters`."""
