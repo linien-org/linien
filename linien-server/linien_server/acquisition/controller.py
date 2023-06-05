@@ -18,7 +18,7 @@
 
 import atexit
 import subprocess
-from threading import Event, Thread
+from threading import Thread
 from time import sleep
 
 import rpyc
@@ -39,13 +39,12 @@ class AcquisitionController:
             # AcquisitionService has to be started manually on the Red Pitaya
             self.acquisition_service = rpyc.connect(host, ACQUISITION_PORT).root
 
-        self.stop = Event()
-        self.thread = Thread(target=self.receive_data_loop, daemon=True)
-        self.thread.start()
+        acqusition_thread = Thread(target=self.run_acquisition_loop, daemon=True)
+        acqusition_thread.start()
 
-        atexit.register(self.stop_acquisition)
+        atexit.register(self.shutdown)
 
-    def receive_data_loop(self):
+    def run_acquisition_loop(self):
         last_hash = None
         while True:
             (
@@ -67,19 +66,9 @@ class AcquisitionController:
     def continue_acquisition(self, uuid):
         self.acquisition_service.exposed_continue_acquisition(uuid)
 
-    def stop_acquisition(self):
-        print("Stopping acquisition")
-        if self.acquisition_service.exposed_acquisition_is_alive():
-            self.acquisition_service.exposed_stop_acquisition()
-            self.acquisition_service.exposed_join_acquisition_thread()
-            print("Acquisition thread stopped")
-
-        if self.thread.is_alive():
-            self.stop.set()
-            self.thread.join()
-            print("Acquisition controller thread stopped")
-
+    def shutdown(self):
         start_nginx()
+        raise SystemExit()
 
     def set_sweep_speed(self, speed):
         self.acquisition_service.exposed_set_sweep_speed(speed)

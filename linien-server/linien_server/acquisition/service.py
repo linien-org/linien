@@ -16,22 +16,29 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
+import _thread
+import os
 import pickle
 import shutil
 import subprocess
+import threading
 from pathlib import Path
 from random import random
-from threading import Event, Thread
 from time import sleep
 
 import numpy as np
 from linien_common.common import DECIMATION, MAX_N_POINTS, N_POINTS
 from linien_common.config import ACQUISITION_PORT
 from linien_server.csr import PythonCSR
-from pyrp3.board import RedPitaya  # type: ignore
-from pyrp3.instrument import TriggerSource  # type: ignore
+from pyrp3.board import RedPitaya
+from pyrp3.instrument import TriggerSource
 from rpyc import Service
 from rpyc.utils.server import ThreadedServer
+
+
+def shutdown():
+    _thread.interrupt_main()
+    os._exit(0)
 
 
 class AcquisitionService(Service):
@@ -65,15 +72,18 @@ class AcquisitionService(Service):
 
         self.dual_channel = False
 
-        self.pause_acquisition = Event()
-        self.skip_next_data = Event()
-        self.stop_acquisition = Event()
+        self.acquisition_paused = False
+        self.skip_next_data = False
 
-        self.thread = Thread(target=self.acquisition_loop, args=(), daemon=True)
+        self.run()
+
+    def run(self):
+        self.thread = threading.Thread(target=self.acquisition_loop, args=())
+        self.thread.daemon = True
         self.thread.start()
 
     def acquisition_loop(self):
-        while not self.stop_acquisition.is_set():
+        while True:
             while self.csr_queue:
                 key, value = self.csr_queue.pop(0)
                 self.csr.set(key, value)
@@ -90,7 +100,7 @@ class AcquisitionService(Service):
                     sleep(0.05)
                     continue
 
-            if self.pause_acquisition.is_set():
+            if self.acquisition_paused:
                 sleep(0.05)
                 continue
 
@@ -100,14 +110,14 @@ class AcquisitionService(Service):
 
             data, is_raw = self.read_data()
 
-            if self.pause_acquisition.is_set():
+            if self.acquisition_paused:
                 # it may seem strange that we check this here a second time. Reason:
                 # `read_data` takes some time and if in the mean time acquisition
                 # was paused, we do not want to send the data
                 continue
 
-            if self.skip_next_data.is_set:
-                self.skip_next_data.clear()
+            if self.skip_next_data:
+                self.skip_next_data = False
             else:
                 self.data = pickle.dumps(data)
                 self.data_was_raw = is_raw
@@ -223,7 +233,7 @@ class AcquisitionService(Service):
     def exposed_return_data(self, last_hash):
         no_data_available = self.data_hash is None
         data_not_changed = self.data_hash == last_hash
-        if data_not_changed or no_data_available or self.pause_acquisition.is_set():
+        if data_not_changed or no_data_available or self.acquisition_paused:
             return False, None, None, None, None
         else:
             return True, self.data_hash, self.data_was_raw, self.data, self.data_uuid
@@ -254,17 +264,8 @@ class AcquisitionService(Service):
     def exposed_set_iir_csr(self, *args):
         self.csr_iir_queue.append(args)
 
-    def exposed_join_acquisition_thread(self):
-        self.thread.join()
-
-    def exposed_acquisition_is_alive(self) -> bool:
-        return self.thread.is_alive()
-
-    def exposed_stop_acquisition(self) -> None:
-        self.stop_acquisition.set()
-
-    def exposed_pause_acquisition(self) -> None:
-        self.pause_acquisition.set()
+    def exposed_pause_acquisition(self):
+        self.acquisition_paused = True
         self.data_hash = None
         self.data = None
 
@@ -275,14 +276,11 @@ class AcquisitionService(Service):
         # side
         self.data_hash = None
         self.data = None
-        self.pause_acquisition.clear()
+        self.acquisition_paused = False
         self.data_uuid = uuid
         # if we are sweeping, we have to skip one data set because an incomplete sweep
         # may have been recorded. When locked, this does not matter
-        if self.confirmed_that_in_lock:
-            self.skip_next_data.clear()
-        else:
-            self.skip_next_data.set()
+        self.skip_next_data = not self.confirmed_that_in_lock
 
 
 def flash_fpga():
