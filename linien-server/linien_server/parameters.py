@@ -36,9 +36,6 @@ from linien_common.common import (
 USER_DATA_PATH = Path(AppDirs("linien").user_data_dir)
 PARAMETER_STORE_FILENAME = "linien_parameters.pickle"
 
-# make sure that USER_DATA_PATH exists
-USER_DATA_PATH.mkdir(parents=True, exist_ok=True)
-
 
 class Parameter:
     """Represents a single parameter and is used by `Parameters`."""
@@ -676,7 +673,7 @@ class ParameterStore:
         try:
             with open(USER_DATA_PATH / PARAMETER_STORE_FILENAME, "rb") as f:
                 data = pickle.load(f)
-        except (FileNotFoundError, pickle.UnpicklingError, EOFError):
+        except (FileNotFoundError, pickle.UnpicklingError, EOFError, TypeError):
             return
 
         print("restore parameters")
@@ -692,6 +689,8 @@ class ParameterStore:
         """Gather all parameters and store them on disk."""
 
         print("save parameters")
+        # make sure that USER_DATA_PATH exists
+        USER_DATA_PATH.mkdir(parents=True, exist_ok=True)
         parameters = {}
         for name, value in self.parameters:
             param = getattr(self.parameters, name)
