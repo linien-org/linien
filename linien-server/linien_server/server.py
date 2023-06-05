@@ -114,8 +114,8 @@ class RedPitayaControlService(BaseService):
         self.registers.acquisition_controller.on_new_data_received = (
             self._on_new_data_received
         )
-        self.pause_acquisition()
-        self.continue_acquisition()
+        self.exposed_pause_acquisition()
+        self.exposed_continue_acquisition()
 
     def _on_new_data_received(self, is_raw, plot_data, data_uuid):
         # When a parameter is changed, `pause_acquisition` is set. This means that the
@@ -238,40 +238,27 @@ class RedPitayaControlService(BaseService):
             self.parameters.task.value.run()
 
     def exposed_start_sweep(self):
-        self.pause_acquisition()
+        self.exposed_pause_acquisition()
 
         self.parameters.combined_offset.value = 0
         self.parameters.lock.value = False
         self.exposed_write_registers()
 
-        self.continue_acquisition()
+        self.exposed_continue_acquisition()
 
     def exposed_start_lock(self):
-        self.pause_acquisition()
+        self.exposed_pause_acquisition()
 
         self.parameters.lock.value = True
         self.exposed_write_registers()
 
-        self.continue_acquisition()
+        self.exposed_continue_acquisition()
 
     def exposed_shutdown(self):
         self.registers.acquisition_controller.stop_acquisition()
         raise SystemExit()
 
     def exposed_pause_acquisition(self):
-        self.pause_acquisition()
-
-    def exposed_continue_acquisition(self):
-        self.continue_acquisition()
-
-    def exposed_set_csr_direct(self, k, v):
-        """
-        Directly sets a CSR register. This method is intended for debugging. Normally,
-        the FPGA should be controlled via manipulation of parameters.
-        """
-        self.registers.set(k, v)
-
-    def pause_acquisition(self):
         """
         Pause continuous acquisition. Call this before changing a parameter that alters
         the error / control signal. This way, no inconsistent signals reach the
@@ -282,7 +269,7 @@ class RedPitayaControlService(BaseService):
         self.data_uuid = random()
         self.registers.acquisition_controller.pause_acquisition()
 
-    def continue_acquisition(self):
+    def exposed_continue_acquisition(self):
         """
         Continue acquisition after a short delay, when we are sure that the new
         parameters values have been written to the FPGA and that data that is now
@@ -290,6 +277,13 @@ class RedPitayaControlService(BaseService):
         """
         self.parameters.pause_acquisition.value = False
         self.registers.acquisition_controller.continue_acquisition(self.data_uuid)
+
+    def exposed_set_csr_direct(self, k, v):
+        """
+        Directly sets a CSR register. This method is intended for debugging. Normally,
+        the FPGA should be controlled via manipulation of parameters.
+        """
+        self.registers.set(k, v)
 
 
 class FakeRedPitayaControlService(BaseService):

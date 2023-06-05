@@ -16,7 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-import atexit
 from threading import Event, Thread
 from time import sleep
 
@@ -43,7 +42,6 @@ class AcquisitionController:
             target=self.receive_data_loop, args=(self.stop_event,), daemon=True
         )
         self.data_receiver_thread.start()
-        atexit.register(self.stop_acquisition)
 
     def receive_data_loop(self, stop_event: Event):
         last_hash = None
