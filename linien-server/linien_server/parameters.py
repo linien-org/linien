@@ -697,7 +697,7 @@ class ParameterStore:
             if param.restorable:
                 parameters[name] = value
 
-        with open(USER_DATA_PATH / PARAMETER_STORE_FILENAME, "wb") as f:
+        with open(str(USER_DATA_PATH / PARAMETER_STORE_FILENAME), "wb") as f:
             pickle.dump(
                 {
                     "parameters": parameters,
