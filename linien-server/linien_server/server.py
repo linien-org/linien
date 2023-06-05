@@ -19,8 +19,8 @@
 import os
 import pickle
 import sys
-import threading
 from random import randint, random
+from threading import Event, Thread
 from time import sleep
 
 import click
@@ -101,21 +101,25 @@ class RedPitayaControlService(BaseService):
         super(RedPitayaControlService, self).__init__()
 
         self.registers = Registers(control=self, parameters=self.parameters, host=host)
-        self._connect_acquisition_to_parameters()
-        self._start_periodic_timer()
-        self.exposed_write_registers()
-
-    def _connect_acquisition_to_parameters(self):
-        """
-        Connect the acquisition loop to the parameters: Every received value is pushed
-        to `parameters.to_plot`.
-        """
-        # each time new data is acquired, this function is called
+        # Connect the acquisition loop to the parameters: Every received value is pushed
+        # to `parameters.to_plot`.
         self.registers.acquisition_controller.on_new_data_received = (
             self._on_new_data_received
         )
         self.exposed_pause_acquisition()
         self.exposed_continue_acquisition()
+
+        # Start a timer that increases the `ping` parameter once per second. Its purpose
+        # is to allow for periodic tasks on the server: just register an `on_change`
+        # listener for this parameter.
+
+        self.stop_event = Event()
+        self.ping_thread = Thread(
+            target=self._send_ping_loop, args=(self.stop_event), daemon=True
+        )
+        self.ping_thread.start()
+
+        self.exposed_write_registers()
 
     def _on_new_data_received(self, is_raw, plot_data, data_uuid):
         # When a parameter is changed, `pause_acquisition` is set. This means that the
@@ -151,23 +155,11 @@ class RedPitayaControlService(BaseService):
             else:
                 self.parameters.acquisition_raw_data.value = plot_data
 
-    def _start_periodic_timer(self):
-        """
-        Start a timer that increases the `ping` parameter once per second. Its purpose
-        is to allow for periodic tasks on the server: just register an `on_change`
-        listener for this parameter.
-        """
-
-        def send_ping():
-            while True:
-                self.parameters.ping.value = self.parameters.ping.value + 1
-                print("ping", self.parameters.ping.value)
-                sleep(1)
-
-        thread = threading.Thread(target=send_ping)
-        thread.daemon = True
-        thread.start()
-        self._periodic_timer = thread
+    def _send_ping_loop(self, stop_event: Event):
+        while not stop_event.is_set():
+            self.parameters.ping.value += 1
+            print("ping", self.parameters.ping.value)
+            sleep(1)
 
     def _generate_signal_stats(self, to_plot):
         stats = {}
@@ -228,7 +220,7 @@ class RedPitayaControlService(BaseService):
             # TODO: add the logging functionality
             print("Start logging parameters...")
 
-        self._logging_thread = threading.Thread(target=log_parameters)
+        self._logging_thread = Thread(target=log_parameters)
         self._logging_thread.daemon = True
         self._logging_thread.start()
 
@@ -255,6 +247,8 @@ class RedPitayaControlService(BaseService):
         self.exposed_continue_acquisition()
 
     def exposed_shutdown(self):
+        self.stop_event.set()
+        self.ping_thread.join()
         self.registers.acquisition_controller.stop_acquisition()
         raise SystemExit()
 
@@ -291,29 +285,30 @@ class FakeRedPitayaControlService(BaseService):
         super().__init__()
         self.exposed_is_locked = None
 
-        self._connect_acquisition_to_parameters()
+        self.stop_event = Event()
+        self.random_data_thread = Thread(
+            target=self.write_random_data_to_parameters_loop,
+            args=(self.stop_event,),
+            daemon=True,
+        )
+        self.random_data_thread.start()
+
+    def write_random_data_to_parameters_loop(self, stop_event: Event):
+        while not stop_event.is_set():
+            max_ = randint(0, 8191)
+            gen = lambda: np.array([randint(-max_, max_) for _ in range(N_POINTS)])
+            self.parameters.to_plot.value = pickle.dumps(
+                {
+                    "error_signal_1": gen(),
+                    "error_signal_1_quadrature": gen(),
+                    "error_signal_2": gen(),
+                    "error_signal_2_quadrature": gen(),
+                }
+            )
+            sleep(0.1)
 
     def exposed_write_registers(self):
         pass
-
-    def _connect_acquisition_to_parameters(self):
-        def write_random_data_to_parameters():
-            while True:
-                max_ = randint(0, 8191)
-                gen = lambda: np.array([randint(-max_, max_) for _ in range(N_POINTS)])
-                self.parameters.to_plot.value = pickle.dumps(
-                    {
-                        "error_signal_1": gen(),
-                        "error_signal_1_quadrature": gen(),
-                        "error_signal_2": gen(),
-                        "error_signal_2_quadrature": gen(),
-                    }
-                )
-                sleep(0.1)
-
-        thread = threading.Thread(target=write_random_data_to_parameters)
-        thread.daemon = True
-        thread.start()
 
     def exposed_start_autolock(self, x0, x1, spectrum):
         print("start autolock", x0, x1)
@@ -321,6 +316,9 @@ class FakeRedPitayaControlService(BaseService):
     def exposed_start_optimization(self, x0, x1, spectrum):
         print("start optimization")
         self.parameters.optimization_running.value = True
+
+    def exposed_shutdown(self):
+        raise SystemExit()
 
     def pause_acquisition(self):
         pass

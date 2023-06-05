@@ -70,7 +70,7 @@ class AcquisitionService(Service):
         self.skip_next_data_event = Event()
 
         self.thread = Thread(
-            target=self.acquisition_loop,
+            target=self._acquisition_loop,
             args=(
                 self.stop_event,
                 self.pause_event,
@@ -80,7 +80,7 @@ class AcquisitionService(Service):
         )
         self.thread.start()
 
-    def acquisition_loop(
+    def _acquisition_loop(
         self, stop_event: Event, pause_event: Event, skip_next_data_event: Event
     ):
         while not stop_event.is_set():

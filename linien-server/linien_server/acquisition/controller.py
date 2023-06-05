@@ -39,11 +39,11 @@ class AcquisitionController:
 
         self.stop_event = Event()
         self.data_receiver_thread = Thread(
-            target=self.receive_data_loop, args=(self.stop_event,), daemon=True
+            target=self._receive_data_loop, args=(self.stop_event,), daemon=True
         )
         self.data_receiver_thread.start()
 
-    def receive_data_loop(self, stop_event: Event):
+    def _receive_data_loop(self, stop_event: Event):
         last_hash = None
         while not stop_event.is_set():
             (
