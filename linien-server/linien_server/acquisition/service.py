@@ -297,12 +297,10 @@ def flash_fpga():
 
 
 def start_nginx():
-    print("Starting nginx")
     subprocess.Popen(["systemctl", "start", "redpitaya_nginx.service"])
 
 
 def stop_nginx():
-    print("Stopping nginx")
     subprocess.Popen(["systemctl", "stop", "redpitaya_nginx.service"]).wait()
     subprocess.Popen(["systemctl", "stop", "redpitaya_scpi.service"]).wait()
 

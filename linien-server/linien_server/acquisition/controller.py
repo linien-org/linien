@@ -60,12 +60,9 @@ class AcquisitionController:
             sleep(0.05)
 
     def stop_acquisition(self):
-        print("Stopping acquisition...")
         self.stop_event.set()
         self.data_receiver_thread.join()
-        print("Stopped receiver thread.")
         self.acquisition_service.exposed_stop_acquisition()
-        print("Stopped acquisition.")
 
     def pause_acquisition(self):
         self.acquisition_service.exposed_pause_acquisition()

@@ -670,13 +670,13 @@ class ParameterStore:
         When the server starts, this method restores previously saved parameters (if
         any).
         """
+        filename = str(USER_DATA_PATH / PARAMETER_STORE_FILENAME)
         try:
-            with open(USER_DATA_PATH / PARAMETER_STORE_FILENAME, "rb") as f:
+            with open(filename, "rb") as f:
                 data = pickle.load(f)
+                print("Restored parameters from ", filename)
         except (FileNotFoundError, pickle.UnpicklingError, EOFError, TypeError):
             return
-
-        print("restore parameters")
 
         for param_name, value in data["parameters"].items():
             try:
@@ -688,7 +688,6 @@ class ParameterStore:
     def save_parameters(self):
         """Gather all parameters and store them on disk."""
 
-        print("Saving parameters.")
         # make sure that USER_DATA_PATH exists
         USER_DATA_PATH.mkdir(parents=True, exist_ok=True)
         parameters = {}
@@ -697,7 +696,8 @@ class ParameterStore:
             if param.restorable:
                 parameters[name] = value
 
-        with open(str(USER_DATA_PATH / PARAMETER_STORE_FILENAME), "wb") as f:
+        filename = str(USER_DATA_PATH / PARAMETER_STORE_FILENAME)
+        with open(filename, "wb") as f:
             pickle.dump(
                 {
                     "parameters": parameters,
@@ -706,4 +706,4 @@ class ParameterStore:
                 },
                 f,
             )
-        print("Parameters saved.")
+        print("Saved parameters to ", filename)
