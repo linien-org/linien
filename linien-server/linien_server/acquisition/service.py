@@ -16,8 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-import _thread
-import os
 import pickle
 import shutil
 import subprocess
@@ -34,11 +32,6 @@ from pyrp3.board import RedPitaya  # type: ignore
 from pyrp3.instrument import TriggerSource  # type: ignore
 from rpyc import Service
 from rpyc.utils.server import ThreadedServer
-
-
-def shutdown():
-    _thread.interrupt_main()
-    os._exit(0)
 
 
 class AcquisitionService(Service):

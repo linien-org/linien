@@ -68,7 +68,7 @@ class AcquisitionController:
 
     def shutdown(self):
         start_nginx()
-        raise SystemExit()
+        print("started nginx")
 
     def set_sweep_speed(self, speed):
         self.acquisition_service.exposed_set_sweep_speed(speed)
@@ -92,11 +92,6 @@ class AcquisitionController:
 
     def set_dual_channel(self, enabled):
         self.acquisition_service.exposed_set_dual_channel(enabled)
-
-
-def stop_nginx():
-    subprocess.Popen(["systemctl", "stop", "redpitaya_nginx.service"]).wait()
-    subprocess.Popen(["systemctl", "stop", "redpitaya_scpi.service"]).wait()
 
 
 def start_nginx():
