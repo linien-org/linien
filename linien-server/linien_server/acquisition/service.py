@@ -72,13 +72,14 @@ class AcquisitionService(Service):
 
         self.dual_channel = False
 
+        self.stop_acquisition = Event()
         self.pause_acquisition = Event()
         self.skip_next_data = Event()
-        self.stop_acquisition = Event()
 
         self.thread = Thread(
             target=self.acquisition_loop,
             args=(
+                self.stop_acquisition,
                 self.pause_acquisition,
                 self.skip_next_data,
             ),
