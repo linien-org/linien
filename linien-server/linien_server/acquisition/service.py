@@ -23,7 +23,7 @@ import shutil
 import subprocess
 from pathlib import Path
 from random import random
-from threading import Thread
+from threading import Event, Thread
 from time import sleep
 
 import numpy as np
@@ -72,14 +72,16 @@ class AcquisitionService(Service):
 
         self.dual_channel = False
 
-        self.acquisition_paused = False
+        self.pause_acquisition = Event()
         self.skip_next_data = False
 
-        self.thread = Thread(target=self.acquisition_loop, args=())
+        self.thread = Thread(
+            target=self.acquisition_loop, args=(self.pause_acquisition)
+        )
         self.thread.daemon = True
         self.thread.start()
 
-    def acquisition_loop(self):
+    def acquisition_loop(self, pause_acquisition: Event):
         while True:
             while self.csr_queue:
                 key, value = self.csr_queue.pop(0)
@@ -97,7 +99,7 @@ class AcquisitionService(Service):
                     sleep(0.05)
                     continue
 
-            if self.acquisition_paused:
+            if pause_acquisition.is_set():
                 sleep(0.05)
                 continue
 
@@ -107,7 +109,7 @@ class AcquisitionService(Service):
 
             data, is_raw = self.read_data()
 
-            if self.acquisition_paused:
+            if pause_acquisition.is_set():
                 # it may seem strange that we check this here a second time. Reason:
                 # `read_data` takes some time and if in the mean time acquisition
                 # was paused, we do not want to send the data
@@ -230,7 +232,7 @@ class AcquisitionService(Service):
     def exposed_return_data(self, last_hash):
         no_data_available = self.data_hash is None
         data_not_changed = self.data_hash == last_hash
-        if data_not_changed or no_data_available or self.acquisition_paused:
+        if data_not_changed or no_data_available or self.pause_acquisition.is_set():
             return False, None, None, None, None
         else:
             return True, self.data_hash, self.data_was_raw, self.data, self.data_uuid
@@ -262,7 +264,7 @@ class AcquisitionService(Service):
         self.csr_iir_queue.append(args)
 
     def exposed_pause_acquisition(self):
-        self.acquisition_paused = True
+        self.pause_acquisition.set()
         self.data_hash = None
         self.data = None
 
@@ -273,7 +275,7 @@ class AcquisitionService(Service):
         # side
         self.data_hash = None
         self.data = None
-        self.acquisition_paused = False
+        self.pause_acquisition.clear()
         self.data_uuid = uuid
         # if we are sweeping, we have to skip one data set because an incomplete sweep
         # may have been recorded. When locked, this does not matter
