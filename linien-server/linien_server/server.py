@@ -16,7 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-import _thread
 import os
 import pickle
 import sys
@@ -108,7 +107,7 @@ class RedPitayaControlService(BaseService):
 
     def _connect_acquisition_to_parameters(self):
         """
-        Connect the acquisition loopo to the parameters: Every received value is pushed
+        Connect the acquisition loop to the parameters: Every received value is pushed
         to `parameters.to_plot`.
         """
         # each time new data is acquired, this function is called
@@ -256,7 +255,7 @@ class RedPitayaControlService(BaseService):
         self.continue_acquisition()
 
     def exposed_shutdown(self):
-        """Kill the server."""
+        self.registers.acquisition_controller.stop_acquisition()
         raise SystemExit()
 
     def exposed_pause_acquisition(self):
@@ -321,10 +320,6 @@ class FakeRedPitayaControlService(BaseService):
         thread = threading.Thread(target=write_random_data_to_parameters)
         thread.daemon = True
         thread.start()
-
-    def exposed_shutdown(self):
-        _thread.interrupt_main()
-        os._exit(0)
 
     def exposed_start_autolock(self, x0, x1, spectrum):
         print("start autolock", x0, x1)
