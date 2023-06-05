@@ -21,17 +21,17 @@ import os
 import pickle
 import shutil
 import subprocess
-import threading
 from pathlib import Path
 from random import random
+from threading import Thread
 from time import sleep
 
 import numpy as np
 from linien_common.common import DECIMATION, MAX_N_POINTS, N_POINTS
 from linien_common.config import ACQUISITION_PORT
 from linien_server.csr import PythonCSR
-from pyrp3.board import RedPitaya
-from pyrp3.instrument import TriggerSource
+from pyrp3.board import RedPitaya  # type: ignore
+from pyrp3.instrument import TriggerSource  # type: ignore
 from rpyc import Service
 from rpyc.utils.server import ThreadedServer
 
@@ -75,10 +75,7 @@ class AcquisitionService(Service):
         self.acquisition_paused = False
         self.skip_next_data = False
 
-        self.run()
-
-    def run(self):
-        self.thread = threading.Thread(target=self.acquisition_loop, args=())
+        self.thread = Thread(target=self.acquisition_loop, args=())
         self.thread.daemon = True
         self.thread.start()
 
