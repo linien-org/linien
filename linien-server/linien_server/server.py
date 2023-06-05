@@ -115,7 +115,7 @@ class RedPitayaControlService(BaseService):
 
         self.stop_event = Event()
         self.ping_thread = Thread(
-            target=self._send_ping_loop, args=(self.stop_event), daemon=True
+            target=self._send_ping_loop, args=(self.stop_event,), daemon=True
         )
         self.ping_thread.start()
 
