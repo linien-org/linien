@@ -171,11 +171,11 @@ class OptimizeSpectroscopy:
         self.reset_scan()
 
     def reset_scan(self):
-        self.control.pause_acquisition()
+        self.control.exposed_pause_acquisition()
 
         self.parameters.sweep_speed.value = self.initial_sweep_speed
         self.parameters.sweep_amplitude.value = self.initial_sweep_amplitude
         self.parameters.sweep_center.value = self.initial_sweep_center
         self.control.exposed_write_registers()
 
-        self.control.continue_acquisition()
+        self.control.exposed_continue_acquisition()

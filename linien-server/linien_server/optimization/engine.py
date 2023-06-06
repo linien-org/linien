@@ -173,7 +173,7 @@ class OptimizerEngine:
         ][len(self.bounds)]([[0, 1]] * len(self.bounds))
 
     def request_and_set_new_parameters(self, use_initial_parameters=False):
-        self.control.pause_acquisition()
+        self.control.exposed_pause_acquisition()
 
         if use_initial_parameters:
             for param, initial in zip(self.all_params, self.params_before_start):
@@ -192,7 +192,7 @@ class OptimizerEngine:
             self.last_parameters_internal = list(new_params)
 
         self.control.exposed_write_registers()
-        self.control.continue_acquisition()
+        self.control.exposed_continue_acquisition()
 
     def finished(self):
         return self.opt.finished()

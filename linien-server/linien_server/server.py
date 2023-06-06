@@ -325,10 +325,10 @@ class FakeRedPitayaControlService(BaseService):
     def exposed_shutdown(self):
         raise SystemExit()
 
-    def pause_acquisition(self):
+    def exposed_pause_acquisition(self):
         pass
 
-    def continue_acquisition(self):
+    def exposed_continue_acquisition(self):
         pass
 
 

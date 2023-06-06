@@ -220,7 +220,7 @@ class Autolock:
         self.central_y = int(mean_signal)
 
         if auto_offset:
-            self.control.pause_acquisition()
+            self.control.exposed_pause_acquisition()
             self.parameters.combined_offset.value = -1 * self.central_y
             error_signal -= self.central_y
             error_signal_rolled -= self.central_y
@@ -228,7 +228,7 @@ class Autolock:
                 s - self.central_y for s in self.additional_spectra
             ]
             self.control.exposed_write_registers()
-            self.control.continue_acquisition()
+            self.control.exposed_continue_acquisition()
 
         self.parameters.target_slope_rising.value = target_slope_rising
         self.control.exposed_write_registers()
@@ -278,11 +278,11 @@ class Autolock:
         self.parameters.task.value = None
 
     def _reset_scan(self):
-        self.control.pause_acquisition()
+        self.control.exposed_pause_acquisition()
 
         self.parameters.sweep_amplitude.value = (
             self.parameters.autolock_initial_sweep_amplitude.value
         )
         self.control.exposed_start_sweep()
 
-        self.control.continue_acquisition()
+        self.control.exposed_continue_acquisition()

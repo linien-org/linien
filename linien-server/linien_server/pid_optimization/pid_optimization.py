@@ -130,12 +130,12 @@ class PSDAcquisition:
         self.parameters.acquisition_raw_data.remove_listener(self.react_to_new_signal)
 
         if not self.is_child:
-            self.control.pause_acquisition()
+            self.control.exposed_pause_acquisition()
             self.parameters.acquisition_raw_enabled.value = False
             self.parameters.acquisition_raw_filter_enabled.value = False
 
             self.control.exposed_write_registers()
-            self.control.continue_acquisition()
+            self.control.exposed_continue_acquisition()
 
     def react_to_new_signal(self, data_pickled):
         try:
@@ -200,7 +200,7 @@ class PSDAcquisition:
 
     def set_decimation(self, decimation):
         self.time_decimation_set = time()
-        self.control.pause_acquisition()
+        self.control.exposed_pause_acquisition()
         self.parameters.acquisition_raw_decimation.value = decimation
         self.parameters.acquisition_raw_enabled.value = True
 
@@ -213,7 +213,7 @@ class PSDAcquisition:
         self.control.exposed_write_registers()
         # take care that new decimation was actually written to FPGA
         sleep(0.1)
-        self.control.continue_acquisition()
+        self.control.exposed_continue_acquisition()
 
     def exposed_stop(self):
         self.cleanup()
