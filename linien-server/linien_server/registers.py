@@ -17,19 +17,21 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
+from threading import Event, Thread
+from time import sleep
 from typing import Optional
 
 import numpy as np
+import rpyc
 from linien_common.common import (
     HIGH_PASS_FILTER,
     LOW_PASS_FILTER,
     MHz,
     convert_channel_mixing_value,
 )
-from linien_common.config import DEFAULT_SWEEP_SPEED
+from linien_common.config import ACQUISITION_PORT, DEFAULT_SWEEP_SPEED
 from linien_server.parameters import Parameters
 
-from .acquisition.controller import AcquisitionController
 from .csr import PitayaCSR
 from .iir_coeffs import make_filter
 
@@ -51,22 +53,53 @@ class Registers:
         self.control = control
         self.parameters = parameters
 
-        self.acquisition_controller = AcquisitionController(host)
+        self.on_new_data_received = None
+
+        if host is None:
+            # AcquisitionService is imported only on the Red Pitaya since pyrp3 is not
+            # available on Windows
+            from linien_server.acquisition.service import AcquisitionService
+
+            self.acquisition_service = AcquisitionService()
+        else:
+            # AcquisitionService has to be started manually on the Red Pitaya
+            self.acquisition_service = rpyc.connect(host, ACQUISITION_PORT).root
+
         self.csr = PitayaCSR()
 
         self._last_sweep_speed = None
         self._last_raw_acquisition_settings = None
         self._iir_cache = {}  # type: ignore[var-annotated]
 
-        self.parameters.lock.on_change(
-            self.acquisition_controller.acquisition_service.exposed_set_lock_status
-        )
+        self.parameters.lock.on_change(self.acquisition_service.exposed_set_lock_status)
         self.parameters.fetch_additional_signals.on_change(
-            self.acquisition_controller.acquisition_service.exposed_set_fetch_additional_signals  # noqa: E501
+            self.acquisition_service.exposed_set_fetch_additional_signals  # noqa: E501
         )
         self.parameters.dual_channel.on_change(
-            self.acquisition_controller.acquisition_service.exposed_set_dual_channel
+            self.acquisition_service.exposed_set_dual_channel
         )
+
+        self.stop_event = Event()
+        self.data_receiver_thread = Thread(
+            target=self._receive_data_loop, args=(self.stop_event,), daemon=True
+        )
+        self.data_receiver_thread.start()
+
+    def _receive_data_loop(self, stop_event: Event):
+        last_hash = None
+        while not stop_event.is_set():
+            (
+                new_data_returned,
+                new_hash,
+                data_was_raw,
+                new_data,
+                data_uuid,
+            ) = self.acquisition_service.exposed_return_data(last_hash)
+            if new_data_returned:
+                last_hash = new_hash
+            if self.on_new_data_received is not None:
+                self.on_new_data_received(data_was_raw, new_data, data_uuid)
+            sleep(0.05)
 
     def write_registers(self):
         """Writes data from `parameters` to the FPGA."""
@@ -205,9 +238,7 @@ class Registers:
         sweep_changed = params["sweep_speed"] != self._last_sweep_speed
         if sweep_changed:
             self._last_sweep_speed = params["sweep_speed"]
-            self.acquisition_controller.acquisition_service.exposed_set_sweep_speed(
-                params["sweep_speed"]
-            )
+            self.acquisition_service.exposed_set_sweep_speed(params["sweep_speed"])
 
         raw_acquisition_settings = (
             params["acquisition_raw_enabled"],
@@ -215,7 +246,7 @@ class Registers:
         )
         if raw_acquisition_settings != self._last_raw_acquisition_settings:
             self._last_raw_acquisition_settings = raw_acquisition_settings
-            self.acquisition_controller.acquisition_service.exposed_set_raw_acquisition(
+            self.acquisition_service.exposed_set_raw_acquisition(
                 *raw_acquisition_settings
             )
 
@@ -360,15 +391,13 @@ class Registers:
             self.set("slow_chain_pid_reset", reset)
 
     def set(self, key, value):
-        self.acquisition_controller.acquisition_service.exposed_set_csr(key, value)
+        self.acquisition_service.exposed_set_csr(key, value)
 
     def set_iir(self, iir_name, *args):
         if self._iir_cache.get(iir_name) != args:
             # as setting iir parameters takes some time, take care that we don't  do it
             # too often
-            self.acquisition_controller.acquisition_service.exposed_set_iir_csr(
-                iir_name, *args
-            )
+            self.acquisition_service.exposed_set_iir_csr(iir_name, *args)
             self._iir_cache[iir_name] = args
 
 

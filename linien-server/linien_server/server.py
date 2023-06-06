@@ -104,9 +104,7 @@ class RedPitayaControlService(BaseService):
         self.registers = Registers(control=self, parameters=self.parameters, host=host)
         # Connect the acquisition loop to the parameters: Every received value is pushed
         # to `parameters.to_plot`.
-        self.registers.acquisition_controller.on_new_data_received = (
-            self._on_new_data_received
-        )
+        self.registers.on_new_data_received = self._on_new_data_received
         self.exposed_pause_acquisition()
         self.exposed_continue_acquisition()
 
@@ -250,7 +248,9 @@ class RedPitayaControlService(BaseService):
     def exposed_shutdown(self):
         self.stop_event.set()
         self.ping_thread.join()
-        self.registers.acquisition_controller.stop_acquisition()
+        self.registers.stop_event.set()
+        self.registers.data_receiver_thread.join()
+        self.registers.acquisition_service.exposed_stop_acquisition()
         # FIXME: hacky way to trigger atexit handlers for saving parameters
         _thread.interrupt_main()
         raise SystemExit()
@@ -264,7 +264,7 @@ class RedPitayaControlService(BaseService):
         """
         self.parameters.pause_acquisition.value = True
         self.data_uuid = random()
-        self.registers.acquisition_controller.acquisition_service.exposed_pause_acquisition()  # noqa: E501
+        self.registers.acquisition_service.exposed_pause_acquisition()
 
     def exposed_continue_acquisition(self):
         """
@@ -273,9 +273,7 @@ class RedPitayaControlService(BaseService):
         recorded is recorded with the correct parameters.
         """
         self.parameters.pause_acquisition.value = False
-        self.registers.acquisition_controller.acquisition_service.exposed_continue_acquisition(  # noqa: E501
-            self.data_uuid
-        )
+        self.registers.acquisition_service.exposed_continue_acquisition(self.data_uuid)
 
     def exposed_set_csr_direct(self, k, v):
         """
