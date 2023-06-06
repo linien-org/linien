@@ -66,16 +66,13 @@ class Registers:
         self.parameters.dual_channel.on_change(self.on_dual_channel_changed)
 
     def on_lock_status_changed(self, v):
-        if self.acquisition_controller is not None:
-            self.acquisition_controller.set_lock_status(v)
+        self.acquisition_controller.set_lock_status(v)
 
     def on_dual_channel_changed(self, dual_channel):
-        if self.acquisition_controller is not None:
-            self.acquisition_controller.set_dual_channel(dual_channel)
+        self.acquisition_controller.set_dual_channel(dual_channel)
 
     def on_fetch_additional_signals_changed(self, v):
-        if self.acquisition_controller is not None:
-            self.acquisition_controller.fetch_additional_signals(v)
+        self.acquisition_controller.fetch_additional_signals(v)
 
     def write_registers(self):
         """Writes data from `parameters` to the FPGA."""
