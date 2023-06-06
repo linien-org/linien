@@ -136,6 +136,7 @@ class RedPitayaControlService(BaseService):
     def _push_acquired_data_to_parameters(self, stop_event: Event):
         last_hash = None
         while not stop_event.is_set():
+            print("pushing data to parameters")
             (
                 new_data_returned,
                 new_hash,
@@ -184,7 +185,7 @@ class RedPitayaControlService(BaseService):
                     )
                 else:
                     self.parameters.acquisition_raw_data.value = new_data
-                sleep(0.05)
+            sleep(0.05)
 
     def exposed_write_registers(self):
         """Sync the parameters with the FPGA registers."""
