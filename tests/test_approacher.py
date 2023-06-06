@@ -45,10 +45,10 @@ class FakeControl:
     def __init__(self, parameters: Parameters):
         self.parameters = parameters
 
-    def pause_acquisition(self):
+    def exposed_pause_acquisition(self):
         pass
 
-    def continue_acquisition(self):
+    def exposed_continue_acquisition(self):
         pass
 
     def exposed_write_registers(self):
