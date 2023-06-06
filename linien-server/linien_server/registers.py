@@ -27,12 +27,12 @@ from linien_common.common import (
     convert_channel_mixing_value,
 )
 from linien_common.config import DEFAULT_SWEEP_SPEED
+from linien_server.parameters import Parameters
+from linien_server.server import RedPitayaControlService
 
 from .acquisition.controller import AcquisitionController
 from .csr import PitayaCSR
 from .iir_coeffs import make_filter
-from .parameters import Parameters
-from .server import RedPitayaControlService
 
 
 class Registers:
