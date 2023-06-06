@@ -44,7 +44,7 @@ class Registers:
 
     def __init__(
         self,
-        control: RedPitayaControlService,
+        control,
         parameters: Parameters,
         host: Optional[str] = None,
     ):
