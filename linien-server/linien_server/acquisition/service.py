@@ -111,7 +111,14 @@ class AcquisitionService(Service):
                 sleep(0.05)
                 continue
 
-            data, is_raw = self.read_data()
+            if self.raw_acquisition_enabled:
+                data = self.read_data_raw(
+                    0x10000, self.red_pitaya.scope.write_pointer_trigger, MAX_N_POINTS
+                )
+                is_raw = True
+            else:
+                data = self.read_data()
+                is_raw = False
 
             if pause_event.is_set():
                 # it may seem strange that we check this here a second time. Reason:
@@ -128,54 +135,50 @@ class AcquisitionService(Service):
 
             self.program_acquisition_and_rearm()
 
-    def read_data(self):
-        write_pointer = self.red_pitaya.scope.write_pointer_trigger
+    def read_data(self) -> dict:
+        signals = []
 
-        if self.raw_acquisition_enabled:
-            return self.read_data_raw(0x10000, write_pointer, MAX_N_POINTS), True
+        channel_offsets = [0x10000]
+        if self.fetch_additional_signals or self.locked:
+            channel_offsets.append(0x20000)
+
+        for channel_offset in channel_offsets:
+            channel_data = self.read_data_raw(
+                channel_offset,
+                self.red_pitaya.scope.write_pointer_trigger,
+                N_POINTS,
+            )
+
+            for sub_channel_idx in (0, 1):
+                signals.append(channel_data[sub_channel_idx])
+
+        signals_named = {}
+
+        if not self.locked:
+            signals_named["error_signal_1"] = signals[0]
+
+            if self.fetch_additional_signals and len(signals) >= 3:
+                signals_named["error_signal_1_quadrature"] = signals[2]
+
+            if self.dual_channel:
+                signals_named["error_signal_2"] = signals[1]
+                if self.fetch_additional_signals and len(signals) >= 3:
+                    signals_named["error_signal_2_quadrature"] = signals[3]
+            else:
+                signals_named["monitor_signal"] = signals[1]
 
         else:
-            signals = []
+            signals_named["error_signal"] = signals[0]
+            signals_named["control_signal"] = signals[1]
 
-            channel_offsets = [0x10000]
-            if self.fetch_additional_signals or self.locked:
-                channel_offsets.append(0x20000)
+            if not self.dual_channel and len(signals) >= 3:
+                signals_named["monitor_signal"] = signals[2]
 
-            for channel_offset in channel_offsets:
-                channel_data = self.read_data_raw(
-                    channel_offset, write_pointer, N_POINTS
-                )
+        slow_out = self.csr.get("logic_slow_value")
+        slow_out = slow_out if slow_out <= 8191 else slow_out - 16384
+        signals_named["slow_control_signal"] = slow_out
 
-                for sub_channel_idx in (0, 1):
-                    signals.append(channel_data[sub_channel_idx])
-
-            signals_named = {}
-
-            if not self.locked:
-                signals_named["error_signal_1"] = signals[0]
-
-                if self.fetch_additional_signals and len(signals) >= 3:
-                    signals_named["error_signal_1_quadrature"] = signals[2]
-
-                if self.dual_channel:
-                    signals_named["error_signal_2"] = signals[1]
-                    if self.fetch_additional_signals and len(signals) >= 3:
-                        signals_named["error_signal_2_quadrature"] = signals[3]
-                else:
-                    signals_named["monitor_signal"] = signals[1]
-
-            else:
-                signals_named["error_signal"] = signals[0]
-                signals_named["control_signal"] = signals[1]
-
-                if not self.dual_channel and len(signals) >= 3:
-                    signals_named["monitor_signal"] = signals[2]
-
-            slow_out = self.csr.get("logic_slow_value")
-            slow_out = slow_out if slow_out <= 8191 else slow_out - 16384
-            signals_named["slow_control_signal"] = slow_out
-
-            return signals_named, False
+        return signals_named
 
     def read_data_raw(self, offset: int, addr: int, data_length: int):
         max_data_length = 16383
@@ -211,7 +214,7 @@ class AcquisitionService(Service):
         return signals
 
     def program_acquisition_and_rearm(self, trigger_delay=16384):
-        """Programs the acquisition settings and rearms acquisition."""
+        """Program the acquisition settings and rearm acquisition."""
         if not self.locked:
             target_decimation = 2 ** (self.sweep_speed + int(np.log2(DECIMATION)))
 
