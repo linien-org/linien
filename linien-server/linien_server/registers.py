@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-from threading import Event, Thread
-from time import sleep
 from typing import Optional
 
 import numpy as np
@@ -53,8 +51,6 @@ class Registers:
         self.control = control
         self.parameters = parameters
 
-        self.on_new_data_received = None
-
         if host is None:
             # AcquisitionService is imported only on the Red Pitaya since pyrp3 is not
             # available on Windows
@@ -78,28 +74,6 @@ class Registers:
         self.parameters.dual_channel.on_change(
             self.acquisition.exposed_set_dual_channel
         )
-
-        self.stop_event = Event()
-        self.data_receiver_thread = Thread(
-            target=self._receive_data_loop, args=(self.stop_event,), daemon=True
-        )
-        self.data_receiver_thread.start()
-
-    def _receive_data_loop(self, stop_event: Event):
-        last_hash = None
-        while not stop_event.is_set():
-            (
-                new_data_returned,
-                new_hash,
-                data_was_raw,
-                new_data,
-                data_uuid,
-            ) = self.acquisition.exposed_return_data(last_hash)
-            if new_data_returned:
-                last_hash = new_hash
-            if self.on_new_data_received is not None:
-                self.on_new_data_received(data_was_raw, new_data, data_uuid)
-            sleep(0.05)
 
     def write_registers(self):
         """Writes data from `parameters` to the FPGA."""

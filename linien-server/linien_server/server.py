@@ -104,7 +104,6 @@ class RedPitayaControlService(BaseService):
         self.registers = Registers(control=self, parameters=self.parameters, host=host)
         # Connect the acquisition loop to the parameters: Every received value is pushed
         # to `parameters.to_plot`.
-        self.registers.on_new_data_received = self._on_new_data_received
         self.exposed_pause_acquisition()
         self.exposed_continue_acquisition()
 
@@ -116,43 +115,17 @@ class RedPitayaControlService(BaseService):
         self.ping_thread = Thread(
             target=self._send_ping_loop, args=(self.stop_event,), daemon=True
         )
+
+        self.data_pusher_thread = Thread(
+            target=self._push_acquired_data_to_parameters,
+            args=(self.stop_event,),
+            daemon=True,
+        )
+
         self.ping_thread.start()
+        self.data_pusher_thread.start()
 
         self.exposed_write_registers()
-
-    def _on_new_data_received(self, is_raw, plot_data, data_uuid):
-        # When a parameter is changed, `pause_acquisition` is set. This means that the
-        # we should skip new data until we are sure that it was recorded with the new
-        # settings.
-        if not self.parameters.pause_acquisition.value:
-            if data_uuid != self.data_uuid:
-                return
-
-            data_loaded = pickle.loads(plot_data)
-
-            if not is_raw:
-                is_locked = self.parameters.lock.value
-
-                if not check_plot_data(is_locked, data_loaded):
-                    print("warning: incorrect data received for lock state, ignoring!")
-                    return
-
-                self.parameters.to_plot.value = plot_data
-                self._generate_signal_stats(data_loaded)
-
-                # update signal history (if in locked state)
-                (
-                    self.parameters.control_signal_history.value,
-                    self.parameters.monitor_signal_history.value,
-                ) = update_signal_history(
-                    self.parameters.control_signal_history.value,
-                    self.parameters.monitor_signal_history.value,
-                    data_loaded,
-                    is_locked,
-                    self.parameters.control_signal_history_length.value,
-                )
-            else:
-                self.parameters.acquisition_raw_data.value = plot_data
 
     def _send_ping_loop(self, stop_event: Event):
         while not stop_event.is_set():
@@ -160,16 +133,58 @@ class RedPitayaControlService(BaseService):
             print("ping", self.parameters.ping.value)
             sleep(1)
 
-    def _generate_signal_stats(self, to_plot):
-        stats = {}
+    def _push_acquired_data_to_parameters(self, stop_event: Event):
+        last_hash = None
+        while not stop_event.is_set():
+            (
+                new_data_returned,
+                new_hash,
+                data_was_raw,
+                new_data,
+                data_uuid,
+            ) = self.registers.acquisition.exposed_return_data(last_hash)
+            if new_data_returned:
+                last_hash = new_hash
+            # When a parameter is changed, `pause_acquisition` is set. This means that
+            # the we should skip new data until we are sure that it was recorded with
+            # the new settings.
+            if not self.parameters.pause_acquisition.value:
+                if data_uuid != self.data_uuid:
+                    return
 
-        for signal_name, signal in to_plot.items():
-            stats["%s_mean" % signal_name] = np.mean(signal)
-            stats["%s_std" % signal_name] = np.std(signal)
-            stats["%s_max" % signal_name] = np.max(signal)
-            stats["%s_min" % signal_name] = np.min(signal)
+                data_loaded = pickle.loads(new_data)
 
-        self.parameters.signal_stats.value = stats
+                if not data_was_raw:
+                    is_locked = self.parameters.lock.value
+
+                    if not check_plot_data(is_locked, data_loaded):
+                        print("incorrect data received for lock state, ignoring!")
+                        return
+
+                    self.parameters.to_plot.value = new_data
+
+                    # generate signal stats
+                    stats = {}
+                    for signal_name, signal in data_loaded.items():
+                        stats["%s_mean" % signal_name] = np.mean(signal)
+                        stats["%s_std" % signal_name] = np.std(signal)
+                        stats["%s_max" % signal_name] = np.max(signal)
+                        stats["%s_min" % signal_name] = np.min(signal)
+                    self.parameters.signal_stats.value = stats
+                    # update signal history (if in locked state)
+                    (
+                        self.parameters.control_signal_history.value,
+                        self.parameters.monitor_signal_history.value,
+                    ) = update_signal_history(
+                        self.parameters.control_signal_history.value,
+                        self.parameters.monitor_signal_history.value,
+                        data_loaded,
+                        is_locked,
+                        self.parameters.control_signal_history_length.value,
+                    )
+                else:
+                    self.parameters.acquisition_raw_data.value = new_data
+                sleep(0.05)
 
     def exposed_write_registers(self):
         """Sync the parameters with the FPGA registers."""
