@@ -87,8 +87,8 @@ class AcquisitionController:
     def set_iir_csr(self, *args):
         self.acquisition_service.exposed_set_iir_csr(*args)
 
-    def set_raw_acquisition(self, enabled, decimation=0):
-        self.acquisition_service.exposed_set_raw_acquisition((enabled, decimation))
+    def set_raw_acquisition(self, enabled: bool, decimation: int = 0) -> None:
+        self.acquisition_service.exposed_set_raw_acquisition(enabled, decimation)
 
     def set_dual_channel(self, enabled):
         self.acquisition_service.exposed_set_dual_channel(enabled)

@@ -23,6 +23,7 @@ from pathlib import Path
 from random import random
 from threading import Event, Thread
 from time import sleep
+from typing import Tuple, Union
 
 import numpy as np
 from linien_common.common import DECIMATION, MAX_N_POINTS, N_POINTS
@@ -104,7 +105,9 @@ class AcquisitionService(Service):
                 sleep(0.05)
                 continue
 
-            if not self.triggered:
+            # check that scope is triggered; copied from
+            # https://github.com/RedPitaya/RedPitaya/blob/14cca62dd58f29826ee89f4b28901602f5cdb1d8/api/src/oscilloscope.c#L115  # noqa: E501
+            if not (self.red_pitaya.scope.read(0x1 << 2) & 0x4) <= 0:
                 sleep(0.05)
                 continue
 
@@ -124,11 +127,6 @@ class AcquisitionService(Service):
                 self.data_hash = random()
 
             self.program_acquisition_and_rearm()
-
-    @property
-    def triggered(self):
-        # copied from https://github.com/RedPitaya/RedPitaya/blob/14cca62dd58f29826ee89f4b28901602f5cdb1d8/api/src/oscilloscope.c#L115  # noqa: E501
-        return (self.red_pitaya.scope.read(0x1 << 2) & 0x4) <= 0
 
     def read_data(self):
         write_pointer = self.red_pitaya.scope.write_pointer_trigger
@@ -179,7 +177,7 @@ class AcquisitionService(Service):
 
             return signals_named, False
 
-    def read_data_raw(self, offset, addr, data_length):
+    def read_data_raw(self, offset: int, addr: int, data_length: int):
         max_data_length = 16383
         if data_length + addr > max_data_length:
             to_read_later = data_length + addr - max_data_length
@@ -230,7 +228,15 @@ class AcquisitionService(Service):
 
         self.red_pitaya.scope.rearm(trigger_source=TriggerSource.ext_posedge)
 
-    def exposed_return_data(self, last_hash):
+    def exposed_return_data(
+        self, last_hash: Union[float, None]
+    ) -> Tuple[
+        bool,
+        Union[float, None],
+        Union[bool, None],
+        Union[bytes, None],
+        Union[float, None],
+    ]:
         no_data_available = self.data_hash is None
         data_not_changed = self.data_hash == last_hash
         if data_not_changed or no_data_available or self.pause_event.is_set():
@@ -244,16 +250,16 @@ class AcquisitionService(Service):
         # don't want to wait until it finishes
         self.program_acquisition_and_rearm()
 
-    def exposed_set_lock_status(self, locked):
+    def exposed_set_lock_status(self, locked: bool) -> None:
         self.locked = locked
         self.confirmed_that_in_lock = False
 
-    def exposed_set_fetch_additional_signals(self, fetch):
+    def exposed_set_fetch_additional_signals(self, fetch: bool) -> None:
         self.fetch_additional_signals = fetch
 
-    def exposed_set_raw_acquisition(self, data):
-        self.raw_acquisition_enabled = data[0]
-        self.raw_acquisition_decimation = data[1]
+    def exposed_set_raw_acquisition(self, enabled: bool, decimation: int) -> None:
+        self.raw_acquisition_enabled = enabled
+        self.raw_acquisition_decimation = decimation
 
     def exposed_set_dual_channel(self, dual_channel):
         self.dual_channel = dual_channel
@@ -274,7 +280,7 @@ class AcquisitionService(Service):
         self.data_hash = None
         self.data = None
 
-    def exposed_continue_acquisition(self, uuid):
+    def exposed_continue_acquisition(self, uuid: Union[float, None]) -> None:
         self.program_acquisition_and_rearm()
         sleep(0.01)
         # resetting data here is not strictly required but we want to be on the safe
