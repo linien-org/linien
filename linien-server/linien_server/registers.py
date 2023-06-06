@@ -58,7 +58,7 @@ class Registers:
         self._last_raw_acquisition_settings = None
         self._iir_cache = {}  # type: ignore[var-annotated]
 
-        self.parameters.lock.on_change(self.self.acquisition_controller.set_lock_status)
+        self.parameters.lock.on_change(self.acquisition_controller.set_lock_status)
         self.parameters.fetch_additional_signals.on_change(
             self.acquisition_controller.fetch_additional_signals
         )
