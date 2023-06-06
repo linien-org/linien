@@ -28,7 +28,6 @@ from linien_common.common import (
 )
 from linien_common.config import DEFAULT_SWEEP_SPEED
 from linien_server.parameters import Parameters
-from linien_server.server import RedPitayaControlService
 
 from .acquisition.controller import AcquisitionController
 from .csr import PitayaCSR
