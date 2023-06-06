@@ -264,7 +264,7 @@ class RedPitayaControlService(BaseService):
         """
         self.parameters.pause_acquisition.value = True
         self.data_uuid = random()
-        self.registers.acquisition_controller.pause_acquisition()
+        self.registers.acquisition_controller.acquisition_service.exposed_pause_acquisition()  # noqa: E501
 
     def exposed_continue_acquisition(self):
         """
@@ -273,7 +273,9 @@ class RedPitayaControlService(BaseService):
         recorded is recorded with the correct parameters.
         """
         self.parameters.pause_acquisition.value = False
-        self.registers.acquisition_controller.continue_acquisition(self.data_uuid)
+        self.registers.acquisition_controller.acquisition_service.exposed_continue_acquisition(  # noqa: E501
+            self.data_uuid
+        )
 
     def exposed_set_csr_direct(self, k, v):
         """

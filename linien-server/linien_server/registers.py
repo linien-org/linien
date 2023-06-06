@@ -58,12 +58,14 @@ class Registers:
         self._last_raw_acquisition_settings = None
         self._iir_cache = {}  # type: ignore[var-annotated]
 
-        self.parameters.lock.on_change(self.acquisition_controller.set_lock_status)
+        self.parameters.lock.on_change(
+            self.acquisition_controller.acquisition_service.exposed_set_lock_status
+        )
         self.parameters.fetch_additional_signals.on_change(
-            self.acquisition_controller.fetch_additional_signals
+            self.acquisition_controller.acquisition_service.exposed_set_fetch_additional_signals  # noqa: E501
         )
         self.parameters.dual_channel.on_change(
-            self.acquisition_controller.set_dual_channel
+            self.acquisition_controller.acquisition_service.exposed_set_dual_channel
         )
 
     def write_registers(self):
@@ -203,7 +205,9 @@ class Registers:
         sweep_changed = params["sweep_speed"] != self._last_sweep_speed
         if sweep_changed:
             self._last_sweep_speed = params["sweep_speed"]
-            self.acquisition_controller.set_sweep_speed(params["sweep_speed"])
+            self.acquisition_controller.acquisition_service.exposed_set_sweep_speed(
+                params["sweep_speed"]
+            )
 
         raw_acquisition_settings = (
             params["acquisition_raw_enabled"],
@@ -211,7 +215,9 @@ class Registers:
         )
         if raw_acquisition_settings != self._last_raw_acquisition_settings:
             self._last_raw_acquisition_settings = raw_acquisition_settings
-            self.acquisition_controller.set_raw_acquisition(*raw_acquisition_settings)
+            self.acquisition_controller.acquisition_service.exposed_set_raw_acquisition(
+                *raw_acquisition_settings
+            )
 
         fpga_base_freq = 125e6
 
@@ -354,13 +360,15 @@ class Registers:
             self.set("slow_chain_pid_reset", reset)
 
     def set(self, key, value):
-        self.acquisition_controller.set_csr(key, value)
+        self.acquisition_controller.acquisition_service.exposed_set_csr(key, value)
 
     def set_iir(self, iir_name, *args):
         if self._iir_cache.get(iir_name) != args:
             # as setting iir parameters takes some time, take care that we don't  do it
             # too often
-            self.acquisition_controller.set_iir_csr(iir_name, *args)
+            self.acquisition_controller.acquisition_service.exposed_set_iir_csr(
+                iir_name, *args
+            )
             self._iir_cache[iir_name] = args
 
 

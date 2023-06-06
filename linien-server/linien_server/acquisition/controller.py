@@ -63,32 +63,3 @@ class AcquisitionController:
         self.stop_event.set()
         self.data_receiver_thread.join()
         self.acquisition_service.exposed_stop_acquisition()
-
-    def pause_acquisition(self):
-        self.acquisition_service.exposed_pause_acquisition()
-
-    def continue_acquisition(self, uuid):
-        self.acquisition_service.exposed_continue_acquisition(uuid)
-
-    def set_sweep_speed(self, speed):
-        self.acquisition_service.exposed_set_sweep_speed(speed)
-
-    def set_lock_status(self, status):
-        if self.acquisition_service:
-            self.acquisition_service.exposed_set_lock_status(status)
-
-    def fetch_additional_signals(self, status):
-        if self.acquisition_service:
-            self.acquisition_service.exposed_set_fetch_additional_signals(status)
-
-    def set_csr(self, key, value):
-        self.acquisition_service.exposed_set_csr(key, value)
-
-    def set_iir_csr(self, *args):
-        self.acquisition_service.exposed_set_iir_csr(*args)
-
-    def set_raw_acquisition(self, enabled: bool, decimation: int = 0) -> None:
-        self.acquisition_service.exposed_set_raw_acquisition(enabled, decimation)
-
-    def set_dual_channel(self, enabled):
-        self.acquisition_service.exposed_set_dual_channel(enabled)
