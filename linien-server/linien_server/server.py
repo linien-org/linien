@@ -250,7 +250,7 @@ class RedPitayaControlService(BaseService):
         self.ping_thread.join()
         self.registers.stop_event.set()
         self.registers.data_receiver_thread.join()
-        self.registers.acquisition_service.exposed_stop_acquisition()
+        self.registers.acquisition.exposed_stop_acquisition()
         # FIXME: hacky way to trigger atexit handlers for saving parameters
         _thread.interrupt_main()
         raise SystemExit()
@@ -264,7 +264,7 @@ class RedPitayaControlService(BaseService):
         """
         self.parameters.pause_acquisition.value = True
         self.data_uuid = random()
-        self.registers.acquisition_service.exposed_pause_acquisition()
+        self.registers.acquisition.exposed_pause_acquisition()
 
     def exposed_continue_acquisition(self):
         """
@@ -273,7 +273,7 @@ class RedPitayaControlService(BaseService):
         recorded is recorded with the correct parameters.
         """
         self.parameters.pause_acquisition.value = False
-        self.registers.acquisition_service.exposed_continue_acquisition(self.data_uuid)
+        self.registers.acquisition.exposed_continue_acquisition(self.data_uuid)
 
     def exposed_set_csr_direct(self, k, v):
         """

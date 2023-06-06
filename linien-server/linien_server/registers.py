@@ -58,12 +58,12 @@ class Registers:
         if host is None:
             # AcquisitionService is imported only on the Red Pitaya since pyrp3 is not
             # available on Windows
-            from linien_server.acquisition.service import AcquisitionService
+            from linien_server.acquisition import AcquisitionService
 
-            self.acquisition_service = AcquisitionService()
+            self.acquisition = AcquisitionService()
         else:
             # AcquisitionService has to be started manually on the Red Pitaya
-            self.acquisition_service = rpyc.connect(host, ACQUISITION_PORT).root
+            self.acquisition = rpyc.connect(host, ACQUISITION_PORT).root
 
         self.csr = PitayaCSR()
 
@@ -71,12 +71,12 @@ class Registers:
         self._last_raw_acquisition_settings = None
         self._iir_cache = {}  # type: ignore[var-annotated]
 
-        self.parameters.lock.on_change(self.acquisition_service.exposed_set_lock_status)
+        self.parameters.lock.on_change(self.acquisition.exposed_set_lock_status)
         self.parameters.fetch_additional_signals.on_change(
-            self.acquisition_service.exposed_set_fetch_additional_signals  # noqa: E501
+            self.acquisition.exposed_set_fetch_additional_signals  # noqa: E501
         )
         self.parameters.dual_channel.on_change(
-            self.acquisition_service.exposed_set_dual_channel
+            self.acquisition.exposed_set_dual_channel
         )
 
         self.stop_event = Event()
@@ -94,7 +94,7 @@ class Registers:
                 data_was_raw,
                 new_data,
                 data_uuid,
-            ) = self.acquisition_service.exposed_return_data(last_hash)
+            ) = self.acquisition.exposed_return_data(last_hash)
             if new_data_returned:
                 last_hash = new_hash
             if self.on_new_data_received is not None:
@@ -238,7 +238,7 @@ class Registers:
         sweep_changed = params["sweep_speed"] != self._last_sweep_speed
         if sweep_changed:
             self._last_sweep_speed = params["sweep_speed"]
-            self.acquisition_service.exposed_set_sweep_speed(params["sweep_speed"])
+            self.acquisition.exposed_set_sweep_speed(params["sweep_speed"])
 
         raw_acquisition_settings = (
             params["acquisition_raw_enabled"],
@@ -246,9 +246,7 @@ class Registers:
         )
         if raw_acquisition_settings != self._last_raw_acquisition_settings:
             self._last_raw_acquisition_settings = raw_acquisition_settings
-            self.acquisition_service.exposed_set_raw_acquisition(
-                *raw_acquisition_settings
-            )
+            self.acquisition.exposed_set_raw_acquisition(*raw_acquisition_settings)
 
         fpga_base_freq = 125e6
 
@@ -391,13 +389,13 @@ class Registers:
             self.set("slow_chain_pid_reset", reset)
 
     def set(self, key, value):
-        self.acquisition_service.exposed_set_csr(key, value)
+        self.acquisition.exposed_set_csr(key, value)
 
     def set_iir(self, iir_name, *args):
         if self._iir_cache.get(iir_name) != args:
             # as setting iir parameters takes some time, take care that we don't  do it
             # too often
-            self.acquisition_service.exposed_set_iir_csr(iir_name, *args)
+            self.acquisition.exposed_set_iir_csr(iir_name, *args)
             self._iir_cache[iir_name] = args
 
 
