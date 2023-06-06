@@ -123,12 +123,10 @@ class RedPitayaControlService(BaseService):
 
         self.ping_thread.start()
         self.data_pusher_thread.start()
-        print("started data pusher thread")
 
         self.exposed_write_registers()
 
     def _send_ping_loop(self, stop_event: Event):
-        print("started data pusher thread (inside thread)")
         while not stop_event.is_set():
             self.parameters.ping.value += 1
             print("ping", self.parameters.ping.value)
@@ -137,7 +135,6 @@ class RedPitayaControlService(BaseService):
     def _push_acquired_data_to_parameters(self, stop_event: Event):
         last_hash = None
         while not stop_event.is_set():
-            print("pushing data to parameters")
             (
                 new_data_returned,
                 new_hash,
