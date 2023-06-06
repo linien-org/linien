@@ -152,7 +152,7 @@ class RedPitayaControlService(BaseService):
             # the new settings.
             if not self.parameters.pause_acquisition.value:
                 if data_uuid != self.data_uuid:
-                    return
+                    continue
 
                 data_loaded = pickle.loads(new_data)
 
@@ -161,7 +161,7 @@ class RedPitayaControlService(BaseService):
 
                     if not check_plot_data(is_locked, data_loaded):
                         print("incorrect data received for lock state, ignoring!")
-                        return
+                        continue
 
                     self.parameters.to_plot.value = new_data
 
