@@ -301,7 +301,7 @@ class AcquisitionService(Service):
 
 
 def flash_fpga():
-    filepath = Path(__file__).resolve().parents[1] / "linien.bin"
+    filepath = Path(__file__).resolve() / "linien.bin"
     shutil.copy(str(filepath), "/dev/xdevcfg")
 
 
