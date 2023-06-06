@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
+from typing import Optional
+
 import numpy as np
 from linien_common.common import (
     HIGH_PASS_FILTER,
@@ -29,6 +31,8 @@ from linien_common.config import DEFAULT_SWEEP_SPEED
 from .acquisition.controller import AcquisitionController
 from .csr import PitayaCSR
 from .iir_coeffs import make_filter
+from .parameters import Parameters
+from .server import RedPitayaControlService
 
 
 class Registers:
@@ -39,7 +43,12 @@ class Registers:
     communicate by manipulating `Parameters` / `RemoteParameters`.
     """
 
-    def __init__(self, control, parameters, host=None):
+    def __init__(
+        self,
+        control: RedPitayaControlService,
+        parameters: Parameters,
+        host: Optional[str] = None,
+    ):
         self.control = control
         self.parameters = parameters
 
