@@ -116,7 +116,6 @@ class Settings:
 
 
 def save_settings(settings: Settings) -> None:
-    print("Saving settings")
     data = {name: setting.value for name, setting in settings}
     with open(USER_DATA_PATH / "settings.json", "w") as f:
         json.dump(data, f, indent=0)
