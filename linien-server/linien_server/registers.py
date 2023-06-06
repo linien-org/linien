@@ -58,20 +58,13 @@ class Registers:
         self._last_raw_acquisition_settings = None
         self._iir_cache = {}  # type: ignore[var-annotated]
 
-        self.parameters.lock.on_change(self.on_lock_status_changed)
+        self.parameters.lock.on_change(self.self.acquisition_controller.set_lock_status)
         self.parameters.fetch_additional_signals.on_change(
-            self.on_fetch_additional_signals_changed
+            self.acquisition_controller.fetch_additional_signals
         )
-        self.parameters.dual_channel.on_change(self.on_dual_channel_changed)
-
-    def on_lock_status_changed(self, v):
-        self.acquisition_controller.set_lock_status(v)
-
-    def on_dual_channel_changed(self, dual_channel):
-        self.acquisition_controller.set_dual_channel(dual_channel)
-
-    def on_fetch_additional_signals_changed(self, v):
-        self.acquisition_controller.fetch_additional_signals(v)
+        self.parameters.dual_channel.on_change(
+            self.acquisition_controller.set_dual_channel
+        )
 
     def write_registers(self):
         """Writes data from `parameters` to the FPGA."""
