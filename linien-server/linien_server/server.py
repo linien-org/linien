@@ -263,7 +263,7 @@ class RedPitayaControlService(BaseService):
         `continue_acquisition`.
         """
         self.parameters.pause_acquisition.value = True
-        self.data_uuid: float = random()
+        self.data_uuid = random()
         self.registers.acquisition_controller.pause_acquisition()
 
     def exposed_continue_acquisition(self):
