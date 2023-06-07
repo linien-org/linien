@@ -50,5 +50,5 @@ class LoggedParametersMenu(QtWidgets.QMenu):
     def create_menu_entries(self, parameters: RemoteParameters):
         for name, param in parameters:
             if param.loggable:
-                action = QtWidgets.QAction(name, parent=self, checkable=True)
+                action = QtWidgets.QAction(name, parent=self, checkable=True)  # type: ignore[call-overload] # noqa: E501
                 self.addAction(action)
