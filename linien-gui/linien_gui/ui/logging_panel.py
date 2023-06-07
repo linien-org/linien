@@ -51,4 +51,4 @@ class LoggedParametersMenu(QtWidgets.QMenu):
         for name, param in parameters:
             if param.loggable:
                 action = QtWidgets.QAction(name, self, checkable=True)
-                action = self.addAction(action)
+                self.addAction(action)
