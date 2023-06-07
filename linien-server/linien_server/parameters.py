@@ -21,6 +21,7 @@ import atexit
 import pickle
 from pathlib import Path
 from time import time
+from typing import Any, Iterator, Tuple
 
 import linien_server
 from appdirs import AppDirs
@@ -586,27 +587,25 @@ class Parameters:
             start=18, min_=1, max_=32, restorable=True
         )
 
-    def __iter__(self):
-        for name, param in self.get_all_parameters():
-            yield name, param.value
-
-    def get_all_parameters(self):
+    def __iter__(self) -> Iterator[Tuple[str, Parameter]]:
         for name, param in self.__dict__.items():
             if isinstance(param, Parameter):
                 yield name, param
 
-    def get_all_restorable_parameters(self):
-        for name, param in self.get_all_parameters():
+    def get_all_restorable_parameters(self) -> Iterator[Tuple[str, Parameter]]:
+        for name, param in self:
             if param.restorable:
                 yield name, param
 
-    def init_parameter_sync(self, uuid):
+    def init_parameter_sync(
+        self, uuid: float
+    ) -> Iterator[Tuple[str, Parameter, Any, bool, bool, bool]]:
         """
         To be called by a remote client: Yields all parameters as well as their values
         and if the parameters are suited to be cached registers a listener that pushes
         changes of these parameters to the client.
         """
-        for name, param in self.get_all_parameters():
+        for name, param in self:
             yield (
                 name,
                 param,
@@ -618,11 +617,11 @@ class Parameters:
             if param.exposed_can_be_cached:
                 self.register_remote_listener(uuid, name)
 
-    def register_remote_listener(self, uuid, param_name):
+    def register_remote_listener(self, uuid: float, param_name: str) -> None:
         self._remote_listener_queue.setdefault(uuid, [])
         self._remote_listener_callbacks.setdefault(uuid, [])
 
-        def on_change(value, uuid=uuid, param_name=param_name):
+        def on_change(value: Any, uuid: float = uuid, param_name: str = param_name):
             if uuid in self._remote_listener_queue:
                 self._remote_listener_queue[uuid].append((param_name, value))
 
@@ -631,14 +630,14 @@ class Parameters:
 
         self._remote_listener_callbacks[uuid].append((param, on_change))
 
-    def unregister_remote_listeners(self, uuid):
+    def unregister_remote_listeners(self, uuid: float):
         for param, callback in self._remote_listener_callbacks[uuid]:
             param.remove_listener(callback)
 
         del self._remote_listener_queue[uuid]
         del self._remote_listener_callbacks[uuid]
 
-    def get_listener_queue(self, uuid):
+    def get_listener_queue(self, uuid: float):
         queue = self._remote_listener_queue.get(uuid, [])
         self._remote_listener_queue[uuid] = []
 
@@ -660,12 +659,12 @@ class ParameterStore:
     server shuts down. Once it restarts the parameters are restored.
     """
 
-    def __init__(self, parameters):
+    def __init__(self, parameters: Parameters):
         self.parameters = parameters
         self.restore_parameters()
         atexit.register(self.save_parameters)
 
-    def restore_parameters(self):
+    def restore_parameters(self) -> None:
         """
         When the server starts, this method restores previously saved parameters (if
         any).
@@ -685,16 +684,15 @@ class ParameterStore:
                 # ignore parameters that don't exist (anymore)
                 continue
 
-    def save_parameters(self):
+    def save_parameters(self) -> None:
         """Gather all parameters and store them on disk."""
 
         # make sure that USER_DATA_PATH exists
         USER_DATA_PATH.mkdir(parents=True, exist_ok=True)
         parameters = {}
-        for name, value in self.parameters:
-            param = getattr(self.parameters, name)
+        for name, param in self.parameters:
             if param.restorable:
-                parameters[name] = value
+                parameters[name] = param.value
 
         filename = str(USER_DATA_PATH / PARAMETER_STORE_FILENAME)
         with open(filename, "wb") as f:

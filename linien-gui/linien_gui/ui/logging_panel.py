@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-from linien_client.remote_parameters import RemoteParameter
+from linien_client.remote_parameters import RemoteParameters
 from linien_gui.widgets import UI_PATH
 from PyQt5 import QtWidgets, uic
 
@@ -47,11 +47,8 @@ class LoggedParametersMenu(QtWidgets.QMenu):
     def __init__(self, *args, **kwargs):
         super(LoggedParametersMenu, self).__init__()
 
-    def create_menu_entries(self, parameters):
-        params = [p for p in dir(parameters) if not p.startswith("_")]
-        for p_name in params:
-            p = getattr(parameters, p_name)
-            if isinstance(p, RemoteParameter):
-                if p.loggable:
-                    action = QtWidgets.QAction(p_name, self, checkable=True)
-                    action = self.addAction(action)
+    def create_menu_entries(self, parameters: RemoteParameters):
+        for name, param in parameters:
+            if param.loggable:
+                action = QtWidgets.QAction(name, self, checkable=True)
+                action = self.addAction(action)
