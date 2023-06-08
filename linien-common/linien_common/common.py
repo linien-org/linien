@@ -21,6 +21,7 @@
 import hashlib
 import pickle
 from time import time
+from typing import Tuple
 
 import numpy as np
 from scipy.signal import correlate, resample
@@ -251,7 +252,7 @@ def get_lock_point(error_signal, x0, x1, final_zoom_factor=1.5):
     )
 
 
-def convert_channel_mixing_value(value):
+def convert_channel_mixing_value(value: int) -> Tuple[int, int]:
     if value <= 0:
         a_value = 128
         b_value = 128 + value
