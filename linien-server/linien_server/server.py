@@ -57,7 +57,7 @@ class BaseService(rpyc.Service):
 
     def __init__(self):
         self.parameters = Parameters()
-        restore_parameters(self.parameters)
+        self.parameters = restore_parameters(self.parameters)
         print(self.parameters)
         print(type(self.parameters))
         atexit.register(save_parameters, self.parameters)

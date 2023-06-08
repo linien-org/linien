@@ -652,7 +652,7 @@ class Parameters:
         return pack(queue)
 
 
-def restore_parameters(parameters: Parameters) -> None:
+def restore_parameters(parameters: Parameters) -> Parameters:
     """When the server starts, this method restores previously saved parameters."""
     filename = str(USER_DATA_PATH / PARAMETER_STORE_FILENAME)
     try:
@@ -668,6 +668,8 @@ def restore_parameters(parameters: Parameters) -> None:
         except AttributeError:
             # ignore parameters that don't exist (anymore)
             continue
+
+    return parameters
 
 
 def save_parameters(parameters: Parameters) -> None:
