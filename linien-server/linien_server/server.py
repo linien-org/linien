@@ -17,6 +17,7 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 import _thread
+import atexit
 import os
 import pickle
 import sys
@@ -38,7 +39,7 @@ from linien_common.config import DEFAULT_SERVER_PORT
 from linien_server import __version__
 from linien_server.autolock.autolock import Autolock
 from linien_server.optimization.optimization import OptimizeSpectroscopy
-from linien_server.parameters import Parameters, ParameterStore
+from linien_server.parameters import Parameters, restore_parameters, save_parameters
 from linien_server.pid_optimization.pid_optimization import (
     PIDOptimization,
     PSDAcquisition,
@@ -56,7 +57,8 @@ class BaseService(rpyc.Service):
 
     def __init__(self):
         self.parameters = Parameters()
-        self.parameter_store = ParameterStore(self.parameters)
+        self.parameters = restore_parameters(self.parameters)
+        atexit.register(save_parameters, self.parameters)
         self._uuid_mapping = {}
 
     def on_connect(self, client):
