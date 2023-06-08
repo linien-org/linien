@@ -122,7 +122,7 @@ class Registers:
             ),
             logic_out_offset=int(self.parameters.sweep_center.value * 8191),
             logic_combined_offset=twos_complement(
-                self.parameters.combined_offset.vallue, 14
+                self.parameters.combined_offset.value, 14
             ),
             logic_control_channel=self.parameters.control_channel.value,
             logic_mod_channel=self.parameters.mod_channel.value,
