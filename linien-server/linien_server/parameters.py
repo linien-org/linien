@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
+import atexit
 import pickle
 from pathlib import Path
 from time import time
@@ -652,44 +653,55 @@ class Parameters:
         return pack(queue)
 
 
-def restore_parameters(parameters: Parameters) -> Parameters:
-    """When the server starts, this method restores previously saved parameters."""
-    filename = str(USER_DATA_PATH / PARAMETER_STORE_FILENAME)
-    try:
-        with open(filename, "rb") as f:
-            data = pickle.load(f)
-            print("Restored parameters from ", filename)
-    except (FileNotFoundError, pickle.UnpicklingError, EOFError, TypeError):
-        return
+class ParameterStore:
+    """
+    This class installs an `atexit` listener that persists parameters to disk when the
+    server shuts down. Once it restarts the parameters are restored.
+    """
 
-    for param_name, value in data["parameters"].items():
+    def __init__(self, parameters: Parameters):
+        self.parameters = parameters
+        self.restore_parameters()
+        atexit.register(self.save_parameters)
+
+    def restore_parameters(self) -> None:
+        """
+        When the server starts, this method restores previously saved parameters (if
+        any).
+        """
+        filename = str(USER_DATA_PATH / PARAMETER_STORE_FILENAME)
         try:
-            getattr(parameters, param_name).value = value
-        except AttributeError:
-            # ignore parameters that don't exist (anymore)
-            continue
+            with open(filename, "rb") as f:
+                data = pickle.load(f)
+                print("Restored parameters from ", filename)
+        except (FileNotFoundError, pickle.UnpicklingError, EOFError, TypeError):
+            return
 
-    return parameters
+        for param_name, value in data["parameters"].items():
+            try:
+                getattr(self.parameters, param_name).value = value
+            except AttributeError:
+                # ignore parameters that don't exist (anymore)
+                continue
 
+    def save_parameters(self) -> None:
+        """Gather all parameters and store them on disk."""
 
-def save_parameters(parameters: Parameters) -> None:
-    """Gather all parameters and store them on disk."""
+        # make sure that USER_DATA_PATH exists
+        USER_DATA_PATH.mkdir(parents=True, exist_ok=True)
+        parameters = {}
+        for name, param in self.parameters:
+            if param.restorable:
+                parameters[name] = param.value
 
-    # make sure that USER_DATA_PATH exists
-    USER_DATA_PATH.mkdir(parents=True, exist_ok=True)
-    parameters = {}
-    for name, param in parameters:
-        if param.restorable:
-            parameters[name] = param.value
-
-    filename = str(USER_DATA_PATH / PARAMETER_STORE_FILENAME)
-    with open(filename, "wb") as f:
-        pickle.dump(
-            {
-                "parameters": parameters,
-                "time": time(),
-                "version": linien_server.__version__,
-            },
-            f,
-        )
-    print("Saved parameters to ", filename)
+        filename = str(USER_DATA_PATH / PARAMETER_STORE_FILENAME)
+        with open(filename, "wb") as f:
+            pickle.dump(
+                {
+                    "parameters": parameters,
+                    "time": time(),
+                    "version": linien_server.__version__,
+                },
+                f,
+            )
+        print("Saved parameters to ", filename)
