@@ -58,8 +58,6 @@ class BaseService(rpyc.Service):
     def __init__(self):
         self.parameters = Parameters()
         self.parameters = restore_parameters(self.parameters)
-        print(self.parameters)
-        print(type(self.parameters))
         atexit.register(save_parameters, self.parameters)
         self._uuid_mapping = {}
 
