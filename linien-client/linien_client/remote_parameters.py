@@ -139,27 +139,20 @@ class RemoteParameters:
 
         # mimic functionality of `parameters.Parameters`:
         all_parameters = unpack(self.remote.exposed_init_parameter_sync(self.uuid))
-        for (
-            name,
-            param,
-            value,
-            can_be_cached,
-            restorable,
-            loggable,
-        ) in all_parameters:
-            remote_param = RemoteParameter(
+        for name, param, value, can_be_cached, restorable, loggable in all_parameters:
+            param = RemoteParameter(
                 parent=self,
                 remote_param=param,
                 name=name,
-                use_cache=use_cache and param.can_be_cached,
-                restorable=param.restorable,
-                loggable=param.loggable,
+                use_cache=use_cache and can_be_cached,
+                restorable=restorable,
+                loggable=loggable,
             )
-            setattr(self, name, remote_param)
-            if use_cache and param.can_be_cached:
+            setattr(self, name, param)
+            if use_cache and can_be_cached:
                 # obtain takes care that we really don't deal with netrefs (np.float64
                 # is not automatically serialized)
-                remote_param._update_cache(rpyc.classic.obtain(param.value))
+                param._update_cache(rpyc.classic.obtain(value))
         self._attributes_locked = True
 
         self.call_listeners()
