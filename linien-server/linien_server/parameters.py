@@ -669,7 +669,7 @@ def restore_parameters(parameters: Parameters) -> Parameters:
             getattr(parameters, name).log = attributes["log"]
         except AttributeError:  # ignore parameters that don't exist (anymore)
             continue
-        print("Restored parameters from ", filename)
+    print("Restored parameters from ", filename)
     return parameters
 
 
