@@ -603,11 +603,6 @@ class Parameters:
             if isinstance(param, Parameter):
                 yield name, param
 
-    def get_all_restorable_parameters(self) -> Iterator[Tuple[str, Parameter]]:
-        for name, param in self:
-            if param.restorable:
-                yield name, param
-
     def init_parameter_sync(
         self, uuid: float
     ) -> Iterator[Tuple[str, Parameter, Any, bool, bool, bool]]:
