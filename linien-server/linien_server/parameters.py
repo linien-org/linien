@@ -677,16 +677,16 @@ def save_parameters(parameters: Parameters) -> None:
 
     # make sure that USER_DATA_PATH exists
     USER_DATA_PATH.mkdir(parents=True, exist_ok=True)
-    parameters = {}
+    parameters_dict = {}
     for name, param in parameters:
         if param.restorable:
-            parameters[name] = param.value
+            parameters_dict[name] = param.value
 
     filename = str(USER_DATA_PATH / PARAMETER_STORE_FILENAME)
     with open(filename, "wb") as f:
         pickle.dump(
             {
-                "parameters": parameters,
+                "parameters": parameters_dict,
                 "time": time(),
                 "version": linien_server.__version__,
             },
