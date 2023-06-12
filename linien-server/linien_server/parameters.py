@@ -83,6 +83,9 @@ class Parameter:
         for listener in self._listeners.copy():
             listener(value)
 
+    def reset(self):
+        self.value = self._start
+
     def on_change(
         self,
         function: Callable[[Any], None],
@@ -94,15 +97,9 @@ class Parameter:
             if self._value is not None:
                 function(self._value)
 
-    def register_remote_listener(self, remote_uuid):
-        pass
-
     def remove_listener(self, function):
         if function in self._listeners:
             self._listeners.remove(function)
-
-    def exposed_reset(self):
-        self.value = self._start
 
 
 class Parameters:
