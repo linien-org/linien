@@ -29,6 +29,7 @@ from linien_common.common import (
     combine_error_signal,
     determine_shift_by_correlation,
     get_lock_point,
+    get_signal_strength_from_i_q,
     update_signal_history,
 )
 from linien_gui.config import DEFAULT_PLOT_RATE_LIMIT, N_COLORS, Color
@@ -53,17 +54,8 @@ V = 8192
 INVALID_POWER = -1000
 
 
-def peak_voltage_to_dBm(voltage: float) -> float:
+def peak_voltage_to_dBm(voltage):
     return 10 + 20 * np.log10(voltage)
-
-
-def get_signal_strength_from_i_q(i: int, q: int) -> float:
-    i = i.astype(np.int64)
-    q = q.astype(np.int64)
-    i_squared = i**2
-    q_squared = q**2
-    signal_strength = np.sqrt(i_squared + q_squared)
-    return signal_strength
 
 
 class TimeXAxis(pg.AxisItem):

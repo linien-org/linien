@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-from typing import Tuple
 
 from . import csrmap
 from .iir_coeffs import get_params
@@ -28,7 +27,7 @@ class PitayaCSR:
     constants = csrmap.csr_constants
     offset = 0x40300000
 
-    def set(self, name: str, value: int) -> None:
+    def set(self, name, value):
         map, addr, width, wr = self.map[name]
         assert wr, name
 
@@ -45,7 +44,7 @@ class PitayaCSR:
             v = (val >> (8 * (b - i - 1))) & 0xFF
             self.set_one(self.offset + (map << 11) + ((addr + i) << 2), v)
 
-    def get(self, name: str) -> int:
+    def get(self, name):
         if name in self.constants:
             return self.constants[name]
 
@@ -58,7 +57,7 @@ class PitayaCSR:
             )
         return v
 
-    def set_iir(self, prefix, b, a, z=0) -> None:
+    def set_iir(self, prefix, b, a, z=0):
         shift = self.get(prefix + "_shift") or 16
         width = self.get(prefix + "_width") or 18
         interval = self.get(prefix + "_interval") or 1
@@ -73,10 +72,10 @@ class PitayaCSR:
                 self.set(n, 0)
                 self.set(prefix + "_a%i" % i, 0)
 
-    def signal(self, name: str) -> int:
+    def signal(self, name):
         return csrmap.signals.index(name)
 
-    def states(self, *names: Tuple[str]) -> int:
+    def states(self, *names):
         return sum(1 << csrmap.states.index(name) for name in names)
 
 
@@ -87,5 +86,5 @@ class PythonCSR(PitayaCSR):
     def set_one(self, addr, value):
         self.rp.write(addr, value)
 
-    def get_one(self, addr: int) -> int:
+    def get_one(self, addr):
         return int(self.rp.read(addr))
