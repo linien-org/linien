@@ -119,7 +119,7 @@ class PSDAcquisition:
             raise
 
     def add_listeners(self):
-        self.parameters.acquisition_raw_data.on_change(
+        self.parameters.acquisition_raw_data.register_listener(
             self.react_to_new_signal, call_listener_with_first_value=False
         )
 
@@ -127,7 +127,9 @@ class PSDAcquisition:
         self.running = False
         self.parameters.psd_acquisition_running.value = False
 
-        self.parameters.acquisition_raw_data.remove_listener(self.react_to_new_signal)
+        self.parameters.acquisition_raw_data.unregister_listener(
+            self.react_to_new_signal
+        )
 
         if not self.is_child:
             self.control.exposed_pause_acquisition()
@@ -230,7 +232,7 @@ class PIDOptimization:
 
     def run(self):
         try:
-            self.parameters.psd_data_complete.on_change(
+            self.parameters.psd_data_complete.register_listener(
                 self.psd_data_received, call_listener_with_first_value=False
             )
             self.parameters.psd_optimization_running.value = True
@@ -251,7 +253,7 @@ class PIDOptimization:
 
     def cleanup(self):
         self.parameters.psd_optimization_running.value = False
-        self.parameters.psd_data_complete.remove_listener(self.psd_data_received)
+        self.parameters.psd_data_complete.unregister_listener(self.psd_data_received)
 
     def psd_data_received(self, psd_data_pickled):
         try:
