@@ -264,8 +264,7 @@ class RedPitayaControlService(BaseService):
     def exposed_shutdown(self):
         self.stop_event.set()
         self.ping_thread.join()
-        self.registers.stop_event.set()
-        self.registers.data_receiver_thread.join()
+        self.data_pusher_thread.join()
         self.registers.acquisition.exposed_stop_acquisition()
         # FIXME: hacky way to trigger atexit handlers for saving parameters
         _thread.interrupt_main()
