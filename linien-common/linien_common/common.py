@@ -19,6 +19,7 @@
 """This file contains stuff that is required by the server as well as the client."""
 
 import hashlib
+import pickle
 from time import time
 from typing import Tuple
 
@@ -286,6 +287,23 @@ def check_plot_data(is_locked, plot_data):
         if "error_signal_1" not in plot_data:
             return False
     return True
+
+
+def pack(value):
+    try:
+        return pickle.dumps(value)
+    except Exception:
+        # this happens when un-pickleable objects (e.g. functions) are assigned
+        # to a parameter. In this case, we don't pickle it but transfer a netref
+        # instead
+        return value
+
+
+def unpack(value):
+    try:
+        return pickle.loads(value)
+    except Exception:
+        return value
 
 
 def get_signal_strength_from_i_q(i, q):

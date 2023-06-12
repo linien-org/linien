@@ -28,7 +28,13 @@ from time import sleep
 import click
 import numpy as np
 import rpyc
-from linien_common.common import N_POINTS, check_plot_data, update_signal_history
+from linien_common.common import (
+    N_POINTS,
+    check_plot_data,
+    pack,
+    unpack,
+    update_signal_history,
+)
 from linien_common.config import DEFAULT_SERVER_PORT
 from linien_server import __version__
 from linien_server.autolock.autolock import Autolock
@@ -66,13 +72,13 @@ class BaseService(rpyc.Service):
         return __version__
 
     def exposed_get_param(self, param_name):
-        return pickle.dumps(getattr(self.parameters, param_name).value)
+        return pack(getattr(self.parameters, param_name).value)
 
     def exposed_set_param(self, param_name, value):
-        getattr(self.parameters, param_name).value = pickle.loads(value)
+        getattr(self.parameters, param_name).value = unpack(value)
 
     def exposed_init_parameter_sync(self, uuid):
-        return pickle.dumps(list(self.parameters.init_parameter_sync(uuid)))
+        return pack(list(self.parameters.init_parameter_sync(uuid)))
 
     def exposed_get_restorable_parameters(self):
         return self.parameters.get_all_restorable_parameters()

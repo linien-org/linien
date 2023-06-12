@@ -18,7 +18,6 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 import json
-import pickle
 from pathlib import Path
 from time import time
 from typing import Any, Callable, Iterator, Tuple
@@ -31,6 +30,7 @@ from linien_common.common import (
     PSD_ALGORITHM_LPSD,
     MHz,
     Vpp,
+    pack,
 )
 
 USER_DATA_PATH = Path(AppDirs("linien").user_data_dir)
@@ -661,7 +661,7 @@ class Parameters:
                     del queue[idx]
                 else:
                     already_has_value.append(param_name)
-        return pickle.dumps(queue)
+        return pack(queue)
 
 
 def restore_parameters(parameters: Parameters) -> Parameters:
