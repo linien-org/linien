@@ -281,8 +281,8 @@ class Parameters:
         self.ping = Parameter(start=0)
         """
         This is just a counter that is automatically increased every second. Its purpose
-        is to allow for periodic tasks on the server: just register an `on_change`
-        listener for this parameter.
+        is to allow for periodic tasks on the server: just register a callback with
+         `add_listener` for this parameter.
         """
 
         # ------------------- SWEEP PARAMETERS -----------------------------------------
@@ -628,14 +628,14 @@ class Parameters:
         self._remote_listener_queue.setdefault(uuid, [])
         self._remote_listener_callbacks.setdefault(uuid, [])
 
-        def on_change(value: Any, uuid: float = uuid, param_name: str = param_name):
+        def callback(value: Any, uuid: float = uuid, param_name: str = param_name):
             if uuid in self._remote_listener_queue:
                 self._remote_listener_queue[uuid].append((param_name, value))
 
         param = getattr(self, param_name)
-        param.on_change(on_change)
+        param.add_listener(callback)
 
-        self._remote_listener_callbacks[uuid].append((param, on_change))
+        self._remote_listener_callbacks[uuid].append((param, callback))
 
     def unregister_remote_listeners(self, uuid: float):
         for param, callback in self._remote_listener_callbacks[uuid]:
