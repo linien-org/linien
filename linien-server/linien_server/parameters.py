@@ -45,12 +45,12 @@ class Parameter:
         min_=None,
         max_=None,
         start=None,
-        wrap: bool = False,
-        sync: bool = True,
-        collapsed_sync: bool = True,
-        restorable: bool = False,
-        loggable: bool = False,
-        log: bool = False,
+        wrap=False,
+        sync=True,
+        collapsed_sync=True,
+        restorable=False,
+        loggable=False,
+        log=False,
     ):
         self.min = min_
         self.max = max_
@@ -100,6 +100,9 @@ class Parameter:
     def remove_listener(self, function):
         if function in self._listeners:
             self._listeners.remove(function)
+
+    def exposed_reset(self):
+        self.value = self.start
 
 
 class Parameters:

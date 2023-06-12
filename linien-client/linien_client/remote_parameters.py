@@ -23,62 +23,6 @@ import rpyc
 from rpyc import async_
 
 
-class RemoteParameter:
-    """A helper class for `RemoteParameters`, representing a single remote parameter."""
-
-    def __init__(
-        self,
-        parent: "RemoteParameters",
-        remote_param,
-        name: str,
-        use_cache: bool,
-        restorable: bool,
-        loggable: bool,
-    ):
-        self._remote_param = remote_param
-        self.name = name
-        self.parent = parent
-        self.use_cache = use_cache
-        self.restorable = restorable
-        self.loggable = loggable
-
-    @property
-    def value(self):
-        """Return the locally cached value (if it exists). Otherwise ask the server."""
-        if hasattr(self, "_cached_value"):
-            return self._cached_value
-        return pickle.loads(self.parent.remote.exposed_get_param(self.name))
-
-    @value.setter
-    def value(self, value):
-        """Notify the server of the new value"""
-        return self.parent.remote.exposed_set_param(self.name, pickle.dumps(value))
-
-    @property
-    def log(self) -> bool:
-        return self._remote_param.log
-
-    def on_change(
-        self, callback_on_change: Callable, call_listener_with_first_value: bool = True
-    ):
-        """
-        Tell the server that `callback_on_change` should be called whenever the
-        parameter changes.
-        """
-        self.parent.register_listener(self, callback_on_change)
-
-        if call_listener_with_first_value:
-            # call the callback with the initial value
-            callback_on_change(self.value)
-
-    def reset(self):
-        """Reset the value to its initial value"""
-        self._remote_param.reset()
-
-    def _update_cache(self, value):
-        self._cached_value = value
-
-
 class RemoteParameters:
     """
     A class that provides access to a remote `parameters.Parameters` instance.
@@ -127,7 +71,7 @@ class RemoteParameters:
                      required for this.
     """
 
-    def __init__(self, remote, uuid: float, use_cache: bool):
+    def __init__(self, remote, uuid: str, use_cache: bool):
         self.remote = remote
         self.uuid = uuid
 
@@ -269,3 +213,59 @@ class RemoteParameters:
             # Registration of listeners was successful on the remote side. Now we can
             # clear the async call object such that a new one may be issued if required.
             self._async_listener_registering = None
+
+
+class RemoteParameter:
+    """A helper class for `RemoteParameters`, representing a single remote parameter."""
+
+    def __init__(
+        self,
+        parent: RemoteParameters,
+        remote_param,
+        name: str,
+        use_cache: bool,
+        restorable: bool,
+        loggable: bool,
+    ):
+        self._remote_param = remote_param
+        self.name = name
+        self.parent = parent
+        self.use_cache = use_cache
+        self.restorable = restorable
+        self.loggable = loggable
+
+    @property
+    def value(self):
+        """Return the locally cached value (if it exists). Otherwise ask the server."""
+        if hasattr(self, "_cached_value"):
+            return self._cached_value
+        return pickle.loads(self.parent.remote.exposed_get_param(self.name))
+
+    @value.setter
+    def value(self, value):
+        """Notify the server of the new value"""
+        return self.parent.remote.exposed_set_param(self.name, pickle.dumps(value))
+
+    @property
+    def log(self) -> bool:
+        return self._remote_param.log
+
+    def on_change(
+        self, callback_on_change: Callable, call_listener_with_first_value: bool = True
+    ):
+        """
+        Tell the server that `callback_on_change` should be called whenever the
+        parameter changes.
+        """
+        self.parent.register_listener(self, callback_on_change)
+
+        if call_listener_with_first_value:
+            # call the callback with the initial value
+            callback_on_change(self.value)
+
+    def reset(self):
+        """Reset the value to its initial value"""
+        self._remote_param.reset()
+
+    def _update_cache(self, value):
+        self._cached_value = value

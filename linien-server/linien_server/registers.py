@@ -30,7 +30,7 @@ from linien_common.common import (
 from linien_common.config import ACQUISITION_PORT, DEFAULT_SWEEP_SPEED
 from linien_server.parameters import Parameters
 
-from . import csrmap
+from .csr import PitayaCSR
 from .iir_coeffs import make_filter
 
 
@@ -60,6 +60,8 @@ class Registers:
         else:
             # AcquisitionService has to be started manually on the Red Pitaya
             self.acquisition = rpyc.connect(host, ACQUISITION_PORT).root
+
+        self.csr = PitayaCSR()
 
         self._last_sweep_speed = None
         self._last_raw_acquisition_settings = None
@@ -144,9 +146,9 @@ class Registers:
             if self.parameters.modulation_frequency.value > 0
             else 0,
             fast_a_demod_multiplier=self.parameters.demodulation_multiplier_a.value,
-            fast_a_dx_sel=csrmap.signals.index("zero"),
+            fast_a_dx_sel=self.csr.signal("zero"),
             fast_a_y_tap=2,
-            fast_a_dy_sel=csrmap.signals.index("zero"),
+            fast_a_dy_sel=self.csr.signal("zero"),
             fast_a_invert=int(self.parameters.invert_a.value),
             # channel B
             fast_b_demod_delay=phase_to_delay(
@@ -155,9 +157,9 @@ class Registers:
             if self.parameters.modulation_frequency.value > 0
             else 0,
             fast_b_demod_multiplier=self.parameters.demodulation_multiplier_b.value,
-            fast_b_dx_sel=csrmap.signals.index("zero"),
+            fast_b_dx_sel=self.csr.signal("zero"),
             fast_b_y_tap=1,
-            fast_b_dy_sel=csrmap.signals.index("zero"),
+            fast_b_dy_sel=self.csr.signal("zero"),
             fast_b_invert=int(self.parameters.invert_b.value),
             # trigger on sweep
             scopegen_external_trigger=1,
@@ -165,8 +167,8 @@ class Registers:
             gpio_n_oes=0b11111111,
             gpio_p_outs=self.parameters.gpio_p_out.value,
             gpio_n_outs=self.parameters.gpio_n_out.value,
-            gpio_n_do0_en=csrmap.signals.index("zero"),
-            gpio_n_do1_en=csrmap.signals.index("zero"),
+            gpio_n_do0_en=self.csr.signal("zero"),
+            gpio_n_do1_en=self.csr.signal("zero"),
             logic_slow_decimation=16,
         )
 
@@ -180,14 +182,14 @@ class Registers:
             # display combined error signal and control signal
             new.update(
                 {
-                    "scopegen_adc_a_sel": csrmap.signals.index(
+                    "scopegen_adc_a_sel": self.csr.signal(
                         "logic_combined_error_signal"
                         if not self.parameters.acquisition_raw_filter_enabled.value
                         else "logic_combined_error_signal_filtered"
                     ),
-                    "scopegen_adc_a_q_sel": csrmap.signals.index("fast_b_x"),
-                    "scopegen_adc_b_sel": csrmap.signals.index("logic_control_signal"),
-                    "scopegen_adc_b_q_sel": csrmap.signals.index("zero"),
+                    "scopegen_adc_a_q_sel": self.csr.signal("fast_b_x"),
+                    "scopegen_adc_b_sel": self.csr.signal("logic_control_signal"),
+                    "scopegen_adc_b_q_sel": self.csr.signal("zero"),
                 }
             )
         else:
@@ -195,14 +197,14 @@ class Registers:
             # demodulated error signal 1 + monitor signal
             new.update(
                 {
-                    "scopegen_adc_a_sel": csrmap.signals.index("fast_a_out_i"),
-                    "scopegen_adc_a_q_sel": csrmap.signals.index("fast_a_out_q"),
-                    "scopegen_adc_b_sel": csrmap.signals.index(
+                    "scopegen_adc_a_sel": self.csr.signal("fast_a_out_i"),
+                    "scopegen_adc_a_q_sel": self.csr.signal("fast_a_out_q"),
+                    "scopegen_adc_b_sel": self.csr.signal(
                         "fast_b_out_i"
                         if self.parameters.dual_channel.value
                         else "fast_b_x"
                     ),
-                    "scopegen_adc_b_q_sel": csrmap.signals.index(
+                    "scopegen_adc_b_q_sel": self.csr.signal(
                         "fast_b_out_q" if self.parameters.dual_channel.value else "zero"
                     ),
                 }
