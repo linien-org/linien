@@ -132,8 +132,8 @@ class RemoteParameters:
         self._listeners: Dict[str, List[Callable]] = {}
 
         # mimic functionality of `parameters.Parameters`:
-        param_dict = unpack(self.remote.exposed_init_parameter_sync(self.uuid))
-        for name, (value, can_be_cached, restorable, loggable) in param_dict.items():
+        all_parameters = unpack(self.remote.exposed_init_parameter_sync(self.uuid))
+        for name, param, value, can_be_cached, restorable, loggable in all_parameters:
             param = RemoteParameter(
                 parent=self,
                 name=name,
