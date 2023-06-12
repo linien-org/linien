@@ -212,9 +212,9 @@ class RemoteParameters:
             Issues an asynchronous call (that does not block the GUI) to the server in
             order to retrieve a batch of changed parameters.
             """
-            self._async_listener_queue = async_(self.remote.get_listener_queue)(
-                self.uuid
-            )
+            self._async_listener_queue = async_(
+                self.remote.exposed__get_listener_queue
+            )(self.uuid)
 
         def _register_listeners_async():
             """
