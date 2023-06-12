@@ -56,7 +56,7 @@ class Parameter:
         self.max = max_
         self.wrap = wrap
         self._value = start
-        self.start = start
+        self._start = start
         self._listeners = set()
         self.exposed_can_be_cached = sync
         self._collapsed_sync = collapsed_sync
@@ -94,12 +94,15 @@ class Parameter:
             if self._value is not None:
                 function(self._value)
 
+    def register_remote_listener(self, remote_uuid):
+        pass
+
     def remove_listener(self, function):
         if function in self._listeners:
             self._listeners.remove(function)
 
     def exposed_reset(self):
-        self.value = self.start
+        self.value = self._start
 
 
 class Parameters:
