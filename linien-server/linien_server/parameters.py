@@ -658,7 +658,7 @@ def restore_parameters(parameters: Parameters) -> Parameters:
     """When the server starts, this method restores previously saved parameters."""
     filename = str(USER_DATA_PATH / PARAMETER_STORE_FILENAME)
     try:
-        with open(filename, "rb") as f:
+        with open(filename, "r") as f:
             data = json.load(f)
     except FileNotFoundError:
         return parameters
@@ -684,7 +684,7 @@ def save_parameters(parameters: Parameters) -> None:
             parameters_dict[name] = {"value": param.value, "log": param.log}
 
     filename = str(USER_DATA_PATH / PARAMETER_STORE_FILENAME)
-    with open(filename, "wb") as f:
+    with open(filename, "w") as f:
         json.dump(
             {
                 "version": linien_server.__version__,
