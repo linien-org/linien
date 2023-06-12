@@ -128,7 +128,7 @@ class Autolock:
     def add_data_listener(self):
         if not self._data_listener_added:
             self._data_listener_added = True
-            self.parameters.to_plot.on_change(
+            self.parameters.to_plot.add_listener(
                 self.react_to_new_spectrum, call_listener_with_first_value=False
             )
 
