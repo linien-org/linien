@@ -74,13 +74,16 @@ class BaseService(rpyc.Service):
     def exposed_set_param(self, param_name, value):
         getattr(self.parameters, param_name).value = unpack(value)
 
-    def exposed_get_all_parameters(self):
-        all_params = {name: param for name, param in self.parameters}
-        print(all_params)
-        return pack(all_params)
+    def exposed_reset_param(self, param_name):
+        getattr(self.parameters, param_name).reset()
 
-    def exposed_init_parameter_sync(self, uuid):
-        return pack(list(self.parameters.init_parameter_sync(uuid)))
+    def exposed_init_parameter_sync(self, uuid: str) -> bytes:
+        param_dict = {}
+        for name, param in self.parameters:
+            param_dict[name] = (param.value, param.can_be_cached, param.restorable)
+            if param.can_be_cached:
+                self.parameters.register_remote_listener(uuid, name)
+        return pack(param_dict)
 
     def exposed_register_remote_listener(self, uuid, param_name):
         return self.parameters.register_remote_listener(uuid, param_name)

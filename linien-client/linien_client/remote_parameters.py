@@ -29,13 +29,11 @@ class RemoteParameter:
     def __init__(
         self,
         parent: "RemoteParameters",
-        remote_param,
         name: str,
         use_cache: bool,
         restorable: bool,
         loggable: bool,
     ):
-        self._remote_param = remote_param
         self.name = name
         self.parent = parent
         self.use_cache = use_cache
@@ -54,10 +52,6 @@ class RemoteParameter:
         """Notify the server of the new value"""
         return self.parent.remote.exposed_set_param(self.name, pack(value))
 
-    @property
-    def log(self) -> bool:
-        return self._remote_param.log
-
     def on_change(
         self, callback_on_change: Callable, call_listener_with_first_value: bool = True
     ):
@@ -73,7 +67,7 @@ class RemoteParameter:
 
     def reset(self):
         """Reset the value to its initial value"""
-        self._remote_param.reset()
+        self.parent.remote.exposed_reset_param(self.name)
 
     def _update_cache(self, value):
         self._cached_value = value
@@ -138,12 +132,10 @@ class RemoteParameters:
         self._listeners: Dict[str, List[Callable]] = {}
 
         # mimic functionality of `parameters.Parameters`:
-        all_parameters = unpack(self.remote.exposed_init_parameter_sync(self.uuid))
-        print(all_parameters)
-        for name, param, value, can_be_cached, restorable, loggable in all_parameters:
+        param_dict = unpack(self.remote.exposed_init_parameter_sync(self.uuid))
+        for name, (value, can_be_cached, restorable, loggable) in param_dict.items():
             param = RemoteParameter(
                 parent=self,
-                remote_param=param,
                 name=name,
                 use_cache=use_cache and can_be_cached,
                 restorable=restorable,

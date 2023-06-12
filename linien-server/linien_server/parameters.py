@@ -101,7 +101,7 @@ class Parameter:
         if function in self._listeners:
             self._listeners.remove(function)
 
-    def exposed_reset(self):
+    def reset(self):
         self.value = self._start
 
 
@@ -602,26 +602,6 @@ class Parameters:
         for name, param in self.__dict__.items():
             if isinstance(param, Parameter):
                 yield name, param
-
-    def init_parameter_sync(
-        self, uuid: float
-    ) -> Iterator[Tuple[str, Parameter, Any, bool, bool, bool]]:
-        """
-        To be called by a remote client: Yields all parameters as well as their values
-        and if the parameters are suited to be cached registers a listener that pushes
-        changes of these parameters to the client.
-        """
-        for name, param in self:
-            yield (
-                name,
-                param,
-                param.value,
-                param.can_be_cached,
-                param.restorable,
-                param.loggable,
-            )
-            if param.can_be_cached:
-                self.register_remote_listener(uuid, name)
 
     def register_remote_listener(self, uuid: float, param_name: str) -> None:
         self._remote_listener_queue.setdefault(uuid, [])
