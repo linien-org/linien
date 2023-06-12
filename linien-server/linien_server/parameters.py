@@ -86,7 +86,7 @@ class Parameter:
     def reset(self):
         self.value = self._start
 
-    def on_change(
+    def add_listener(
         self,
         function: Callable[[Any], None],
         call_listener_with_first_value: bool = True,
