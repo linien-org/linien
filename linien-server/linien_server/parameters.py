@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-import pickle
+import json
 from pathlib import Path
 from time import time
 from typing import Any, Iterator, Tuple
@@ -34,7 +34,7 @@ from linien_common.common import (
 )
 
 USER_DATA_PATH = Path(AppDirs("linien").user_data_dir)
-PARAMETER_STORE_FILENAME = "linien_parameters.pickle"
+PARAMETER_STORE_FILENAME = "linien_parameters.json"
 
 
 class Parameter:
@@ -50,6 +50,7 @@ class Parameter:
         collapsed_sync=True,
         restorable=False,
         loggable=False,
+        log=False,
     ):
         self.min = min_
         self.max = max_
@@ -61,6 +62,7 @@ class Parameter:
         self._collapsed_sync = collapsed_sync
         self.restorable = restorable
         self.loggable = loggable
+        self.log = log
 
     @property
     def value(self):
@@ -657,18 +659,17 @@ def restore_parameters(parameters: Parameters) -> Parameters:
     filename = str(USER_DATA_PATH / PARAMETER_STORE_FILENAME)
     try:
         with open(filename, "rb") as f:
-            data = pickle.load(f)
-            print("Restored parameters from ", filename)
-    except (FileNotFoundError, pickle.UnpicklingError, EOFError, TypeError):
-        return
+            data = json.loads(f)
+    except FileNotFoundError:
+        return parameters
 
-    for param_name, value in data["parameters"].items():
+    for name, attributes in data["parameters"].items():
         try:
-            getattr(parameters, param_name).value = value
-        except AttributeError:
-            # ignore parameters that don't exist (anymore)
+            getattr(parameters, name).value = attributes["value"]
+            getattr(parameters, name).log = attributes["log"]
+        except AttributeError:  # ignore parameters that don't exist (anymore)
             continue
-
+        print("Restored parameters from ", filename)
     return parameters
 
 
@@ -680,15 +681,15 @@ def save_parameters(parameters: Parameters) -> None:
     parameters_dict = {}
     for name, param in parameters:
         if param.restorable:
-            parameters_dict[name] = param.value
+            parameters_dict[name] = {"value": param.value, "log": param.log}
 
     filename = str(USER_DATA_PATH / PARAMETER_STORE_FILENAME)
     with open(filename, "wb") as f:
-        pickle.dump(
+        json.dump(
             {
-                "parameters": parameters_dict,
-                "time": time(),
                 "version": linien_server.__version__,
+                "time": time(),
+                "parameters": parameters_dict,
             },
             f,
         )
