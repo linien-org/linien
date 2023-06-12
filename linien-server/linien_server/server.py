@@ -83,11 +83,11 @@ class BaseService(rpyc.Service):
     def exposed_register_remote_listener(self, uuid, param_name):
         return self.parameters.register_remote_listener(uuid, param_name)
 
-    def exposed_register_remote_listeners(self, uuid, param_names):
+    def exposed_register_remote_listeners(self, uuid, param_names) -> None:
         for param_name in param_names:
             self.exposed_register_remote_listener(uuid, param_name)
 
-    def exposed_get_listener_queue(self, uuid: str):
+    def exposed_get_listener_queue(self, uuid: str) -> bytes:
         return self.parameters.get_listener_queue(uuid)
 
 

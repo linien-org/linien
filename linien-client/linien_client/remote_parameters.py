@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
+import pickle
 from typing import Callable, Dict, Iterator, List, Tuple
 
 from linien_common.common import pack, unpack
@@ -232,7 +233,7 @@ class RemoteParameters:
 
         if self._async_listener_queue is not None and self._async_listener_queue.ready:
             # we have a result
-            queue = unpack(self._async_listener_queue.value)
+            queue = pickle.loads(self._async_listener_queue.value)
 
             # now that we have our result, we can start the next call
             _get_listener_queue_async()
