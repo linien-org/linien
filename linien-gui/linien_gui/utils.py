@@ -57,7 +57,7 @@ def param2ui(parameter, element, process_value=lambda x: x):
 
         element.blockSignals(False)
 
-    parameter.register_listener(on_change)
+    parameter.on_change(on_change)
 
 
 def set_window_icon(window):
