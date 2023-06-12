@@ -20,7 +20,7 @@
 import json
 from pathlib import Path
 from time import time
-from typing import Any, Iterator, Tuple
+from typing import Any, Callable, Iterator, Tuple
 
 import linien_server
 from appdirs import AppDirs
@@ -83,7 +83,11 @@ class Parameter:
         for listener in self._listeners.copy():
             listener(value)
 
-    def on_change(self, function, call_listener_with_first_value=True):
+    def on_change(
+        self,
+        function: Callable[[Any], None],
+        call_listener_with_first_value: bool = True,
+    ):
         self._listeners.add(function)
 
         if call_listener_with_first_value:
@@ -229,7 +233,7 @@ class Parameters:
         Minimum value is 0 and maximum 1.8 * ANALOG_OUT_V
         """
 
-        self.lock = Parameter(start=False)
+        self.lock = Parameter(start=False, loggable=True)
         """If `True`, this parameter turns off the sweep and starts the PID"""
 
         self.polarity_fast_out1 = Parameter(start=False, restorable=True)
@@ -286,34 +290,36 @@ class Parameters:
 
         # ------------------- SWEEP PARAMETERS -----------------------------------------
 
-        self.sweep_amplitude = Parameter(min_=0.001, max_=1, start=1)
+        self.sweep_amplitude = Parameter(min_=0.001, max_=1, start=1, loggable=True)
         """
         Amplitude of the sweep in units of 0.5 * Vpp of the output (2 V for fast outputs
         (range +/- 1 V) and 0.9 V for slow outputs (range 0 V to 1.8 V). That means an
         amplitude of 1.0 corresponds to the full sweep range in both cases.
         """
 
-        self.sweep_center = Parameter(min_=-1, max_=1, start=0)
+        self.sweep_center = Parameter(min_=-1, max_=1, start=0, loggable=True)
         """
         The center position of the sweep. If a fast output is used for the sweep this is
         the sweep center position in volts. If the slow output is used the interval
         [-1, +1] of this parameter is mapped to the interval [0V, +1.8V].
         """
 
-        self.sweep_speed = Parameter(min_=0, max_=32, start=8, restorable=True)
+        self.sweep_speed = Parameter(
+            min_=0, max_=32, start=8, restorable=True, loggable=True
+        )
         """
         The sweep speed in internal units. The actual speed is given by
         f_real = 3.8 kHz / (2 ** sweep_speed)
         Allowed values are [0, ..., 16]
         """
 
-        self.sweep_pause = Parameter(start=False)
+        self.sweep_pause = Parameter(start=False, loggable=True)
         """If set to `True`, this parameter pauses the sweep at the `sweep_center`."""
 
         # ------------------- MODULATION PARAMETERS ------------------------------------
 
         self.modulation_amplitude = Parameter(
-            min_=0, max_=(1 << 14) - 1, start=1 * Vpp, restorable=True
+            min_=0, max_=(1 << 14) - 1, start=1 * Vpp, restorable=True, loggable=True
         )
         """
         The amplitude of the modulation in internal units. Use Vpp for conversion to
@@ -345,7 +351,7 @@ class Parameters:
         is enabled. This is controlled by `dual_channel`.
         """
 
-        self.channel_mixing = Parameter(start=0, restorable=True)
+        self.channel_mixing = Parameter(start=0, restorable=True, loggable=True)
         """
         If in dual channel mode, what is the mixing ratio between them? A value of 0
         corresponds to equal ratio
@@ -356,17 +362,17 @@ class Parameters:
 
         # The following parameters exist twice, i.e. once per channel
         self.demodulation_phase_a = Parameter(
-            min_=0, max_=360, start=0x0, wrap=True, restorable=True
+            min_=0, max_=360, start=0x0, wrap=True, restorable=True, loggable=True
         )
         """The demodulation phase for channel A in degree (0-360)"""
 
         self.demodulation_phase_b = Parameter(
-            min_=0, max_=360, start=0x0, wrap=True, restorable=True
+            min_=0, max_=360, start=0x0, wrap=True, restorable=True, loggable=True
         )
         """The demodulation phase for channel B in degree (0-360)"""
 
         self.demodulation_multiplier_a = Parameter(
-            min_=0, max_=15, start=1, restorable=True
+            min_=0, max_=15, start=1, restorable=True, loggable=True
         )
         """
         This parameter allows for multi-f (e.g. 3f or 5f) demodulation. Default value is
@@ -374,20 +380,24 @@ class Parameters:
         """
 
         self.demodulation_multiplier_b = Parameter(
-            min_=0, max_=15, start=1, restorable=True
+            min_=0, max_=15, start=1, restorable=True, loggable=True
         )
         """
         This parameter allows for multi-f (e.g. 3f or 5f) demodulation. Default value is
         1, indicating that 1f demodulation is used.
         """
 
-        self.offset_a = Parameter(min_=-8191, max_=8191, start=0, restorable=True)
+        self.offset_a = Parameter(
+            min_=-8191, max_=8191, start=0, restorable=True, loggable=True
+        )
         """
         The vertical offset for channel A. A value of -8191 shifts the data down by 1V,
         a value of +8191 moves it up.
             """
 
-        self.offset_b = Parameter(min_=-8191, max_=8191, start=0, restorable=True)
+        self.offset_b = Parameter(
+            min_=-8191, max_=8191, start=0, restorable=True, loggable=True
+        )
         """
         The vertical offset for channel B. A value of -8191 shifts the data down by 1V,
         a value of +8191 moves it up.
