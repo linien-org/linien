@@ -18,7 +18,6 @@
 
 from typing import Callable, Dict, Iterator, List, Tuple
 
-import rpyc
 from linien_common.common import pack, unpack
 from rpyc import async_
 
@@ -69,7 +68,7 @@ class RemoteParameter:
         """Reset the value to its initial value"""
         self.parent.remote.exposed_reset_param(self.name)
 
-    def _update_cache(self, value):
+    def update_cache(self, value):
         self._cached_value = value
 
 
@@ -134,7 +133,6 @@ class RemoteParameters:
         # mimic functionality of `parameters.Parameters`:
         all_parameters = unpack(self.remote.exposed_init_parameter_sync(self.uuid))
         for name, value, can_be_cached, restorable, loggable in all_parameters:
-            print(f"name: {name}, type={type(value)}")
             param = RemoteParameter(
                 parent=self,
                 name=name,
@@ -143,10 +141,8 @@ class RemoteParameters:
                 loggable=loggable,
             )
             setattr(self, name, param)
-            if use_cache and can_be_cached:
-                # obtain takes care that we really don't deal with netrefs (np.float64
-                # is not automatically serialized)
-                param._update_cache(rpyc.classic.obtain(value))
+            if param.use_cache:
+                param.update_cache(value)
         self._attributes_locked = True
 
         self.call_listeners()
@@ -246,7 +242,7 @@ class RemoteParameters:
             for param_name, value in queue:
                 param = getattr(self, param_name)
                 if param.use_cache:
-                    param._update_cache(value)
+                    param.update_cache(value)
 
             # iterate over all canged parameters and call respective callback functions
             for param_name, value in queue:
