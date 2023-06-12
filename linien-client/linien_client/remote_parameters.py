@@ -58,9 +58,9 @@ class RemoteParameter:
     def log(self) -> bool:
         return self._remote_param.log
 
-    def register_listener(
+    def on_change(
         self, callback: Callable, call_listener_with_first_value: bool = True
-    ) -> None:
+    ):
         """
         Tell the server that `callback` should be called whenever the
         parameter changes.
@@ -83,9 +83,8 @@ class RemoteParameters:
     """
     A class that provides access to a remote `parameters.Parameters` instance.
 
-    It clones the functionality of the remote `Parameters` instance, e.g.
+    It clones the functionality of the remote `Parameters` instance. E.g.:
 
-    ```
         # on the remote side
         p = Parameters(...)
         p.my_param.value = 123
@@ -102,17 +101,16 @@ class RemoteParameters:
 
         # and we can set up a callback function that is called whenever a parameter
         # changes
-        def callback(value):
+        def on_change(value):
             # this function is called whenever `my_param` changes on the server.
             # note that this only works if `call_listeners` is called from
             # time to time as this function is responsible for checking for
             # changed parameters.
             print('parameter arrived!', value)
-        r.my_param.register_listener(callback)
+        r.my_param.on_change(on_change)
         while True:
             r.call_listeners()
             sleep(.1)
-    ```
 
     The arguments for __init__ are:
 

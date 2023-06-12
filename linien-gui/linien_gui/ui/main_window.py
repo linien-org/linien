@@ -83,33 +83,31 @@ class MainWindow(QtWidgets.QMainWindow):
         self.control = self.app.control
         self.parameters = self.app.parameters
 
-        self.parameters.lock.register_listener(self.change_sweep_control_visibility)
-        self.parameters.autolock_running.register_listener(
-            self.change_sweep_control_visibility
-        )
-        self.parameters.optimization_running.register_listener(
+        self.parameters.lock.on_change(self.change_sweep_control_visibility)
+        self.parameters.autolock_running.on_change(self.change_sweep_control_visibility)
+        self.parameters.optimization_running.on_change(
             self.change_sweep_control_visibility
         )
 
-        self.parameters.to_plot.register_listener(self.update_std)
+        self.parameters.to_plot.on_change(self.update_std)
 
-        self.parameters.pid_on_slow_enabled.register_listener(
+        self.parameters.pid_on_slow_enabled.on_change(
             lambda v: self.legend_slow_signal_history.setVisible(v)
         )
-        self.parameters.dual_channel.register_listener(
+        self.parameters.dual_channel.on_change(
             lambda v: self.legend_monitor_signal_history.setVisible(not v)
         )
 
         self.settings_toolbox.setCurrentIndex(0)
 
-        self.parameters.lock.register_listener(lambda *args: self.reset_std_history())
+        self.parameters.lock.on_change(lambda *args: self.reset_std_history())
 
         for color_idx in range(N_COLORS):
-            getattr(self.app.settings, f"plot_color_{color_idx}").register_listener(
+            getattr(self.app.settings, f"plot_color_{color_idx}").on_change(
                 self.update_legend_color
             )
 
-        self.parameters.dual_channel.register_listener(self.update_legend_text)
+        self.parameters.dual_channel.on_change(self.update_legend_text)
 
     def change_sweep_control_visibility(self, *args):
         al_running = self.parameters.autolock_running.value

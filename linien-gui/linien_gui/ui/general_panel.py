@@ -105,15 +105,11 @@ class GeneralPanel(QtWidgets.QWidget):
         param2ui(self.parameters.polarity_fast_out2, self.polarityComboBoxFastOut2)
         param2ui(self.parameters.polarity_analog_out0, self.polarityComboBoxAnalogOut0)
 
-        self.parameters.control_channel.register_listener(self.show_polarity_settings)
-        self.parameters.sweep_channel.register_listener(self.show_polarity_settings)
-        self.parameters.mod_channel.register_listener(self.show_polarity_settings)
-        self.parameters.slow_control_channel.register_listener(
-            self.show_polarity_settings
-        )
-        self.parameters.pid_on_slow_enabled.register_listener(
-            self.show_polarity_settings
-        )
+        self.parameters.control_channel.on_change(self.show_polarity_settings)
+        self.parameters.sweep_channel.on_change(self.show_polarity_settings)
+        self.parameters.mod_channel.on_change(self.show_polarity_settings)
+        self.parameters.slow_control_channel.on_change(self.show_polarity_settings)
+        self.parameters.pid_on_slow_enabled.on_change(self.show_polarity_settings)
 
         for idx in range(1, 4):
             param2ui(
@@ -131,7 +127,7 @@ class GeneralPanel(QtWidgets.QWidget):
             for widget in widgets_to_disable:
                 widget.setEnabled(not fast_mode_enabled)
 
-        self.parameters.fast_mode.register_listener(on_fast_mode_changed)
+        self.parameters.fast_mode.on_change(on_fast_mode_changed)
 
     def on_analog_out_changed(self, idx):
         getattr(self.parameters, f"analog_out_{idx}").value = int(

@@ -82,15 +82,15 @@ class OptimizationPanel(QtWidgets.QWidget):
             )
             self.optimization_failed.setVisible(failed)
 
-        self.parameters.optimization_running.register_listener(opt_running_changed)
-        self.parameters.optimization_approaching.register_listener(opt_running_changed)
-        self.parameters.optimization_failed.register_listener(opt_running_changed)
+        self.parameters.optimization_running.on_change(opt_running_changed)
+        self.parameters.optimization_approaching.on_change(opt_running_changed)
+        self.parameters.optimization_failed.on_change(opt_running_changed)
 
         def opt_selection_changed(value):
             self.optimization_selecting.setVisible(value)
             self.optimization_not_selecting.setVisible(not value)
 
-        self.parameters.optimization_selection.register_listener(opt_selection_changed)
+        self.parameters.optimization_selection.on_change(opt_selection_changed)
 
         def mod_param_changed(_):
             dual_channel = self.parameters.dual_channel.value
@@ -124,12 +124,12 @@ class OptimizationPanel(QtWidgets.QWidget):
             self.parameters.modulation_frequency,
             self.parameters.demodulation_phase_a,
         ):
-            p.register_listener(mod_param_changed)
+            p.on_change(mod_param_changed)
 
         def improvement_changed(improvement):
             self.optimization_improvement.setText("%d %%" % (improvement * 100))
 
-        self.parameters.optimization_improvement.register_listener(improvement_changed)
+        self.parameters.optimization_improvement.on_change(improvement_changed)
 
         param2ui(
             self.parameters.optimization_mod_freq_enabled,
@@ -156,19 +156,19 @@ class OptimizationPanel(QtWidgets.QWidget):
         def dual_channel_changed(value):
             self.optimization_channel_selector_box.setVisible(value)
 
-        self.parameters.dual_channel.register_listener(dual_channel_changed)
+        self.parameters.dual_channel.on_change(dual_channel_changed)
 
         def fast_mode_changed(fast_mode_enabled):
             """Disable this panel if fast mode is enabled (nothing to optimize)."""
             self.setEnabled(not fast_mode_enabled)
 
-        self.parameters.fast_mode.register_listener(fast_mode_changed)
+        self.parameters.fast_mode.on_change(fast_mode_changed)
 
         def fast_mode_changed(fast_mode_enabled):
             """Disable this panel if fast mode is enabled (nothing to optimize)."""
             self.setEnabled(not fast_mode_enabled)
 
-        self.parameters.fast_mode.register_listener(fast_mode_changed)
+        self.parameters.fast_mode.on_change(fast_mode_changed)
 
     def start_optimization(self):
         self.parameters.optimization_selection.value = True
