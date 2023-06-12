@@ -52,7 +52,7 @@ class LoggedParametersMenu(QtWidgets.QMenu):
         for name, param in parameters:
             if param.loggable:
                 action = QtWidgets.QAction(name, parent=self, checkable=True)  # type: ignore[call-overload] # noqa: E501
-                action.setChecked(param.log)
+                # action.setChecked(param.log)
                 self.addAction(action)
 
     def on_action_clicked(self, action: QtWidgets.QAction):
