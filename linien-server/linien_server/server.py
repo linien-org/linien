@@ -24,12 +24,17 @@ import sys
 from random import randint, random
 from threading import Event, Thread
 from time import sleep
-from typing import List
 
 import click
 import numpy as np
 import rpyc
-from linien_common.common import N_POINTS, check_plot_data, update_signal_history
+from linien_common.common import (
+    N_POINTS,
+    check_plot_data,
+    pack,
+    unpack,
+    update_signal_history,
+)
 from linien_common.config import DEFAULT_SERVER_PORT
 from linien_server import __version__
 from linien_server.autolock.autolock import Autolock
@@ -50,42 +55,42 @@ class BaseService(rpyc.Service):
     on the client.
     """
 
-    def __init__(self) -> None:
+    def __init__(self):
         self.parameters = Parameters()
         self.parameters = restore_parameters(self.parameters)
         atexit.register(save_parameters, self.parameters)
         self._uuid_mapping = {}
 
-    def on_connect(self, client) -> None:
+    def on_connect(self, client):
         self._uuid_mapping[client] = client.root.uuid
 
-    def on_disconnect(self, client) -> None:
+    def on_disconnect(self, client):
         uuid = self._uuid_mapping[client]
         self.parameters.unregister_remote_listeners(uuid)
 
-    def exposed_get_server_version(self) -> str:
+    def exposed_get_server_version(self):
         return __version__
 
-    def exposed_get_param(self, param_name: str) -> bytes:
-        return pickle.dumps(getattr(self.parameters, param_name).value)
+    def exposed_get_param(self, param_name):
+        return pack(getattr(self.parameters, param_name).value)
 
-    def exposed_set_param(self, param_name: str, value: bytes):
-        getattr(self.parameters, param_name).value = pickle.loads(value)
+    def exposed_set_param(self, param_name, value):
+        getattr(self.parameters, param_name).value = unpack(value)
 
     def exposed_init_parameter_sync(self, uuid):
-        return pickle.dumps(list(self.parameters.init_parameter_sync(uuid)))
+        return pack(list(self.parameters.init_parameter_sync(uuid)))
 
     def exposed_get_restorable_parameters(self):
         return self.parameters.get_all_restorable_parameters()
 
-    def exposed_register_remote_listener(self, uuid: float, param_name: str):
+    def exposed_register_remote_listener(self, uuid, param_name):
         return self.parameters.register_remote_listener(uuid, param_name)
 
-    def exposed_register_remote_listeners(self, uuid: float, param_names: List[str]):
+    def exposed_register_remote_listeners(self, uuid, param_names):
         for param_name in param_names:
             self.exposed_register_remote_listener(uuid, param_name)
 
-    def exposed_get_listener_queue(self, uuid: float):
+    def exposed_get_listener_queue(self, uuid):
         return self.parameters.get_listener_queue(uuid)
 
 
@@ -186,7 +191,7 @@ class RedPitayaControlService(BaseService):
         """Sync the parameters with the FPGA registers."""
         self.registers.write_registers()
 
-    def task_running(self) -> bool:
+    def task_running(self):
         return (
             self.parameters.autolock_running.value
             or self.parameters.optimization_running.value
@@ -194,7 +199,7 @@ class RedPitayaControlService(BaseService):
             or self.parameters.psd_optimization_running.value
         )
 
-    def exposed_start_autolock(self, x0, x1, spectrum, additional_spectra=None) -> None:
+    def exposed_start_autolock(self, x0, x1, spectrum, additional_spectra=None):
         spectrum = pickle.loads(spectrum)
         # start_watching = self.parameters.watch_lock.value
         start_watching = False
@@ -214,13 +219,13 @@ class RedPitayaControlService(BaseService):
                 else None,
             )
 
-    def exposed_start_optimization(self, x0, x1, spectrum) -> None:
+    def exposed_start_optimization(self, x0, x1, spectrum):
         if not self.task_running():
             optim = OptimizeSpectroscopy(self, self.parameters)
             self.parameters.task.value = optim
             optim.run(x0, x1, spectrum)
 
-    def exposed_start_psd_acquisition(self) -> None:
+    def exposed_start_psd_acquisition(self):
         if not self.task_running():
             self.parameters.task.value = PSDAcquisition(self, self.parameters)
             self.parameters.task.value.run()
@@ -234,26 +239,29 @@ class RedPitayaControlService(BaseService):
         self._logging_thread.daemon = True
         self._logging_thread.start()
 
-    def exposed_start_pid_optimization(self) -> None:
+    def exposed_start_pid_optimization(self):
         if not self.task_running():
             self.parameters.task.value = PIDOptimization(self, self.parameters)
             self.parameters.task.value.run()
 
-    def exposed_start_sweep(self) -> None:
+    def exposed_start_sweep(self):
         self.exposed_pause_acquisition()
 
         self.parameters.combined_offset.value = 0
         self.parameters.lock.value = False
         self.exposed_write_registers()
+
         self.exposed_continue_acquisition()
 
-    def exposed_start_lock(self) -> None:
+    def exposed_start_lock(self):
         self.exposed_pause_acquisition()
+
         self.parameters.lock.value = True
         self.exposed_write_registers()
+
         self.exposed_continue_acquisition()
 
-    def exposed_shutdown(self) -> None:
+    def exposed_shutdown(self):
         self.stop_event.set()
         self.ping_thread.join()
         self.data_pusher_thread.join()
@@ -262,7 +270,7 @@ class RedPitayaControlService(BaseService):
         _thread.interrupt_main()
         raise SystemExit()
 
-    def exposed_pause_acquisition(self) -> None:
+    def exposed_pause_acquisition(self):
         """
         Pause continuous acquisition. Call this before changing a parameter that alters
         the error / control signal. This way, no inconsistent signals reach the
@@ -273,7 +281,7 @@ class RedPitayaControlService(BaseService):
         self.data_uuid = random()
         self.registers.acquisition.exposed_pause_acquisition()
 
-    def exposed_continue_acquisition(self) -> None:
+    def exposed_continue_acquisition(self):
         """
         Continue acquisition after a short delay, when we are sure that the new
         parameters values have been written to the FPGA and that data that is now
@@ -282,7 +290,7 @@ class RedPitayaControlService(BaseService):
         self.parameters.pause_acquisition.value = False
         self.registers.acquisition.exposed_continue_acquisition(self.data_uuid)
 
-    def exposed_set_csr_direct(self, k, v) -> None:
+    def exposed_set_csr_direct(self, k, v):
         """
         Directly sets a CSR register. This method is intended for debugging. Normally,
         the FPGA should be controlled via manipulation of parameters.
