@@ -148,7 +148,7 @@ class RobustAutolock:
             * sweep_speed_to_time(self.parameters.sweep_speed.value)
         )
 
-        self.parameters.ping.on_change(self.check_for_timeout)
+        self.parameters.ping.add_listener(self.check_for_timeout)
 
     def check_for_timeout(self, ping):
         min_time_to_wait = 5
