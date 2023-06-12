@@ -138,21 +138,21 @@ class RemoteParameters:
         self._listeners: Dict[str, List[Callable]] = {}
 
         # mimic functionality of `parameters.Parameters`:
-        self._attributes_locked = False
-        for name, param in unpack(self.remote.exposed_init_parameter_sync(self.uuid)):
-            remote_param = RemoteParameter(
+        all_parameters = unpack(self.remote.exposed_init_parameter_sync(self.uuid))
+        for name, param, value, can_be_cached, restorable, loggable in all_parameters:
+            param = RemoteParameter(
                 parent=self,
                 remote_param=param,
                 name=name,
-                use_cache=use_cache and param.can_be_cached,
-                restorable=param.restorable,
-                loggable=param.loggable,
+                use_cache=use_cache and can_be_cached,
+                restorable=restorable,
+                loggable=loggable,
             )
-            setattr(self, name, remote_param)
-            if use_cache and param.can_be_cached:
+            setattr(self, name, param)
+            if use_cache and can_be_cached:
                 # obtain takes care that we really don't deal with netrefs (np.float64
                 # is not automatically serialized)
-                remote_param._update_cache(rpyc.classic.obtain(param.value))
+                param._update_cache(rpyc.classic.obtain(value))
         self._attributes_locked = True
 
         self.call_listeners()
@@ -168,14 +168,18 @@ class RemoteParameters:
         used. In order to prevent accidentally forgetting the .value part, i.e.
         `parameters.my_param = 123` we raise an error in this case.
         """
-        if self._attributes_locked and not name.startswith("_"):
+        if (
+            hasattr(self, "_attributes_locked")
+            and self._attributes_locked
+            and not name.startswith("_")
+        ):
             raise AttributeError(
                 "Parameters are locked! Did you mean to set the value of this parameter"
                 f" instead, i.e. parameters.{name}.value = {value}"
             )
         super().__setattr__(name, value)
 
-    def register_listener(self, param: RemoteParameter, callback: Callable) -> None:
+    def register_listener(self, param, callback: Callable):
         """
         Tell the server to notify our client (identified by `self.uuid`) when `param`
         changes. Registers a function `callback` that will be called in this case.
@@ -208,7 +212,7 @@ class RemoteParameters:
             Issues an asynchronous call (that does not block the GUI) to the server in
             order to retrieve a batch of changed parameters.
             """
-            self._async_listener_queue = async_(self.remote.exposed_get_listener_queue)(
+            self._async_listener_queue = async_(self.remote.get_listener_queue)(
                 self.uuid
             )
 

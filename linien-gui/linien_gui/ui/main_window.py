@@ -173,7 +173,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self,
             "QFileDialog.getSaveFileName()",
             "",
-            f"JSON (*{default_ext})",
+            "JSON (*%s)" % default_ext,
             options=options,
         )
         if fn:
@@ -206,8 +206,7 @@ class MainWindow(QtWidgets.QMainWindow):
             with open(fn, "r") as f:
                 data = json.load(f)
 
-            if "linien-version" not in data:
-                raise Exception("invalid parameter file")
+            assert "linien-version" in data, "invalid parameter file"
 
             restorable = self.parameters.remote.exposed_get_restorable_parameters()
             for k, v in data["parameters"].items():
