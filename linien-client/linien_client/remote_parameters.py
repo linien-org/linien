@@ -139,6 +139,7 @@ class RemoteParameters:
 
         # mimic functionality of `parameters.Parameters`:
         all_parameters = unpack(self.remote.exposed_init_parameter_sync(self.uuid))
+        print(all_parameters)
         for name, param, value, can_be_cached, restorable, loggable in all_parameters:
             param = RemoteParameter(
                 parent=self,
