@@ -18,9 +18,7 @@
 
 import _thread
 import atexit
-import os
 import pickle
-import sys
 from random import randint, random
 from threading import Event, Thread
 from time import sleep
@@ -45,7 +43,6 @@ from linien_server.pid_optimization.pid_optimization import (
     PSDAcquisition,
 )
 from linien_server.registers import Registers
-from rpyc.utils.authenticators import AuthenticationError
 from rpyc.utils.server import ThreadedServer
 
 
@@ -345,31 +342,6 @@ class FakeRedPitayaControlService(BaseService):
         pass
 
 
-def authenticate_username_and_password(sock):
-    failed_auth_counter = {"c": 0}
-    # when a client starts the server, it supplies this hash via an environment
-    # variable
-    secret = os.environ.get("LINIEN_AUTH_HASH")
-    # client always sends auth hash, even if we run in non-auth mode --> always read
-    # 64 bytes, otherwise rpyc connection can't be established
-    received = sock.recv(64)
-    # as a protection against brute force, we don't accept requests after too many
-    # failed auth requests
-    if failed_auth_counter["c"] > 1000:
-        print("received too many failed auth requests!")
-        sys.exit(1)
-
-    if secret is None:
-        print("warning: no authentication set up")
-    else:
-        if received != secret.encode():
-            print("received invalid credentials: ", received)
-            failed_auth_counter["c"] += 1
-            raise AuthenticationError("invalid username / password")
-        print("authentication successful")
-    return sock, None
-
-
 @click.command()
 @click.version_option(__version__)
 @click.argument("port", default=DEFAULT_SERVER_PORT, type=int, required=False)
@@ -395,7 +367,6 @@ def run_server(port, fake=False, host=None):
     thread = ThreadedServer(
         control,
         port=port,
-        authenticator=authenticate_username_and_password,
         protocol_config={"allow_pickle": True},
     )
     thread.start()

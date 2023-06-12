@@ -33,29 +33,13 @@ from linien_client.exceptions import (
     ServerNotRunningException,
 )
 from linien_client.remote_parameters import RemoteParameters
-from linien_common.common import hash_username_and_password
 from linien_common.config import DEFAULT_SERVER_PORT
 
 
-class RPYCClientWithAuthentication(rpyc.Service):
-    """
-    An rpyc client that authenticates using a hash.
-
-    This class is run on the client side and exposes the client's unique id to the
-    server.
-    """
-
-    def __init__(self, uuid: str, user: str, password: str):
+class RPYCServiceWithUUID(rpyc.Service):
+    def __init__(self, uuid: str):
         super().__init__()
-
         self.exposed_uuid = uuid
-        self.auth_hash = hash_username_and_password(user, password).encode()
-
-    def _connect(self, channel, config):
-        # send auth hash before rpyc takes over
-        channel.stream.sock.send(self.auth_hash)
-
-        return super()._connect(channel, config)
 
 
 class LinienClient:
@@ -82,7 +66,7 @@ class LinienClient:
         self.uuid = "".join(random.choice(string.ascii_lowercase) for _ in range(10))
 
         # for exposing client's uuid to server
-        self.client_service = RPYCClientWithAuthentication(self.uuid, user, password)
+        self.client_service = RPYCServiceWithUUID(self.uuid)
 
     def connect(
         self,
