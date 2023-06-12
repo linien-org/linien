@@ -610,7 +610,7 @@ class Parameters:
 
     def init_parameter_sync(
         self, uuid: float
-    ) -> Iterator[Tuple[str, Parameter, Any, bool, bool, bool]]:
+    ) -> Iterator[Tuple[str, Any, bool, bool, bool]]:
         """
         To be called by a remote client: Yields all parameters as well as their values
         and if the parameters are suited to be cached registers a listener that pushes
@@ -619,7 +619,6 @@ class Parameters:
         for name, param in self:
             yield (
                 name,
-                param,
                 param.value,
                 param.exposed_can_be_cached,
                 param.restorable,
