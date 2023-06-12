@@ -83,18 +83,18 @@ class Parameter:
         for listener in self._listeners.copy():
             listener(value)
 
-    def on_change(
+    def register_listener(
         self,
-        function: Callable[[Any], None],
+        callback: Callable[[Any], None],
         call_listener_with_first_value: bool = True,
     ):
-        self._listeners.add(function)
+        self._listeners.add(callback)
 
         if call_listener_with_first_value:
             if self._value is not None:
-                function(self._value)
+                callback(self._value)
 
-    def remove_listener(self, function):
+    def unregister_listener(self, function: Callable[[Any], None]):
         if function in self._listeners:
             self._listeners.remove(function)
 
@@ -281,8 +281,8 @@ class Parameters:
         self.ping = Parameter(start=0)
         """
         This is just a counter that is automatically increased every second. Its purpose
-        is to allow for periodic tasks on the server: just register an `on_change`
-        listener for this parameter.
+        is to allow for periodic tasks on the server: just register a listener for this
+        parameter.
         """
 
         # ------------------- SWEEP PARAMETERS -----------------------------------------
@@ -634,13 +634,13 @@ class Parameters:
                 self._remote_listener_queue[uuid].append((param_name, value))
 
         param = getattr(self, param_name)
-        param.on_change(on_change)
+        param.register_listener(on_change)
 
         self._remote_listener_callbacks[uuid].append((param, on_change))
 
     def unregister_remote_listeners(self, uuid: float):
         for param, callback in self._remote_listener_callbacks[uuid]:
-            param.remove_listener(callback)
+            param.unregister_listener(callback)
 
         del self._remote_listener_queue[uuid]
         del self._remote_listener_callbacks[uuid]

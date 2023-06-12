@@ -59,7 +59,7 @@ class OptimizeSpectroscopy:
 
         params = self.parameters
         self.engine = OptimizerEngine(self.control, params)
-        params.to_plot.on_change(self.react_to_new_spectrum)
+        params.to_plot.register_listener(self.react_to_new_spectrum)
         params.optimization_running.value = True
         params.optimization_improvement.value = 0
 
@@ -165,7 +165,7 @@ class OptimizeSpectroscopy:
             self.engine.request_and_set_new_parameters(use_initial_parameters=True)
 
         self.parameters.optimization_running.value = False
-        self.parameters.to_plot.remove_listener(self.react_to_new_spectrum)
+        self.parameters.to_plot.unregister_listener(self.react_to_new_spectrum)
         self.parameters.task.value = None
 
         self.reset_scan()
