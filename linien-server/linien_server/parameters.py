@@ -56,9 +56,9 @@ class Parameter:
         self.max = max_
         self.wrap = wrap
         self._value = start
-        self._start = start
+        self.start = start
         self._listeners = set()
-        self.exposed_can_be_cached = sync
+        self.can_be_cached = sync
         self._collapsed_sync = collapsed_sync
         self.restorable = restorable
         self.loggable = loggable
@@ -102,7 +102,7 @@ class Parameter:
             self._listeners.remove(function)
 
     def exposed_reset(self):
-        self.value = self._start
+        self.value = self.start
 
 
 class Parameters:
@@ -608,31 +608,22 @@ class Parameters:
             if param.restorable:
                 yield name, param
 
-    def init_parameter_sync(
-        self, uuid: float
-    ) -> Iterator[Tuple[str, Parameter, Any, bool, bool, bool]]:
+    def init_parameter_sync(self, uuid: str) -> Iterator[Tuple[str, Parameter]]:
         """
         To be called by a remote client: Yields all parameters as well as their values
         and if the parameters are suited to be cached registers a listener that pushes
         changes of these parameters to the client.
         """
         for name, param in self:
-            yield (
-                name,
-                param,
-                param.value,
-                param.exposed_can_be_cached,
-                param.restorable,
-                param.loggable,
-            )
-            if param.exposed_can_be_cached:
+            yield (name, param)
+            if param.can_be_cached:
                 self.register_remote_listener(uuid, name)
 
-    def register_remote_listener(self, uuid: float, param_name: str) -> None:
+    def register_remote_listener(self, uuid: str, param_name: str) -> None:
         self._remote_listener_queue.setdefault(uuid, [])
         self._remote_listener_callbacks.setdefault(uuid, [])
 
-        def on_change(value: Any, uuid: float = uuid, param_name: str = param_name):
+        def on_change(value: Any, uuid: str = uuid, param_name: str = param_name):
             if uuid in self._remote_listener_queue:
                 self._remote_listener_queue[uuid].append((param_name, value))
 
@@ -641,14 +632,14 @@ class Parameters:
 
         self._remote_listener_callbacks[uuid].append((param, on_change))
 
-    def unregister_remote_listeners(self, uuid: float):
+    def unregister_remote_listeners(self, uuid: str):
         for param, callback in self._remote_listener_callbacks[uuid]:
             param.remove_listener(callback)
 
         del self._remote_listener_queue[uuid]
         del self._remote_listener_callbacks[uuid]
 
-    def get_listener_queue(self, uuid: float):
+    def get_listener_queue(self, uuid: str):
         queue = self._remote_listener_queue.get(uuid, [])
         self._remote_listener_queue[uuid] = []
 
