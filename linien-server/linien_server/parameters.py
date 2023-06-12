@@ -58,7 +58,7 @@ class Parameter:
         self._value = start
         self._start = start
         self._listeners = set()
-        self.exposed_can_be_cached = sync
+        self.can_be_cached = sync
         self._collapsed_sync = collapsed_sync
         self.restorable = restorable
         self.loggable = loggable
@@ -620,11 +620,11 @@ class Parameters:
             yield (
                 name,
                 param.value,
-                param.exposed_can_be_cached,
+                param.can_be_cached,
                 param.restorable,
                 param.loggable,
             )
-            if param.exposed_can_be_cached:
+            if param.can_be_cached:
                 self.register_remote_listener(uuid, name)
 
     def register_remote_listener(self, uuid: float, param_name: str) -> None:
