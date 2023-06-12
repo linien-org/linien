@@ -59,21 +59,21 @@ class RemoteParameter:
         return self._remote_param.log
 
     def on_change(
-        self, callback_on_change: Callable, call_listener_with_first_value: bool = True
+        self, callback: Callable, call_listener_with_first_value: bool = True
     ):
         """
-        Tell the server that `callback_on_change` should be called whenever the
+        Tell the server that `callback` should be called whenever the
         parameter changes.
         """
-        self.parent.register_listener(self, callback_on_change)
+        self.parent.register_listener(self, callback)
 
         if call_listener_with_first_value:
             # call the callback with the initial value
-            callback_on_change(self.value)
+            callback(self.value)
 
     def reset(self):
         """Reset the value to its initial value"""
-        self._remote_param.reset()
+        self._remote_param.exposed_reset()
 
     def _update_cache(self, value):
         self._cached_value = value
@@ -153,7 +153,6 @@ class RemoteParameters:
                 # obtain takes care that we really don't deal with netrefs (np.float64
                 # is not automatically serialized)
                 param._update_cache(rpyc.classic.obtain(value))
-        self._attributes_locked = True
 
         self.call_listeners()
 
@@ -168,18 +167,14 @@ class RemoteParameters:
         used. In order to prevent accidentally forgetting the .value part, i.e.
         `parameters.my_param = 123` we raise an error in this case.
         """
-        if (
-            hasattr(self, "_attributes_locked")
-            and self._attributes_locked
-            and not name.startswith("_")
-        ):
+        if not name.startswith("_"):
             raise AttributeError(
                 "Parameters are locked! Did you mean to set the value of this parameter"
                 f" instead, i.e. parameters.{name}.value = {value}"
             )
         super().__setattr__(name, value)
 
-    def register_listener(self, param, callback: Callable):
+    def register_listener(self, param: RemoteParameter, callback: Callable):
         """
         Tell the server to notify our client (identified by `self.uuid`) when `param`
         changes. Registers a function `callback` that will be called in this case.
