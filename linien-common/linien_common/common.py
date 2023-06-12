@@ -300,10 +300,10 @@ def pack(value):
 
 
 def unpack(value):
-    # try:
-    return pickle.loads(value)
-    # except Exception:
-    #    return value
+    try:
+        return pickle.loads(value)
+    except Exception:
+        return value
 
 
 def get_signal_strength_from_i_q(i, q):
