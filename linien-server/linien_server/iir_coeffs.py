@@ -20,7 +20,7 @@
 import warnings
 from math import ceil, log2, pi
 
-import scipy.signal
+from scipy import signal
 
 
 def make_filter(name, k=1.0, f=0.0, g=1e20, q=0.5):
@@ -128,7 +128,9 @@ def quantize_filter(b, a, shift=None, width=25):
     for i in b + a:
         assert -m <= i < m, (hex(i), hex(m))
 
-    z, p, k = scipy.signal.tf2zpk(b, a)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=signal.BadCoefficients)
+    z, p, k = signal.tf2zpk(b, a)
     if any(abs(_) > 1 for _ in p):
         warnings.warn(
             "unstable filter: z={}, p={}, k={}".format(z, p, k), RuntimeWarning

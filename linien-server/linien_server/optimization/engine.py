@@ -17,8 +17,12 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 import math
+import warnings
 
-import cma
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
+    import cma
+
 from linien_common.common import MHz, Vpp
 from linien_server.optimization.utils import (
     FINAL_ZOOM_FACTOR,
