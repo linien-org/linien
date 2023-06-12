@@ -18,8 +18,6 @@
 
 """This file contains stuff that is required by the server as well as the client."""
 
-import hashlib
-import pickle
 from time import time
 from typing import Tuple
 
@@ -140,10 +138,6 @@ def update_signal_history(
     return control_history, monitor_history
 
 
-def check_whether_correlation_is_bad(correlation, N):
-    return np.max(correlation) < 0.1
-
-
 def determine_shift_by_correlation(zoom_factor, reference_signal, error_signal):
     """
     Compare two spectra and determines the shift by correlation.
@@ -159,8 +153,8 @@ def determine_shift_by_correlation(zoom_factor, reference_signal, error_signal):
     error_signal[np.isnan(error_signal)] = 0
 
     # prepare the signals in order to get a normalized cross-correlation
-    # this is required in order for `check_whether_correlation_is_bad` to return
-    # senseful answer
+    # this is required in order for the check whether the correlation is bad to return
+    # a senseful answer
     # cf. https://stackoverflow.com/questions/53436231/normalized-cross-correlation-in-python  # noqa: E501
     reference_signal = (reference_signal - np.mean(reference_signal)) / (
         np.std(reference_signal) * len(reference_signal)
@@ -187,7 +181,8 @@ def determine_shift_by_correlation(zoom_factor, reference_signal, error_signal):
 
     correlation = correlate(zoomed_ref, downsampled_error_signal)
 
-    if check_whether_correlation_is_bad(correlation, len(zoomed_ref)):
+    # check whether the correlation is bad
+    if np.max(correlation) < 0.1:
         raise SpectrumUncorrelatedException()
 
     shift = np.argmax(correlation)
@@ -197,7 +192,8 @@ def determine_shift_by_correlation(zoom_factor, reference_signal, error_signal):
 
 
 def get_lock_point(error_signal, x0, x1, final_zoom_factor=1.5):
-    """Calculate parameters for the autolock based on the initial error signal.
+    """
+    Calculate parameters for the autolock based on the initial error signal.
 
     Takes the `error_signal` and two points (`x0` and `x1`) as arguments. The
     points are the points selected by the user, and we know that we want to
@@ -287,34 +283,3 @@ def check_plot_data(is_locked, plot_data):
         if "error_signal_1" not in plot_data:
             return False
     return True
-
-
-def pack(value):
-    try:
-        return pickle.dumps(value)
-    except Exception:
-        # this happens when un-pickleable objects (e.g. functions) are assigned
-        # to a parameter. In this case, we don't pickle it but transfer a netref
-        # instead
-        return value
-
-
-def unpack(value):
-    try:
-        return pickle.loads(value)
-    except Exception:
-        return value
-
-
-def get_signal_strength_from_i_q(i, q):
-    i = i.astype(np.int64)
-    q = q.astype(np.int64)
-    i_squared = i**2
-    q_squared = q**2
-    signal_strength = np.sqrt(i_squared + q_squared)
-    return signal_strength
-
-
-def hash_username_and_password(username, password):
-    secret = hashlib.sha256((username + "/" + password).encode()).hexdigest()
-    return secret

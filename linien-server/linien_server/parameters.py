@@ -18,6 +18,7 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 import json
+import pickle
 from pathlib import Path
 from time import time
 from typing import Any, Callable, Iterator, Tuple
@@ -30,7 +31,6 @@ from linien_common.common import (
     PSD_ALGORITHM_LPSD,
     MHz,
     Vpp,
-    pack,
 )
 
 USER_DATA_PATH = Path(AppDirs("linien").user_data_dir)
@@ -56,7 +56,7 @@ class Parameter:
         self.max = max_
         self.wrap = wrap
         self._value = start
-        self._start = start
+        self.start = start
         self._listeners = set()
         self.exposed_can_be_cached = sync
         self._collapsed_sync = collapsed_sync
@@ -102,7 +102,7 @@ class Parameter:
             self._listeners.remove(function)
 
     def exposed_reset(self):
-        self.value = self._start
+        self.value = self.start
 
 
 class Parameters:
@@ -610,7 +610,7 @@ class Parameters:
 
     def init_parameter_sync(
         self, uuid: float
-    ) -> Iterator[Tuple[str, Parameter, Any, bool, bool, bool]]:
+    ) -> Iterator[Tuple[str, Parameter, Any, bool, bool, bool, bool]]:
         """
         To be called by a remote client: Yields all parameters as well as their values
         and if the parameters are suited to be cached registers a listener that pushes
@@ -624,6 +624,7 @@ class Parameters:
                 param.exposed_can_be_cached,
                 param.restorable,
                 param.loggable,
+                param.log,
             )
             if param.exposed_can_be_cached:
                 self.register_remote_listener(uuid, name)
@@ -661,7 +662,7 @@ class Parameters:
                     del queue[idx]
                 else:
                     already_has_value.append(param_name)
-        return pack(queue)
+        return pickle.dumps(queue)
 
 
 def restore_parameters(parameters: Parameters) -> Parameters:

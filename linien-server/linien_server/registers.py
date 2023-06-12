@@ -75,7 +75,7 @@ class Registers:
             self.acquisition.exposed_set_dual_channel
         )
 
-    def write_registers(self):
+    def write_registers(self) -> None:
         """Writes data from `parameters` to the FPGA."""
 
         max_ = lambda val: val if np.abs(val) <= 8191 else (8191 * val / np.abs(val))

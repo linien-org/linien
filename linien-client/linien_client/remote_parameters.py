@@ -16,10 +16,10 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
+import pickle
 from typing import Callable, Dict, Iterator, List, Tuple
 
 import rpyc
-from linien_common.common import pack, unpack
 from rpyc import async_
 
 
@@ -82,7 +82,9 @@ class RemoteParameters:
         self._listeners: Dict[str, List[Callable]] = {}
 
         # mimic functionality of `parameters.Parameters`:
-        all_parameters = unpack(self.remote.exposed_init_parameter_sync(self.uuid))
+        all_parameters = pickle.loads(
+            self.remote.exposed_init_parameter_sync(self.uuid)
+        )
         for name, param, value, can_be_cached, restorable, loggable in all_parameters:
             param = RemoteParameter(
                 parent=self,
@@ -186,7 +188,7 @@ class RemoteParameters:
 
         if self._async_listener_queue is not None and self._async_listener_queue.ready:
             # we have a result
-            queue = unpack(self._async_listener_queue.value)
+            queue = pickle.loads(self._async_listener_queue.value)
 
             # now that we have our result, we can start the next call
             _get_listener_queue_async()
@@ -237,12 +239,12 @@ class RemoteParameter:
         """Return the locally cached value (if it exists). Otherwise ask the server."""
         if hasattr(self, "_cached_value"):
             return self._cached_value
-        return unpack(self.parent.remote.exposed_get_param(self.name))
+        return pickle.loads(self.parent.remote.exposed_get_param(self.name))
 
     @value.setter
     def value(self, value):
         """Notify the server of the new value"""
-        return self.parent.remote.exposed_set_param(self.name, pack(value))
+        return self.parent.remote.exposed_set_param(self.name, pickle.dumps(value))
 
     @property
     def log(self) -> bool:
