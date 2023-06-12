@@ -28,10 +28,10 @@ class LoggingPanel(QtWidgets.QWidget):
         self.app.connection_established.connect(self.on_connection_established)
 
         self.logParametersToolButton.setPopupMode(QtWidgets.QToolButton.InstantPopup)
+        self.logged_parameters_menu = LoggedParametersMenu()
 
     def on_connection_established(self):
         self.parameters = self.app.parameters
-        self.logged_parameters_menu = LoggedParametersMenu()
         self.logged_parameters_menu.create_menu_entries(self.parameters)
         self.logParametersToolButton.setMenu(self.logged_parameters_menu)
 
@@ -46,9 +46,18 @@ class LoggedParametersToolButton(QtWidgets.QToolButton):
 class LoggedParametersMenu(QtWidgets.QMenu):
     def __init__(self, *args, **kwargs):
         super(LoggedParametersMenu, self).__init__()
+        self.triggered.connect(self.on_action_clicked)
 
     def create_menu_entries(self, parameters: RemoteParameters):
         for name, param in parameters:
             if param.loggable:
                 action = QtWidgets.QAction(name, parent=self, checkable=True)  # type: ignore[call-overload] # noqa: E501
+                action.setChecked(param.log)
                 self.addAction(action)
+
+    def on_action_clicked(self, action: QtWidgets.QAction):
+        param = action.text()
+        if action.isChecked():
+            print("Turn on logging for ", param)
+        else:
+            print("Turn off logging for ", param)
