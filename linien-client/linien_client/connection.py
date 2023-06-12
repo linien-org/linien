@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
+import hashlib
 import random
 import string
 from socket import gaierror
@@ -33,7 +34,6 @@ from linien_client.exceptions import (
     ServerNotRunningException,
 )
 from linien_client.remote_parameters import RemoteParameters
-from linien_common.common import hash_username_and_password
 from linien_common.config import DEFAULT_SERVER_PORT
 
 
@@ -45,7 +45,7 @@ class RPYCClientWithAuthentication(rpyc.Service):
     server.
     """
 
-    def __init__(self, uuid: str, user: str, password: str):
+    def __init__(self, uuid: float, user: str, password: str):
         super().__init__()
 
         self.exposed_uuid = uuid
@@ -187,3 +187,8 @@ class LinienClient:
                     setattr(cls, attr_name, wrapped)
 
         return cls
+
+
+def hash_username_and_password(username: str, password: str) -> str:
+    secret = hashlib.sha256((username + "/" + password).encode()).hexdigest()
+    return secret
