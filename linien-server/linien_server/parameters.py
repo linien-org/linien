@@ -692,5 +692,6 @@ def save_parameters(parameters: Parameters) -> None:
                 "parameters": parameters_dict,
             },
             f,
+            indent=2,
         )
     print("Saved parameters to ", filename)
