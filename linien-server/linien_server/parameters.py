@@ -659,7 +659,7 @@ def restore_parameters(parameters: Parameters) -> Parameters:
     filename = str(USER_DATA_PATH / PARAMETER_STORE_FILENAME)
     try:
         with open(filename, "rb") as f:
-            data = json.loads(f)
+            data = json.load(f)
     except FileNotFoundError:
         return parameters
 
