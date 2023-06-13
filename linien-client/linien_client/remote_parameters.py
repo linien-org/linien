@@ -17,7 +17,7 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 import pickle
-from typing import Callable, Dict, Iterator, List, Tuple
+from typing import Any, Callable, Dict, Iterator, List, Tuple
 
 from linien_common.common import pack, unpack
 from rpyc import async_
@@ -53,17 +53,17 @@ class RemoteParameter:
         return self.parent.remote.exposed_set_param(self.name, pack(value))
 
     def on_change(
-        self, callback_on_change: Callable, call_listener_with_first_value: bool = True
+        self, callback: Callable, call_listener_with_first_value: bool = True
     ):
         """
         Tell the server that `callback_on_change` should be called whenever the
         parameter changes.
         """
-        self.parent.register_listener(self, callback_on_change)
+        self.parent.register_listener(self, callback)
 
         if call_listener_with_first_value:
             # call the callback with the initial value
-            callback_on_change(self.value)
+            callback(self.value)
 
     def reset(self):
         """Reset the value to its initial value"""
@@ -153,7 +153,7 @@ class RemoteParameters:
             if isinstance(param, RemoteParameter):
                 yield param_name, param
 
-    def __setattr__(self, name, value):
+    def __setattr__(self, name: str, value: Any) -> None:
         """
         In order to set the value of a parameter, `parameters.my_param.value = 123` is
         used. In order to prevent accidentally forgetting the .value part, i.e.
@@ -170,7 +170,7 @@ class RemoteParameters:
             )
         super().__setattr__(name, value)
 
-    def register_listener(self, param, callback: Callable):
+    def register_listener(self, param: RemoteParameter, callback: Callable):
         """
         Tell the server to notify our client (identified by `self.uuid`) when `param`
         changes. Registers a function `callback` that will be called in this case.
@@ -198,54 +198,45 @@ class RemoteParameters:
         this method manually from time to time.
         """
 
-        def _get_listener_queue_async():
-            """
-            Issues an asynchronous call (that does not block the GUI) to the server in
-            order to retrieve a batch of changed parameters.
-            """
+        if self._async_listener_queue is None:
+            # This means that the async call was not started yet --> start it. The next
+            # call to `call_listeners` will then check whether the result is ready.
+            # Issues an asynchronous call (that does not block the GUI) to the server in
+            # order to retrieve a batch of changed parameters.
             self._async_listener_queue = async_(self.remote.exposed_get_listener_queue)(
                 self.uuid
             )
 
-        def _register_listeners_async():
-            """
-            Issues an asynchronous call to the server containing all the parameters that
-            this client wants to be notified of in case of a changed value.
-            """
+        if self._async_listener_registering is None:
+            # Issues an asynchronous call to the server containing all the parameters
+            # that this client wants to be notified of in case of a changed value.
             pending = self._listeners_pending_remote_registration
             if pending:
-                # this copies the list before clearing it below. Otherwise
-                # we just transmit an epmty list in the async call
+                # This copies the list before clearing it below. Otherwise we just
+                # transmit an empty list in the async call
                 pending = pending[:]
                 self._async_listener_registering = async_(
                     self.remote.exposed_register_remote_listeners
                 )(self.uuid, pending)
                 self._listeners_pending_remote_registration.clear()
 
-        if self._async_listener_queue is None:
-            # this means that the async call was not started yet --> start it
-            # the next call to `call_listeners` will then check whether the
-            # the result is ready.
-            _get_listener_queue_async()
-
-        if self._async_listener_registering is None:
-            _register_listeners_async()
-
         if self._async_listener_queue is not None and self._async_listener_queue.ready:
-            # we have a result
+            # We have a result.
             queue = pickle.loads(self._async_listener_queue.value)
 
-            # now that we have our result, we can start the next call
-            _get_listener_queue_async()
+            # Now that we have our result, we can start the next call.
+            self._async_listener_queue = async_(self.remote.exposed_get_listener_queue)(
+                self.uuid
+            )
 
-            # before calling listeners, we update cache for all received parameters
-            # at once
+            # Before calling listeners, we update cache for all received parameters at
+            # once.
             for param_name, value in queue:
-                param = getattr(self, param_name)
+                param: RemoteParameter = getattr(self, param_name)
                 if param.use_cache:
                     param.update_cache(value)
 
-            # iterate over all canged parameters and call respective callback functions
+            # Iterate over all canged parameters and call respective callback functions.
             for param_name, value in queue:
                 if param_name in self._listeners:
                     for listener in self._listeners[param_name]:
