@@ -605,7 +605,7 @@ class Parameters:
                 yield name, param
 
     def init_parameter_sync(
-        self, uuid: float
+        self, uuid: str
     ) -> Iterator[Tuple[str, Any, bool, bool, bool]]:
         """
         To be called by a remote client: Yields all parameters as well as their values

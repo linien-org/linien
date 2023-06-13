@@ -57,7 +57,7 @@ class BaseService(rpyc.Service):
         self.parameters = Parameters()
         self.parameters = restore_parameters(self.parameters)
         atexit.register(save_parameters, self.parameters)
-        self._uuid_mapping = {}
+        self._uuid_mapping = {}  # type: ignore[var-annotated]
 
     def on_connect(self, client) -> None:
         self._uuid_mapping[client] = client.root.uuid
