@@ -19,7 +19,6 @@
 import pickle
 from typing import Any, Callable, Dict, Iterator, List, Tuple, Union
 
-from linien_common.common import pack, unpack
 from rpyc import async_
 from rpyc.core.async_ import AsyncResult
 
@@ -48,12 +47,12 @@ class RemoteParameter:
         """Return the locally cached value (if it exists). Otherwise ask the server."""
         if hasattr(self, "_cached_value"):
             return self._cached_value
-        return unpack(self.parent.remote.exposed_get_param(self.name))
+        return pickle.loads(self.parent.remote.exposed_get_param(self.name))
 
     @value.setter
-    def value(self, value):
+    def value(self, value: Any):
         """Notify the server of the new value"""
-        return self.parent.remote.exposed_set_param(self.name, pack(value))
+        return self.parent.remote.exposed_set_param(self.name, pickle.dumps(value))
 
     def on_change(
         self, callback: Callable, call_listener_with_first_value: bool = True
@@ -135,7 +134,9 @@ class RemoteParameters:
         self._listeners: Dict[str, List[Callable]] = {}
 
         # mimic functionality of `parameters.Parameters`:
-        all_parameters = unpack(self.remote.exposed_init_parameter_sync(self.uuid))
+        all_parameters = pickle.loads(
+            self.remote.exposed_init_parameter_sync(self.uuid)
+        )
         for name, value, can_be_cached, restorable, loggable in all_parameters:
             param = RemoteParameter(
                 parent=self,
