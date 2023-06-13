@@ -88,7 +88,7 @@ class BaseService(rpyc.Service):
             self.exposed_register_remote_listener(uuid, param_name)
 
     def exposed_get_listener_queue(self, uuid: str) -> bytes:
-        return self.parameters.get_listener_queue(uuid)
+        return pickle.dumps(self.parameters.get_listener_queue(uuid))
 
 
 class RedPitayaControlService(BaseService):

@@ -18,10 +18,9 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 import json
-import pickle
 from pathlib import Path
 from time import time
-from typing import Any, Callable, Iterator, Tuple
+from typing import Any, Callable, Dict, Iterator, List, Tuple
 
 import linien_server
 from appdirs import AppDirs
@@ -644,7 +643,7 @@ class Parameters:
         del self._remote_listener_queue[uuid]
         del self._remote_listener_callbacks[uuid]
 
-    def get_listener_queue(self, uuid: float):
+    def get_listener_queue(self, uuid: float) -> Dict[str, List[Tuple[str, Any]]]:
         queue = self._remote_listener_queue.get(uuid, [])
         self._remote_listener_queue[uuid] = []
 
@@ -657,7 +656,7 @@ class Parameters:
                     del queue[idx]
                 else:
                     already_has_value.append(param_name)
-        return pickle.dumps(queue)
+        return queue
 
 
 def restore_parameters(parameters: Parameters) -> Parameters:
