@@ -21,19 +21,17 @@ import pickle
 from os import path
 
 import numpy as np
+from linien_gui.config import N_COLORS
+from linien_gui.utils import color_to_hex, param2ui
+from linien_gui.widgets import UI_PATH
 from PyQt5 import QtGui, QtWidgets, uic
-
-from ..app import get_linien_app_instance
-from ..config import N_COLORS
-from ..utils import color_to_hex, param2ui
-from ..widgets import UI_PATH
 
 
 class ViewPanel(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         super(ViewPanel, self).__init__(*args, **kwargs)
         uic.loadUi(UI_PATH / "view_panel.ui", self)
-        self.app = get_linien_app_instance()
+        self.app = QtWidgets.QApplication.instance()
         self.app.connection_established.connect(self.on_connection_established)
 
         self.export_select_file.clicked.connect(self.do_export_select_file)

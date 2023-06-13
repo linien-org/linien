@@ -21,14 +21,12 @@ from linien_gui.utils import param2ui
 from linien_gui.widgets import UI_PATH
 from PyQt5 import QtWidgets, uic
 
-from ..app import get_linien_app_instance
-
 
 class ModulationAndSweepPanel(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         super(ModulationAndSweepPanel, self).__init__(*args, **kwargs)
         uic.loadUi(UI_PATH / "modulation_sweep_panel.ui", self)
-        self.app = get_linien_app_instance()
+        self.app = QtWidgets.QApplication.instance()
         self.app.connection_established.connect(self.on_connection_established)
 
         self.modulationFrequencySpinBox.setKeyboardTracking(False)

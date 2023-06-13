@@ -24,13 +24,11 @@ from time import time
 import linien_gui
 import numpy as np
 from linien_common.common import check_plot_data
+from linien_gui.config import N_COLORS, Color
+from linien_gui.ui.plot_widget import INVALID_POWER
+from linien_gui.utils import color_to_hex, set_window_icon
+from linien_gui.widgets import UI_PATH
 from PyQt5 import QtWidgets, uic
-
-from ..app import get_linien_app_instance
-from ..config import N_COLORS, Color
-from ..ui.plot_widget import INVALID_POWER
-from ..utils import color_to_hex, set_window_icon
-from ..widgets import UI_PATH
 
 ZOOM_STEP = 0.9
 MAX_ZOOM = 50
@@ -46,7 +44,7 @@ class MainWindow(QtWidgets.QMainWindow):
         super(MainWindow, self).__init__(*args, **kwargs)
         uic.loadUi(UI_PATH / "main_window.ui", self)
         set_window_icon(self)
-        self.app = get_linien_app_instance()
+        self.app = QtWidgets.QApplication.instance()
         self.app.connection_established.connect(self.on_connection_established)
 
         self.reset_std_history()

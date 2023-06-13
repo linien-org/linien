@@ -27,9 +27,8 @@ from linien_client.exceptions import (
     ServerNotInstalledException,
 )
 from linien_common.config import DEFAULT_SERVER_PORT
+from linien_gui.config import get_saved_parameters, save_parameter
 from PyQt5.QtCore import QObject, QThread, pyqtSignal
-
-from .config import get_saved_parameters, save_parameter
 
 
 class RemoteOutStream(QObject):

@@ -18,13 +18,11 @@
 import superqt
 from PyQt5 import QtCore, QtWidgets
 
-from ..app import get_linien_app_instance
-
 
 class SweepControlWidget(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         super(SweepControlWidget, self).__init__(*args, **kwargs)
-        self.app = get_linien_app_instance()
+        self.app = QtWidgets.QApplication.instance()
         self.main_window = self.window()
         self.app.connection_established.connect(self.on_connection_established)
         QtCore.QTimer.singleShot(100, self.ready)
