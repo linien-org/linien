@@ -21,6 +21,7 @@ from typing import Any, Callable, Dict, Iterator, List, Tuple
 
 from linien_common.common import pack, unpack
 from rpyc import async_
+from rpyc.core.async_ import AsyncResult
 
 
 class RemoteParameter:
@@ -203,9 +204,9 @@ class RemoteParameters:
             # call to `call_listeners` will then check whether the result is ready.
             # Issues an asynchronous call (that does not block the GUI) to the server in
             # order to retrieve a batch of changed parameters.
-            self._async_listener_queue = async_(self.remote.exposed_get_listener_queue)(
-                self.uuid
-            )
+            self._async_listener_queue: AsyncResult = async_(
+                self.remote.exposed_get_listener_queue
+            )(self.uuid)
 
         if self._async_listener_registering is None:
             # Issues an asynchronous call to the server containing all the parameters
@@ -215,7 +216,7 @@ class RemoteParameters:
                 # This copies the list before clearing it below. Otherwise we just
                 # transmit an empty list in the async call
                 pending = pending[:]
-                self._async_listener_registering = async_(
+                self._async_listener_registering: AsyncResult = async_(
                     self.remote.exposed_register_remote_listeners
                 )(self.uuid, pending)
                 self._listeners_pending_remote_registration.clear()
@@ -225,9 +226,9 @@ class RemoteParameters:
             queue = pickle.loads(self._async_listener_queue.value)
 
             # Now that we have our result, we can start the next call.
-            self._async_listener_queue = async_(self.remote.exposed_get_listener_queue)(
-                self.uuid
-            )
+            self._async_listener_queue: AsyncResult = async_(
+                self.remote.exposed_get_listener_queue
+            )(self.uuid)
 
             # Before calling listeners, we update cache for all received parameters at
             # once.
