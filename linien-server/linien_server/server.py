@@ -22,6 +22,7 @@ import pickle
 from random import randint, random
 from threading import Event, Thread
 from time import sleep
+from typing import List
 
 import click
 import numpy as np
@@ -52,38 +53,40 @@ class BaseService(rpyc.Service):
     on the client.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.parameters = Parameters()
         self.parameters = restore_parameters(self.parameters)
         atexit.register(save_parameters, self.parameters)
         self._uuid_mapping = {}
 
-    def on_connect(self, client):
+    def on_connect(self, client) -> None:
         self._uuid_mapping[client] = client.root.uuid
 
-    def on_disconnect(self, client):
+    def on_disconnect(self, client) -> None:
         uuid = self._uuid_mapping[client]
         self.parameters.unregister_remote_listeners(uuid)
 
-    def exposed_get_server_version(self):
+    def exposed_get_server_version(self) -> str:
         return __version__
 
-    def exposed_get_param(self, param_name):
+    def exposed_get_param(self, param_name: str) -> bytes:
         return pack(getattr(self.parameters, param_name).value)
 
-    def exposed_set_param(self, param_name, value):
+    def exposed_set_param(self, param_name: str, value: bytes) -> None:
         getattr(self.parameters, param_name).value = unpack(value)
 
-    def exposed_reset_param(self, param_name):
+    def exposed_reset_param(self, param_name: str) -> None:
         getattr(self.parameters, param_name).reset()
 
-    def exposed_init_parameter_sync(self, uuid: str):
+    def exposed_init_parameter_sync(self, uuid: str) -> bytes:
         return pack(list(self.parameters.init_parameter_sync(uuid)))
 
-    def exposed_register_remote_listener(self, uuid, param_name):
-        return self.parameters.register_remote_listener(uuid, param_name)
+    def exposed_register_remote_listener(self, uuid: str, param_name: str) -> None:
+        self.parameters.register_remote_listener(uuid, param_name)
 
-    def exposed_register_remote_listeners(self, uuid, param_names) -> None:
+    def exposed_register_remote_listeners(
+        self, uuid: str, param_names: List[str]
+    ) -> None:
         for param_name in param_names:
             self.exposed_register_remote_listener(uuid, param_name)
 
@@ -184,11 +187,7 @@ class RedPitayaControlService(BaseService):
                     self.parameters.acquisition_raw_data.value = new_data
             sleep(0.05)
 
-    def exposed_write_registers(self):
-        """Sync the parameters with the FPGA registers."""
-        self.registers.write_registers()
-
-    def task_running(self):
+    def _task_running(self):
         return (
             self.parameters.autolock_running.value
             or self.parameters.optimization_running.value
@@ -196,13 +195,17 @@ class RedPitayaControlService(BaseService):
             or self.parameters.psd_optimization_running.value
         )
 
+    def exposed_write_registers(self) -> None:
+        """Sync the parameters with the FPGA registers."""
+        self.registers.write_registers()
+
     def exposed_start_autolock(self, x0, x1, spectrum, additional_spectra=None):
         spectrum = pickle.loads(spectrum)
         # start_watching = self.parameters.watch_lock.value
         start_watching = False
         auto_offset = self.parameters.autolock_determine_offset.value
 
-        if not self.task_running():
+        if not self._task_running():
             autolock = Autolock(self, self.parameters)
             self.parameters.task.value = autolock
             autolock.run(
@@ -217,13 +220,13 @@ class RedPitayaControlService(BaseService):
             )
 
     def exposed_start_optimization(self, x0, x1, spectrum):
-        if not self.task_running():
+        if not self._task_running():
             optim = OptimizeSpectroscopy(self, self.parameters)
             self.parameters.task.value = optim
             optim.run(x0, x1, spectrum)
 
     def exposed_start_psd_acquisition(self):
-        if not self.task_running():
+        if not self._task_running():
             self.parameters.task.value = PSDAcquisition(self, self.parameters)
             self.parameters.task.value.run()
 
@@ -237,7 +240,7 @@ class RedPitayaControlService(BaseService):
         self._logging_thread.start()
 
     def exposed_start_pid_optimization(self):
-        if not self.task_running():
+        if not self._task_running():
             self.parameters.task.value = PIDOptimization(self, self.parameters)
             self.parameters.task.value.run()
 
@@ -287,12 +290,12 @@ class RedPitayaControlService(BaseService):
         self.parameters.pause_acquisition.value = False
         self.registers.acquisition.exposed_continue_acquisition(self.data_uuid)
 
-    def exposed_set_csr_direct(self, k, v):
+    def exposed_set_csr_direct(self, key: str, value: int) -> None:
         """
         Directly sets a CSR register. This method is intended for debugging. Normally,
         the FPGA should be controlled via manipulation of parameters.
         """
-        self.registers.set(k, v)
+        self.registers.set(key, value)
 
 
 class FakeRedPitayaControlService(BaseService):
@@ -302,13 +305,13 @@ class FakeRedPitayaControlService(BaseService):
 
         self.stop_event = Event()
         self.random_data_thread = Thread(
-            target=self.write_random_data_to_parameters_loop,
+            target=self._write_random_data_to_parameters_loop,
             args=(self.stop_event,),
             daemon=True,
         )
         self.random_data_thread.start()
 
-    def write_random_data_to_parameters_loop(self, stop_event: Event):
+    def _write_random_data_to_parameters_loop(self, stop_event: Event):
         while not stop_event.is_set():
             max_ = randint(0, 8191)
             gen = lambda: np.array([randint(-max_, max_) for _ in range(N_POINTS)])

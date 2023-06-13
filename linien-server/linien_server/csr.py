@@ -30,7 +30,7 @@ class PythonCSR:
     def __init__(self, rp):
         self.rp = rp
 
-    def set_one(self, addr, value):
+    def set_one(self, addr: str, value: int) -> None:
         self.rp.write(addr, value)
 
     def get_one(self, addr):
@@ -53,7 +53,7 @@ class PythonCSR:
             v = (val >> (8 * (b - i - 1))) & 0xFF
             self.set_one(self.offset + (map << 11) + ((addr + i) << 2), v)
 
-    def get(self, name):
+    def get(self, name: str) -> int:
         if name in self.constants:
             return self.constants[name]
 

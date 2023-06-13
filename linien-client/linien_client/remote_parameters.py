@@ -23,6 +23,8 @@ from linien_common.common import pack, unpack
 from rpyc import async_
 from rpyc.core.async_ import AsyncResult
 
+from .communication import LinienControlService
+
 
 class RemoteParameter:
     """A helper class for `RemoteParameters`, representing a single remote parameter."""
@@ -122,7 +124,7 @@ class RemoteParameters:
                      required for this.
     """
 
-    def __init__(self, remote, uuid: str, use_cache: bool):
+    def __init__(self, remote: LinienControlService, uuid: str, use_cache: bool):
         self.remote = remote
         self.uuid = uuid
 
