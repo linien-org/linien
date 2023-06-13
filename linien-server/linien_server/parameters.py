@@ -623,11 +623,11 @@ class Parameters:
             if param.can_be_cached:
                 self.register_remote_listener(uuid, name)
 
-    def register_remote_listener(self, uuid: str, param_name: str) -> None:
+    def register_remote_listener(self, uuid: float, param_name: str) -> None:
         self._remote_listener_queue.setdefault(uuid, [])
         self._remote_listener_callbacks.setdefault(uuid, [])
 
-        def callback(value: Any, uuid: str = uuid, param_name: str = param_name):
+        def callback(value: Any, uuid: float = uuid, param_name: str = param_name):
             if uuid in self._remote_listener_queue:
                 self._remote_listener_queue[uuid].append((param_name, value))
 
@@ -636,14 +636,14 @@ class Parameters:
 
         self._remote_listener_callbacks[uuid].append((param, callback))
 
-    def unregister_remote_listeners(self, uuid: str):
+    def unregister_remote_listeners(self, uuid: float):
         for param, callback in self._remote_listener_callbacks[uuid]:
             param.remove_listener(callback)
 
         del self._remote_listener_queue[uuid]
         del self._remote_listener_callbacks[uuid]
 
-    def get_listener_queue(self, uuid: str) -> Dict[str, List[Tuple[str, Any]]]:
+    def get_listener_queue(self, uuid: float) -> Dict[str, List[Tuple[str, Any]]]:
         queue = self._remote_listener_queue.get(uuid, [])
         self._remote_listener_queue[uuid] = []
 
