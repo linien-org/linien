@@ -296,8 +296,3 @@ def get_signal_strength_from_i_q(i, q):
     q_squared = q**2
     signal_strength = np.sqrt(i_squared + q_squared)
     return signal_strength
-
-
-def hash_username_and_password(username, password):
-    secret = hashlib.sha256((username + "/" + password).encode()).hexdigest()
-    return secret
