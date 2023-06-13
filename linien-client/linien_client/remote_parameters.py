@@ -188,7 +188,7 @@ class RemoteParameters:
         self._listeners.setdefault(param.name, [])
         self._listeners[param.name].append(callback)
 
-    def call_listeners(self):
+    def call_listeners(self) -> None:
         """
         Ask the server for changed parameters and call the respective callback
         functions. This call takes place asynchronously, i.e. the first run of

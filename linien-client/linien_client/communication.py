@@ -36,7 +36,7 @@ class LinienControlService(Protocol):
     def exposed_init_parameter_sync(self, uuid: str) -> bytes:
         ...
 
-    def exposed_register_remote_listener(uuid: str, param_name: str) -> None:
+    def exposed_register_remote_listener(self, uuid: str, param_name: str) -> None:
         ...
 
     def exposed_register_remote_listeners(
