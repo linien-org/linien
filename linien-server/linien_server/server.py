@@ -27,13 +27,7 @@ from typing import List
 import click
 import numpy as np
 import rpyc
-from linien_common.common import (
-    N_POINTS,
-    check_plot_data,
-    pack,
-    unpack,
-    update_signal_history,
-)
+from linien_common.common import N_POINTS, check_plot_data, update_signal_history
 from linien_common.config import DEFAULT_SERVER_PORT
 from linien_server import __version__
 from linien_server.autolock.autolock import Autolock
@@ -70,16 +64,16 @@ class BaseService(rpyc.Service):
         return __version__
 
     def exposed_get_param(self, param_name: str) -> bytes:
-        return pack(getattr(self.parameters, param_name).value)
+        return pickle.dumps(getattr(self.parameters, param_name).value)
 
     def exposed_set_param(self, param_name: str, value: bytes) -> None:
-        getattr(self.parameters, param_name).value = unpack(value)
+        getattr(self.parameters, param_name).value = pickle.loads(value)
 
     def exposed_reset_param(self, param_name: str) -> None:
         getattr(self.parameters, param_name).reset()
 
     def exposed_init_parameter_sync(self, uuid: str) -> bytes:
-        return pack(list(self.parameters.init_parameter_sync(uuid)))
+        return pickle.dumps(list(self.parameters.init_parameter_sync(uuid)))
 
     def exposed_register_remote_listener(self, uuid: str, param_name: str) -> None:
         self.parameters.register_remote_listener(uuid, param_name)
