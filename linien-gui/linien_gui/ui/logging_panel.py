@@ -16,15 +16,17 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 from linien_client.remote_parameters import RemoteParameters
-from linien_gui.widgets import UI_PATH
 from PyQt5 import QtWidgets, uic
+
+from ..app import get_linien_app_instance
+from ..widgets import UI_PATH
 
 
 class LoggingPanel(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         uic.loadUi(UI_PATH / "logging_panel.ui", self)
-        self.app = QtWidgets.QApplication.instance()
+        self.app = get_linien_app_instance()
         self.app.connection_established.connect(self.on_connection_established)
 
         self.logParametersToolButton.setPopupMode(QtWidgets.QToolButton.InstantPopup)

@@ -21,15 +21,17 @@ from traceback import print_exc
 
 import click
 import linien_gui
-from linien_gui.config import load_settings
-from linien_gui.ui.device_manager import DeviceManager
-from linien_gui.ui.main_window import MainWindow
-from linien_gui.ui.psd_window import PSDWindow
-from linien_gui.ui.version_checker import VersionCheckerThread
-from linien_gui.widgets import UI_PATH
+from linien_client.connection import LinienClient
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import pyqtSignal
 from pyqtgraph.Qt import QtCore
+
+from .config import load_settings
+from .ui.device_manager import DeviceManager
+from .ui.main_window import MainWindow
+from .ui.psd_window import PSDWindow
+from .ui.version_checker import VersionCheckerThread
+from .widgets import UI_PATH
 
 sys.path += [str(UI_PATH)]
 
@@ -49,13 +51,13 @@ class LinienApp(QtWidgets.QApplication):
 
         self.aboutToQuit.connect(self.quit)
 
-    def client_connected(self, client):
+    def client_connected(self, client: LinienClient):
         self.device_manager.hide()
         self.main_window.show(client.host, client.name)
 
         self.client = client
-        self.control = client.control
-        self.parameters = client.parameters
+        self.control = self.client.control
+        self.parameters = self.client.parameters
 
         self.connection_established.emit()
 
@@ -74,7 +76,7 @@ class LinienApp(QtWidgets.QApplication):
             QtCore.QTimer.singleShot(50, self.call_listeners)
 
     def shutdown(self):
-        self.client.control.shutdown()
+        self.client.control.exposed_shutdown()
         self.quit()
 
     def open_psd_window(self):
@@ -104,6 +106,10 @@ class LinienApp(QtWidgets.QApplication):
         else:
             print("No new version available")
             QtCore.QTimer.singleShot(1000 * 60 * 60, self.check_for_new_version)
+
+
+def get_linien_app_instance() -> LinienApp:
+    return QtWidgets.QApplication.instance()
 
 
 @click.command()

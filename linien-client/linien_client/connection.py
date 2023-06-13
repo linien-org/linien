@@ -35,6 +35,8 @@ from linien_client.exceptions import (
 from linien_client.remote_parameters import RemoteParameters
 from linien_common.config import DEFAULT_SERVER_PORT
 
+from .communication import LinienControlService
+
 
 class RPYCServiceWithUUID(rpyc.Service):
     def __init__(self, uuid: str):
@@ -93,11 +95,11 @@ class LinienClient:
                 if call_on_error:
                     cls = self._catch_network_errors(cls, call_on_error)
 
-                self.parameters = cls(
+                self.parameters: RemoteParameters = cls(
                     self.connection.root, self.uuid, use_parameter_cache
                 )
 
-                self.control = self.connection.root
+                self.control: LinienControlService = self.connection.root
                 break
             except gaierror:
                 # host not found

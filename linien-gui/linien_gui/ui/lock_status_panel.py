@@ -16,14 +16,16 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-from linien_gui.utils import param2ui
 from PyQt5 import QtCore, QtWidgets
+
+from ..app import get_linien_app_instance
+from ..utils import param2ui
 
 
 class LockStatusPanel(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         super(LockStatusPanel, self).__init__(*args, **kwargs)
-        self.app = QtWidgets.QApplication.instance()
+        self.app = get_linien_app_instance()
         self.app.connection_established.connect(self.on_connection_established)
         QtCore.QTimer.singleShot(100, self.ready)
 

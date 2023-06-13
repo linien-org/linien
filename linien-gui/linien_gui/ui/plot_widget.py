@@ -32,10 +32,12 @@ from linien_common.common import (
     get_signal_strength_from_i_q,
     update_signal_history,
 )
-from linien_gui.config import DEFAULT_PLOT_RATE_LIMIT, N_COLORS, Color
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import pyqtSignal
 from pyqtgraph.Qt import QtCore
+
+from ..app import get_linien_app_instance
+from ..config import DEFAULT_PLOT_RATE_LIMIT, N_COLORS, Color
 
 # NOTE: this is required for using a pen_width > 1. There is a bug though that causes
 # the plot to be way too small. Therefore, we call PlotWidget.resize() after a while
@@ -64,7 +66,7 @@ class TimeXAxis(pg.AxisItem):
     def __init__(self, *args, parent=None, **kwargs):
         pg.AxisItem.__init__(self, *args, **kwargs)
         self.parent = parent
-        self.app = QtWidgets.QApplication.instance()
+        self.app = get_linien_app_instance()
         self.app.connection_established.connect(self.on_connection_established)
 
     def on_connection_established(self):

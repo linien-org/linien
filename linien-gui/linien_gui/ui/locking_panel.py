@@ -17,16 +17,18 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 from linien_common.common import FAST_AUTOLOCK
-from linien_gui.utils import param2ui
-from linien_gui.widgets import UI_PATH
 from PyQt5 import QtWidgets, uic
+
+from ..app import get_linien_app_instance
+from ..utils import param2ui
+from ..widgets import UI_PATH
 
 
 class LockingPanel(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         super(LockingPanel, self).__init__(*args, **kwargs)
         uic.loadUi(UI_PATH / "locking_panel.ui", self)
-        self.app = QtWidgets.QApplication.instance()
+        self.app = get_linien_app_instance()
         self.app.connection_established.connect(self.on_connection_established)
 
         self.kpSpinBox.valueChanged.connect(self.kp_changed)

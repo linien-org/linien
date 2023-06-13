@@ -18,11 +18,13 @@
 
 from PyQt5 import QtCore, QtWidgets
 
+from ..app import get_linien_app_instance
+
 
 class RightPanel(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         super(RightPanel, self).__init__(*args, **kwargs)
-        self.app = QtWidgets.QApplication.instance()
+        self.app = get_linien_app_instance()
         self.app.connection_established.connect(self.on_connection_established)
         self.main_window = self.window()
         QtCore.QTimer.singleShot(100, self.ready)
