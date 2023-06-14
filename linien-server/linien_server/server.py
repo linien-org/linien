@@ -91,7 +91,7 @@ class BaseService(rpyc.Service):
         return pickle.dumps(self.parameters.get_changed_parameters_queue(uuid))
 
     def exposed_set_parameter_log(self, param_name: str, value: bool) -> None:
-        print(f"Setting log for {param_name} to {value}")
+        print("Setting log for " + param_name + " to " + value)
         getattr(self.parameters, param_name).log = value
 
     def exposed_get_parameter_log(self, param_name: str) -> bool:
