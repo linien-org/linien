@@ -35,12 +35,14 @@ class RemoteParameter:
         use_cache: bool,
         restorable: bool,
         loggable: bool,
+        log: bool,
     ):
         self.name = name
         self.parent = parent
         self.use_cache = use_cache
         self.restorable = restorable
         self.loggable = loggable
+        self.log = log
 
     @property
     def value(self) -> Any:
