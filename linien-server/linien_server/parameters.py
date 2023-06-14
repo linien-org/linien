@@ -125,7 +125,7 @@ class Parameters:
     """
 
     def __init__(self):
-        self._remote_listener_queue = {}
+        self._remote_listener_queue: Dict[str, List[str, Any]] = {}
         self._remote_listener_callbacks = {}
 
         self.to_plot = Parameter(sync=False)
