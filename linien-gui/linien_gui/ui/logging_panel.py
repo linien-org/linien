@@ -66,4 +66,4 @@ class LoggedParametersMenu(QtWidgets.QMenu):
 
     def on_action_clicked(self, action: QtWidgets.QAction):
         param_name = action.text()
-        self.parent.set_parameter_log.emit(param_name, action.isChecked())
+        self.parent().set_parameter_log.emit(param_name, action.isChecked())
