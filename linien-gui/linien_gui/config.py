@@ -78,7 +78,7 @@ class Setting:
         for listener in self._listeners.copy():
             listener(value)
 
-    def on_change(
+    def add_listener(
         self, function: Callable, call_listener_with_first_value: bool = True
     ):
         self._listeners.add(function)
@@ -105,7 +105,7 @@ class Settings:
 
         # save changed settings to disk
         for _, setting in self:
-            setting.on_change(
+            setting.add_listener(
                 lambda _: save_settings(self), call_listener_with_first_value=False
             )
 

@@ -73,8 +73,8 @@ class TimeXAxis(pg.AxisItem):
         QtCore.QTimer.singleShot(100, self.listen_to_parameter_changes)
 
     def listen_to_parameter_changes(self):
-        self.parent.parameters.sweep_speed.on_change(self.force_repaint_tick_strings)
-        self.parent.parameters.lock.on_change(self.force_repaint_tick_strings)
+        self.parent.parameters.sweep_speed.add_listener(self.force_repaint_tick_strings)
+        self.parent.parameters.lock.add_listener(self.force_repaint_tick_strings)
         self.force_repaint_tick_strings()
 
     def force_repaint_tick_strings(self, *args):
@@ -229,14 +229,14 @@ class PlotWidget(pg.PlotWidget):
                 curve.setPen(pg.mkPen((r, g, b, a), width=pen_width))
 
         for color_idx in range(N_COLORS):
-            getattr(self.app.settings, f"plot_color_{color_idx}").on_change(set_pens)
-        self.app.settings.plot_line_width.on_change(set_pens)
-        self.app.settings.plot_line_opacity.on_change(set_pens)
+            getattr(self.app.settings, f"plot_color_{color_idx}").add_listener(set_pens)
+        self.app.settings.plot_line_width.add_listener(set_pens)
+        self.app.settings.plot_line_opacity.add_listener(set_pens)
 
         self.control_signal_history_data = self.parameters.control_signal_history.value
         self.monitor_signal_history_data = self.parameters.monitor_signal_history.value
 
-        self.parameters.to_plot.on_change(self.replot)
+        self.parameters.to_plot.add_listener(self.replot)
 
         def autolock_selection_changed(value):
             if value:
@@ -247,7 +247,7 @@ class PlotWidget(pg.PlotWidget):
                 self.disable_area_selection()
                 self.resume_plot_and_clear_cache()
 
-        self.parameters.autolock_selection.on_change(autolock_selection_changed)
+        self.parameters.autolock_selection.add_listener(autolock_selection_changed)
 
         def optimization_selection_changed(value):
             if value:
@@ -258,12 +258,14 @@ class PlotWidget(pg.PlotWidget):
                 self.disable_area_selection()
                 self.resume_plot_and_clear_cache()
 
-        self.parameters.optimization_selection.on_change(optimization_selection_changed)
+        self.parameters.optimization_selection.add_listener(
+            optimization_selection_changed
+        )
 
         def show_or_hide_crosshair(automatic_mode):
             self.crosshair.setVisible(not automatic_mode)
 
-        self.parameters.automatic_mode.on_change(show_or_hide_crosshair)
+        self.parameters.automatic_mode.add_listener(show_or_hide_crosshair)
 
     def _to_data_coords(self, event):
         pos = self.plotItem.vb.mapSceneToView(event.pos())

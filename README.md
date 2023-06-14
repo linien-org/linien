@@ -238,7 +238,7 @@ def on_change(value):
     # changed parameters.
     print('parameter arrived!', value)
 
-c.parameters.modulation_amplitude.on_change(on_change)
+c.parameters.modulation_amplitude.add_listener(on_change)
 
 from time import sleep
 for i in range(10):

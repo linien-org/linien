@@ -119,7 +119,7 @@ class PSDAcquisition:
             raise
 
     def add_listeners(self):
-        self.parameters.acquisition_raw_data.on_change(
+        self.parameters.acquisition_raw_data.add_listener(
             self.react_to_new_signal, call_listener_with_first_value=False
         )
 
@@ -230,7 +230,7 @@ class PIDOptimization:
 
     def run(self):
         try:
-            self.parameters.psd_data_complete.on_change(
+            self.parameters.psd_data_complete.add_listener(
                 self.psd_data_received, call_listener_with_first_value=False
             )
             self.parameters.psd_optimization_running.value = True

@@ -66,10 +66,10 @@ class PSDWindow(QtWidgets.QMainWindow):
         self.parameters = self.app.parameters
         self.control = self.app.control
 
-        self.parameters.psd_data_partial.on_change(
+        self.parameters.psd_data_partial.add_listener(
             self.psd_data_received,
         )
-        self.parameters.psd_data_complete.on_change(
+        self.parameters.psd_data_complete.add_listener(
             self.psd_data_received,
         )
 
@@ -93,7 +93,7 @@ class PSDWindow(QtWidgets.QMainWindow):
                 self.container_psd_running.hide()
                 self.container_psd_not_running.show()
 
-        self.parameters.psd_acquisition_running.on_change(update_status)
+        self.parameters.psd_acquisition_running.add_listener(update_status)
 
     def closeEvent(self, event, *args, **kwargs):
         # we never realy want to close the window (which destroys its content)  but just

@@ -54,7 +54,7 @@ class RemoteParameter:
         """Notify the server of the new value"""
         return self.parent.remote.exposed_set_param(self.name, pickle.dumps(value))
 
-    def on_change(
+    def add_listener(
         self, callback: Callable, call_listener_with_first_value: bool = True
     ):
         """
@@ -103,7 +103,7 @@ class RemoteParameters:
             # time to time as this function is responsible for checking for
             # changed parameters.
             print('parameter arrived!', value)
-        r.my_param.on_change(on_change)
+        r.my_param.add_listener(on_change)
         while True:
             r.call_listeners()
             sleep(.1)

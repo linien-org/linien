@@ -83,7 +83,7 @@ class LockStatusPanel(QtWidgets.QWidget):
             self.parameters.autolock_retrying,
             self.parameters.autolock_percentage,
         ):
-            param.on_change(update_status)
+            param.add_listener(update_status)
 
         param2ui(
             self.parameters.control_signal_history_length,

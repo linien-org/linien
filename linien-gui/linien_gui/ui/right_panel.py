@@ -42,16 +42,18 @@ class RightPanel(QtWidgets.QWidget):
         self.parameters = self.app.parameters
         self.control = self.app.control
 
-        self.parameters.autolock_running.on_change(self.autolock_status_changed)
-        self.parameters.optimization_running.on_change(self.optimization_status_changed)
-        self.parameters.lock.on_change(self.enable_or_disable_panels)
+        self.parameters.autolock_running.add_listener(self.autolock_status_changed)
+        self.parameters.optimization_running.add_listener(
+            self.optimization_status_changed
+        )
+        self.parameters.lock.add_listener(self.enable_or_disable_panels)
 
         def highlight_psd_button(locked):
             self.main_window.pid_parameter_optimization_button.setStyleSheet(
                 "background: #00aa00;" if locked else ""
             )
 
-        self.parameters.lock.on_change(highlight_psd_button)
+        self.parameters.lock.add_listener(highlight_psd_button)
 
     def shutdown_server(self):
         self.app.shutdown()
