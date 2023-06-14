@@ -59,7 +59,7 @@ class RemoteParameter:
         Register a callback function that is called whenever the parameter changes.
         """
 
-        if self.name not in self._callbacks and not self.use_cache:
+        if self.name not in self.parent._callbacks and not self.use_cache:
             # Make sure that the server knows that we want to be notified about changes.
             # Parameters that use the cache are already registered, see `__init__`.
             self.parent._listeners_pending_remote_registration.append(self.name)
