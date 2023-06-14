@@ -79,52 +79,19 @@ class RemoteParameter:
 
 
 class RemoteParameters:
-    """
-    A class that provides access to a remote `Parameters` instance.
-
-    It clones the functionality of the remote `Parameters` instance. E.g.:
-
-        # on the remote side
-        p = Parameters(...)
-        p.my_param.value = 123
-
-        # on the client side
-        r = RemoteParameters(...)
-
-        # RemoteParameters allows for accessing the remote value:
-        print(r.my_param.value) # outputs 123
-
-        # it's also possible to set the value (this change is automatically propagated
-        # to the server)
-        r.my_param.value = 123
-
-        # and we can set up a callback function that is called whenever a parameter
-        # changes
-        def on_change(value):
-            # this function is called whenever `my_param` changes on the server.
-            # note that this only works if `check_for_changed_parameters` is called from
-            # time to time as this function is responsible for checking for
-            # changed parameters.
-            print('parameter arrived!', value)
-        r.my_param.add_callback(on_change)
-        while True:
-            r.check_for_changed_parameters()
-            sleep(.1)
-
-    The arguments for __init__ are:
-
-        `remote`:    The root of the rpyc connection of the server
-        `uuid`:      A random unique identifier for this client
-        `use_cache`: A boolean indicating whether (most) parameters should be cached
-                     locally. If this is not enabled, every access of `r.my_param.value`
-                     results in a request to the server. If `use_cache` is enabled, a
-                     local cache is used instead. For that purpose, a listener is
-                     installed such that the server notifies the client about changed
-                      parameters, whenever the `check_for_changed_parameters` method is
-                      called
-    """
-
     def __init__(self, remote: LinienControlService, uuid: str, use_cache: bool):
+        """
+        Provides access to a remote `Parameters` instance and minics its functionality.
+
+        :param remote: root of the rpyc connection to the server
+        :param uuid: random unique identifier for this client
+        :param use_cache: A boolean indicating whether (most) parameters should be
+            cached locally. If this is not enabled, every access of `r.my_param.value`
+            results in a request to the server. If `use_cache` is enabled, a local cache
+            is used instead. For that purpose, a listener is installed such that the
+            server notifies the client about changed parameters, whenever the
+            `check_for_changed_parameters` method is called.
+        """
         self.remote = remote
         self.uuid = uuid
 
