@@ -230,19 +230,19 @@ c.parameters.gpio_p_out.value = 0b01010101 # 4 on, 4 off
 c.connection.root.write_registers()
 
 # it is also possible to set up a callback function that is called whenever a
-# parameter changes (remember to call `call_listeners()` periodically)
-def on_change(value):
+# parameter changes (remember to call `check_for_changed_parameters()` periodically)
+def callback(value):
     # this function is called whenever `my_param` changes on the server.
-    # note that this only works if `call_listeners` is called from
+    # note that this only works if `check_for_changed_parameters` is called from
     # time to time as this function is responsible for checking for
     # changed parameters.
     print('parameter arrived!', value)
 
-c.parameters.modulation_amplitude.add_callback(on_change)
+c.parameters.modulation_amplitude.add_callback(callback)
 
 from time import sleep
 for i in range(10):
-    c.parameters.call_listeners()
+    c.parameters.check_for_changed_parameters()
     if i == 2:
         c.parameters.modulation_amplitude.value = 0.1 * Vpp
     sleep(.1)

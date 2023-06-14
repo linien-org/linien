@@ -61,19 +61,19 @@ class LinienApp(QtWidgets.QApplication):
 
         self.connection_established.emit()
 
-        self.call_listeners()
+        self.periodically_check_for_changed_parameters()
 
         self.check_for_new_version()
 
-    def call_listeners(self):
+    def periodically_check_for_changed_parameters(self):
         if hasattr(self, "client") and self.client and self.client.connected:
             try:
-                self.parameters.call_listeners()
+                self.parameters.check_for_changed_parameters()
             except AttributeError:
-                print("call_listeners() failed")
+                print("check_for_changed_parameters() failed")
                 print_exc()
 
-            QtCore.QTimer.singleShot(50, self.call_listeners)
+            QtCore.QTimer.singleShot(50, self.periodically_check_for_changed_parameters)
 
     def shutdown(self):
         self.client.control.exposed_shutdown()

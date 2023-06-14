@@ -126,7 +126,7 @@ class Parameters:
 
     def __init__(self):
         # Dict[str, List[Tuple[str, Any]]]
-        self._remote_listener_queue = {}
+        self._changed_parameters_queue = {}
         # Dict[Tuple[Parameter, Callable[[Any], None]]]
         self._remote_listener_callbacks = {}
 
@@ -621,28 +621,34 @@ class Parameters:
                 self.register_remote_listener(uuid, name)
 
     def register_remote_listener(self, uuid: str, param_name: str) -> None:
-        self._remote_listener_queue.setdefault(uuid, [])
+        self._changed_parameters_queue.setdefault(uuid, [])
         self._remote_listener_callbacks.setdefault(uuid, [])
 
-        def callback(value: Any, uuid: str = uuid, param_name: str = param_name):
-            if uuid in self._remote_listener_queue:
-                self._remote_listener_queue[uuid].append((param_name, value))
+        def append_changed_values_to_queue(value: Any) -> None:
+            """Appends changed values to the queue of a specific client."""
+            if uuid in self._changed_parameters_queue:
+                self._changed_parameters_queue[uuid].append((param_name, value))
 
         param = getattr(self, param_name)
-        param.add_callback(callback)
+        param.add_callback(append_changed_values_to_queue)
 
-        self._remote_listener_callbacks[uuid].append((param, callback))
+        self._remote_listener_callbacks[uuid].append(
+            (param, append_changed_values_to_queue)
+        )
 
     def unregister_remote_listeners(self, uuid: str):
         for param, callback in self._remote_listener_callbacks[uuid]:
             param.remove_callback(callback)
 
-        del self._remote_listener_queue[uuid]
+        del self._changed_parameters_queue[uuid]
         del self._remote_listener_callbacks[uuid]
 
-    def get_listener_queue(self, uuid: str) -> Dict[str, List[Tuple[str, Any]]]:
-        queue = self._remote_listener_queue.get(uuid, [])
-        self._remote_listener_queue[uuid] = []
+    def get_changed_parameters_queue(
+        self, uuid: str
+    ) -> Dict[str, List[Tuple[str, Any]]]:
+        """Get the queue of parameter changes for a specific client."""
+        queue = self._changed_parameters_queue.get(uuid, [])
+        self._changed_parameters_queue[uuid] = []
 
         # filter out multiple values for collapsible parameters
         already_has_value = []
