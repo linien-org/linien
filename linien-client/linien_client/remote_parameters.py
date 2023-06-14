@@ -56,12 +56,18 @@ class RemoteParameter:
 
     def add_callback(self, callback: Callable, call_with_first_value: bool = True):
         """
-        Tell the server that `callback` should be called whenever the parameter changes.
+        Register a callback function that is called whenever the parameter changes.
         """
-        self.parent.register_callback(self, callback)
+
+        if self.name not in self._callbacks and not self.use_cache:
+            # Make sure that the server knows that we want to be notified about changes.
+            # Parameters that use the cache are already registered, see `__init__`.
+            self.parent._listeners_pending_remote_registration.append(self.name)
+
+        self.parent._callbacks.setdefault(self.name, [])
+        self.parent._callbacks[self.name].append(callback)
 
         if call_with_first_value:
-            # call the callback with the initial value
             callback(self.value)
 
     def reset(self):
@@ -74,7 +80,7 @@ class RemoteParameter:
 
 class RemoteParameters:
     """
-    A class that provides access to a remote `parameters.Parameters` instance.
+    A class that provides access to a remote `Parameters` instance.
 
     It clones the functionality of the remote `Parameters` instance. E.g.:
 
@@ -113,11 +119,9 @@ class RemoteParameters:
                      locally. If this is not enabled, every access of `r.my_param.value`
                      results in a request to the server. If `use_cache` is enabled, a
                      local cache is used instead. For that purpose, a listener is
-                     installed such that the server automatically pushes changes to the
-                     client and thus updates the cache. No matter how often you access
-                     `r.my_param.value`, each parameter value is only transmitted once
-                     (after it was changed). Note that calling
-                     `check_for_changed_parameters` is required for this.
+                     installed such that the server notifies the client about changed
+                      parameters, whenever the `check_for_changed_parameters` method is
+                      called
     """
 
     def __init__(self, remote: LinienControlService, uuid: str, use_cache: bool):
@@ -166,17 +170,6 @@ class RemoteParameters:
                 f" instead, i.e. parameters.{name}.value = {value}"
             )
         super().__setattr__(name, value)
-
-    def register_callback(self, param: RemoteParameter, callback: Callable):
-        """
-        Register a callback function that is called whenever the parameter changes.
-        """
-        if param.name not in self._callbacks and not param.use_cache:
-            # parameters that use the cache are already registered, see `__init__`.
-            self._listeners_pending_remote_registration.append(param.name)
-
-        self._callbacks.setdefault(param.name, [])
-        self._callbacks[param.name].append(callback)
 
     def check_for_changed_parameters(self) -> None:
         """
