@@ -36,7 +36,7 @@ if TYPE_CHECKING:
 
 
 def get_linien_app_instance() -> "LinienApp":
-    return QtWidgets.QApplication.instance()
+    return QtWidgets.QApplication.instance()  # type: ignore[return-value]
 
 
 def param2ui(parameter, element, process_value=lambda x: x):
