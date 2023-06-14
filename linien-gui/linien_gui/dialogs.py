@@ -17,7 +17,6 @@
 
 from typing import Callable
 
-from linien_gui.threads import RemoteServerInstallationThread
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import (
     QDialog,
@@ -28,6 +27,8 @@ from PyQt5.QtWidgets import (
     QWidget,
 )
 from pyqtgraph import QtCore
+
+from .threads import RemoteServerInstallationThread
 
 
 class SSHCommandOutputWidget(QListWidget):
