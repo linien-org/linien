@@ -74,7 +74,7 @@ class ViewPanel(QtWidgets.QWidget):
                 )
 
         for color_idx in range(N_COLORS):
-            getattr(self.app.settings, f"plot_color_{color_idx}").add_listener(
+            getattr(self.app.settings, f"plot_color_{color_idx}").add_callback(
                 preview_colors
             )
 

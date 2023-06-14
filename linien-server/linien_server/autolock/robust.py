@@ -148,7 +148,7 @@ class RobustAutolock:
             * sweep_speed_to_time(self.parameters.sweep_speed.value)
         )
 
-        self.parameters.ping.add_listener(self.check_for_timeout)
+        self.parameters.ping.add_callback(self.check_for_timeout)
 
     def check_for_timeout(self, ping):
         min_time_to_wait = 5
@@ -161,7 +161,7 @@ class RobustAutolock:
             self.parameters.task.value.exposed_stop()
 
     def stop_timeout(self):
-        self.parameters.ping.remove_listener(self.check_for_timeout)
+        self.parameters.ping.remove_callback(self.check_for_timeout)
 
     def after_lock(self):
         self.stop_timeout()

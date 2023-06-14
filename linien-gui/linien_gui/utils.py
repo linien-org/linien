@@ -71,7 +71,7 @@ def param2ui(
 
         element.blockSignals(False)
 
-    parameter.add_listener(on_change)
+    parameter.add_callback(on_change)
 
 
 def set_window_icon(window):

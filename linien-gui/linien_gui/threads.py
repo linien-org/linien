@@ -178,4 +178,4 @@ class ConnectionThread(QThread):
                 def on_change(value, parameter_name: str = parameter_name) -> None:
                     save_parameter(self.device["key"], parameter_name, value)
 
-                parameter.add_listener(on_change)
+                parameter.add_callback(on_change)

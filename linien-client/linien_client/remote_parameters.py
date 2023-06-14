@@ -54,16 +54,14 @@ class RemoteParameter:
         """Notify the server of the new value"""
         return self.parent.remote.exposed_set_param(self.name, pickle.dumps(value))
 
-    def add_listener(
-        self, callback: Callable, call_listener_with_first_value: bool = True
-    ):
+    def add_callback(self, callback: Callable, call_with_first_value: bool = True):
         """
         Tell the server that `callback_on_change` should be called whenever the
         parameter changes.
         """
         self.parent.register_listener(self, callback)
 
-        if call_listener_with_first_value:
+        if call_with_first_value:
             # call the callback with the initial value
             callback(self.value)
 
@@ -103,7 +101,7 @@ class RemoteParameters:
             # time to time as this function is responsible for checking for
             # changed parameters.
             print('parameter arrived!', value)
-        r.my_param.add_listener(on_change)
+        r.my_param.add_callback(on_change)
         while True:
             r.call_listeners()
             sleep(.1)
@@ -226,7 +224,9 @@ class RemoteParameters:
 
         if self._async_listener_queue is not None and self._async_listener_queue.ready:
             # We have a result.
-            queue = pickle.loads(self._async_listener_queue.value)
+            queue: List[Tuple[str, Any]] = pickle.loads(
+                self._async_listener_queue.value
+            )
 
             # Now that we have our result, we can start the next call.
             self._async_listener_queue = async_(self.remote.exposed_get_listener_queue)(

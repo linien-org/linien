@@ -53,9 +53,9 @@ class SweepControlWidget(QtWidgets.QWidget):
         self.display_sweep_status()
 
         # change displayed values when sweep parameters change
-        self.parameters.sweep_center.add_listener(self.display_sweep_status)
-        self.parameters.sweep_amplitude.add_listener(self.display_sweep_status)
-        self.parameters.sweep_pause.add_listener(self.display_sweep_status)
+        self.parameters.sweep_center.add_callback(self.display_sweep_status)
+        self.parameters.sweep_amplitude.add_callback(self.display_sweep_status)
+        self.parameters.sweep_pause.add_callback(self.display_sweep_status)
 
     def display_sweep_status(self, *args):
         center = self.parameters.sweep_center.value

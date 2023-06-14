@@ -59,7 +59,7 @@ class Setting:
         self.max = max_
         self._value = start
         self.start = start
-        self._listeners = set()
+        self._callbacks = set()
 
     @property
     def value(self):
@@ -75,21 +75,19 @@ class Setting:
 
         # We copy it because a listener could remove a listener --> this would cause an
         # error in this loop.
-        for listener in self._listeners.copy():
-            listener(value)
+        for callback in self._callbacks.copy():
+            callback(value)
 
-    def add_listener(
-        self, function: Callable, call_listener_with_first_value: bool = True
-    ):
-        self._listeners.add(function)
+    def add_callback(self, function: Callable, call_with_first_value: bool = True):
+        self._callbacks.add(function)
 
-        if call_listener_with_first_value:
+        if call_with_first_value:
             if self._value is not None:
                 function(self._value)
 
-    def remove_listener(self, function):
-        if function in self._listeners:
-            self._listeners.remove(function)
+    def remove_callback(self, function):
+        if function in self._callbacks:
+            self._callbacks.remove(function)
 
 
 class Settings:
@@ -105,8 +103,8 @@ class Settings:
 
         # save changed settings to disk
         for _, setting in self:
-            setting.add_listener(
-                lambda _: save_settings(self), call_listener_with_first_value=False
+            setting.add_callback(
+                lambda _: save_settings(self), call_with_first_value=False
             )
 
     def __iter__(self) -> Iterator[Tuple[str, Setting]]:

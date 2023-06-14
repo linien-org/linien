@@ -56,7 +56,7 @@ class Parameter:
         self.wrap = wrap
         self._value = start
         self._start = start
-        self._listeners = set()
+        self._callbacks = set()
         self.can_be_cached = sync
         self._collapsed_sync = collapsed_sync
         self.restorable = restorable
@@ -64,11 +64,11 @@ class Parameter:
         self.log = log
 
     @property
-    def value(self):
+    def value(self) -> Any:
         return self._value
 
     @value.setter
-    def value(self, value):
+    def value(self, value: Any) -> None:
         # check bounds
         if self.min is not None and value < self.min:
             value = self.min if not self.wrap else self.max
@@ -79,26 +79,26 @@ class Parameter:
 
         # We copy it because a listener could remove a listener --> this would cause an
         # error in this loop.
-        for listener in self._listeners.copy():
-            listener(value)
+        for callback in self._callbacks.copy():
+            callback(value)
 
     def reset(self):
         self.value = self._start
 
-    def add_listener(
+    def add_callback(
         self,
         function: Callable[[Any], None],
-        call_listener_with_first_value: bool = True,
-    ):
-        self._listeners.add(function)
+        call_with_first_value: bool = True,
+    ) -> None:
+        self._callbacks.add(function)
 
-        if call_listener_with_first_value:
+        if call_with_first_value:
             if self._value is not None:
                 function(self._value)
 
-    def remove_listener(self, function):
-        if function in self._listeners:
-            self._listeners.remove(function)
+    def remove_callback(self, function: Callable[[Any], None]) -> None:
+        if function in self._callbacks:
+            self._callbacks.remove(function)
 
 
 class Parameters:
@@ -124,11 +124,10 @@ class Parameters:
     below for a description of each parameter.
     """
 
-    _remote_listener_queue: Dict[str, List[Tuple[str, Any]]]
-    _remote_listener_callbacks: Dict[Tuple[Parameter, Callable[[Any], None]]]
-
     def __init__(self):
+        # Dict[str, List[Tuple[str, Any]]]
         self._remote_listener_queue = {}
+        # Dict[Tuple[Parameter, Callable[[Any], None]]]
         self._remote_listener_callbacks = {}
 
         self.to_plot = Parameter(sync=False)
@@ -284,7 +283,7 @@ class Parameters:
         """
         This is just a counter that is automatically increased every second. Its purpose
         is to allow for periodic tasks on the server: just register a callback with
-         `add_listener` for this parameter.
+         `add_callback` for this parameter.
         """
 
         # ------------------- SWEEP PARAMETERS -----------------------------------------
@@ -602,11 +601,6 @@ class Parameters:
             if isinstance(param, Parameter):
                 yield name, param
 
-    def get_all_restorable_parameters(self) -> Iterator[Tuple[str, Parameter]]:
-        for name, param in self:
-            if param.restorable:
-                yield name, param
-
     def init_parameter_sync(
         self, uuid: str
     ) -> Iterator[Tuple[str, Any, bool, bool, bool]]:
@@ -635,13 +629,13 @@ class Parameters:
                 self._remote_listener_queue[uuid].append((param_name, value))
 
         param = getattr(self, param_name)
-        param.add_listener(callback)
+        param.add_callback(callback)
 
         self._remote_listener_callbacks[uuid].append((param, callback))
 
     def unregister_remote_listeners(self, uuid: str):
         for param, callback in self._remote_listener_callbacks[uuid]:
-            param.remove_listener(callback)
+            param.remove_callback(callback)
 
         del self._remote_listener_queue[uuid]
         del self._remote_listener_callbacks[uuid]

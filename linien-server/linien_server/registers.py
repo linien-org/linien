@@ -65,11 +65,11 @@ class Registers:
         self._last_raw_acquisition_settings = None
         self._iir_cache = {}  # type: ignore[var-annotated]
 
-        self.parameters.lock.add_listener(self.acquisition.exposed_set_lock_status)
-        self.parameters.fetch_additional_signals.add_listener(
+        self.parameters.lock.add_callback(self.acquisition.exposed_set_lock_status)
+        self.parameters.fetch_additional_signals.add_callback(
             self.acquisition.exposed_set_fetch_additional_signals  # noqa: E501
         )
-        self.parameters.dual_channel.add_listener(
+        self.parameters.dual_channel.add_callback(
             self.acquisition.exposed_set_dual_channel
         )
 

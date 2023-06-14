@@ -112,22 +112,22 @@ class PSDAcquisition:
         try:
             self.uuid = generate_curve_uuid()
             self.set_decimation(ALL_DECIMATIONS[0])
-            self.add_listeners()
+            self.add_callbacks()
             self.parameters.psd_acquisition_running.value = True
         except:
             self.cleanup()
             raise
 
-    def add_listeners(self):
-        self.parameters.acquisition_raw_data.add_listener(
-            self.react_to_new_signal, call_listener_with_first_value=False
+    def add_callbacks(self):
+        self.parameters.acquisition_raw_data.add_callback(
+            self.react_to_new_signal, call_with_first_value=False
         )
 
     def cleanup(self):
         self.running = False
         self.parameters.psd_acquisition_running.value = False
 
-        self.parameters.acquisition_raw_data.remove_listener(self.react_to_new_signal)
+        self.parameters.acquisition_raw_data.remove_callback(self.react_to_new_signal)
 
         if not self.is_child:
             self.control.exposed_pause_acquisition()
@@ -230,8 +230,8 @@ class PIDOptimization:
 
     def run(self):
         try:
-            self.parameters.psd_data_complete.add_listener(
-                self.psd_data_received, call_listener_with_first_value=False
+            self.parameters.psd_data_complete.add_callback(
+                self.psd_data_received, call_with_first_value=False
             )
             self.parameters.psd_optimization_running.value = True
             self.start_single_psd_measurement()
@@ -251,7 +251,7 @@ class PIDOptimization:
 
     def cleanup(self):
         self.parameters.psd_optimization_running.value = False
-        self.parameters.psd_data_complete.remove_listener(self.psd_data_received)
+        self.parameters.psd_data_complete.remove_callback(self.psd_data_received)
 
     def psd_data_received(self, psd_data_pickled):
         try:
