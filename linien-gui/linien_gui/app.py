@@ -20,6 +20,7 @@ import sys
 from traceback import print_exc
 
 import click
+from linien_client.connection import LinienClient
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import pyqtSignal
 from pyqtgraph.Qt import QtCore
@@ -50,7 +51,7 @@ class LinienApp(QtWidgets.QApplication):
 
         self.aboutToQuit.connect(self.quit)
 
-    def client_connected(self, client):
+    def client_connected(self, client: LinienClient):
         self.device_manager.hide()
         self.main_window.show(client.host, client.name)
 
@@ -75,7 +76,7 @@ class LinienApp(QtWidgets.QApplication):
             QtCore.QTimer.singleShot(50, self.call_listeners)
 
     def shutdown(self):
-        self.client.control.shutdown()
+        self.client.control.exposed_shutdown()
         self.quit()
 
     def open_psd_window(self):

@@ -23,17 +23,19 @@ from time import sleep
 from traceback import print_exc
 from typing import Callable, Optional
 
-import linien_client
 import rpyc
-from linien_client.deploy import start_remote_server
-from linien_client.exceptions import (
+from linien_common.config import DEFAULT_SERVER_PORT
+
+from . import __version__
+from .communication import LinienControlService
+from .deploy import start_remote_server
+from .exceptions import (
     GeneralConnectionErrorException,
     InvalidServerVersionException,
     RPYCAuthenticationException,
     ServerNotRunningException,
 )
-from linien_client.remote_parameters import RemoteParameters
-from linien_common.config import DEFAULT_SERVER_PORT
+from .remote_parameters import RemoteParameters
 
 
 class RPYCServiceWithUUID(rpyc.Service):
@@ -97,7 +99,7 @@ class LinienClient:
                     self.connection.root, self.uuid, use_parameter_cache
                 )
 
-                self.control = self.connection.root
+                self.control: LinienControlService = self.connection.root
                 break
             except gaierror:
                 # host not found
@@ -131,7 +133,7 @@ class LinienClient:
 
         # now check that the remote version is the same as ours
         remote_version = self.connection.root.exposed_get_server_version().split("+")[0]
-        local_version = linien_client.__version__.split("+")[0]
+        local_version = __version__.split("+")[0]
 
         if (remote_version != local_version) and not ("dev" in local_version):
             raise InvalidServerVersionException(local_version, remote_version)
