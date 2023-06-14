@@ -43,7 +43,7 @@ class RemoteParameter:
         self.loggable = loggable
 
     @property
-    def value(self):
+    def value(self) -> Any:
         """Return the locally cached value (if it exists). Otherwise ask the server."""
         if hasattr(self, "_cached_value"):
             return self._cached_value
@@ -53,6 +53,14 @@ class RemoteParameter:
     def value(self, value: Any):
         """Notify the server of the new value"""
         return self.parent.remote.exposed_set_param(self.name, pickle.dumps(value))
+
+    @property
+    def log(self) -> bool:
+        return self.parent.remote.exposed_get_parameter_log(self.name)
+
+    @log.setter
+    def log(self, value: bool) -> None:
+        self.parent.remote.exposed_set_parameter_log(self.name, value)
 
     def add_callback(self, callback: Callable, call_with_first_value: bool = True):
         """
@@ -70,11 +78,11 @@ class RemoteParameter:
         if call_with_first_value:
             callback(self.value)
 
-    def reset(self):
+    def reset(self) -> None:
         """Reset the value to its initial value"""
         self.parent.remote.exposed_reset_param(self.name)
 
-    def update_cache(self, value):
+    def update_cache(self, value: Any) -> None:
         self._cached_value = value
 
 
@@ -105,13 +113,14 @@ class RemoteParameters:
         all_parameters = pickle.loads(
             self.remote.exposed_init_parameter_sync(self.uuid)
         )
-        for name, value, can_be_cached, restorable, loggable in all_parameters:
+        for name, value, can_be_cached, restorable, loggable, log in all_parameters:
             param = RemoteParameter(
                 parent=self,
                 name=name,
                 use_cache=use_cache and can_be_cached,
                 restorable=restorable,
                 loggable=loggable,
+                log=log,
             )
             setattr(self, name, param)
             if param.use_cache:

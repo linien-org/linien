@@ -53,6 +53,9 @@ class BaseService(rpyc.Service):
         atexit.register(save_parameters, self.parameters)
         self._uuid_mapping = {}  # type: ignore[var-annotated]
 
+        self.stop_event = Event()
+        self.stop_log_event = Event()
+
     def on_connect(self, client) -> None:
         self._uuid_mapping[client] = client.root.uuid
 
@@ -87,6 +90,13 @@ class BaseService(rpyc.Service):
     def exposed_get_changed_parameters_queue(self, uuid: str) -> bytes:
         return pickle.dumps(self.parameters.get_changed_parameters_queue(uuid))
 
+    def exposed_set_parameter_log(self, param_name: str, value: bool) -> None:
+        print(f"Setting log for {param_name} to {value}")
+        getattr(self.parameters, param_name).log = value
+
+    def exposed_get_parameter_log(self, param_name: str) -> bool:
+        return getattr(self.parameters, param_name).log
+
 
 class RedPitayaControlService(BaseService):
     """Control server that runs on the RP that provides high-level methods."""
@@ -107,7 +117,6 @@ class RedPitayaControlService(BaseService):
         # is to allow for periodic tasks on the server: just register an `on_change`
         # listener for this parameter.
 
-        self.stop_event = Event()
         self.ping_thread = Thread(
             target=self._send_ping_loop, args=(self.stop_event,), daemon=True
         )
@@ -224,14 +233,28 @@ class RedPitayaControlService(BaseService):
             self.parameters.task.value = PSDAcquisition(self, self.parameters)
             self.parameters.task.value.run()
 
-    def exposed_start_logging(self):
-        def log_parameters():
+    def exposed_start_logging(self) -> None:
+        def log_parameters(stop_event: Event, stop_log_event: Event):
             # TODO: add the logging functionality
             print("Start logging parameters...")
+            while not (stop_event.is_set() or stop_log_event.is_set()):
+                for name, param in self.parameters:
+                    if param.log:
+                        print(f"Logging parameter {name} with value {param.value}")
+                sleep(1)
 
-        self._logging_thread = Thread(target=log_parameters)
-        self._logging_thread.daemon = True
+        self._logging_thread = Thread(
+            target=log_parameters,
+            args=(self.stop_event, self.stop_log_event),
+            daemon=True,
+        )
         self._logging_thread.start()
+
+    def exposed_stop_logging(self) -> None:
+        self.stop_log_event.set()
+        print("Waiting for logging thread to stop...")
+        self._logging_thread.join()
+        print("Logging thread stopped.")
 
     def exposed_start_pid_optimization(self):
         if not self._task_running():
@@ -240,19 +263,15 @@ class RedPitayaControlService(BaseService):
 
     def exposed_start_sweep(self):
         self.exposed_pause_acquisition()
-
         self.parameters.combined_offset.value = 0
         self.parameters.lock.value = False
         self.exposed_write_registers()
-
         self.exposed_continue_acquisition()
 
     def exposed_start_lock(self):
         self.exposed_pause_acquisition()
-
         self.parameters.lock.value = True
         self.exposed_write_registers()
-
         self.exposed_continue_acquisition()
 
     def exposed_shutdown(self):
@@ -297,7 +316,6 @@ class FakeRedPitayaControlService(BaseService):
         super().__init__()
         self.exposed_is_locked = None
 
-        self.stop_event = Event()
         self.random_data_thread = Thread(
             target=self._write_random_data_to_parameters_loop,
             args=(self.stop_event,),

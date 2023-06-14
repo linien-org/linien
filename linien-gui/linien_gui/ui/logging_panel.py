@@ -22,6 +22,8 @@ from PyQt5 import QtWidgets, uic
 
 
 class LoggingPanel(QtWidgets.QWidget):
+    set_parameter_log = QtWidgets.pyqtSignal(str, bool)
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         uic.loadUi(UI_PATH / "logging_panel.ui", self)
@@ -29,12 +31,18 @@ class LoggingPanel(QtWidgets.QWidget):
         self.app.connection_established.connect(self.on_connection_established)
 
         self.logParametersToolButton.setPopupMode(QtWidgets.QToolButton.InstantPopup)
-        self.logged_parameters_menu = LoggedParametersMenu()
+        self.logged_parameters_menu = LoggedParametersMenu(parent=self)
 
     def on_connection_established(self):
         self.parameters = self.app.parameters
         self.logged_parameters_menu.create_menu_entries(self.parameters)
         self.logParametersToolButton.setMenu(self.logged_parameters_menu)
+
+        self.control = self.app.control
+        self.set_parameter_log.connect(self.on_parameter_log_status_changed)
+
+    def on_parameter_log_status_changed(self, param_name: str, log: bool) -> None:
+        self.control.exposed_get_parameter_log(param_name, log)
 
 
 # checkable menu for logged parameters, inspired by
@@ -56,8 +64,5 @@ class LoggedParametersMenu(QtWidgets.QMenu):
                 self.addAction(action)
 
     def on_action_clicked(self, action: QtWidgets.QAction):
-        param = action.text()
-        if action.isChecked():
-            print("Turn on logging for ", param)
-        else:
-            print("Turn off logging for ", param)
+        param_name = action.text()
+        self.parent.set_parameter_log.emit(param_name, action.isChecked())

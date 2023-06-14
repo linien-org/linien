@@ -603,7 +603,7 @@ class Parameters:
 
     def init_parameter_sync(
         self, uuid: str
-    ) -> Iterator[Tuple[str, Any, bool, bool, bool]]:
+    ) -> Iterator[Tuple[str, Any, bool, bool, bool, bool]]:
         """
         To be called by a remote client: Yields all parameters as well as their values
         and if the parameters are suited to be cached registers a listener that pushes
@@ -616,6 +616,7 @@ class Parameters:
                 param.can_be_cached,
                 param.restorable,
                 param.loggable,
+                param.log,
             )
             if param.can_be_cached:
                 self.register_remote_listener(uuid, name)
