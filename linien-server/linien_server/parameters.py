@@ -641,6 +641,7 @@ class Parameters:
         del self._remote_listener_callbacks[uuid]
 
     def get_listener_queue(self, uuid: str) -> Dict[str, List[Tuple[str, Any]]]:
+        """Get the queue of parameter changes for a specific client."""
         queue = self._remote_listener_queue.get(uuid, [])
         self._remote_listener_queue[uuid] = []
 

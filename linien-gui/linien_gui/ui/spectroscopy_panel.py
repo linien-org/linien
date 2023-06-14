@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
+from typing import Union
+
 from linien_client.remote_parameters import RemoteParameter
 from linien_common.common import HIGH_PASS_FILTER, LOW_PASS_FILTER
 from linien_gui.utils import get_linien_app_instance, param2ui
@@ -24,6 +26,8 @@ from PyQt5 import QtWidgets, uic
 
 
 class SpectroscopyPanel(QtWidgets.QWidget):
+    CHANNEL = Union[str, None]
+
     def __init__(self, *args):
         super(SpectroscopyPanel, self).__init__(*args)
         uic.loadUi(UI_PATH / "spectroscopy_panel.ui", self)
@@ -132,7 +136,7 @@ class SpectroscopyPanel(QtWidgets.QWidget):
             )
 
     def get_param(self, name: str) -> RemoteParameter:
-        return getattr(self.parameters, f"{name}_{'a' if self.channel == 0 else 'b'}")
+        return getattr(self.parameters, f"{name}_{self.CHANNEL}")
 
     def change_signal_offset(self):
         self.get_param("offset").value = self.signalOffsetSpinBox.value() * 8191
@@ -150,8 +154,8 @@ class SpectroscopyPanel(QtWidgets.QWidget):
 
 
 class SpectroscopyChannelAPanel(SpectroscopyPanel):
-    channel = 0
+    CHANNEL = "a"
 
 
 class SpectroscopyChannelBPanel(SpectroscopyPanel):
-    channel = 1
+    CHANNEL = "b"
