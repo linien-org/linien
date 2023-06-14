@@ -19,10 +19,11 @@ from linien_client.remote_parameters import RemoteParameters
 from linien_gui.utils import get_linien_app_instance
 from linien_gui.widgets import UI_PATH
 from PyQt5 import QtWidgets, uic
+from PyQt5.QtCore import pyqtSignal
 
 
 class LoggingPanel(QtWidgets.QWidget):
-    set_parameter_log = QtWidgets.pyqtSignal(str, bool)
+    set_parameter_log = pyqtSignal(str, bool)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
