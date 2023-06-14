@@ -124,8 +124,11 @@ class Parameters:
     below for a description of each parameter.
     """
 
+    _remote_listener_queue: Dict[str, List[Tuple[str, Any]]]
+    _remote_listener_callbacks: Dict[Tuple[Parameter, Callable[[Any], None]]]
+
     def __init__(self):
-        self._remote_listener_queue: Dict[str, List[str, Any]] = {}
+        self._remote_listener_queue = {}
         self._remote_listener_callbacks = {}
 
         self.to_plot = Parameter(sync=False)
