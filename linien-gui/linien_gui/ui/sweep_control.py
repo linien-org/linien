@@ -16,13 +16,14 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 import superqt
+from linien_gui.utils import get_linien_app_instance
 from PyQt5 import QtCore, QtWidgets
 
 
 class SweepControlWidget(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         super(SweepControlWidget, self).__init__(*args, **kwargs)
-        self.app = QtWidgets.QApplication.instance()
+        self.app = get_linien_app_instance()
         self.main_window = self.window()
         self.app.connection_established.connect(self.on_connection_established)
         QtCore.QTimer.singleShot(100, self.ready)

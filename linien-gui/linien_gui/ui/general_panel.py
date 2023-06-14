@@ -24,7 +24,7 @@ from linien_common.common import (
     FAST_OUT2,
     convert_channel_mixing_value,
 )
-from linien_gui.utils import param2ui
+from linien_gui.utils import get_linien_app_instance, param2ui
 from linien_gui.widgets import UI_PATH
 from PyQt5 import QtWidgets, uic
 
@@ -33,7 +33,7 @@ class GeneralPanel(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         super(GeneralPanel, self).__init__(*args, **kwargs)
         uic.loadUi(UI_PATH / "general_panel.ui", self)
-        self.app = QtWidgets.QApplication.instance()
+        self.app = get_linien_app_instance()
         self.app.connection_established.connect(self.on_connection_established)
 
         self.channelMixingSlider.valueChanged.connect(self.on_channel_mixing_changed)

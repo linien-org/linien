@@ -33,6 +33,7 @@ from linien_common.common import (
     update_signal_history,
 )
 from linien_gui.config import DEFAULT_PLOT_RATE_LIMIT, N_COLORS, Color
+from linien_gui.utils import get_linien_app_instance
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import pyqtSignal
 from pyqtgraph.Qt import QtCore
@@ -64,7 +65,7 @@ class TimeXAxis(pg.AxisItem):
     def __init__(self, *args, parent=None, **kwargs):
         pg.AxisItem.__init__(self, *args, **kwargs)
         self.parent = parent
-        self.app = QtWidgets.QApplication.instance()
+        self.app = get_linien_app_instance()
         self.app.connection_established.connect(self.on_connection_established)
 
     def on_connection_established(self):
@@ -110,7 +111,7 @@ class PlotWidget(pg.PlotWidget):
             axisItems={"bottom": TimeXAxis(parent=self, orientation="bottom")},
             **kwargs,
         )
-        self.app = QtWidgets.QApplication.instance()
+        self.app = get_linien_app_instance()
         self.app.connection_established.connect(self.on_connection_established)
 
         self.getAxis("bottom").enableAutoSIPrefix(False)

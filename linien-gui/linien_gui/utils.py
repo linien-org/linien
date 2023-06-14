@@ -17,7 +17,9 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+from typing import TYPE_CHECKING
 
+from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import (
     QCheckBox,
     QComboBox,
@@ -28,6 +30,13 @@ from PyQt5.QtWidgets import (
     QTabWidget,
 )
 from pyqtgraph.Qt import QtGui
+
+if TYPE_CHECKING:
+    from linien_gui.app import LinienApp
+
+
+def get_linien_app_instance() -> "LinienApp":
+    return QtWidgets.QApplication.instance()
 
 
 def param2ui(parameter, element, process_value=lambda x: x):

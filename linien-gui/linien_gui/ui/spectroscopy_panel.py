@@ -17,7 +17,7 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 from linien_common.common import HIGH_PASS_FILTER, LOW_PASS_FILTER
-from linien_gui.utils import param2ui
+from linien_gui.utils import get_linien_app_instance, param2ui
 from linien_gui.widgets import UI_PATH
 from PyQt5 import QtWidgets, uic
 
@@ -26,7 +26,7 @@ class SpectroscopyPanel(QtWidgets.QWidget):
     def __init__(self, *args):
         super(SpectroscopyPanel, self).__init__(*args)
         uic.loadUi(UI_PATH / "spectroscopy_panel.ui", self)
-        self.app = QtWidgets.QApplication.instance()
+        self.app = get_linien_app_instance()
 
         def change_filter_frequency(filter_i):
             self.get_param(f"filter_{filter_i}_frequency").value = getattr(

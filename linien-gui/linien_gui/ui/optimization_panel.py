@@ -17,7 +17,7 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 from linien_common.common import MHz, Vpp
-from linien_gui.utils import param2ui
+from linien_gui.utils import get_linien_app_instance, param2ui
 from linien_gui.widgets import UI_PATH
 from PyQt5 import QtWidgets, uic
 
@@ -26,7 +26,7 @@ class OptimizationPanel(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         super(OptimizationPanel, self).__init__(*args, **kwargs)
         uic.loadUi(UI_PATH / "optimization_panel.ui", self)
-        self.app = QtWidgets.QApplication.instance()
+        self.app = get_linien_app_instance()
         self.app.connection_established.connect(self.on_connection_established)
 
         self.startOptimizationPushButton.clicked.connect(self.start_optimization)

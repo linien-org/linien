@@ -27,7 +27,7 @@ from linien_gui.dialogs import (
 )
 from linien_gui.threads import ConnectionThread
 from linien_gui.ui.new_device_dialog import NewDeviceDialog
-from linien_gui.utils import set_window_icon
+from linien_gui.utils import get_linien_app_instance, set_window_icon
 from linien_gui.widgets import UI_PATH
 from PyQt5 import QtCore, QtWidgets, uic
 
@@ -38,7 +38,7 @@ class DeviceManager(QtWidgets.QMainWindow):
         uic.loadUi(UI_PATH / "device_manager.ui", self)
         self.setWindowTitle(f"Linien spectroscopy lock v{linien_gui.__version__}")
         set_window_icon(self)
-        self.app = QtWidgets.QApplication.instance()
+        self.app = get_linien_app_instance()
         QtCore.QTimer.singleShot(100, lambda: self.load_device_data(autoload=True))
 
     def keyPressEvent(self, event):
