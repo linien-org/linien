@@ -18,8 +18,6 @@
 
 """This file contains stuff that is required by the server as well as the client."""
 
-import hashlib
-import pickle
 from time import time
 from typing import Tuple
 
