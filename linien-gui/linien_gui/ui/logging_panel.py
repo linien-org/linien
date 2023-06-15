@@ -25,6 +25,8 @@ from PyQt5.QtCore import pyqtSignal
 class LoggingPanel(QtWidgets.QWidget):
     set_parameter_log = pyqtSignal(str, bool)
 
+    logParametersToolButton: "LoggedParametersToolButton"
+
     def __init__(self, *args, **kwargs) -> None:
         super(LoggingPanel, self).__init__(*args, **kwargs)
         uic.loadUi(UI_PATH / "logging_panel.ui", self)
@@ -32,12 +34,12 @@ class LoggingPanel(QtWidgets.QWidget):
         self.app.connection_established.connect(self.on_connection_established)
 
         self.logParametersToolButton.setPopupMode(QtWidgets.QToolButton.InstantPopup)
-        self.logged_parameters_menu = LoggedParametersMenu()
+        self.loggedParametersMenu = LoggedParametersMenu()
 
     def on_connection_established(self) -> None:
         self.parameters = self.app.parameters
-        self.logged_parameters_menu.create_menu_entries(self.parameters)
-        self.logParametersToolButton.setMenu(self.logged_parameters_menu)
+        self.loggedParametersMenu.create_menu_entries(self.parameters)
+        self.logParametersToolButton.setMenu(self.loggedParametersMenu)
 
         self.control = self.app.control
         self.set_parameter_log.connect(self.on_parameter_log_status_changed)
@@ -50,7 +52,7 @@ class LoggingPanel(QtWidgets.QWidget):
 # https://stackoverflow.com/a/22775990/2750945
 class LoggedParametersToolButton(QtWidgets.QToolButton):
     def __init__(self, *args, **kwargs):
-        super(LoggedParametersToolButton, self).__init__()
+        super(LoggedParametersToolButton, self).__init__(*args, **kwargs)
 
 
 class LoggedParametersMenu(QtWidgets.QMenu):
