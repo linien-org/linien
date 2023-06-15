@@ -25,16 +25,16 @@ from PyQt5.QtCore import pyqtSignal
 class LoggingPanel(QtWidgets.QWidget):
     set_parameter_log = pyqtSignal(str, bool)
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, *args, **kwargs) -> None:
+        super(LoggingPanel, self).__init__(*args, **kwargs)
         uic.loadUi(UI_PATH / "logging_panel.ui", self)
         self.app = get_linien_app_instance()
         self.app.connection_established.connect(self.on_connection_established)
 
         self.logParametersToolButton.setPopupMode(QtWidgets.QToolButton.InstantPopup)
-        self.logged_parameters_menu = LoggedParametersMenu(parent=self)
+        self.logged_parameters_menu = LoggedParametersMenu()
 
-    def on_connection_established(self):
+    def on_connection_established(self) -> None:
         self.parameters = self.app.parameters
         self.logged_parameters_menu.create_menu_entries(self.parameters)
         self.logParametersToolButton.setMenu(self.logged_parameters_menu)
@@ -42,8 +42,8 @@ class LoggingPanel(QtWidgets.QWidget):
         self.control = self.app.control
         self.set_parameter_log.connect(self.on_parameter_log_status_changed)
 
-    def on_parameter_log_status_changed(self, param_name: str, log: bool) -> None:
-        self.control.exposed_get_parameter_log(param_name, log)
+    def on_parameter_log_status_changed(self, param_name: str, status: bool) -> None:
+        self.control.exposed_set_parameter_log(param_name, status)
 
 
 # checkable menu for logged parameters, inspired by
@@ -54,16 +54,18 @@ class LoggedParametersToolButton(QtWidgets.QToolButton):
 
 
 class LoggedParametersMenu(QtWidgets.QMenu):
-    def __init__(self, *args, **kwargs):
-        super(LoggedParametersMenu, self).__init__()
+    item_selected = pyqtSignal(str, bool)
+
+    def __init__(self, *args, **kwargs) -> None:
+        super(LoggedParametersMenu, self).__init__(*args, **kwargs)
         self.triggered.connect(self.on_action_clicked)
 
-    def create_menu_entries(self, parameters: RemoteParameters):
+    def create_menu_entries(self, parameters: RemoteParameters) -> None:
         for name, param in parameters:
             if param.loggable:
                 action = QtWidgets.QAction(name, parent=self, checkable=True)  # type: ignore[call-overload] # noqa: E501
                 self.addAction(action)
 
-    def on_action_clicked(self, action: QtWidgets.QAction):
+    def on_action_clicked(self, action: QtWidgets.QAction) -> None:
         param_name = action.text()
-        self.parent().set_parameter_log.emit(param_name, action.isChecked())
+        self.item_selected.emit(param_name, action.isChecked())
