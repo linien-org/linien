@@ -240,7 +240,9 @@ class RedPitayaControlService(BaseService):
             while not (stop_event.is_set() or stop_log_event.is_set()):
                 for name, param in self.parameters:
                     if param.log:
-                        print(f"Logging parameter {name} with value {param.value}")
+                        print(
+                            "Logging parameter %s with value %f" % (name, param.value)
+                        )
                 sleep(1)
 
         self._logging_thread = Thread(
