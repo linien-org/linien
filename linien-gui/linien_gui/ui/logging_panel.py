@@ -69,7 +69,7 @@ class LoggingPanel(QtWidgets.QWidget):
             self.logIntervalSpinBox.setEnabled(False)
         else:
             self.control.exposed_stop_logging()
-            self.logPushButton.setText("Stop Logging")
+            self.logPushButton.setText("Start Logging")
             self.logIntervalSpinBox.setEnabled(True)
 
     def on_influx_update_button_clicked(self) -> None:
