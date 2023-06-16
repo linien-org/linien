@@ -26,6 +26,15 @@ class LoggingPanel(QtWidgets.QWidget):
     set_parameter_log = pyqtSignal(str, bool)
 
     logParametersToolButton: "LoggedParametersToolButton"
+    lineEditURL: QtWidgets.QLineEdit
+    lineEditOrg: QtWidgets.QLineEdit
+    lineEditToken: QtWidgets.QLineEdit
+    lineEditBucket: QtWidgets.QLineEdit
+    lineEditMeas: QtWidgets.QLineEdit
+    influxTestButton: QtWidgets.QPushButton
+    influxTestIndicator: QtWidgets.QLabel
+    logIntervalSpinBox: QtWidgets.QSpinBox
+    logPushButton: QtWidgets.QPushButton
 
     def __init__(self, *args, **kwargs) -> None:
         super(LoggingPanel, self).__init__(*args, **kwargs)
