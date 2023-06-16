@@ -15,10 +15,48 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
+from threading import Event, Thread
+from time import sleep
+
 from linien_common.influxdb import InfluxDBCredentials
+from linien_server.parameters import Parameters
 
 
 class InfluxDBLogger:
+    def __init__(
+        self, credentials: InfluxDBCredentials, parameters: Parameters
+    ) -> None:
+        self.credentials = credentials
+        self.parameters = parameters
+        self.stop_event = Event()
+
+    def start_logging(self, interval: float) -> None:
+        self.stop_event.clear()
+        self.thread = Thread(
+            target=self._logging_loop,
+            args=(interval, self.parameters, self.credentials),
+            daemon=True,
+        )
+        self.thread.start()
+
+    def stop_logging(self) -> None:
+        self.stop_event.set()
+        self.thread.join()
+
+    def _logging_loop(
+        self,
+        interval: float,
+        credentials: InfluxDBCredentials,
+        parameters: Parameters,
+        stop_event: Event,
+    ) -> None:
+        print("Logging to ", credentials.url)
+        while not stop_event.is_set():
+            for name, param in parameters:
+                if param.log:
+                    print("Logging", name, param.value)
+            sleep(interval)
+
     @staticmethod
     def test_connection(credentials: InfluxDBCredentials) -> bool:
         return True

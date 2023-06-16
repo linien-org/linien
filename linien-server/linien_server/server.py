@@ -52,9 +52,10 @@ class BaseService(rpyc.Service):
     def __init__(self) -> None:
         self.parameters = Parameters()
         self.parameters = restore_parameters(self.parameters)
-        self.influxdb_logger = InfluxDBLogger()
         atexit.register(save_parameters, self.parameters)
         self._uuid_mapping = {}  # type: ignore[var-annotated]
+
+        self.influxdb_logger = InfluxDBLogger(InfluxDBCredentials(), self.parameters)
 
         self.stop_event = Event()
         self.stop_log_event = Event()
@@ -100,10 +101,19 @@ class BaseService(rpyc.Service):
     def exposed_get_parameter_log(self, param_name: str) -> bool:
         return getattr(self.parameters, param_name).log
 
-    def exposed_test_influxdb_connection(
+    def exposed_update_influxdb_credentials(
         self, credentials: InfluxDBCredentials
     ) -> bool:
-        return self.influxdb_logger.test_connection(credentials)
+        connection_succesful = self.influxdb_logger.test_connection(credentials)
+        if connection_succesful:
+            self.influxdb_logger._credentials = credentials
+        return connection_succesful
+
+    def exposed_start_logging(self, interval: float) -> None:
+        self.influxdb_logger.start_logging(interval)
+
+    def exposed_stop_logging(self) -> None:
+        self.influxdb_logger.stop_logging()
 
 
 class RedPitayaControlService(BaseService):
@@ -242,29 +252,6 @@ class RedPitayaControlService(BaseService):
             self.parameters.task.value = PSDAcquisition(self, self.parameters)
             self.parameters.task.value.run()
 
-    def exposed_start_logging(self) -> None:
-        def log_parameters(stop_event: Event, stop_log_event: Event):
-            # TODO: add the logging functionality
-            print("Start logging parameters...")
-            while not (stop_event.is_set() or stop_log_event.is_set()):
-                for name, param in self.parameters:
-                    if param.log:
-                        print(
-                            "Logging parameter %s with value %f" % (name, param.value)
-                        )
-                sleep(1)
-
-        self._logging_thread = Thread(
-            target=log_parameters,
-            args=(self.stop_event, self.stop_log_event),
-            daemon=True,
-        )
-        self._logging_thread.start()
-
-    def exposed_stop_logging(self) -> None:
-        self.stop_log_event.set()
-        print("Waiting for logging thread to stop...")
-        self._logging_thread.join()
         print("Logging thread stopped.")
 
     def exposed_start_pid_optimization(self):

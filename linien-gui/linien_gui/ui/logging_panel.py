@@ -58,6 +58,16 @@ class LoggingPanel(QtWidgets.QWidget):
     def on_parameter_log_status_changed(self, param_name: str, status: bool) -> None:
         self.control.exposed_set_parameter_log(param_name, status)
 
+    def on_logging_button_clicked(self) -> None:
+        if self.logPushButton.isChecked():
+            self.control.exposed_start_logging(self.logIntervalSpinBox.value())
+            self.logPushButton.setText("Stop Logging")
+            self.logIntervalSpinBox.setEnabled(False)
+        else:
+            self.control.exposed_stop_logging()
+            self.logPushButton.setText("Stop Logging")
+            self.logIntervalSpinBox.setEnabled(True)
+
 
 # checkable menu for logged parameters, inspired by
 # https://stackoverflow.com/a/22775990/2750945
@@ -71,13 +81,14 @@ class LoggedParametersMenu(QtWidgets.QMenu):
 
     def __init__(self, *args, **kwargs) -> None:
         super(LoggedParametersMenu, self).__init__(*args, **kwargs)
-        self.triggered.connect(self.on_item_selected)
 
     def create_menu_entries(self, parameters: RemoteParameters) -> None:
         for name, param in parameters:
             if param.loggable:
                 action = QtWidgets.QAction(name, parent=self, checkable=True)  # type: ignore[call-overload] # noqa: E501
+                action.setChecked(param.log)
                 self.addAction(action)
+        self.triggered.connect(self.on_item_selected)
 
     def on_item_selected(self, action: QtWidgets.QAction) -> None:
         param_name = action.text()

@@ -17,6 +17,7 @@
 
 from typing import List
 
+from linien_common.influxdb import InfluxDBCredentials
 from typing_extensions import Protocol
 
 
@@ -56,12 +57,6 @@ class LinienControlService(Protocol):
     def exposed_start_psd_acquisition(self) -> None:
         ...
 
-    def exposed_start_logging(self) -> None:
-        ...
-
-    def exposed_stop_logging(self) -> None:
-        ...
-
     def exposed_start_pid_optimization(self) -> None:
         ...
 
@@ -87,4 +82,15 @@ class LinienControlService(Protocol):
         ...
 
     def exposed_get_parameter_log(self, param_name: str) -> bool:
+        ...
+
+    def exposed_update_influxdb_credentials(
+        self, credentials: InfluxDBCredentials
+    ) -> bool:
+        ...
+
+    def exposed_start_logging(self, interval: float) -> None:
+        ...
+
+    def exposed_stop_logging(self) -> None:
         ...
