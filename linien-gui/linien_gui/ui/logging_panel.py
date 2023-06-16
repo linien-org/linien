@@ -73,6 +73,7 @@ class LoggingPanel(QtWidgets.QWidget):
             self.logIntervalSpinBox.setEnabled(True)
 
     def on_influx_update_button_clicked(self) -> None:
+        print("Updating influxdb credentials")
         credentials = InfluxDBCredentials(
             url=self.lineEditURL.text(),
             org=self.lineEditOrg.text(),

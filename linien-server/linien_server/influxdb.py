@@ -35,7 +35,7 @@ class InfluxDBLogger:
         self.stop_event.clear()
         self.thread = Thread(
             target=self._logging_loop,
-            args=(interval, self.parameters, self.credentials, self.stop_event),
+            args=(interval, self.credentials, self.parameters, self.stop_event),
             daemon=True,
         )
         self.thread.start()

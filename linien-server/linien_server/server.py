@@ -105,6 +105,7 @@ class BaseService(rpyc.Service):
         self, credentials: InfluxDBCredentials
     ) -> bool:
         connection_succesful = self.influxdb_logger.test_connection(credentials)
+        print("Connection successful:", connection_succesful)
         if connection_succesful:
             self.influxdb_logger.credentials = credentials
         return connection_succesful
