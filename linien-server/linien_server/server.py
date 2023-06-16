@@ -29,8 +29,10 @@ import numpy as np
 import rpyc
 from linien_common.common import N_POINTS, check_plot_data, update_signal_history
 from linien_common.config import DEFAULT_SERVER_PORT
+from linien_common.influxdb import InfluxDBCredentials
 from linien_server import __version__
 from linien_server.autolock.autolock import Autolock
+from linien_server.influxdb import InfluxDBLogger
 from linien_server.optimization.optimization import OptimizeSpectroscopy
 from linien_server.parameters import Parameters, restore_parameters, save_parameters
 from linien_server.pid_optimization.pid_optimization import (
@@ -50,6 +52,7 @@ class BaseService(rpyc.Service):
     def __init__(self) -> None:
         self.parameters = Parameters()
         self.parameters = restore_parameters(self.parameters)
+        self.influxdb_logger = InfluxDBLogger()
         atexit.register(save_parameters, self.parameters)
         self._uuid_mapping = {}  # type: ignore[var-annotated]
 
@@ -96,6 +99,11 @@ class BaseService(rpyc.Service):
 
     def exposed_get_parameter_log(self, param_name: str) -> bool:
         return getattr(self.parameters, param_name).log
+
+    def exposed_test_influxdb_connection(
+        self, credentials: InfluxDBCredentials
+    ) -> bool:
+        return self.influxdb_logger.test_connection(credentials)
 
 
 class RedPitayaControlService(BaseService):
