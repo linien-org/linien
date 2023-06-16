@@ -114,7 +114,6 @@ class BaseService(rpyc.Service):
         return connection_succesful
 
     def exposed_start_logging(self, interval: float) -> None:
-        print("Starting logging")
         self.influxdb_logger.start_logging(interval)
 
     def exposed_stop_logging(self) -> None:

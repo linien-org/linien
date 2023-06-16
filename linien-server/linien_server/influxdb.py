@@ -31,7 +31,6 @@ class InfluxDBLogger:
         self.stop_event = Event()
 
     def start_logging(self, interval: float) -> None:
-        print("Starting logging")
         self.stop_event.clear()
         self.thread = Thread(
             target=self._logging_loop,
@@ -51,11 +50,10 @@ class InfluxDBLogger:
         parameters: Parameters,
         stop_event: Event,
     ) -> None:
-        print("Logging to ", credentials.url)
         while not stop_event.is_set():
             for name, param in parameters:
                 if param.log:
-                    print("Logging", name, param.value)
+                    print("Logging", name, "=", param.value)
             sleep(interval)
 
     @staticmethod
