@@ -134,7 +134,8 @@ class RedPitayaControlService(BaseService):
     def _send_ping_loop(self, stop_event: Event):
         while not stop_event.is_set():
             self.parameters.ping.value += 1
-            print("ping", self.parameters.ping.value)
+            if self.parameters.ping.value < 5:
+                print("ping", self.parameters.ping.value)
             sleep(1)
 
     def _push_acquired_data_to_parameters(self, stop_event: Event):
