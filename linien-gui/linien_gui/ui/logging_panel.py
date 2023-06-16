@@ -42,7 +42,9 @@ class LoggingPanel(QtWidgets.QWidget):
         self.logParametersToolButton.setMenu(self.loggedParametersMenu)
 
         self.control = self.app.control
-        self.set_parameter_log.connect(self.on_parameter_log_status_changed)
+        self.loggedParametersMenu.item_clicked.connect(
+            self.on_parameter_log_status_changed
+        )
 
     def on_parameter_log_status_changed(self, param_name: str, status: bool) -> None:
         self.control.exposed_set_parameter_log(param_name, status)
@@ -56,11 +58,11 @@ class LoggedParametersToolButton(QtWidgets.QToolButton):
 
 
 class LoggedParametersMenu(QtWidgets.QMenu):
-    item_selected = pyqtSignal(str, bool)
+    item_clicked = pyqtSignal(str, bool)
 
     def __init__(self, *args, **kwargs) -> None:
         super(LoggedParametersMenu, self).__init__(*args, **kwargs)
-        self.triggered.connect(self.on_action_clicked)
+        self.triggered.connect(self.on_item_selected)
 
     def create_menu_entries(self, parameters: RemoteParameters) -> None:
         for name, param in parameters:
@@ -68,6 +70,6 @@ class LoggedParametersMenu(QtWidgets.QMenu):
                 action = QtWidgets.QAction(name, parent=self, checkable=True)  # type: ignore[call-overload] # noqa: E501
                 self.addAction(action)
 
-    def on_action_clicked(self, action: QtWidgets.QAction) -> None:
+    def on_item_selected(self, action: QtWidgets.QAction) -> None:
         param_name = action.text()
-        self.item_selected.emit(param_name, action.isChecked())
+        self.item_clicked.emit(param_name, action.isChecked())
