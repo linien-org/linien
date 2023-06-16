@@ -106,7 +106,7 @@ class BaseService(rpyc.Service):
     ) -> bool:
         connection_succesful = self.influxdb_logger.test_connection(credentials)
         if connection_succesful:
-            self.influxdb_logger._credentials = credentials
+            self.influxdb_logger.credentials = credentials
         return connection_succesful
 
     def exposed_start_logging(self, interval: float) -> None:
