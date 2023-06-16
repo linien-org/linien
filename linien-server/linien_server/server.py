@@ -19,6 +19,7 @@
 import _thread
 import atexit
 import pickle
+from copy import copy
 from random import randint, random
 from threading import Event, Thread
 from time import sleep
@@ -104,6 +105,7 @@ class BaseService(rpyc.Service):
     def exposed_update_influxdb_credentials(
         self, credentials: InfluxDBCredentials
     ) -> bool:
+        credentials = copy(credentials)
         connection_succesful = self.influxdb_logger.test_connection(credentials)
         if connection_succesful:
             self.influxdb_logger.credentials = credentials
