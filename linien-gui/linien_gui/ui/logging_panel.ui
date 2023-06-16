@@ -109,7 +109,7 @@
       <item>
        <layout class="QHBoxLayout" name="influxTestButtonLayout">
         <item>
-         <widget class="QPushButton" name="influxTestButton">
+         <widget class="QPushButton" name="influxUpdateButton">
           <property name="text">
            <string>Update</string>
           </property>
@@ -220,6 +220,12 @@
        <widget class="QPushButton" name="logPushButton">
         <property name="text">
          <string>Start Logging</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
         </property>
        </widget>
       </item>

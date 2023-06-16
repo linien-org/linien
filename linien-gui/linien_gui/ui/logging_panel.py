@@ -16,6 +16,7 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 from linien_client.remote_parameters import RemoteParameters
+from linien_common.influxdb import InfluxDBCredentials
 from linien_gui.utils import get_linien_app_instance
 from linien_gui.widgets import UI_PATH
 from PyQt5 import QtWidgets, uic
@@ -31,7 +32,7 @@ class LoggingPanel(QtWidgets.QWidget):
     lineEditToken: QtWidgets.QLineEdit
     lineEditBucket: QtWidgets.QLineEdit
     lineEditMeas: QtWidgets.QLineEdit
-    influxTestButton: QtWidgets.QPushButton
+    influxUpdateButton: QtWidgets.QPushButton
     influxTestIndicator: QtWidgets.QLabel
     logIntervalSpinBox: QtWidgets.QSpinBox
     logPushButton: QtWidgets.QPushButton
@@ -47,13 +48,16 @@ class LoggingPanel(QtWidgets.QWidget):
 
     def on_connection_established(self) -> None:
         self.parameters = self.app.parameters
+        self.control = self.app.control
+
         self.loggedParametersMenu.create_menu_entries(self.parameters)
         self.logParametersToolButton.setMenu(self.loggedParametersMenu)
 
-        self.control = self.app.control
         self.loggedParametersMenu.item_clicked.connect(
             self.on_parameter_log_status_changed
         )
+        self.logPushButton.clicked.connect(self.on_logging_button_clicked)
+        self.influxUpdateButton.clicked.connect(self.on_influx_update_button_clicked)
 
     def on_parameter_log_status_changed(self, param_name: str, status: bool) -> None:
         self.control.exposed_set_parameter_log(param_name, status)
@@ -67,6 +71,16 @@ class LoggingPanel(QtWidgets.QWidget):
             self.control.exposed_stop_logging()
             self.logPushButton.setText("Stop Logging")
             self.logIntervalSpinBox.setEnabled(True)
+
+    def on_influx_update_button_clicked(self) -> None:
+        credentials = InfluxDBCredentials(
+            url=self.lineEditURL.text(),
+            org=self.lineEditOrg.text(),
+            token=self.lineEditToken.text(),
+            bucket=self.lineEditBucket.text(),
+            measurement=self.lineEditMeas.text(),
+        )
+        self.control.exposed_update_influxdb_credentials(credentials)
 
 
 # checkable menu for logged parameters, inspired by

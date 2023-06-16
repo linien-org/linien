@@ -31,10 +31,11 @@ class InfluxDBLogger:
         self.stop_event = Event()
 
     def start_logging(self, interval: float) -> None:
+        print("Starting logging")
         self.stop_event.clear()
         self.thread = Thread(
             target=self._logging_loop,
-            args=(interval, self.parameters, self.credentials),
+            args=(interval, self.parameters, self.credentials, self.stop_event),
             daemon=True,
         )
         self.thread.start()

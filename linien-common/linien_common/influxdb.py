@@ -19,15 +19,13 @@
 class InfluxDBCredentials:
     def __init__(
         self,
-        url: str = "http://localhost",
-        port: int = 8086,
+        url: str = "http://localhost:8086",
         org: str = "my-org",
         token: str = "my-token",
         bucket: str = "my-bucket",
         measurement: str = "my-measurement",
     ):
         self.url = url
-        self.port = port
         self.org = org
         self.token = token
         self.bucket = bucket
