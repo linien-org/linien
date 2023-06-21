@@ -277,7 +277,7 @@ def combine_error_signal(
     return np.array([v + combined_offset for v in signal])
 
 
-def check_plot_data(is_locked, plot_data):
+def check_plot_data(is_locked: bool, plot_data) -> bool:
     if is_locked:
         if "error_signal" not in plot_data or "control_signal" not in plot_data:
             return False

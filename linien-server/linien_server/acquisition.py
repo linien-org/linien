@@ -23,7 +23,7 @@ from pathlib import Path
 from random import random
 from threading import Event, Thread
 from time import sleep
-from typing import Tuple, Union
+from typing import Dict, Tuple, Union
 
 import numpy as np
 from linien_common.common import DECIMATION, MAX_N_POINTS, N_POINTS
@@ -135,7 +135,7 @@ class AcquisitionService(Service):
 
             self.program_acquisition_and_rearm()
 
-    def read_data(self) -> dict:
+    def read_data(self) -> Dict[str, np.ndarray]:
         signals = []
 
         channel_offsets = [0x10000]
@@ -180,7 +180,9 @@ class AcquisitionService(Service):
 
         return signals_named
 
-    def read_data_raw(self, offset: int, addr: int, data_length: int):
+    def read_data_raw(
+        self, offset: int, addr: int, data_length: int
+    ) -> Tuple[np.ndarray]:
         max_data_length = 16383
         if data_length + addr > max_data_length:
             to_read_later = data_length + addr - max_data_length
