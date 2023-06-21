@@ -23,7 +23,7 @@ from pathlib import Path
 from random import random
 from threading import Event, Thread
 from time import sleep
-from typing import Dict, Tuple, Union
+from typing import Any, Dict, Tuple, Union
 
 import numpy as np
 from linien_common.common import DECIMATION, MAX_N_POINTS, N_POINTS
@@ -112,7 +112,7 @@ class AcquisitionService(Service):
                 continue
 
             if self.raw_acquisition_enabled:
-                data = self.read_data_raw(
+                data_raw = self.read_data_raw(
                     0x10000, self.red_pitaya.scope.write_pointer_trigger, MAX_N_POINTS
                 )
                 is_raw = True
@@ -129,7 +129,10 @@ class AcquisitionService(Service):
             if skip_next_data_event.is_set():
                 skip_next_data_event.clear()
             else:
-                self.data = pickle.dumps(data)
+                if self.raw_acquisition_enabled:
+                    self.data = pickle.dumps(data_raw)
+                else:
+                    self.data = pickle.dumps(data)
                 self.data_was_raw = is_raw
                 self.data_hash = random()
 
@@ -182,7 +185,7 @@ class AcquisitionService(Service):
 
     def read_data_raw(
         self, offset: int, addr: int, data_length: int
-    ) -> Tuple[np.ndarray]:
+    ) -> Tuple[Any, ...]:
         max_data_length = 16383
         if data_length + addr > max_data_length:
             to_read_later = data_length + addr - max_data_length
