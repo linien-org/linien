@@ -164,9 +164,9 @@ class RedPitayaControlService(BaseService):
     def _send_ping_loop(self, stop_event: Event):
         while not stop_event.is_set():
             self.parameters.ping.value += 1
-            if self.parameters.ping.value < 5:
+            if self.parameters.ping.value < 10:
                 print("ping", self.parameters.ping.value)
-                if self.parameters.ping.value == 4:
+                if self.parameters.ping.value == 9:
                     print("further pings will be suppressed")
             sleep(1)
 

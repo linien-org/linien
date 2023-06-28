@@ -15,6 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
+import pickle
+
 from linien_client.remote_parameters import RemoteParameters
 from linien_common.influxdb import InfluxDBCredentials
 from linien_gui.utils import get_linien_app_instance
@@ -64,12 +66,12 @@ class LoggingPanel(QtWidgets.QWidget):
         )
 
         # getting the influxdb credentials from the remote
-        credentials = self.control.exposed_get_influxdb_credentials()
-        self.lineEditURL = credentials.url
-        self.lineEditOrg = credentials.org
-        self.lineEditToken = credentials.token
-        self.lineEditBucket = credentials.bucket
-        self.lineEditMeas = credentials.measurement
+        credentials = pickle.loads(self.control.exposed_get_influxdb_credentials())
+        self.lineEditURL.setText(credentials.url)
+        self.lineEditOrg.setText(credentials.org)
+        self.lineEditToken.setText(credentials.token)
+        self.lineEditBucket.setText(credentials.bucket)
+        self.lineEditMeas.setText(credentials.measurement)
 
     def on_parameter_log_status_changed(self, param_name: str, status: bool) -> None:
         self.control.exposed_set_parameter_log(param_name, status)
