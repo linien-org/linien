@@ -25,6 +25,7 @@ from PyQt5.QtCore import pyqtSignal
 
 class LoggingPanel(QtWidgets.QWidget):
     set_parameter_log = pyqtSignal(str, bool)
+    influx_credentials_update_success = pyqtSignal(bool)
 
     logParametersToolButton: "LoggedParametersToolButton"
     lineEditURL: QtWidgets.QLineEdit
@@ -58,6 +59,9 @@ class LoggingPanel(QtWidgets.QWidget):
         )
         self.logPushButton.clicked.connect(self.on_logging_button_clicked)
         self.influxUpdateButton.clicked.connect(self.on_influx_update_button_clicked)
+        self.influx_credentials_update_success.connect(
+            self.on_influxdb_credentials_updated
+        )
 
     def on_parameter_log_status_changed(self, param_name: str, status: bool) -> None:
         self.control.exposed_set_parameter_log(param_name, status)
@@ -73,7 +77,6 @@ class LoggingPanel(QtWidgets.QWidget):
             self.logIntervalSpinBox.setEnabled(True)
 
     def on_influx_update_button_clicked(self) -> None:
-        print("Updating influxdb credentials")
         credentials = InfluxDBCredentials(
             url=self.lineEditURL.text(),
             org=self.lineEditOrg.text(),
@@ -81,7 +84,15 @@ class LoggingPanel(QtWidgets.QWidget):
             bucket=self.lineEditBucket.text(),
             measurement=self.lineEditMeas.text(),
         )
-        self.control.exposed_update_influxdb_credentials(credentials)
+        sucess = self.control.exposed_update_influxdb_credentials(credentials)
+        print("Update successful:", sucess)
+        self.influx_credentials_update_success.emit(sucess)
+
+    def on_influxdb_credentials_updated(self, success: bool) -> None:
+        if success:
+            self.influxTestIndicator.setText("✅")
+        else:
+            self.influxTestIndicator.setText("❌")
 
 
 # checkable menu for logged parameters, inspired by

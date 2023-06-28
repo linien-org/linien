@@ -24,9 +24,18 @@ class InfluxDBCredentials:
         token: str = "my-token",
         bucket: str = "my-bucket",
         measurement: str = "my-measurement",
-    ):
+    ) -> None:
         self.url = url
         self.org = org
         self.token = token
         self.bucket = bucket
         self.measurement = measurement
+
+    def __str__(self) -> str:
+        return "url: %s, org: %s, token: %s, bucket: %s, measurement: %s" % (
+            self.url,
+            self.org,
+            self.token,
+            self.bucket,
+            self.measurement,
+        )
