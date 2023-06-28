@@ -23,7 +23,7 @@ from pathlib import Path
 from random import random
 from threading import Event, Thread
 from time import sleep
-from typing import Any, Dict, Tuple, Union
+from typing import Any, Dict, Optional, Tuple, Union
 
 import numpy as np
 from linien_common.common import DECIMATION, MAX_N_POINTS, N_POINTS
@@ -83,7 +83,7 @@ class AcquisitionService(Service):
 
     def _acquisition_loop(
         self, stop_event: Event, pause_event: Event, skip_next_data_event: Event
-    ):
+    ) -> None:
         while not stop_event.is_set():
             while self.csr_queue:
                 key, value = self.csr_queue.pop(0)
@@ -237,7 +237,7 @@ class AcquisitionService(Service):
         self.red_pitaya.scope.rearm(trigger_source=TriggerSource.ext_posedge)
 
     def exposed_return_data(
-        self, last_hash: Union[float, None]
+        self, last_hash: Optional[float]
     ) -> Tuple[
         bool,
         Union[float, None],
@@ -288,7 +288,7 @@ class AcquisitionService(Service):
         self.data_hash = None
         self.data = None
 
-    def exposed_continue_acquisition(self, uuid: Union[float, None]) -> None:
+    def exposed_continue_acquisition(self, uuid: Optional[float]) -> None:
         self.program_acquisition_and_rearm()
         sleep(0.01)
         # resetting data here is not strictly required but we want to be on the safe

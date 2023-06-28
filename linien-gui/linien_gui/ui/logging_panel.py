@@ -98,7 +98,9 @@ class LoggedParametersMenu(QtWidgets.QMenu):
         super(LoggedParametersMenu, self).__init__(*args, **kwargs)
 
     def create_menu_entries(self, parameters: RemoteParameters) -> None:
-        for name, param in parameters:
+        param_dict = {name: param for name, param in parameters}
+        param_dict = dict(sorted(param_dict.items()))  # sort alphabetically
+        for name, param in param_dict.items():
             if param.loggable:
                 action = QtWidgets.QAction(name, parent=self, checkable=True)  # type: ignore[call-overload] # noqa: E501
                 action.setChecked(param.log)
