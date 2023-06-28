@@ -63,6 +63,7 @@ def save_credentials(credentials: InfluxDBCredentials) -> None:
             f,
             indent=2,
         )
+    print("Saved InfluxDB credentials to ", filename)
 
 
 def restore_credentials() -> InfluxDBCredentials:

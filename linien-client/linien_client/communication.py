@@ -89,6 +89,9 @@ class LinienControlService(Protocol):
     ) -> bool:
         ...
 
+    def exposed_get_influxdb_credentials(self) -> bytes:
+        ...
+
     def exposed_start_logging(self, interval: float) -> None:
         ...
 

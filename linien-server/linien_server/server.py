@@ -118,8 +118,8 @@ class BaseService(rpyc.Service):
             print("InfluxDB credentials updated successfully: ", credentials)
         return connection_succesful
 
-    def exposed_get_influxdb_credentials(self) -> InfluxDBCredentials:
-        return self.influxdb_logger.credentials
+    def exposed_get_influxdb_credentials(self) -> bytes:
+        return pickle.dumps(self.influxdb_logger.credentials)
 
     def exposed_start_logging(self, interval: float) -> None:
         self.influxdb_logger.start_logging(interval)
