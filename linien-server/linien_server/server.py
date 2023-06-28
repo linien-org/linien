@@ -30,7 +30,11 @@ import numpy as np
 import rpyc
 from linien_common.common import N_POINTS, check_plot_data, update_signal_history
 from linien_common.config import DEFAULT_SERVER_PORT
-from linien_common.influxdb import InfluxDBCredentials
+from linien_common.influxdb import (
+    InfluxDBCredentials,
+    restore_credentials,
+    save_credentials,
+)
 from linien_server import __version__
 from linien_server.autolock.autolock import Autolock
 from linien_server.influxdb import InfluxDBLogger
@@ -56,7 +60,9 @@ class BaseService(rpyc.Service):
         atexit.register(save_parameters, self.parameters)
         self._uuid_mapping = {}  # type: ignore[var-annotated]
 
-        self.influxdb_logger = InfluxDBLogger(InfluxDBCredentials(), self.parameters)
+        influxdb_credentials = restore_credentials()
+        self.influxdb_logger = InfluxDBLogger(influxdb_credentials, self.parameters)
+        atexit.register(save_credentials, self.influxdb_logger.credentials)
 
         self.stop_event = Event()
         self.stop_log_event = Event()
@@ -111,6 +117,9 @@ class BaseService(rpyc.Service):
             self.influxdb_logger.credentials = credentials
             print("InfluxDB credentials updated successfully: ", credentials)
         return connection_succesful
+
+    def exposed_get_influxdb_credentials(self) -> InfluxDBCredentials:
+        return self.influxdb_logger.credentials
 
     def exposed_start_logging(self, interval: float) -> None:
         self.influxdb_logger.start_logging(interval)

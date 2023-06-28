@@ -63,6 +63,14 @@ class LoggingPanel(QtWidgets.QWidget):
             self.on_influxdb_credentials_updated
         )
 
+        # getting the influxdb credentials from the remote
+        credentials = self.control.exposed_get_influxdb_credentials()
+        self.lineEditURL = credentials.url
+        self.lineEditOrg = credentials.org
+        self.lineEditToken = credentials.token
+        self.lineEditBucket = credentials.bucket
+        self.lineEditMeas = credentials.measurement
+
     def on_parameter_log_status_changed(self, param_name: str, status: bool) -> None:
         self.control.exposed_set_parameter_log(param_name, status)
 

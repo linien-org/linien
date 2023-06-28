@@ -15,6 +15,12 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
+import json
+
+from .config import USER_DATA_PATH
+
+CREDENTIAL_STORE_FILENAME = "influxdb_credentials.json"
+
 
 class InfluxDBCredentials:
     def __init__(
@@ -39,3 +45,38 @@ class InfluxDBCredentials:
             self.bucket,
             self.measurement,
         )
+
+
+def save_credentials(credentials: InfluxDBCredentials) -> None:
+    """Save the credentials to disk."""
+    USER_DATA_PATH.mkdir(parents=True, exist_ok=True)
+    filename = str(USER_DATA_PATH / CREDENTIAL_STORE_FILENAME)
+    with open(filename, "w") as f:
+        json.dump(
+            {
+                "url": credentials.url,
+                "org": credentials.org,
+                "token": credentials.token,
+                "bucket": credentials.bucket,
+                "measurement": credentials.measurement,
+            },
+            f,
+            indent=2,
+        )
+
+
+def restore_credentials() -> InfluxDBCredentials:
+    """When the server starts, it tries to restore the credentials."""
+    filename = USER_DATA_PATH / CREDENTIAL_STORE_FILENAME
+    try:
+        with open(str(filename), "r") as f:
+            data = json.load(f)
+        return InfluxDBCredentials(
+            url=data["url"],
+            org=data["org"],
+            token=data["token"],
+            bucket=data["bucket"],
+            measurement=data["measurement"],
+        )
+    except FileNotFoundError:
+        return InfluxDBCredentials()
