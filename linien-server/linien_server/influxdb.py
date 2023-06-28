@@ -40,13 +40,16 @@ class InfluxDBLogger:
         save_credentials(value)
 
     def start_logging(self, interval: float) -> None:
-        self.stop_event.clear()
-        self.thread = Thread(
-            target=self._logging_loop,
-            args=(interval, self.credentials, self.parameters, self.stop_event),
-            daemon=True,
-        )
-        self.thread.start()
+        if self.test_connection(self.credentials):
+            self.stop_event.clear()
+            self.thread = Thread(
+                target=self._logging_loop,
+                args=(interval, self.credentials, self.parameters, self.stop_event),
+                daemon=True,
+            )
+            self.thread.start()
+        else:
+            print("Failed to connect to InfluxDB server")
 
     def stop_logging(self) -> None:
         self.stop_event.set()

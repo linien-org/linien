@@ -30,11 +30,7 @@ import numpy as np
 import rpyc
 from linien_common.common import N_POINTS, check_plot_data, update_signal_history
 from linien_common.config import DEFAULT_SERVER_PORT
-from linien_common.influxdb import (
-    InfluxDBCredentials,
-    restore_credentials,
-    save_credentials,
-)
+from linien_common.influxdb import InfluxDBCredentials, restore_credentials
 from linien_server import __version__
 from linien_server.autolock.autolock import Autolock
 from linien_server.influxdb import InfluxDBLogger
