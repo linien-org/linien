@@ -67,6 +67,7 @@ class LoggingPanel(QtWidgets.QWidget):
 
         # getting the influxdb credentials from the remote
         credentials = pickle.loads(self.control.exposed_get_influxdb_credentials())
+        print(f"Got InfluxDB credentials: {credentials}")
         self.lineEditURL.setText(credentials.url)
         self.lineEditOrg.setText(credentials.org)
         self.lineEditToken.setText(credentials.token)
