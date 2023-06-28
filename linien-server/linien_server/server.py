@@ -158,6 +158,8 @@ class RedPitayaControlService(BaseService):
             self.parameters.ping.value += 1
             if self.parameters.ping.value < 5:
                 print("ping", self.parameters.ping.value)
+                if self.parameters.ping.value == 4:
+                    print("further pings will be suppressed")
             sleep(1)
 
     def _push_acquired_data_to_parameters(self, stop_event: Event):
