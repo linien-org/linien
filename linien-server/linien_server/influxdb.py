@@ -18,7 +18,7 @@
 from threading import Event, Thread
 from time import sleep
 
-from linien_common.influxdb import InfluxDBCredentials
+from linien_common.influxdb import InfluxDBCredentials, save_credentials
 from linien_server.parameters import Parameters
 
 
@@ -37,6 +37,7 @@ class InfluxDBLogger:
     @credentials.setter
     def credentials(self, value: InfluxDBCredentials) -> None:
         self._credentials = value
+        save_credentials(value)
 
     def start_logging(self, interval: float) -> None:
         self.stop_event.clear()

@@ -62,7 +62,6 @@ class BaseService(rpyc.Service):
 
         influxdb_credentials = restore_credentials()
         self.influxdb_logger = InfluxDBLogger(influxdb_credentials, self.parameters)
-        atexit.register(save_credentials, self.influxdb_logger.credentials)
 
         self.stop_event = Event()
         self.stop_log_event = Event()
