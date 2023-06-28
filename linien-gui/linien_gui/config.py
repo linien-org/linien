@@ -21,9 +21,7 @@ from enum import Enum
 from typing import Callable, Iterator, List, Tuple
 
 import rpyc
-from app_paths import AppPaths
-
-USER_DATA_PATH = AppPaths.get_paths("linien", roaming=False).user_data
+from linien_common.config import USER_DATA_PATH
 
 # don't plot more often than once per `DEFAULT_PLOT_RATE_LIMIT` seconds
 DEFAULT_PLOT_RATE_LIMIT = 0.1

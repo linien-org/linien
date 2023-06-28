@@ -50,7 +50,7 @@ class InfluxDBLogger:
         parameters: Parameters,
         stop_event: Event,
     ) -> None:
-        print("Starting InfluxDB logging")
+        print("Starting InfluxDB logging to ", credentials)
         while not stop_event.is_set():
             for name, param in parameters:
                 if param.log:

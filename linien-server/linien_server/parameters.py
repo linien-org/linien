@@ -18,12 +18,10 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 import json
-from pathlib import Path
 from time import time
 from typing import Any, Callable, Dict, Iterator, List, Tuple
 
 import linien_server
-from appdirs import AppDirs
 from linien_common.common import (
     AUTO_DETECT_AUTOLOCK_MODE,
     FAST_AUTOLOCK,
@@ -31,8 +29,8 @@ from linien_common.common import (
     MHz,
     Vpp,
 )
+from linien_common.config import USER_DATA_PATH
 
-USER_DATA_PATH = Path(AppDirs("linien").user_data_dir)
 PARAMETER_STORE_FILENAME = "linien_parameters.json"
 
 
