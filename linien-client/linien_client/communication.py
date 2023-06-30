@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-from typing import List
+from typing import List, Tuple
 
 from linien_common.influxdb import InfluxDBCredentials
 from typing_extensions import Protocol
@@ -86,7 +86,7 @@ class LinienControlService(Protocol):
 
     def exposed_update_influxdb_credentials(
         self, credentials: InfluxDBCredentials
-    ) -> bool:
+    ) -> Tuple[bool, int, str]:
         ...
 
     def exposed_get_influxdb_credentials(self) -> bytes:

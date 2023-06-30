@@ -18,6 +18,7 @@
 from copy import deepcopy
 from threading import Event, Thread
 from time import sleep
+from typing import Tuple
 
 import requests
 from linien_common.influxdb import InfluxDBCredentials, save_credentials
@@ -42,7 +43,8 @@ class InfluxDBLogger:
         save_credentials(value)
 
     def start_logging(self, interval: float) -> None:
-        if self.test_connection(self.credentials):
+        conn_success, status_code, message = self.test_connection()
+        if conn_success:
             self.stop_event.clear()
             self.thread = Thread(
                 target=self._logging_loop,
@@ -51,7 +53,10 @@ class InfluxDBLogger:
             )
             self.thread.start()
         else:
-            raise ConnectionError("Failed to connect to InfluxDB server")
+            raise ConnectionError(
+                "Failed to connect to InfluxDB database: %s (Status code: %s)"
+                % (message, status_code)
+            )
 
     def stop_logging(self) -> None:
         self.stop_event.set()
@@ -71,9 +76,11 @@ class InfluxDBLogger:
             self.write_data(data)
             sleep(interval)
 
-    def test_connection(self) -> bool:
+    def test_connection(self) -> Tuple[bool, int, str]:
         """Write empty data to the server to test the connection"""
-        return self.write_data({}).status_code == 204
+        response = self.write_data({})
+        success = response.status_code == 204
+        return success, response.status_code, response.text
 
     def write_data(self, data: dict) -> requests.Response:
         """Write data to the database"""

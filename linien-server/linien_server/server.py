@@ -23,7 +23,7 @@ from copy import copy
 from random import randint, random
 from threading import Event, Thread
 from time import sleep
-from typing import List
+from typing import List, Tuple
 
 import click
 import numpy as np
@@ -106,13 +106,22 @@ class BaseService(rpyc.Service):
 
     def exposed_update_influxdb_credentials(
         self, credentials: InfluxDBCredentials
-    ) -> bool:
+    ) -> Tuple[bool, int, str]:
         credentials = copy(credentials)
-        connection_succesful = self.influxdb_logger.test_connection(credentials)
+        (
+            connection_succesful,
+            status_code,
+            message,
+        ) = self.influxdb_logger.test_connection(credentials)
         if connection_succesful:
             self.influxdb_logger.credentials = credentials
-            print("InfluxDB credentials updated successfully: ", credentials)
-        return connection_succesful
+            print("InfluxDB credentials updated successfully")
+        else:
+            print(
+                "InfluxDB credentials update failed. Error message: %s (Status Code %s)"
+                % (message, status_code)
+            )
+        return connection_succesful, status_code, message
 
     def exposed_get_influxdb_credentials(self) -> bytes:
         return pickle.dumps(self.influxdb_logger.credentials)

@@ -27,7 +27,7 @@ from PyQt5.QtCore import pyqtSignal
 
 class LoggingPanel(QtWidgets.QWidget):
     set_parameter_log = pyqtSignal(str, bool)
-    influx_credentials_update_success = pyqtSignal(bool)
+    influx_credentials_update = pyqtSignal(bool, int, str)
 
     logParametersToolButton: "LoggedParametersToolButton"
     lineEditURL: QtWidgets.QLineEdit
@@ -61,9 +61,7 @@ class LoggingPanel(QtWidgets.QWidget):
         )
         self.logPushButton.clicked.connect(self.on_logging_button_clicked)
         self.influxUpdateButton.clicked.connect(self.on_influx_update_button_clicked)
-        self.influx_credentials_update_success.connect(
-            self.on_influxdb_credentials_updated
-        )
+        self.influx_credentials_update.connect(self.on_influxdb_credentials_updated)
 
         # getting the influxdb credentials from the remote
         credentials = pickle.loads(self.control.exposed_get_influxdb_credentials())
@@ -95,15 +93,23 @@ class LoggingPanel(QtWidgets.QWidget):
             bucket=self.lineEditBucket.text(),
             measurement=self.lineEditMeas.text(),
         )
-        sucess = self.control.exposed_update_influxdb_credentials(credentials)
+        sucess, status_code, message = self.control.exposed_update_influxdb_credentials(
+            credentials
+        )
         print(f"Update if InfluxDB credentials successful: {sucess}")
-        self.influx_credentials_update_success.emit(sucess)
+        self.influx_credentials_update.emit(sucess, status_code, message)
 
-    def on_influxdb_credentials_updated(self, success: bool) -> None:
+    def on_influxdb_credentials_updated(
+        self, success: bool, status_code: int, message: str
+    ) -> None:
         if success:
             self.influxTestIndicator.setText("✅")
+            self.influxTestIndicator.setToolTip("Connection successful")
         else:
             self.influxTestIndicator.setText("❌")
+            self.influxTestIndicator.setToolTip(
+                f"Connection failed: {message} (Status {status_code}"
+            )
 
 
 # checkable menu for logged parameters, inspired by
