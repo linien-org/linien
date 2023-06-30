@@ -48,7 +48,7 @@ class InfluxDBLogger:
             self.stop_event.clear()
             self.thread = Thread(
                 target=self._logging_loop,
-                args=(interval),
+                args=(interval,),
                 daemon=True,
             )
             self.thread.start()
@@ -73,32 +73,36 @@ class InfluxDBLogger:
                             data[stat_name] = stat_value
                     else:
                         data[name] = param.value
-            self.write_data(data)
+            self.write_data(self.credentials, data)
             sleep(interval)
 
-    def test_connection(self) -> Tuple[bool, int, str]:
+    def test_connection(
+        self, credentials: InfluxDBCredentials
+    ) -> Tuple[bool, int, str]:
         """Write empty data to the server to test the connection"""
-        response = self.write_data({})
+        response = self.write_data(credentials, data={})
         success = response.status_code == 204
         return success, response.status_code, response.text
 
-    def write_data(self, data: dict) -> requests.Response:
+    def write_data(
+        self, credentials: InfluxDBCredentials, data: dict
+    ) -> requests.Response:
         """Write data to the database"""
-        endpoint = self.credentials.url + "/api/v2/write"
+        endpoint = credentials.url + "/api/v2/write"
         headers = {
-            "Authorization": "Token " + self.credentials.token,
+            "Authorization": "Token " + credentials.token,
             "Content-Type": "text/plain; charset=utf-8",
             "Accept": "application/json",
         }
         params = {
-            "org": self.credentials.org,
-            "bucket": self.credentials.bucket,
+            "org": credentials.org,
+            "bucket": credentials.bucket,
             "precision": "ns",
         }
 
-        data = self._convert_to_line_protocol(data)
+        point = self._convert_to_line_protocol(data)
 
-        response = requests.post(endpoint, headers=headers, params=params, data=data)
+        response = requests.post(endpoint, headers=headers, params=params, data=point)
         return response
 
     def _convert_to_line_protocol(self, data: dict) -> str:

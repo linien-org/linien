@@ -26,7 +26,7 @@ jobs:
         uses: ./.github/actions/install-linien
 
       - name: Install additional dependencies
-        run: pip install mypy types-appdirs pyqt5-stubs
+        run: pip install mypy types-appdirs pyqt5-stubs types-requests
 
       - name: mypy for linien-common
         run: mypy linien-common/linien_common
