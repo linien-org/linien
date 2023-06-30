@@ -15,9 +15,11 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
+from copy import deepcopy
 from threading import Event, Thread
 from time import sleep
 
+import requests
 from linien_common.influxdb import InfluxDBCredentials, save_credentials
 from linien_server.parameters import Parameters
 
@@ -44,31 +46,62 @@ class InfluxDBLogger:
             self.stop_event.clear()
             self.thread = Thread(
                 target=self._logging_loop,
-                args=(interval, self.credentials, self.parameters, self.stop_event),
+                args=(interval),
                 daemon=True,
             )
             self.thread.start()
         else:
-            print("Failed to connect to InfluxDB server")
+            raise ConnectionError("Failed to connect to InfluxDB server")
 
     def stop_logging(self) -> None:
         self.stop_event.set()
         self.thread.join()
 
-    def _logging_loop(
-        self,
-        interval: float,
-        credentials: InfluxDBCredentials,
-        parameters: Parameters,
-        stop_event: Event,
-    ) -> None:
-        print("Starting InfluxDB logging to ", credentials)
-        while not stop_event.is_set():
+    def _logging_loop(self, interval: float) -> None:
+        while not self.stop_event.is_set():
+            data = {}
+            parameters = deepcopy(self.parameters)
             for name, param in parameters:
                 if param.log:
-                    print("Logging", name, "=", param.value)
+                    if name == "signal_stats":
+                        for stat_name, stat_value in param.value.items():
+                            data[stat_name] = stat_value
+                    else:
+                        data[name] = param.value
+            self.write_data(data)
             sleep(interval)
 
-    @staticmethod
-    def test_connection(credentials: InfluxDBCredentials) -> bool:
-        return True
+    def test_connection(self) -> bool:
+        """Write empty data to the server to test the connection"""
+        return self.write_data({}).status_code == 204
+
+    def write_data(self, data: dict) -> requests.Response:
+        """Write data to the database"""
+        endpoint = self.credentials.url + "/api/v2/write"
+        headers = {
+            "Authorization": "Token " + self.credentials.token,
+            "Content-Type": "text/plain; charset=utf-8",
+            "Accept": "application/json",
+        }
+        params = {
+            "org": self.credentials.org,
+            "bucket": self.credentials.bucket,
+            "precision": "ns",
+        }
+
+        data = self._convert_to_line_protocol(data)
+
+        response = requests.post(endpoint, headers=headers, params=params, data=data)
+        return response
+
+    def _convert_to_line_protocol(self, data: dict) -> str:
+        if not data:
+            return ""
+        point = self.credentials.measurement
+        for i, (key, value) in enumerate(data.items()):
+            if i == 0:
+                point += " "
+            else:
+                point += ","
+            point += "%s=%s" % (key, value)
+        return point
