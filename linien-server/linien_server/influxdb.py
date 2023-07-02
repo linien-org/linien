@@ -43,7 +43,7 @@ class InfluxDBLogger:
         save_credentials(value)
 
     def start_logging(self, interval: float) -> None:
-        conn_success, status_code, message = self.test_connection()
+        conn_success, status_code, message = self.test_connection(self.credentials)
         if conn_success:
             self.stop_event.clear()
             self.thread = Thread(
