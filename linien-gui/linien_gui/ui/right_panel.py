@@ -66,13 +66,17 @@ class RightPanel(QtWidgets.QWidget):
 
     def autolock_status_changed(self, value):
         if value:
-            self.main_window.settings_toolbox.setCurrentWidget(self.lockingPanel)
+            self.main_window.settings_toolbox.setCurrentWidget(
+                self.main_window.lockingPanel
+            )
 
         self.enable_or_disable_panels()
 
     def optimization_status_changed(self, value):
         if value:
-            self.main_window.settings_toolbox.setCurrentWidget(self.optimizationPanel)
+            self.main_window.settings_toolbox.setCurrentWidget(
+                self.main_window.optimizationPanel
+            )
 
         self.enable_or_disable_panels()
 
