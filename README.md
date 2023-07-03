@@ -355,7 +355,7 @@ c.connection.root.start_autolock(x0, x1, pickle.dumps(error_signal))
 try:
     wait_for_lock_status(True)
     print("locking the laser worked \o/")
-except:
+except Exception:
     print("locking the laser failed :(")
 
 

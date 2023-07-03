@@ -114,9 +114,9 @@ class PSDAcquisition:
             self.set_decimation(ALL_DECIMATIONS[0])
             self.add_callbacks()
             self.parameters.psd_acquisition_running.value = True
-        except:
+        except Exception as e:
             self.cleanup()
-            raise
+            raise e
 
     def add_callbacks(self):
         self.parameters.acquisition_raw_data.add_callback(
@@ -172,9 +172,9 @@ class PSDAcquisition:
             else:
                 self.cleanup()
 
-        except:
+        except Exception as e:
             self.cleanup()
-            raise
+            raise e
 
     def publish_psd_data(self, complete):
         data_pickled = pickle.dumps(
@@ -235,9 +235,9 @@ class PIDOptimization:
             )
             self.parameters.psd_optimization_running.value = True
             self.start_single_psd_measurement()
-        except:
+        except Exception as e:
             self.cleanup()
-            raise
+            raise e
 
     def start_single_psd_measurement(self):
         new_params = self.engine.ask()
@@ -271,9 +271,9 @@ class PIDOptimization:
                 # FIXME: implement use of optimized pid parameters
                 self.cleanup()
 
-        except:
+        except Exception as e:
             self.cleanup()
-            raise
+            raise e
 
     def exposed_stop(self):
         self.cleanup()
