@@ -15,7 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-from copy import deepcopy
 from threading import Event, Thread
 from time import sleep
 from typing import Tuple
@@ -65,7 +64,6 @@ class InfluxDBLogger:
     def _logging_loop(self, interval: float) -> None:
         while not self.stop_event.is_set():
             data = {}
-            parameters = deepcopy(self.parameters)
             for name, param in parameters:
                 if param.log:
                     if name == "signal_stats":
