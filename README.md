@@ -26,13 +26,11 @@ Features
 -   **Lock detection**: Linien is capable of detecting loss of lock (temporarily disabled, use [v0.3.2](https://github.com/linien-org/linien/releases/tag/v0.3.2) if you rely in this feature
 -   **Automatic relocking**: if lock is lost, it relocks autonomously (temporarily disabled, use [v0.3.2](https://github.com/linien-org/linien/releases/tag/v0.3.2) if you rely in this feature)
 -   **Machine learning** is used to tune the spectroscopy parameters in order to optimize the signal
--   **Remote-controllable**: the client libraries can be used to control or monitor the spectroscopy lock with python.
+-   **Remote-controllable**: the client libraries can be used to control or monitor the spectroscopy lock with Python.
 -   **Combined FMS+MTS**: Linien supports dual-channel spectroscopy that can be
     used to implement [combined
     FMS+MTS](https://arxiv.org/pdf/1701.01918.pdf)
--   **Logging**: Use
-    [linien-influxdb](https://github.com/linien-org/linien-influxdb)
-    to log the lock status to influxdb.
+-   **Logging**: Lock status and parameters can be logged to InfluxDB v2.
 -   **Second integrator** for slow control of piezo in an ECDL
 -   **Additional analog outputs** may be used using the GUI or python client (ANALOG_OUT 1, 2 and 3)
 -   **16 GPIO outputs** may be programmed (e.g. for controlling other devices)
@@ -137,7 +135,7 @@ The bright red line is the demodulated spectroscopy signal. The dark red area is
 
 Fast mode is intended for bare PID operation (no demodulation or filtering), bypassing most of the FPGA functionality. If enabled, the signal flow is FAST IN 1 → PID → FAST OUT 2. This is useful, if aiming for a high control bandwidth: fast mode reduces propagation delay from 320 ns to 125 ns which may make a difference when phase-locking lasers.
 
-### Optimization of spectroscopy parameters using machine learning (optional)
+### Optimization of spectroscopy parameters using machine learning
 
 Linien may use machine learning to maximize the slope of a line. As for the autolock, click and drag over the line you want to optimize. Then, the line is centered and the optimization starts. Please note that this only works if initially a distinguished zero-crossing is visible.
 
@@ -169,6 +167,12 @@ Linien implements two different autolock algorithms:
 ### Using the manual lock
 
 If you have problems with the autolock, you may also lock manually. Activate the *Manual* tab and use the controls in the top (*Zoom* and *Position*) to center the line you want to lock to. Choose whether the target slope is rising or falling and click the green button.
+
+### Logging
+
+Linien has to option to log the lock status and parameters to an InfluxDB. Currently, only InfluxDB 2.x is supported. Logging can be configured via the Logging menu in the Linien GUI, but logging will continue even if the client is closed. Time stamps of the data points are determined by the InfluxDB, not by the RedPitaya. If updating/checking the InfluxDB credentials fails, there is additional information in the tool-tip of the fail indicator ❌.
+
+The parameter names are documented in [`parameters.py`](https://github.com/linien-org/linien/blob/master/linien-server/linien_server/parameters.py). The `signal_stats` parameter does contain statistics of the input and output signals, e.g. `control_signal_mean` or `monitor_signal_max`.
 
 Transfer function
 -----------------

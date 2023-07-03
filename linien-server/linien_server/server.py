@@ -127,9 +127,11 @@ class BaseService(rpyc.Service):
         return pickle.dumps(self.influxdb_logger.credentials)
 
     def exposed_start_logging(self, interval: float) -> None:
+        print("Starting logging")
         self.influxdb_logger.start_logging(interval)
 
     def exposed_stop_logging(self) -> None:
+        print("Stopping logging")
         self.influxdb_logger.stop_logging()
 
 
