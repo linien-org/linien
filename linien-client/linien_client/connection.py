@@ -108,8 +108,7 @@ class LinienClient:
             except EOFError:
                 print("EOFError! Probably authentication failed")
                 raise RPYCAuthenticationException()
-            # FIXME: replace with more specific exceptions
-            except Exception:
+            except ConnectionRefusedError:
                 if not autostart_server:
                     raise ServerNotRunningException()
 
