@@ -43,9 +43,10 @@ setup(
         "appdirs>=1.4.4",
         "click>=7.1.2",
         "cma>=3.0.3",
+        "pip>=20.3.4",
         "pylpsd>=0.1.4",
         "pyrp3>=1.1.0;platform_machine=='armv7l'",  # only install on RedPitaya
-        "requests<=2.19.1",
+        "requests<=2.25.1",
         "linien-common=={}".format(version),
     ],
     scripts=[
