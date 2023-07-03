@@ -97,3 +97,6 @@ class LinienControlService(Protocol):
 
     def exposed_stop_logging(self) -> None:
         ...
+
+    def exposed_get_logging_status(self) -> bool:
+        ...

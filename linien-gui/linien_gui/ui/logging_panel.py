@@ -24,6 +24,9 @@ from linien_gui.widgets import UI_PATH
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtCore import pyqtSignal
 
+START_LOG_BUTTON_TEXT = "Start Logging"
+STOP_LOG_BUTTON_TEXT = "Stop Logging"
+
 
 class LoggingPanel(QtWidgets.QWidget):
     set_parameter_log = pyqtSignal(str, bool)
@@ -72,17 +75,24 @@ class LoggingPanel(QtWidgets.QWidget):
         self.lineEditBucket.setText(credentials.bucket)
         self.lineEditMeas.setText(credentials.measurement)
 
+        # getting the logging status from the remote
+        log_status = self.control.exposed_get_logging_status()
+        button_text = STOP_LOG_BUTTON_TEXT if log_status else START_LOG_BUTTON_TEXT
+        self.logPushButton.setChecked(log_status)
+        self.logPushButton.setText(button_text)
+        self.logIntervalSpinBox.setEnabled(not log_status)
+
     def on_parameter_log_status_changed(self, param_name: str, status: bool) -> None:
         self.control.exposed_set_parameter_log(param_name, status)
 
     def on_logging_button_clicked(self) -> None:
         if self.logPushButton.isChecked():
             self.control.exposed_start_logging(self.logIntervalSpinBox.value())
-            self.logPushButton.setText("Stop Logging")
+            self.logPushButton.setText(STOP_LOG_BUTTON_TEXT)
             self.logIntervalSpinBox.setEnabled(False)
         else:
             self.control.exposed_stop_logging()
-            self.logPushButton.setText("Start Logging")
+            self.logPushButton.setText(START_LOG_BUTTON_TEXT)
             self.logIntervalSpinBox.setEnabled(True)
 
     def on_influx_update_button_clicked(self) -> None:

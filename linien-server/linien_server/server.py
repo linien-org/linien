@@ -134,6 +134,9 @@ class BaseService(rpyc.Service):
         print("Stopping logging")
         self.influxdb_logger.stop_logging()
 
+    def exposed_get_logging_status(self) -> bool:
+        return not self.influxdb_logger.stop_event.is_set()
+
 
 class RedPitayaControlService(BaseService):
     """Control server that runs on the RP that provides high-level methods."""

@@ -31,6 +31,7 @@ class InfluxDBLogger:
         self.credentials = credentials
         self.parameters = parameters
         self.stop_event = Event()
+        self.stop_event.set()
 
     @property
     def credentials(self) -> InfluxDBCredentials:
