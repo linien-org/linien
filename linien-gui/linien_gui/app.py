@@ -21,17 +21,16 @@ from traceback import print_exc
 
 import click
 from linien_client.connection import LinienClient
+from linien_gui import __version__
+from linien_gui.config import load_settings
+from linien_gui.ui.device_manager import DeviceManager
+from linien_gui.ui.main_window import MainWindow
+from linien_gui.ui.psd_window import PSDWindow
+from linien_gui.ui.version_checker import VersionCheckerThread
+from linien_gui.widgets import UI_PATH
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import pyqtSignal
 from pyqtgraph.Qt import QtCore
-
-from . import __version__
-from .config import load_settings
-from .ui.device_manager import DeviceManager
-from .ui.main_window import MainWindow
-from .ui.psd_window import PSDWindow
-from .ui.version_checker import VersionCheckerThread
-from .widgets import UI_PATH
 
 sys.path += [str(UI_PATH)]
 
