@@ -16,9 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-import pickle
 from typing import Any, Callable, Dict, Iterator, List, Tuple, Union
 
+from linien_common.communication import pack, unpack
 from rpyc import async_
 from rpyc.core.async_ import AsyncResult
 
@@ -49,12 +49,12 @@ class RemoteParameter:
         """Return the locally cached value (if it exists). Otherwise ask the server."""
         if hasattr(self, "_cached_value"):
             return self._cached_value
-        return pickle.loads(self.parent.remote.exposed_get_param(self.name))
+        return unpack(self.parent.remote.exposed_get_param(self.name))
 
     @value.setter
     def value(self, value: Any):
         """Notify the server of the new value"""
-        return self.parent.remote.exposed_set_param(self.name, pickle.dumps(value))
+        return self.parent.remote.exposed_set_param(self.name, pack(value))
 
     @property
     def log(self) -> bool:
@@ -112,9 +112,7 @@ class RemoteParameters:
         self._callbacks: Dict[str, List[Callable]] = {}
 
         # mimic functionality of `parameters.Parameters`:
-        all_parameters = pickle.loads(
-            self.remote.exposed_init_parameter_sync(self.uuid)
-        )
+        all_parameters = unpack(self.remote.exposed_init_parameter_sync(self.uuid))
         for name, value, can_be_cached, restorable, loggable, log in all_parameters:
             param = RemoteParameter(
                 parent=self,
@@ -190,7 +188,7 @@ class RemoteParameters:
             and self._async_changed_parameters_queue.ready
         ):
             # We have a result.
-            queue: List[Tuple[str, Any]] = pickle.loads(
+            queue: List[Tuple[str, Any]] = unpack(
                 self._async_changed_parameters_queue.value
             )
 
