@@ -1044,7 +1044,7 @@ p, li { white-space: pre-wrap; }
           </size>
          </property>
          <property name="currentIndex">
-          <number>2</number>
+          <number>3</number>
          </property>
          <widget class="QWidget" name="generalPanel">
           <property name="enabled">
@@ -1055,7 +1055,7 @@ p, li { white-space: pre-wrap; }
             <x>0</x>
             <y>0</y>
             <width>332</width>
-            <height>427</height>
+            <height>400</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1073,7 +1073,7 @@ p, li { white-space: pre-wrap; }
             <x>0</x>
             <y>0</y>
             <width>332</width>
-            <height>427</height>
+            <height>400</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1091,7 +1091,7 @@ p, li { white-space: pre-wrap; }
             <x>0</x>
             <y>0</y>
             <width>332</width>
-            <height>427</height>
+            <height>400</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1103,13 +1103,28 @@ p, li { white-space: pre-wrap; }
            </item>
           </layout>
          </widget>
+         <widget class="QWidget" name="logging">
+          <attribute name="label">
+           <string>Logging</string>
+          </attribute>
+          <widget class="LoggingPanel" name="widget_7" native="true">
+           <property name="geometry">
+            <rect>
+             <x>0</x>
+             <y>0</y>
+             <width>321</width>
+             <height>401</height>
+            </rect>
+           </property>
+          </widget>
+         </widget>
          <widget class="QWidget" name="viewPanel">
           <property name="geometry">
            <rect>
             <x>0</x>
             <y>0</y>
             <width>332</width>
-            <height>427</height>
+            <height>400</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -1133,7 +1148,7 @@ p, li { white-space: pre-wrap; }
             <x>0</x>
             <y>0</y>
             <width>332</width>
-            <height>427</height>
+            <height>400</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -1228,6 +1243,12 @@ p, li { white-space: pre-wrap; }
    <class>CustomDoubleSpinBox</class>
    <extends>QDoubleSpinBox</extends>
    <header location="global">spin_box.h</header>
+  </customwidget>
+  <customwidget>
+   <class>LoggingPanel</class>
+   <extends>QWidget</extends>
+   <header>logging_panel.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>

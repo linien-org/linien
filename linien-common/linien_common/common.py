@@ -18,9 +18,8 @@
 
 """This file contains stuff that is required by the server as well as the client."""
 
-import hashlib
-import pickle
 from time import time
+from typing import Tuple
 
 import numpy as np
 from scipy.signal import correlate, resample
@@ -38,7 +37,6 @@ FAST_OUT2 = 1
 ANALOG_OUT0 = 2
 
 DECIMATION = 8
-assert DECIMATION % 2 == 0 or DECIMATION == 1
 MAX_N_POINTS = 16384
 N_POINTS = int(MAX_N_POINTS / DECIMATION)
 
@@ -251,7 +249,7 @@ def get_lock_point(error_signal, x0, x1, final_zoom_factor=1.5):
     )
 
 
-def convert_channel_mixing_value(value):
+def convert_channel_mixing_value(value: int) -> Tuple[int, int]:
     if value <= 0:
         a_value = 128
         b_value = 128 + value
@@ -278,7 +276,7 @@ def combine_error_signal(
     return np.array([v + combined_offset for v in signal])
 
 
-def check_plot_data(is_locked, plot_data):
+def check_plot_data(is_locked: bool, plot_data) -> bool:
     if is_locked:
         if "error_signal" not in plot_data or "control_signal" not in plot_data:
             return False
@@ -288,23 +286,6 @@ def check_plot_data(is_locked, plot_data):
     return True
 
 
-def pack(value):
-    try:
-        return pickle.dumps(value)
-    except Exception:
-        # this happens when un-pickleable objects (e.g. functions) are assigned
-        # to a parameter. In this case, we don't pickle it but transfer a netref
-        # instead
-        return value
-
-
-def unpack(value):
-    try:
-        return pickle.loads(value)
-    except Exception:
-        return value
-
-
 def get_signal_strength_from_i_q(i, q):
     i = i.astype(np.int64)
     q = q.astype(np.int64)
@@ -312,8 +293,3 @@ def get_signal_strength_from_i_q(i, q):
     q_squared = q**2
     signal_strength = np.sqrt(i_squared + q_squared)
     return signal_strength
-
-
-def hash_username_and_password(username, password):
-    secret = hashlib.sha256((username + "/" + password).encode()).hexdigest()
-    return secret

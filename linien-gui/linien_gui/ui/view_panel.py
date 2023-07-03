@@ -21,8 +21,8 @@ import pickle
 from os import path
 
 import numpy as np
-from linien_common.config import N_COLORS
-from linien_gui.utils import color_to_hex, param2ui
+from linien_gui.config import N_COLORS
+from linien_gui.utils import color_to_hex, get_linien_app_instance, param2ui
 from linien_gui.widgets import UI_PATH
 from PyQt5 import QtGui, QtWidgets, uic
 
@@ -31,7 +31,7 @@ class ViewPanel(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         super(ViewPanel, self).__init__(*args, **kwargs)
         uic.loadUi(UI_PATH / "view_panel.ui", self)
-        self.app = QtWidgets.QApplication.instance()
+        self.app = get_linien_app_instance()
         self.app.connection_established.connect(self.on_connection_established)
 
         self.export_select_file.clicked.connect(self.do_export_select_file)
@@ -52,39 +52,40 @@ class ViewPanel(QtWidgets.QWidget):
             )
 
     def edit_color(self, color_idx):
-        param = getattr(self.parameters, f"plot_color_{color_idx}")
-
-        color = QtWidgets.QColorDialog.getColor(QtGui.QColor.fromRgb(*param.value))
+        setting = getattr(self.app.settings, f"plot_color_{color_idx}")
+        color = QtWidgets.QColorDialog.getColor(QtGui.QColor.fromRgb(*setting.value))
         r, g, b, a = color.getRgb()
-        param.value = (r, g, b, a)
+        getattr(self.app.settings, f"plot_color_{color_idx}").value = (r, g, b, a)
 
     def on_connection_established(self):
         self.parameters = self.app.parameters
         self.control = self.app.control
 
-        param2ui(self.parameters.plot_line_width, self.plot_line_width)
-        param2ui(self.parameters.plot_line_opacity, self.plot_line_opacity)
-        param2ui(self.parameters.plot_fill_opacity, self.plot_fill_opacity)
+        param2ui(self.app.settings.plot_line_width, self.plot_line_width)
+        param2ui(self.app.settings.plot_line_opacity, self.plot_line_opacity)
+        param2ui(self.app.settings.plot_fill_opacity, self.plot_fill_opacity)
 
         def preview_colors(*args):
             for color_idx in range(N_COLORS):
                 element = getattr(self, f"display_color_{color_idx}")
-                param = getattr(self.parameters, f"plot_color_{color_idx}")
-                element.setStyleSheet("background-color: " + color_to_hex(param.value))
+                setting = getattr(self.app.settings, f"plot_color_{color_idx}")
+                element.setStyleSheet(
+                    f"background-color: {color_to_hex(setting.value)}"
+                )
 
         for color_idx in range(N_COLORS):
-            getattr(self.parameters, f"plot_color_{color_idx}").on_change(
+            getattr(self.app.settings, f"plot_color_{color_idx}").add_callback(
                 preview_colors
             )
 
     def plot_line_width_changed(self):
-        self.parameters.plot_line_width.value = self.plot_line_width.value()
+        self.app.settings.plot_line_width.value = self.plot_line_width.value()
 
     def plot_line_opacity_changed(self):
-        self.parameters.plot_line_opacity.value = self.plot_line_opacity.value()
+        self.app.settings.plot_line_opacity.value = self.plot_line_opacity.value()
 
     def plot_fill_opacity_changed(self):
-        self.parameters.plot_fill_opacity.value = self.plot_fill_opacity.value()
+        self.app.settings.plot_fill_opacity.value = self.plot_fill_opacity.value()
 
     def do_export_select_file(self):
         options = QtWidgets.QFileDialog.Options()

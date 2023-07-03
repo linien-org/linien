@@ -40,11 +40,14 @@ setup(
     entry_points={"console_scripts": ["linien-server=linien_server.server:run_server"]},
     python_requires=">=3.5",
     install_requires=[
+        "appdirs>=1.4.4",
+        "certifi==2021.10.8",  # pinned because of bug in default pip 9.0.1, see #339
         "click>=7.1.2",
         "cma>=3.0.3",
+        "pip>=20.3.4",
         "pylpsd>=0.1.4",
         "pyrp3>=1.1.0;platform_machine=='armv7l'",  # only install on RedPitaya
-        "rpyc>=4.0,<5.0",
+        "requests<=2.25.1",
         "linien-common=={}".format(version),
     ],
     scripts=[

@@ -24,7 +24,7 @@ from linien_common.common import (
     FAST_OUT2,
     convert_channel_mixing_value,
 )
-from linien_gui.utils import param2ui
+from linien_gui.utils import get_linien_app_instance, param2ui
 from linien_gui.widgets import UI_PATH
 from PyQt5 import QtWidgets, uic
 
@@ -33,7 +33,7 @@ class GeneralPanel(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         super(GeneralPanel, self).__init__(*args, **kwargs)
         uic.loadUi(UI_PATH / "general_panel.ui", self)
-        self.app = QtWidgets.QApplication.instance()
+        self.app = get_linien_app_instance()
         self.app.connection_established.connect(self.on_connection_established)
 
         self.channelMixingSlider.valueChanged.connect(self.on_channel_mixing_changed)
@@ -105,11 +105,11 @@ class GeneralPanel(QtWidgets.QWidget):
         param2ui(self.parameters.polarity_fast_out2, self.polarityComboBoxFastOut2)
         param2ui(self.parameters.polarity_analog_out0, self.polarityComboBoxAnalogOut0)
 
-        self.parameters.control_channel.on_change(self.show_polarity_settings)
-        self.parameters.sweep_channel.on_change(self.show_polarity_settings)
-        self.parameters.mod_channel.on_change(self.show_polarity_settings)
-        self.parameters.slow_control_channel.on_change(self.show_polarity_settings)
-        self.parameters.pid_on_slow_enabled.on_change(self.show_polarity_settings)
+        self.parameters.control_channel.add_callback(self.show_polarity_settings)
+        self.parameters.sweep_channel.add_callback(self.show_polarity_settings)
+        self.parameters.mod_channel.add_callback(self.show_polarity_settings)
+        self.parameters.slow_control_channel.add_callback(self.show_polarity_settings)
+        self.parameters.pid_on_slow_enabled.add_callback(self.show_polarity_settings)
 
         for idx in range(1, 4):
             param2ui(
@@ -127,7 +127,7 @@ class GeneralPanel(QtWidgets.QWidget):
             for widget in widgets_to_disable:
                 widget.setEnabled(not fast_mode_enabled)
 
-        self.parameters.fast_mode.on_change(on_fast_mode_changed)
+        self.parameters.fast_mode.add_callback(on_fast_mode_changed)
 
     def on_analog_out_changed(self, idx):
         getattr(self.parameters, f"analog_out_{idx}").value = int(

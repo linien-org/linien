@@ -23,39 +23,25 @@ from time import sleep
 from traceback import print_exc
 from typing import Callable, Optional
 
-import linien_client
 import rpyc
-from linien_client.deploy import start_remote_server
-from linien_client.exceptions import (
+from linien_common.config import DEFAULT_SERVER_PORT
+
+from . import __version__
+from .communication import LinienControlService
+from .deploy import start_remote_server
+from .exceptions import (
     GeneralConnectionErrorException,
     InvalidServerVersionException,
     RPYCAuthenticationException,
     ServerNotRunningException,
 )
-from linien_client.remote_parameters import RemoteParameters
-from linien_common.common import hash_username_and_password
-from linien_common.config import DEFAULT_SERVER_PORT
+from .remote_parameters import RemoteParameters
 
 
-class RPYCClientWithAuthentication(rpyc.Service):
-    """
-    An rpyc client that authenticates using a hash.
-
-    This class is run on the client side and exposes the client's unique id to the
-    server.
-    """
-
-    def __init__(self, uuid: str, user: str, password: str):
+class RPYCServiceWithUUID(rpyc.Service):
+    def __init__(self, uuid: str):
         super().__init__()
-
         self.exposed_uuid = uuid
-        self.auth_hash = hash_username_and_password(user, password).encode()
-
-    def _connect(self, channel, config):
-        # send auth hash before rpyc takes over
-        channel.stream.sock.send(self.auth_hash)
-
-        return super()._connect(channel, config)
 
 
 class LinienClient:
@@ -82,7 +68,7 @@ class LinienClient:
         self.uuid = "".join(random.choice(string.ascii_lowercase) for _ in range(10))
 
         # for exposing client's uuid to server
-        self.client_service = RPYCClientWithAuthentication(self.uuid, user, password)
+        self.client_service = RPYCServiceWithUUID(self.uuid)
 
     def connect(
         self,
@@ -113,7 +99,7 @@ class LinienClient:
                     self.connection.root, self.uuid, use_parameter_cache
                 )
 
-                self.control = self.connection.root
+                self.control: LinienControlService = self.connection.root
                 break
             except gaierror:
                 # host not found
@@ -147,7 +133,7 @@ class LinienClient:
 
         # now check that the remote version is the same as ours
         remote_version = self.connection.root.exposed_get_server_version().split("+")[0]
-        local_version = linien_client.__version__.split("+")[0]
+        local_version = __version__.split("+")[0]
 
         if (remote_version != local_version) and not ("dev" in local_version):
             raise InvalidServerVersionException(local_version, remote_version)
@@ -156,7 +142,8 @@ class LinienClient:
         print("Connection established!")
 
     def disconnect(self) -> None:
-        self.connection.close()
+        if self.connection is not None:
+            self.connection.close()
         self.connected = False
 
     def _catch_network_errors(self, cls, call_on_error):

@@ -16,13 +16,14 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
+from linien_gui.utils import get_linien_app_instance
 from PyQt5 import QtCore, QtWidgets
 
 
 class RightPanel(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         super(RightPanel, self).__init__(*args, **kwargs)
-        self.app = QtWidgets.QApplication.instance()
+        self.app = get_linien_app_instance()
         self.app.connection_established.connect(self.on_connection_established)
         self.main_window = self.window()
         QtCore.QTimer.singleShot(100, self.ready)
@@ -41,16 +42,18 @@ class RightPanel(QtWidgets.QWidget):
         self.parameters = self.app.parameters
         self.control = self.app.control
 
-        self.parameters.autolock_running.on_change(self.autolock_status_changed)
-        self.parameters.optimization_running.on_change(self.optimization_status_changed)
-        self.parameters.lock.on_change(self.enable_or_disable_panels)
+        self.parameters.autolock_running.add_callback(self.autolock_status_changed)
+        self.parameters.optimization_running.add_callback(
+            self.optimization_status_changed
+        )
+        self.parameters.lock.add_callback(self.enable_or_disable_panels)
 
         def highlight_psd_button(locked):
             self.main_window.pid_parameter_optimization_button.setStyleSheet(
                 "background: #00aa00;" if locked else ""
             )
 
-        self.parameters.lock.on_change(highlight_psd_button)
+        self.parameters.lock.add_callback(highlight_psd_button)
 
     def shutdown_server(self):
         self.app.shutdown()
@@ -63,13 +66,13 @@ class RightPanel(QtWidgets.QWidget):
 
     def autolock_status_changed(self, value):
         if value:
-            self.settings_toolbox.setCurrentWidget(self.lockingPanel)
+            self.main_window.settings_toolbox.setCurrentWidget(self.lockingPanel)
 
         self.enable_or_disable_panels()
 
     def optimization_status_changed(self, value):
         if value:
-            self.settings_toolbox.setCurrentWidget(self.optimizationPanel)
+            self.main_window.settings_toolbox.setCurrentWidget(self.optimizationPanel)
 
         self.enable_or_disable_panels()
 

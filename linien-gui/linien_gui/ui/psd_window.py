@@ -22,7 +22,12 @@ from time import time
 import linien_gui
 from linien_common.common import PSD_ALGORITHM_LPSD, PSD_ALGORITHM_WELCH
 from linien_gui.dialogs import error_dialog
-from linien_gui.utils import RandomColorChoser, param2ui, set_window_icon
+from linien_gui.utils import (
+    RandomColorChoser,
+    get_linien_app_instance,
+    param2ui,
+    set_window_icon,
+)
 from linien_gui.widgets import UI_PATH
 from PyQt5 import QtWidgets, uic
 
@@ -33,7 +38,7 @@ class PSDWindow(QtWidgets.QMainWindow):
         uic.loadUi(UI_PATH / "psd_window.ui", self)
         self.setWindowTitle("Linien: Noise analysis")
         set_window_icon(self)
-        self.app = QtWidgets.QApplication.instance()
+        self.app = get_linien_app_instance()
         self.app.connection_established.connect(self.on_connection_established)
 
         self.random_color_choser = RandomColorChoser()
@@ -61,10 +66,10 @@ class PSDWindow(QtWidgets.QMainWindow):
         self.parameters = self.app.parameters
         self.control = self.app.control
 
-        self.parameters.psd_data_partial.on_change(
+        self.parameters.psd_data_partial.add_callback(
             self.psd_data_received,
         )
-        self.parameters.psd_data_complete.on_change(
+        self.parameters.psd_data_complete.add_callback(
             self.psd_data_received,
         )
 
@@ -88,7 +93,7 @@ class PSDWindow(QtWidgets.QMainWindow):
                 self.container_psd_running.hide()
                 self.container_psd_not_running.show()
 
-        self.parameters.psd_acquisition_running.on_change(update_status)
+        self.parameters.psd_acquisition_running.add_callback(update_status)
 
     def closeEvent(self, event, *args, **kwargs):
         # we never realy want to close the window (which destroys its content)  but just

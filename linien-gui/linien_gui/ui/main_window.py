@@ -24,10 +24,9 @@ from time import time
 import linien_gui
 import numpy as np
 from linien_common.common import check_plot_data
-from linien_common.config import N_COLORS
-from linien_gui.config import Color
+from linien_gui.config import N_COLORS, Color
 from linien_gui.ui.plot_widget import INVALID_POWER
-from linien_gui.utils import color_to_hex, set_window_icon
+from linien_gui.utils import color_to_hex, get_linien_app_instance, set_window_icon
 from linien_gui.widgets import UI_PATH
 from PyQt5 import QtWidgets, uic
 
@@ -45,7 +44,7 @@ class MainWindow(QtWidgets.QMainWindow):
         super(MainWindow, self).__init__(*args, **kwargs)
         uic.loadUi(UI_PATH / "main_window.ui", self)
         set_window_icon(self)
-        self.app = QtWidgets.QApplication.instance()
+        self.app = get_linien_app_instance()
         self.app.connection_established.connect(self.on_connection_established)
 
         self.reset_std_history()
@@ -84,31 +83,33 @@ class MainWindow(QtWidgets.QMainWindow):
         self.control = self.app.control
         self.parameters = self.app.parameters
 
-        self.parameters.lock.on_change(self.change_sweep_control_visibility)
-        self.parameters.autolock_running.on_change(self.change_sweep_control_visibility)
-        self.parameters.optimization_running.on_change(
+        self.parameters.lock.add_callback(self.change_sweep_control_visibility)
+        self.parameters.autolock_running.add_callback(
+            self.change_sweep_control_visibility
+        )
+        self.parameters.optimization_running.add_callback(
             self.change_sweep_control_visibility
         )
 
-        self.parameters.to_plot.on_change(self.update_std)
+        self.parameters.to_plot.add_callback(self.update_std)
 
-        self.parameters.pid_on_slow_enabled.on_change(
+        self.parameters.pid_on_slow_enabled.add_callback(
             lambda v: self.legend_slow_signal_history.setVisible(v)
         )
-        self.parameters.dual_channel.on_change(
+        self.parameters.dual_channel.add_callback(
             lambda v: self.legend_monitor_signal_history.setVisible(not v)
         )
 
         self.settings_toolbox.setCurrentIndex(0)
 
-        self.parameters.lock.on_change(lambda *args: self.reset_std_history())
+        self.parameters.lock.add_callback(lambda *args: self.reset_std_history())
 
         for color_idx in range(N_COLORS):
-            getattr(self.parameters, f"plot_color_{color_idx}").on_change(
+            getattr(self.app.settings, f"plot_color_{color_idx}").add_callback(
                 self.update_legend_color
             )
 
-        self.parameters.dual_channel.on_change(self.update_legend_text)
+        self.parameters.dual_channel.add_callback(self.update_legend_text)
 
     def change_sweep_control_visibility(self, *args):
         al_running = self.parameters.autolock_running.value
@@ -128,7 +129,7 @@ class MainWindow(QtWidgets.QMainWindow):
             return el.setStyleSheet(
                 "color: "
                 + color_to_hex(
-                    getattr(self.parameters, f"plot_color_{color.value}").value
+                    getattr(self.app.settings, f"plot_color_{color.value}").value
                 )
             )
 
@@ -186,10 +187,11 @@ class MainWindow(QtWidgets.QMainWindow):
                     {
                         "linien-version": linien_gui.__version__,
                         "time": time(),
-                        "parameters": dict(
-                            (k, getattr(self.parameters, k).value)
-                            for k in self.parameters.remote.exposed_get_restorable_parameters()  # noqa: E501
-                        ),
+                        "parameters": {
+                            name: param.value
+                            for name, param in self.parameters
+                            if param.restorable
+                        },
                     },
                     f,
                 )
@@ -207,16 +209,13 @@ class MainWindow(QtWidgets.QMainWindow):
             with open(fn, "r") as f:
                 data = json.load(f)
 
-            assert "linien-version" in data, "invalid parameter file"
+            if "linien-version" not in data:
+                raise Exception("invalid parameter file")
 
-            restorable = self.parameters.remote.exposed_get_restorable_parameters()
-            for k, v in data["parameters"].items():
-                if k not in restorable:
-                    print("ignore key", k)
-                    continue
-
-                print("restoring", k)
-                getattr(self.parameters, k).value = v
+            for name, value in data["parameters"].items():
+                param = getattr(self.parameters, name)
+                if param.restorable:
+                    param.value = value
 
             self.control.write_registers()
 

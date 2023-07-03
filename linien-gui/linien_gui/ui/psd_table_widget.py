@@ -18,7 +18,7 @@
 
 from datetime import datetime
 
-from linien_gui.utils import color_to_hex
+from linien_gui.utils import color_to_hex, get_linien_app_instance
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtCore import pyqtSignal
 
@@ -28,7 +28,7 @@ class PSDTableWidget(QtWidgets.QTableWidget):
 
     def __init__(self, *args, **kwargs):
         super(PSDTableWidget, self).__init__(*args, **kwargs)
-        self.app = QtWidgets.QApplication.instance()
+        self.app = get_linien_app_instance()
         self.app.connection_established.connect(self.on_connection_established)
 
         self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)

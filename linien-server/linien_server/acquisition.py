@@ -16,29 +16,23 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-import _thread
-import os
 import pickle
 import shutil
 import subprocess
-import threading
 from pathlib import Path
 from random import random
+from threading import Event, Thread
 from time import sleep
+from typing import Any, Dict, Optional, Tuple, Union
 
 import numpy as np
 from linien_common.common import DECIMATION, MAX_N_POINTS, N_POINTS
 from linien_common.config import ACQUISITION_PORT
 from linien_server.csr import PythonCSR
-from pyrp3.board import RedPitaya
-from pyrp3.instrument import TriggerSource
+from pyrp3.board import RedPitaya  # type: ignore
+from pyrp3.instrument import TriggerSource  # type: ignore
 from rpyc import Service
 from rpyc.utils.server import ThreadedServer
-
-
-def shutdown():
-    _thread.interrupt_main()
-    os._exit(0)
 
 
 class AcquisitionService(Service):
@@ -72,18 +66,25 @@ class AcquisitionService(Service):
 
         self.dual_channel = False
 
-        self.acquisition_paused = False
-        self.skip_next_data = False
+        self.stop_event = Event()
+        self.pause_event = Event()
+        self.skip_next_data_event = Event()
 
-        self.run()
-
-    def run(self):
-        self.thread = threading.Thread(target=self.acquisition_loop, args=())
-        self.thread.daemon = True
+        self.thread = Thread(
+            target=self._acquisition_loop,
+            args=(
+                self.stop_event,
+                self.pause_event,
+                self.skip_next_data_event,
+            ),
+            daemon=True,
+        )
         self.thread.start()
 
-    def acquisition_loop(self):
-        while True:
+    def _acquisition_loop(
+        self, stop_event: Event, pause_event: Event, skip_next_data_event: Event
+    ) -> None:
+        while not stop_event.is_set():
             while self.csr_queue:
                 key, value = self.csr_queue.pop(0)
                 self.csr.set(key, value)
@@ -100,86 +101,91 @@ class AcquisitionService(Service):
                     sleep(0.05)
                     continue
 
-            if self.acquisition_paused:
+            if pause_event.is_set():
                 sleep(0.05)
                 continue
 
-            if not self.triggered:
+            # check that scope is triggered; copied from
+            # https://github.com/RedPitaya/RedPitaya/blob/14cca62dd58f29826ee89f4b28901602f5cdb1d8/api/src/oscilloscope.c#L115  # noqa: E501
+            if not (self.red_pitaya.scope.read(0x1 << 2) & 0x4) <= 0:
                 sleep(0.05)
                 continue
 
-            data, is_raw = self.read_data()
+            if self.raw_acquisition_enabled:
+                data_raw = self.read_data_raw(
+                    0x10000, self.red_pitaya.scope.write_pointer_trigger, MAX_N_POINTS
+                )
+                is_raw = True
+            else:
+                data = self.read_data()
+                is_raw = False
 
-            if self.acquisition_paused:
+            if pause_event.is_set():
                 # it may seem strange that we check this here a second time. Reason:
                 # `read_data` takes some time and if in the mean time acquisition
                 # was paused, we do not want to send the data
                 continue
 
-            if self.skip_next_data:
-                self.skip_next_data = False
+            if skip_next_data_event.is_set():
+                skip_next_data_event.clear()
             else:
-                self.data = pickle.dumps(data)
+                if self.raw_acquisition_enabled:
+                    self.data = pickle.dumps(data_raw)
+                else:
+                    self.data = pickle.dumps(data)
                 self.data_was_raw = is_raw
                 self.data_hash = random()
 
             self.program_acquisition_and_rearm()
 
-    @property
-    def triggered(self):
-        # copied from https://github.com/RedPitaya/RedPitaya/blob/14cca62dd58f29826ee89f4b28901602f5cdb1d8/api/src/oscilloscope.c#L115  # noqa: E501
-        return (self.red_pitaya.scope.read(0x1 << 2) & 0x4) <= 0
+    def read_data(self) -> Dict[str, np.ndarray]:
+        signals = []
 
-    def read_data(self):
-        write_pointer = self.red_pitaya.scope.write_pointer_trigger
+        channel_offsets = [0x10000]
+        if self.fetch_additional_signals or self.locked:
+            channel_offsets.append(0x20000)
 
-        if self.raw_acquisition_enabled:
-            return self.read_data_raw(0x10000, write_pointer, MAX_N_POINTS), True
+        for channel_offset in channel_offsets:
+            channel_data = self.read_data_raw(
+                channel_offset,
+                self.red_pitaya.scope.write_pointer_trigger,
+                N_POINTS,
+            )
+
+            for sub_channel_idx in (0, 1):
+                signals.append(channel_data[sub_channel_idx])
+
+        signals_named = {}
+
+        if not self.locked:
+            signals_named["error_signal_1"] = signals[0]
+
+            if self.fetch_additional_signals and len(signals) >= 3:
+                signals_named["error_signal_1_quadrature"] = signals[2]
+
+            if self.dual_channel:
+                signals_named["error_signal_2"] = signals[1]
+                if self.fetch_additional_signals and len(signals) >= 3:
+                    signals_named["error_signal_2_quadrature"] = signals[3]
+            else:
+                signals_named["monitor_signal"] = signals[1]
 
         else:
-            signals = []
+            signals_named["error_signal"] = signals[0]
+            signals_named["control_signal"] = signals[1]
 
-            channel_offsets = [0x10000]
-            if self.fetch_additional_signals or self.locked:
-                channel_offsets.append(0x20000)
+            if not self.dual_channel and len(signals) >= 3:
+                signals_named["monitor_signal"] = signals[2]
 
-            for channel_offset in channel_offsets:
-                channel_data = self.read_data_raw(
-                    channel_offset, write_pointer, N_POINTS
-                )
+        slow_out = self.csr.get("logic_slow_value")
+        slow_out = slow_out if slow_out <= 8191 else slow_out - 16384
+        signals_named["slow_control_signal"] = slow_out
 
-                for sub_channel_idx in (0, 1):
-                    signals.append(channel_data[sub_channel_idx])
+        return signals_named
 
-            signals_named = {}
-
-            if not self.locked:
-                signals_named["error_signal_1"] = signals[0]
-
-                if self.fetch_additional_signals and len(signals) >= 3:
-                    signals_named["error_signal_1_quadrature"] = signals[2]
-
-                if self.dual_channel:
-                    signals_named["error_signal_2"] = signals[1]
-                    if self.fetch_additional_signals and len(signals) >= 3:
-                        signals_named["error_signal_2_quadrature"] = signals[3]
-                else:
-                    signals_named["monitor_signal"] = signals[1]
-
-            else:
-                signals_named["error_signal"] = signals[0]
-                signals_named["control_signal"] = signals[1]
-
-                if not self.dual_channel and len(signals) >= 3:
-                    signals_named["monitor_signal"] = signals[2]
-
-            slow_out = self.csr.get("logic_slow_value")
-            slow_out = slow_out if slow_out <= 8191 else slow_out - 16384
-            signals_named["slow_control_signal"] = slow_out
-
-            return signals_named, False
-
-    def read_data_raw(self, offset, addr, data_length):
+    def read_data_raw(
+        self, offset: int, addr: int, data_length: int
+    ) -> Tuple[Any, ...]:
         max_data_length = 16383
         if data_length + addr > max_data_length:
             to_read_later = data_length + addr - max_data_length
@@ -213,7 +219,7 @@ class AcquisitionService(Service):
         return signals
 
     def program_acquisition_and_rearm(self, trigger_delay=16384):
-        """Programs the acquisition settings and rearms acquisition."""
+        """Program the acquisition settings and rearm acquisition."""
         if not self.locked:
             target_decimation = 2 ** (self.sweep_speed + int(np.log2(DECIMATION)))
 
@@ -230,10 +236,18 @@ class AcquisitionService(Service):
 
         self.red_pitaya.scope.rearm(trigger_source=TriggerSource.ext_posedge)
 
-    def exposed_return_data(self, last_hash):
+    def exposed_return_data(
+        self, last_hash: Optional[float]
+    ) -> Tuple[
+        bool,
+        Union[float, None],
+        Union[bool, None],
+        Union[bytes, None],
+        Union[float, None],
+    ]:
         no_data_available = self.data_hash is None
         data_not_changed = self.data_hash == last_hash
-        if data_not_changed or no_data_available or self.acquisition_paused:
+        if data_not_changed or no_data_available or self.pause_event.is_set():
             return False, None, None, None, None
         else:
             return True, self.data_hash, self.data_was_raw, self.data, self.data_uuid
@@ -244,48 +258,60 @@ class AcquisitionService(Service):
         # don't want to wait until it finishes
         self.program_acquisition_and_rearm()
 
-    def exposed_set_lock_status(self, locked):
+    def exposed_set_lock_status(self, locked: bool) -> None:
         self.locked = locked
         self.confirmed_that_in_lock = False
 
-    def exposed_set_fetch_additional_signals(self, fetch):
+    def exposed_set_fetch_additional_signals(self, fetch: bool) -> None:
         self.fetch_additional_signals = fetch
 
-    def exposed_set_raw_acquisition(self, data):
-        self.raw_acquisition_enabled = data[0]
-        self.raw_acquisition_decimation = data[1]
+    def exposed_set_raw_acquisition(self, enabled: bool, decimation: int) -> None:
+        self.raw_acquisition_enabled = enabled
+        self.raw_acquisition_decimation = decimation
 
     def exposed_set_dual_channel(self, dual_channel):
         self.dual_channel = dual_channel
 
-    def exposed_set_csr(self, key, value):
+    def exposed_set_csr(self, key: str, value: int) -> None:
         self.csr_queue.append((key, value))
 
     def exposed_set_iir_csr(self, *args):
         self.csr_iir_queue.append(args)
 
+    def exposed_stop_acquisition(self) -> None:
+        self.stop_event.set()
+        self.thread.join()
+        start_nginx()
+
     def exposed_pause_acquisition(self):
-        self.acquisition_paused = True
+        self.pause_event.set()
         self.data_hash = None
         self.data = None
 
-    def exposed_continue_acquisition(self, uuid):
+    def exposed_continue_acquisition(self, uuid: Optional[float]) -> None:
         self.program_acquisition_and_rearm()
         sleep(0.01)
         # resetting data here is not strictly required but we want to be on the safe
         # side
         self.data_hash = None
         self.data = None
-        self.acquisition_paused = False
+        self.pause_event.clear()
         self.data_uuid = uuid
         # if we are sweeping, we have to skip one data set because an incomplete sweep
         # may have been recorded. When locked, this does not matter
-        self.skip_next_data = not self.confirmed_that_in_lock
+        if self.confirmed_that_in_lock:
+            self.skip_next_data_event.clear()
+        else:
+            self.skip_next_data_event.set()
 
 
 def flash_fpga():
-    filepath = Path(__file__).resolve().parents[1] / "linien.bin"
+    filepath = Path(__file__).resolve().parent / "linien.bin"
     shutil.copy(str(filepath), "/dev/xdevcfg")
+
+
+def start_nginx():
+    subprocess.Popen(["systemctl", "start", "redpitaya_nginx.service"])
 
 
 def stop_nginx():

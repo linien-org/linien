@@ -20,15 +20,18 @@ import sys
 from traceback import print_exc
 
 import click
-import linien_gui
-from linien_gui.ui.device_manager import DeviceManager
-from linien_gui.ui.main_window import MainWindow
-from linien_gui.ui.psd_window import PSDWindow
-from linien_gui.ui.version_checker import VersionCheckerThread
-from linien_gui.widgets import UI_PATH
+from linien_client.connection import LinienClient
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import pyqtSignal
 from pyqtgraph.Qt import QtCore
+
+from . import __version__
+from .config import load_settings
+from .ui.device_manager import DeviceManager
+from .ui.main_window import MainWindow
+from .ui.psd_window import PSDWindow
+from .ui.version_checker import VersionCheckerThread
+from .widgets import UI_PATH
 
 sys.path += [str(UI_PATH)]
 
@@ -39,6 +42,8 @@ class LinienApp(QtWidgets.QApplication):
     def __init__(self, *args, **kwargs):
         super(LinienApp, self).__init__(*args, **kwargs)
 
+        self.settings = load_settings()
+
         self.main_window = MainWindow()
         self.device_manager = DeviceManager()
         self.psd_window = PSDWindow()
@@ -46,7 +51,7 @@ class LinienApp(QtWidgets.QApplication):
 
         self.aboutToQuit.connect(self.quit)
 
-    def client_connected(self, client):
+    def client_connected(self, client: LinienClient):
         self.device_manager.hide()
         self.main_window.show(client.host, client.name)
 
@@ -56,22 +61,22 @@ class LinienApp(QtWidgets.QApplication):
 
         self.connection_established.emit()
 
-        self.call_listeners()
+        self.periodically_check_for_changed_parameters()
 
         self.check_for_new_version()
 
-    def call_listeners(self):
+    def periodically_check_for_changed_parameters(self):
         if hasattr(self, "client") and self.client and self.client.connected:
             try:
-                self.parameters.call_listeners()
+                self.parameters.check_for_changed_parameters()
             except AttributeError:
-                print("call_listeners() failed")
+                print("check_for_changed_parameters() failed")
                 print_exc()
 
-            QtCore.QTimer.singleShot(50, self.call_listeners)
+            QtCore.QTimer.singleShot(50, self.periodically_check_for_changed_parameters)
 
     def shutdown(self):
-        self.client.control.shutdown()
+        self.client.control.exposed_shutdown()
         self.quit()
 
     def open_psd_window(self):
@@ -104,7 +109,7 @@ class LinienApp(QtWidgets.QApplication):
 
 
 @click.command()
-@click.version_option(linien_gui.__version__)
+@click.version_option(__version__)
 def run_application():
     app = LinienApp(sys.argv)
 

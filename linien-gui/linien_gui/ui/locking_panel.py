@@ -17,7 +17,7 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 from linien_common.common import FAST_AUTOLOCK
-from linien_gui.utils import param2ui
+from linien_gui.utils import get_linien_app_instance, param2ui
 from linien_gui.widgets import UI_PATH
 from PyQt5 import QtWidgets, uic
 
@@ -26,7 +26,7 @@ class LockingPanel(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         super(LockingPanel, self).__init__(*args, **kwargs)
         uic.loadUi(UI_PATH / "locking_panel.ui", self)
-        self.app = QtWidgets.QApplication.instance()
+        self.app = get_linien_app_instance()
         self.app.connection_established.connect(self.on_connection_established)
 
         self.kpSpinBox.valueChanged.connect(self.kp_changed)
@@ -70,7 +70,7 @@ class LockingPanel(QtWidgets.QWidget):
         def slow_pid_visibility(*args):
             self.slow_pid_group.setVisible(self.parameters.pid_on_slow_enabled.value)
 
-        self.parameters.pid_on_slow_enabled.on_change(slow_pid_visibility)
+        self.parameters.pid_on_slow_enabled.add_callback(slow_pid_visibility)
 
         def lock_status_changed(_):
             locked = self.parameters.lock.value
@@ -92,7 +92,7 @@ class LockingPanel(QtWidgets.QWidget):
             self.parameters.autolock_failed,
             self.parameters.autolock_locked,
         ):
-            param.on_change(lock_status_changed)
+            param.add_callback(lock_status_changed)
 
         param2ui(self.parameters.target_slope_rising, self.button_slope_rising)
         param2ui(
@@ -105,7 +105,9 @@ class LockingPanel(QtWidgets.QWidget):
             self.auto_mode_activated.setVisible(value)
             self.auto_mode_not_activated.setVisible(not value)
 
-        self.parameters.autolock_selection.on_change(autolock_selection_status_changed)
+        self.parameters.autolock_selection.add_callback(
+            autolock_selection_status_changed
+        )
 
         param2ui(
             self.parameters.autolock_mode_preference, self.autolock_mode_preference

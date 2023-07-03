@@ -16,36 +16,41 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
+from typing import Union
+
+from linien_client.remote_parameters import RemoteParameter
 from linien_common.common import HIGH_PASS_FILTER, LOW_PASS_FILTER
-from linien_gui.utils import param2ui
+from linien_gui.utils import get_linien_app_instance, param2ui
 from linien_gui.widgets import UI_PATH
 from PyQt5 import QtWidgets, uic
 
 
 class SpectroscopyPanel(QtWidgets.QWidget):
+    CHANNEL = Union[str, None]
+
     def __init__(self, *args):
         super(SpectroscopyPanel, self).__init__(*args)
         uic.loadUi(UI_PATH / "spectroscopy_panel.ui", self)
-        self.app = QtWidgets.QApplication.instance()
+        self.app = get_linien_app_instance()
 
         def change_filter_frequency(filter_i):
             self.get_param(f"filter_{filter_i}_frequency").value = getattr(
                 self, f"filter_{filter_i}_frequency"
             ).value()
-            self.control.write_registers()
+            self.control.exposed_write_registers()
 
         def change_filter_enabled(filter_i):
             filter_enabled = int(
                 getattr(self, f"filter_{filter_i}_enabled").checkState() > 0
             )
             self.get_param(f"filter_{filter_i}_enabled").value = filter_enabled
-            self.control.write_registers()
+            self.control.exposed_write_registers()
 
         def change_filter_type(filter_i):
             param = self.get_param(f"filter_{filter_i}_type")
             current_idx = getattr(self, f"filter_{filter_i}_type").currentIndex()
             param.value = (LOW_PASS_FILTER, HIGH_PASS_FILTER)[current_idx]
-            self.control.write_registers()
+            self.control.exposed_write_registers()
 
         for filter_i in [1, 2]:
             for key, fct in {
@@ -83,13 +88,13 @@ class SpectroscopyPanel(QtWidgets.QWidget):
 
         def automatic_changed(value):
             self.get_param("filter_automatic").value = value
-            self.control.write_registers()
+            self.control.exposed_write_registers()
 
         self.automaticFilterCheckBox.stateChanged.connect(automatic_changed)
 
         def invert_changed(value):
             self.get_param("invert").value = bool(value)
-            self.control.write_registers()
+            self.control.exposed_write_registers()
 
         self.invertCheckBox.stateChanged.connect(invert_changed)
 
@@ -113,7 +118,7 @@ class SpectroscopyPanel(QtWidgets.QWidget):
             self.automatic_filtering_enabled.setVisible(value)
             self.automatic_filtering_disabled.setVisible(not value)
 
-        self.get_param("filter_automatic").on_change(filter_automatic_changed)
+        self.get_param("filter_automatic").add_callback(filter_automatic_changed)
 
         for filter_i in [1, 2]:
             param2ui(
@@ -130,27 +135,27 @@ class SpectroscopyPanel(QtWidgets.QWidget):
                 lambda type_: {LOW_PASS_FILTER: 0, HIGH_PASS_FILTER: 1}[type_],
             )
 
-    def get_param(self, name):
-        return getattr(self.parameters, f"{name}_{'a' if self.channel == 0 else 'b'}")
+    def get_param(self, name: str) -> RemoteParameter:
+        return getattr(self.parameters, f"{name}_{self.CHANNEL}")
 
     def change_signal_offset(self):
         self.get_param("offset").value = self.signalOffsetSpinBox.value() * 8191
-        self.control.write_registers()
+        self.control.exposed_write_registers()
 
     def change_demod_phase(self):
         self.get_param(
             "demodulation_phase"
         ).value = self.demodulationPhaseSpinBox.value()
-        self.control.write_registers()
+        self.control.exposed_write_registers()
 
     def change_demod_multiplier(self, idx):
         self.get_param("demodulation_multiplier").value = idx + 1
-        self.control.write_registers()
+        self.control.exposed_write_registers()
 
 
 class SpectroscopyChannelAPanel(SpectroscopyPanel):
-    channel = 0
+    CHANNEL = "a"
 
 
 class SpectroscopyChannelBPanel(SpectroscopyPanel):
-    channel = 1
+    CHANNEL = "b"

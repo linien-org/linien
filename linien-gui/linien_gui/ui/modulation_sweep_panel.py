@@ -17,7 +17,7 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 from linien_common.common import MHz, Vpp
-from linien_gui.utils import param2ui
+from linien_gui.utils import get_linien_app_instance, param2ui
 from linien_gui.widgets import UI_PATH
 from PyQt5 import QtWidgets, uic
 
@@ -26,7 +26,7 @@ class ModulationAndSweepPanel(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         super(ModulationAndSweepPanel, self).__init__(*args, **kwargs)
         uic.loadUi(UI_PATH / "modulation_sweep_panel.ui", self)
-        self.app = QtWidgets.QApplication.instance()
+        self.app = get_linien_app_instance()
         self.app.connection_established.connect(self.on_connection_established)
 
         self.modulationFrequencySpinBox.setKeyboardTracking(False)
@@ -57,7 +57,7 @@ class ModulationAndSweepPanel(QtWidgets.QWidget):
         )
         param2ui(self.parameters.sweep_speed, self.sweepSpeedComboBox)
 
-        self.parameters.dual_channel.on_change(self.dual_channel_changed)
+        self.parameters.dual_channel.add_callback(self.dual_channel_changed)
 
         def fast_mode_changed(fast_mode_enabled):
             """Disables controls that are irrelevant if fast mode is enabled"""
@@ -69,7 +69,7 @@ class ModulationAndSweepPanel(QtWidgets.QWidget):
             for widget in widgets_to_disable:
                 widget.setEnabled(not fast_mode_enabled)
 
-        self.parameters.fast_mode.on_change(fast_mode_changed)
+        self.parameters.fast_mode.add_callback(fast_mode_changed)
 
         def fast_mode_changed(fast_mode_enabled):
             """Disables controls that are irrelevant if fast mode is enabled"""
@@ -81,7 +81,7 @@ class ModulationAndSweepPanel(QtWidgets.QWidget):
             for widget in widgets_to_disable:
                 widget.setEnabled(not fast_mode_enabled)
 
-        self.parameters.fast_mode.on_change(fast_mode_changed)
+        self.parameters.fast_mode.add_callback(fast_mode_changed)
 
     def change_modulation_frequency(self):
         self.parameters.modulation_frequency.value = (
