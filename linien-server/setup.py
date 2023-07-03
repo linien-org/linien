@@ -41,6 +41,7 @@ setup(
     python_requires=">=3.5",
     install_requires=[
         "appdirs>=1.4.4",
+        "certifi==2021.10.8",  # pinned because of bug in default pip 9.0.1, see #339
         "click>=7.1.2",
         "cma>=3.0.3",
         "pip>=20.3.4",
