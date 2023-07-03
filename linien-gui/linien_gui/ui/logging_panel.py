@@ -65,7 +65,7 @@ class LoggingPanel(QtWidgets.QWidget):
 
         # getting the influxdb credentials from the remote
         credentials = pickle.loads(self.control.exposed_get_influxdb_credentials())
-        print(f"Got InfluxDB credentials: {credentials}")
+        print("Received InfluxDB credentials from server.")
         self.lineEditURL.setText(credentials.url)
         self.lineEditOrg.setText(credentials.org)
         self.lineEditToken.setText(credentials.token)
@@ -96,7 +96,10 @@ class LoggingPanel(QtWidgets.QWidget):
         sucess, status_code, message = self.control.exposed_update_influxdb_credentials(
             credentials
         )
-        print(f"Update if InfluxDB credentials successful: {sucess}")
+        print(f"Update of InfluxDB credentials successful: {sucess}")
+        if not sucess:
+            print(f"Status code: {status_code}")
+            print(f"Message: {message}")
         self.influx_credentials_update.emit(sucess, status_code, message)
 
     def on_influxdb_credentials_updated(
@@ -108,7 +111,7 @@ class LoggingPanel(QtWidgets.QWidget):
         else:
             self.influxTestIndicator.setText("❌")
             self.influxTestIndicator.setToolTip(
-                f"Connection failed: {message} (Status {status_code}"
+                f"Connection failed: {message} (Status {status_code})"
             )
 
 

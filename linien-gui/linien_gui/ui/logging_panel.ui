@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>522</width>
+    <width>264</width>
     <height>542</height>
    </rect>
   </property>
@@ -29,7 +29,7 @@
    <item>
     <widget class="QGroupBox" name="influxCredentialGroupBox">
      <property name="title">
-      <string>InfluxDB credentials</string>
+      <string>InfluxDB v2 credentials</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_4">
       <item>
@@ -111,7 +111,7 @@
         <item>
          <widget class="QPushButton" name="influxUpdateButton">
           <property name="text">
-           <string>Update</string>
+           <string>Update / Check</string>
           </property>
          </widget>
         </item>
