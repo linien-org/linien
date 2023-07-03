@@ -64,7 +64,7 @@ class InfluxDBLogger:
     def _logging_loop(self, interval: float) -> None:
         while not self.stop_event.is_set():
             data = {}
-            for name, param in parameters:
+            for name, param in self.parameters:
                 if param.log:
                     if name == "signal_stats":
                         for stat_name, stat_value in param.value.items():
