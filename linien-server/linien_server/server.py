@@ -95,7 +95,7 @@ class BaseService(rpyc.Service):
             self.exposed_register_remote_listener(uuid, param_name)
 
     def exposed_get_changed_parameters_queue(self, uuid: str) -> bytes:
-        return pickle.dumps(self.parameters.get_changed_parameters_queue(uuid))
+        return pack(self.parameters.get_changed_parameters_queue(uuid))
 
     def exposed_set_parameter_log(self, param_name: str, value: bool) -> None:
         if getattr(self.parameters, param_name).log != value:
@@ -125,7 +125,7 @@ class BaseService(rpyc.Service):
         return connection_succesful, status_code, message
 
     def exposed_get_influxdb_credentials(self) -> bytes:
-        return pickle.dumps(self.influxdb_logger.credentials)
+        return pack(self.influxdb_logger.credentials)
 
     def exposed_start_logging(self, interval: float) -> None:
         print("Starting logging")
