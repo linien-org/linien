@@ -78,6 +78,12 @@ def start_remote_server(
 
         conn.run(
             f"export LINIEN_AUTH_HASH={hash_username_and_password(user, password)}",
+            out_stream=out_stream,
+            err_stream=out_stream,
+            warn=True,
+        )
+
+        conn.run(
             "linien_start_server.sh",
             out_stream=out_stream,
             err_stream=out_stream,
