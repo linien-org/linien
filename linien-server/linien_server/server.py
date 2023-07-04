@@ -57,7 +57,10 @@ def username_and_password_authenticator(sock: socket) -> Tuple[socket, None]:
     hash proviced by the client via rpyc.
     """
     environ_hash = os.environ.get("LINIEN_AUTH_HASH")
+    print("environ_hash", environ_hash)
     rpyc_hash = sock.recv(64)
+    print("rpyc_hash", rpyc_hash)
+    print("rpyc_hash decoded", rpyc_hash.decode())
     if environ_hash is None:
         raise AuthenticationError(
             "No authentication hash found. Start the server  via the client or with the"
