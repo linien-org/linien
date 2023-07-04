@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-from linien_common.common import FAST_AUTOLOCK
+from linien_common.common import AutolockMode
 from linien_gui.utils import get_linien_app_instance, param2ui
 from linien_gui.widgets import UI_PATH
 from PyQt5 import QtWidgets, uic
@@ -134,7 +134,7 @@ class LockingPanel(QtWidgets.QWidget):
     def start_manual_lock(self):
         self.parameters.target_slope_rising.value = self.button_slope_rising.isChecked()
         self.parameters.fetch_additional_signals.value = False
-        self.parameters.autolock_mode.value = FAST_AUTOLOCK
+        self.parameters.autolock_mode.value = AutolockMode.FAST
         self.parameters.autolock_target_position.value = 0
         self.control.write_registers()
         self.control.start_lock()
