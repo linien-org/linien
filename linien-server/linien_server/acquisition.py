@@ -307,7 +307,16 @@ class AcquisitionService(Service):
 
 def flash_fpga():
     filepath = Path(__file__).resolve().parent / "linien.bin"
-    shutil.copy(str(filepath), "/dev/xdevcfg")
+
+    # on redpitaya os < 2, flashing fpga works by copying the bit file
+    # /dev/xdevcfg. On recent versions, there is a dedicated command for this
+    # cf. https://forum.redpitaya.com/viewtopic.php?p=33494&sid=5132bf6e33709b1a7daa948f8e8dcdb1#p33494  # noqa: E501
+    fpga_dev_file = Path("/dev/xdevcfg")
+
+    if fpga_dev_file.exists():
+        shutil.copy(str(filepath), str(fpga_dev_file))
+    else:
+        subprocess.Popen(["fpgautil", "-b", str(filepath)])
 
 
 def start_nginx():
