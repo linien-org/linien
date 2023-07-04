@@ -18,11 +18,9 @@
 
 import _thread
 import atexit
-import os
 import pickle
 from copy import copy
 from random import randint, random
-from socket import socket
 from threading import Event, Thread
 from time import sleep
 from typing import List, Tuple
@@ -31,7 +29,11 @@ import click
 import numpy as np
 import rpyc
 from linien_common.common import N_POINTS, check_plot_data, update_signal_history
-from linien_common.communication import pack, unpack
+from linien_common.communication import (
+    pack,
+    unpack,
+    username_and_password_authenticator,
+)
 from linien_common.config import DEFAULT_SERVER_PORT
 from linien_common.influxdb import InfluxDBCredentials, restore_credentials
 from linien_server import __version__
@@ -44,31 +46,7 @@ from linien_server.pid_optimization.pid_optimization import (
     PSDAcquisition,
 )
 from linien_server.registers import Registers
-from rpyc.utils.authenticators import AuthenticationError
 from rpyc.utils.server import ThreadedServer
-
-
-def username_and_password_authenticator(sock: socket) -> Tuple[socket, None]:
-    """
-    Authenticate a client using username and password.
-
-    If the server is started by the client, the client exports an environment variable
-    with the authentication hash. The server then checks if the hash matches the
-    hash proviced by the client via rpyc.
-    """
-    environ_hash = os.environ.get("LINIEN_AUTH_HASH")
-    print("environ_hash", environ_hash)
-    rpyc_hash = sock.recv(64)
-    print("rpyc_hash", rpyc_hash)
-    print("rpyc_hash decoded", rpyc_hash.decode())
-    if environ_hash is None:
-        raise AuthenticationError(
-            "No authentication hash found. Start the server  via the client or with the"
-            " `--no-auth` flag."
-        )
-    if environ_hash.encode() != rpyc_hash:
-        raise AuthenticationError("Authentication hashes do not match.")
-    return sock, None
 
 
 class BaseService(rpyc.Service):

@@ -16,7 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-import hashlib
 import os
 import sys
 
@@ -26,10 +25,7 @@ from linien_client.exceptions import (
     InvalidServerVersionException,
     ServerNotInstalledException,
 )
-
-
-def hash_username_and_password(username: str, password: str) -> str:
-    return hashlib.sha256((username + "/" + password).encode()).hexdigest()
+from linien_common.communication import hash_username_and_password
 
 
 def read_remote_version(
@@ -57,6 +53,26 @@ def read_remote_version(
         raise ServerNotInstalledException()
 
 
+def send_auth_hash_to_server(
+    host: str, user: str, password: str, port: int = 22, out_stream=sys.stdout
+) -> None:
+    if not out_stream:
+        # sys.stdout is not available in the pyinstaller build, redirect it to avoid
+        # AttributeError: 'NoneType' object has no attribute 'write'
+        out_stream = open(os.devnull, "w")
+
+    with Connection(
+        host, user=user, port=port, connect_kwargs={"password": password}
+    ) as conn:
+        conn.run(
+            'python3 -c "from linien_common.communication import write_hash_to_file;'
+            f'write_hash_to_file{hash_username_and_password(user, password)};"',
+            out_stream=out_stream,
+            err_stream=out_stream,
+            warn=True,
+        )
+
+
 def start_remote_server(
     host: str, user: str, password: str, port: int = 22, out_stream=sys.stdout
 ) -> None:
@@ -75,13 +91,6 @@ def start_remote_server(
 
         if (local_version != remote_version) and not ("dev" in local_version):
             raise InvalidServerVersionException(local_version, remote_version)
-
-        conn.run(
-            f"export LINIEN_AUTH_HASH={hash_username_and_password(user, password)}",
-            out_stream=out_stream,
-            err_stream=out_stream,
-            warn=True,
-        )
 
         conn.run(
             "linien_start_server.sh",
