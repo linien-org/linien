@@ -16,11 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-from linien_common.common import (
-    AUTOLOCK_MAX_N_INSTRUCTIONS,
-    FAST_AUTOLOCK,
-    ROBUST_AUTOLOCK,
-)
+from linien_common.common import AUTOLOCK_MAX_N_INSTRUCTIONS, AutolockMode
 from migen import Array, If, Module, Signal, bits_for
 from misoc.interconnect.csr import AutoCSR, CSRStatus, CSRStorage
 
@@ -60,13 +56,13 @@ class FPGAAutolock(Module, AutoCSR):
             If(
                 self.request_lock.storage
                 & self.fast.turn_on_lock
-                & (self.autolock_mode.storage == FAST_AUTOLOCK),
+                & (self.autolock_mode.storage == AutolockMode.FAST),
                 self.lock_running.status.eq(1),
             ),
             If(
                 self.request_lock.storage
                 & self.robust.turn_on_lock
-                & (self.autolock_mode.storage == ROBUST_AUTOLOCK),
+                & (self.autolock_mode.storage == AutolockMode.ROBUST),
                 self.lock_running.status.eq(1),
             ),
         ]
@@ -93,7 +89,10 @@ class FastAutolock(Module, AutoCSR):
         self.comb += [target_position_signed.eq(self.target_position.storage)]
 
         self.sync += [
-            If(~self.request_lock, self.turn_on_lock.eq(0),).Else(
+            If(
+                ~self.request_lock,
+                self.turn_on_lock.eq(0),
+            ).Else(
                 self.turn_on_lock.eq(
                     (
                         self.sweep_value

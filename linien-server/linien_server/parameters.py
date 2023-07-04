@@ -22,7 +22,7 @@ from time import time
 from typing import Any, Callable, Dict, Iterator, List, Tuple
 
 import linien_server
-from linien_common.common import PSD_ALGORITHM_LPSD, AutolockMode, MHz, Vpp
+from linien_common.common import AutolockMode, MHz, PSDAlgorithm, Vpp
 from linien_common.config import USER_DATA_PATH
 
 PARAMETER_STORE_FILENAME = "linien_parameters.json"
@@ -583,7 +583,7 @@ class Parameters:
 
         self.psd_data_partial = Parameter(start=None)
         self.psd_data_complete = Parameter(start=None)
-        self.psd_algorithm = Parameter(start=PSD_ALGORITHM_LPSD)
+        self.psd_algorithm = Parameter(start=PSDAlgorithm.LPSD)
         self.psd_acquisition_running = Parameter(start=False)
         self.psd_optimization_running = Parameter(start=False)
         self.psd_acquisition_max_decimation = Parameter(

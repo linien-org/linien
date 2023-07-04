@@ -18,7 +18,7 @@
 
 """This file contains stuff that is required by the server as well as the client."""
 
-from enum import Enum
+from enum import Enum, IntEnum
 from time import time
 from typing import Tuple
 
@@ -37,18 +37,18 @@ MAX_N_POINTS = 16384
 N_POINTS = int(MAX_N_POINTS / DECIMATION)
 
 
-class FilterType(Enum):
+class FilterType(IntEnum):
     LOW_PASS = 0
     HIGH_PASS = 1
 
 
-class OutputChannel(Enum):
+class OutputChannel(IntEnum):
     FAST_OUT1 = 0
     FAST_OUT2 = 1
     ANALOG_OUT0 = 2
 
 
-class AutolockMode(Enum):
+class AutolockMode(IntEnum):
     AUTO_DETECT = 0
     ROBUST = 1
     FAST = 2
