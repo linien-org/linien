@@ -53,12 +53,13 @@ def username_and_password_authenticator(sock: socket) -> Tuple[socket, None]:
     """
     Authenticate a client using username and password.
     """
-    rpyc_hash = sock.recv(64).decode()
+    rpyc_hash = sock.recv(64)
     print(rpyc_hash)
     try:
         with open(str(USER_DATA_PATH / HASH_FILE_NAME), "r") as f:
             file_hash = f.read()
             print(file_hash)
+            print(file_hash.encode())
     except FileNotFoundError:
         raise AuthenticationError(
             "No authentication hash found. Start the server  via the client or with the"
