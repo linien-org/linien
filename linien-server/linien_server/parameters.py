@@ -22,13 +22,7 @@ from time import time
 from typing import Any, Callable, Dict, Iterator, List, Tuple
 
 import linien_server
-from linien_common.common import (
-    AUTO_DETECT_AUTOLOCK_MODE,
-    FAST_AUTOLOCK,
-    PSD_ALGORITHM_LPSD,
-    MHz,
-    Vpp,
-)
+from linien_common.common import PSD_ALGORITHM_LPSD, AutolockMode, MHz, Vpp
 from linien_common.config import USER_DATA_PATH
 
 PARAMETER_STORE_FILENAME = "linien_parameters.json"
@@ -470,22 +464,24 @@ class Parameters:
 
         self.filter_1_type_a = Parameter(start=0, restorable=True)
         """
-        Either `LOW_PASS_FILTER` or `HIGH_PASS_FILTER` of linien_common.common` module.
+        Either `LOW_PASS` or `HIGH_PASS` of linien_common.common.FilterType` enum class.
         """
 
         self.filter_2_type_a = Parameter(start=0, restorable=True)
         """
-        Either `LOW_PASS_FILTER` or `HIGH_PASS_FILTER` of linien_common.common` module.
+        Either `LOW_PASS` or `HIGH_PASS` of linien_common.common.FilterType` enum class.
         """
 
         self.filter_1_type_b = Parameter(start=0, restorable=True)
         """
-        Either `LOW_PASS_FILTER` or `HIGH_PASS_FILTER` of linien_common.common` module.
+        Either `LOW_PASS` or `HIGH_PASS` of linien_common.common.FilterType` enum class.
         """
+
         self.filter_2_type_b = Parameter(start=0, restorable=True)
         """
-        Either `LOW_PASS_FILTER` or `HIGH_PASS_FILTER` of linien_common.common` module.
+        Either `LOW_PASS` or `HIGH_PASS` of linien_common.common.FilterType` enum class.
         """
+
         # ------------------- LOCK AND PID PARAMETERS ----------------------------------
 
         self.combined_offset = Parameter(min_=-8191, max_=8191, start=0)
@@ -536,9 +532,9 @@ class Parameters:
         self.automatic_mode = Parameter(start=True)
         self.autolock_target_position = Parameter(start=0)
         self.autolock_mode_preference = Parameter(
-            start=AUTO_DETECT_AUTOLOCK_MODE, restorable=True
+            start=AutolockMode.AUTO_DETECT, restorable=True
         )
-        self.autolock_mode = Parameter(start=FAST_AUTOLOCK)
+        self.autolock_mode = Parameter(start=AutolockMode.FAST)
         self.autolock_time_scale = Parameter(start=0)
         self.autolock_instructions = Parameter(start=[], sync=False)
         self.autolock_final_wait_time = Parameter(start=0)
