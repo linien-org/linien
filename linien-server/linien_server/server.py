@@ -56,12 +56,16 @@ def username_and_password_authenticator(sock: socket) -> Tuple[socket, None]:
     with the authentication hash. The server then checks if the hash matches the
     hash proviced by the client via rpyc.
     """
-    environ_hash = os.environ.get("LINIEN_AUTH_HASH").encode()
+    environ_hash = os.environ.get("LINIEN_AUTH_HASH")
     rpyc_hash = sock.recv(64)
-    if rpyc_hash == environ_hash:
-        return sock, None
-    else:
-        raise AuthenticationError("Wrong authentication hash!")
+    if environ_hash is None:
+        raise AuthenticationError(
+            "No authentication hash found. Start the server  via the client or with the"
+            " `--no-auth` flag."
+        )
+    if environ_hash.encode() != rpyc_hash:
+        raise AuthenticationError("Authentication hashes do not match.")
+    return sock, None
 
 
 class BaseService(rpyc.Service):
