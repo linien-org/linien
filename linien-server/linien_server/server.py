@@ -18,9 +18,11 @@
 
 import _thread
 import atexit
+import os
 import pickle
 from copy import copy
 from random import randint, random
+from socket import socket
 from threading import Event, Thread
 from time import sleep
 from typing import List, Tuple
@@ -42,7 +44,24 @@ from linien_server.pid_optimization.pid_optimization import (
     PSDAcquisition,
 )
 from linien_server.registers import Registers
+from rpyc.utils.authenticators import AuthenticationError
 from rpyc.utils.server import ThreadedServer
+
+
+def username_and_password_authenticator(sock: socket) -> Tuple[socket, None]:
+    """
+    Authenticate a client using username and password.
+
+    If the server is started by the client, the client exports an environment variable
+    with the authentication hash. The server then checks if the hash matches the
+    hash proviced by the client via rpyc.
+    """
+    environ_hash = os.environ.get("LINIEN_AUTH_HASH").encode()
+    rpyc_hash = sock.recv(64)
+    if rpyc_hash == environ_hash:
+        return sock, None
+    else:
+        raise AuthenticationError("Wrong authentication hash!")
 
 
 class BaseService(rpyc.Service):
@@ -393,7 +412,8 @@ class FakeRedPitayaControlService(BaseService):
         "Specify the RP's host as follows: --host=rp-f0xxxx.local"
     ),
 )
-def run_server(port, fake=False, host=None):
+@click.option("--no-auth", is_flag=True, help="Disable authentication")
+def run_server(port, fake=False, host=None, no_auth=False):
     print("Start server on port", port)
 
     if fake:
@@ -402,9 +422,15 @@ def run_server(port, fake=False, host=None):
     else:
         control = RedPitayaControlService(host=host)
 
+    if no_auth:
+        authenticator = None
+    else:
+        authenticator = username_and_password_authenticator
+
     thread = ThreadedServer(
         control,
         port=port,
+        authenticator=authenticator,
         protocol_config={"allow_pickle": True},
     )
     thread.start()

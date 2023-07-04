@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
+import hashlib
 import os
 import sys
 
@@ -25,6 +26,10 @@ from linien_client.exceptions import (
     InvalidServerVersionException,
     ServerNotInstalledException,
 )
+
+
+def hash_username_and_password(username: str, password: str) -> str:
+    return hashlib.sha256((username + "/" + password).encode()).hexdigest()
 
 
 def read_remote_version(
@@ -72,6 +77,7 @@ def start_remote_server(
             raise InvalidServerVersionException(local_version, remote_version)
 
         conn.run(
+            f"export LINIEN_AUTH_HASH={hash_username_and_password(user, password)}",
             "linien_start_server.sh",
             out_stream=out_stream,
             err_stream=out_stream,
