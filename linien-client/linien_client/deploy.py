@@ -61,7 +61,9 @@ def send_auth_hash_to_server(
         # AttributeError: 'NoneType' object has no attribute 'write'
         out_stream = open(os.devnull, "w")
 
-    line1 = """python3 -c "from linien_common.communication import write_hash_to_file;"""  # noqa: E501
+    line1 = (
+        """python3 -c "from linien_common.communication import write_hash_to_file;"""
+    )
     line2 = f"""write_hash_to_file('{hash_username_and_password(user, password)}')";"""
     cmd = line1 + line2
 

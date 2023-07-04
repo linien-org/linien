@@ -56,13 +56,14 @@ def username_and_password_authenticator(sock: socket) -> Tuple[socket, None]:
     rpyc_hash = sock.recv(64).decode()
     try:
         with open(str(USER_DATA_PATH / HASH_FILE_NAME), "r") as f:
-            environ_hash = f.read()
+            file_hash = f.read()
+            print(file_hash)
     except FileNotFoundError:
         raise AuthenticationError(
             "No authentication hash found. Start the server  via the client or with the"
             " `--no-auth` flag."
         )
-    if environ_hash != rpyc_hash:
+    if file_hash != rpyc_hash:
         raise AuthenticationError("Authentication hashes do not match.")
     return sock, None
 
