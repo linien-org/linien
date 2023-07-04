@@ -54,6 +54,7 @@ def username_and_password_authenticator(sock: socket) -> Tuple[socket, None]:
     Authenticate a client using username and password.
     """
     rpyc_hash = sock.recv(64).decode()
+    print(rpyc_hash)
     try:
         with open(str(USER_DATA_PATH / HASH_FILE_NAME), "r") as f:
             file_hash = f.read()
