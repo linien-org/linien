@@ -21,7 +21,7 @@ import traceback
 from linien_client.connection import LinienClient
 from linien_client.deploy import install_remote_server
 from linien_client.exceptions import (
-    GeneralConnectionErrorException,
+    GeneralConnectionError,
     InvalidServerVersionException,
     RPYCAuthenticationException,
     ServerNotInstalledException,
@@ -115,7 +115,7 @@ class ConnectionThread(QThread):
         except RPYCAuthenticationException:
             self.authentication_exception_raised.emit()
 
-        except GeneralConnectionErrorException:
+        except GeneralConnectionError:
             self.general_connection_exception_raised.emit()
 
         except Exception:

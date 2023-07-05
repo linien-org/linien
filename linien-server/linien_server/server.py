@@ -29,7 +29,11 @@ import click
 import numpy as np
 import rpyc
 from linien_common.common import N_POINTS, check_plot_data, update_signal_history
-from linien_common.communication import pack, unpack
+from linien_common.communication import (
+    pack,
+    unpack,
+    username_and_password_authenticator,
+)
 from linien_common.config import DEFAULT_SERVER_PORT
 from linien_common.influxdb import InfluxDBCredentials, restore_credentials
 from linien_server import __version__
@@ -393,7 +397,8 @@ class FakeRedPitayaControlService(BaseService):
         "Specify the RP's host as follows: --host=rp-f0xxxx.local"
     ),
 )
-def run_server(port, fake=False, host=None):
+@click.option("--no-auth", is_flag=True, help="Disable authentication")
+def run_server(port, fake=False, host=None, no_auth=False):
     print("Start server on port", port)
 
     if fake:
@@ -402,9 +407,15 @@ def run_server(port, fake=False, host=None):
     else:
         control = RedPitayaControlService(host=host)
 
+    if no_auth:
+        authenticator = None
+    else:
+        authenticator = username_and_password_authenticator
+
     thread = ThreadedServer(
         control,
         port=port,
+        authenticator=authenticator,
         protocol_config={"allow_pickle": True},
     )
     thread.start()
