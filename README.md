@@ -154,10 +154,10 @@ If you experience trouble with the autolock, this is most likely due to a bad si
 
 Linien implements two different autolock algorithms:
 
- * **Jitter-tolerant mode**: this algorithm runs on FPGA and analyzes the peak shapes in order to turn on the lock at the right sweep position. It is able to cope with a high amount of jitter as it runs completely on the FPGA, i.e. no delays due to communication between CPU and FPGA occur.
- * **Fast mode**: this algorithm uses a simple calculation of autocorrelation on the CPU which is then used to specify at which point of the sweep the lock should start. This algorithm is less complex than the first one and may be used if you experience problems with jitter-tolerant mode. As it requires some communication between CPU and FPGA which causes some delay, it may have problems if the line jitters a lot.
+ * **Robust mode**: this algorithm runs on FPGA and analyzes the peak shapes in order to turn on the lock at the right sweep position. It is able to cope with a high amount of jitter as it runs completely on the FPGA, i.e. no delays due to communication between CPU and FPGA occur.
+ * **Simple mode**: this algorithm uses a simple calculation of auto-correlation on the CPU which is then used to specify at which point of the sweep the lock should start. This algorithm is less complex than the first one and may be used if you experience problems with jitter-tolerant mode. As it requires some communication between CPU and FPGA which causes some delay, it may have problems if the line jitters a lot.
 
- By default, **auto-detect mode** is chosen: this mode choses an algorithm based on the amount of jitter.
+ By default, **auto-detect mode** is used: this mode chooses an algorithm based on the amount of jitter.
 
 
 ### Using the manual lock

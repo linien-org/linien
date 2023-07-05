@@ -443,12 +443,12 @@
                </item>
                <item>
                 <property name="text">
-                 <string>Jitter-tolerant mode</string>
+                 <string>Robust mode</string>
                 </property>
                </item>
                <item>
                 <property name="text">
-                 <string>Fast mode</string>
+                 <string>Simple mode</string>
                 </property>
                </item>
               </widget>
