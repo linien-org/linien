@@ -53,31 +53,6 @@ def read_remote_version(
         raise ServerNotInstalledException()
 
 
-def send_auth_hash_to_server(
-    host: str, user: str, password: str, port: int = 22, out_stream=sys.stdout
-) -> None:
-    if not out_stream:
-        # sys.stdout is not available in the pyinstaller build, redirect it to avoid
-        # AttributeError: 'NoneType' object has no attribute 'write'
-        out_stream = open(os.devnull, "w")
-
-    line1 = (
-        """python3 -c "from linien_common.communication import write_hash_to_file;"""
-    )
-    line2 = f"""write_hash_to_file('{hash_username_and_password(user, password)}')";"""
-    cmd = line1 + line2
-
-    with Connection(
-        host, user=user, port=port, connect_kwargs={"password": password}
-    ) as conn:
-        conn.run(
-            cmd,
-            out_stream=out_stream,
-            err_stream=out_stream,
-            warn=True,
-        )
-
-
 def start_remote_server(
     host: str, user: str, password: str, port: int = 22, out_stream=sys.stdout
 ) -> None:
@@ -96,6 +71,14 @@ def start_remote_server(
 
         if (local_version != remote_version) and not ("dev" in local_version):
             raise InvalidServerVersionException(local_version, remote_version)
+
+        conn.run(
+            'python3 -c "from linien_common.communication import write_hash_to_file;'
+            f"write_hash_to_file('{hash_username_and_password(user, password)}')\"",
+            out_stream=out_stream,
+            err_stream=out_stream,
+            warn=True,
+        )
 
         conn.run(
             "linien_start_server.sh",

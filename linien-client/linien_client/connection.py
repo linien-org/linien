@@ -38,11 +38,15 @@ from .exceptions import (
 from .remote_parameters import RemoteParameters
 
 
-class RPYCServiceWithAuthentication(rpyc.Service):
+class ServiceWithAuth(rpyc.Service):
     def __init__(self, uuid: str, user: str, password: str) -> None:
         super().__init__()
         self.exposed_uuid = uuid
-        self.auth_hash = hash_username_and_password(user, password)
+        self.auth_hash = hash_username_and_password(user, password).encode("utf-8")
+
+    def _connect(self, channel, config):
+        channel.stream.sock.send(self.auth_hash)  # send hash before rpyc takes over
+        return super()._connect(channel, config)
 
 
 class LinienClient:
@@ -69,9 +73,7 @@ class LinienClient:
         self.uuid = "".join(random.choice(string.ascii_lowercase) for _ in range(10))
 
         # for exposing client's uuid to server
-        self.client_service = RPYCServiceWithAuthentication(
-            self.uuid, self.user, self.password
-        )
+        self.client_service = ServiceWithAuth(self.uuid, self.user, self.password)
 
     def connect(
         self,
