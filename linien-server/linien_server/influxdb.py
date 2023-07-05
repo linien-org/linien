@@ -79,9 +79,16 @@ class InfluxDBLogger:
         self, credentials: InfluxDBCredentials
     ) -> Tuple[bool, int, str]:
         """Write empty data to the server to test the connection"""
-        response = self.write_data(credentials, data={})
-        success = response.status_code == 204
-        return success, response.status_code, response.text
+        try:
+            response = self.write_data(credentials, data={})
+            success = response.status_code == 204
+            status_code = response.status_code
+            text = response.text
+        except requests.exceptions.ConnectionError:
+            success = False
+            status_code = 404
+            text = "Failed to establish connection."
+        return success, status_code, text
 
     def write_data(
         self, credentials: InfluxDBCredentials, data: dict
