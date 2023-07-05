@@ -23,7 +23,7 @@
       <item>
        <widget class="QLabel" name="label_2">
         <property name="text">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Fast mode is intended for bare PID operation (no demodulation or filtering). If enabled, the signal flow is FAST IN 1 → PID → FAST OUT 2&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Fast mode is intended for bare PID operation (no demodulation,  filtering or offsets). If enabled, the signal flow is FAST IN 1 → PID → FAST OUT 2&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="wordWrap">
          <bool>true</bool>
