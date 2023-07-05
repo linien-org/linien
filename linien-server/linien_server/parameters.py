@@ -332,7 +332,7 @@ class Parameters:
         # ------------------- DEMODULATION AND FILTER PARAMETERS -----------------------
         self.pid_only_mode = Parameter(start=False, restorable=True)
         """
-        PID-only mode allows to bypass demodulation and IIR filtering of the fast channels.
+        PID-only mode allows to bypass demodulation, IIR filtering and offset.
         """
 
         self.dual_channel = Parameter(start=False, restorable=True)
