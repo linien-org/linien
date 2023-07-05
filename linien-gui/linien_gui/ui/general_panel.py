@@ -117,7 +117,7 @@ class GeneralPanel(QtWidgets.QWidget):
             )
 
         def on_fast_mode_changed(fast_mode_enabled):
-            """Disables controls that are irrelevant if fast mode is enabled"""
+            """Disables controls that are irrelevant if PID-only mode is enabled"""
             widgets_to_disable = (
                 self.output_ports_group,
                 self.input_ports_group,

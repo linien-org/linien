@@ -158,17 +158,17 @@ class OptimizationPanel(QtWidgets.QWidget):
 
         self.parameters.dual_channel.add_callback(dual_channel_changed)
 
-        def fast_mode_changed(fast_mode_enabled):
-            """Disable this panel if fast mode is enabled (nothing to optimize)."""
-            self.setEnabled(not fast_mode_enabled)
+        def pid_only_mode_changed(pid_only_mode_enabled):
+            """Disable this panel if PID-only mode is enabled (nothing to optimize)."""
+            self.setEnabled(not pid_only_mode_enabled)
 
-        self.parameters.fast_mode.add_callback(fast_mode_changed)
+        self.parameters.pid_only_mode.add_callback(pid_only_mode_changed)
 
-        def fast_mode_changed(fast_mode_enabled):
-            """Disable this panel if fast mode is enabled (nothing to optimize)."""
-            self.setEnabled(not fast_mode_enabled)
+        def pid_only_mode_changed(pid_only_mode_enabled):
+            """Disable this panel if PID-only mode is enabled (nothing to optimize)."""
+            self.setEnabled(not pid_only_mode_enabled)
 
-        self.parameters.fast_mode.add_callback(fast_mode_changed)
+        self.parameters.pid_only_mode.add_callback(pid_only_mode_changed)
 
     def start_optimization(self):
         self.parameters.optimization_selection.value = True

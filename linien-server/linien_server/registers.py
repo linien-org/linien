@@ -104,7 +104,7 @@ class Registers:
             if self.parameters.modulation_frequency.value > 0
             else 0,
             logic_dual_channel=int(self.parameters.dual_channel.value),
-            logic_fast_mode=int(self.parameters.fast_mode.value),
+            logic_fast_mode=int(self.parameters.pid_only_mode.value),
             logic_chain_a_factor=factor_a,
             logic_chain_b_factor=factor_b,
             logic_chain_a_offset=twos_complement(
