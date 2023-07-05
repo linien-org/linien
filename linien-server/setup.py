@@ -45,7 +45,7 @@ setup(
         "click>=7.1.2",
         "cma>=3.0.3",
         "pylpsd>=0.1.4",
-        "pyrp3>=1.1.0;platform_machine=='armv7l'",  # only install on RedPitaya
+        "pyrp3>=1.1.0,<2.0;platform_machine=='armv7l'",  # only install on RedPitaya
         "requests==2.25.1;python_version<'3.10'",  # pinned because of bug in pip 9.0.1, see #339 # noqa: E501
         "requests>=2.25.1;python_version>='3.10'",
         "linien-common=={}".format(version),
