@@ -318,7 +318,7 @@ def flash_fpga():
         shutil.copy(str(filepath), str(fpga_dev_file))
     else:
         print("Using fpautil to deploy gateware.")
-        subprocess.Popen(["fpgautil", "-b", str(filepath)]).wait()
+        subprocess.Popen(["/opt/redpitaya/bin/fpgautil", "-b", str(filepath)]).wait()
 
 
 def start_nginx():
