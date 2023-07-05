@@ -19,11 +19,7 @@
 import pickle
 
 import numpy as np
-from linien_common.common import (
-    AUTO_DETECT_AUTOLOCK_MODE,
-    FAST_AUTOLOCK,
-    ROBUST_AUTOLOCK,
-)
+from linien_common.common import AutolockMode
 from linien_server.autolock.autolock import Autolock
 from linien_server.autolock.fast import FastAutolock
 from linien_server.autolock.robust import RobustAutolock
@@ -76,7 +72,7 @@ def test_forced_algorithm_selection():
     def _get_signal(shift):
         return get_signal(1, 0, shift)
 
-    for forced in (FAST_AUTOLOCK, ROBUST_AUTOLOCK):
+    for forced in (AutolockMode.FAST, AutolockMode.ROBUST):
         parameters = Parameters()
         parameters.autolock_mode_preference.value = forced
         control = FakeControl(parameters)
@@ -101,7 +97,7 @@ def test_forced_algorithm_selection():
 
         assert parameters.autolock_mode.value == forced
 
-        if forced == FAST_AUTOLOCK:
+        if forced == AutolockMode.FAST:
             assert isinstance(autolock.algorithm, FastAutolock)
         else:
             assert isinstance(autolock.algorithm, RobustAutolock)
@@ -116,7 +112,7 @@ def test_automatic_algorithm_selection():
     for jitter in (LOW_JITTER, HIGH_JITTER):
         print(f"jitter {jitter}")
         parameters = Parameters()
-        parameters.autolock_mode_preference.value = AUTO_DETECT_AUTOLOCK_MODE
+        parameters.autolock_mode_preference.value = AutolockMode.AUTO_DETECT
         control = FakeControl(parameters)
 
         reference_signal = _get_signal(0)
@@ -146,10 +142,10 @@ def test_automatic_algorithm_selection():
 
         assert autolock.autolock_mode_detector.done
         if jitter == LOW_JITTER:
-            assert parameters.autolock_mode.value == FAST_AUTOLOCK
+            assert parameters.autolock_mode.value == AutolockMode.FAST
             assert isinstance(autolock.algorithm, FastAutolock)
         else:
-            assert parameters.autolock_mode.value == ROBUST_AUTOLOCK
+            assert parameters.autolock_mode.value == AutolockMode.ROBUST
             assert isinstance(autolock.algorithm, RobustAutolock)
 
 

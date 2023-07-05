@@ -18,10 +18,8 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 from linien_common.common import (
-    ANALOG_OUT0,
     ANALOG_OUT_V,
-    FAST_OUT1,
-    FAST_OUT2,
+    OutputChannel,
     convert_channel_mixing_value,
 )
 from linien_gui.utils import get_linien_app_instance, param2ui
@@ -198,6 +196,12 @@ class GeneralPanel(QtWidgets.QWidget):
             used_channels.add(self.parameters.slow_control_channel.value)
 
         self.polaritySelectorGroupBox.setVisible(len(used_channels) > 1)
-        self.polarityContainerFastOut1.setVisible(FAST_OUT1 in used_channels)
-        self.polarityContainerFastOut2.setVisible(FAST_OUT2 in used_channels)
-        self.polarityContainerAnalogOut0.setVisible(ANALOG_OUT0 in used_channels)
+        self.polarityContainerFastOut1.setVisible(
+            OutputChannel.FAST_OUT1 in used_channels
+        )
+        self.polarityContainerFastOut2.setVisible(
+            OutputChannel.FAST_OUT2 in used_channels
+        )
+        self.polarityContainerAnalogOut0.setVisible(
+            OutputChannel.ANALOG_OUT0 in used_channels
+        )

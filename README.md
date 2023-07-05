@@ -47,9 +47,6 @@ These binaries run on your lab PC and contain everything to get Linien running o
 
 If you want to use the python interface you should [install it using pip](#installation-with-pip).
 
-| :exclamation: Note that Linien currently does not work with RedPitaya OS 2.00. Please make sure that your RedPitaya is running version 1.04.|
-|---------------------------------------------------------------------------------------------------------------------------------------------|
-
 ### Standalone binary
 
 You can download standalone binaries for Windows on [the
@@ -152,7 +149,7 @@ The following options are available:
  * **Check lock**: Directly after turning on the lock, the control signal is investigated. If it shifts too much, the lock is assumed to have failed.
  * **Watch lock**: This option tells the Linien to continuously watch the control signal when the laser is locked. If steep changes are detected, a relock is initiated.
 
-If you experience trouble with the autolock, this is most likely due to a bad signal to noise ratio or strong laser jitter.
+If you experience trouble with the autolock, this is most likely due to a bad signal-to-noise ratio or strong laser jitter.
 
 #### Autolock algorithms
 

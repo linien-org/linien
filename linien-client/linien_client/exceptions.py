@@ -48,5 +48,5 @@ class ServerNotInstalledException(Exception):
     pass
 
 
-class GeneralConnectionErrorException(Exception):
+class GeneralConnectionError(Exception):
     pass

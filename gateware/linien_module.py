@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-from linien_common.common import ANALOG_OUT0
+from linien_common.common import OutputChannel
 from migen import (
     Array,
     Cat,
@@ -351,17 +351,18 @@ class LinienModule(Module, AutoCSR):
         self.comb += [
             analog_out.eq(
                 Mux(
-                    self.logic.sweep_channel.storage == ANALOG_OUT0,
+                    self.logic.sweep_channel.storage == OutputChannel.ANALOG_OUT0,
                     self.logic.sweep.y,
                     0,
                 )
                 + Mux(
-                    self.logic.sweep_channel.storage == ANALOG_OUT0,
+                    self.logic.sweep_channel.storage == OutputChannel.ANALOG_OUT0,
                     self.logic.out_offset_signed,
                     0,
                 )
                 + Mux(
-                    self.logic.slow_control_channel.storage == ANALOG_OUT0,
+                    self.logic.slow_control_channel.storage
+                    == OutputChannel.ANALOG_OUT0,
                     self.slow_chain.output,
                     0,
                 )

@@ -20,9 +20,10 @@ import pickle
 import random
 import string
 from time import sleep, time
+from typing import Tuple
 
 import numpy as np
-from linien_common.common import PSD_ALGORITHM_LPSD, PSD_ALGORITHM_WELCH
+from linien_common.common import PSDAlgorithm
 from linien_server.optimization.engine import MultiDimensionalOptimizationEngine
 from pylpsd import lpsd
 from scipy import signal
@@ -30,16 +31,17 @@ from scipy import signal
 ALL_DECIMATIONS = list(range(32))
 
 
-def calculate_psd(sig, fs, algorithm):
+def calculate_psd(
+    sig: np.ndarray, fs: float, algorithm: PSDAlgorithm
+) -> Tuple[np.ndarray, np.ndarray]:
     """
-    Calculates the power spectral density.
+    Calculate the power spectral density.
 
     :param sig: The signal to calculate the PSD for.
     :param fs: The sampling frequency.
-    :param algorithm: The PSD algorithm to use. Options are 'lpsd' and 'welch'.
+    :param algorithm: The PSD algorithm to use.
     :return: One-sided power spectral density.
     """
-    assert algorithm in [PSD_ALGORITHM_LPSD, PSD_ALGORITHM_WELCH]
 
     # at beginning or end of signal, we sometimes have more glitches --> ignore
     # them (200 points less @ 16384 points doesn't hurt much)
@@ -50,11 +52,11 @@ def calculate_psd(sig, fs, algorithm):
 
     sig = sig.astype(np.float64)
 
-    if algorithm == PSD_ALGORITHM_WELCH:
+    if algorithm == PSDAlgorithm.WELCH:
         f, Pxx = signal.welch(
             sig, fs, window=window, nperseg=num_pts, scaling="density"
         )
-    elif algorithm == PSD_ALGORITHM_LPSD:
+    elif algorithm == PSDAlgorithm.LPSD:
         fmin = fs / len(sig) * 10  # lowest frequency of interest
         fmax = fs / 20.0  # highest frequency of interest
 

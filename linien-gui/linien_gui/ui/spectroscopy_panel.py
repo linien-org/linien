@@ -19,7 +19,7 @@
 from typing import Union
 
 from linien_client.remote_parameters import RemoteParameter
-from linien_common.common import HIGH_PASS_FILTER, LOW_PASS_FILTER
+from linien_common.common import FilterType
 from linien_gui.utils import get_linien_app_instance, param2ui
 from linien_gui.widgets import UI_PATH
 from PyQt5 import QtWidgets, uic
@@ -49,7 +49,7 @@ class SpectroscopyPanel(QtWidgets.QWidget):
         def change_filter_type(filter_i):
             param = self.get_param(f"filter_{filter_i}_type")
             current_idx = getattr(self, f"filter_{filter_i}_type").currentIndex()
-            param.value = (LOW_PASS_FILTER, HIGH_PASS_FILTER)[current_idx]
+            param.value = (FilterType.LOW_PASS, FilterType.HIGH_PASS)[current_idx]
             self.control.exposed_write_registers()
 
         for filter_i in [1, 2]:
@@ -132,7 +132,7 @@ class SpectroscopyPanel(QtWidgets.QWidget):
             param2ui(
                 self.get_param(f"filter_{filter_i}_type"),
                 getattr(self, f"filter_{filter_i}_type"),
-                lambda type_: {LOW_PASS_FILTER: 0, HIGH_PASS_FILTER: 1}[type_],
+                lambda type_: {FilterType.LOW_PASS: 0, FilterType.HIGH_PASS: 1}[type_],
             )
 
     def get_param(self, name: str) -> RemoteParameter:

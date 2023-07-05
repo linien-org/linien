@@ -15,8 +15,16 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
+import hashlib
 import pickle
-from typing import Any
+from socket import socket
+from typing import Any, Tuple
+
+from rpyc.utils.authenticators import AuthenticationError
+
+from .config import USER_DATA_PATH
+
+HASH_FILE_NAME = "auth_hash.txt"
 
 
 def pack(value: Any) -> bytes:
@@ -35,3 +43,31 @@ def unpack(value: Any) -> Any:
     # FIXME: Replace with TypeError, AttributeError and maybe more
     except Exception:
         return value
+
+
+def hash_username_and_password(username: str, password: str) -> str:
+    return hashlib.sha256((username + "/" + password).encode()).hexdigest()
+
+
+def username_and_password_authenticator(sock: socket) -> Tuple[socket, None]:
+    """
+    Authenticate a client using username and password.
+    """
+    rpyc_hash = sock.recv(64).decode()
+    try:
+        with open(str(USER_DATA_PATH / HASH_FILE_NAME), "r") as f:
+            file_hash = f.read()
+    except FileNotFoundError:
+        raise AuthenticationError(
+            "No authentication hash found. Start the server  via the client or with the"
+            " `--no-auth` flag."
+        )
+    if file_hash != rpyc_hash:
+        raise AuthenticationError("Authentication hashes do not match.")
+    return sock, None
+
+
+def write_hash_to_file(hash: str) -> None:
+    USER_DATA_PATH.mkdir(parents=True, exist_ok=True)
+    with open(str(USER_DATA_PATH / HASH_FILE_NAME), "w") as f:
+        f.write(hash)

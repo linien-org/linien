@@ -18,7 +18,7 @@
 
 from setuptools import find_packages, setup
 
-version = "0.8.0rc7"
+version = "0.8.0rc8"
 
 setup(
     name="linien-gui",

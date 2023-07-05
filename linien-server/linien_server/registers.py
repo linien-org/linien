@@ -21,12 +21,7 @@ from typing import Optional
 
 import numpy as np
 import rpyc
-from linien_common.common import (
-    HIGH_PASS_FILTER,
-    LOW_PASS_FILTER,
-    MHz,
-    convert_channel_mixing_value,
-)
+from linien_common.common import FilterType, MHz, convert_channel_mixing_value
 from linien_common.config import ACQUISITION_PORT, DEFAULT_SWEEP_SPEED
 from linien_server.parameters import Parameters
 
@@ -302,7 +297,7 @@ class Registers:
 
                     if automatic:
                         filter_enabled = True
-                        filter_type = LOW_PASS_FILTER
+                        filter_type = FilterType.LOW_PASS
                         filter_frequency = (
                             self.parameters.modulation_frequency.value / MHz * 1e6 / 2
                         )
@@ -330,14 +325,14 @@ class Registers:
                     if not filter_enabled:
                         self.set_iir(iir_name, *make_filter("P", k=1))
                     else:
-                        if filter_type == LOW_PASS_FILTER:
+                        if filter_type == FilterType.LOW_PASS:
                             self.set_iir(
                                 iir_name,
                                 *make_filter(
                                     "LP", f=filter_frequency / fpga_base_freq, k=1
                                 ),
                             )
-                        elif filter_type == HIGH_PASS_FILTER:
+                        elif filter_type == FilterType.HIGH_PASS:
                             self.set_iir(
                                 iir_name,
                                 *make_filter(
