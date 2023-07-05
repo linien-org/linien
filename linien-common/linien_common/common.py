@@ -51,7 +51,7 @@ class OutputChannel(IntEnum):
 class AutolockMode(IntEnum):
     AUTO_DETECT = 0
     ROBUST = 1
-    FAST = 2
+    SIMPLE = 2
 
 
 class PSDAlgorithm(str, Enum):

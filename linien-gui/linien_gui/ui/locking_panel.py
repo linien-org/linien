@@ -134,7 +134,7 @@ class LockingPanel(QtWidgets.QWidget):
     def start_manual_lock(self):
         self.parameters.target_slope_rising.value = self.button_slope_rising.isChecked()
         self.parameters.fetch_additional_signals.value = False
-        self.parameters.autolock_mode.value = AutolockMode.FAST
+        self.parameters.autolock_mode.value = AutolockMode.SIMPLE
         self.parameters.autolock_target_position.value = 0
         self.control.write_registers()
         self.control.start_lock()

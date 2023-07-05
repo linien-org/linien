@@ -534,7 +534,7 @@ class Parameters:
         self.autolock_mode_preference = Parameter(
             start=AutolockMode.AUTO_DETECT, restorable=True
         )
-        self.autolock_mode = Parameter(start=AutolockMode.FAST)
+        self.autolock_mode = Parameter(start=AutolockMode.SIMPLE)
         self.autolock_time_scale = Parameter(start=0)
         self.autolock_instructions = Parameter(start=[], sync=False)
         self.autolock_final_wait_time = Parameter(start=0)
