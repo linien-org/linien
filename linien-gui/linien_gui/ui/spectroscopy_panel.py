@@ -40,6 +40,7 @@ class SpectroscopyPanel(QtWidgets.QWidget):
         super(SpectroscopyPanel, self).__init__(*args)
         uic.loadUi(UI_PATH / "spectroscopy_panel.ui", self)
         self.app = get_linien_app_instance()
+        self.app.connection_established.connect(self.on_connection_established)
 
         def change_filter_frequency(filter_i):
             self.get_param(f"filter_{filter_i}_frequency").value = getattr(
