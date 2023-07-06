@@ -18,21 +18,21 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 from linien_common.common import (
-    ANALOG_OUT0,
     ANALOG_OUT_V,
-    FAST_OUT1,
-    FAST_OUT2,
+    OutputChannel,
     convert_channel_mixing_value,
 )
-from linien_gui.utils import param2ui
-from linien_gui.widgets import CustomWidget
-from PyQt5 import QtWidgets
+from linien_gui.utils import get_linien_app_instance, param2ui
+from linien_gui.widgets import UI_PATH
+from PyQt5 import QtWidgets, uic
 
 
-class GeneralPanel(QtWidgets.QWidget, CustomWidget):
+class GeneralPanel(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         super(GeneralPanel, self).__init__(*args, **kwargs)
-        self.load_ui("general_panel.ui")
+        uic.loadUi(UI_PATH / "general_panel.ui", self)
+        self.app = get_linien_app_instance()
+        self.app.connection_established.connect(self.on_connection_established)
 
         self.channelMixingSlider.valueChanged.connect(self.on_channel_mixing_changed)
         self.fastModeCheckBox.stateChanged.connect(self.on_fast_mode_changed)
@@ -59,9 +59,7 @@ class GeneralPanel(QtWidgets.QWidget, CustomWidget):
             self.on_polarity_analog_out0_changed
         )
 
-        for idx in range(4):
-            if idx == 0:
-                continue
+        for idx in range(1, 4):
             element = getattr(self, f"analogOutComboBox{idx}")
             element.setKeyboardTracking(False)
             element.valueChanged.connect(
@@ -105,15 +103,13 @@ class GeneralPanel(QtWidgets.QWidget, CustomWidget):
         param2ui(self.parameters.polarity_fast_out2, self.polarityComboBoxFastOut2)
         param2ui(self.parameters.polarity_analog_out0, self.polarityComboBoxAnalogOut0)
 
-        self.parameters.control_channel.on_change(self.show_polarity_settings)
-        self.parameters.sweep_channel.on_change(self.show_polarity_settings)
-        self.parameters.mod_channel.on_change(self.show_polarity_settings)
-        self.parameters.slow_control_channel.on_change(self.show_polarity_settings)
-        self.parameters.pid_on_slow_enabled.on_change(self.show_polarity_settings)
+        self.parameters.control_channel.add_callback(self.show_polarity_settings)
+        self.parameters.sweep_channel.add_callback(self.show_polarity_settings)
+        self.parameters.mod_channel.add_callback(self.show_polarity_settings)
+        self.parameters.slow_control_channel.add_callback(self.show_polarity_settings)
+        self.parameters.pid_on_slow_enabled.add_callback(self.show_polarity_settings)
 
-        for idx in range(4):
-            if idx == 0:
-                continue
+        for idx in range(1, 4):
             param2ui(
                 getattr(self.parameters, f"analog_out_{idx}"),
                 getattr(self, f"analogOutComboBox{idx}"),
@@ -129,7 +125,7 @@ class GeneralPanel(QtWidgets.QWidget, CustomWidget):
             for widget in widgets_to_disable:
                 widget.setEnabled(not fast_mode_enabled)
 
-        self.parameters.fast_mode.on_change(on_fast_mode_changed)
+        self.parameters.fast_mode.add_callback(on_fast_mode_changed)
 
     def on_analog_out_changed(self, idx):
         getattr(self.parameters, f"analog_out_{idx}").value = int(
@@ -200,6 +196,12 @@ class GeneralPanel(QtWidgets.QWidget, CustomWidget):
             used_channels.add(self.parameters.slow_control_channel.value)
 
         self.polaritySelectorGroupBox.setVisible(len(used_channels) > 1)
-        self.polarityContainerFastOut1.setVisible(FAST_OUT1 in used_channels)
-        self.polarityContainerFastOut2.setVisible(FAST_OUT2 in used_channels)
-        self.polarityContainerAnalogOut0.setVisible(ANALOG_OUT0 in used_channels)
+        self.polarityContainerFastOut1.setVisible(
+            OutputChannel.FAST_OUT1 in used_channels
+        )
+        self.polarityContainerFastOut2.setVisible(
+            OutputChannel.FAST_OUT2 in used_channels
+        )
+        self.polarityContainerAnalogOut0.setVisible(
+            OutputChannel.ANALOG_OUT0 in used_channels
+        )

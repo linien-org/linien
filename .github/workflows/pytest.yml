@@ -4,6 +4,8 @@ on:
   workflow_dispatch:
   push:
     paths:
+      - .github/workflows/pytest.yml
+      - .github/actions/install-linien/**
       - gateware/**
       - linien-common/**
       - linien-server/**
@@ -17,19 +19,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python 3.10
-        uses: actions/setup-python@v3
-        with:
-          python-version: "3.10"
+      - name: Check out repository
+        uses: actions/checkout@v3
 
-      - name: Install linien-common
-        working-directory: linien-common
-        run: pip install .
-
-      - name: Install linien-server
-        working-directory: linien-server
-        run: pip install .
+      - name: Install Linien
+        uses: ./.github/actions/install-linien
 
       - name: Install dependencies
         run: |
@@ -37,5 +31,4 @@ jobs:
           pip install pytest migen pytest-plt git+https://github.com/m-labs/misoc
 
       - name: Test with pytest
-        run: |
-          pytest .
+        run: pytest .

@@ -25,6 +25,7 @@ from linien_client.exceptions import (
     InvalidServerVersionException,
     ServerNotInstalledException,
 )
+from linien_common.communication import hash_username_and_password
 
 
 def read_remote_version(
@@ -71,6 +72,16 @@ def start_remote_server(
         if (local_version != remote_version) and not ("dev" in local_version):
             raise InvalidServerVersionException(local_version, remote_version)
 
+        print("Sending credentials")
+        conn.run(
+            'python3 -c "from linien_common.communication import write_hash_to_file;'
+            f"write_hash_to_file('{hash_username_and_password(user, password)}')\"",
+            out_stream=out_stream,
+            err_stream=out_stream,
+            warn=True,
+        )
+
+        print("Starting server")
         conn.run(
             "linien_start_server.sh",
             out_stream=out_stream,

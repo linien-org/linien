@@ -21,70 +21,71 @@ import pickle
 from os import path
 
 import numpy as np
-from linien_common.config import N_COLORS
-from linien_gui.utils import color_to_hex, param2ui
-from linien_gui.widgets import CustomWidget
-from PyQt5 import QtGui, QtWidgets
+from linien_gui.config import N_COLORS
+from linien_gui.utils import color_to_hex, get_linien_app_instance, param2ui
+from linien_gui.widgets import UI_PATH
+from PyQt5 import QtGui, QtWidgets, uic
 
 
-class ViewPanel(QtWidgets.QWidget, CustomWidget):
+class ViewPanel(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.load_ui("view_panel.ui")
+        super(ViewPanel, self).__init__(*args, **kwargs)
+        uic.loadUi(UI_PATH / "view_panel.ui", self)
+        self.app = get_linien_app_instance()
+        self.app.connection_established.connect(self.on_connection_established)
 
-    def ready(self):
-        self.ids.export_select_file.clicked.connect(self.do_export_select_file)
-        self.ids.export_data.clicked.connect(self.do_export_data)
+        self.export_select_file.clicked.connect(self.do_export_select_file)
+        self.export_data.clicked.connect(self.do_export_data)
 
-        self.ids.plot_line_width.setKeyboardTracking(False)
-        self.ids.plot_line_width.valueChanged.connect(self.plot_line_width_changed)
+        self.plot_line_width.setKeyboardTracking(False)
+        self.plot_line_width.valueChanged.connect(self.plot_line_width_changed)
 
-        self.ids.plot_line_opacity.setKeyboardTracking(False)
-        self.ids.plot_line_opacity.valueChanged.connect(self.plot_line_opacity_changed)
+        self.plot_line_opacity.setKeyboardTracking(False)
+        self.plot_line_opacity.valueChanged.connect(self.plot_line_opacity_changed)
 
-        self.ids.plot_fill_opacity.setKeyboardTracking(False)
-        self.ids.plot_fill_opacity.valueChanged.connect(self.plot_fill_opacity_changed)
+        self.plot_fill_opacity.setKeyboardTracking(False)
+        self.plot_fill_opacity.valueChanged.connect(self.plot_fill_opacity_changed)
 
         for color_idx in range(N_COLORS):
-            getattr(self.ids, "edit_color_%d" % color_idx).clicked.connect(
+            getattr(self, f"edit_color_{color_idx}").clicked.connect(
                 lambda *args, color_idx=color_idx: self.edit_color(color_idx)
             )
 
     def edit_color(self, color_idx):
-        param = getattr(self.parameters, "plot_color_%d" % color_idx)
-
-        color = QtWidgets.QColorDialog.getColor(QtGui.QColor.fromRgb(*param.value))
+        setting = getattr(self.app.settings, f"plot_color_{color_idx}")
+        color = QtWidgets.QColorDialog.getColor(QtGui.QColor.fromRgb(*setting.value))
         r, g, b, a = color.getRgb()
-        print("set color", color_idx, color.getRgb())
-        param.value = (r, g, b, a)
+        getattr(self.app.settings, f"plot_color_{color_idx}").value = (r, g, b, a)
 
     def on_connection_established(self):
         self.parameters = self.app.parameters
         self.control = self.app.control
 
-        param2ui(self.parameters.plot_line_width, self.ids.plot_line_width)
-        param2ui(self.parameters.plot_line_opacity, self.ids.plot_line_opacity)
-        param2ui(self.parameters.plot_fill_opacity, self.ids.plot_fill_opacity)
+        param2ui(self.app.settings.plot_line_width, self.plot_line_width)
+        param2ui(self.app.settings.plot_line_opacity, self.plot_line_opacity)
+        param2ui(self.app.settings.plot_fill_opacity, self.plot_fill_opacity)
 
         def preview_colors(*args):
             for color_idx in range(N_COLORS):
-                element = getattr(self.ids, "display_color_%d" % color_idx)
-                param = getattr(self.parameters, "plot_color_%d" % color_idx)
-                element.setStyleSheet("background-color: " + color_to_hex(param.value))
+                element = getattr(self, f"display_color_{color_idx}")
+                setting = getattr(self.app.settings, f"plot_color_{color_idx}")
+                element.setStyleSheet(
+                    f"background-color: {color_to_hex(setting.value)}"
+                )
 
         for color_idx in range(N_COLORS):
-            getattr(self.parameters, "plot_color_%d" % color_idx).on_change(
+            getattr(self.app.settings, f"plot_color_{color_idx}").add_callback(
                 preview_colors
             )
 
     def plot_line_width_changed(self):
-        self.parameters.plot_line_width.value = self.ids.plot_line_width.value()
+        self.app.settings.plot_line_width.value = self.plot_line_width.value()
 
     def plot_line_opacity_changed(self):
-        self.parameters.plot_line_opacity.value = self.ids.plot_line_opacity.value()
+        self.app.settings.plot_line_opacity.value = self.plot_line_opacity.value()
 
     def plot_fill_opacity_changed(self):
-        self.parameters.plot_fill_opacity.value = self.ids.plot_fill_opacity.value()
+        self.app.settings.plot_fill_opacity.value = self.plot_fill_opacity.value()
 
     def do_export_select_file(self):
         options = QtWidgets.QFileDialog.Options()
@@ -94,17 +95,15 @@ class ViewPanel(QtWidgets.QWidget, CustomWidget):
             self,
             "QFileDialog.getSaveFileName()",
             "",
-            "JSON (*%s)" % default_ext,
+            f"JSON (*{default_ext})",
             options=options,
         )
         if fn:
             if not fn.endswith(default_ext):
                 fn = fn + default_ext
             self.export_fn = fn
-            self.ids.export_select_file.setText(
-                "File selected: %s" % path.split(fn)[-1]
-            )
-            self.ids.export_data.setEnabled(True)
+            self.export_select_file.setText(f"File selected: {path.split(fn)[-1]}")
+            self.export_data.setEnabled(True)
 
     def do_export_data(self):
         fn = self.export_fn
@@ -126,7 +125,7 @@ class ViewPanel(QtWidgets.QWidget, CustomWidget):
             except FileNotFoundError:
                 break
 
-        print("export data to", fn_with_suffix)
+        print(f"export data to {fn_with_suffix}")
 
         with open(fn_with_suffix, "w") as f:
             data = pickle.loads(self.parameters.to_plot.value)

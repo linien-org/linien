@@ -26,13 +26,11 @@ Features
 -   **Lock detection**: Linien is capable of detecting loss of lock (temporarily disabled, use [v0.3.2](https://github.com/linien-org/linien/releases/tag/v0.3.2) if you rely in this feature
 -   **Automatic relocking**: if lock is lost, it relocks autonomously (temporarily disabled, use [v0.3.2](https://github.com/linien-org/linien/releases/tag/v0.3.2) if you rely in this feature)
 -   **Machine learning** is used to tune the spectroscopy parameters in order to optimize the signal
--   **Remote-controllable**: the client libraries can be used to control or monitor the spectroscopy lock with python.
+-   **Remote-controllable**: the client libraries can be used to control or monitor the spectroscopy lock with Python.
 -   **Combined FMS+MTS**: Linien supports dual-channel spectroscopy that can be
     used to implement [combined
     FMS+MTS](https://arxiv.org/pdf/1701.01918.pdf)
--   **Logging**: Use
-    [linien-influxdb](https://github.com/linien-org/linien-influxdb)
-    to log the lock status to influxdb.
+-   **Logging**: Lock status and parameters can be logged to InfluxDB v2.
 -   **Second integrator** for slow control of piezo in an ECDL
 -   **Additional analog outputs** may be used using the GUI or python client (ANALOG_OUT 1, 2 and 3)
 -   **16 GPIO outputs** may be programmed (e.g. for controlling other devices)
@@ -48,9 +46,6 @@ are recommended.
 These binaries run on your lab PC and contain everything to get Linien running on your RedPitaya.
 
 If you want to use the python interface you should [install it using pip](#installation-with-pip).
-
-| :exclamation: Note that Linien currently does not work with RedPitaya OS 2.00. Please make sure that your RedPitaya is running version 1.04.|
-|---------------------------------------------------------------------------------------------------------------------------------------------|
 
 ### Standalone binary
 
@@ -132,12 +127,9 @@ The bright red line is the demodulated spectroscopy signal. The dark red area is
 
 ### Fast Mode
 
-| :exclamation: Please make sure that the modulation frequency/amplitude are set to 0 if using fast mode. See [this issue](https://github.com/linien-org/linien/issues/314). |
-|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+Fast mode is intended for bare PID operation (no demodulation, filtering or offset), bypassing most of the FPGA functionality. If enabled, the signal flow is FAST IN 1 → PID → FAST OUT 2. This is useful, if aiming for a high control bandwidth: fast mode reduces propagation delay from 320 ns to 125 ns which may make a difference when phase-locking lasers.
 
-Fast mode is intended for bare PID operation (no demodulation or filtering), bypassing most of the FPGA functionality. If enabled, the signal flow is FAST IN 1 → PID → FAST OUT 2. This is useful, if aiming for a high control bandwidth: fast mode reduces propagation delay from 320 ns to 125 ns which may make a difference when phase-locking lasers.
-
-### Optimization of spectroscopy parameters using machine learning (optional)
+### Optimization of spectroscopy parameters using machine learning
 
 Linien may use machine learning to maximize the slope of a line. As for the autolock, click and drag over the line you want to optimize. Then, the line is centered and the optimization starts. Please note that this only works if initially a distinguished zero-crossing is visible.
 
@@ -154,7 +146,7 @@ The following options are available:
  * **Check lock**: Directly after turning on the lock, the control signal is investigated. If it shifts too much, the lock is assumed to have failed.
  * **Watch lock**: This option tells the Linien to continuously watch the control signal when the laser is locked. If steep changes are detected, a relock is initiated.
 
-If you experience trouble with the autolock, this is most likely due to a bad signal to noise ratio or strong laser jitter.
+If you experience trouble with the autolock, this is most likely due to a bad signal-to-noise ratio or strong laser jitter.
 
 #### Autolock algorithms
 
@@ -169,6 +161,12 @@ Linien implements two different autolock algorithms:
 ### Using the manual lock
 
 If you have problems with the autolock, you may also lock manually. Activate the *Manual* tab and use the controls in the top (*Zoom* and *Position*) to center the line you want to lock to. Choose whether the target slope is rising or falling and click the green button.
+
+### Logging
+
+Linien has to option to log the lock status and parameters to an InfluxDB. Currently, only InfluxDB 2.x is supported. Logging can be configured via the Logging menu in the Linien GUI, but logging will continue even if the client is closed. Time stamps of the data points are determined by the InfluxDB, not by the RedPitaya. If updating/checking the InfluxDB credentials fails, there is additional information in the tool-tip of the fail indicator ❌.
+
+The parameter names are documented in [`parameters.py`](https://github.com/linien-org/linien/blob/master/linien-server/linien_server/parameters.py). The `signal_stats` parameter does contain statistics of the input and output signals, e.g. `control_signal_mean` or `monitor_signal_max`.
 
 Transfer function
 -----------------
@@ -185,19 +183,21 @@ Note that this equation does not account for filtering before the PID (cf. *Modu
 Scripting interface
 -------------------
 
-In addition to the GUI, Linien can also be controlled using python. For that purpose, installation via pip is required (see above).
+In addition to the GUI, Linien can also be controlled using Python. For that purpose, installation via pip is required (see above).
 
-Then, you should start the Linien server on your RedPitaya. This can be done by running the GUI client and connecting to the device (see above). Alternatively, `LinienClient` has the option `autostart_server`.
+Then, you should start the Linien server on your RedPitaya. This can be done by running the GUI client and connecting to the device (see above). Alternatively, the `connect` method of `LinienClient` has the option `autostart_server`.
 
 Once the server is up and running, you can connect using python:
 ```python
 from linien_client.connection import LinienClient
-from linien_common.common import  MHz, Vpp
+from linien_common.common import  MHz, Vpp, ANALOG_OUT_V
+
 c = LinienClient(
-    {'host': 'rp-XXXXXX.local', 'username': 'root', 'password': 'change-it-to-something-else!'},
-    # starts the server if it is not running
-    autostart_server=True
+    host="rp-xxxxxx.local",
+    user="root",
+    password="root"
 )
+c.connect(autostart_server=True, use_parameter_cache=True)
 
 # read out the modulation frequency
 print(c.parameters.modulation_frequency.value / MHz)
@@ -228,19 +228,19 @@ c.parameters.gpio_p_out.value = 0b01010101 # 4 on, 4 off
 c.connection.root.write_registers()
 
 # it is also possible to set up a callback function that is called whenever a
-# parameter changes (remember to call `call_listeners()` periodically)
-def on_change(value):
+# parameter changes (remember to call `check_for_changed_parameters()` periodically)
+def callback(value):
     # this function is called whenever `my_param` changes on the server.
-    # note that this only works if `call_listeners` is called from
+    # note that this only works if `check_for_changed_parameters` is called from
     # time to time as this function is responsible for checking for
     # changed parameters.
     print('parameter arrived!', value)
 
-c.parameters.modulation_amplitude.on_change(on_change)
+c.parameters.modulation_amplitude.add_callback(callback)
 
 from time import sleep
 for i in range(10):
-    c.parameters.call_listeners()
+    c.parameters.check_for_changed_parameters()
     if i == 2:
         c.parameters.modulation_amplitude.value = 0.1 * Vpp
     sleep(.1)
@@ -287,9 +287,11 @@ from matplotlib import pyplot as plt
 from time import sleep
 
 c = LinienClient(
-    {"host": "HOST", "username": "USER", "password": "PASSWORD"},
-    autostart_server=False,
+    host="rp-xxxxxx.local",
+    user="root",
+    password="root"
 )
+c.connect(autostart_server=True, use_parameter_cache=True)
 
 c.parameters.autolock_mode_preference.value = FAST_AUTOLOCK
 
@@ -347,7 +349,7 @@ c.connection.root.start_autolock(x0, x1, pickle.dumps(error_signal))
 try:
     wait_for_lock_status(True)
     print("locking the laser worked \o/")
-except:
+except Exception:
     print("locking the laser failed :(")
 
 

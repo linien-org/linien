@@ -20,9 +20,10 @@ import pickle
 import random
 import string
 from time import sleep, time
+from typing import Tuple
 
 import numpy as np
-from linien_common.common import PSD_ALGORITHM_LPSD, PSD_ALGORITHM_WELCH
+from linien_common.common import PSDAlgorithm
 from linien_server.optimization.engine import MultiDimensionalOptimizationEngine
 from pylpsd import lpsd
 from scipy import signal
@@ -30,16 +31,17 @@ from scipy import signal
 ALL_DECIMATIONS = list(range(32))
 
 
-def calculate_psd(sig, fs, algorithm):
+def calculate_psd(
+    sig: np.ndarray, fs: float, algorithm: PSDAlgorithm
+) -> Tuple[np.ndarray, np.ndarray]:
     """
-    Calculates the power spectral density.
+    Calculate the power spectral density.
 
     :param sig: The signal to calculate the PSD for.
     :param fs: The sampling frequency.
-    :param algorithm: The PSD algorithm to use. Options are 'lpsd' and 'welch'.
+    :param algorithm: The PSD algorithm to use.
     :return: One-sided power spectral density.
     """
-    assert algorithm in [PSD_ALGORITHM_LPSD, PSD_ALGORITHM_WELCH]
 
     # at beginning or end of signal, we sometimes have more glitches --> ignore
     # them (200 points less @ 16384 points doesn't hurt much)
@@ -50,11 +52,11 @@ def calculate_psd(sig, fs, algorithm):
 
     sig = sig.astype(np.float64)
 
-    if algorithm == PSD_ALGORITHM_WELCH:
+    if algorithm == PSDAlgorithm.WELCH:
         f, Pxx = signal.welch(
             sig, fs, window=window, nperseg=num_pts, scaling="density"
         )
-    elif algorithm == PSD_ALGORITHM_LPSD:
+    elif algorithm == PSDAlgorithm.LPSD:
         fmin = fs / len(sig) * 10  # lowest frequency of interest
         fmax = fs / 20.0  # highest frequency of interest
 
@@ -112,30 +114,30 @@ class PSDAcquisition:
         try:
             self.uuid = generate_curve_uuid()
             self.set_decimation(ALL_DECIMATIONS[0])
-            self.add_listeners()
+            self.add_callbacks()
             self.parameters.psd_acquisition_running.value = True
-        except:
+        except Exception as e:
             self.cleanup()
-            raise
+            raise e
 
-    def add_listeners(self):
-        self.parameters.acquisition_raw_data.on_change(
-            self.react_to_new_signal, call_listener_with_first_value=False
+    def add_callbacks(self):
+        self.parameters.acquisition_raw_data.add_callback(
+            self.react_to_new_signal, call_with_first_value=False
         )
 
     def cleanup(self):
         self.running = False
         self.parameters.psd_acquisition_running.value = False
 
-        self.parameters.acquisition_raw_data.remove_listener(self.react_to_new_signal)
+        self.parameters.acquisition_raw_data.remove_callback(self.react_to_new_signal)
 
         if not self.is_child:
-            self.control.pause_acquisition()
+            self.control.exposed_pause_acquisition()
             self.parameters.acquisition_raw_enabled.value = False
             self.parameters.acquisition_raw_filter_enabled.value = False
 
             self.control.exposed_write_registers()
-            self.control.continue_acquisition()
+            self.control.exposed_continue_acquisition()
 
     def react_to_new_signal(self, data_pickled):
         try:
@@ -172,9 +174,9 @@ class PSDAcquisition:
             else:
                 self.cleanup()
 
-        except:
+        except Exception as e:
             self.cleanup()
-            raise
+            raise e
 
     def publish_psd_data(self, complete):
         data_pickled = pickle.dumps(
@@ -200,7 +202,7 @@ class PSDAcquisition:
 
     def set_decimation(self, decimation):
         self.time_decimation_set = time()
-        self.control.pause_acquisition()
+        self.control.exposed_pause_acquisition()
         self.parameters.acquisition_raw_decimation.value = decimation
         self.parameters.acquisition_raw_enabled.value = True
 
@@ -213,7 +215,7 @@ class PSDAcquisition:
         self.control.exposed_write_registers()
         # take care that new decimation was actually written to FPGA
         sleep(0.1)
-        self.control.continue_acquisition()
+        self.control.exposed_continue_acquisition()
 
     def exposed_stop(self):
         self.cleanup()
@@ -230,14 +232,14 @@ class PIDOptimization:
 
     def run(self):
         try:
-            self.parameters.psd_data_complete.on_change(
-                self.psd_data_received, call_listener_with_first_value=False
+            self.parameters.psd_data_complete.add_callback(
+                self.psd_data_received, call_with_first_value=False
             )
             self.parameters.psd_optimization_running.value = True
             self.start_single_psd_measurement()
-        except:
+        except Exception as e:
             self.cleanup()
-            raise
+            raise e
 
     def start_single_psd_measurement(self):
         new_params = self.engine.ask()
@@ -251,7 +253,7 @@ class PIDOptimization:
 
     def cleanup(self):
         self.parameters.psd_optimization_running.value = False
-        self.parameters.psd_data_complete.remove_listener(self.psd_data_received)
+        self.parameters.psd_data_complete.remove_callback(self.psd_data_received)
 
     def psd_data_received(self, psd_data_pickled):
         try:
@@ -271,9 +273,9 @@ class PIDOptimization:
                 # FIXME: implement use of optimized pid parameters
                 self.cleanup()
 
-        except:
+        except Exception as e:
             self.cleanup()
-            raise
+            raise e
 
     def exposed_stop(self):
         self.cleanup()

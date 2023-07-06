@@ -1,4 +1,5 @@
 # Copyright 2018-2022 Benjamin Wiegand <benjamin.wiegand@physik.hu-berlin.de>
+# Copyright 2023 Bastian Leykauf <leykauf@physik.hu-berlin.de>
 #
 # This file is part of Linien and based on redpid.
 #
@@ -15,17 +16,12 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
+from pathlib import Path
+
+from appdirs import AppDirs
+
 ACQUISITION_PORT = 19321
 DEFAULT_SERVER_PORT = 18862
 DEFAULT_SWEEP_SPEED = (125 * 2048) << 6
-# IMPORTANT: DEFAULT_COLORS and N_COLORS have to be here, not in client.config
-# because the server needs them and shouldn't import client config as it requires
-# additional packages
-DEFAULT_COLORS = [
-    (200, 0, 0, 200),
-    (0, 200, 0, 200),
-    (0, 0, 200, 200),
-    (200, 200, 0, 200),
-    (200, 0, 200, 200),
-]
-N_COLORS = len(DEFAULT_COLORS)
+
+USER_DATA_PATH = Path(AppDirs("linien").user_data_dir)

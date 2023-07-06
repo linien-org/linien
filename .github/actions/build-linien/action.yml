@@ -1,5 +1,5 @@
-name: Install Linien
-description: Install all linien packages
+name: Build Linien
+description: Build all linien packages
 
 runs:
   using: "composite"
@@ -13,22 +13,26 @@ runs:
       shell: bash
       run: python -m pip install --upgrade pip
 
-    - name: Install linien-common
+    - name: Install build dependencies
+      shell: bash
+      run: pip install build wheel
+
+    - name: Build linien-common
       shell: bash
       working-directory: linien-common
-      run: pip install .
+      run: python -m build
 
-    - name: Install linien-server
+    - name: Build linien-server
       shell: bash
       working-directory: linien-server
-      run: pip install .
+      run: python -m build
 
-    - name: Install linien-client
+    - name: Build linien-client
       shell: bash
       working-directory: linien-client
-      run: pip install .
+      run: python -m build
 
-    - name: Install linien-gui
+    - name: Build linien-gui
       shell: bash
       working-directory: linien-gui
-      run: pip install .
+      run: python -m build

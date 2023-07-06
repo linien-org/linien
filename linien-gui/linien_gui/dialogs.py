@@ -15,11 +15,9 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-from time import sleep
 from typing import Callable
 
-from linien_gui.threads import RemoteServerInstallationThread
-from PyQt5.QtCore import QThread, pyqtSignal
+from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import (
     QDialog,
     QListWidget,
@@ -30,16 +28,18 @@ from PyQt5.QtWidgets import (
 )
 from pyqtgraph import QtCore
 
+from .threads import RemoteServerInstallationThread
+
 
 class SSHCommandOutputWidget(QListWidget):
     command_finished = pyqtSignal()
     enable_button = pyqtSignal()
 
     def __init__(self, parent: QWidget):
-        super().__init__(parent)
+        super(SSHCommandOutputWidget, self).__init__(parent)
         self.setSelectionMode(self.NoSelection)
 
-    def run(self, thread: QThread):
+    def run(self, thread):
         self.thread = thread
         self.thread.out_stream.new_item.connect(self.on_new_item_in_out_stream)
         self.thread.finished.connect(self.on_thread_finished)
@@ -86,7 +86,7 @@ class LoadingDialog(QMessageBox):
     aborted = pyqtSignal()
 
     def __init__(self, parent: QWidget, host: str):
-        super().__init__(parent)
+        super(LoadingDialog, self).__init__(parent)
 
         self.setIcon(QMessageBox.Information)
         self.setText(f"Connecting to {host}")

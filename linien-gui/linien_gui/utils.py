@@ -17,7 +17,10 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+from typing import TYPE_CHECKING, Any, Callable
 
+from linien_client.remote_parameters import RemoteParameter
+from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import (
     QCheckBox,
     QComboBox,
@@ -29,8 +32,19 @@ from PyQt5.QtWidgets import (
 )
 from pyqtgraph.Qt import QtGui
 
+if TYPE_CHECKING:
+    from linien_gui.app import LinienApp
 
-def param2ui(parameter, element, process_value=lambda x: x):
+
+def get_linien_app_instance() -> "LinienApp":
+    return QtWidgets.QApplication.instance()  # type: ignore[return-value]
+
+
+def param2ui(
+    parameter: RemoteParameter,
+    element: QtWidgets.QTabWidget,
+    process_value: Callable[[Any], Any] = lambda x: x,
+):
     """
     Updates ui elements according to parameter values.
 
@@ -57,7 +71,7 @@ def param2ui(parameter, element, process_value=lambda x: x):
 
         element.blockSignals(False)
 
-    parameter.on_change(on_change)
+    parameter.add_callback(on_change)
 
 
 def set_window_icon(window):

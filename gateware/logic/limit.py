@@ -34,9 +34,20 @@ class Limit(Module):
         ###
 
         self.comb += [
-            If(self.x >= self.max, self.y.eq(self.max), self.railed.eq(1))
-            .Elif(self.x <= self.min, self.y.eq(self.min), self.railed.eq(1))
-            .Else(self.y.eq(self.x), self.railed.eq(0))
+            If(
+                self.x >= self.max,
+                self.y.eq(self.max),
+                self.railed.eq(1),
+            )
+            .Elif(
+                self.x <= self.min,
+                self.y.eq(self.min),
+                self.railed.eq(1),
+            )
+            .Else(
+                self.y.eq(self.x),
+                self.railed.eq(0),
+            )
         ]
 
 

@@ -20,22 +20,22 @@ import string
 
 from linien_common.config import DEFAULT_SERVER_PORT
 from linien_gui.config import load_device_data, save_device_data
-from linien_gui.widgets import CustomWidget
-from PyQt5 import QtWidgets
+from linien_gui.widgets import UI_PATH
+from PyQt5 import QtWidgets, uic
 
 
-class NewDeviceDialog(QtWidgets.QDialog, CustomWidget):
+class NewDeviceDialog(QtWidgets.QDialog):
     def __init__(self, initial_device=None):
-        super().__init__()
-        self.load_ui("new_device_dialog.ui")
+        super(NewDeviceDialog, self).__init__()
+        uic.loadUi(UI_PATH / "new_device_dialog.ui", self)
 
         if initial_device is not None:
-            self.ids.deviceName.setText(initial_device["name"])
-            self.ids.host.setText(initial_device["host"])
-            self.ids.username.setText(initial_device["username"])
-            self.ids.password.setText(initial_device["password"])
-            self.ids.port.setValue(initial_device.get("port", DEFAULT_SERVER_PORT))
-            self.ids.explain_host.setVisible(False)
+            self.deviceName.setText(initial_device["name"])
+            self.host.setText(initial_device["host"])
+            self.username.setText(initial_device["username"])
+            self.password.setText(initial_device["password"])
+            self.port.setValue(initial_device.get("port", DEFAULT_SERVER_PORT))
+            self.explain_host.setVisible(False)
             self.key = initial_device["key"]
         else:
             self.key = "".join(random.choice(string.ascii_lowercase) for i in range(10))
@@ -43,11 +43,11 @@ class NewDeviceDialog(QtWidgets.QDialog, CustomWidget):
     def add_new_device(self):
         device = {
             "key": self.key,
-            "name": self.ids.deviceName.text(),
-            "host": self.ids.host.text(),
-            "username": self.ids.username.text(),
-            "password": self.ids.password.text(),
-            "port": self.ids.port.value(),
+            "name": self.deviceName.text(),
+            "host": self.host.text(),
+            "username": self.username.text(),
+            "password": self.password.text(),
+            "port": self.port.value(),
             "params": {},
         }
 

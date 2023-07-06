@@ -7,7 +7,7 @@ fi
 
 # the server is started in a screen session
 echo 'installing screen...'
-apt-get install screen
+apt-get -y install screen
 
 # https://github.com/RedPitaya/RedPitaya/issues/205
 cd /tmp

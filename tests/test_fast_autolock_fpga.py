@@ -18,7 +18,7 @@
 
 from pathlib import Path
 
-from linien_common.common import FAST_AUTOLOCK
+from linien_common.common import AutolockMode
 from migen import run_simulation
 
 from gateware.linien_module import LinienLogic
@@ -35,7 +35,7 @@ def test_root():
         pid: PID = root.pid
         autolock = root.autolock
         fast = autolock.fast
-        yield autolock.autolock_mode.storage.eq(FAST_AUTOLOCK)
+        yield autolock.autolock_mode.storage.eq(AutolockMode.FAST)
 
         yield fast.target_position.storage.eq(lock_target_position)
 

@@ -16,37 +16,44 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-from linien_gui.widgets import CustomWidget
-from PyQt5 import QtWidgets
+from linien_gui.utils import get_linien_app_instance
+from PyQt5 import QtCore, QtWidgets
 
 
-class RightPanel(QtWidgets.QWidget, CustomWidget):
+class RightPanel(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super(RightPanel, self).__init__(*args, **kwargs)
+        self.app = get_linien_app_instance()
+        self.app.connection_established.connect(self.on_connection_established)
+        self.main_window = self.window()
+        QtCore.QTimer.singleShot(100, self.ready)
+
+    def ready(self):
+        self.main_window.closeButton.clicked.connect(self.app.quit)
+        self.main_window.shutdownButton.clicked.connect(self.shutdown_server)
+        self.main_window.openDeviceManagerButton.clicked.connect(
+            self.open_device_manager
+        )
+        self.main_window.pid_parameter_optimization_button.clicked.connect(
+            self.open_psd_window
+        )
 
     def on_connection_established(self):
         self.parameters = self.app.parameters
         self.control = self.app.control
 
-        self.parameters.autolock_running.on_change(self.autolock_status_changed)
-        self.parameters.optimization_running.on_change(self.optimization_status_changed)
-        self.parameters.lock.on_change(self.enable_or_disable_panels)
+        self.parameters.autolock_running.add_callback(self.autolock_status_changed)
+        self.parameters.optimization_running.add_callback(
+            self.optimization_status_changed
+        )
+        self.parameters.lock.add_callback(self.enable_or_disable_panels)
 
         def highlight_psd_button(locked):
-            self.ids.pid_parameter_optimization_button.setStyleSheet(
+            self.main_window.pid_parameter_optimization_button.setStyleSheet(
                 "background: #00aa00;" if locked else ""
             )
 
-        self.parameters.lock.on_change(highlight_psd_button)
-
-    def ready(self):
-        self.ids.closeButton.clicked.connect(self.close_app)
-        self.ids.shutdownButton.clicked.connect(self.shutdown_server)
-        self.ids.openDeviceManagerButton.clicked.connect(self.open_device_manager)
-        self.ids.pid_parameter_optimization_button.clicked.connect(self.open_psd_window)
-
-    def close_app(self):
-        self.app.close()
+        self.parameters.lock.add_callback(highlight_psd_button)
 
     def shutdown_server(self):
         self.app.shutdown()
@@ -59,13 +66,17 @@ class RightPanel(QtWidgets.QWidget, CustomWidget):
 
     def autolock_status_changed(self, value):
         if value:
-            self.ids.settings_toolbox.setCurrentWidget(self.ids.lockingPanel)
+            self.main_window.settings_toolbox.setCurrentWidget(
+                self.main_window.lockingPanel
+            )
 
         self.enable_or_disable_panels()
 
     def optimization_status_changed(self, value):
         if value:
-            self.ids.settings_toolbox.setCurrentWidget(self.ids.optimizationPanel)
+            self.main_window.settings_toolbox.setCurrentWidget(
+                self.main_window.optimizationPanel
+            )
 
         self.enable_or_disable_panels()
 
@@ -76,7 +87,7 @@ class RightPanel(QtWidgets.QWidget, CustomWidget):
 
         def enable_panels(panel_names, condition):
             for panel_name in panel_names:
-                getattr(self.ids, panel_name).setEnabled(condition)
+                getattr(self.main_window, panel_name).setEnabled(condition)
 
         enable_panels(("generalPanel",), not autolock and not optimization and not lock)
         enable_panels(

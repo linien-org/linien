@@ -18,7 +18,7 @@
 
 import numpy as np
 from linien_common.common import get_lock_point
-from linien_server.approach_line import Approacher
+from linien_server.optimization.approach_line import Approacher
 from linien_server.parameters import Parameters
 
 Y_SHIFT = 4000
@@ -45,10 +45,10 @@ class FakeControl:
     def __init__(self, parameters: Parameters):
         self.parameters = parameters
 
-    def pause_acquisition(self):
+    def exposed_pause_acquisition(self):
         pass
 
-    def continue_acquisition(self):
+    def exposed_continue_acquisition(self):
         pass
 
     def exposed_write_registers(self):

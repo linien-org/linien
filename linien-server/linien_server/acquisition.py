@@ -1,5 +1,5 @@
-# Copyright 2018-2022 Benjamin Wiegand <benjamin.wiegand@physik.hu-berlin.de>
-# Copyright 2021-2022 Bastian Leykauf <leykauf@physik.hu-berlin.de>
+# Copyright 2018-2023 Benjamin Wiegand <benjamin.wiegand@physik.hu-berlin.de>
+# Copyright 2021-2023 Bastian Leykauf <leykauf@physik.hu-berlin.de>
 #
 # This file is part of Linien and based on redpid.
 #
@@ -16,160 +16,321 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-import atexit
-import threading
-from enum import Enum
-from multiprocessing import Pipe, Process
+import pickle
+import shutil
+import subprocess
+from pathlib import Path
+from random import random
+from threading import Event, Thread
 from time import sleep
+from typing import Any, Dict, Optional, Tuple, Union
 
-import rpyc
+import numpy as np
+from linien_common.common import DECIMATION, MAX_N_POINTS, N_POINTS
 from linien_common.config import ACQUISITION_PORT
-from linien_server.utils import flash_fpga, start_nginx, stop_nginx
+from linien_server.csr import PythonCSR
+from pyrp3.board import RedPitaya  # type: ignore
+from pyrp3.instrument import TriggerSource  # type: ignore
+from rpyc import Service
+from rpyc.utils.server import ThreadedServer
 
 
-class AcquisitionConnectionError(Exception):
-    pass
+class AcquisitionService(Service):
+    def __init__(self):
+        super(AcquisitionService, self).__init__()
+        stop_nginx()
+        flash_fpga()
 
+        self.red_pitaya = RedPitaya()
+        self.csr = PythonCSR(self.red_pitaya)
+        self.csr_queue = []
+        self.csr_iir_queue = []
 
-class AcquisitionProcessSignals(Enum):
-    SHUTDOWN = 0
-    SET_SWEEP_SPEED = 2
-    SET_LOCK_STATUS = 3
-    SET_CSR = 4
-    SET_IIR_CSR = 5
-    PAUSE_ACQUISIITON = 5.5
-    CONTINUE_ACQUISITION = 6
-    FETCH_QUADRATURES = 7
-    SET_RAW_ACQUISITION = 8
-    SET_DUAL_CHANNEL = 9
+        self.data = pickle.dumps(None)
+        self.data_was_raw = False
+        self.data_hash = None
+        self.data_uuid = None
 
+        self.locked = False
+        self.exposed_set_sweep_speed(9)
+        # when self.locked is set to True, this doesn't mean that the lock is really on.
+        # It just means that the lock is requested and that the gateware waits until the
+        # sweep is at the correct position for the lock. Therefore, when self.locked is
+        # set, the acquisition process waits for confirmation from the gateware that the
+        # lock is actually running.
+        self.confirmed_that_in_lock = False
 
-class AcquisitionMaster:
-    def __init__(self, use_ssh, host):
-        self.on_new_data_received = None
+        self.fetch_additional_signals = True
+        self.raw_acquisition_enabled = False
+        self.raw_acquisition_decimation = 0
 
-        def receive_acquired_data(conn):
-            while True:
-                is_raw, received_data, data_uuid = conn.recv()
-                if self.on_new_data_received is not None:
-                    self.on_new_data_received(is_raw, received_data, data_uuid)
+        self.dual_channel = False
 
-        self.parent_conn, child_conn = Pipe()
-        process = Process(
-            target=self.connect_acquisition_process, args=(child_conn, use_ssh, host)
+        self.stop_event = Event()
+        self.pause_event = Event()
+        self.skip_next_data_event = Event()
+
+        self.thread = Thread(
+            target=self._acquisition_loop,
+            args=(
+                self.stop_event,
+                self.pause_event,
+                self.skip_next_data_event,
+            ),
+            daemon=True,
         )
-        process.daemon = True
-        process.start()
+        self.thread.start()
 
-        # wait until connection is established
-        self.parent_conn.recv()
+    def _acquisition_loop(
+        self, stop_event: Event, pause_event: Event, skip_next_data_event: Event
+    ) -> None:
+        while not stop_event.is_set():
+            while self.csr_queue:
+                key, value = self.csr_queue.pop(0)
+                self.csr.set(key, value)
 
-        thread = threading.Thread(
-            target=receive_acquired_data, args=(self.parent_conn,)
-        )
-        thread.daemon = True
-        thread.start()
+            while self.csr_iir_queue:
+                args = self.csr_iir_queue.pop(0)
+                self.csr.set_iir(*args)
 
-        atexit.register(self.shutdown)
+            if self.locked and not self.confirmed_that_in_lock:
+                self.confirmed_that_in_lock = self.csr.get(
+                    "logic_autolock_lock_running"
+                )
+                if not self.confirmed_that_in_lock:
+                    sleep(0.05)
+                    continue
 
-    def run_data_acquisition(self, on_new_data_received):
-        self.on_new_data_received = on_new_data_received
+            if pause_event.is_set():
+                sleep(0.05)
+                continue
 
-    def connect_acquisition_process(self, pipe, use_ssh, host):
-        if use_ssh:
-            # for debugging, acquisition process may be launched manually on the server
-            # and rpyc can be used to connect to it
-            acquisition_rpyc = rpyc.connect(host, ACQUISITION_PORT)
-            acquisition = acquisition_rpyc.root
+            # check that scope is triggered; copied from
+            # https://github.com/RedPitaya/RedPitaya/blob/14cca62dd58f29826ee89f4b28901602f5cdb1d8/api/src/oscilloscope.c#L115  # noqa: E501
+            if not (self.red_pitaya.scope.read(0x1 << 2) & 0x4) <= 0:
+                sleep(0.05)
+                continue
+
+            if self.raw_acquisition_enabled:
+                data_raw = self.read_data_raw(
+                    0x10000, self.red_pitaya.scope.write_pointer_trigger, MAX_N_POINTS
+                )
+                is_raw = True
+            else:
+                data = self.read_data()
+                is_raw = False
+
+            if pause_event.is_set():
+                # it may seem strange that we check this here a second time. Reason:
+                # `read_data` takes some time and if in the mean time acquisition
+                # was paused, we do not want to send the data
+                continue
+
+            if skip_next_data_event.is_set():
+                skip_next_data_event.clear()
+            else:
+                if self.raw_acquisition_enabled:
+                    self.data = pickle.dumps(data_raw)
+                else:
+                    self.data = pickle.dumps(data)
+                self.data_was_raw = is_raw
+                self.data_hash = random()
+
+            self.program_acquisition_and_rearm()
+
+    def read_data(self) -> Dict[str, np.ndarray]:
+        signals = []
+
+        channel_offsets = [0x10000]
+        if self.fetch_additional_signals or self.locked:
+            channel_offsets.append(0x20000)
+
+        for channel_offset in channel_offsets:
+            channel_data = self.read_data_raw(
+                channel_offset,
+                self.red_pitaya.scope.write_pointer_trigger,
+                N_POINTS,
+            )
+
+            for sub_channel_idx in (0, 1):
+                signals.append(channel_data[sub_channel_idx])
+
+        signals_named = {}
+
+        if not self.locked:
+            signals_named["error_signal_1"] = signals[0]
+
+            if self.fetch_additional_signals and len(signals) >= 3:
+                signals_named["error_signal_1_quadrature"] = signals[2]
+
+            if self.dual_channel:
+                signals_named["error_signal_2"] = signals[1]
+                if self.fetch_additional_signals and len(signals) >= 3:
+                    signals_named["error_signal_2_quadrature"] = signals[3]
+            else:
+                signals_named["monitor_signal"] = signals[1]
+
         else:
-            # This is what happens in production mode
-            from linien_server.acquisition_process import DataAcquisitionService
+            signals_named["error_signal"] = signals[0]
+            signals_named["control_signal"] = signals[1]
 
-            stop_nginx()
-            flash_fpga()
-            acquisition = DataAcquisitionService()
+            if not self.dual_channel and len(signals) >= 3:
+                signals_named["monitor_signal"] = signals[2]
 
-        # tell the main thread that we're ready
-        pipe.send(True)
+        slow_out = self.csr.get("logic_slow_value")
+        slow_out = slow_out if slow_out <= 8191 else slow_out - 16384
+        signals_named["slow_control_signal"] = slow_out
 
-        # Run a loop that listens for acquired data and transmits them to the main
-        # thread. Also redirects calls from the main thread sto the acquiry process.
-        last_hash = None
-        while True:
-            # check whether the main thread sent a command to the acquiry process
-            while pipe.poll():
-                data = pipe.recv()
-                if data[0] == AcquisitionProcessSignals.SHUTDOWN:
-                    raise SystemExit()
-                elif data[0] == AcquisitionProcessSignals.SET_SWEEP_SPEED:
-                    speed = data[1]
-                    acquisition.exposed_set_sweep_speed(speed)
-                elif data[0] == AcquisitionProcessSignals.SET_LOCK_STATUS:
-                    acquisition.exposed_set_lock_status(data[1])
-                elif data[0] == AcquisitionProcessSignals.FETCH_QUADRATURES:
-                    acquisition.exposed_set_fetch_additional_signals(data[1])
-                elif data[0] == AcquisitionProcessSignals.SET_RAW_ACQUISITION:
-                    acquisition.exposed_set_raw_acquisition(data[1])
-                elif data[0] == AcquisitionProcessSignals.SET_DUAL_CHANNEL:
-                    acquisition.exposed_set_dual_channel(data[1])
-                elif data[0] == AcquisitionProcessSignals.SET_CSR:
-                    acquisition.exposed_set_csr(*data[1])
-                elif data[0] == AcquisitionProcessSignals.SET_IIR_CSR:
-                    acquisition.exposed_set_iir_csr(*data[1])
-                elif data[0] == AcquisitionProcessSignals.PAUSE_ACQUISIITON:
-                    acquisition.exposed_pause_acquisition()
-                elif data[0] == AcquisitionProcessSignals.CONTINUE_ACQUISITION:
-                    acquisition.exposed_continue_acquisition(data[1])
+        return signals_named
 
-            # load acquired data and send it to the main thread
-            (
-                new_data_returned,
-                new_hash,
-                data_was_raw,
-                new_data,
-                data_uuid,
-            ) = acquisition.exposed_return_data(last_hash)
-            if new_data_returned:
-                last_hash = new_hash
-                pipe.send((data_was_raw, new_data, data_uuid))
+    def read_data_raw(
+        self, offset: int, addr: int, data_length: int
+    ) -> Tuple[Any, ...]:
+        max_data_length = 16383
+        if data_length + addr > max_data_length:
+            to_read_later = data_length + addr - max_data_length
+            data_length -= to_read_later
+        else:
+            to_read_later = 0
 
-            sleep(0.05)
+        # raw data contains two signals:
+        #   2'h0,adc_b_rd,2'h0,adc_a_rd
+        #   i.e.: 2 zero bits, channel b (14 bit), 2 zero bits, channel a (14 bit)
+        # .copy() is required, because np.frombuffer returns a readonly array
+        raw_data = self.red_pitaya.scope.reads(offset + (4 * addr), data_length).copy()
 
-    def shutdown(self):
-        if self.parent_conn:
-            self.parent_conn.send((AcquisitionProcessSignals.SHUTDOWN,))
+        # raw_data is an array of 32-bit ints. We cast it to 16 bit --> each original
+        # int is split into two ints
+        raw_data.dtype = np.int16
 
+        # sign bit is at position 14, but we have 16 bit ints
+        raw_data[raw_data >= 2**13] -= 2**14
+
+        # order is such that we have first the signal a then signal b
+        signals = tuple(raw_data[signal_idx::2] for signal_idx in (0, 1))
+
+        if to_read_later > 0:
+            additional_raw_data = self.read_data_raw(offset, 0, to_read_later)
+            signals = tuple(
+                np.append(signals[signal_idx], additional_raw_data[signal_idx])
+                for signal_idx in (0, 1)
+            )
+
+        return signals
+
+    def program_acquisition_and_rearm(self, trigger_delay=16384):
+        """Program the acquisition settings and rearm acquisition."""
+        if not self.locked:
+            target_decimation = 2 ** (self.sweep_speed + int(np.log2(DECIMATION)))
+
+            self.red_pitaya.scope.data_decimation = target_decimation
+            self.red_pitaya.scope.trigger_delay = int(trigger_delay / DECIMATION) - 1
+
+        elif self.raw_acquisition_enabled:
+            self.red_pitaya.scope.data_decimation = 2**self.raw_acquisition_decimation
+            self.red_pitaya.scope.trigger_delay = trigger_delay
+
+        else:
+            self.red_pitaya.scope.data_decimation = 1
+            self.red_pitaya.scope.trigger_delay = int(trigger_delay / DECIMATION) - 1
+
+        self.red_pitaya.scope.rearm(trigger_source=TriggerSource.ext_posedge)
+
+    def exposed_return_data(
+        self, last_hash: Optional[float]
+    ) -> Tuple[
+        bool,
+        Union[float, None],
+        Union[bool, None],
+        Union[bytes, None],
+        Union[float, None],
+    ]:
+        no_data_available = self.data_hash is None
+        data_not_changed = self.data_hash == last_hash
+        if data_not_changed or no_data_available or self.pause_event.is_set():
+            return False, None, None, None, None
+        else:
+            return True, self.data_hash, self.data_was_raw, self.data, self.data_uuid
+
+    def exposed_set_sweep_speed(self, speed):
+        self.sweep_speed = speed
+        # if a slow acqisition is currently running and we change the sweep speed we
+        # don't want to wait until it finishes
+        self.program_acquisition_and_rearm()
+
+    def exposed_set_lock_status(self, locked: bool) -> None:
+        self.locked = locked
+        self.confirmed_that_in_lock = False
+
+    def exposed_set_fetch_additional_signals(self, fetch: bool) -> None:
+        self.fetch_additional_signals = fetch
+
+    def exposed_set_raw_acquisition(self, enabled: bool, decimation: int) -> None:
+        self.raw_acquisition_enabled = enabled
+        self.raw_acquisition_decimation = decimation
+
+    def exposed_set_dual_channel(self, dual_channel):
+        self.dual_channel = dual_channel
+
+    def exposed_set_csr(self, key: str, value: int) -> None:
+        self.csr_queue.append((key, value))
+
+    def exposed_set_iir_csr(self, *args):
+        self.csr_iir_queue.append(args)
+
+    def exposed_stop_acquisition(self) -> None:
+        self.stop_event.set()
+        self.thread.join()
         start_nginx()
 
-    def set_sweep_speed(self, speed):
-        self.parent_conn.send((AcquisitionProcessSignals.SET_SWEEP_SPEED, speed))
+    def exposed_pause_acquisition(self):
+        self.pause_event.set()
+        self.data_hash = None
+        self.data = None
 
-    def lock_status_changed(self, status):
-        if self.parent_conn:
-            self.parent_conn.send((AcquisitionProcessSignals.SET_LOCK_STATUS, status))
+    def exposed_continue_acquisition(self, uuid: Optional[float]) -> None:
+        self.program_acquisition_and_rearm()
+        sleep(0.01)
+        # resetting data here is not strictly required but we want to be on the safe
+        # side
+        self.data_hash = None
+        self.data = None
+        self.pause_event.clear()
+        self.data_uuid = uuid
+        # if we are sweeping, we have to skip one data set because an incomplete sweep
+        # may have been recorded. When locked, this does not matter
+        if self.confirmed_that_in_lock:
+            self.skip_next_data_event.clear()
+        else:
+            self.skip_next_data_event.set()
 
-    def fetch_additional_signals_changed(self, status):
-        if self.parent_conn:
-            self.parent_conn.send((AcquisitionProcessSignals.FETCH_QUADRATURES, status))
 
-    def set_csr(self, key, value):
-        self.parent_conn.send((AcquisitionProcessSignals.SET_CSR, (key, value)))
+def flash_fpga():
+    filepath = Path(__file__).resolve().parent / "linien.bin"
 
-    def set_iir_csr(self, *args):
-        self.parent_conn.send((AcquisitionProcessSignals.SET_IIR_CSR, args))
+    # On redpitaya os < 2, flashing fpga works by copying the bit file /dev/xdevcfg. On
+    # recent versions, there is a dedicated command for this
+    # cf. https://forum.redpitaya.com/viewtopic.php?p=33494&sid=5132bf6e33709b1a7daa948f8e8dcdb1#p33494  # noqa: E501
+    fpga_dev_file = Path("/dev/xdevcfg")
 
-    def pause_acquisition(self):
-        self.parent_conn.send((AcquisitionProcessSignals.PAUSE_ACQUISIITON, True))
+    if fpga_dev_file.exists():
+        print("Copying gateware to %s" % fpga_dev_file)
+        shutil.copy(str(filepath), str(fpga_dev_file))
+    else:
+        print("Using fpautil to deploy gateware.")
+        subprocess.Popen(["/opt/redpitaya/bin/fpgautil", "-b", str(filepath)]).wait()
 
-    def continue_acquisition(self, uuid):
-        self.parent_conn.send((AcquisitionProcessSignals.CONTINUE_ACQUISITION, uuid))
 
-    def set_raw_acquisition(self, enabled, decimation=None):
-        if decimation is None:
-            decimation = 0
-        self.parent_conn.send(
-            (AcquisitionProcessSignals.SET_RAW_ACQUISITION, (enabled, decimation))
-        )
+def start_nginx():
+    subprocess.Popen(["systemctl", "start", "redpitaya_nginx.service"])
 
-    def set_dual_channel(self, enabled):
-        self.parent_conn.send((AcquisitionProcessSignals.SET_DUAL_CHANNEL, enabled))
+
+def stop_nginx():
+    subprocess.Popen(["systemctl", "stop", "redpitaya_nginx.service"]).wait()
+    subprocess.Popen(["systemctl", "stop", "redpitaya_scpi.service"]).wait()
+
+
+if __name__ == "__main__":
+    threaded_server = ThreadedServer(AcquisitionService(), port=ACQUISITION_PORT)
+    print("Starting AcquisitionService on port ", ACQUISITION_PORT)
+    threaded_server.start()

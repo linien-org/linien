@@ -17,30 +17,27 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 from linien_common.common import MHz, Vpp
-from linien_gui.utils import param2ui
-from linien_gui.widgets import CustomWidget
-from PyQt5 import QtWidgets
+from linien_gui.utils import get_linien_app_instance, param2ui
+from linien_gui.widgets import UI_PATH
+from PyQt5 import QtWidgets, uic
 
 
-class OptimizationPanel(QtWidgets.QWidget, CustomWidget):
+class OptimizationPanel(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.load_ui("optimization_panel.ui")
+        super(OptimizationPanel, self).__init__(*args, **kwargs)
+        uic.loadUi(UI_PATH / "optimization_panel.ui", self)
+        self.app = get_linien_app_instance()
+        self.app.connection_established.connect(self.on_connection_established)
 
-    def ready(self):
-        self.ids.start_optimization_btn.clicked.connect(self.start_optimization)
-        self.ids.optimization_use_new_parameters.clicked.connect(
-            self.use_new_parameters
-        )
-        self.ids.optimization_abort.clicked.connect(self.abort)
-        self.ids.abortOptimizationLineSelection.clicked.connect(self.abort_selection)
-        self.ids.abortOptimizationPreparing.clicked.connect(self.abort_preparation)
-        self.ids.optimization_channel_selector.currentIndexChanged.connect(
+        self.startOptimizationPushButton.clicked.connect(self.start_optimization)
+        self.useOptimizedParametersPushButton.clicked.connect(self.use_new_parameters)
+        self.optimization_abort.clicked.connect(self.abort)
+        self.abortOptimizationLineSelection.clicked.connect(self.abort_selection)
+        self.abortOptimizationPreparing.clicked.connect(self.abort_preparation)
+        self.optimizationChannelComboBox.currentIndexChanged.connect(
             self.channel_changed
         )
-        self.ids.optimization_reset_failed_state.clicked.connect(
-            self.reset_failed_state
-        )
+        self.optimization_reset_failed_state.clicked.connect(self.reset_failed_state)
 
         for param_name in (
             "optimization_mod_freq_min",
@@ -48,7 +45,7 @@ class OptimizationPanel(QtWidgets.QWidget, CustomWidget):
             "optimization_mod_amp_min",
             "optimization_mod_amp_max",
         ):
-            element = getattr(self.ids, param_name)
+            element = getattr(self, param_name)
             element.setKeyboardTracking(False)
 
             def write_parameter(*args, param_name=param_name, element=element):
@@ -60,10 +57,10 @@ class OptimizationPanel(QtWidgets.QWidget, CustomWidget):
 
             def optim_enabled_changed(_, param_name=param_name):
                 getattr(self.parameters, param_name + "_enabled").value = int(
-                    getattr(self.ids, param_name).checkState()
+                    getattr(self, param_name).checkState()
                 )
 
-            getattr(self.ids, param_name).stateChanged.connect(optim_enabled_changed)
+            getattr(self, param_name).stateChanged.connect(optim_enabled_changed)
 
     def on_connection_established(self):
         self.parameters = self.app.parameters
@@ -74,33 +71,33 @@ class OptimizationPanel(QtWidgets.QWidget, CustomWidget):
             approaching = self.parameters.optimization_approaching.value
             failed = self.parameters.optimization_failed.value
 
-            self.ids.optimization_not_running_container.setVisible(
+            self.optimization_not_running_container.setVisible(
                 not failed and not running
             )
-            self.ids.optimization_running_container.setVisible(
+            self.optimization_running_container.setVisible(
                 not failed and running and not approaching
             )
-            self.ids.optimization_preparing.setVisible(
+            self.optimization_preparing.setVisible(
                 not failed and running and approaching
             )
-            self.ids.optimization_failed.setVisible(failed)
+            self.optimization_failed.setVisible(failed)
 
-        self.parameters.optimization_running.on_change(opt_running_changed)
-        self.parameters.optimization_approaching.on_change(opt_running_changed)
-        self.parameters.optimization_failed.on_change(opt_running_changed)
+        self.parameters.optimization_running.add_callback(opt_running_changed)
+        self.parameters.optimization_approaching.add_callback(opt_running_changed)
+        self.parameters.optimization_failed.add_callback(opt_running_changed)
 
         def opt_selection_changed(value):
-            self.ids.optimization_selecting.setVisible(value)
-            self.ids.optimization_not_selecting.setVisible(not value)
+            self.optimization_selecting.setVisible(value)
+            self.optimization_not_selecting.setVisible(not value)
 
-        self.parameters.optimization_selection.on_change(opt_selection_changed)
+        self.parameters.optimization_selection.add_callback(opt_selection_changed)
 
         def mod_param_changed(_):
             dual_channel = self.parameters.dual_channel.value
             channel = self.parameters.optimization_channel.value
             optimized = self.parameters.optimization_optimized_parameters.value
 
-            self.ids.optimization_display_parameters.setText(
+            self.optimization_display_parameters.setText(
                 (
                     "<br />\n"
                     "<b>current parameters</b>: "
@@ -122,56 +119,56 @@ class OptimizationPanel(QtWidgets.QWidget, CustomWidget):
                 )
             )
 
-        for p in (
+        for param in (
             self.parameters.modulation_amplitude,
             self.parameters.modulation_frequency,
             self.parameters.demodulation_phase_a,
         ):
-            p.on_change(mod_param_changed)
+            param.add_callback(mod_param_changed)
 
         def improvement_changed(improvement):
-            self.ids.optimization_improvement.setText("%d %%" % (improvement * 100))
+            self.optimization_improvement.setText(f"{improvement * 100} %%")
 
-        self.parameters.optimization_improvement.on_change(improvement_changed)
+        self.parameters.optimization_improvement.add_callback(improvement_changed)
 
         param2ui(
             self.parameters.optimization_mod_freq_enabled,
-            self.ids.optimization_mod_freq,
+            self.optimization_mod_freq,
         )
         param2ui(
             self.parameters.optimization_mod_freq_min,
-            self.ids.optimization_mod_freq_min,
+            self.optimization_mod_freq_min,
         )
         param2ui(
             self.parameters.optimization_mod_freq_max,
-            self.ids.optimization_mod_freq_max,
+            self.optimization_mod_freq_max,
         )
         param2ui(
-            self.parameters.optimization_mod_amp_enabled, self.ids.optimization_mod_amp
+            self.parameters.optimization_mod_amp_enabled, self.optimization_mod_amp
         )
         param2ui(
-            self.parameters.optimization_mod_amp_min, self.ids.optimization_mod_amp_min
+            self.parameters.optimization_mod_amp_min, self.optimization_mod_amp_min
         )
         param2ui(
-            self.parameters.optimization_mod_amp_max, self.ids.optimization_mod_amp_max
+            self.parameters.optimization_mod_amp_max, self.optimization_mod_amp_max
         )
 
         def dual_channel_changed(value):
-            self.ids.optimization_channel_selector_box.setVisible(value)
+            self.optimization_channel_selector_box.setVisible(value)
 
-        self.parameters.dual_channel.on_change(dual_channel_changed)
-
-        def fast_mode_changed(fast_mode_enabled):
-            """Disable this panel if fast mode is enabled (nothing to optimize)."""
-            self.setEnabled(not fast_mode_enabled)
-
-        self.parameters.fast_mode.on_change(fast_mode_changed)
+        self.parameters.dual_channel.add_callback(dual_channel_changed)
 
         def fast_mode_changed(fast_mode_enabled):
             """Disable this panel if fast mode is enabled (nothing to optimize)."""
             self.setEnabled(not fast_mode_enabled)
 
-        self.parameters.fast_mode.on_change(fast_mode_changed)
+        self.parameters.fast_mode.add_callback(fast_mode_changed)
+
+        def fast_mode_changed(fast_mode_enabled):
+            """Disable this panel if fast mode is enabled (nothing to optimize)."""
+            self.setEnabled(not fast_mode_enabled)
+
+        self.parameters.fast_mode.add_callback(fast_mode_changed)
 
     def start_optimization(self):
         self.parameters.optimization_selection.value = True

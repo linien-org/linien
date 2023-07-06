@@ -4,6 +4,8 @@ on:
   workflow_dispatch:
   push:
     paths:
+      - .github/workflows/pyinstaller-windows.yml
+      - .github/actions/install-linien/**      
       - linien-common/**
       - linien-client/**
       - linien-gui/**
@@ -17,24 +19,11 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.10"
+      - name: Install Linien
+        uses: ./.github/actions/install-linien
 
-      - run: pip install pyinstaller
-
-      - name: Install linien-common
-        working-directory: linien-common
-        run: pip install .
-
-      - name: Install linien-client
-        working-directory: linien-client
-        run: pip install .
-
-      - name: Install linien-gui
-        working-directory: linien-gui
-        run: pip install .
+      - name: Install Pyinstaller
+        run: pip install pyinstaller
 
       - run: pyinstaller pyinstaller.spec
         working-directory: linien-gui

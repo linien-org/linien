@@ -2,9 +2,9 @@
 # Copyright 2018-2022 Benjamin Wiegand <benjamin.wiegand@physik.hu-berlin.de>
 # Copyright 2021-2022 Bastian Leykauf <leykauf@physik.hu-berlin.de>
 #
-# This file is part of redpid.
+# This file is part of Linien.
 #
-# redpid is free software: you can redistribute it and/or modify
+# Linien is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
@@ -15,12 +15,12 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with Linien.  If not, see <http://www.gnu.org/licenses/>.
+# along with Linien. If not, see <http://www.gnu.org/licenses/>.
 
 import warnings
 from math import ceil, log2, pi
 
-import scipy.signal
+from scipy import signal
 
 
 def make_filter(name, k=1.0, f=0.0, g=1e20, q=0.5):
@@ -128,7 +128,10 @@ def quantize_filter(b, a, shift=None, width=25):
     for i in b + a:
         assert -m <= i < m, (hex(i), hex(m))
 
-    z, p, k = scipy.signal.tf2zpk(b, a)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=signal.BadCoefficients)
+        warnings.simplefilter("ignore", category=RuntimeWarning)
+        z, p, k = signal.tf2zpk(b, a)
     if any(abs(_) > 1 for _ in p):
         warnings.warn(
             "unstable filter: z={}, p={}, k={}".format(z, p, k), RuntimeWarning

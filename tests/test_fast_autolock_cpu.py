@@ -19,7 +19,7 @@
 import pickle
 
 import numpy as np
-from linien_common.common import FAST_AUTOLOCK
+from linien_common.common import AutolockMode
 from linien_server.autolock.autolock import Autolock
 from linien_server.parameters import Parameters
 
@@ -48,10 +48,10 @@ class FakeControl:
         self.parameters = parameters
         self.locked = False
 
-    def pause_acquisition(self):
+    def exposed_pause_acquisition(self):
         pass
 
-    def continue_acquisition(self):
+    def exposed_continue_acquisition(self):
         pass
 
     def exposed_write_registers(self):
@@ -75,7 +75,7 @@ def test_autolock():
             print(f"----- ref_shift={ref_shift}, target_shift={target_shift} -----")
 
             parameters = Parameters()
-            parameters.autolock_mode_preference.value = FAST_AUTOLOCK
+            parameters.autolock_mode_preference.value = AutolockMode.FAST
             control = FakeControl(parameters)
 
             reference_signal = _get_signal(ref_shift)

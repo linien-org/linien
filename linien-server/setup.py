@@ -1,5 +1,5 @@
 # Copyright 2018-2022 Benjamin Wiegand <benjamin.wiegand@physik.hu-berlin.de>
-# Copyright 2022 Bastian Leykauf <leykauf@physik.hu-berlin.de>
+# Copyright 2022-2023 Bastian Leykauf <leykauf@physik.hu-berlin.de>
 #
 # This file is part of Linien and based on redpid.
 #
@@ -18,7 +18,7 @@
 
 from setuptools import find_packages, setup
 
-version = "0.7.0"
+version = "0.8.0"
 
 setup(
     name="linien-server",
@@ -40,11 +40,14 @@ setup(
     entry_points={"console_scripts": ["linien-server=linien_server.server:run_server"]},
     python_requires=">=3.5",
     install_requires=[
+        "appdirs>=1.4.4",
+        "certifi==2021.10.8;python_version<'3.10'",  # pinned because of bug in pip 9.0.1, see #339 # noqa: E501
         "click>=7.1.2",
         "cma>=3.0.3",
         "pylpsd>=0.1.4",
-        "pyrp3>=1.1.0;platform_machine=='armv7l'",  # only install on RedPitaya
-        "rpyc>=4.0,<5.0",
+        "pyrp3>=1.1.0,<2.0;platform_machine=='armv7l'",  # only install on RedPitaya
+        "requests==2.25.1;python_version<'3.10'",  # pinned because of bug in pip 9.0.1, see #339 # noqa: E501
+        "requests>=2.25.1;python_version>='3.10'",
         "linien-common=={}".format(version),
     ],
     scripts=[

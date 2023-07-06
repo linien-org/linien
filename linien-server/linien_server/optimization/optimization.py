@@ -21,9 +21,10 @@ import traceback
 
 import numpy as np
 from linien_common.common import determine_shift_by_correlation, get_lock_point
-from linien_server.approach_line import Approacher
-from linien_server.optimization.engine import OptimizerEngine
-from linien_server.optimization.utils import FINAL_ZOOM_FACTOR
+
+from .approach_line import Approacher
+from .engine import OptimizerEngine
+from .utils import FINAL_ZOOM_FACTOR
 
 
 class OptimizeSpectroscopy:
@@ -58,7 +59,7 @@ class OptimizeSpectroscopy:
 
         params = self.parameters
         self.engine = OptimizerEngine(self.control, params)
-        params.to_plot.on_change(self.react_to_new_spectrum)
+        params.to_plot.add_callback(self.react_to_new_spectrum)
         params.optimization_running.value = True
         params.optimization_improvement.value = 0
 
@@ -164,17 +165,17 @@ class OptimizeSpectroscopy:
             self.engine.request_and_set_new_parameters(use_initial_parameters=True)
 
         self.parameters.optimization_running.value = False
-        self.parameters.to_plot.remove_listener(self.react_to_new_spectrum)
+        self.parameters.to_plot.remove_callback(self.react_to_new_spectrum)
         self.parameters.task.value = None
 
         self.reset_scan()
 
     def reset_scan(self):
-        self.control.pause_acquisition()
+        self.control.exposed_pause_acquisition()
 
         self.parameters.sweep_speed.value = self.initial_sweep_speed
         self.parameters.sweep_amplitude.value = self.initial_sweep_amplitude
         self.parameters.sweep_center.value = self.initial_sweep_center
         self.control.exposed_write_registers()
 
-        self.control.continue_acquisition()
+        self.control.exposed_continue_acquisition()
