@@ -18,7 +18,7 @@
 
 from setuptools import find_packages, setup
 
-version = "0.8.0rc10"
+version = "0.8.0"
 
 setup(
     name="linien-client",
