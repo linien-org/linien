@@ -20,13 +20,21 @@ from typing import Union
 
 from linien_client.remote_parameters import RemoteParameter
 from linien_common.common import FilterType
+from linien_gui.ui.spin_box import CustomDoubleSpinBox, CustomDoubleSpinBoxNoSign
 from linien_gui.utils import get_linien_app_instance, param2ui
 from linien_gui.widgets import UI_PATH
 from PyQt5 import QtWidgets, uic
 
 
 class SpectroscopyPanel(QtWidgets.QWidget):
-    CHANNEL = Union[str, None]
+    CHANNEL: Union[str, None] = None
+
+    automaticFilterCheckBox: QtWidgets.QCheckBox
+    demodulationFrequencyComboBox: CustomDoubleSpinBoxNoSign
+    demodulationPhaseSpinBox: CustomDoubleSpinBoxNoSign
+    invertCheckBox: QtWidgets.QCheckBox
+    manualFilterWidget: QtWidgets.QWidget
+    signalOffsetSpinBox: CustomDoubleSpinBox
 
     def __init__(self, *args):
         super(SpectroscopyPanel, self).__init__(*args)
@@ -115,8 +123,8 @@ class SpectroscopyPanel(QtWidgets.QWidget):
         param2ui(self.get_param("filter_automatic"), self.automaticFilterCheckBox)
 
         def filter_automatic_changed(value):
-            self.automatic_filtering_enabled.setVisible(value)
-            self.automatic_filtering_disabled.setVisible(not value)
+            self.manualFilterWidget.setVisible(value)
+            self.manualFilterWidget.setVisible(not value)
 
         self.get_param("filter_automatic").add_callback(filter_automatic_changed)
 
