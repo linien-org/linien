@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
+    <width>314</width>
     <height>496</height>
    </rect>
   </property>
@@ -44,7 +44,7 @@
       <item>
        <widget class="QLabel" name="label_3">
         <property name="text">
-         <string>Set modulation frequency to 0 to display the DC signal.</string>
+         <string>Set modulation frequency to 0 to disable modulation/demodulation</string>
         </property>
         <property name="wordWrap">
          <bool>true</bool>
