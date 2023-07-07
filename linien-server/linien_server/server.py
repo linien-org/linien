@@ -382,7 +382,9 @@ class FakeRedPitayaControlService(BaseService):
         pass
 
 
-@click.command()
+# ignore type, otherwise "Argument 1 has incompatible type "Callable[[int, bool, str |
+# None, bool], Any]"; expected <nothing>" is raised for click 8.1.4.
+@click.command("linien-server")  # type: ignore[arg-type]
 @click.version_option(__version__)
 @click.argument("port", default=DEFAULT_SERVER_PORT, type=int, required=False)
 @click.option(
@@ -397,13 +399,12 @@ class FakeRedPitayaControlService(BaseService):
 )
 @click.option("--no-auth", is_flag=True, help="Disable authentication")
 def run_server(
-    port: int,
+    port: int = DEFAULT_SERVER_PORT,
     fake: bool = False,
     host: Optional[str] = None,
     no_auth: bool = False,
-    use_credentials: Optional[str] = None,
 ):
-    print("Start server on port", port)
+    print(f"Start server on port {port}.")
 
     if fake:
         print("starting fake server")
