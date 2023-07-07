@@ -35,7 +35,7 @@ class GeneralPanel(QtWidgets.QWidget):
         self.app.connection_established.connect(self.on_connection_established)
 
         self.channelMixingSlider.valueChanged.connect(self.on_channel_mixing_changed)
-        self.fastModeCheckBox.stateChanged.connect(self.on_fast_mode_changed)
+        self.fastModeCheckBox.stateChanged.connect(self.on_pid_only_mode_changed)
         self.dualChannelCheckBox.stateChanged.connect(self.on_dual_channel_changed)
         self.modulationChannelComboBox.currentIndexChanged.connect(
             self.on_mod_channel_changed
@@ -70,7 +70,7 @@ class GeneralPanel(QtWidgets.QWidget):
         self.parameters = self.app.parameters
         self.control = self.app.control
 
-        param2ui(self.parameters.fast_mode, self.fastModeCheckBox)
+        param2ui(self.parameters.pid_only_mode, self.fastModeCheckBox)
 
         def on_dual_channel_changed(value):
             self.dualChannelMixingGroupBox.setVisible(value)
@@ -116,16 +116,16 @@ class GeneralPanel(QtWidgets.QWidget):
                 process_value=lambda v: ANALOG_OUT_V * v,
             )
 
-        def on_fast_mode_changed(fast_mode_enabled):
+        def on_pid_only_mode_changed(pid_only_mode_enabled):
             """Disables controls that are irrelevant if PID-only mode is enabled"""
             widgets_to_disable = (
                 self.output_ports_group,
                 self.input_ports_group,
             )
             for widget in widgets_to_disable:
-                widget.setEnabled(not fast_mode_enabled)
+                widget.setEnabled(not pid_only_mode_enabled)
 
-        self.parameters.fast_mode.add_callback(on_fast_mode_changed)
+        self.parameters.pid_only_mode.add_callback(on_pid_only_mode_changed)
 
     def on_analog_out_changed(self, idx):
         getattr(self.parameters, f"analog_out_{idx}").value = int(
@@ -143,8 +143,10 @@ class GeneralPanel(QtWidgets.QWidget):
         self.chain_a_factor.setText(f"{a_value}")
         self.chain_b_factor.setText(f"{b_value}")
 
-    def on_fast_mode_changed(self):
-        self.parameters.fast_mode.value = int(self.fastModeCheckBox.checkState() > 0)
+    def on_pid_only_mode_changed(self):
+        self.parameters.pid_only_mode.value = int(
+            self.fastModeCheckBox.checkState() > 0
+        )
         self.control.write_registers()
 
     def on_dual_channel_changed(self):

@@ -69,7 +69,7 @@ class ModulationAndSweepPanel(QtWidgets.QWidget):
             for widget in widgets_to_disable:
                 widget.setEnabled(not pid_only_mode_enabled)
 
-        self.parameters.fast_mode.add_callback(pid_only_mode_changed)
+        self.parameters.pid_only_mode.add_callback(pid_only_mode_changed)
 
         def pid_only_mode_changed(pid_only_mode_enabled):
             """Disables controls that are irrelevant if PID-only mode is enabled"""
@@ -81,7 +81,7 @@ class ModulationAndSweepPanel(QtWidgets.QWidget):
             for widget in widgets_to_disable:
                 widget.setEnabled(not pid_only_mode_enabled)
 
-        self.parameters.fast_mode.add_callback(pid_only_mode_changed)
+        self.parameters.pid_only_mode.add_callback(pid_only_mode_changed)
 
     def change_modulation_frequency(self):
         self.parameters.modulation_frequency.value = (
