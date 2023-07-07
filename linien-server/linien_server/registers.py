@@ -107,7 +107,7 @@ class Registers:
             and (not self.parameters.pid_only_mode.value)
             else 0,
             logic_dual_channel=int(self.parameters.dual_channel.value),
-            logic_fast_mode=int(self.parameters.pid_only_mode.value),
+            logic_pid_only_mode=int(self.parameters.pid_only_mode.value),
             logic_chain_a_factor=factor_a,
             logic_chain_b_factor=factor_b,
             logic_chain_a_offset=twos_complement(
