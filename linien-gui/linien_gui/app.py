@@ -109,7 +109,7 @@ class LinienApp(QtWidgets.QApplication):
 
 # ignore type, otherwise "Argument 1 has incompatible type "Callable[[int, bool, str |
 # None, bool], Any]"; expected <nothing>" is raised for click 8.1.4.
-@click.command()  # type: ignore[arg-type]
+@click.command("linien")  # type: ignore[arg-type]
 @click.version_option(__version__)
 def run_application():
     app = LinienApp(sys.argv)
