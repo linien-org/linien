@@ -17,12 +17,38 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 from linien_common.common import MHz, Vpp
+from linien_gui.ui.spin_box import CustomDoubleSpinBoxNoSign
 from linien_gui.utils import get_linien_app_instance, param2ui
 from linien_gui.widgets import UI_PATH
 from PyQt5 import QtWidgets, uic
 
 
 class OptimizationPanel(QtWidgets.QWidget):
+    optimization_failed: QtWidgets.QWidget
+    optimization_reset_failed_state: QtWidgets.QPushButton
+    optimization_not_running_container: QtWidgets.QWidget
+    optimization_not_selecting: QtWidgets.QWidget
+    optmization_mod_freq_max: CustomDoubleSpinBoxNoSign
+    optimization_mod_freq_min: CustomDoubleSpinBoxNoSign
+    optmization_mod_freq: QtWidgets.QCheckBox
+    optmization_mod_amp_max: CustomDoubleSpinBoxNoSign
+    optimization_mod_amp_min: CustomDoubleSpinBoxNoSign
+    optmization_mod_amp: QtWidgets.QCheckBox
+    checkBox: QtWidgets.QCheckBox
+    optimization_channel_selector_box: QtWidgets.QGroupBox
+    optimizationChannelComboBox: QtWidgets.QComboBox
+    startOptimizationPushButton: QtWidgets.QPushButton
+    optimization_selecting: QtWidgets.QWidget
+    abortOptimizationLineSelection: QtWidgets.QPushButton
+    optimization_preparing: QtWidgets.QWidget
+    abortOptimizationPreparing: QtWidgets.QPushButton
+    optimization_preparing_text: QtWidgets.QLabel
+    optimization_running_container: QtWidgets.QWidget
+    optimization_abort: QtWidgets.QPushButton
+    optimization_display_parameters: QtWidgets.QLabel
+    optimization_improvement: QtWidgets.QLabel
+    useOptimizedParametersPushButton: QtWidgets.QPushButton
+
     def __init__(self, *args, **kwargs):
         super(OptimizationPanel, self).__init__(*args, **kwargs)
         uic.loadUi(UI_PATH / "optimization_panel.ui", self)
@@ -127,7 +153,7 @@ class OptimizationPanel(QtWidgets.QWidget):
             param.add_callback(mod_param_changed)
 
         def improvement_changed(improvement):
-            self.optimization_improvement.setText(f"{improvement * 100} %%")
+            self.optimization_improvement.setText(f"{improvement:%}")
 
         self.parameters.optimization_improvement.add_callback(improvement_changed)
 
@@ -153,18 +179,12 @@ class OptimizationPanel(QtWidgets.QWidget):
             self.parameters.optimization_mod_amp_max, self.optimization_mod_amp_max
         )
 
-        def dual_channel_changed(value):
+        def dual_channel_changed(value: bool) -> None:
             self.optimization_channel_selector_box.setVisible(value)
 
         self.parameters.dual_channel.add_callback(dual_channel_changed)
 
-        def pid_only_mode_changed(pid_only_mode_enabled):
-            """Disable this panel if PID-only mode is enabled (nothing to optimize)."""
-            self.setEnabled(not pid_only_mode_enabled)
-
-        self.parameters.pid_only_mode.add_callback(pid_only_mode_changed)
-
-        def pid_only_mode_changed(pid_only_mode_enabled):
+        def pid_only_mode_changed(pid_only_mode_enabled: bool) -> None:
             """Disable this panel if PID-only mode is enabled (nothing to optimize)."""
             self.setEnabled(not pid_only_mode_enabled)
 

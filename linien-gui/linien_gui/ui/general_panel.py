@@ -22,13 +22,36 @@ from linien_common.common import (
     OutputChannel,
     convert_channel_mixing_value,
 )
+from linien_gui.ui.spin_box import CustomDoubleSpinBoxNoSign
 from linien_gui.utils import get_linien_app_instance, param2ui
 from linien_gui.widgets import UI_PATH
 from PyQt5 import QtWidgets, uic
 
 
 class GeneralPanel(QtWidgets.QWidget):
-    def __init__(self, *args, **kwargs):
+    analogOutComboBox1: CustomDoubleSpinBoxNoSign
+    analogOutComboBox2: CustomDoubleSpinBoxNoSign
+    analogOutComboBox3: CustomDoubleSpinBoxNoSign
+    fastModeCheckBox: QtWidgets.QCheckBox
+    fast_in_1_status: QtWidgets.QLabel
+    fast_in_2_status: QtWidgets.QLabel
+    dualChannelCheckBox: QtWidgets.QCheckBox
+    dualChannelMixingGroupBox: QtWidgets.QGroupBox
+    channelMixingSlider: QtWidgets.QSlider
+    output_ports_group: QtWidgets.QGroupBox
+    controlChannelComboBox: QtWidgets.QComboBox
+    sweepChannelComboBox: QtWidgets.QComboBox
+    slowControlComboBox: QtWidgets.QComboBox
+    polaritySelectorGroupBox: QtWidgets.QGroupBox
+    polarityContainerAnalogOut0: QtWidgets.QWidget
+    polarityComboBoxAnalogOut0: QtWidgets.QComboBox
+    polarityContainerFastOut1: QtWidgets.QWidget
+    polarityComboBoxFastOut1: QtWidgets.QComboBox
+    polarityContainerFastOut2: QtWidgets.QWidget
+    polarityComboBoxFastOut2: QtWidgets.QComboBox
+    modulationChannelComboBox: QtWidgets.QComboBox
+
+    def __init__(self, *args, **kwargs) -> None:
         super(GeneralPanel, self).__init__(*args, **kwargs)
         uic.loadUi(UI_PATH / "general_panel.ui", self)
         self.app = get_linien_app_instance()
@@ -60,13 +83,15 @@ class GeneralPanel(QtWidgets.QWidget):
         )
 
         for idx in range(1, 4):
-            element = getattr(self, f"analogOutComboBox{idx}")
+            element: CustomDoubleSpinBoxNoSign = getattr(
+                self, f"analogOutComboBox{idx}"
+            )
             element.setKeyboardTracking(False)
             element.valueChanged.connect(
                 lambda _, idx=idx: self.on_analog_out_changed(idx)
             )
 
-    def on_connection_established(self):
+    def on_connection_established(self) -> None:
         self.parameters = self.app.parameters
         self.control = self.app.control
 

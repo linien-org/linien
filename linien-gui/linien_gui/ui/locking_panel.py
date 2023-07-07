@@ -17,12 +17,37 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 from linien_common.common import AutolockMode
+from linien_gui.ui.lock_status_panel import LockStatusPanel
+from linien_gui.ui.spin_box import CustomSpinBox
 from linien_gui.utils import get_linien_app_instance, param2ui
 from linien_gui.widgets import UI_PATH
 from PyQt5 import QtWidgets, uic
 
 
 class LockingPanel(QtWidgets.QWidget):
+    kpSpinBox: CustomSpinBox
+    kiSpinBox: CustomSpinBox
+    kdSpinBox: CustomSpinBox
+    slow_pid_group: QtWidgets.QGroupBox
+    pid_on_slow_strength: CustomSpinBox
+    lock_control_container: QtWidgets.QTabWidget
+    auto_mode_activated: QtWidgets.QWidget
+    abortLineSelection: QtWidgets.QPushButton
+    auto_mode_not_activated: QtWidgets.QWidget
+    autoOffsetCheckbox: QtWidgets.QCheckBox
+    autolock_mode_preference: QtWidgets.QComboBox
+    selectLineToLock: QtWidgets.QPushButton
+    manual_mode: QtWidgets.QWidget
+    button_slope_falling: QtWidgets.QRadioButton
+    button_slope_rising: QtWidgets.QRadioButton
+    manualLockButton: QtWidgets.QPushButton
+    lock_failed: QtWidgets.QWidget
+    reset_lock_failed_state: QtWidgets.QPushButton
+    lock_status_container: LockStatusPanel
+    controlSignalHistoryLengthSpinBox: CustomSpinBox
+    lock_status: QtWidgets.QLabel
+    stopLockPushButton: QtWidgets.QPushButton
+
     def __init__(self, *args, **kwargs):
         super(LockingPanel, self).__init__(*args, **kwargs)
         uic.loadUi(UI_PATH / "locking_panel.ui", self)

@@ -17,12 +17,23 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 from linien_common.common import MHz, Vpp
+from linien_gui.ui.spin_box import CustomDoubleSpinBoxNoSign
 from linien_gui.utils import get_linien_app_instance, param2ui
 from linien_gui.widgets import UI_PATH
 from PyQt5 import QtWidgets, uic
 
 
 class ModulationAndSweepPanel(QtWidgets.QWidget):
+    sweepSpeedComboBox: QtWidgets.QGroupBox
+    modulation_amplitude_group = QtWidgets.QGroupBox
+    modulationAmplitudeSpinBox: CustomDoubleSpinBoxNoSign
+    modulation_frequency_group = QtWidgets.QGroupBox
+    modulationFrequencySpinBox: CustomDoubleSpinBoxNoSign
+    spectroscopyTabs: QtWidgets.QTabWidget
+    spectroscopy_channel_1_page: QtWidgets.QWidget
+    spectroscopy_channel_2_page: QtWidgets.QWidget
+    spectroscopyBPanelDisabled: QtWidgets.QLabel
+
     def __init__(self, *args, **kwargs):
         super(ModulationAndSweepPanel, self).__init__(*args, **kwargs)
         uic.loadUi(UI_PATH / "modulation_sweep_panel.ui", self)

@@ -25,6 +25,13 @@ from PyQt5 import QtWidgets, uic
 
 
 class NewDeviceDialog(QtWidgets.QDialog):
+    deviceName: QtWidgets.QLineEdit
+    host: QtWidgets.QLineEdit
+    username: QtWidgets.QLineEdit
+    password: QtWidgets.QLineEdit
+    port: QtWidgets.QSpinBox
+    explain_host: QtWidgets.QLabel
+
     def __init__(self, initial_device=None):
         super(NewDeviceDialog, self).__init__()
         uic.loadUi(UI_PATH / "new_device_dialog.ui", self)
