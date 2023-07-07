@@ -139,6 +139,9 @@ class LoggedParametersMenu(QtWidgets.QMenu):
         super(LoggedParametersMenu, self).__init__(*args, **kwargs)
 
     def create_menu_entries(self, parameters: RemoteParameters) -> None:
+        # remove all previous actions that might be present from a previous connection
+        for action in self.actions():
+            self.removeAction(action)
         param_dict = {name: param for name, param in parameters}
         param_dict = dict(sorted(param_dict.items()))  # sort alphabetically
         for name, param in param_dict.items():

@@ -23,13 +23,14 @@ from copy import copy
 from random import randint, random
 from threading import Event, Thread
 from time import sleep
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 import click
 import numpy as np
 import rpyc
 from linien_common.common import N_POINTS, check_plot_data, update_signal_history
 from linien_common.communication import (
+    no_authenticator,
     pack,
     unpack,
     username_and_password_authenticator,
@@ -395,7 +396,13 @@ class FakeRedPitayaControlService(BaseService):
     ),
 )
 @click.option("--no-auth", is_flag=True, help="Disable authentication")
-def run_server(port, fake=False, host=None, no_auth=False):
+def run_server(
+    port: int,
+    fake: bool = False,
+    host: Optional[str] = None,
+    no_auth: bool = False,
+    use_credentials: Optional[str] = None,
+):
     print("Start server on port", port)
 
     if fake:
@@ -404,8 +411,8 @@ def run_server(port, fake=False, host=None, no_auth=False):
     else:
         control = RedPitayaControlService(host=host)
 
-    if no_auth:
-        authenticator = None
+    if no_auth or fake:
+        authenticator = no_authenticator
     else:
         authenticator = username_and_password_authenticator
 
