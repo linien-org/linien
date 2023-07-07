@@ -386,7 +386,7 @@ class FakeRedPitayaControlService(BaseService):
 
 
 # ignore type, otherwise "Argument 1 has incompatible type "Callable[[int, bool, str |
-# None, bool], Any]"; expected <nothing>" is raised for some reason.
+# None, bool], Any]"; expected <nothing>" is raised for click 8.1.4.
 @click.command("linien-server")  # type: ignore[arg-type]
 @click.version_option(__version__)
 @click.argument("port", default=DEFAULT_SERVER_PORT, type=int, required=False)
