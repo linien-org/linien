@@ -405,7 +405,7 @@ def run_server(
     host: Optional[str] = None,
     no_auth: bool = False,
 ):
-    print("Start server on port", port)
+    print(f"Start server on port {port}.")
 
     if fake:
         print("starting fake server")
