@@ -400,11 +400,10 @@ class FakeRedPitayaControlService(BaseService):
 )
 @click.option("--no-auth", is_flag=True, help="Disable authentication")
 def run_server(
-    port: int,
+    port: int = DEFAULT_SERVER_PORT,
     fake: bool = False,
     host: Optional[str] = None,
     no_auth: bool = False,
-    use_credentials: Optional[str] = None,
 ):
     print("Start server on port", port)
 
