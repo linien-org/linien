@@ -24,7 +24,6 @@ import rpyc
 from linien_common.common import FilterType, MHz, convert_channel_mixing_value
 from linien_common.config import ACQUISITION_PORT, DEFAULT_SWEEP_SPEED
 from linien_server.parameters import Parameters
-from linien_server.server import RedPitayaControlService
 
 from . import csrmap
 from .iir_coeffs import make_filter
@@ -40,7 +39,7 @@ class Registers:
 
     def __init__(
         self,
-        control: RedPitayaControlService,
+        control,
         parameters: Parameters,
         host: Optional[str] = None,
     ) -> None:
