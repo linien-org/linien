@@ -385,7 +385,7 @@ class FakeRedPitayaControlService(BaseService):
         pass
 
 
-@click.command()
+@click.command("linien-server")
 @click.version_option(__version__)
 @click.argument("port", default=DEFAULT_SERVER_PORT, type=int, required=False)
 @click.option(
