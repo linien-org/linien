@@ -49,6 +49,14 @@ def hash_username_and_password(username: str, password: str) -> str:
     return hashlib.sha256((username + "/" + password).encode()).hexdigest()
 
 
+def no_authenticator(sock: socket) -> Tuple[socket, None]:
+    """
+    Simply reads out the authentication hash so that the connection does not get stuck.
+    """
+    _ = sock.recv(64)
+    return sock, None
+
+
 def username_and_password_authenticator(sock: socket) -> Tuple[socket, None]:
     """
     Authenticate a client using username and password.

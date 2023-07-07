@@ -127,10 +127,7 @@ The bright red line is the demodulated spectroscopy signal. The dark red area is
 
 ### Fast Mode
 
-| :exclamation: Please make sure that the modulation frequency/amplitude are set to 0 if using fast mode. See [this issue](https://github.com/linien-org/linien/issues/314). |
-|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-
-Fast mode is intended for bare PID operation (no demodulation or filtering), bypassing most of the FPGA functionality. If enabled, the signal flow is FAST IN 1 → PID → FAST OUT 2. This is useful, if aiming for a high control bandwidth: fast mode reduces propagation delay from 320 ns to 125 ns which may make a difference when phase-locking lasers.
+Fast mode is intended for bare PID operation (no demodulation, filtering or offset), bypassing most of the FPGA functionality. If enabled, the signal flow is FAST IN 1 → PID → FAST OUT 2. This is useful, if aiming for a high control bandwidth: fast mode reduces propagation delay from 320 ns to 125 ns which may make a difference when phase-locking lasers.
 
 ### Optimization of spectroscopy parameters using machine learning
 
