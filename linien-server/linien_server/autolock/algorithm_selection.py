@@ -63,7 +63,7 @@ class AutolockAlgorithmSelector:
             print("jitter / line width ratio:", max_shift / (self.line_width / 2))
 
             if max_shift <= self.line_width / 2:
-                self.mode = AutolockMode.FAST
+                self.mode = AutolockMode.SIMPLE
             else:
                 self.mode = AutolockMode.ROBUST
 

@@ -64,7 +64,7 @@ class LinienLogic(Module, AutoCSR):
         self.control_channel = CSRStorage(1)
         self.sweep_channel = CSRStorage(2)
         self.slow_control_channel = CSRStorage(2)
-        self.fast_mode = CSRStorage(1)
+        self.pid_only_mode = CSRStorage(1)
 
         # we use chain_factor_width + 1 for the single channel mode
         factor_reset = 1 << (chain_factor_width - 1)
@@ -296,7 +296,7 @@ class LinienModule(Module, AutoCSR):
         pid_out = Signal((width, True))
         self.comb += [
             If(
-                self.logic.fast_mode.storage,
+                self.logic.pid_only_mode.storage,
                 self.logic.pid.input.eq(self.analog.adc_a << s),
             ).Else(
                 self.logic.pid.input.eq(mixed_limited),

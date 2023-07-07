@@ -72,7 +72,7 @@ def test_forced_algorithm_selection():
     def _get_signal(shift):
         return get_signal(1, 0, shift)
 
-    for forced in (AutolockMode.FAST, AutolockMode.ROBUST):
+    for forced in (AutolockMode.SIMPLE, AutolockMode.ROBUST):
         parameters = Parameters()
         parameters.autolock_mode_preference.value = forced
         control = FakeControl(parameters)
@@ -97,7 +97,7 @@ def test_forced_algorithm_selection():
 
         assert parameters.autolock_mode.value == forced
 
-        if forced == AutolockMode.FAST:
+        if forced == AutolockMode.SIMPLE:
             assert isinstance(autolock.algorithm, FastAutolock)
         else:
             assert isinstance(autolock.algorithm, RobustAutolock)
@@ -142,7 +142,7 @@ def test_automatic_algorithm_selection():
 
         assert autolock.autolock_mode_detector.done
         if jitter == LOW_JITTER:
-            assert parameters.autolock_mode.value == AutolockMode.FAST
+            assert parameters.autolock_mode.value == AutolockMode.SIMPLE
             assert isinstance(autolock.algorithm, FastAutolock)
         else:
             assert parameters.autolock_mode.value == AutolockMode.ROBUST

@@ -40,12 +40,9 @@ from linien_common.influxdb import InfluxDBCredentials, restore_credentials
 from linien_server import __version__
 from linien_server.autolock.autolock import Autolock
 from linien_server.influxdb import InfluxDBLogger
+from linien_server.noise_analysis import PIDOptimization, PSDAcquisition
 from linien_server.optimization.optimization import OptimizeSpectroscopy
 from linien_server.parameters import Parameters, restore_parameters, save_parameters
-from linien_server.pid_optimization.pid_optimization import (
-    PIDOptimization,
-    PSDAcquisition,
-)
 from linien_server.registers import Registers
 from rpyc.utils.server import ThreadedServer
 

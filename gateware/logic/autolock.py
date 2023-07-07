@@ -56,7 +56,7 @@ class FPGAAutolock(Module, AutoCSR):
             If(
                 self.request_lock.storage
                 & self.fast.turn_on_lock
-                & (self.autolock_mode.storage == AutolockMode.FAST),
+                & (self.autolock_mode.storage == AutolockMode.SIMPLE),
                 self.lock_running.status.eq(1),
             ),
             If(

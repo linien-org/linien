@@ -75,7 +75,7 @@ def test_autolock():
             print(f"----- ref_shift={ref_shift}, target_shift={target_shift} -----")
 
             parameters = Parameters()
-            parameters.autolock_mode_preference.value = AutolockMode.FAST
+            parameters.autolock_mode_preference.value = AutolockMode.SIMPLE
             control = FakeControl(parameters)
 
             reference_signal = _get_signal(ref_shift)

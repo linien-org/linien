@@ -59,29 +59,29 @@ class ModulationAndSweepPanel(QtWidgets.QWidget):
 
         self.parameters.dual_channel.add_callback(self.dual_channel_changed)
 
-        def fast_mode_changed(fast_mode_enabled):
-            """Disables controls that are irrelevant if fast mode is enabled"""
+        def pid_only_mode_changed(pid_only_mode_enabled):
+            """Disables controls that are irrelevant if PID-only mode is enabled"""
             widgets_to_disable = (
                 self.modulation_frequency_group,
                 self.modulation_amplitude_group,
                 self.spectroscopyTabs,
             )
             for widget in widgets_to_disable:
-                widget.setEnabled(not fast_mode_enabled)
+                widget.setEnabled(not pid_only_mode_enabled)
 
-        self.parameters.fast_mode.add_callback(fast_mode_changed)
+        self.parameters.pid_only_mode.add_callback(pid_only_mode_changed)
 
-        def fast_mode_changed(fast_mode_enabled):
-            """Disables controls that are irrelevant if fast mode is enabled"""
+        def pid_only_mode_changed(pid_only_mode_enabled):
+            """Disables controls that are irrelevant if PID-only mode is enabled"""
             widgets_to_disable = (
                 self.modulation_frequency_group,
                 self.modulation_amplitude_group,
                 self.spectroscopyTabs,
             )
             for widget in widgets_to_disable:
-                widget.setEnabled(not fast_mode_enabled)
+                widget.setEnabled(not pid_only_mode_enabled)
 
-        self.parameters.fast_mode.add_callback(fast_mode_changed)
+        self.parameters.pid_only_mode.add_callback(pid_only_mode_changed)
 
     def change_modulation_frequency(self):
         self.parameters.modulation_frequency.value = (
