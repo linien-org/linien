@@ -31,7 +31,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QCheckBox" name="fastModeCheckBox">
+       <widget class="QCheckBox" name="pidOnlyModeCheckBox">
         <property name="text">
          <string>enable PID-only mode</string>
         </property>

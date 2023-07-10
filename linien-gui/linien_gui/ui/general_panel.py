@@ -32,7 +32,7 @@ class GeneralPanel(QtWidgets.QWidget):
     analogOutComboBox1: CustomDoubleSpinBoxNoSign
     analogOutComboBox2: CustomDoubleSpinBoxNoSign
     analogOutComboBox3: CustomDoubleSpinBoxNoSign
-    fastModeCheckBox: QtWidgets.QCheckBox
+    pidOnlyModeCheckBox: QtWidgets.QCheckBox
     fast_in_1_status: QtWidgets.QLabel
     fast_in_2_status: QtWidgets.QLabel
     dualChannelCheckBox: QtWidgets.QCheckBox
@@ -58,7 +58,7 @@ class GeneralPanel(QtWidgets.QWidget):
         self.app.connection_established.connect(self.on_connection_established)
 
         self.channelMixingSlider.valueChanged.connect(self.on_channel_mixing_changed)
-        self.fastModeCheckBox.stateChanged.connect(self.on_pid_only_mode_changed)
+        self.pidOnlyModeCheckBox.stateChanged.connect(self.on_pid_only_mode_changed)
         self.dualChannelCheckBox.stateChanged.connect(self.on_dual_channel_changed)
         self.modulationChannelComboBox.currentIndexChanged.connect(
             self.on_mod_channel_changed
@@ -95,7 +95,7 @@ class GeneralPanel(QtWidgets.QWidget):
         self.parameters = self.app.parameters
         self.control = self.app.control
 
-        param2ui(self.parameters.pid_only_mode, self.fastModeCheckBox)
+        param2ui(self.parameters.pid_only_mode, self.pidOnlyModeCheckBox)
 
         def on_dual_channel_changed(value):
             self.dualChannelMixingGroupBox.setVisible(value)
@@ -170,7 +170,7 @@ class GeneralPanel(QtWidgets.QWidget):
 
     def on_pid_only_mode_changed(self):
         self.parameters.pid_only_mode.value = int(
-            self.fastModeCheckBox.checkState() > 0
+            self.pidOnlyModeCheckBox.checkState() > 0
         )
         self.control.write_registers()
 
