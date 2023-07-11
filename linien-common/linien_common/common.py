@@ -20,7 +20,7 @@
 
 from enum import Enum, IntEnum
 from time import time
-from typing import Tuple
+from typing import Dict, Tuple
 
 import numpy as np
 from scipy.signal import correlate, resample
@@ -285,7 +285,7 @@ def combine_error_signal(
     return np.array([v + combined_offset for v in signal])
 
 
-def check_plot_data(is_locked: bool, plot_data) -> bool:
+def check_plot_data(is_locked: bool, plot_data: Dict[str, np.ndarray]) -> bool:
     if is_locked:
         if "error_signal" not in plot_data or "control_signal" not in plot_data:
             return False

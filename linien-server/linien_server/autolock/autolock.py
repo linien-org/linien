@@ -19,14 +19,21 @@
 import pickle
 import traceback
 
-from linien_common.common import check_plot_data, combine_error_signal, get_lock_point
+from linien_common.common import (
+    AutolockMode,
+    SpectrumUncorrelatedException,
+    check_plot_data,
+    combine_error_signal,
+    get_lock_point,
+)
 from linien_server.autolock.algorithm_selection import AutolockAlgorithmSelector
 from linien_server.autolock.fast import FastAutolock
 from linien_server.autolock.robust import RobustAutolock
+from linien_server.parameters import Parameters
 
 
 class Autolock:
-    def __init__(self, control, parameters):
+    def __init__(self, control, parameters: Parameters):
         self.control = control
         self.parameters = parameters
 
@@ -43,9 +50,8 @@ class Autolock:
         self.algorithm = None
 
     def reset_properties(self):
-        # we check each parameter before setting it because otherwise
-        # this may crash the client if called very often (e.g.if the
-        # autolock continuously fails)
+        # We check each parameter before setting it because otherwise this may crash the
+        # client if called very often (e.g.if the autolock continuously fails).
         if self.parameters.autolock_failed.value:
             self.parameters.autolock_failed.value = False
         if self.parameters.autolock_locked.value:
@@ -58,16 +64,16 @@ class Autolock:
         x0,
         x1,
         spectrum,
-        should_watch_lock=False,
-        auto_offset=True,
+        should_watch_lock: bool = False,
+        auto_offset: bool = True,
         additional_spectra=None,
-    ):
-        """Starts the autolock.
+    ) -> None:
+        """
+        Start the autolock.
 
-        If `should_watch_lock` is specified, the autolock continuously monitors
-        the control and error signals after the lock was successful and tries to
-        relock automatically using the spectrum that was recorded in the first
-        run of the lock.
+        If `should_watch_lock` is specified, the autolock continuously monitors the
+        control and error signals after the lock was successful and tries to relock
+        automatically using the spectrum that was recorded in the first run of the lock.
         """
         self.parameters.autolock_running.value = True
         self.parameters.autolock_preparing.value = True
@@ -101,17 +107,17 @@ class Autolock:
             if self.autolock_mode_detector.done:
                 self.start_autolock(self.autolock_mode_detector.mode)
 
-        except Exception:
-            # this may happen if `additional_spectra` contain uncorrelated data
-            # then either autolock algorithm selector or `start_autolock` may
-            # raise a spectrum uncorrelated exception
+        except SpectrumUncorrelatedException:
+            # this may happen if `additional_spectra` contain uncorrelated data  then
+            # either autolock algorithm selector or `start_autolock` may raise an
+            # exception.
             traceback.print_exc()
             self.parameters.autolock_failed.value = True
-            return self.exposed_stop()
+            self.exposed_stop()
 
         self.add_data_listener()
 
-    def start_autolock(self, mode):
+    def start_autolock(self, mode: AutolockMode) -> None:
         print("start autolock with mode", mode)
         self.parameters.autolock_mode.value = mode
 
@@ -132,22 +138,22 @@ class Autolock:
                 self.react_to_new_spectrum, call_with_first_value=False
             )
 
-    def remove_data_listener(self):
+    def remove_data_listener(self) -> None:
         self._data_listener_added = False
         self.parameters.to_plot.remove_callback(self.react_to_new_spectrum)
 
-    def react_to_new_spectrum(self, plot_data):
-        """React to new spectrum data.
+    def react_to_new_spectrum(self, plot_data: bytes) -> None:
+        """
+        React to new spectrum data.
 
-        If this is executed for the first time, a reference spectrum is
-        recorded.
+        If this is executed for the first time, a reference spectrum is recorded.
 
-        If the autolock is approaching the desired line, a correlation
-        function of the spectrum with the reference spectrum is calculated
-        and the laser current is adapted such that the targeted line is centered.
+        If the autolock is approaching the desired line, a correlation function of the
+        spectrum with the reference spectrum is calculated and the laser current is
+        adapted such that the targeted line is centered.
 
-        After this procedure is done, the real lock is turned on and after some
-        time the lock is verified.
+        After this procedure is done, the real lock is turned on and after some time the
+        lock is verified.
 
         If automatic relocking is desired, the control and error signals are
         continuously monitored after locking.
@@ -158,21 +164,24 @@ class Autolock:
         if plot_data is None or not self.parameters.autolock_running.value:
             return
 
-        plot_data = pickle.loads(plot_data)
-        if plot_data is None:
+        plot_data_unpickled = pickle.loads(plot_data)
+        if plot_data_unpickled is None:
             return
 
         is_locked = self.parameters.lock.value
 
-        # check that `plot_data` contains the information we need
-        # otherwise skip this round
-        if not check_plot_data(is_locked, plot_data):
+        # check that `plot_data` contains the information we need otherwise skip this
+        # round
+        if not check_plot_data(is_locked, plot_data_unpickled):
             return
 
         try:
             if not is_locked:
                 combined_error_signal = combine_error_signal(
-                    (plot_data["error_signal_1"], plot_data.get("error_signal_2")),
+                    (
+                        plot_data_unpickled["error_signal_1"],
+                        plot_data_unpickled.get("error_signal_2"),
+                    ),
                     self.parameters.dual_channel.value,
                     self.parameters.channel_mixing.value,
                     self.parameters.combined_offset.value,
@@ -192,14 +201,17 @@ class Autolock:
                     else:
                         return
 
-                return self.algorithm.handle_new_spectrum(combined_error_signal)
+                    if self.algorithm is not None:
+                        return self.algorithm.handle_new_spectrum(combined_error_signal)
 
             else:
-                error_signal = plot_data["error_signal"]
-                control_signal = plot_data["control_signal"]
+                error_signal = plot_data_unpickled["error_signal"]
+                control_signal = plot_data_unpickled["control_signal"]
 
                 return self.after_lock(
-                    error_signal, control_signal, plot_data.get("slow_control_signal")
+                    error_signal,
+                    control_signal,
+                    plot_data_unpickled.get("slow_control_signal"),
                 )
 
         except Exception:
@@ -246,12 +258,11 @@ class Autolock:
 
     def relock(self):
         """
-        Relock the laser using the reference spectrum recorded in the first
-        locking approach.
+        Relock the laser using the reference spectrum recorded in the first locking
+        approach.
         """
-        # we check each parameter before setting it because otherwise
-        # this may crash the client if called very often (e.g.if the
-        # autolock continuously fails)
+        # We check each parameter before setting it because otherwise this may crash the
+        # client if called very often (e.g.if the autolock continuously fails)
         if not self.parameters.autolock_running.value:
             self.parameters.autolock_running.value = True
         if not self.parameters.autolock_retrying.value:
@@ -260,11 +271,11 @@ class Autolock:
         self.reset_properties()
         self._reset_scan()
 
-        # add a listener that listens for new spectrum data and consequently
-        # tries to relock.
+        # add a listener that listens for new spectrum data and consequently tries to
+        # relock.
         self.add_data_listener()
 
-    def exposed_stop(self):
+    def exposed_stop(self) -> None:
         """Abort any operation."""
         self.parameters.autolock_preparing.value = False
         self.parameters.autolock_percentage.value = 0
