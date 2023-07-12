@@ -20,7 +20,7 @@
 
 from enum import Enum, IntEnum
 from time import time
-from typing import Tuple
+from typing import Dict, List, Tuple, Union
 
 import numpy as np
 from scipy.signal import correlate, resample
@@ -63,7 +63,9 @@ class SpectrumUncorrelatedException(Exception):
     pass
 
 
-def downsample_history(times, values, max_time_diff, max_N=N_POINTS):
+def downsample_history(
+    times: list, values: list, max_time_diff: float, max_N: int = N_POINTS
+) -> None:
     """
     The history should not grow too much. When recording for long intervals, we want to
     throw away some datapoints that were recorded with a sampling rate that is too high.
@@ -101,8 +103,14 @@ def truncate(times, values, max_time_diff):
 
 
 def update_signal_history(
-    control_history, monitor_history, to_plot, is_locked, max_time_diff
-):
+    control_history: Dict[str, List[float]],
+    monitor_history: Dict[str, List[float]],
+    to_plot,
+    is_locked: bool,
+    max_time_diff: float,
+) -> Union[
+    Tuple[Dict[str, List[float]], Dict[str, List[float]]], Dict[str, List[float]]
+]:
     if not to_plot:
         return control_history
 
@@ -155,12 +163,11 @@ def determine_shift_by_correlation(zoom_factor, reference_signal, error_signal):
     Compare two spectra and determines the shift by correlation.
 
     `zoom_factor` is the zoom factor of `error_signal` with respect to
-    `reference_signal`, i.e. it states how much reference signal has to be
-    magnified in order to show the same region as the new error signal.
+    `reference_signal`, i.e. it states how much reference signal has to be magnified in
+    order to show the same region as the new error signal.
     """
-    # values that should not be considered are np.nan
-    # but the correlation has problems with np.nans
-    # --> we set it to 0
+    # values that should not be considered are np.nan but the correlation has problems
+    # with np.nans --> we set it to 0
     reference_signal[np.isnan(reference_signal)] = 0
     error_signal[np.isnan(error_signal)] = 0
 
@@ -202,12 +209,13 @@ def determine_shift_by_correlation(zoom_factor, reference_signal, error_signal):
     return shift, zoomed_ref, downsampled_error_signal
 
 
-def get_lock_point(error_signal, x0, x1, final_zoom_factor=1.5):
+def get_lock_point(
+    error_signal: np.ndarray, x0: int, x1: int, final_zoom_factor: float = 1.5
+) -> Tuple[float, bool, float, np.ndarray, int, Tuple[int, int]]:
     """Calculate parameters for the autolock based on the initial error signal.
 
-    Takes the `error_signal` and two points (`x0` and `x1`) as arguments. The
-    points are the points selected by the user, and we know that we want to
-    lock between them.
+    Takes the `error_signal` and two points (`x0` and `x1`) as arguments. The points are
+    the points selected by the user, and we know that we want to lock between them.
 
     Use `final_zoom_factor` to specify how wide the line should be in the end:
     - 1: in the end, only the line should be visible
@@ -227,7 +235,7 @@ def get_lock_point(error_signal, x0, x1, final_zoom_factor=1.5):
     idxs = sorted([min_idx, max_idx])
     slope_data = np.array(cropped_data[idxs[0] : idxs[1]]) - mean_signal
 
-    peak_idxs = (idxs[0] + x0, idxs[1] + x0)
+    peak_idxs = (int(idxs[0] + x0), int(idxs[1] + x0))
 
     zero_idx = x0 + np.min(idxs) + np.argmin(np.abs(slope_data))
 
@@ -249,11 +257,11 @@ def get_lock_point(error_signal, x0, x1, final_zoom_factor=1.5):
     target_zoom = N_POINTS / (idxs[1] - idxs[0]) / final_zoom_factor
 
     return (
-        mean_signal,
-        target_slope_rising,
-        target_zoom,
-        rolled_error_signal,
-        line_width,
+        float(mean_signal),
+        bool(target_slope_rising),
+        float(target_zoom),
+        np.array(rolled_error_signal),
+        int(line_width),
         peak_idxs,
     )
 
