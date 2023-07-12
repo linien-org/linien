@@ -306,7 +306,7 @@ class AcquisitionService(Service):
 
 
 def flash_fpga():
-    filepath = Path(__file__).resolve().parent / "linien.bin"
+    filepath = Path(__file__).resolve().parent / "gateware.bin"
 
     # On redpitaya os < 2, flashing fpga works by copying the bit file /dev/xdevcfg. On
     # recent versions, there is a dedicated command for this
