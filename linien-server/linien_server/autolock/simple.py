@@ -22,7 +22,7 @@ from linien_common.common import (
 )
 
 
-class FastAutolock:
+class SimpleAutolock:
     """Spectroscopy autolock based on correlation."""
 
     def __init__(

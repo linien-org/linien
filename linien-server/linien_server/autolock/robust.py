@@ -106,12 +106,12 @@ class RobustAutolock:
             t2 = time()
             print("calculation of autolock description took", t2 - t1)
 
-            # sets up a timeout: if the lock doesn't finish within a certain time
-            # span, throw an error
+            # sets up a timeout: if the lock doesn't finish within a certain time span,
+            # throw an error
             self.setup_timeout()
 
-            # first reset lock in case it was True. This ensures that autolock
-            # starts properly once all parameters are set
+            # first reset lock in case it was True. This ensures that autolock starts
+            # properly once all parameters are set
             self.parameters.lock.value = False
             self.control.exposed_write_registers()
 
@@ -135,11 +135,12 @@ class RobustAutolock:
             )
 
     def setup_timeout(self, N_acquisitions_to_wait=5):
-        """Robust autolock just programs the FPGA image with a set of instructions.
-        The FPGA image then uses these instructions in order to actually turn on
-        the lock once all conditions are met. However, it may happen that the
-        FPGA image is unable to lock for some reason. For this case, we set up
-        a timeout that raises an error if this happens.
+        """
+        Robust autolock just programs the FPGA image with a set of instructions. The
+        FPGA image then uses these instructions in order to actually turn on the lock
+        once all conditions are met. However, it may happen that the FPGA image is
+        unable to lock for some reason. For this case, we set up a timeout that raises
+        an error if this happens.
         """
         self._timeout_start_time = time()
         self._timeout_time_to_wait = (
@@ -277,8 +278,9 @@ def get_lock_position_from_autolock_instructions(
 
 
 def sweep_speed_to_time(sweep_speed):
-    """Sweep speed is an arbitrary unit (cf. `parameters.py`).
-    This function converts it to the duration of the sweep in seconds.
+    """
+    Sweep speed is an arbitrary unit (cf. `parameters.py`). This function converts it to
+    the duration of the sweep in seconds.
     """
     f_real = 3.8e3 / (2**sweep_speed)
     duration = 1 / f_real

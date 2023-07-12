@@ -21,8 +21,8 @@ import traceback
 
 from linien_common.common import check_plot_data, combine_error_signal, get_lock_point
 from linien_server.autolock.algorithm_selection import AutolockAlgorithmSelector
-from linien_server.autolock.fast import FastAutolock
 from linien_server.autolock.robust import RobustAutolock
+from linien_server.autolock.simple import SimpleAutolock
 
 
 class Autolock:
@@ -115,7 +115,7 @@ class Autolock:
         print("start autolock with mode", mode)
         self.parameters.autolock_mode.value = mode
 
-        self.algorithm = [None, RobustAutolock, FastAutolock][mode](
+        self.algorithm = [None, RobustAutolock, SimpleAutolock][mode](
             self.control,
             self.parameters,
             self.first_error_signal,
