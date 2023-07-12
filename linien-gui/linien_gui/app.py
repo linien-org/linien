@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
 import signal
 import sys
 from traceback import print_exc
@@ -33,6 +34,9 @@ from PyQt5.QtCore import pyqtSignal
 from pyqtgraph.Qt import QtCore
 
 sys.path += [str(UI_PATH)]
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class LinienApp(QtWidgets.QApplication):
@@ -100,10 +104,10 @@ class LinienApp(QtWidgets.QApplication):
 
     def new_version_available(self, new_version_available):
         if new_version_available:
-            print("New version available")
+            logger.info("New version available")
             self.main_window.show_new_version_available()
         else:
-            print("No new version available")
+            logger.info("No new version available")
             QtCore.QTimer.singleShot(1000 * 60 * 60, self.check_for_new_version)
 
 
@@ -113,6 +117,7 @@ class LinienApp(QtWidgets.QApplication):
 @click.version_option(__version__)
 def run_application():
     app = LinienApp(sys.argv)
+    logger.info("Starting Linien GUI")
 
     # catch ctrl-c and shutdown
     signal.signal(signal.SIGINT, signal.SIG_DFL)

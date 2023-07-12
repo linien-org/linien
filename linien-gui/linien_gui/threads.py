@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
 import traceback
 
 from linien_client.connection import LinienClient
@@ -30,6 +31,9 @@ from linien_common.config import DEFAULT_SERVER_PORT
 from PyQt5.QtCore import QObject, QThread, pyqtSignal
 
 from .config import get_saved_parameters, save_parameter
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class RemoteOutStream(QObject):
@@ -141,7 +145,7 @@ class ConnectionThread(QThread):
             * `False`, the local parameters are uploaded to the server
         """
         params = get_saved_parameters(self.device["key"])
-        print("restoring parameters")
+        logger.info("Restoring parameters")
 
         differences = False
 
@@ -150,7 +154,7 @@ class ConnectionThread(QThread):
                 param = getattr(self.client.parameters, k)
                 if param.value != v:
                     if dry_run:
-                        print("parameter", k, "differs")
+                        logger.info("parameter", k, "differs")
                         differences = True
                         break
                     else:
@@ -158,7 +162,9 @@ class ConnectionThread(QThread):
             else:
                 # This may happen if the settings were written with a different version
                 # of linien.
-                print(f"Unable to restore parameter {k}. Delete the cached value.")
+                logger.warning(
+                    f"Unable to restore parameter {k}. Delete the cached value."
+                )
                 save_parameter(self.device["key"], k, None, delete=True)
 
         if not dry_run:

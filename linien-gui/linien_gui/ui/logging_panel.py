@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
 import pickle
 
 from linien_client.remote_parameters import RemoteParameters
@@ -26,6 +27,9 @@ from PyQt5.QtCore import pyqtSignal
 
 START_LOG_BUTTON_TEXT = "Start Logging"
 STOP_LOG_BUTTON_TEXT = "Stop Logging"
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class LoggingPanel(QtWidgets.QWidget):
@@ -68,7 +72,7 @@ class LoggingPanel(QtWidgets.QWidget):
 
         # getting the influxdb credentials from the remote
         credentials = pickle.loads(self.control.exposed_get_influxdb_credentials())
-        print("Received InfluxDB credentials from server.")
+        logger.debug("Received InfluxDB credentials from server.")
         self.lineEditURL.setText(credentials.url)
         self.lineEditOrg.setText(credentials.org)
         self.lineEditToken.setText(credentials.token)

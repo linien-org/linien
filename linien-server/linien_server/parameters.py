@@ -18,6 +18,7 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 import json
+import logging
 from time import time
 from typing import Any, Callable, Dict, Iterator, List, Tuple
 
@@ -26,6 +27,9 @@ from linien_common.common import AutolockMode, MHz, PSDAlgorithm, Vpp
 from linien_common.config import USER_DATA_PATH
 
 PARAMETER_STORE_FILENAME = "linien_parameters.json"
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class Parameter:
@@ -672,7 +676,7 @@ def restore_parameters(parameters: Parameters) -> Parameters:
             getattr(parameters, name).log = attributes["log"]
         except AttributeError:  # ignore parameters that don't exist (anymore)
             continue
-    print("Restored parameters from ", filename)
+    logger.info("Restored parameters from ", filename)
     return parameters
 
 
@@ -697,4 +701,4 @@ def save_parameters(parameters: Parameters) -> None:
             f,
             indent=2,
         )
-    print("Saved parameters to ", filename)
+    logger.info("Saved parameters to ", filename)
