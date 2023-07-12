@@ -26,18 +26,19 @@ ROBUST_AUTOLOCK_FPGA_DELAY = 3
 
 
 class FPGAAutolock(Module, AutoCSR):
-    """This class handles autolock on FPGA. It is the counterpart to the
-    `Autolock` class in the server directory.
+    """
+    This class handles autolock on FPGA. It is the counterpart to the `Autolock` class
+    in the server directory.
 
-    Depending on `autolock_mode`, either fast or robust autolock is used.
-    Independent of the mode selected, locking happens by setting
-    `request_lock`. Once lock has been established, `lock_running` will be HIGH.
+    Depending on `autolock_mode`, either fast or robust autolock is used. Independent of
+    the mode selected, locking happens by setting `request_lock`. Once lock has been
+    established, `lock_running` will be HIGH.
     """
 
     def __init__(self, width=14, N_points=16383, max_delay=16383):
         self.submodules.robust = RobustAutolock(max_delay=max_delay)
 
-        self.submodules.fast = FastAutolock(width=width)
+        self.submodules.fast = SimpleAutolock(width=width)
 
         self.request_lock = CSRStorage()
         self.autolock_mode = CSRStorage(2)
@@ -68,10 +69,12 @@ class FPGAAutolock(Module, AutoCSR):
         ]
 
 
-class FastAutolock(Module, AutoCSR):
-    """The operation of fast autolock is simple: wait until the sweep has reached
-    a certain point and turn on the lock. This method is well suited for systems
-    with not too much jitter."""
+class SimpleAutolock(Module, AutoCSR):
+    """
+    The operation of fast autolock is simple: wait until the sweep has reached a certain
+    point and turn on the lock. This method is well suited for systems with not too much
+    jitter.
+    """
 
     def __init__(self, width=14):
         # pid is not started directly by `request_lock` signal. Instead, `request_lock`
@@ -120,8 +123,8 @@ class RobustAutolock(Module, AutoCSR):
         # if lock is requested and once the sweep is at start
         watching = Signal()
 
-        # the following signals are property of the peak that the autolock is
-        # trying to detet right now
+        # the following signals are property of the peak that the autolock is trying to
+        # detect right now
         self.current_instruction_idx = Signal(bits_for(AUTOLOCK_MAX_N_INSTRUCTIONS - 1))
         current_peak_height = Signal((peak_height_bit, True))
         abs_current_peak_height = Signal.like(current_peak_height)
@@ -155,8 +158,7 @@ class RobustAutolock(Module, AutoCSR):
             sum_diff.eq(self.sum_diff_calculator.output),
         ]
 
-        # has this signal at the moment the same sign as the peak we are looking
-        # for?
+        # has this signal at the moment the same sign as the peak we are looking for?
         sign_equal = Signal()
         # is this signal higher than the peak we are looking for?
         over_threshold = Signal()
@@ -198,11 +200,10 @@ class RobustAutolock(Module, AutoCSR):
                 # not at start
                 If(
                     ~self.request_lock,
-                    # disable `watching` if `request_lock` was disabled while
-                    # the sweep is running. This is important for slow scan
-                    # speeds when disabling the autolock and enabling it again
-                    # with different parameters. In this case we want to take
-                    # care that we start watching at start.
+                    # disable `watching` if `request_lock` was disabled while  the sweep
+                    # is running. This is important for slow scan speeds when disabling
+                    # the autolock and enabling it again with different parameters. In
+                    # this case we want to take care that we start watching at start.
                     watching.eq(0),
                 ),
                 If(
