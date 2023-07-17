@@ -47,7 +47,7 @@ class LinienControlService(Protocol):
     ) -> None:
         ...
 
-    def exposed_get_changed_parameters_queue(self, uuid: str) -> bytes:
+    def exposed_get_changed_parameters_queue(self, uuid: str) -> List[Tuple[str, Any]]:
         ...
 
     def exposed_write_registers(self) -> None:

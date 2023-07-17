@@ -102,8 +102,8 @@ class BaseService(rpyc.Service):
         for param_name in param_names:
             self.exposed_register_remote_listener(uuid, param_name)
 
-    def exposed_get_changed_parameters_queue(self, uuid: str) -> bytes:
-        return pack(self.parameters.get_changed_parameters_queue(uuid))
+    def exposed_get_changed_parameters_queue(self, uuid: str) -> List[Tuple[str, Any]]:
+        return self.parameters.get_changed_parameters_queue(uuid)
 
     def exposed_set_parameter_log(self, param_name: str, value: bool) -> None:
         if getattr(self.parameters, param_name).log != value:

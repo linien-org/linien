@@ -188,9 +188,7 @@ class RemoteParameters:
             and self._async_changed_parameters_queue.ready
         ):
             # We have a result.
-            queue: List[Tuple[str, Any]] = unpack(
-                self._async_changed_parameters_queue.value
-            )
+            queue: List[Tuple[str, Any]] = self._async_changed_parameters_queue.value
 
             # Now that we have our result, we can start the next call.
             self._async_changed_parameters_queue = async_(
