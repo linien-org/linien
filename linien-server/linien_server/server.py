@@ -132,8 +132,8 @@ class BaseService(rpyc.Service):
             )
         return connection_succesful, status_code, message
 
-    def exposed_get_influxdb_credentials(self) -> bytes:
-        return pack(self.influxdb_logger.credentials)
+    def exposed_get_influxdb_credentials(self) -> InfluxDBCredentials:
+        return self.influxdb_logger.credentials
 
     def exposed_start_logging(self, interval: float) -> None:
         logger.info("Starting logging")
@@ -428,7 +428,7 @@ def run_server(
         control,
         port=port,
         authenticator=authenticator,
-        protocol_config={"allow_pickle": True},
+        protocol_config={"allow_pickle": True, "allow_public_attrs": True},
     )
     thread.start()
 

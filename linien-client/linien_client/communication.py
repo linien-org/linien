@@ -91,7 +91,7 @@ class LinienControlService(Protocol):
     ) -> Tuple[bool, int, str]:
         ...
 
-    def exposed_get_influxdb_credentials(self) -> bytes:
+    def exposed_get_influxdb_credentials(self) -> InfluxDBCredentials:
         ...
 
     def exposed_start_logging(self, interval: float) -> None:
