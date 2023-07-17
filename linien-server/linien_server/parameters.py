@@ -20,7 +20,7 @@
 import json
 import logging
 from time import time
-from typing import Any, Callable, Dict, Iterator, List, Tuple
+from typing import Any, Callable, Iterator, List, Tuple
 
 import linien_server
 from linien_common.common import AutolockMode, MHz, PSDAlgorithm, Vpp
@@ -642,9 +642,7 @@ class Parameters:
         del self._changed_parameters_queue[uuid]
         del self._remote_listener_callbacks[uuid]
 
-    def get_changed_parameters_queue(
-        self, uuid: str
-    ) -> Dict[str, List[Tuple[str, Any]]]:
+    def get_changed_parameters_queue(self, uuid: str) -> List[Tuple[str, Any]]:
         """Get the queue of parameter changes for a specific client."""
         queue = self._changed_parameters_queue.get(uuid, [])
         self._changed_parameters_queue[uuid] = []
