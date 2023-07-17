@@ -141,7 +141,7 @@ def load_settings() -> Settings:
 
 def save_device_data(devices: DeviceInfoDict) -> None:
     with open(USER_DATA_PATH / "devices.json", "w") as f:
-        json.dump(devices, f)
+        json.dump(devices, f, indent=2)
 
 
 def load_device_data() -> DeviceInfoDict:
