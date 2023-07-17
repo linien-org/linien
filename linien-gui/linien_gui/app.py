@@ -18,7 +18,6 @@
 import logging
 import signal
 import sys
-from traceback import print_exc
 
 import click
 from linien_client.connection import LinienClient
@@ -73,8 +72,7 @@ class LinienApp(QtWidgets.QApplication):
             try:
                 self.parameters.check_for_changed_parameters()
             except AttributeError:
-                print("check_for_changed_parameters() failed")
-                print_exc()
+                logger.exception("check_for_changed_parameters() failed")
 
             QtCore.QTimer.singleShot(50, self.periodically_check_for_changed_parameters)
 

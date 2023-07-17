@@ -110,10 +110,10 @@ class LoggingPanel(QtWidgets.QWidget):
         sucess, status_code, message = self.control.exposed_update_influxdb_credentials(
             credentials
         )
-        print(f"Update of InfluxDB credentials successful: {sucess}")
+        update_msg = f"Update of InfluxDB credentials successful: {sucess}"
         if not sucess:
-            print(f"Status code: {status_code}")
-            print(f"Message: {message}")
+            update_msg += f" (Status {status_code}): {message}"
+        logger.info(update_msg)
         self.influx_credentials_update.emit(sucess, status_code, message)
 
     def on_influxdb_credentials_updated(

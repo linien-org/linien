@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
 import pickle
 import shutil
 import subprocess
@@ -33,6 +34,9 @@ from pyrp3.board import RedPitaya  # type: ignore
 from pyrp3.instrument import TriggerSource  # type: ignore
 from rpyc import Service
 from rpyc.utils.server import ThreadedServer
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class AcquisitionService(Service):
@@ -314,10 +318,10 @@ def flash_fpga():
     fpga_dev_file = Path("/dev/xdevcfg")
 
     if fpga_dev_file.exists():
-        print("Copying gateware to %s" % fpga_dev_file)
+        logger.info("Copying gateware to %s" % fpga_dev_file)
         shutil.copy(str(filepath), str(fpga_dev_file))
     else:
-        print("Using fpautil to deploy gateware.")
+        logger.info("Using fpautil to deploy gateware.")
         subprocess.Popen(["/opt/redpitaya/bin/fpgautil", "-b", str(filepath)]).wait()
 
 
@@ -332,5 +336,5 @@ def stop_nginx():
 
 if __name__ == "__main__":
     threaded_server = ThreadedServer(AcquisitionService(), port=ACQUISITION_PORT)
-    print("Starting AcquisitionService on port ", ACQUISITION_PORT)
+    logger.info("Starting AcquisitionService on port ", ACQUISITION_PORT)
     threaded_server.start()
