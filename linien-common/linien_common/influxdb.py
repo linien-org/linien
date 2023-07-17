@@ -67,7 +67,7 @@ def save_credentials(credentials: InfluxDBCredentials) -> None:
             f,
             indent=2,
         )
-    logger.info("Saved InfluxDB credentials to ", filename)
+    logger.info("Saved InfluxDB credentials to %s" % filename)
 
 
 def restore_credentials() -> InfluxDBCredentials:
