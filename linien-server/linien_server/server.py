@@ -179,11 +179,12 @@ class RedPitayaControlService(BaseService):
         self.exposed_write_registers()
 
     def _send_ping_loop(self, stop_event: Event):
+        MAX_PING = 3
         while not stop_event.is_set():
             self.parameters.ping.value += 1
-            if self.parameters.ping.value < 10:
+            if self.parameters.ping.value < MAX_PING:
                 logger.debug("ping  %s" % self.parameters.ping.value)
-                if self.parameters.ping.value == 3:
+                if self.parameters.ping.value == MAX_PING:
                     logger.debug("further pings will be suppressed")
             sleep(1)
 
@@ -370,7 +371,7 @@ class FakeRedPitayaControlService(BaseService):
         pass
 
     def exposed_start_autolock(self, x0, x1, spectrum):
-        logger.debug("start autolock", x0, x1)
+        logger.debug("start autolock %s %s" % (x0, x1))
 
     def exposed_start_optimization(self, x0, x1, spectrum):
         logger.debug("start optimization")
@@ -408,7 +409,7 @@ def run_server(
     host: Optional[str] = None,
     no_auth: bool = False,
 ):
-    logger.info(f"Start server on port {port}.")
+    logger.info("Start server on port %s" % port)
 
     if fake:
         logger.info("starting fake server")

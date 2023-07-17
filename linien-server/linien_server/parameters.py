@@ -676,7 +676,7 @@ def restore_parameters(parameters: Parameters) -> Parameters:
             getattr(parameters, name).log = attributes["log"]
         except AttributeError:  # ignore parameters that don't exist (anymore)
             continue
-    logger.info("Restored parameters from ", filename)
+    logger.info("Restored parameters from %s" % filename)
     return parameters
 
 
@@ -701,4 +701,4 @@ def save_parameters(parameters: Parameters) -> None:
             f,
             indent=2,
         )
-    logger.info("Saved parameters to ", filename)
+    logger.info("Saved parameters to %s" % filename)
