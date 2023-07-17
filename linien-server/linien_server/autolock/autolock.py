@@ -18,7 +18,6 @@
 
 import logging
 import pickle
-import traceback
 
 from linien_common.common import check_plot_data, combine_error_signal, get_lock_point
 from linien_server.autolock.algorithm_selection import AutolockAlgorithmSelector
