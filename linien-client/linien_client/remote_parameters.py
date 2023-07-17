@@ -112,7 +112,7 @@ class RemoteParameters:
         self._callbacks: Dict[str, List[Callable]] = {}
 
         # mimic functionality of `parameters.Parameters`:
-        all_parameters = unpack(self.remote.exposed_init_parameter_sync(self.uuid))
+        all_parameters = self.remote.exposed_init_parameter_sync(self.uuid)
         for name, value, can_be_cached, restorable, loggable, log in all_parameters:
             param = RemoteParameter(
                 parent=self,

@@ -24,7 +24,7 @@ from copy import copy
 from random import randint, random
 from threading import Event, Thread
 from time import sleep
-from typing import List, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 
 import click
 import numpy as np
@@ -88,8 +88,10 @@ class BaseService(rpyc.Service):
     def exposed_reset_param(self, param_name: str) -> None:
         getattr(self.parameters, param_name).reset()
 
-    def exposed_init_parameter_sync(self, uuid: str) -> bytes:
-        return pack(list(self.parameters.init_parameter_sync(uuid)))
+    def exposed_init_parameter_sync(
+        self, uuid: str
+    ) -> List[Tuple[str, Any, bool, bool, bool, bool]]:
+        return list(self.parameters.init_parameter_sync(uuid))
 
     def exposed_register_remote_listener(self, uuid: str, param_name: str) -> None:
         self.parameters.register_remote_listener(uuid, param_name)
