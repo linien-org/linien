@@ -1,4 +1,5 @@
 import logging
+from logging.handlers import RotatingFileHandler
 
 import importlib_metadata
 from linien_common.config import LOG_FILE_PATH
@@ -8,7 +9,7 @@ __version__ = importlib_metadata.version("linien-server")  # noqa: F401
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-file_handler = logging.FileHandler(LOG_FILE_PATH)
+file_handler = RotatingFileHandler(LOG_FILE_PATH, maxBytes=1000000, backupCount=10)
 file_handler.setLevel(logging.DEBUG)
 file_formatter = logging.Formatter(
     "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
