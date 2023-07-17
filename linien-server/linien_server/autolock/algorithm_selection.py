@@ -66,7 +66,7 @@ class AutolockAlgorithmSelector:
             ]
             max_shift = max(abs_shifts)
             logger.debug(
-                "jitter / line width ratio:", max_shift / (self.line_width / 2)
+                "jitter / line width ratio: %s" % (max_shift / (self.line_width / 2))
             )
 
             if max_shift <= self.line_width / 2:

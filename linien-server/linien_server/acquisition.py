@@ -321,7 +321,7 @@ def flash_fpga():
         logger.info("Copying gateware to %s" % fpga_dev_file)
         shutil.copy(str(filepath), str(fpga_dev_file))
     else:
-        logger.info("Using fpautil to deploy gateware.")
+        logger.info("Using fpgautil to deploy gateware.")
         subprocess.Popen(["/opt/redpitaya/bin/fpgautil", "-b", str(filepath)]).wait()
 
 
@@ -336,5 +336,5 @@ def stop_nginx():
 
 if __name__ == "__main__":
     threaded_server = ThreadedServer(AcquisitionService(), port=ACQUISITION_PORT)
-    logger.info("Starting AcquisitionService on port ", ACQUISITION_PORT)
+    logger.info("Starting AcquisitionService on port %s" % ACQUISITION_PORT)
     threaded_server.start()

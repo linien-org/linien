@@ -154,7 +154,7 @@ class ConnectionThread(QThread):
                 param = getattr(self.client.parameters, k)
                 if param.value != v:
                     if dry_run:
-                        logger.info("parameter", k, "differs")
+                        logger.info(f"parameter {k} differs")
                         differences = True
                         break
                     else:

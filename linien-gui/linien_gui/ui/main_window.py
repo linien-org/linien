@@ -209,7 +209,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.newVersionAvailableLabel.show()
 
     def handle_key_press(self, key):
-        logger.debug("key pressed", key)
+        logger.debug("key pressed %s" % key)
 
     def export_parameters_select_file(self):
         options = QtWidgets.QFileDialog.Options()

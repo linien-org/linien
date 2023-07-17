@@ -39,7 +39,7 @@ class SimpleAutolock:
         x0,
         x1,
         additional_spectra=None,
-    ):
+    ) -> None:
         self.control = control
         self.parameters = parameters
 
@@ -48,7 +48,7 @@ class SimpleAutolock:
         self._done = False
         self._error_counter = 0
 
-    def handle_new_spectrum(self, spectrum):
+    def handle_new_spectrum(self, spectrum) -> None:
         if self._done:
             return
 
@@ -69,7 +69,7 @@ class SimpleAutolock:
             round((shift * (-1)) * self.parameters.sweep_amplitude.value * 8191)
         )
 
-        logger.debug("lock point is", lock_point, shift)
+        logger.debug("lock point is %s, shift is %s" % (lock_point, shift))
 
         self.parameters.autolock_target_position.value = int(lock_point)
         self.parameters.autolock_preparing.value = False
