@@ -18,7 +18,7 @@
 
 """This file contains stuff that is required by the server as well as the client."""
 
-from enum import Enum, IntEnum
+from enum import IntEnum
 from time import time
 from typing import Dict, List, Tuple, Union
 
@@ -54,9 +54,9 @@ class AutolockMode(IntEnum):
     SIMPLE = 2
 
 
-class PSDAlgorithm(str, Enum):
-    WELCH = "welch"
-    LPSD = "lpsd"
+class PSDAlgorithm(IntEnum):
+    WELCH = 0
+    LPSD = 1
 
 
 class SpectrumUncorrelatedException(Exception):
