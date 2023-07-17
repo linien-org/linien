@@ -182,7 +182,7 @@ class RedPitayaControlService(BaseService):
         MAX_PING = 3
         while not stop_event.is_set():
             self.parameters.ping.value += 1
-            if self.parameters.ping.value < MAX_PING:
+            if self.parameters.ping.value <= MAX_PING:
                 logger.debug("ping  %s" % self.parameters.ping.value)
                 if self.parameters.ping.value == MAX_PING:
                     logger.debug("further pings will be suppressed")
