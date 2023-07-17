@@ -31,6 +31,7 @@ import numpy as np
 import rpyc
 from linien_common.common import N_POINTS, check_plot_data, update_signal_history
 from linien_common.communication import (
+    ParameterValues,
     no_authenticator,
     pack,
     unpack,
@@ -79,10 +80,12 @@ class BaseService(rpyc.Service):
     def exposed_get_server_version(self) -> str:
         return __version__
 
-    def exposed_get_param(self, param_name: str) -> Union[bytes, Any]:
+    def exposed_get_param(self, param_name: str) -> Union[bytes, ParameterValues]:
         return pack(getattr(self.parameters, param_name).value)
 
-    def exposed_set_param(self, param_name: str, value: bytes) -> None:
+    def exposed_set_param(
+        self, param_name: str, value: Union[bytes, ParameterValues]
+    ) -> None:
         getattr(self.parameters, param_name).value = unpack(value)
 
     def exposed_reset_param(self, param_name: str) -> None:

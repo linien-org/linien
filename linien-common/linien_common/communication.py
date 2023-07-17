@@ -19,7 +19,7 @@ import hashlib
 import logging
 import pickle
 from socket import socket
-from typing import Any, Tuple, Union
+from typing import Callable, Tuple, Union
 
 from rpyc.utils.authenticators import AuthenticationError
 
@@ -30,8 +30,10 @@ HASH_FILE_NAME = "auth_hash.txt"
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
+ParameterValues = Union[int, float, str, bool, Callable, bytes]
 
-def pack(value: Any) -> Union[bytes, Any]:
+
+def pack(value: ParameterValues) -> Union[bytes, ParameterValues]:
     try:
         return pickle.dumps(value)
     except (TypeError, AttributeError):
@@ -40,7 +42,7 @@ def pack(value: Any) -> Union[bytes, Any]:
         return value
 
 
-def unpack(value: Union[bytes, Any]) -> Any:
+def unpack(value: Union[bytes, ParameterValues]) -> ParameterValues:
     try:
         return pickle.loads(value)
     except TypeError:
