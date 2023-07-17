@@ -16,8 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
 import pickle
-import traceback
 
 from linien_common.common import (
     AutolockMode,
@@ -27,9 +27,12 @@ from linien_common.common import (
     get_lock_point,
 )
 from linien_server.autolock.algorithm_selection import AutolockAlgorithmSelector
-from linien_server.autolock.fast import FastAutolock
 from linien_server.autolock.robust import RobustAutolock
+from linien_server.autolock.simple import SimpleAutolock
 from linien_server.parameters import Parameters
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class Autolock:
@@ -107,21 +110,21 @@ class Autolock:
             if self.autolock_mode_detector.done:
                 self.start_autolock(self.autolock_mode_detector.mode)
 
-        except SpectrumUncorrelatedException:
-            # this may happen if `additional_spectra` contain uncorrelated data  then
-            # either autolock algorithm selector or `start_autolock` may raise an
-            # exception.
-            traceback.print_exc()
+        except Exception:
+            # This may happen if `additional_spectra` contain uncorrelated data. Then
+            # either autolock algorithm selector or `start_autolock` may raise a
+            # spectrum uncorrelated exception
+            logger.exception("Error while starting autolock")
             self.parameters.autolock_failed.value = True
             self.exposed_stop()
 
         self.add_data_listener()
 
-    def start_autolock(self, mode: AutolockMode) -> None:
-        print("start autolock with mode", mode)
+    def start_autolock(self, mode):
+        logger.debug("start autolock with mode %s" % mode)
         self.parameters.autolock_mode.value = mode
 
-        self.algorithm = [None, RobustAutolock, FastAutolock][mode](
+        self.algorithm = [None, RobustAutolock, SimpleAutolock][mode](
             self.control,
             self.parameters,
             self.first_error_signal,
@@ -215,7 +218,7 @@ class Autolock:
                 )
 
         except Exception:
-            traceback.print_exc()
+            logger.exception("Error while handling new spectrum")
             self.parameters.autolock_failed.value = True
             self.exposed_stop()
 
@@ -248,7 +251,7 @@ class Autolock:
         return error_signal, error_signal_rolled, line_width, peak_idxs
 
     def after_lock(self, error_signal, control_signal, slow_out):
-        print("after lock")
+        logger.debug("after lock")
         self.parameters.autolock_locked.value = True
 
         self.remove_data_listener()
@@ -261,7 +264,7 @@ class Autolock:
         Relock the laser using the reference spectrum recorded in the first locking
         approach.
         """
-        # We check each parameter before setting it because otherwise this may crash the
+        # we check each parameter before setting it because otherwise this may crash the
         # client if called very often (e.g.if the autolock continuously fails)
         if not self.parameters.autolock_running.value:
             self.parameters.autolock_running.value = True
@@ -271,7 +274,7 @@ class Autolock:
         self.reset_properties()
         self._reset_scan()
 
-        # add a listener that listens for new spectrum data and consequently tries to
+        # add a listener that listens for new spectrum data and consequently # tries to
         # relock.
         self.add_data_listener()
 

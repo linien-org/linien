@@ -17,11 +17,15 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 import json
+import logging
 from urllib.request import urlopen
 
 import linien_gui
 from packaging import version
 from PyQt5.QtCore import QThread, pyqtSignal
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class VersionCheckerThread(QThread):
@@ -30,7 +34,7 @@ class VersionCheckerThread(QThread):
     def run(self):
         our_version = version.parse(linien_gui.__version__)
         latest_version = our_version
-        print("Check whether new version is available.")
+        logger.debug("Check whether new version is available.")
         url = "https://raw.githubusercontent.com/linien-org/linien/master/version-info.json"  # noqa: E501
         try:
             with urlopen(url) as response:

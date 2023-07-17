@@ -57,7 +57,7 @@ setup(
     ],
     package_data={
         "": [
-            "linien.bin",
+            "gateware.bin",
             "linien_start_server.sh",
             "linien_stop_server.sh",
             "linien_install_requirements.sh",

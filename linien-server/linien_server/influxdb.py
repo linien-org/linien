@@ -44,13 +44,13 @@ class InfluxDBLogger:
 
     def start_logging(self, interval: float) -> None:
         conn_success, status_code, message = self.test_connection(self.credentials)
+        self.thread = Thread(
+            target=self._logging_loop,
+            args=(interval,),
+            daemon=True,
+        )
         if conn_success:
             self.stop_event.clear()
-            self.thread = Thread(
-                target=self._logging_loop,
-                args=(interval,),
-                daemon=True,
-            )
             self.thread.start()
         else:
             raise ConnectionError(

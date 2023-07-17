@@ -74,6 +74,6 @@ if __name__ == "__main__":
     platform.build(root, build_name="top", build_dir=build_dir)
     bit2bin(
         build_dir / "top.bit",
-        REPO_ROOT_DIR / "linien-server" / "linien_server" / "linien.bin",
+        REPO_ROOT_DIR / "linien-server" / "linien_server" / "gateware.bin",
         flip=True,
     )

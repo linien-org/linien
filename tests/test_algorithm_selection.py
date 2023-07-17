@@ -21,8 +21,8 @@ import pickle
 import numpy as np
 from linien_common.common import AutolockMode
 from linien_server.autolock.autolock import Autolock
-from linien_server.autolock.fast import FastAutolock
 from linien_server.autolock.robust import RobustAutolock
+from linien_server.autolock.simple import SimpleAutolock
 from linien_server.parameters import Parameters
 
 Y_SHIFT = 4000
@@ -98,7 +98,7 @@ def test_forced_algorithm_selection():
         assert parameters.autolock_mode.value == forced
 
         if forced == AutolockMode.SIMPLE:
-            assert isinstance(autolock.algorithm, FastAutolock)
+            assert isinstance(autolock.algorithm, SimpleAutolock)
         else:
             assert isinstance(autolock.algorithm, RobustAutolock)
 
@@ -143,7 +143,7 @@ def test_automatic_algorithm_selection():
         assert autolock.autolock_mode_detector.done
         if jitter == LOW_JITTER:
             assert parameters.autolock_mode.value == AutolockMode.SIMPLE
-            assert isinstance(autolock.algorithm, FastAutolock)
+            assert isinstance(autolock.algorithm, SimpleAutolock)
         else:
             assert parameters.autolock_mode.value == AutolockMode.ROBUST
             assert isinstance(autolock.algorithm, RobustAutolock)
