@@ -44,7 +44,7 @@ def pack(value: ParameterValues) -> Union[bytes, ParameterValues]:
 
 def unpack(value: Union[bytes, ParameterValues]) -> ParameterValues:
     try:
-        return pickle.loads(value)  # ignore[arg-type]
+        return pickle.loads(value)  # type: ignore[arg-type]
     except TypeError:
         return value
 
