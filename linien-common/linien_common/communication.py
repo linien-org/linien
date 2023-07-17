@@ -19,7 +19,7 @@ import hashlib
 import logging
 import pickle
 from socket import socket
-from typing import Any, Tuple
+from typing import Any, Tuple, Union
 
 from rpyc.utils.authenticators import AuthenticationError
 
@@ -31,23 +31,19 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-def pack(value: Any) -> bytes:
+def pack(value: Any) -> Union[bytes, Any]:
     try:
         return pickle.dumps(value)
-    # FIXME: Replace with TypeError, AttributeError and maybe more
-    except Exception:
-        logger.exception("Failed to pickle value %s" % value)
+    except (TypeError, AttributeError):
         # this happens when un-pickleable objects (e.g. functions) are assigned to a
         # parameter. In this case, we don't pickle it but transfer a netref instead.
         return value
 
 
-def unpack(value: Any) -> Any:
+def unpack(value: Union[bytes, Any]) -> Any:
     try:
         return pickle.loads(value)
-    # FIXME: Replace with TypeError, AttributeError and maybe more
-    except Exception:
-        logger.exception("Failed to unpickle value")
+    except TypeError:
         return value
 
 

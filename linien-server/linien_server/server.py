@@ -24,7 +24,7 @@ from copy import copy
 from random import randint, random
 from threading import Event, Thread
 from time import sleep
-from typing import Any, List, Optional, Tuple
+from typing import Any, List, Optional, Tuple, Union
 
 import click
 import numpy as np
@@ -79,7 +79,7 @@ class BaseService(rpyc.Service):
     def exposed_get_server_version(self) -> str:
         return __version__
 
-    def exposed_get_param(self, param_name: str) -> bytes:
+    def exposed_get_param(self, param_name: str) -> Union[bytes, Any]:
         return pack(getattr(self.parameters, param_name).value)
 
     def exposed_set_param(self, param_name: str, value: bytes) -> None:
