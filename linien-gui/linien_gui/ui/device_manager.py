@@ -47,7 +47,7 @@ class DeviceManager(QtWidgets.QMainWindow):
         self.setWindowTitle(f"Linien spectroscopy lock v{linien_gui.__version__}")
         set_window_icon(self)
         self.app = get_linien_app_instance()
-        QtCore.QTimer.singleShot(100, lambda: self.load_device_data(autoload=True))
+        QtCore.QTimer.singleShot(100, lambda: self.populate_device_list(autoload=True))
 
     def keyPressEvent(self, event):
         key = event.key()
@@ -55,8 +55,8 @@ class DeviceManager(QtWidgets.QMainWindow):
         if key in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return):
             self.connect()
 
-    def load_device_data(self, autoload=False):
-        devices = load_device_data()
+    def populate_device_list(self, autoload=False):
+        devices = list(load_device_data().values())
         lst = self.deviceList
         lst.clear()
 
@@ -66,8 +66,8 @@ class DeviceManager(QtWidgets.QMainWindow):
         if autoload and len(devices) == 1:
             self.connect_to_device(devices[0])
 
-    def connect(self):
-        devices = load_device_data()
+    def connect(self) -> None:
+        devices = list(load_device_data().values())
 
         if not devices:
             return
@@ -203,7 +203,7 @@ class DeviceManager(QtWidgets.QMainWindow):
 
         def reload_device_data():
             # not very elegant...
-            QtCore.QTimer.singleShot(100, self.load_device_data)
+            QtCore.QTimer.singleShot(100, self.populate_device_list)
 
         self.dialog.accepted.connect(reload_device_data)
 
@@ -213,7 +213,9 @@ class DeviceManager(QtWidgets.QMainWindow):
         if not devices:
             return
 
-        device = devices[self.get_list_index()]
+        # dicts are ordered since python 3.7
+        key = list(devices)[self.get_list_index()]
+        device = devices[key]
 
         self.dialog = NewDeviceDialog(device)
         self.dialog.setModal(True)
@@ -221,7 +223,7 @@ class DeviceManager(QtWidgets.QMainWindow):
 
         def reload_device_data():
             # not very elegant...
-            QtCore.QTimer.singleShot(100, self.load_device_data)
+            QtCore.QTimer.singleShot(100, self.populate_device_list)
 
         self.dialog.accepted.connect(reload_device_data)
 
@@ -232,7 +234,7 @@ class DeviceManager(QtWidgets.QMainWindow):
         self.move_device(1)
 
     def move_device(self, direction):
-        devices = load_device_data()
+        devices = list(load_device_data().values())
 
         if not devices:
             return
@@ -246,21 +248,21 @@ class DeviceManager(QtWidgets.QMainWindow):
         device = devices.pop(current_index)
         devices = devices[:new_index] + [device] + devices[new_index:]
         save_device_data(devices)
-        self.load_device_data()
+        self.populate_device_list()
         self.deviceList.setCurrentRow(new_index)
 
     def get_list_index(self):
         return self.deviceList.currentIndex().row()
 
     def remove_device(self):
-        devices = load_device_data()
+        devices = list(load_device_data().values())
 
         if not devices:
             return
 
         devices.pop(self.get_list_index())
         save_device_data(devices)
-        self.load_device_data()
+        self.populate_device_list()
 
     def selected_device_changed(self):
         idx = self.get_list_index()

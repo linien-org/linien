@@ -149,23 +149,23 @@ class ConnectionThread(QThread):
 
         differences = False
 
-        for k, v in params.items():
-            if hasattr(self.client.parameters, k):
-                param = getattr(self.client.parameters, k)
-                if param.value != v:
+        for key, val in params.items():
+            if hasattr(self.client.parameters, key):
+                param = getattr(self.client.parameters, key)
+                if param.value != val:
                     if dry_run:
-                        logger.info(f"parameter {k} differs")
+                        logger.info(f"parameter {key} differs")
                         differences = True
                         break
                     else:
-                        param.value = v
+                        param.value = val
             else:
                 # This may happen if the settings were written with a different version
                 # of linien.
                 logger.warning(
-                    f"Unable to restore parameter {k}. Delete the cached value."
+                    f"Unable to restore parameter {key}. Delete the cached value."
                 )
-                save_parameter(self.device["key"], k, None, delete=True)
+                save_parameter(self.device["key"], key, None, delete=True)
 
         if not dry_run:
             self.client.control.write_registers()

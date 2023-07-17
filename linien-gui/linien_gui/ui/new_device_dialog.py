@@ -17,7 +17,9 @@
 
 import random
 import string
+from typing import Dict, Optional
 
+from linien_common.communication import ParameterValues
 from linien_common.config import DEFAULT_SERVER_PORT
 from linien_gui.config import load_device_data, save_device_data
 from linien_gui.widgets import UI_PATH
@@ -32,7 +34,9 @@ class NewDeviceDialog(QtWidgets.QDialog):
     port: QtWidgets.QSpinBox
     explain_host: QtWidgets.QLabel
 
-    def __init__(self, initial_device=None):
+    def __init__(
+        self, initial_device: Optional[Dict[str, ParameterValues]] = None
+    ) -> None:
         super(NewDeviceDialog, self).__init__()
         uic.loadUi(UI_PATH / "new_device_dialog.ui", self)
 
@@ -48,18 +52,18 @@ class NewDeviceDialog(QtWidgets.QDialog):
             self.key = "".join(random.choice(string.ascii_lowercase) for i in range(10))
 
     def add_new_device(self):
-        device = {
-            "key": self.key,
-            "name": self.deviceName.text(),
-            "host": self.host.text(),
-            "username": self.username.text(),
-            "password": self.password.text(),
-            "port": self.port.value(),
-            "params": {},
+        new_device = {
+            self.key: {
+                "name": self.deviceName.text(),
+                "host": self.host.text(),
+                "username": self.username.text(),
+                "password": self.password.text(),
+                "port": self.port.value(),
+                "params": {},
+            }
         }
 
-        old_devices = [
-            device for device in load_device_data() if device["key"] != self.key
-        ]
-        devices = old_devices + [device]
+        old_devices = load_device_data()
+        devices = {**old_devices}
+        devices[self.key] = new_device[self.key]
         save_device_data(devices)

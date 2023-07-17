@@ -19,13 +19,17 @@ import json
 import logging
 import pickle
 from enum import Enum
-from typing import Callable, Iterator, List, Tuple
+from typing import Callable, Dict, Iterator, Tuple, Union
 
 import rpyc
+from linien_common.communication import ParameterValues
 from linien_common.config import USER_DATA_PATH
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
+
+DeviceInfo = Dict[str, Union[str, int, Dict[str, ParameterValues]]]
+DeviceInfoDict = Dict[str, DeviceInfo]
 
 # don't plot more often than once per `DEFAULT_PLOT_RATE_LIMIT` seconds
 DEFAULT_PLOT_RATE_LIMIT = 0.1
@@ -135,26 +139,40 @@ def load_settings() -> Settings:
     return settings
 
 
-def save_device_data(devices) -> None:
-    with open(USER_DATA_PATH / "devices", "wb") as f:
-        pickle.dump(devices, f)
+def save_device_data(devices: DeviceInfoDict) -> None:
+    with open(USER_DATA_PATH / "devices.json", "w") as f:
+        json.dump(devices, f)
 
 
-def load_device_data() -> List[dict]:
+def load_device_data() -> DeviceInfoDict:
     try:
-        with open(USER_DATA_PATH / "devices", "rb") as f:
-            devices = pickle.load(f)
-    except (FileNotFoundError, pickle.UnpicklingError, EOFError):
-        devices = []
-
+        with open(USER_DATA_PATH / "devices.json", "r") as f:
+            logger.debug(f"Loading devices from {USER_DATA_PATH / 'devices.json'}.")
+            devices = json.load(f)
+    except FileNotFoundError:
+        try:
+            logger.debug("Loading devices from old pickle file.")
+            with open(USER_DATA_PATH / "devices", "rb") as f:
+                devices = pickle.load(f)
+                # convert to the new format
+                devices_new_format = {}
+                for device in devices:
+                    key = device["key"]
+                    devices_new_format[key] = device
+                with open(USER_DATA_PATH / "devices.json", "w") as f:
+                    json.dump(devices_new_format, f, indent=2)
+                    devices = json.load(f)
+        except (FileNotFoundError, pickle.UnpicklingError, EOFError):
+            logger.debug("No old pickle file found. Return empty dict.")
+            devices = {}
     return devices
 
 
 def save_parameter(
-    device_key: dict, param_name: str, value: object, delete: bool = False
+    device_key: str, param_name: str, value: ParameterValues, delete: bool = False
 ):
     devices = load_device_data()
-    device = [d for d in devices if d["key"] == device_key][0]
+    device = devices[device_key]
     device.setdefault("params", {})
 
     if not delete:
@@ -173,8 +191,8 @@ def save_parameter(
     save_device_data(devices)
 
 
-def get_saved_parameters(device_key: dict):
+def get_saved_parameters(device_key: str) -> Dict[str, ParameterValues]:
     devices = load_device_data()
-    device = [d for d in devices if d["key"] == device_key][0]
+    device = devices[device_key]
     device.setdefault("params", {})
     return device["params"]
