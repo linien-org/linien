@@ -16,13 +16,16 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
 import pickle
-import traceback
 
 from linien_common.common import check_plot_data, combine_error_signal, get_lock_point
 from linien_server.autolock.algorithm_selection import AutolockAlgorithmSelector
 from linien_server.autolock.robust import RobustAutolock
 from linien_server.autolock.simple import SimpleAutolock
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class Autolock:
@@ -43,9 +46,8 @@ class Autolock:
         self.algorithm = None
 
     def reset_properties(self):
-        # we check each parameter before setting it because otherwise
-        # this may crash the client if called very often (e.g.if the
-        # autolock continuously fails)
+        # we check each parameter before setting it because otherwise this may crash the
+        # client if called very often (e.g.if the autolock continuously fails)
         if self.parameters.autolock_failed.value:
             self.parameters.autolock_failed.value = False
         if self.parameters.autolock_locked.value:
@@ -62,12 +64,12 @@ class Autolock:
         auto_offset=True,
         additional_spectra=None,
     ):
-        """Starts the autolock.
+        """
+        Start the autolock.
 
-        If `should_watch_lock` is specified, the autolock continuously monitors
-        the control and error signals after the lock was successful and tries to
-        relock automatically using the spectrum that was recorded in the first
-        run of the lock.
+        If `should_watch_lock` is specified, the autolock continuously monitors the
+        control and error signals after the lock was successful and tries to relock
+        automatically using the spectrum that was recorded in the first run of the lock.
         """
         self.parameters.autolock_running.value = True
         self.parameters.autolock_preparing.value = True
@@ -102,17 +104,17 @@ class Autolock:
                 self.start_autolock(self.autolock_mode_detector.mode)
 
         except Exception:
-            # this may happen if `additional_spectra` contain uncorrelated data
-            # then either autolock algorithm selector or `start_autolock` may
-            # raise a spectrum uncorrelated exception
-            traceback.print_exc()
+            # This may happen if `additional_spectra` contain uncorrelated data. Then
+            # either autolock algorithm selector or `start_autolock` may raise a
+            # spectrum uncorrelated exception
+            logger.exception("Error while starting autolock")
             self.parameters.autolock_failed.value = True
             return self.exposed_stop()
 
         self.add_data_listener()
 
     def start_autolock(self, mode):
-        print("start autolock with mode", mode)
+        logger.debug("start autolock with mode %s" % mode)
         self.parameters.autolock_mode.value = mode
 
         self.algorithm = [None, RobustAutolock, SimpleAutolock][mode](
@@ -137,17 +139,17 @@ class Autolock:
         self.parameters.to_plot.remove_callback(self.react_to_new_spectrum)
 
     def react_to_new_spectrum(self, plot_data):
-        """React to new spectrum data.
+        """
+        React to new spectrum data.
 
-        If this is executed for the first time, a reference spectrum is
-        recorded.
+        If this is executed for the first time, a reference spectrum is recorded.
 
-        If the autolock is approaching the desired line, a correlation
-        function of the spectrum with the reference spectrum is calculated
-        and the laser current is adapted such that the targeted line is centered.
+        If the autolock is approaching the desired line, a correlation function of the
+        spectrum with the reference spectrum is calculated and the laser current is
+        adapted such that the targeted line is centered.
 
-        After this procedure is done, the real lock is turned on and after some
-        time the lock is verified.
+        After this procedure is done, the real lock is turned on and after some time the
+        lock is verified.
 
         If automatic relocking is desired, the control and error signals are
         continuously monitored after locking.
@@ -164,8 +166,8 @@ class Autolock:
 
         is_locked = self.parameters.lock.value
 
-        # check that `plot_data` contains the information we need
-        # otherwise skip this round
+        # check that `plot_data` contains the information we need otherwise skip this
+        # round
         if not check_plot_data(is_locked, plot_data):
             return
 
@@ -203,7 +205,7 @@ class Autolock:
                 )
 
         except Exception:
-            traceback.print_exc()
+            logger.exception("Error while handling new spectrum")
             self.parameters.autolock_failed.value = True
             self.exposed_stop()
 
@@ -236,7 +238,7 @@ class Autolock:
         return error_signal, error_signal_rolled, line_width, peak_idxs
 
     def after_lock(self, error_signal, control_signal, slow_out):
-        print("after lock")
+        logger.debug("after lock")
         self.parameters.autolock_locked.value = True
 
         self.remove_data_listener()
@@ -246,12 +248,11 @@ class Autolock:
 
     def relock(self):
         """
-        Relock the laser using the reference spectrum recorded in the first
-        locking approach.
+        Relock the laser using the reference spectrum recorded in the first locking
+        approach.
         """
-        # we check each parameter before setting it because otherwise
-        # this may crash the client if called very often (e.g.if the
-        # autolock continuously fails)
+        # we check each parameter before setting it because otherwise this may crash the
+        # client if called very often (e.g.if the autolock continuously fails)
         if not self.parameters.autolock_running.value:
             self.parameters.autolock_running.value = True
         if not self.parameters.autolock_retrying.value:
@@ -260,8 +261,8 @@ class Autolock:
         self.reset_properties()
         self._reset_scan()
 
-        # add a listener that listens for new spectrum data and consequently
-        # tries to relock.
+        # add a listener that listens for new spectrum data and consequently # tries to
+        # relock.
         self.add_data_listener()
 
     def exposed_stop(self):

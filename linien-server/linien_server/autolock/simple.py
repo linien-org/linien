@@ -16,10 +16,15 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
+
 from linien_common.common import (
     SpectrumUncorrelatedException,
     determine_shift_by_correlation,
 )
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class SimpleAutolock:
@@ -34,7 +39,7 @@ class SimpleAutolock:
         x0,
         x1,
         additional_spectra=None,
-    ):
+    ) -> None:
         self.control = control
         self.parameters = parameters
 
@@ -43,7 +48,7 @@ class SimpleAutolock:
         self._done = False
         self._error_counter = 0
 
-    def handle_new_spectrum(self, spectrum):
+    def handle_new_spectrum(self, spectrum) -> None:
         if self._done:
             return
 
@@ -53,7 +58,7 @@ class SimpleAutolock:
             )
         except SpectrumUncorrelatedException:
             self._error_counter += 1
-            print("skipping spectrum because it is not correlated")
+            logger.warning("skipping spectrum because it is not correlated")
 
             if self._error_counter > 10:
                 raise
@@ -64,7 +69,7 @@ class SimpleAutolock:
             round((shift * (-1)) * self.parameters.sweep_amplitude.value * 8191)
         )
 
-        print("lock point is", lock_point, shift)
+        logger.debug("lock point is %s, shift is %s" % (lock_point, shift))
 
         self.parameters.autolock_target_position.value = int(lock_point)
         self.parameters.autolock_preparing.value = False

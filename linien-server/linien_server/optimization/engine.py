@@ -23,12 +23,17 @@ with warnings.catch_warnings():
     warnings.simplefilter("ignore")
     import cma
 
+import logging
+
 from linien_common.common import MHz, Vpp
 from linien_server.optimization.utils import (
     FINAL_ZOOM_FACTOR,
     get_max_slope,
     optimize_phase_from_iq,
 )
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class NoOptimizationEngine:
@@ -242,7 +247,7 @@ class OptimizerEngine:
 
             params.optimization_optimized_parameters.value = complete_parameter_set
 
-        print("improvement %d" % (improvement * 100))
+        logger.debug("improvement %d" % (improvement * 100))
 
         fitness = math.log(1 / optimized_slope)
 

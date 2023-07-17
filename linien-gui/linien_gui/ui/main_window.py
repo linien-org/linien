@@ -17,6 +17,7 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 import json
+import logging
 import pickle
 from math import log
 from time import time
@@ -36,6 +37,9 @@ from PyQt5 import QtWidgets, uic
 ZOOM_STEP = 0.9
 MAX_ZOOM = 50
 MIN_ZOOM = 0
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 def sweep_amplitude_to_zoom_step(amplitude):
@@ -205,7 +209,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.newVersionAvailableLabel.show()
 
     def handle_key_press(self, key):
-        print("key pressed", key)
+        logger.debug("key pressed %s" % key)
 
     def export_parameters_select_file(self):
         options = QtWidgets.QFileDialog.Options()

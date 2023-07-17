@@ -16,8 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
 import pickle
-import traceback
 
 import numpy as np
 from linien_common.common import determine_shift_by_correlation, get_lock_point
@@ -25,6 +25,9 @@ from linien_common.common import determine_shift_by_correlation, get_lock_point
 from .approach_line import Approacher
 from .engine import OptimizerEngine
 from .utils import FINAL_ZOOM_FACTOR
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class OptimizeSpectroscopy:
@@ -153,8 +156,7 @@ class OptimizeSpectroscopy:
                     self.exposed_stop(True)
 
         except Exception:
-            print("exception at optimization task")
-            traceback.print_exc()
+            logger.exception("Exception at optimization task")
             self.parameters.optimization_failed.value = True
             self.exposed_stop(False)
 
