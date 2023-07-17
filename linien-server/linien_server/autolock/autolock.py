@@ -20,7 +20,6 @@ import logging
 import pickle
 
 from linien_common.common import (
-    AutolockMode,
     SpectrumUncorrelatedException,
     check_plot_data,
     combine_error_signal,
@@ -36,7 +35,7 @@ logger.setLevel(logging.DEBUG)
 
 
 class Autolock:
-    def __init__(self, control, parameters: Parameters):
+    def __init__(self, control, parameters: Parameters) -> None:
         self.control = control
         self.parameters = parameters
 
@@ -53,8 +52,8 @@ class Autolock:
         self.algorithm = None
 
     def reset_properties(self):
-        # We check each parameter before setting it because otherwise this may crash the
-        # client if called very often (e.g.if the autolock continuously fails).
+        # we check each parameter before setting it because otherwise this may crash the
+        # client if called very often (e.g.if the autolock continuously fails)
         if self.parameters.autolock_failed.value:
             self.parameters.autolock_failed.value = False
         if self.parameters.autolock_locked.value:
@@ -110,7 +109,7 @@ class Autolock:
             if self.autolock_mode_detector.done:
                 self.start_autolock(self.autolock_mode_detector.mode)
 
-        except Exception:
+        except SpectrumUncorrelatedException:
             # This may happen if `additional_spectra` contain uncorrelated data. Then
             # either autolock algorithm selector or `start_autolock` may raise a
             # spectrum uncorrelated exception
@@ -204,8 +203,8 @@ class Autolock:
                     else:
                         return
 
-                    if self.algorithm is not None:
-                        return self.algorithm.handle_new_spectrum(combined_error_signal)
+                if self.algorithm is not None:
+                    return self.algorithm.handle_new_spectrum(combined_error_signal)
 
             else:
                 error_signal = plot_data_unpickled["error_signal"]
