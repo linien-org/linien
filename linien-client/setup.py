@@ -41,7 +41,6 @@ setup(
     install_requires=[
         "fabric>=2.7.0",
         "numpy>=1.22",
-        "patchwork>=1.0.1",
         "scipy>=1.4.1",
         f"linien-common=={version}",
     ],
