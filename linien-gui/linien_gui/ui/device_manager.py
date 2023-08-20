@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
+from os import getenv
+
 import linien_gui
 from linien_gui.config import load_device_data, save_device_data
 from linien_gui.dialogs import (
@@ -88,35 +90,54 @@ class DeviceManager(QtWidgets.QMainWindow):
         def handle_server_not_installed():
             loading_dialog.hide()
             if not aborted:
-                display_question = (
-                    "The server is not yet installed on the device. Should it be "
-                    "installed? (Requires internet connection on RedPitaya)"
-                )
-                if question_dialog(self, display_question, "Install server?"):
-                    show_installation_progress_widget(
-                        parent=self,
-                        device=device,
-                        callback=lambda: self.connect_to_device(device),
+                if getenv("LINIEN_AVOID_IMPERATIVE_INSTALL"):
+                    display_error = (
+                        "The server is not yet installed on the device, and the environment "
+                        "variable LINIEN_AVOID_IMPERATIVE_INSTALL is set. Please either unset "
+                        "This environment variable, or install the server yourself."
                     )
+                    error_dialog(self, display_error)
+                else:
+                    display_question = (
+                        "The server is not yet installed on the device. Should it be "
+                        "installed? (Requires internet connection on RedPitaya)"
+                    )
+                    if question_dialog(self, display_question, "Install server?"):
+                        show_installation_progress_widget(
+                            parent=self,
+                            device=device,
+                            callback=lambda: self.connect_to_device(device),
+                        )
 
         def handle_invalid_server_version(
             remote_version: str, client_version: str
         ) -> None:
             loading_dialog.hide()
             if not aborted:
-                display_question = (
-                    f"Server version ({remote_version}) does not match the client "
-                    f"({client_version}) version. Should the corresponding server "
-                    f"version be installed?"
-                )
-                if question_dialog(
-                    self, display_question, "Install corresponding version?"
-                ):
-                    show_installation_progress_widget(
-                        parent=self,
-                        device=device,
-                        callback=lambda: self.connect_to_device(device),
+                if getenv("LINIEN_AVOID_IMPERATIVE_INSTALL"):
+                    display_question = (
+                        f"Server version ({remote_version}) does not match the client "
+                        f"({client_version}) version. Since also LINIEN_AVOID_IMPERATIVE_INSTALL"
+                        f"environment is set, do you want to continue anyway?"
                     )
+                    if not question_dialog(
+                        self, display_question, "Continue with invalid version?"
+                    ):
+                        self.app.close()
+                else:
+                    display_question = (
+                        f"Server version ({remote_version}) does not match the client "
+                        f"({client_version}) version. Should the corresponding server "
+                        f"version be installed?"
+                    )
+                    if question_dialog(
+                        self, display_question, "Install corresponding version?"
+                    ):
+                        show_installation_progress_widget(
+                            parent=self,
+                            device=device,
+                            callback=lambda: self.connect_to_device(device),
+                        )
 
         def handle_authentication_exception():
             loading_dialog.hide()

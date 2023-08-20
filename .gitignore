@@ -43,3 +43,5 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+# Nix build symlinks
+result*
