@@ -1,0 +1,19 @@
+# linien.service
+[Unit]
+Description=Spectroscopy lock server for RedPitaya
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+ExecStart=/usr/bin/env python3 /usr/lib/python3.10/site-packages/linien/server/server.py
+# stop / start ethernet blinking using: mdio-tool[1], see:
+# https://github.com/RedPitaya/RedPitaya/issues/205
+#
+# [1]: https://github.com/linien-org/mdio-tool
+ExecStartPre=/usr/bin/mdio-tool w eth0 0x1b 0x0000
+ExecStopPost=/usr/bin/mdio-tool w eth0 0x1b 0x0f00
+
+[Install]
+WantedBy=multi-user.target
+
+# vim:ft=systemd

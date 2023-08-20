@@ -5,9 +5,8 @@ if [[ $EUID -ne 0 ]]; then
    exit 1
 fi
 
-# the server is started in a screen session
-echo 'installing screen...'
-apt-get -y install screen
+# Copy systemd service file to a location systemd recognizes
+cp -f /usr/lib/python3*/site-packages/linien_server/linien.service /usr/lib/systemd/system/linien.service
 
 # https://github.com/RedPitaya/RedPitaya/issues/205
 cd /tmp
