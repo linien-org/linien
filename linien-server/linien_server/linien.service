@@ -5,7 +5,7 @@ Wants=network-online.target
 After=network-online.target
 
 [Service]
-ExecStart=/usr/bin/env python3 /usr/lib/python3.10/site-packages/linien/server/server.py
+ExecStart=/usr/bin/linien-server
 # stop / start ethernet blinking using: mdio-tool[1], see:
 # https://github.com/RedPitaya/RedPitaya/issues/205
 #
