@@ -44,7 +44,7 @@ setup(
         "pylpsd>=0.1.4",
         "pyrp3>=1.1.0,<2.0;platform_machine=='armv7l'",  # only install on RedPitaya
         "requests>=2.25.1",
-        "linien-common=={}".format(version),
+        "linien-common==0.9.0.dev0",
     ],
     scripts=[
         "linien_server/linien_start_server.sh",

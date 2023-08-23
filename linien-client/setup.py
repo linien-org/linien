@@ -41,6 +41,6 @@ setup(
     install_requires=[
         "fabric>=2.7.0",
         "typing_extensions>=4.5.0",
-        f"linien-common=={version}",
+        "linien-common==0.9.0.dev0",
     ],
 )
