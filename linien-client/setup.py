@@ -40,9 +40,7 @@ setup(
     python_requires=">=3.8",
     install_requires=[
         "fabric>=2.7.0",
-        "typing_extensions",
-        "numpy>=1.22",
-        "scipy>=1.4.1",
+        "typing_extensions>=4.5.0",
         f"linien-common=={version}",
     ],
 )
