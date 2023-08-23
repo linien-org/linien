@@ -40,5 +40,6 @@ setup(
         "numpy>=1.11.0",
         "rpyc>=4.0,<5.0",
         "scipy>=0.17.0",
+        "appdirs",
     ],
 )
