@@ -36,6 +36,7 @@ setup(
     ],
     python_requires=">=3.5",
     install_requires=[
+        "appdirs>=1.4.4",
         "importlib_metadata>=2.1.3",
         "numpy>=1.11.0",
         "rpyc>=4.0,<5.0",
