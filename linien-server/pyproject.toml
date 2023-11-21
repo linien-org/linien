@@ -1,0 +1,58 @@
+[build-system]
+requires = [
+    "setuptools>=61.2",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "linien-server"
+version = "0.9.0.dev0"
+authors = [
+    { name = "Benjamin Wiegand", email = "highwaychile@posteo.de" },
+]
+maintainers = [
+    { name = "Bastian Leykauf", email = "leykauf@physik.hu-berlin.de" },
+]
+description = "Server components of the Linien spectroscopy lock application."
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Operating System :: OS Independent",
+]
+requires-python = ">=3.10"
+dependencies = [
+    "cma>=3.0.3",
+    "pylpsd>=0.1.4",
+    "pyrp3>=1.1.0,<2.0;platform_machine=='armv7l'",
+    "requests>=2.25.1",
+    "linien-common==0.9.0.dev0",
+]
+
+[project.readme]
+text = "Have a look at the [project repository](https://github.com/linien-org/linien) for installation instructions."
+content-type = "text/markdown"
+
+[project.urls]
+Homepage = "https://github.com/linien-org/linien"
+
+[project.scripts]
+linien-server = "linien_server.server:run_server"
+
+[tool.setuptools]
+script-files = [
+    "linien_server/linien_start_server.sh",
+    "linien_server/linien_stop_server.sh",
+    "linien_server/linien_install_requirements.sh",
+]
+include-package-data = false
+
+[tool.setuptools.packages.find]
+namespaces = false
+
+[tool.setuptools.package-data]
+linien_server = [
+    "gateware.bin",
+    "linien_start_server.sh",
+    "linien_stop_server.sh",
+    "linien_install_requirements.sh",
+]

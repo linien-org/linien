@@ -18,6 +18,7 @@
 
 import _thread
 import atexit
+import logging
 import pickle
 from copy import copy
 from random import randint, random
@@ -40,14 +41,14 @@ from linien_common.influxdb import InfluxDBCredentials, restore_credentials
 from linien_server import __version__
 from linien_server.autolock.autolock import Autolock
 from linien_server.influxdb import InfluxDBLogger
+from linien_server.noise_analysis import PIDOptimization, PSDAcquisition
 from linien_server.optimization.optimization import OptimizeSpectroscopy
 from linien_server.parameters import Parameters, restore_parameters, save_parameters
-from linien_server.pid_optimization.pid_optimization import (
-    PIDOptimization,
-    PSDAcquisition,
-)
 from linien_server.registers import Registers
 from rpyc.utils.server import ThreadedServer
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class BaseService(rpyc.Service):
@@ -104,7 +105,7 @@ class BaseService(rpyc.Service):
 
     def exposed_set_parameter_log(self, param_name: str, value: bool) -> None:
         if getattr(self.parameters, param_name).log != value:
-            print("Setting log for %s to %s" % (param_name, value))
+            logger.debug("Setting log for %s to %s" % (param_name, value))
             getattr(self.parameters, param_name).log = value
 
     def exposed_get_parameter_log(self, param_name: str) -> bool:
@@ -121,9 +122,9 @@ class BaseService(rpyc.Service):
         ) = self.influxdb_logger.test_connection(credentials)
         if connection_succesful:
             self.influxdb_logger.credentials = credentials
-            print("InfluxDB credentials updated successfully")
+            logger.info("InfluxDB credentials updated successfully")
         else:
-            print(
+            logger.info(
                 "InfluxDB credentials update failed. Error message: %s (Status Code %s)"
                 % (message, status_code)
             )
@@ -133,11 +134,11 @@ class BaseService(rpyc.Service):
         return pack(self.influxdb_logger.credentials)
 
     def exposed_start_logging(self, interval: float) -> None:
-        print("Starting logging")
+        logger.info("Starting logging")
         self.influxdb_logger.start_logging(interval)
 
     def exposed_stop_logging(self) -> None:
-        print("Stopping logging")
+        logger.info("Stopping logging")
         self.influxdb_logger.stop_logging()
 
     def exposed_get_logging_status(self) -> bool:
@@ -178,12 +179,13 @@ class RedPitayaControlService(BaseService):
         self.exposed_write_registers()
 
     def _send_ping_loop(self, stop_event: Event):
+        MAX_PING = 3
         while not stop_event.is_set():
             self.parameters.ping.value += 1
-            if self.parameters.ping.value < 10:
-                print("ping", self.parameters.ping.value)
-                if self.parameters.ping.value == 9:
-                    print("further pings will be suppressed")
+            if self.parameters.ping.value <= MAX_PING:
+                logger.debug("ping  %s" % self.parameters.ping.value)
+                if self.parameters.ping.value == MAX_PING:
+                    logger.debug("further pings will be suppressed")
             sleep(1)
 
     def _push_acquired_data_to_parameters(self, stop_event: Event):
@@ -211,7 +213,9 @@ class RedPitayaControlService(BaseService):
                     is_locked = self.parameters.lock.value
 
                     if not check_plot_data(is_locked, data_loaded):
-                        print("incorrect data received for lock state, ignoring!")
+                        logger.error(
+                            "incorrect data received for lock state, ignoring!"
+                        )
                         continue
 
                     self.parameters.to_plot.value = new_data
@@ -281,8 +285,6 @@ class RedPitayaControlService(BaseService):
         if not self._task_running():
             self.parameters.task.value = PSDAcquisition(self, self.parameters)
             self.parameters.task.value.run()
-
-        print("Logging thread stopped.")
 
     def exposed_start_pid_optimization(self):
         if not self._task_running():
@@ -369,10 +371,10 @@ class FakeRedPitayaControlService(BaseService):
         pass
 
     def exposed_start_autolock(self, x0, x1, spectrum):
-        print("start autolock", x0, x1)
+        logger.debug("start autolock %s %s" % (x0, x1))
 
     def exposed_start_optimization(self, x0, x1, spectrum):
-        print("start optimization")
+        logger.debug("start optimization")
         self.parameters.optimization_running.value = True
 
     def exposed_shutdown(self):
@@ -385,7 +387,9 @@ class FakeRedPitayaControlService(BaseService):
         pass
 
 
-@click.command()
+# ignore type, otherwise "Argument 1 has incompatible type "Callable[[int, bool, str |
+# None, bool], Any]"; expected <nothing>" is raised for click 8.1.4.
+@click.command("linien-server")  # type: ignore[arg-type]
 @click.version_option(__version__)
 @click.argument("port", default=DEFAULT_SERVER_PORT, type=int, required=False)
 @click.option(
@@ -400,16 +404,15 @@ class FakeRedPitayaControlService(BaseService):
 )
 @click.option("--no-auth", is_flag=True, help="Disable authentication")
 def run_server(
-    port: int,
+    port: int = DEFAULT_SERVER_PORT,
     fake: bool = False,
     host: Optional[str] = None,
     no_auth: bool = False,
-    use_credentials: Optional[str] = None,
 ):
-    print("Start server on port", port)
+    logger.info("Start server on port %s" % port)
 
     if fake:
-        print("starting fake server")
+        logger.info("starting fake server")
         control = FakeRedPitayaControlService()
     else:
         control = RedPitayaControlService(host=host)

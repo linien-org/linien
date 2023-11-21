@@ -17,12 +17,23 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 from linien_common.common import MHz, Vpp
+from linien_gui.ui.spin_box import CustomDoubleSpinBoxNoSign
 from linien_gui.utils import get_linien_app_instance, param2ui
 from linien_gui.widgets import UI_PATH
 from PyQt5 import QtWidgets, uic
 
 
 class ModulationAndSweepPanel(QtWidgets.QWidget):
+    sweepSpeedComboBox: QtWidgets.QGroupBox
+    modulation_amplitude_group = QtWidgets.QGroupBox
+    modulationAmplitudeSpinBox: CustomDoubleSpinBoxNoSign
+    modulation_frequency_group = QtWidgets.QGroupBox
+    modulationFrequencySpinBox: CustomDoubleSpinBoxNoSign
+    spectroscopyTabs: QtWidgets.QTabWidget
+    spectroscopy_channel_1_page: QtWidgets.QWidget
+    spectroscopy_channel_2_page: QtWidgets.QWidget
+    spectroscopyBPanelDisabled: QtWidgets.QLabel
+
     def __init__(self, *args, **kwargs):
         super(ModulationAndSweepPanel, self).__init__(*args, **kwargs)
         uic.loadUi(UI_PATH / "modulation_sweep_panel.ui", self)
@@ -59,29 +70,29 @@ class ModulationAndSweepPanel(QtWidgets.QWidget):
 
         self.parameters.dual_channel.add_callback(self.dual_channel_changed)
 
-        def fast_mode_changed(fast_mode_enabled):
-            """Disables controls that are irrelevant if fast mode is enabled"""
+        def pid_only_mode_changed(pid_only_mode_enabled):
+            """Disables controls that are irrelevant if PID-only mode is enabled"""
             widgets_to_disable = (
                 self.modulation_frequency_group,
                 self.modulation_amplitude_group,
                 self.spectroscopyTabs,
             )
             for widget in widgets_to_disable:
-                widget.setEnabled(not fast_mode_enabled)
+                widget.setEnabled(not pid_only_mode_enabled)
 
-        self.parameters.fast_mode.add_callback(fast_mode_changed)
+        self.parameters.pid_only_mode.add_callback(pid_only_mode_changed)
 
-        def fast_mode_changed(fast_mode_enabled):
-            """Disables controls that are irrelevant if fast mode is enabled"""
+        def pid_only_mode_changed(pid_only_mode_enabled):
+            """Disables controls that are irrelevant if PID-only mode is enabled"""
             widgets_to_disable = (
                 self.modulation_frequency_group,
                 self.modulation_amplitude_group,
                 self.spectroscopyTabs,
             )
             for widget in widgets_to_disable:
-                widget.setEnabled(not fast_mode_enabled)
+                widget.setEnabled(not pid_only_mode_enabled)
 
-        self.parameters.fast_mode.add_callback(fast_mode_changed)
+        self.parameters.pid_only_mode.add_callback(pid_only_mode_changed)
 
     def change_modulation_frequency(self):
         self.parameters.modulation_frequency.value = (

@@ -17,6 +17,7 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 import json
+import logging
 import pickle
 from math import log
 from time import time
@@ -26,6 +27,9 @@ import numpy as np
 from linien_common.common import check_plot_data
 from linien_gui.config import N_COLORS, Color
 from linien_gui.ui.plot_widget import INVALID_POWER
+from linien_gui.ui.right_panel import RightPanel
+from linien_gui.ui.spin_box import CustomDoubleSpinBox
+from linien_gui.ui.sweep_control import SweepControlWidget, SweepSlider
 from linien_gui.utils import color_to_hex, get_linien_app_instance, set_window_icon
 from linien_gui.widgets import UI_PATH
 from PyQt5 import QtWidgets, uic
@@ -34,12 +38,52 @@ ZOOM_STEP = 0.9
 MAX_ZOOM = 50
 MIN_ZOOM = 0
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
 
 def sweep_amplitude_to_zoom_step(amplitude):
     return round(log(amplitude, ZOOM_STEP))
 
 
 class MainWindow(QtWidgets.QMainWindow):
+    statusbar_unlocked: QtWidgets.QWidget
+    signal_strenghts_unlocked: QtWidgets.QHBoxLayout
+    power_channel_1: QtWidgets.QLabel
+    power_channel_2: QtWidgets.QLabel
+    legend_unlocked: QtWidgets.QHBoxLayout
+    legend_spectrum_1: QtWidgets.QLabel
+    legend_spectrum_2: QtWidgets.QLabel
+    legend_spectrum_combined: QtWidgets.QLabel
+    sweepControlWidget: SweepControlWidget
+    sweepAmplitudeSpinBox: CustomDoubleSpinBox
+    sweepCenterSpinBox: CustomDoubleSpinBox
+    sweepSlider: SweepSlider
+    sweepStartStopPushButton: QtWidgets.QPushButton
+    top_lock_panel: QtWidgets.QWidget
+    control_std: QtWidgets.QLabel
+    error_std: QtWidgets.QLabel
+    legend_control_signal: QtWidgets.QLabel
+    legend_control_signal_history: QtWidgets.QLabel
+    legend_error_signal: QtWidgets.QLabel
+    legend_monitor_signal_history: QtWidgets.QLabel
+    legend_slow_signal_history: QtWidgets.QLabel
+    rightPanel: RightPanel
+    export_parameters_button: QtWidgets.QPushButton
+    import_parameters_button: QtWidgets.QPushButton
+    newVersionAvailableLabel: QtWidgets.QLabel
+    pid_parameter_optimization_button: QtWidgets.QPushButton
+    settings_toolbox: QtWidgets.QToolBox
+    generalPanel: QtWidgets.QWidget
+    modSpectroscopyPanel: QtWidgets.QWidget
+    optimizationPanel: QtWidgets.QWidget
+    loggingPanel: QtWidgets.QWidget
+    viewPanel: QtWidgets.QWidget
+    lockingPanel: QtWidgets.QWidget
+    shutdownButton: QtWidgets.QPushButton
+    closeButton: QtWidgets.QPushButton
+    openDeviceManagerButton: QtWidgets.QPushButton
+
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
         uic.loadUi(UI_PATH / "main_window.ui", self)
@@ -151,7 +195,7 @@ class MainWindow(QtWidgets.QMainWindow):
         )
         self.legend_spectrum_combined.setVisible(dual_channel)
 
-    def show(self, host, name):
+    def show(self, host: str, name: str) -> None:  # type: ignore[override]
         self.setWindowTitle(
             f"Linien spectroscopy lock {linien_gui.__version__}: {name} ({host})"
         )
@@ -165,7 +209,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.newVersionAvailableLabel.show()
 
     def handle_key_press(self, key):
-        print("key pressed", key)
+        logger.debug("key pressed %s" % key)
 
     def export_parameters_select_file(self):
         options = QtWidgets.QFileDialog.Options()

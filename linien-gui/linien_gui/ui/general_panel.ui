@@ -17,13 +17,13 @@
    <item>
     <widget class="QGroupBox" name="groupBox_2">
      <property name="title">
-      <string>Fast Mode (Bare PID operation)</string>
+      <string>PID-only mode</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_4">
       <item>
        <widget class="QLabel" name="label_2">
         <property name="text">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Fast mode is intended for bare PID operation (no demodulation,  filtering or offsets). If enabled, the signal flow is FAST IN 1 → PID → FAST OUT 2&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This mode  is intended for bare PID operation (no demodulation, filtering or offset), increasing the control bandwidth. If enabled, the signal flow is FAST IN 1 → PID → FAST OUT 2&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="wordWrap">
          <bool>true</bool>
@@ -31,9 +31,9 @@
        </widget>
       </item>
       <item>
-       <widget class="QCheckBox" name="fastModeCheckBox">
+       <widget class="QCheckBox" name="pidOnlyModeCheckBox">
         <property name="text">
-         <string>enable fast mode</string>
+         <string>enable PID-only mode</string>
         </property>
        </widget>
       </item>

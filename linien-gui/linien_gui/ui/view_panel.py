@@ -22,12 +22,29 @@ from os import path
 
 import numpy as np
 from linien_gui.config import N_COLORS
+from linien_gui.ui.spin_box import CustomDoubleSpinBoxNoSign, CustomSpinBox
 from linien_gui.utils import color_to_hex, get_linien_app_instance, param2ui
 from linien_gui.widgets import UI_PATH
 from PyQt5 import QtGui, QtWidgets, uic
 
 
 class ViewPanel(QtWidgets.QWidget):
+    plot_line_width: CustomDoubleSpinBoxNoSign
+    plot_line_opacity: CustomSpinBox
+    plot_fill_opacity: CustomSpinBox
+    display_color_0: QtWidgets.QLabel
+    display_color_1: QtWidgets.QLabel
+    display_color_2: QtWidgets.QLabel
+    display_color_3: QtWidgets.QLabel
+    display_color_4: QtWidgets.QLabel
+    edit_color_0: QtWidgets.QToolButton
+    edit_color_1: QtWidgets.QToolButton
+    edit_color_2: QtWidgets.QToolButton
+    edit_color_3: QtWidgets.QToolButton
+    edit_color_4: QtWidgets.QToolButton
+    export_data: QtWidgets.QPushButton
+    export_select_file: QtWidgets.QPushButton
+
     def __init__(self, *args, **kwargs):
         super(ViewPanel, self).__init__(*args, **kwargs)
         uic.loadUi(UI_PATH / "view_panel.ui", self)

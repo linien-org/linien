@@ -125,9 +125,11 @@ When you're done, head over to *Modulation, Sweep & Spectroscopy* to configure m
 
 The bright red line is the demodulated spectroscopy signal. The dark red area is the signal strength obtained by [iq demodulation](https://en.wikipedia.org/wiki/In-phase_and_quadrature_components), i.e. the demodulation signal obtained when demodulating in phase at this point.
 
-### Fast Mode
+### PID-only mode
+| :exclamation: Please make sure that the modulation frequency/amplitude are set to 0 if using PID-only mode. See [this issue](https://github.com/linien-org/linien/issues/314). |
+|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 
-Fast mode is intended for bare PID operation (no demodulation, filtering or offset), bypassing most of the FPGA functionality. If enabled, the signal flow is FAST IN 1 → PID → FAST OUT 2. This is useful, if aiming for a high control bandwidth: fast mode reduces propagation delay from 320 ns to 125 ns which may make a difference when phase-locking lasers.
+PID-only mode is intended for bare PID operation (no demodulation or filtering), bypassing most of the FPGA functionality. If enabled, the signal flow is FAST IN 1 → PID → FAST OUT 2. This is useful, if aiming for a high control bandwidth: PID-only mode reduces propagation delay from 320 ns to 125 ns which may make a difference when phase-locking lasers.
 
 ### Optimization of spectroscopy parameters using machine learning
 
@@ -152,10 +154,10 @@ If you experience trouble with the autolock, this is most likely due to a bad si
 
 Linien implements two different autolock algorithms:
 
- * **Jitter-tolerant mode**: this algorithm runs on FPGA and analyzes the peak shapes in order to turn on the lock at the right sweep position. It is able to cope with a high amount of jitter as it runs completely on the FPGA, i.e. no delays due to communication between CPU and FPGA occur.
- * **Fast mode**: this algorithm uses a simple calculation of autocorrelation on the CPU which is then used to specify at which point of the sweep the lock should start. This algorithm is less complex than the first one and may be used if you experience problems with jitter-tolerant mode. As it requires some communication between CPU and FPGA which causes some delay, it may have problems if the line jitters a lot.
+ * **Robust mode**: this algorithm runs on FPGA and analyzes the peak shapes in order to turn on the lock at the right sweep position. It is able to cope with a high amount of jitter as it runs completely on the FPGA, i.e. no delays due to communication between CPU and FPGA occur.
+ * **Simple mode**: this algorithm uses a simple calculation of auto-correlation on the CPU which is then used to specify at which point of the sweep the lock should start. This algorithm is less complex than the first one and may be used if you experience problems with jitter-tolerant mode. As it requires some communication between CPU and FPGA which causes some delay, it may have problems if the line jitters a lot.
 
- By default, **auto-detect mode** is chosen: this mode choses an algorithm based on the amount of jitter.
+ By default, **auto-detect mode** is used: this mode chooses an algorithm based on the amount of jitter.
 
 
 ### Using the manual lock
@@ -380,7 +382,7 @@ No, this is not possible as Linien relies on a customized FPGA bitstream.
 
 ### What control bandwidth is achievable with Linien?
 
-The propagation delay is roughly 320 ns in normal mode and 125 ns in fast mode.
+The propagation delay is roughly 320 ns in normal mode and 125 ns in PID-only mode.
 
 ### Why do ethernet LEDs of RedPitaya stop blinking when Linien is running?
 

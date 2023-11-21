@@ -501,7 +501,7 @@ class PlotWidget(pg.PlotWidget):
                 self.plot_autolock_target_line(combined_error_signal)
 
                 if (self.parameters.modulation_frequency.value != 0) and (
-                    not self.parameters.fast_mode.value
+                    not self.parameters.pid_only_mode.value
                 ):
                     # check whether to plot signal strengths using quadratures
                     s1q = to_plot.get("error_signal_1_quadrature")

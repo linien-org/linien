@@ -24,11 +24,11 @@ class SweepControlWidget(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         super(SweepControlWidget, self).__init__(*args, **kwargs)
         self.app = get_linien_app_instance()
-        self.main_window = self.window()
         self.app.connection_established.connect(self.on_connection_established)
         QtCore.QTimer.singleShot(100, self.ready)
 
     def ready(self):
+        self.main_window = self.app.main_window
         self.main_window.sweepSlider.ready()  # initialize sweep slider boundaries
 
     def on_connection_established(self):

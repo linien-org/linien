@@ -1103,7 +1103,15 @@ p, li { white-space: pre-wrap; }
            </item>
           </layout>
          </widget>
-         <widget class="QWidget" name="logging">
+         <widget class="QWidget" name="loggingPanel">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>332</width>
+            <height>400</height>
+           </rect>
+          </property>
           <attribute name="label">
            <string>Logging</string>
           </attribute>

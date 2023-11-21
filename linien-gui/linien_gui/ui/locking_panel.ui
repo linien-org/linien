@@ -302,7 +302,7 @@
          </sizepolicy>
         </property>
         <property name="text">
-         <string>Integrator from current output signal to piezo</string>
+         <string>Slow drift compensation (for example via piezo of an ECDL). Rather large valus are necessary for stable operation.</string>
         </property>
         <property name="wordWrap">
          <bool>true</bool>
@@ -443,12 +443,12 @@
                </item>
                <item>
                 <property name="text">
-                 <string>Jitter-tolerant mode</string>
+                 <string>Robust mode</string>
                 </property>
                </item>
                <item>
                 <property name="text">
-                 <string>Fast mode</string>
+                 <string>Simple mode</string>
                 </property>
                </item>
               </widget>

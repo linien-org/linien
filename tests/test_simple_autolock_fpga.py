@@ -35,7 +35,7 @@ def test_root():
         pid: PID = root.pid
         autolock = root.autolock
         fast = autolock.fast
-        yield autolock.autolock_mode.storage.eq(AutolockMode.FAST)
+        yield autolock.autolock_mode.storage.eq(AutolockMode.SIMPLE)
 
         yield fast.target_position.storage.eq(lock_target_position)
 

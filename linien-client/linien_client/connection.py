@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
 import random
 import string
 from socket import gaierror
@@ -36,6 +37,9 @@ from .exceptions import (
     ServerNotRunningException,
 )
 from .remote_parameters import RemoteParameters
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class ServiceWithAuth(rpyc.Service):
@@ -87,7 +91,7 @@ class LinienClient:
         while True:
             i += 1
             try:
-                print(f"Try to connect to {self.host}:{self.port}")
+                logger.info(f"Try to connect to {self.host}:{self.port}")
 
                 self.connection = rpyc.connect(
                     self.host,
@@ -108,26 +112,28 @@ class LinienClient:
                 break
             except gaierror:
                 # host not found
-                print(f"Error: host {self.host} not found")
+                logger.error(f"Error: host {self.host} not found")
                 break
             except EOFError:
-                print("EOFError! Probably authentication failed")
+                logger.error("EOFError! Probably authentication failed")
                 raise RPYCAuthenticationException()
             except ConnectionRefusedError:
                 if not autostart_server:
                     raise ServerNotRunningException()
 
                 if i == 0:
-                    print("Server is not running. Launching it!")
+                    logger.error("Server is not running. Launching it!")
                     start_remote_server(self.host, self.user, self.password)
                     sleep(3)
                 else:
                     if i < 20:
-                        print("Server still not running, waiting (may take some time).")
+                        logger.info(
+                            "Server still not running, waiting (may take some time)."
+                        )
                         sleep(1)
                     else:
                         print_exc()
-                        print(
+                        logger.error(
                             "Error: connection to the server could not be established"
                         )
                         break
@@ -143,7 +149,7 @@ class LinienClient:
             raise InvalidServerVersionException(local_version, remote_version)
 
         self.connected = True
-        print("Connection established!")
+        logger.info("Connection established!")
 
     def disconnect(self) -> None:
         if self.connection is not None:
@@ -169,7 +175,7 @@ class LinienClient:
                         try:
                             return method(*args, **kwargs)
                         except (EOFError,):
-                            print("Connection lost")
+                            logger.error("Connection lost")
                             self.connected = False
                             call_on_error()
                             raise
