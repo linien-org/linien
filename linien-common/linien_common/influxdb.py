@@ -53,7 +53,6 @@ class InfluxDBCredentials:
 
 def save_credentials(credentials: InfluxDBCredentials) -> None:
     """Save the credentials to disk."""
-    USER_DATA_PATH.mkdir(parents=True, exist_ok=True)
     filename = str(USER_DATA_PATH / CREDENTIAL_STORE_FILENAME)
     with open(filename, "w") as f:
         json.dump(

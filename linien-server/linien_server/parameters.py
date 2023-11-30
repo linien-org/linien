@@ -683,8 +683,6 @@ def restore_parameters(parameters: Parameters) -> Parameters:
 def save_parameters(parameters: Parameters) -> None:
     """Gather all parameters and store them on disk."""
 
-    # make sure that USER_DATA_PATH exists
-    USER_DATA_PATH.mkdir(parents=True, exist_ok=True)
     parameters_dict = {}
     for name, param in parameters:
         if param.restorable:

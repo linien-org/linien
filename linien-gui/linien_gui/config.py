@@ -117,7 +117,6 @@ class Settings:
 
 def save_settings(settings: Settings) -> None:
     data = {name: setting.value for name, setting in settings}
-    USER_DATA_PATH.mkdir(parents=True, exist_ok=True)
     with open(USER_DATA_PATH / "settings.json", "w") as f:
         json.dump(data, f, indent=0)
 
