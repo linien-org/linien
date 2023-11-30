@@ -18,7 +18,7 @@
 
 from setuptools import find_packages, setup
 
-version = "1.0.0.dev0"
+version = "1.0.0rc1"
 
 setup(
     name="linien-gui",
@@ -44,7 +44,7 @@ setup(
         "pyqtgraph>=0.10.0",
         "PyQt5>=5.12.0",
         "superqt>=0.2.3",
-        "linien_client==1.0.0.dev0",
+        "linien_client==1.0.0rc1",
     ],
     package_data={
         # IMPORTANT: any changes have to be made in pyinstaller.spec, too
