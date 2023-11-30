@@ -1,15 +1,11 @@
 [build-system]
-requires = [
-    "setuptools>=61.2",
-]
+requires = ["setuptools>=61.2"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "linien-server"
 version = "2.0.0dev0"
-authors = [
-    { name = "Benjamin Wiegand", email = "highwaychile@posteo.de" },
-]
+authors = [{ name = "Benjamin Wiegand", email = "highwaychile@posteo.de" }]
 maintainers = [
     { name = "Bastian Leykauf", email = "leykauf@physik.hu-berlin.de" },
 ]
@@ -21,7 +17,6 @@ classifiers = [
 ]
 requires-python = ">=3.10"
 dependencies = [
-    "click>=7.1.2",
     "cma>=3.0.3",
     "pylpsd>=0.1.4",
     "pyrp3>=1.1.0,<2.0;platform_machine=='armv7l'",
