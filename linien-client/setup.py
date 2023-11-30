@@ -20,27 +20,4 @@ from setuptools import find_packages, setup
 
 version = "2.0.0dev0"
 
-setup(
-    name="linien-client",
-    version=version,
-    author="Benjamin Wiegand",
-    author_email="highwaychile@posteo.de",
-    maintainer="Bastian Leykauf",
-    maintainer_email="leykauf@physik.hu-berlin.de",
-    description="Client components of the Linien spectroscopy lock application.",
-    long_description="Have a look at the [project repository](https://github.com/linien-org/linien) for installation instructions.",  # noqa: E501
-    long_description_content_type="text/markdown",
-    url="https://github.com/linien-org/linien/",
-    packages=find_packages(),
-    classifiers=[
-        "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
-        "Operating System :: OS Independent",
-    ],
-    python_requires=">=3.8",
-    install_requires=[
-        "fabric>=2.7.0",
-        "typing_extensions>=4.5.0",
-        "linien-common==2.0.0dev0",
-    ],
-)
+setup()

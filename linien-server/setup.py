@@ -20,44 +20,4 @@ from setuptools import find_packages, setup
 
 version = "2.0.0dev0"
 
-setup(
-    name="linien-server",
-    version=version,
-    author="Benjamin Wiegand",
-    author_email="highwaychile@posteo.de",
-    maintainer="Bastian Leykauf",
-    maintainer_email="leykauf@physik.hu-berlin.de",
-    description="Server components of the Linien spectroscopy lock application.",
-    long_description="Have a look at the [project repository](https://github.com/linien-org/linien) for installation instructions.",  # noqa: E501
-    long_description_content_type="text/markdown",
-    url="https://github.com/linien-org/linien",
-    packages=find_packages(),
-    classifiers=[
-        "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
-        "Operating System :: OS Independent",
-    ],
-    entry_points={"console_scripts": ["linien-server=linien_server.server:run_server"]},
-    python_requires=">=3.10",
-    install_requires=[
-        "click>=7.1.2",
-        "cma>=3.0.3",
-        "pylpsd>=0.1.4",
-        "pyrp3>=1.1.0,<2.0;platform_machine=='armv7l'",  # only install on RedPitaya
-        "requests>=2.25.1",
-        "linien-common==2.0.0.dev0",
-    ],
-    scripts=[
-        "linien_server/linien_start_server.sh",
-        "linien_server/linien_stop_server.sh",
-        "linien_server/linien_install_requirements.sh",
-    ],
-    package_data={
-        "": [
-            "gateware.bin",
-            "linien_start_server.sh",
-            "linien_stop_server.sh",
-            "linien_install_requirements.sh",
-        ]
-    },
-)
+setup()
