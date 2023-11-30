@@ -19,7 +19,7 @@ from setuptools import find_packages, setup
 
 setup(
     name="linien-common",
-    version="1.0.0rc3",
+    version="1.0.0",
     author="Benjamin Wiegand",
     author_email="highwaychile@posteo.de",
     maintainer="Bastian Leykauf",
