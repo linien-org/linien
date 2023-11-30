@@ -51,7 +51,7 @@ def param2ui(
     Listens to parameter changes and sets the value of `element` automatically.
     Optionally, the value can be processed using `process_value`. This function should
     be used because it automatically blocks signal emission from the target element;
-    otherwise this can cause nasty endless loops when quickly changing a paramater
+    otherwise this can cause nasty endless loops when quickly changing a parameter
     multiple times.
     """
 

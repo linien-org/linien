@@ -341,7 +341,7 @@ class Parameters:
 
         self.dual_channel = Parameter(start=False, restorable=True)
         """
-        Linien allows for two simulataneous demodulation channels. By default, only one
+        Linien allows for two simultaneous demodulation channels. By default, only one
         is enabled. This is controlled by `dual_channel`.
         """
 
@@ -578,7 +578,7 @@ class Parameters:
         self.acquisition_raw_data = Parameter()
         self.acquisition_raw_filter_enabled = Parameter(start=False)
         """
-        Raw acquisition has an additiona iir filter that can be used as low pass for
+        Raw acquisition has an additional iir filter that can be used as low pass for
         preventing alias effects
         """
 

@@ -204,7 +204,7 @@ class RemoteParameters:
                 if param.use_cache:
                     param.update_cache(value)
 
-            # Iterate over all canged parameters and call respective callback functions.
+            # Iterate over all changed parameters and call their callback functions.
             for param_name, value in queue:
                 if param_name in self._callbacks:
                     for callback in self._callbacks[param_name]:

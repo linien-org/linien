@@ -198,10 +198,10 @@ class PSDAcquisition:
         )
         self.parameters.psd_data_partial.value = data_pickled
         if complete:
-            # we ave an extra parameter for complete psd data becaue partial
-            # psd data may change quickly. This makes it possible that someone
-            # listening to partial psd data may miss the complete data set because
-            # a new partial trace is being recorded.
+            # we have an extra parameter for complete psd data because partial psd data
+            # may change quickly. This makes it possible that someone listening to
+            # partial psd data may miss the complete data set because a new partial
+            # trace is being recorded.
             self.parameters.psd_data_complete.value = data_pickled
 
     def set_decimation(self, decimation):
