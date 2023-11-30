@@ -34,13 +34,12 @@ setup(
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
         "Operating System :: OS Independent",
     ],
-    python_requires=">=3.8",
+    python_requires=">=3.5",
     install_requires=[
-        "appdirs>=1.4.4",
-        "click>=8.1.3",
         "importlib_metadata>=2.1.3",
-        "numpy>=1.24.2",
+        "numpy>=1.11.0",
         "rpyc>=4.0,<5.0",
-        "scipy>=1.10.1",
+        "scipy>=0.17.0",
+        "appdirs",
     ],
 )
