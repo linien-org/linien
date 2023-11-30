@@ -18,7 +18,7 @@
 
 from setuptools import find_packages, setup
 
-version = "1.0.0"
+version = "2.0.0dev0"
 
 setup(
     name="linien-server",
@@ -38,16 +38,14 @@ setup(
         "Operating System :: OS Independent",
     ],
     entry_points={"console_scripts": ["linien-server=linien_server.server:run_server"]},
-    python_requires=">=3.5",
+    python_requires=">=3.10",
     install_requires=[
-        "certifi==2021.10.8;python_version<'3.10'",  # pinned because of bug in pip 9.0.1, see #339 # noqa: E501
         "click>=7.1.2",
         "cma>=3.0.3",
         "pylpsd>=0.1.4",
         "pyrp3>=1.1.0,<2.0;platform_machine=='armv7l'",  # only install on RedPitaya
-        "requests==2.25.1;python_version<'3.10'",  # pinned because of bug in pip 9.0.1, see #339 # noqa: E501
-        "requests>=2.25.1;python_version>='3.10'",
-        "linien-common==1.0.0",
+        "requests>=2.25.1",
+        "linien-common==2.0.0.dev0",
     ],
     scripts=[
         "linien_server/linien_start_server.sh",
