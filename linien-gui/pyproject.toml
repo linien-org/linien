@@ -1,15 +1,11 @@
 [build-system]
-requires = [
-    "setuptools>=61.2",
-]
+requires = ["setuptools>=61.2"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "linien-gui"
 version = "2.0.0dev0"
-authors = [
-    { name = "Benjamin Wiegand", email = "highwaychile@posteo.de" },
-]
+authors = [{ name = "Benjamin Wiegand", email = "highwaychile@posteo.de" }]
 maintainers = [
     { name = "Bastian Leykauf", email = "leykauf@physik.hu-berlin.de" },
 ]
@@ -21,7 +17,6 @@ classifiers = [
 ]
 requires-python = ">=3.8"
 dependencies = [
-    "click>=7.1.2",
     "pyqtgraph>=0.10.0",
     "PyQt5>=5.12.0",
     "superqt>=0.2.3",
@@ -45,6 +40,4 @@ include-package-data = false
 namespaces = false
 
 [tool.setuptools.package-data]
-icon = [
-    "*.ui",
-]
+icon = ["*.ui"]
