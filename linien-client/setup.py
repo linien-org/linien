@@ -18,7 +18,7 @@
 
 from setuptools import find_packages, setup
 
-version = "0.8.0"
+version = "1.0.0"
 
 setup(
     name="linien-client",
@@ -40,9 +40,7 @@ setup(
     python_requires=">=3.8",
     install_requires=[
         "fabric>=2.7.0",
-        "numpy>=1.22",
-        "patchwork>=1.0.1",
-        "scipy>=1.4.1",
-        f"linien-common=={version}",
+        "typing_extensions>=4.5.0",
+        "linien-common==1.0.0",
     ],
 )

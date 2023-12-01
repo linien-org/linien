@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
 import os
 import sys
 
@@ -26,6 +27,9 @@ from linien_client.exceptions import (
     ServerNotInstalledException,
 )
 from linien_common.communication import hash_username_and_password
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 def read_remote_version(
@@ -72,7 +76,7 @@ def start_remote_server(
         if (local_version != remote_version) and not ("dev" in local_version):
             raise InvalidServerVersionException(local_version, remote_version)
 
-        print("Sending credentials")
+        logger.debug("Sending credentials")
         conn.run(
             'python3 -c "from linien_common.communication import write_hash_to_file;'
             f"write_hash_to_file('{hash_username_and_password(user, password)}')\"",
@@ -81,7 +85,7 @@ def start_remote_server(
             warn=True,
         )
 
-        print("Starting server")
+        logger.debug("Starting server")
         conn.run(
             "linien_start_server.sh",
             out_stream=out_stream,
@@ -116,4 +120,4 @@ def install_remote_server(
                 cmd, out_stream=out_stream, err_stream=out_stream, warn=True
             )
             if result.ok:
-                print(f"Sucesfully executed '{result.command}'")
+                logger.debug(f"Sucesfully executed '{result.command}'")

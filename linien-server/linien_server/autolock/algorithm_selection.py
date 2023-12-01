@@ -15,7 +15,12 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
+
 from linien_common.common import N_POINTS, AutolockMode, determine_shift_by_correlation
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class AutolockAlgorithmSelector:
@@ -60,10 +65,12 @@ class AutolockAlgorithmSelector:
                 for spectrum in additional
             ]
             max_shift = max(abs_shifts)
-            print("jitter / line width ratio:", max_shift / (self.line_width / 2))
+            logger.debug(
+                "jitter / line width ratio: %s" % (max_shift / (self.line_width / 2))
+            )
 
             if max_shift <= self.line_width / 2:
-                self.mode = AutolockMode.FAST
+                self.mode = AutolockMode.SIMPLE
             else:
                 self.mode = AutolockMode.ROBUST
 

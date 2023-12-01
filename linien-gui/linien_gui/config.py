@@ -16,12 +16,16 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 import json
+import logging
 import pickle
 from enum import Enum
 from typing import Callable, Iterator, List, Tuple
 
 import rpyc
 from linien_common.config import USER_DATA_PATH
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 # don't plot more often than once per `DEFAULT_PLOT_RATE_LIMIT` seconds
 DEFAULT_PLOT_RATE_LIMIT = 0.1
@@ -159,7 +163,7 @@ def save_parameter(
         try:
             device["params"][param_name] = rpyc.classic.obtain(value)
         except Exception:
-            print("unable to obtain and save parameter", param_name)
+            logger.exception("unable to obtain and save parameter %s" % param_name)
     else:
         try:
             del device["params"][param_name]

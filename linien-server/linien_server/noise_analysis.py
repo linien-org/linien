@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
 import pickle
 import random
 import string
@@ -29,6 +30,9 @@ from pylpsd import lpsd
 from scipy import signal
 
 ALL_DECIMATIONS = list(range(32))
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 def calculate_psd(
@@ -147,8 +151,8 @@ class PSDAcquisition:
             data = pickle.loads(data_pickled)
 
             current_decimation = self.parameters.acquisition_raw_decimation.value
-            print("recorded signal for decimation", current_decimation)
-            print("recording took", time() - self.time_decimation_set, "s")
+            logger.debug("recorded signal for decimation %s" % current_decimation)
+            logger.debug("recording took %s s" % (time() - self.time_decimation_set))
             self.recorded_signals_by_decimation[current_decimation] = data
             self.recorded_psds_by_decimation[current_decimation] = residual_freq_noise(
                 1 / (125e6) * (2 ** (current_decimation)),
@@ -169,7 +173,7 @@ class PSDAcquisition:
 
             if not complete:
                 new_decimation = self.decimation_index
-                print("set new decimation", new_decimation)
+                logger.debug("set new decimation %s" % new_decimation)
                 self.set_decimation(new_decimation)
             else:
                 self.cleanup()
@@ -194,10 +198,10 @@ class PSDAcquisition:
         )
         self.parameters.psd_data_partial.value = data_pickled
         if complete:
-            # we ave an extra parameter for complete psd data becaue partial
-            # psd data may change quickly. This makes it possible that someone
-            # listening to partial psd data may miss the complete data set because
-            # a new partial trace is being recorded.
+            # we have an extra parameter for complete psd data because partial psd data
+            # may change quickly. This makes it possible that someone listening to
+            # partial psd data may miss the complete data set because a new partial
+            # trace is being recorded.
             self.parameters.psd_data_complete.value = data_pickled
 
     def set_decimation(self, decimation):
@@ -262,7 +266,7 @@ class PIDOptimization:
             psd_data = pickle.loads(psd_data_pickled)
 
             params = (psd_data["p"], psd_data["i"])
-            print("received fitness", psd_data["fitness"], params)
+            logger.debug("received fitness %s, %s" % (psd_data["fitness"], params))
 
             self.engine.tell(psd_data["fitness"], params)
 

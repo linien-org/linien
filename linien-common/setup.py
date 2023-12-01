@@ -19,7 +19,7 @@ from setuptools import find_packages, setup
 
 setup(
     name="linien-common",
-    version="0.8.0",
+    version="1.0.0",
     author="Benjamin Wiegand",
     author_email="highwaychile@posteo.de",
     maintainer="Bastian Leykauf",
@@ -36,6 +36,7 @@ setup(
     ],
     python_requires=">=3.5",
     install_requires=[
+        "appdirs>=1.4.4",
         "importlib_metadata>=2.1.3",
         "numpy>=1.11.0",
         "rpyc>=4.0,<5.0",

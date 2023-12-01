@@ -30,9 +30,17 @@ from linien_gui.ui.new_device_dialog import NewDeviceDialog
 from linien_gui.utils import get_linien_app_instance, set_window_icon
 from linien_gui.widgets import UI_PATH
 from PyQt5 import QtCore, QtWidgets, uic
+from PyQt5.QtWidgets import QPushButton
 
 
 class DeviceManager(QtWidgets.QMainWindow):
+    addButton: QPushButton
+    connectButton: QPushButton
+    editButton: QPushButton
+    moveDownButton: QPushButton
+    moveUpButton: QPushButton
+    removeButton: QPushButton
+
     def __init__(self, *args, **kwargs):
         super(DeviceManager, self).__init__(*args, **kwargs)
         uic.loadUi(UI_PATH / "device_manager.ui", self)
@@ -142,7 +150,7 @@ class DeviceManager(QtWidgets.QMainWindow):
             loading_dialog.hide()
             if not aborted:
                 display_error = (
-                    f"Exception occured when connecting to the device:\n\n {exception}"
+                    f"Exception occurred when connecting to the device:\n\n {exception}"
                 )
                 error_dialog(self, display_error)
 

@@ -21,14 +21,14 @@ from PyQt5 import QtCore, QtWidgets
 
 
 class RightPanel(QtWidgets.QWidget):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super(RightPanel, self).__init__(*args, **kwargs)
         self.app = get_linien_app_instance()
         self.app.connection_established.connect(self.on_connection_established)
-        self.main_window = self.window()
         QtCore.QTimer.singleShot(100, self.ready)
 
-    def ready(self):
+    def ready(self) -> None:
+        self.main_window = self.app.main_window
         self.main_window.closeButton.clicked.connect(self.app.quit)
         self.main_window.shutdownButton.clicked.connect(self.shutdown_server)
         self.main_window.openDeviceManagerButton.clicked.connect(
@@ -38,7 +38,7 @@ class RightPanel(QtWidgets.QWidget):
             self.open_psd_window
         )
 
-    def on_connection_established(self):
+    def on_connection_established(self) -> None:
         self.parameters = self.app.parameters
         self.control = self.app.control
 
@@ -48,23 +48,23 @@ class RightPanel(QtWidgets.QWidget):
         )
         self.parameters.lock.add_callback(self.enable_or_disable_panels)
 
-        def highlight_psd_button(locked):
+        def highlight_psd_button(locked: bool) -> None:
             self.main_window.pid_parameter_optimization_button.setStyleSheet(
                 "background: #00aa00;" if locked else ""
             )
 
         self.parameters.lock.add_callback(highlight_psd_button)
 
-    def shutdown_server(self):
+    def shutdown_server(self) -> None:
         self.app.shutdown()
 
-    def open_psd_window(self):
+    def open_psd_window(self) -> None:
         self.app.open_psd_window()
 
-    def open_device_manager(self):
+    def open_device_manager(self) -> None:
         self.app.open_device_manager()
 
-    def autolock_status_changed(self, value):
+    def autolock_status_changed(self, value: bool) -> None:
         if value:
             self.main_window.settings_toolbox.setCurrentWidget(
                 self.main_window.lockingPanel
@@ -72,7 +72,7 @@ class RightPanel(QtWidgets.QWidget):
 
         self.enable_or_disable_panels()
 
-    def optimization_status_changed(self, value):
+    def optimization_status_changed(self, value: bool) -> None:
         if value:
             self.main_window.settings_toolbox.setCurrentWidget(
                 self.main_window.optimizationPanel
@@ -80,12 +80,12 @@ class RightPanel(QtWidgets.QWidget):
 
         self.enable_or_disable_panels()
 
-    def enable_or_disable_panels(self, *args):
+    def enable_or_disable_panels(self, *args) -> None:
         lock = self.parameters.lock.value
         autolock = self.parameters.autolock_running.value
         optimization = self.parameters.optimization_running.value
 
-        def enable_panels(panel_names, condition):
+        def enable_panels(panel_names, condition: bool) -> None:
             for panel_name in panel_names:
                 getattr(self.main_window, panel_name).setEnabled(condition)
 

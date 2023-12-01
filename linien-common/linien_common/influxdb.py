@@ -16,10 +16,14 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 import json
+import logging
 
 from .config import USER_DATA_PATH
 
 CREDENTIAL_STORE_FILENAME = "influxdb_credentials.json"
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class InfluxDBCredentials:
@@ -49,7 +53,6 @@ class InfluxDBCredentials:
 
 def save_credentials(credentials: InfluxDBCredentials) -> None:
     """Save the credentials to disk."""
-    USER_DATA_PATH.mkdir(parents=True, exist_ok=True)
     filename = str(USER_DATA_PATH / CREDENTIAL_STORE_FILENAME)
     with open(filename, "w") as f:
         json.dump(
@@ -63,7 +66,7 @@ def save_credentials(credentials: InfluxDBCredentials) -> None:
             f,
             indent=2,
         )
-    print("Saved InfluxDB credentials to ", filename)
+    logger.info("Saved InfluxDB credentials to %s" % filename)
 
 
 def restore_credentials() -> InfluxDBCredentials:

@@ -18,6 +18,7 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 import json
+import logging
 from time import time
 from typing import Any, Callable, Dict, Iterator, List, Tuple
 
@@ -26,6 +27,9 @@ from linien_common.common import AutolockMode, MHz, PSDAlgorithm, Vpp
 from linien_common.config import USER_DATA_PATH
 
 PARAMETER_STORE_FILENAME = "linien_parameters.json"
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class Parameter:
@@ -330,14 +334,14 @@ class Parameters:
         """
 
         # ------------------- DEMODULATION AND FILTER PARAMETERS -----------------------
-        self.fast_mode = Parameter(start=False, restorable=True)
+        self.pid_only_mode = Parameter(start=False, restorable=True)
         """
-        Fast mode allows to bypass demodulation and IIR filtering of the fast channels.
+        PID-only mode allows to bypass demodulation, IIR filtering and offset.
         """
 
         self.dual_channel = Parameter(start=False, restorable=True)
         """
-        Linien allows for two simulataneous demodulation channels. By default, only one
+        Linien allows for two simultaneous demodulation channels. By default, only one
         is enabled. This is controlled by `dual_channel`.
         """
 
@@ -534,7 +538,7 @@ class Parameters:
         self.autolock_mode_preference = Parameter(
             start=AutolockMode.AUTO_DETECT, restorable=True
         )
-        self.autolock_mode = Parameter(start=AutolockMode.FAST)
+        self.autolock_mode = Parameter(start=AutolockMode.SIMPLE)
         self.autolock_time_scale = Parameter(start=0)
         self.autolock_instructions = Parameter(start=[], sync=False)
         self.autolock_final_wait_time = Parameter(start=0)
@@ -574,7 +578,7 @@ class Parameters:
         self.acquisition_raw_data = Parameter()
         self.acquisition_raw_filter_enabled = Parameter(start=False)
         """
-        Raw acquisition has an additiona iir filter that can be used as low pass for
+        Raw acquisition has an additional iir filter that can be used as low pass for
         preventing alias effects
         """
 
@@ -672,15 +676,13 @@ def restore_parameters(parameters: Parameters) -> Parameters:
             getattr(parameters, name).log = attributes["log"]
         except AttributeError:  # ignore parameters that don't exist (anymore)
             continue
-    print("Restored parameters from ", filename)
+    logger.info("Restored parameters from %s" % filename)
     return parameters
 
 
 def save_parameters(parameters: Parameters) -> None:
     """Gather all parameters and store them on disk."""
 
-    # make sure that USER_DATA_PATH exists
-    USER_DATA_PATH.mkdir(parents=True, exist_ok=True)
     parameters_dict = {}
     for name, param in parameters:
         if param.restorable:
@@ -697,4 +699,4 @@ def save_parameters(parameters: Parameters) -> None:
             f,
             indent=2,
         )
-    print("Saved parameters to ", filename)
+    logger.info("Saved parameters to %s" % filename)

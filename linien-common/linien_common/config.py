@@ -25,3 +25,7 @@ DEFAULT_SERVER_PORT = 18862
 DEFAULT_SWEEP_SPEED = (125 * 2048) << 6
 
 USER_DATA_PATH = Path(AppDirs("linien").user_data_dir)
+USER_DATA_PATH.mkdir(parents=True, exist_ok=True)
+
+LOG_FILE_PATH = USER_DATA_PATH / "linien.log"
+LOG_FILE_PATH.parent.mkdir(parents=True, exist_ok=True)
