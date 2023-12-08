@@ -146,22 +146,22 @@ def save_device_data(devices: DeviceInfoDict) -> None:
 
 def load_device_data() -> DeviceInfoDict:
     try:
-        with open(USER_DATA_PATH / "devices.json", "r") as f:
+        with open(USER_DATA_PATH / "devices.json", "r") as pickle_file:
             logger.debug(f"Loading devices from {USER_DATA_PATH / 'devices.json'}.")
-            devices = json.load(f)
+            devices = json.load(pickle_file)
     except FileNotFoundError:
         try:
             logger.debug("Loading devices from old pickle file.")
-            with open(USER_DATA_PATH / "devices", "rb") as f:
-                devices = pickle.load(f)
+            with open(USER_DATA_PATH / "devices", "rb") as pickle_file:
+                devices = pickle.load(pickle_file)
                 # convert to the new format
                 devices_new_format = {}
                 for device in devices:
                     key = device["key"]
                     devices_new_format[key] = device
-                with open(USER_DATA_PATH / "devices.json", "w") as f:
-                    json.dump(devices_new_format, f, indent=2)
-                    devices = json.load(f)
+                with open(USER_DATA_PATH / "devices.json", "w") as json_file:
+                    json.dump(devices_new_format, json_file, indent=2)
+                    devices = json.load(json_file)
         except (FileNotFoundError, pickle.UnpicklingError, EOFError):
             logger.debug("No old pickle file found. Return empty dict.")
             devices = {}
