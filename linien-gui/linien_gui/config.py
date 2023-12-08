@@ -18,12 +18,15 @@
 import json
 import logging
 import pickle
+import random
+import string
+from dataclasses import dataclass, field
 from enum import Enum
 from typing import Callable, Dict, Iterator, Tuple, Union
 
 import rpyc
 from linien_common.communication import ParameterValues
-from linien_common.config import USER_DATA_PATH
+from linien_common.config import DEFAULT_SERVER_PORT, USER_DATA_PATH
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -52,6 +55,29 @@ class Color(Enum):
     CONTROL_SIGNAL_HISTORY = 1
     SLOW_HISTORY = 3
     MONITOR_SIGNAL_HISTORY = 4
+
+
+def generate_random_key():
+    return "".join(random.choice(string.ascii_lowercase) for _ in range(10))
+
+
+@dataclass
+class Device:
+    key: str = field(default_factory=generate_random_key)
+    name: str = field(default_factory=str)
+    host: str = field(default_factory=str)
+    port: int = DEFAULT_SERVER_PORT
+    username: str = field(default_factory=str)
+    password: str = field(default_factory=str)
+    parameters: Dict[str, float] = field(default_factory=dict)
+
+    def __post_init__(self):
+        if self.host == "":
+            self.host = "rp-xxxxxx.local"
+        if self.username == "":
+            self.username = "root"
+        if self.password == "":
+            self.password = "root"
 
 
 class Setting:
