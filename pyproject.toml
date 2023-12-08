@@ -20,3 +20,21 @@ plt_dirname = "tests/plots"
 filterwarnings = "ignore::pytest.PytestConfigWarning"
 
 markers = """slow : marks tests as slow (deselect with '-m "not slow"')"""
+
+[tool.mypy]
+plugins = "numpy.typing.mypy_plugin"
+
+[[tool.mypy.overrides]]
+module = [
+  "linien_common.*",
+  "linien_client.*",
+  "rpyc.*",
+  "fabric",
+  "setuptools.*",
+  "scipy.*",
+  "cma.*",
+  "pyrp3.*",
+  "pylpsd.*",
+  "pyqtgraph.*",
+]
+ignore_missing_imports = true
