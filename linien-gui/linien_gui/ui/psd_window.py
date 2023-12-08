@@ -92,8 +92,8 @@ class PSDWindow(QtWidgets.QMainWindow):
         self.parameters.psd_acquisition_running.add_callback(update_status)
 
     def closeEvent(self, event, *args, **kwargs):
-        # we never realy want to close the window (which destroys its content)  but just
-        # to hide it
+        # we never really want to close the window (which destroys its content)  but
+        # just to hide it
         event.ignore()
         self.hide()
 
@@ -114,16 +114,16 @@ class PSDWindow(QtWidgets.QMainWindow):
         curve_uuid = data["uuid"]
 
         if curve_uuid in self.complete_uids:
-            # in networks with high latency it may happen that psd data is not
-            # received in order. We do not want to update a complete plot with
-            # a partial one --> stop here
+            # in networks with high latency it may happen that psd data is not received
+            # in order. We do not want to update a complete plot with a partial one
+            # --> stop here
             return
 
         if data["complete"]:
             self.complete_uids.append(curve_uuid)
 
-        # either re-use the color of the previous partial plot of this curve
-        # or generate a new color if the curve was not yet partially plotted
+        # either reuse the color of the previous partial plot of this curve or generate
+        # a new color if the curve was not yet partially plotted
         if curve_uuid not in self.colors:
             color = self.random_color_choser.get()
             self.colors[curve_uuid] = color
@@ -163,7 +163,7 @@ class PSDWindow(QtWidgets.QMainWindow):
             self,
             "QFileDialog.getSaveFileName()",
             "",
-            "PICKLE (*%s)" % default_ext,
+            f"PICKLE (*{default_ext})",
             options=options,
         )
         if fn:
@@ -188,7 +188,7 @@ class PSDWindow(QtWidgets.QMainWindow):
             self,
             "QFileDialog.getSaveFileName()",
             "",
-            "JSON (*%s)" % default_ext,
+            f"JSON (*{default_ext})",
             options=options,
         )
         if fn:

@@ -45,6 +45,9 @@ binaries](#standalone-binary) containing the graphical user interface
 are recommended.
 These binaries run on your lab PC and contain everything to get Linien running on your RedPitaya.
 
+Both RedPitaya OS 1.x and 2.x are supported. However, support for OS 1.x will be dropped starting
+with Linien 2.x
+
 If you want to use the python interface you should [install it using pip](#installation-with-pip).
 
 ### Standalone binary

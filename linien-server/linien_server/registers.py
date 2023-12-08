@@ -173,8 +173,8 @@ class Registers:
         for instruction_idx, [wait_for, peak_height] in enumerate(
             self.parameters.autolock_instructions.value
         ):
-            new["logic_autolock_robust_peak_height_%d" % instruction_idx] = peak_height
-            new["logic_autolock_robust_wait_for_%d" % instruction_idx] = wait_for
+            new[f"logic_autolock_robust_peak_height_{instruction_idx}"] = peak_height
+            new["logic_autolock_robust_wait_for_{instruction_idx}"] = wait_for
 
         if self.parameters.lock.value:
             # display combined error signal and control signal
@@ -289,15 +289,13 @@ class Registers:
         )
 
         for chain in ("a", "b"):
-            automatic = getattr(self.parameters, "filter_automatic_%s" % chain).value
+            automatic = getattr(self.parameters, f"filter_automatic_{chain}").value
             # iir_idx means iir_c or iir_d
             for iir_idx in range(2):
                 # iir_sub_idx means in-phase signal or quadrature signal
                 for iir_sub_idx in range(2):
-                    iir_name = "fast_%s_iir_%s_%d" % (
-                        chain,
-                        ("c", "d")[iir_idx],
-                        iir_sub_idx + 1,
+                    iir_name = (
+                        f"fast_{chain}_iir_{('c', 'd')[iir_idx]}_{iir_sub_idx + 1}"
                     )
 
                     if automatic:
@@ -316,15 +314,13 @@ class Registers:
                             filter_enabled = False
                     else:
                         filter_enabled = getattr(
-                            self.parameters,
-                            "filter_%d_enabled_%s" % (iir_idx + 1, chain),
+                            self.parameters, f"filter_{iir_idx + 1}_enabled_{chain}"
                         ).value
                         filter_type = getattr(
-                            self.parameters, "filter_%d_type_%s" % (iir_idx + 1, chain)
+                            self.parameters, f"filter_{iir_idx + 1}_type_{chain}"
                         ).value
                         filter_frequency = getattr(
-                            self.parameters,
-                            "filter_%d_frequency_%s" % (iir_idx + 1, chain),
+                            self.parameters, f"filter_{iir_idx + 1}_frequency_{chain}"
                         ).value
 
                     if not filter_enabled:
@@ -346,7 +342,7 @@ class Registers:
                             )
                         else:
                             raise Exception(
-                                "unknown filter %s for %s" % (filter_type, iir_name)
+                                f"Unknown filter {filter_type} for {iir_name}"
                             )
 
         if lock_changed:

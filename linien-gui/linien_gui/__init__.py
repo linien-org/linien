@@ -9,7 +9,7 @@ __version__ = importlib.metadata.version("linien-gui")  # noqa: F401
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-file_handler = RotatingFileHandler(LOG_FILE_PATH, maxBytes=1000000, backupCount=10)
+file_handler = RotatingFileHandler(str(LOG_FILE_PATH), maxBytes=1000000, backupCount=10)
 file_handler.setLevel(logging.DEBUG)
 file_formatter = logging.Formatter(
     "%(asctime)s - %(name)s - %(levelname)s - %(message)s"

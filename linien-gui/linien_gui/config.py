@@ -181,7 +181,7 @@ def save_parameter(
         try:
             device["params"][param_name] = rpyc.classic.obtain(value)
         except Exception:
-            logger.exception("unable to obtain and save parameter %s" % param_name)
+            logger.exception(f"Unable to obtain and save parameter {param_name}")
     else:
         try:
             del device["params"][param_name]

@@ -54,8 +54,7 @@ class InfluxDBLogger:
             self.thread.start()
         else:
             raise ConnectionError(
-                "Failed to connect to InfluxDB database: %s (Status code: %s)"
-                % (message, status_code)
+                f"Failed to connect to InfluxDB database: {message} (Status code: {status_code})"
             )
 
     def stop_logging(self) -> None:
@@ -120,5 +119,5 @@ class InfluxDBLogger:
                 point += " "
             else:
                 point += ","
-            point += "%s=%s" % (key, value)
+            point += f"{key}={value}"
         return point

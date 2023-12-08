@@ -80,6 +80,5 @@ def username_and_password_authenticator(sock: socket) -> Tuple[socket, None]:
 
 
 def write_hash_to_file(hash: str) -> None:
-    USER_DATA_PATH.mkdir(parents=True, exist_ok=True)
     with open(str(USER_DATA_PATH / HASH_FILE_NAME), "w") as f:
         f.write(hash)

@@ -209,7 +209,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.newVersionAvailableLabel.show()
 
     def handle_key_press(self, key):
-        logger.debug("key pressed %s" % key)
+        logger.debug(f"key pressed {key}")
 
     def export_parameters_select_file(self):
         options = QtWidgets.QFileDialog.Options()
@@ -219,7 +219,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self,
             "QFileDialog.getSaveFileName()",
             "",
-            "JSON (*%s)" % default_ext,
+            f"JSON (*{default_ext})",
             options=options,
         )
         if fn:
@@ -281,7 +281,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 ]
 
                 if error_signal is not None and control_signal is not None:
-                    self.error_std.setText("%.2f" % np.mean(self.error_std_history))
+                    self.error_std.setText(f"{np.mean(self.error_std_history):.2f}")
                     self.control_std.setText(f"{np.mean(self.control_std_history):.2f}")
 
     def reset_std_history(self):

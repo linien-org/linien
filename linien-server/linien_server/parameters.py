@@ -341,7 +341,7 @@ class Parameters:
 
         self.dual_channel = Parameter(start=False, restorable=True)
         """
-        Linien allows for two simulataneous demodulation channels. By default, only one
+        Linien allows for two simultaneous demodulation channels. By default, only one
         is enabled. This is controlled by `dual_channel`.
         """
 
@@ -578,7 +578,7 @@ class Parameters:
         self.acquisition_raw_data = Parameter()
         self.acquisition_raw_filter_enabled = Parameter(start=False)
         """
-        Raw acquisition has an additiona iir filter that can be used as low pass for
+        Raw acquisition has an additional iir filter that can be used as low pass for
         preventing alias effects
         """
 
@@ -674,15 +674,13 @@ def restore_parameters(parameters: Parameters) -> Parameters:
             getattr(parameters, name).log = attributes["log"]
         except AttributeError:  # ignore parameters that don't exist (anymore)
             continue
-    logger.info("Restored parameters from %s" % filename)
+    logger.info(f"Restored parameters from {filename}")
     return parameters
 
 
 def save_parameters(parameters: Parameters) -> None:
     """Gather all parameters and store them on disk."""
 
-    # make sure that USER_DATA_PATH exists
-    USER_DATA_PATH.mkdir(parents=True, exist_ok=True)
     parameters_dict = {}
     for name, param in parameters:
         if param.restorable:
@@ -699,4 +697,4 @@ def save_parameters(parameters: Parameters) -> None:
             f,
             indent=2,
         )
-    logger.info("Saved parameters to %s" % filename)
+    logger.info(f"Saved parameters to {filename}")

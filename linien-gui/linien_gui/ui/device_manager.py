@@ -150,7 +150,7 @@ class DeviceManager(QtWidgets.QMainWindow):
             loading_dialog.hide()
             if not aborted:
                 display_error = (
-                    f"Exception occured when connecting to the device:\n\n {exception}"
+                    f"Exception occurred when connecting to the device:\n\n {exception}"
                 )
                 error_dialog(self, display_error)
 

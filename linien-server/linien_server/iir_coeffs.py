@@ -144,8 +144,8 @@ def get_params(b, a, shift=None, width=25, interval=1):
     b, a, shift = quantize_filter(b, a, shift, width)
     params = {}
     for i, (ai, bi) in enumerate(zip(a, b)):
-        params["a%i" % i] = int(-ai)
-        params["b%i" % i] = int(bi)
+        params[f"a{i}"] = int(-ai)
+        params[f"b{i}"] = int(bi)
     del params["a0"]
     # params["shift"] = shift
     return b, a, params

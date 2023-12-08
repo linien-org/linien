@@ -106,14 +106,16 @@ class LoggingPanel(QtWidgets.QWidget):
             bucket=self.lineEditBucket.text(),
             measurement=self.lineEditMeas.text(),
         )
-        sucess, status_code, message = self.control.exposed_update_influxdb_credentials(
-            credentials
-        )
-        update_msg = f"Update of InfluxDB credentials successful: {sucess}"
-        if not sucess:
+        (
+            success,
+            status_code,
+            message,
+        ) = self.control.exposed_update_influxdb_credentials(credentials)
+        update_msg = f"Update of InfluxDB credentials successful: {success}"
+        if not success:
             update_msg += f" (Status {status_code}): {message}"
         logger.info(update_msg)
-        self.influx_credentials_update.emit(sucess, status_code, message)
+        self.influx_credentials_update.emit(success, status_code, message)
 
     def on_influxdb_credentials_updated(
         self, success: bool, status_code: int, message: str
