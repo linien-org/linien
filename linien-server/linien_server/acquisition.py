@@ -326,5 +326,5 @@ def stop_nginx():
 
 if __name__ == "__main__":
     threaded_server = ThreadedServer(AcquisitionService(), port=ACQUISITION_PORT)
-    logger.info("Starting AcquisitionService on port %s" % ACQUISITION_PORT)
+    logger.info(f"Starting AcquisitionService on port {ACQUISITION_PORT}")
     threaded_server.start()

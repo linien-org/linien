@@ -39,8 +39,7 @@ class InvalidServerVersionException(Exception):
         self.remote_version = remote_version
 
         super().__init__(
-            "Version mismatch: Client is %s and server is %s"
-            % (client_version, remote_version)
+            f"Version mismatch: Client is {client_version} and server is {remote_version}"
         )
 
 

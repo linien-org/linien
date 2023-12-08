@@ -44,7 +44,7 @@ class PythonCSR:
         bit_mask = ma - 1
         val = value & bit_mask
         assert value == val or ma + value == val, (
-            "value for %s out of range" % name,
+            f"Value for {name} out of range",
             (value, val, ma),
         )
 
@@ -76,10 +76,10 @@ class PythonCSR:
             self.set(prefix + "_" + k, params[k])
         self.set(prefix + "_z0", z)
         for i in range(len(b), 3):
-            n = prefix + "_b%i" % i
+            n = prefix + f"_b{i}"
             if n in self.map:
                 self.set(n, 0)
-                self.set(prefix + "_a%i" % i, 0)
+                self.set(prefix + f"_a{i}", 0)
 
     def states(self, *names):
         return sum(1 << csrmap.states.index(name) for name in names)

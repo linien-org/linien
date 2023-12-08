@@ -88,7 +88,7 @@ class Approacher:
         )
         shift *= initial_sweep_amplitude
         self.history.append((zoomed_ref, zoomed_err))
-        self.history.append("shift %f" % (-1 * shift))
+        self.history.append(f"shift {-1 * shift}")
 
         if self.N_at_this_zoom == 0:
             # if we are at the final zoom, we should be very quick.

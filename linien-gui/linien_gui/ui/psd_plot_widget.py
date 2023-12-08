@@ -34,7 +34,7 @@ class CustomLogAxis(pg.AxisItem):
         # this method is mainly taken from pyqtgraph, just taking care that negative
         # exponents are also displayed in scientific notation
         estrings = [
-            "%0.1e" % x for x in 10 ** np.array(values).astype(float) * np.array(scale)
+            f"{x:0.1e}" for x in 10 ** np.array(values).astype(float) * np.array(scale)
         ]
 
         convdict = {
@@ -81,7 +81,7 @@ class PSDPlotWidget(pg.PlotWidget):
                 "bottom": CustomLogAxis(orientation="bottom"),
                 "left": CustomLogAxis(orientation="left"),
             },
-            **kwargs
+            **kwargs,
         )
         self.app = get_linien_app_instance()
         self.app.connection_established.connect(self.on_connection_established)
@@ -193,7 +193,7 @@ class PSDPlotWidget(pg.PlotWidget):
 
             # if index > 0 and index < self.MFmax:
             self.cursor_label.setHtml(
-                "<span style='font-size: 12pt'>(%.1e,%.1e)</span>" % (10**x, 10**y)
+                f"<span style='font-size: 12pt'>({10**x:.1e},{10**y:.1e})</span>"
             )
             # this determines whether cursor label is on right or left side of
             # crosshair

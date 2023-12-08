@@ -69,7 +69,7 @@ class SimpleAutolock:
             round((shift * (-1)) * self.parameters.sweep_amplitude.value * 8191)
         )
 
-        logger.debug("lock point is %s, shift is %s" % (lock_point, shift))
+        logger.debug(f"lock point is {lock_point}, shift is {shift}")
 
         self.parameters.autolock_target_position.value = int(lock_point)
         self.parameters.autolock_preparing.value = False
