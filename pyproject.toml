@@ -1,5 +1,5 @@
 [tool.black]
-exclude = '''
+force-exclude = """
 (
   /(
     gateware/logic
@@ -8,7 +8,7 @@ exclude = '''
    | linien-server/linien_server/csrmap.py
    )/
 )
-'''
+"""
 
 [tool.isort]
 profile = "black"
