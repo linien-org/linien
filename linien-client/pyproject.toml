@@ -1,15 +1,11 @@
 [build-system]
-requires = [
-    "setuptools>=61.2",
-]
+requires = ["setuptools>=61.2"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "linien-client"
-version = "2.0.0dev0"
-authors = [
-    { name = "Benjamin Wiegand", email = "highwaychile@posteo.de" },
-]
+version = "2.0.0.dev0"
+authors = [{ name = "Benjamin Wiegand", email = "highwaychile@posteo.de" }]
 maintainers = [
     { name = "Bastian Leykauf", email = "leykauf@physik.hu-berlin.de" },
 ]
@@ -23,7 +19,7 @@ requires-python = ">=3.8"
 dependencies = [
     "fabric>=2.7.0",
     "typing_extensions>=4.5.0",
-    "linien-common==2.0.0dev0",
+    "linien-common==2.0.0.dev0",
 ]
 
 [project.readme]

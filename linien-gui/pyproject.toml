@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "linien-gui"
-version = "2.0.0dev0"
+version = "2.0.0.dev0"
 authors = [{ name = "Benjamin Wiegand", email = "highwaychile@posteo.de" }]
 maintainers = [
     { name = "Bastian Leykauf", email = "leykauf@physik.hu-berlin.de" },
@@ -20,7 +20,7 @@ dependencies = [
     "pyqtgraph>=0.10.0",
     "PyQt5>=5.12.0",
     "superqt>=0.2.3",
-    "linien_client==2.0.0dev0",
+    "linien_client==2.0.0.dev0",
 ]
 
 [project.readme]
