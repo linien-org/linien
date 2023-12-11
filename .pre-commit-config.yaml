@@ -6,7 +6,7 @@ repos:
         exclude: ^(gateware/logic/|gateware/lowlevel/|gateware/linien_module.py|linien-server/linien_server/csrmap.py)
 
   - repo: https://github.com/pycqa/isort
-    rev: 5.12.0
+    rev: 5.13.0
     hooks:
       - id: isort
         name: isort (python)
