@@ -17,6 +17,7 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 import linien_gui
+from linien_client.communication import Device
 from linien_gui.config import load_device_data, save_device_data
 from linien_gui.dialogs import (
     LoadingDialog,
@@ -30,12 +31,13 @@ from linien_gui.ui.new_device_dialog import NewDeviceDialog
 from linien_gui.utils import get_linien_app_instance, set_window_icon
 from linien_gui.widgets import UI_PATH
 from PyQt5 import QtCore, QtWidgets, uic
-from PyQt5.QtWidgets import QPushButton
+from PyQt5.QtWidgets import QListWidget, QPushButton
 
 
 class DeviceManager(QtWidgets.QMainWindow):
     addButton: QPushButton
     connectButton: QPushButton
+    deviceList: QListWidget
     editButton: QPushButton
     moveDownButton: QPushButton
     moveUpButton: QPushButton
@@ -56,26 +58,25 @@ class DeviceManager(QtWidgets.QMainWindow):
             self.connect()
 
     def populate_device_list(self, autoload=False):
-        devices = list(load_device_data().values())
-        lst = self.deviceList
-        lst.clear()
+        devices = load_device_data()
 
+        self.deviceList.clear()
         for device in devices:
-            lst.addItem("{} ({})".format(device["name"], device["host"]))
+            self.deviceList.addItem(f"{device.name} ({device.host})")
 
         if autoload and len(devices) == 1:
             self.connect_to_device(devices[0])
 
     def connect(self) -> None:
-        devices = list(load_device_data().values())
+        devices = load_device_data()
 
         if not devices:
             return
         else:
             self.connect_to_device(devices[self.get_list_index()])
 
-    def connect_to_device(self, device: dict):
-        loading_dialog = LoadingDialog(self, device["host"])
+    def connect_to_device(self, device: Device):
+        loading_dialog = LoadingDialog(self, device.host)
         loading_dialog.show()
 
         aborted = {}
@@ -196,16 +197,15 @@ class DeviceManager(QtWidgets.QMainWindow):
         # Start the worker -------------------------------------------------------------
         self.connection_thread.start()
 
+    def reload_device_data(self) -> None:
+        # not very elegant...
+        QtCore.QTimer.singleShot(100, self.populate_device_list)
+
     def new_device(self):
         self.dialog = NewDeviceDialog()
         self.dialog.setModal(True)
         self.dialog.show()
-
-        def reload_device_data():
-            # not very elegant...
-            QtCore.QTimer.singleShot(100, self.populate_device_list)
-
-        self.dialog.accepted.connect(reload_device_data)
+        self.dialog.accepted.connect(self.reload_device_data)
 
     def edit_device(self):
         devices = load_device_data()
@@ -213,19 +213,12 @@ class DeviceManager(QtWidgets.QMainWindow):
         if not devices:
             return
 
-        # dicts are ordered since python 3.7
-        key = list(devices)[self.get_list_index()]
-        device = devices[key]
+        device = devices[self.get_list_index()]
 
         self.dialog = NewDeviceDialog(device)
         self.dialog.setModal(True)
         self.dialog.show()
-
-        def reload_device_data():
-            # not very elegant...
-            QtCore.QTimer.singleShot(100, self.populate_device_list)
-
-        self.dialog.accepted.connect(reload_device_data)
+        self.dialog.accepted.connect(self.reload_device_data)
 
     def move_device_up(self):
         self.move_device(-1)
@@ -233,8 +226,8 @@ class DeviceManager(QtWidgets.QMainWindow):
     def move_device_down(self):
         self.move_device(1)
 
-    def move_device(self, direction):
-        devices = list(load_device_data().values())
+    def move_device(self, direction: int) -> None:
+        devices = load_device_data()
 
         if not devices:
             return
@@ -255,7 +248,7 @@ class DeviceManager(QtWidgets.QMainWindow):
         return self.deviceList.currentIndex().row()
 
     def remove_device(self):
-        devices = list(load_device_data().values())
+        devices = load_device_data()
 
         if not devices:
             return

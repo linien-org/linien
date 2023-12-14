@@ -15,12 +15,11 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-import random
-import string
-from typing import Dict, Optional
 
+from typing import Optional
+
+from linien_client.communication import Device
 from linien_common.communication import ParameterValues
-from linien_common.config import DEFAULT_SERVER_PORT
 from linien_gui.config import load_device_data, save_device_data
 from linien_gui.widgets import UI_PATH
 from PyQt5 import QtWidgets, uic
@@ -32,38 +31,29 @@ class NewDeviceDialog(QtWidgets.QDialog):
     username: QtWidgets.QLineEdit
     password: QtWidgets.QLineEdit
     port: QtWidgets.QSpinBox
-    explain_host: QtWidgets.QLabel
+    explainHostLabel: QtWidgets.QLabel
 
-    def __init__(
-        self, initial_device: Optional[Dict[str, ParameterValues]] = None
-    ) -> None:
+    def __init__(self, device: Optional[Device] = None) -> None:
         super(NewDeviceDialog, self).__init__()
         uic.loadUi(UI_PATH / "new_device_dialog.ui", self)
 
-        if initial_device is not None:
-            self.deviceName.setText(initial_device["name"])
-            self.host.setText(initial_device["host"])
-            self.username.setText(initial_device["username"])
-            self.password.setText(initial_device["password"])
-            self.port.setValue(initial_device.get("port", DEFAULT_SERVER_PORT))
-            self.explain_host.setVisible(False)
-            self.key = initial_device["key"]
+        if device is None:
+            self.device = Device()  # create a new empty device
         else:
-            self.key = "".join(random.choice(string.ascii_lowercase) for i in range(10))
+            self.device = device
+            self.explainHostLabel.setVisible(False)
+
+        self.deviceName.setText(self.device.name)
+        self.host.setText(self.device.host)
+        self.username.setText(self.device.username)
+        self.password.setText(self.device.password)
+        self.port.setValue(self.device.port)
 
     def add_new_device(self):
-        new_device = {
-            self.key: {
-                "name": self.deviceName.text(),
-                "host": self.host.text(),
-                "username": self.username.text(),
-                "password": self.password.text(),
-                "port": self.port.value(),
-                "params": {},
-            }
-        }
+        self.device.name = self.deviceName.text()
+        self.device.host = self.host.text()
+        self.device.username = self.username.text()
+        self.device.password = self.password.text()
+        self.device.port = self.port.value()
 
-        old_devices = load_device_data()
-        devices = {**old_devices}
-        devices[self.key] = new_device[self.key]
-        save_device_data(devices)
+        save_device_data(self.device)

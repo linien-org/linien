@@ -17,6 +17,7 @@
 
 from typing import Callable
 
+from linien_client.communication import Device
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import (
     QDialog,
@@ -56,7 +57,7 @@ class SSHCommandOutputWidget(QListWidget):
 
 
 def show_installation_progress_widget(
-    parent: QWidget, device: dict, callback: Callable
+    parent: QWidget, device: Device, callback: Callable
 ):
     window = QDialog(parent)
     window.setWindowTitle("Deploying Linien Server")

@@ -15,10 +15,43 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-from typing import Any, List, Tuple
+import random
+import string
+from dataclasses import dataclass, field
+from typing import Any, Dict, List, Tuple
 
+from linien_common.config import DEFAULT_SERVER_PORT
 from linien_common.influxdb import InfluxDBCredentials
 from typing_extensions import Protocol
+
+
+def generate_random_key():
+    """Generate a random key for the device."""
+    return "".join(random.choice(string.ascii_lowercase) for _ in range(10))
+
+
+@dataclass
+class Device:
+    key: str = field(default_factory=generate_random_key)
+    name: str = field(default_factory=str)
+    host: str = field(default_factory=str)
+    port: int = DEFAULT_SERVER_PORT
+    username: str = field(default_factory=str)
+    password: str = field(default_factory=str)
+    parameters: Dict[str, float] = field(default_factory=dict)
+
+    def __post_init__(self):
+        if self.host == "":
+            self.host = "rp-xxxxxx.local"
+        if self.username == "":
+            self.username = "root"
+        if self.password == "":
+            self.password = "root"
+        # FIXME: is this even necessary?
+        if self.host in ("localhost", "127.0.0.1"):
+            # RP is configured such that "localhost" doesn't point to 127.0.0.1 in all
+            # cases
+            self.host = "127.0.0.1"
 
 
 class LinienControlService(Protocol):

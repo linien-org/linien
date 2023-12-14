@@ -19,6 +19,8 @@
 import logging
 import traceback
 
+import rpyc
+from linien_client.communication import Device
 from linien_client.connection import LinienClient
 from linien_client.deploy import install_remote_server
 from linien_client.exceptions import (
@@ -27,10 +29,9 @@ from linien_client.exceptions import (
     RPYCAuthenticationException,
     ServerNotInstalledException,
 )
-from linien_common.config import DEFAULT_SERVER_PORT
 from PyQt5.QtCore import QObject, QThread, pyqtSignal
 
-from .config import get_saved_parameters, save_parameter
+from .config import save_device_data
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -50,7 +51,7 @@ class RemoteOutStream(QObject):
 
 
 class RemoteServerInstallationThread(QThread):
-    def __init__(self, device: dict):
+    def __init__(self, device: Device):
         """A thread that installs the linien server on a remote machine."""
         super(RemoteServerInstallationThread, self).__init__()
         self.device = device
@@ -58,16 +59,11 @@ class RemoteServerInstallationThread(QThread):
     out_stream = RemoteOutStream()
 
     def run(self):
-        install_remote_server(
-            host=self.device["host"],
-            user=self.device["username"],
-            password=self.device["password"],
-            out_stream=self.out_stream,
-        )
+        install_remote_server(self.device, out_stream=self.out_stream)
 
 
 class ConnectionThread(QThread):
-    def __init__(self, device: dict):
+    def __init__(self, device: Device):
         super(ConnectionThread, self).__init__()
         self.device = device
 
@@ -82,13 +78,7 @@ class ConnectionThread(QThread):
 
     def run(self):
         try:
-            self.client = LinienClient(
-                host=self.device["host"],
-                user=self.device["username"],
-                password=self.device["password"],
-                port=self.device.get("port", DEFAULT_SERVER_PORT),
-                name=self.device.get("name", ""),
-            )
+            self.client = LinienClient(self.device)
             self.client.connect(
                 autostart_server=True,
                 use_parameter_cache=True,
@@ -106,7 +96,7 @@ class ConnectionThread(QThread):
                 # because we don't want to override our local settings with the remote
                 # one --> we wait until user has answered whether local parameters or
                 # remote ones should be used.
-                self.write_restorable_parameters_to_disk_on_change()
+                self.register_callbacks_to_write_parameters_to_disk_on_change()
 
         except ServerNotInstalledException:
             self.server_not_installed_exception_raised.emit()
@@ -133,28 +123,25 @@ class ConnectionThread(QThread):
         if should_restore:
             self.restore_parameters(dry_run=False)
 
-        self.write_restorable_parameters_to_disk_on_change()
+        self.register_callbacks_to_write_parameters_to_disk_on_change()
 
     def restore_parameters(self, dry_run=False):
         """
-        Reads settings for a server that were cached locally. Sends them to the server.
+        Read settings for a server that were cached locally. Sends them to the server.
         If `dry_run` is...
 
-            * `True`, this function returns a boolean indicating whether the
-              local parameters differ from the ones on the server
+            * `True`, this function returns a boolean indicating whether the local
+              parameters differ from the ones on the server
             * `False`, the local parameters are uploaded to the server
         """
-        params = get_saved_parameters(self.device["key"])
         logger.info("Restoring parameters")
-
         differences = False
-
-        for key, val in params.items():
+        for key, val in self.device.parameters.items():
             if hasattr(self.client.parameters, key):
                 param = getattr(self.client.parameters, key)
                 if param.value != val:
                     if dry_run:
-                        logger.info(f"parameter {key} differs")
+                        logger.info(f"Parameter {key} differs")
                         differences = True
                         break
                     else:
@@ -165,14 +152,15 @@ class ConnectionThread(QThread):
                 logger.warning(
                     f"Unable to restore parameter {key}. Delete the cached value."
                 )
-                save_parameter(self.device["key"], key, None, delete=True)
+                del self.device.parameters[key]
+                save_device_data(self.device)
 
         if not dry_run:
             self.client.control.write_registers()
 
         return differences
 
-    def write_restorable_parameters_to_disk_on_change(self):
+    def register_callbacks_to_write_parameters_to_disk_on_change(self) -> None:
         """
         Listens for changes of some parameters and permanently saves their values on the
         client's disk. This data can be used to restore the status later, if the client
@@ -182,6 +170,10 @@ class ConnectionThread(QThread):
             if parameter.restorable:
 
                 def on_change(value, parameter_name: str = parameter_name) -> None:
-                    save_parameter(self.device["key"], parameter_name, value)
+                    # FIXME: This is the only part where rpyc is used in linien-gui.
+                    # Remove it if possible. rpyc obtain is for ensuring that we don't
+                    # try to save a netref here.
+                    self.device.parameters[parameter_name] = rpyc.classic.obtain(value)
+                    save_device_data(self.device)
 
                 parameter.add_callback(on_change)

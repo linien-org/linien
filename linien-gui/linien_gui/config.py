@@ -1,4 +1,6 @@
 # Copyright 2018-2022 Benjamin Wiegand <benjamin.wiegand@physik.hu-berlin.de>
+# Copyright 2023 Bastian Leykauf <leykauf@physik.hu-berlin.de>
+
 #
 # This file is part of Linien and based on redpid.
 #
@@ -17,22 +19,16 @@
 
 import json
 import logging
-import pickle
-import random
-import string
-from dataclasses import dataclass, field
+from dataclasses import asdict
 from enum import Enum
-from typing import Callable, Dict, Iterator, Tuple, Union
+from typing import Callable, Dict, Iterator, List, Tuple
 
-import rpyc
-from linien_common.communication import ParameterValues
-from linien_common.config import DEFAULT_SERVER_PORT, USER_DATA_PATH
+from linien_client.communication import Device
+from linien_common.config import USER_DATA_PATH
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-DeviceInfo = Dict[str, Union[str, int, Dict[str, ParameterValues]]]
-DeviceInfoDict = Dict[str, DeviceInfo]
 
 # don't plot more often than once per `DEFAULT_PLOT_RATE_LIMIT` seconds
 DEFAULT_PLOT_RATE_LIMIT = 0.1
@@ -55,29 +51,6 @@ class Color(Enum):
     CONTROL_SIGNAL_HISTORY = 1
     SLOW_HISTORY = 3
     MONITOR_SIGNAL_HISTORY = 4
-
-
-def generate_random_key():
-    return "".join(random.choice(string.ascii_lowercase) for _ in range(10))
-
-
-@dataclass
-class Device:
-    key: str = field(default_factory=generate_random_key)
-    name: str = field(default_factory=str)
-    host: str = field(default_factory=str)
-    port: int = DEFAULT_SERVER_PORT
-    username: str = field(default_factory=str)
-    password: str = field(default_factory=str)
-    parameters: Dict[str, float] = field(default_factory=dict)
-
-    def __post_init__(self):
-        if self.host == "":
-            self.host = "rp-xxxxxx.local"
-        if self.username == "":
-            self.username = "root"
-        if self.password == "":
-            self.password = "root"
 
 
 class Setting:
@@ -165,60 +138,28 @@ def load_settings() -> Settings:
     return settings
 
 
-def save_device_data(devices: DeviceInfoDict) -> None:
+def save_device_data(device: Device) -> None:
+    devices = load_device_data()
+    replaced_existing = False
+    for i, dev in enumerate(devices):
+        if dev.key == device.key:
+            devices[i] = device
+            replaced_existing = True
+            logger.debug(f"Replaced device with key {device.key}.")
+            break
+    if not replaced_existing:
+        devices.append(device)
+        logger.debug(f"Added device with key {device.key}.")
     with open(USER_DATA_PATH / "devices.json", "w") as f:
-        json.dump(devices, f, indent=2)
+        json.dump({i: asdict(device) for i, device in enumerate(devices)}, f, indent=2)
 
 
-def load_device_data() -> DeviceInfoDict:
+def load_device_data() -> List[Device]:
     try:
-        with open(USER_DATA_PATH / "devices.json", "r") as pickle_file:
+        with open(USER_DATA_PATH / "devices.json", "r") as f:
             logger.debug(f"Loading devices from {USER_DATA_PATH / 'devices.json'}.")
-            devices = json.load(pickle_file)
+            devices = [Device(**value) for _, value in json.load(f).items()]
     except FileNotFoundError:
-        try:
-            logger.debug("Loading devices from old pickle file.")
-            with open(USER_DATA_PATH / "devices", "rb") as pickle_file:
-                devices = pickle.load(pickle_file)
-                # convert to the new format
-                devices_new_format = {}
-                for device in devices:
-                    key = device["key"]
-                    devices_new_format[key] = device
-                with open(USER_DATA_PATH / "devices.json", "w") as json_file:
-                    json.dump(devices_new_format, json_file, indent=2)
-                    devices = json.load(json_file)
-        except (FileNotFoundError, pickle.UnpicklingError, EOFError):
-            logger.debug("No old pickle file found. Return empty dict.")
-            devices = {}
+        logger.debug("No devices.json found. Return empty list.")
+        devices = []
     return devices
-
-
-def save_parameter(
-    device_key: str, param_name: str, value: ParameterValues, delete: bool = False
-):
-    devices = load_device_data()
-    device = devices[device_key]
-    device.setdefault("params", {})
-
-    if not delete:
-        # FIXME: This is the only part where rpyc is used in linien-gui. Remove it if
-        # possible. rpyc obtain is for ensuring that we don't try to save a netref here
-        try:
-            device["params"][param_name] = rpyc.classic.obtain(value)
-        except Exception:
-            logger.exception(f"Unable to obtain and save parameter {param_name}")
-    else:
-        try:
-            del device["params"][param_name]
-        except KeyError:
-            pass
-
-    save_device_data(devices)
-
-
-def get_saved_parameters(device_key: str) -> Dict[str, ParameterValues]:
-    devices = load_device_data()
-    device = devices[device_key]
-    device.setdefault("params", {})
-    return device["params"]
