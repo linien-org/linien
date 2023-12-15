@@ -17,7 +17,6 @@
 
 from threading import Event, Thread
 from time import sleep
-from typing import Tuple
 
 import requests
 from linien_common.influxdb import InfluxDBCredentials, save_credentials
@@ -76,7 +75,7 @@ class InfluxDBLogger:
 
     def test_connection(
         self, credentials: InfluxDBCredentials
-    ) -> Tuple[bool, int, str]:
+    ) -> tuple[bool, int, str]:
         """Write empty data to the server to test the connection"""
         try:
             response = self.write_data(credentials, data={})

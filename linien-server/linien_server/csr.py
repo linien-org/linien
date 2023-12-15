@@ -27,7 +27,7 @@ class PythonCSR:
     constants = csrmap.csr_constants
     offset = 0x40300000
 
-    def __init__(self, rp):
+    def __init__(self, rp) -> None:
         self.rp = rp
 
     def set_one(self, addr: str, value: int) -> None:
@@ -36,7 +36,7 @@ class PythonCSR:
     def get_one(self, addr):
         return int(self.rp.read(addr))
 
-    def set(self, name, value):
+    def set(self, name, value) -> None:
         map, addr, width, wr = self.map[name]
         assert wr, name
 
@@ -66,7 +66,7 @@ class PythonCSR:
             )
         return v
 
-    def set_iir(self, prefix, b, a, z=0):
+    def set_iir(self, prefix, b, a, z=0) -> None:
         shift = self.get(prefix + "_shift") or 16
         width = self.get(prefix + "_width") or 18
         interval = self.get(prefix + "_interval") or 1

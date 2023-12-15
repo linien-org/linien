@@ -24,7 +24,7 @@ from copy import copy
 from random import randint, random
 from threading import Event, Thread
 from time import sleep
-from typing import List, Optional, Tuple
+from typing import Optional
 
 import click
 import numpy as np
@@ -95,7 +95,7 @@ class BaseService(rpyc.Service):
         self.parameters.register_remote_listener(uuid, param_name)
 
     def exposed_register_remote_listeners(
-        self, uuid: str, param_names: List[str]
+        self, uuid: str, param_names: list[str]
     ) -> None:
         for param_name in param_names:
             self.exposed_register_remote_listener(uuid, param_name)
@@ -113,7 +113,7 @@ class BaseService(rpyc.Service):
 
     def exposed_update_influxdb_credentials(
         self, credentials: InfluxDBCredentials
-    ) -> Tuple[bool, int, str]:
+    ) -> tuple[bool, int, str]:
         credentials = copy(credentials)
         (
             connection_succesful,

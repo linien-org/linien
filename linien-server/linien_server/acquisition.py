@@ -18,13 +18,12 @@
 
 import logging
 import pickle
-import shutil
 import subprocess
 from pathlib import Path
 from random import random
 from threading import Event, Thread
 from time import sleep
-from typing import Any, Dict, Optional, Tuple, Union
+from typing import Any, Optional
 
 import numpy as np
 from linien_common.common import DECIMATION, MAX_N_POINTS, N_POINTS
@@ -40,7 +39,7 @@ logger.setLevel(logging.DEBUG)
 
 
 class AcquisitionService(Service):
-    def __init__(self):
+    def __init__(self) -> None:
         super(AcquisitionService, self).__init__()
         stop_nginx()
         flash_fpga()
@@ -142,7 +141,7 @@ class AcquisitionService(Service):
 
             self.program_acquisition_and_rearm()
 
-    def read_data(self) -> Dict[str, np.ndarray]:
+    def read_data(self) -> dict[str, np.ndarray]:
         signals = []
 
         channel_offsets = [0x10000]
@@ -189,7 +188,7 @@ class AcquisitionService(Service):
 
     def read_data_raw(
         self, offset: int, addr: int, data_length: int
-    ) -> Tuple[Any, ...]:
+    ) -> tuple[Any, ...]:
         max_data_length = 16383
         if data_length + addr > max_data_length:
             to_read_later = data_length + addr - max_data_length
@@ -242,13 +241,7 @@ class AcquisitionService(Service):
 
     def exposed_return_data(
         self, last_hash: Optional[float]
-    ) -> Tuple[
-        bool,
-        Union[float, None],
-        Union[bool, None],
-        Union[bytes, None],
-        Union[float, None],
-    ]:
+    ) -> tuple[bool, float | None, bool | None, bytes | None, float | None,]:
         no_data_available = self.data_hash is None
         data_not_changed = self.data_hash == last_hash
         if data_not_changed or no_data_available or self.pause_event.is_set():

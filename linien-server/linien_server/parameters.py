@@ -20,7 +20,7 @@
 import json
 import logging
 from time import time
-from typing import Any, Callable, Dict, Iterator, List, Tuple
+from typing import Any, Callable, Iterator
 
 import linien_server
 from linien_common.common import AutolockMode, MHz, PSDAlgorithm, Vpp
@@ -121,9 +121,9 @@ class Parameters:
     """
 
     def __init__(self):
-        # Dict[str, List[Tuple[str, Any]]]
+        # dict[str, list[tuple[str, Any]]]
         self._changed_parameters_queue = {}
-        # Dict[Tuple[Parameter, Callable[[Any], None]]]
+        # dict[tuple[Parameter, Callable[[Any], None]]]
         self._remote_listener_callbacks = {}
 
         self.to_plot = Parameter(sync=False)
@@ -594,14 +594,14 @@ class Parameters:
             start=18, min_=1, max_=32, restorable=True
         )
 
-    def __iter__(self) -> Iterator[Tuple[str, Parameter]]:
+    def __iter__(self) -> Iterator[tuple[str, Parameter]]:
         for name, param in self.__dict__.items():
             if isinstance(param, Parameter):
                 yield name, param
 
     def init_parameter_sync(
         self, uuid: str
-    ) -> Iterator[Tuple[str, Any, bool, bool, bool, bool]]:
+    ) -> Iterator[tuple[str, Any, bool, bool, bool, bool]]:
         """
         To be called by a remote client: Yields all parameters as well as their values
         and if the parameters are suited to be cached registers a listener that pushes
@@ -644,7 +644,7 @@ class Parameters:
 
     def get_changed_parameters_queue(
         self, uuid: str
-    ) -> Dict[str, List[Tuple[str, Any]]]:
+    ) -> dict[str, list[tuple[str, Any]]]:
         """Get the queue of parameter changes for a specific client."""
         queue = self._changed_parameters_queue.get(uuid, [])
         self._changed_parameters_queue[uuid] = []
