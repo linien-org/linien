@@ -136,30 +136,3 @@ def load_settings() -> Settings:
         save_settings(settings)
 
     return settings
-
-
-def save_device_data(device: Device) -> None:
-    devices = load_device_data()
-    replaced_existing = False
-    for i, dev in enumerate(devices):
-        if dev.key == device.key:
-            devices[i] = device
-            replaced_existing = True
-            logger.debug(f"Replaced device with key {device.key}.")
-            break
-    if not replaced_existing:
-        devices.append(device)
-        logger.debug(f"Added device with key {device.key}.")
-    with open(USER_DATA_PATH / "devices.json", "w") as f:
-        json.dump({i: asdict(device) for i, device in enumerate(devices)}, f, indent=2)
-
-
-def load_device_data() -> List[Device]:
-    try:
-        with open(USER_DATA_PATH / "devices.json", "r") as f:
-            logger.debug(f"Loading devices from {USER_DATA_PATH / 'devices.json'}.")
-            devices = [Device(**value) for _, value in json.load(f).items()]
-    except FileNotFoundError:
-        logger.debug("No devices.json found. Return empty list.")
-        devices = []
-    return devices
