@@ -17,8 +17,7 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 import linien_gui
-from linien_client.communication import Device
-from linien_gui.config import load_device_data, save_device_data
+from linien_client.device import Device, load_device_data, save_device_data
 from linien_gui.dialogs import (
     LoadingDialog,
     ask_for_parameter_restore_dialog,

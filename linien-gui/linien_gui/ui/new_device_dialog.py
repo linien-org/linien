@@ -18,9 +18,7 @@
 
 from typing import Optional
 
-from linien_client.communication import Device
-from linien_common.communication import ParameterValues
-from linien_gui.config import load_device_data, save_device_data
+from linien_client.device import Device, save_device_data
 from linien_gui.widgets import UI_PATH
 from PyQt5 import QtWidgets, uic
 

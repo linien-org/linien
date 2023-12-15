@@ -17,7 +17,7 @@
 
 from typing import Callable
 
-from linien_client.communication import Device
+from linien_client.device import Device
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import (
     QDialog,

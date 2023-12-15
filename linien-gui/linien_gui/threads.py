@@ -20,9 +20,9 @@ import logging
 import traceback
 
 import rpyc
-from linien_client.communication import Device
 from linien_client.connection import LinienClient
 from linien_client.deploy import install_remote_server
+from linien_client.device import Device, save_device_data
 from linien_client.exceptions import (
     GeneralConnectionError,
     InvalidServerVersionException,
@@ -30,8 +30,6 @@ from linien_client.exceptions import (
     ServerNotInstalledException,
 )
 from PyQt5.QtCore import QObject, QThread, pyqtSignal
-
-from .config import save_device_data
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)

@@ -23,7 +23,7 @@ from dataclasses import asdict
 from enum import Enum
 from typing import Callable, Dict, Iterator, List, Tuple
 
-from linien_client.communication import Device
+from linien_client.device import Device
 from linien_common.config import USER_DATA_PATH
 
 logger = logging.getLogger(__name__)
