@@ -35,7 +35,9 @@ def generate_random_key():
 
 @dataclass
 class Device:
-    key: str = field(int=False, default_factory=generate_random_key)
+    """A device that can be connected to."""
+
+    key: str = field(init=False, default_factory=generate_random_key)
     name: str = field(default_factory=str)
     host: str = field(default_factory=str)
     port: int = DEFAULT_SERVER_PORT
@@ -63,23 +65,41 @@ class Device:
             return False
 
 
-def save_device_data(device: Device) -> None:
-    devices = load_device_data()
-    replaced_existing = False
-    for i, dev in enumerate(devices):
-        if dev.key == device.key:
-            devices[i] = device
-            replaced_existing = True
-            logger.debug(f"Replaced device with key {device.key}.")
-            break
-    if not replaced_existing:
-        devices.append(device)
-        logger.debug(f"Added device with key {device.key}.")
+def add_device(device: Device) -> None:
+    """Add a new device to the device list and save it to disk."""
+    devices = load_device_list()
+    if device in devices:
+        raise KeyError(f"Device with key {device.key} already exists.")
+    devices.append(device)
+    save_device_list(devices)
+    logger.debug(f"Added device with key {device.key}.")
+
+
+def delete_device(device: Device) -> None:
+    """Remove a device from the device list and save it to disk."""
+    devices = load_device_list()
+    devices.remove(device)
+    save_device_list(devices)
+
+
+def update_device(device: Device) -> None:
+    """Update a device in the device list and save it to disk."""
+    devices = load_device_list()
+    if device not in devices:
+        raise KeyError(f"Device with key {device.key} doesn't exist.")
+    devices = [device if device == dev else dev for dev in devices]
+    save_device_list(devices)
+    logger.debug(f"Updated device with key {device.key}.")
+
+
+def save_device_list(devices: List[Device]) -> None:
+    """Save a device list to disk."""
     with open(USER_DATA_PATH / "devices.json", "w") as f:
         json.dump({i: asdict(device) for i, device in enumerate(devices)}, f, indent=2)
 
 
-def load_device_data() -> List[Device]:
+def load_device_list() -> List[Device]:
+    """Load the device list from disk."""
     try:
         with open(USER_DATA_PATH / "devices.json", "r") as f:
             logger.debug(f"Loading devices from {USER_DATA_PATH / 'devices.json'}.")

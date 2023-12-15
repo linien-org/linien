@@ -18,7 +18,7 @@
 
 from typing import Optional
 
-from linien_client.device import Device, save_device_data
+from linien_client.device import Device, add_device, update_device
 from linien_gui.widgets import UI_PATH
 from PyQt5 import QtWidgets, uic
 
@@ -36,8 +36,10 @@ class NewDeviceDialog(QtWidgets.QDialog):
         uic.loadUi(UI_PATH / "new_device_dialog.ui", self)
 
         if device is None:
+            self.is_new_cevice = True
             self.device = Device()  # create a new empty device
         else:
+            self.is_new_cevice = False
             self.device = device
             self.explainHostLabel.setVisible(False)
 
@@ -54,4 +56,7 @@ class NewDeviceDialog(QtWidgets.QDialog):
         self.device.password = self.password.text()
         self.device.port = self.port.value()
 
-        save_device_data(self.device)
+        if self.is_new_cevice:
+            add_device(self.device)
+        else:
+            update_device(self.device)

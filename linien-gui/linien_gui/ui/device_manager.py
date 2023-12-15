@@ -17,7 +17,12 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 import linien_gui
-from linien_client.device import Device, load_device_data, save_device_data
+from linien_client.device import (
+    Device,
+    delete_device,
+    load_device_list,
+    save_device_list,
+)
 from linien_gui.dialogs import (
     LoadingDialog,
     ask_for_parameter_restore_dialog,
@@ -57,7 +62,7 @@ class DeviceManager(QtWidgets.QMainWindow):
             self.connect()
 
     def populate_device_list(self, autoload=False):
-        devices = load_device_data()
+        devices = load_device_list()
 
         self.deviceList.clear()
         for device in devices:
@@ -67,7 +72,7 @@ class DeviceManager(QtWidgets.QMainWindow):
             self.connect_to_device(devices[0])
 
     def connect(self) -> None:
-        devices = load_device_data()
+        devices = load_device_list()
 
         if not devices:
             return
@@ -196,22 +201,24 @@ class DeviceManager(QtWidgets.QMainWindow):
         # Start the worker -------------------------------------------------------------
         self.connection_thread.start()
 
+    def get_list_index(self):
+        """Get the currently selected device index from the device list."""
+        return self.deviceList.currentIndex().row()
+
     def reload_device_data(self) -> None:
         # not very elegant...
         QtCore.QTimer.singleShot(100, self.populate_device_list)
 
     def new_device(self):
+        """Open the dialog to create a new device."""
         self.dialog = NewDeviceDialog()
         self.dialog.setModal(True)
         self.dialog.show()
         self.dialog.accepted.connect(self.reload_device_data)
 
     def edit_device(self):
-        devices = load_device_data()
-
-        if not devices:
-            return
-
+        """Open the dialog to edit the currently selected device."""
+        devices = load_device_list()
         device = devices[self.get_list_index()]
 
         self.dialog = NewDeviceDialog(device)
@@ -220,17 +227,15 @@ class DeviceManager(QtWidgets.QMainWindow):
         self.dialog.accepted.connect(self.reload_device_data)
 
     def move_device_up(self):
+        """Move the currently selected device up in the list."""
         self.move_device(-1)
 
     def move_device_down(self):
+        """Move the currently selected device down in the list."""
         self.move_device(1)
 
     def move_device(self, direction: int) -> None:
-        devices = load_device_data()
-
-        if not devices:
-            return
-
+        devices = load_device_list()
         current_index = self.get_list_index()
         new_index = current_index + direction
 
@@ -239,39 +244,33 @@ class DeviceManager(QtWidgets.QMainWindow):
 
         device = devices.pop(current_index)
         devices = devices[:new_index] + [device] + devices[new_index:]
-        save_device_data(devices)
+        save_device_list(devices)
         self.populate_device_list()
         self.deviceList.setCurrentRow(new_index)
 
-    def get_list_index(self):
-        return self.deviceList.currentIndex().row()
-
     def remove_device(self):
-        devices = load_device_data()
-
-        if not devices:
-            return
-
-        devices.pop(self.get_list_index())
-        save_device_data(devices)
+        """
+        Remove the currently selected device from the list and save new list to disk.
+        """
+        devices = load_device_list()
+        selected_device = devices[self.get_list_index()]
+        delete_device(selected_device)
         self.populate_device_list()
 
     def selected_device_changed(self):
-        idx = self.get_list_index()
-
         disable_buttons = True
 
-        if idx >= 0:
-            devices = load_device_data()
+        if self.get_list_index() >= 0:
+            devices = load_device_list()
 
             if devices:
                 disable_buttons = False
 
-        for btn in [
+        for button in [
             self.connectButton,
             self.removeButton,
             self.editButton,
             self.moveUpButton,
             self.moveDownButton,
         ]:
-            btn.setEnabled(not disable_buttons)
+            button.setEnabled(not disable_buttons)

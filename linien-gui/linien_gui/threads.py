@@ -22,7 +22,7 @@ import traceback
 import rpyc
 from linien_client.connection import LinienClient
 from linien_client.deploy import install_remote_server
-from linien_client.device import Device, save_device_data
+from linien_client.device import Device, update_device
 from linien_client.exceptions import (
     GeneralConnectionError,
     InvalidServerVersionException,
@@ -151,7 +151,7 @@ class ConnectionThread(QThread):
                     f"Unable to restore parameter {key}. Delete the cached value."
                 )
                 del self.device.parameters[key]
-                save_device_data(self.device)
+                update_device(self.device)
 
         if not dry_run:
             self.client.control.write_registers()
@@ -172,6 +172,6 @@ class ConnectionThread(QThread):
                     # Remove it if possible. rpyc obtain is for ensuring that we don't
                     # try to save a netref here.
                     self.device.parameters[parameter_name] = rpyc.classic.obtain(value)
-                    save_device_data(self.device)
+                    update_device(self.device)
 
                 parameter.add_callback(on_change)
