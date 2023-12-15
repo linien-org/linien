@@ -17,13 +17,7 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 import linien_gui
-from linien_client.device import (
-    Device,
-    delete_device,
-    load_device_list,
-    move_device,
-    save_device_list,
-)
+from linien_client.device import Device, delete_device, load_device_list, move_device
 from linien_gui.dialogs import (
     LoadingDialog,
     ask_for_parameter_restore_dialog,
@@ -54,7 +48,7 @@ class DeviceManager(QtWidgets.QMainWindow):
         self.setWindowTitle(f"Linien spectroscopy lock v{linien_gui.__version__}")
         set_window_icon(self)
         self.app = get_linien_app_instance()
-        QtCore.QTimer.singleShot(100, lambda: self.populate_device_list(autoload=True))
+        QtCore.QTimer.singleShot(100, lambda: self.populate_device_list())
 
     def keyPressEvent(self, event):
         key = event.key()
@@ -62,23 +56,18 @@ class DeviceManager(QtWidgets.QMainWindow):
         if key in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return):
             self.connect()
 
-    def populate_device_list(self, autoload=False):
-        devices = load_device_list()
+    def populate_device_list(self):
+        self.devices = load_device_list()
 
         self.deviceList.clear()
-        for device in devices:
+        for device in self.devices:
             self.deviceList.addItem(f"{device.name} ({device.host})")
 
-        if autoload and len(devices) == 1:
-            self.connect_to_device(devices[0])
-
     def connect(self) -> None:
-        devices = load_device_list()
-
-        if not devices:
+        if not self.devices:
             return
         else:
-            self.connect_to_device(devices[self.get_list_index()])
+            self.connect_to_device(self.devices[self.get_list_index()])
 
     def connect_to_device(self, device: Device):
         loading_dialog = LoadingDialog(self, device.host)
@@ -219,8 +208,7 @@ class DeviceManager(QtWidgets.QMainWindow):
 
     def edit_device(self) -> None:
         """Open the dialog to edit the currently selected device."""
-        devices = load_device_list()
-        device = devices[self.get_list_index()]
+        device = self.devices[self.get_list_index()]
 
         self.dialog = NewDeviceDialog(device)
         self.dialog.setModal(True)
@@ -237,9 +225,8 @@ class DeviceManager(QtWidgets.QMainWindow):
 
     def move_device_in_list(self, direction: int) -> None:
         """Move the currently selected device in the list by the given direction."""
-        devices = load_device_list()
         selected_index = self.get_list_index()
-        selected_device = devices[selected_index]
+        selected_device = self.devices[selected_index]
         move_device(selected_device, direction)
         self.populate_device_list()
         self.deviceList.setCurrentRow(selected_index + direction)
@@ -248,8 +235,7 @@ class DeviceManager(QtWidgets.QMainWindow):
         """
         Remove the currently selected device from the list and save new list to disk.
         """
-        devices = load_device_list()
-        selected_device = devices[self.get_list_index()]
+        selected_device = self.devices[self.get_list_index()]
         delete_device(selected_device)
         self.populate_device_list()
 
@@ -257,9 +243,7 @@ class DeviceManager(QtWidgets.QMainWindow):
         disable_buttons = True
 
         if self.get_list_index() >= 0:
-            devices = load_device_list()
-
-            if devices:
+            if self.devices:
                 disable_buttons = False
 
         for button in [
