@@ -87,9 +87,19 @@ def update_device(device: Device) -> None:
     devices = load_device_list()
     if device not in devices:
         raise KeyError(f"Device with key {device.key} doesn't exist.")
-    devices = [device if device == dev else dev for dev in devices]
+    # this updates since equality is defined by the device key, see Device.__eq__
+    devices[devices.index(device)] = device
     save_device_list(devices)
     logger.debug(f"Updated device with key {device.key}.")
+
+
+def move_device(device: Device, direction: int) -> None:
+    """Move a device in the device list and save it to disk."""
+    devices = load_device_list()
+    current_index = devices.index(device)
+    new_index = current_index + direction
+    devices.insert(new_index, devices.pop(current_index))
+    save_device_list(devices)
 
 
 def save_device_list(devices: List[Device]) -> None:

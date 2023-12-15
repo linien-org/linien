@@ -21,6 +21,7 @@ from linien_client.device import (
     Device,
     delete_device,
     load_device_list,
+    move_device,
     save_device_list,
 )
 from linien_gui.dialogs import (
@@ -209,14 +210,14 @@ class DeviceManager(QtWidgets.QMainWindow):
         # not very elegant...
         QtCore.QTimer.singleShot(100, self.populate_device_list)
 
-    def new_device(self):
+    def new_device(self) -> None:
         """Open the dialog to create a new device."""
         self.dialog = NewDeviceDialog()
         self.dialog.setModal(True)
         self.dialog.show()
         self.dialog.accepted.connect(self.reload_device_data)
 
-    def edit_device(self):
+    def edit_device(self) -> None:
         """Open the dialog to edit the currently selected device."""
         devices = load_device_list()
         device = devices[self.get_list_index()]
@@ -226,29 +227,24 @@ class DeviceManager(QtWidgets.QMainWindow):
         self.dialog.show()
         self.dialog.accepted.connect(self.reload_device_data)
 
-    def move_device_up(self):
+    def move_device_up(self) -> None:
         """Move the currently selected device up in the list."""
-        self.move_device(-1)
+        self.move_device_in_list(-1)
 
-    def move_device_down(self):
+    def move_device_down(self) -> None:
         """Move the currently selected device down in the list."""
-        self.move_device(1)
+        self.move_device_in_list(1)
 
-    def move_device(self, direction: int) -> None:
+    def move_device_in_list(self, direction: int) -> None:
+        """Move the currently selected device in the list by the given direction."""
         devices = load_device_list()
-        current_index = self.get_list_index()
-        new_index = current_index + direction
-
-        if new_index < 0 or new_index > len(devices) - 1:
-            return
-
-        device = devices.pop(current_index)
-        devices = devices[:new_index] + [device] + devices[new_index:]
-        save_device_list(devices)
+        selected_index = self.get_list_index()
+        selected_device = devices[selected_index]
+        move_device(selected_device, direction)
         self.populate_device_list()
-        self.deviceList.setCurrentRow(new_index)
+        self.deviceList.setCurrentRow(selected_index + direction)
 
-    def remove_device(self):
+    def remove_device(self) -> None:
         """
         Remove the currently selected device from the list and save new list to disk.
         """
@@ -257,7 +253,7 @@ class DeviceManager(QtWidgets.QMainWindow):
         delete_device(selected_device)
         self.populate_device_list()
 
-    def selected_device_changed(self):
+    def selected_device_changed(self) -> None:
         disable_buttons = True
 
         if self.get_list_index() >= 0:
