@@ -64,7 +64,7 @@ class RemoteParameter:
     def log(self, value: bool) -> None:
         self.parent.remote.exposed_set_parameter_log(self.name, value)
 
-    def add_callback(self, callback: Callable, call_with_first_value: bool = True):
+    def add_callback(self, callback: Callable, call_with_first_value: bool = False):
         """
         Register a callback function that is called whenever the parameter changes.
         """
