@@ -29,6 +29,7 @@ from linien_client.exceptions import (
     RPYCAuthenticationException,
     ServerNotInstalledException,
 )
+from linien_client.remote_parameters import RemoteParameter
 from PyQt5.QtCore import QObject, QThread, pyqtSignal
 
 logger = logging.getLogger(__name__)
@@ -49,19 +50,19 @@ class RemoteOutStream(QObject):
 
 
 class RemoteServerInstallationThread(QThread):
-    def __init__(self, device: Device):
+    def __init__(self, device: Device) -> None:
         """A thread that installs the linien server on a remote machine."""
         super(RemoteServerInstallationThread, self).__init__()
         self.device = device
 
     out_stream = RemoteOutStream()
 
-    def run(self):
+    def run(self) -> None:
         install_remote_server(self.device, out_stream=self.out_stream)
 
 
 class ConnectionThread(QThread):
-    def __init__(self, device: Device):
+    def __init__(self, device: Device) -> None:
         super(ConnectionThread, self).__init__()
         self.device = device
 
@@ -94,7 +95,7 @@ class ConnectionThread(QThread):
                 # because we don't want to override our local settings with the remote
                 # one --> we wait until user has answered whether local parameters or
                 # remote ones should be used.
-                self.register_callbacks_to_write_parameters_to_disk_on_change()
+                self.add_callbacks_to_write_parameters_to_disk_on_change()
 
         except ServerNotInstalledException:
             self.server_not_installed_exception_raised.emit()
@@ -121,9 +122,9 @@ class ConnectionThread(QThread):
         if should_restore:
             self.restore_parameters(dry_run=False)
 
-        self.register_callbacks_to_write_parameters_to_disk_on_change()
+        self.add_callbacks_to_write_parameters_to_disk_on_change()
 
-    def restore_parameters(self, dry_run=False):
+    def restore_parameters(self, dry_run: bool = False) -> bool:
         """
         Read settings for a server that were cached locally. Sends them to the server.
         If `dry_run` is...
@@ -134,23 +135,26 @@ class ConnectionThread(QThread):
         """
         logger.info("Restoring parameters")
         differences = False
-        for key, val in self.device.parameters.items():
-            if hasattr(self.client.parameters, key):
-                param = getattr(self.client.parameters, key)
-                if param.value != val:
+        for param_name, param_value in self.device.parameters.items():
+            if hasattr(self.client.parameters, param_name):
+                param: RemoteParameter = getattr(self.client.parameters, param_name)
+                if param.value != param_value:
+                    logger.info(
+                        f"Parameter {param_name} differs: "
+                        f"local={param_value}, remote={param.value}"
+                    )
                     if dry_run:
-                        logger.info(f"Parameter {key} differs")
                         differences = True
                         break
                     else:
-                        param.value = val
+                        param.value = param_value
             else:
                 # This may happen if the settings were written with a different version
                 # of linien.
                 logger.warning(
-                    f"Unable to restore parameter {key}. Delete the cached value."
+                    f"Unable to restore {param_name}. Delete the cached value."
                 )
-                del self.device.parameters[key]
+                del self.device.parameters[param_name]
                 update_device(self.device)
 
         if not dry_run:
@@ -158,20 +162,20 @@ class ConnectionThread(QThread):
 
         return differences
 
-    def register_callbacks_to_write_parameters_to_disk_on_change(self) -> None:
+    def add_callbacks_to_write_parameters_to_disk_on_change(self) -> None:
         """
         Listens for changes of some parameters and permanently saves their values on the
         client's disk. This data can be used to restore the status later, if the client
         tries to connect to the server but it doesn't run anymore.
         """
-        for parameter_name, parameter in self.client.parameters:
-            if parameter.restorable:
+        for param_name, param in self.client.parameters:
+            if param.restorable:
 
-                def on_change(value, parameter_name: str = parameter_name) -> None:
+                def on_change(value, parameter_name: str = param_name) -> None:
                     # FIXME: This is the only part where rpyc is used in linien-gui.
                     # Remove it if possible. rpyc obtain is for ensuring that we don't
                     # try to save a netref here.
                     self.device.parameters[parameter_name] = rpyc.classic.obtain(value)
                     update_device(self.device)
 
-                parameter.add_callback(on_change)
+                param.add_callback(on_change)

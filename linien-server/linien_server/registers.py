@@ -62,10 +62,10 @@ class Registers:
 
         self.parameters.lock.add_callback(self.acquisition.exposed_set_lock_status)
         self.parameters.fetch_additional_signals.add_callback(
-            self.acquisition.exposed_set_fetch_additional_signals  # noqa: E501
+            self.acquisition.exposed_set_fetch_additional_signals, call_immediately=True
         )
         self.parameters.dual_channel.add_callback(
-            self.acquisition.exposed_set_dual_channel
+            self.acquisition.exposed_set_dual_channel, call_immediately=True
         )
 
     def write_registers(self):

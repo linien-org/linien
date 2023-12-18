@@ -82,7 +82,7 @@ class Parameter:
         self.value = self._start
 
     def add_callback(
-        self, function: Callable[[Any], None], call_immediately: bool = True
+        self, function: Callable[[Any], None], call_immediately: bool = False
     ) -> None:
         self._callbacks.add(function)
 
@@ -626,8 +626,8 @@ class Parameters:
             if uuid in self._changed_parameters_queue:
                 self._changed_parameters_queue[uuid].append((param_name, value))
 
-        param = getattr(self, param_name)
-        param.add_callback(append_changed_values_to_queue)
+        param: Parameter = getattr(self, param_name)
+        param.add_callback(append_changed_values_to_queue, call_immediately=True)
 
         self._remote_listener_callbacks[uuid].append(
             (param, append_changed_values_to_queue)
