@@ -26,7 +26,7 @@ import linien_server
 from linien_common.common import AutolockMode, MHz, PSDAlgorithm, Vpp
 from linien_common.config import USER_DATA_PATH
 
-PARAMETER_STORE_FILENAME = "linien_parameters.json"
+PARAMETER_STORE_FILENAME = "parameters.json"
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -664,8 +664,10 @@ def restore_parameters(parameters: Parameters) -> Parameters:
     filename = str(USER_DATA_PATH / PARAMETER_STORE_FILENAME)
     try:
         with open(filename, "r") as f:
+            logger.info(f"Restoring parameters from {filename}")
             data = json.load(f)
     except FileNotFoundError:
+        logger.info(f"Couldn't find {filename}. Using default parameters.")
         return parameters
 
     for name, attributes in data["parameters"].items():
