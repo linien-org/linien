@@ -19,7 +19,6 @@
 import logging
 import traceback
 
-import rpyc
 from linien_client.connection import LinienClient
 from linien_client.deploy import install_remote_server
 from linien_client.device import Device, update_device
@@ -158,7 +157,7 @@ class ConnectionThread(QThread):
                 update_device(self.device)
 
         if not dry_run:
-            self.client.control.write_registers()
+            self.client.control.exposed_write_registers()
 
         return differences
 
@@ -172,10 +171,8 @@ class ConnectionThread(QThread):
             if param.restorable:
 
                 def on_change(value, parameter_name: str = param_name) -> None:
-                    # FIXME: This is the only part where rpyc is used in linien-gui.
-                    # Remove it if possible. rpyc obtain is for ensuring that we don't
-                    # try to save a netref here.
-                    self.device.parameters[parameter_name] = rpyc.classic.obtain(value)
-                    update_device(self.device)
+                    if self.device.parameters[parameter_name] != value:
+                        self.device.parameters[parameter_name] = value
+                        update_device(self.device)
 
                 param.add_callback(on_change)
