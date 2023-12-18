@@ -55,7 +55,7 @@ class LinienApp(QtWidgets.QApplication):
 
     def client_connected(self, client: LinienClient):
         self.device_manager.hide()
-        self.main_window.show(client.host, client.name)
+        self.main_window.show(client.device.host, client.device.name)
 
         self.client = client
         self.control = client.control
