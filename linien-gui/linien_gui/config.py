@@ -19,11 +19,9 @@
 
 import json
 import logging
-from dataclasses import asdict
 from enum import Enum
-from typing import Callable, Dict, Iterator, List, Tuple
+from typing import Callable, Iterator, Tuple
 
-from linien_client.device import Device
 from linien_common.config import USER_DATA_PATH
 
 logger = logging.getLogger(__name__)
@@ -83,10 +81,10 @@ class Setting:
         for callback in self._callbacks.copy():
             callback(value)
 
-    def add_callback(self, function: Callable, call_with_first_value: bool = True):
+    def add_callback(self, function: Callable, call_immediatly: bool = True):
         self._callbacks.add(function)
 
-        if call_with_first_value:
+        if call_immediatly:
             if self._value is not None:
                 function(self._value)
 
@@ -108,9 +106,7 @@ class Settings:
 
         # save changed settings to disk
         for _, setting in self:
-            setting.add_callback(
-                lambda _: save_settings(self), call_with_first_value=False
-            )
+            setting.add_callback(lambda _: save_settings(self), call_immediatly=False)
 
     def __iter__(self) -> Iterator[Tuple[str, Setting]]:
         for name, setting in self.__dict__.items():

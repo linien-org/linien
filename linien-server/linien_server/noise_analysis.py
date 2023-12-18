@@ -29,6 +29,8 @@ from linien_server.optimization.engine import MultiDimensionalOptimizationEngine
 from pylpsd import lpsd
 from scipy import signal
 
+from .parameters import Parameters
+
 ALL_DECIMATIONS = list(range(32))
 
 logger = logging.getLogger(__name__)
@@ -102,6 +104,8 @@ def generate_curve_uuid():
 
 
 class PSDAcquisition:
+    parameters: Parameters
+
     def __init__(self, control, parameters, is_child=False):
         self.decimation_index = 0
 
@@ -126,7 +130,7 @@ class PSDAcquisition:
 
     def add_callbacks(self):
         self.parameters.acquisition_raw_data.add_callback(
-            self.react_to_new_signal, call_with_first_value=False
+            self.react_to_new_signal, call_immediately=False
         )
 
     def cleanup(self):
@@ -226,6 +230,8 @@ class PSDAcquisition:
 
 
 class PIDOptimization:
+    parameters: Parameters
+
     def __init__(self, control, parameters):
         self.control = control
         self.parameters = parameters
@@ -237,7 +243,7 @@ class PIDOptimization:
     def run(self):
         try:
             self.parameters.psd_data_complete.add_callback(
-                self.psd_data_received, call_with_first_value=False
+                self.psd_data_received, call_immediately=False
             )
             self.parameters.psd_optimization_running.value = True
             self.start_single_psd_measurement()

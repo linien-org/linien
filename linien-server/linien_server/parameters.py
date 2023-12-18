@@ -82,13 +82,11 @@ class Parameter:
         self.value = self._start
 
     def add_callback(
-        self,
-        function: Callable[[Any], None],
-        call_with_first_value: bool = True,
+        self, function: Callable[[Any], None], call_immediately: bool = True
     ) -> None:
         self._callbacks.add(function)
 
-        if call_with_first_value:
+        if call_immediately:
             if self._value is not None:
                 function(self._value)
 
