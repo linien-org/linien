@@ -25,6 +25,16 @@ dependencies = [
     "scipy>=1.10.1",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "black>=22.8.0",
+    "pre-commit>=2.20.0",
+    "flake8>=5.0.4",
+    "isort>=5.10.1",
+    "flake8-pyproject>=1.2.3",
+    "setuptools_scm>=6.2",
+]
+
 [project.readme]
 text = "Have a look at the [project repository](https://github.com/linien-org/linien) for installation instructions."
 content-type = "text/markdown"
