@@ -22,6 +22,7 @@ import string
 from dataclasses import asdict, dataclass, field
 from typing import Dict, List
 
+from linien_common.communication import RestorableParameterValues
 from linien_common.config import DEFAULT_SERVER_PORT, USER_DATA_PATH
 
 logger = logging.getLogger(__name__)
@@ -43,7 +44,7 @@ class Device:
     port: int = DEFAULT_SERVER_PORT
     username: str = field(default_factory=str)
     password: str = field(default_factory=str)
-    parameters: Dict[str, float] = field(default_factory=dict)
+    parameters: Dict[str, RestorableParameterValues] = field(default_factory=dict)
 
     def __post_init__(self):
         if self.host == "":

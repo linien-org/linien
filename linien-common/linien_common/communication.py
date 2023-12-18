@@ -31,6 +31,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 ParameterValues = Union[int, float, str, bool, Callable, bytes]
+RestorableParameterValues = Union[int, float, bool]
 
 
 def pack(value: ParameterValues) -> Union[bytes, ParameterValues]:
