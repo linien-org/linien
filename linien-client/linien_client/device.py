@@ -20,9 +20,9 @@ import logging
 import random
 import string
 from dataclasses import asdict, dataclass, field
-from typing import Dict, List
+from typing import Dict, List, Optional
 
-from linien_common.communication import RestorableParameterValues
+from linien_common.communication import RestorableParameterValues, StrPath
 from linien_common.config import DEFAULT_SERVER_PORT, USER_DATA_PATH
 
 logger = logging.getLogger(__name__)
@@ -66,32 +66,47 @@ class Device:
             return False
 
 
-def add_device(device: Device) -> None:
+def add_device(
+    device: Device, path: Optional[StrPath] = USER_DATA_PATH / "devices.json"
+) -> None:
     """Add a new device to the device list and save it to disk."""
-    devices = load_device_list()
+    devices = load_device_list(path)
     if device in devices:
-        raise KeyError(f"Device with key {device.key} already exists.")
+        raise KeyError(f"Device with key {device.key} already exists in {path}.")
     devices.append(device)
-    save_device_list(devices)
-    logger.debug(f"Added device with key {device.key}.")
+    save_device_list(devices, path)
+    logger.debug(f"Added device with key {device.key} to {path}.")
 
 
-def delete_device(device: Device) -> None:
+def load_device(key: str, path) -> Device:
+    """Load a device from disk."""
+    devices = load_device_list(path)
+    for device in devices:
+        if device.key == key:
+            return device
+    raise KeyError(f"Device with key {key} doesn't exist in {path}.")
+
+
+def delete_device(
+    device: Device, path: Optional[StrPath] = USER_DATA_PATH / "devices.json"
+) -> None:
     """Remove a device from the device list and save it to disk."""
-    devices = load_device_list()
+    devices = load_device_list(path)
     devices.remove(device)
-    save_device_list(devices)
+    save_device_list(devices, path)
 
 
-def update_device(device: Device) -> None:
+def update_device(
+    device: Device, path: Optional[StrPath] = USER_DATA_PATH / "devices.json"
+) -> None:
     """Update a device in the device list and save it to disk."""
-    devices = load_device_list()
+    devices = load_device_list(path)
     if device not in devices:
-        raise KeyError(f"Device with key {device.key} doesn't exist.")
+        raise KeyError(f"Device with key {device.key} doesn't exist in {path}.")
     # this updates since equality is defined by the device key, see Device.__eq__
     devices[devices.index(device)] = device
-    save_device_list(devices)
-    logger.debug(f"Updated device with key {device.key}.")
+    save_device_list(devices, path)
+    logger.debug(f"Updated device with key {device.key} in {path}.")
 
 
 def move_device(device: Device, direction: int) -> None:
@@ -103,18 +118,22 @@ def move_device(device: Device, direction: int) -> None:
     save_device_list(devices)
 
 
-def save_device_list(devices: List[Device]) -> None:
+def save_device_list(
+    devices: List[Device], path: Optional[StrPath] = USER_DATA_PATH / "devices.json"
+) -> None:
     """Save a device list to disk."""
-    with open(USER_DATA_PATH / "devices.json", "w") as f:
-        logger.debug(f"Saving devices to {USER_DATA_PATH / 'devices.json'}.")
+    with open(path, "w") as f:
+        logger.debug(f"Saving devices to {path}.")
         json.dump({i: asdict(device) for i, device in enumerate(devices)}, f, indent=2)
 
 
-def load_device_list() -> List[Device]:
+def load_device_list(
+    path: Optional[StrPath] = USER_DATA_PATH / "devices.json",
+) -> List[Device]:
     """Load the device list from disk."""
     try:
-        with open(USER_DATA_PATH / "devices.json", "r") as f:
-            logger.debug(f"Loading devices from {USER_DATA_PATH / 'devices.json'}.")
+        with open(path, "r") as f:
+            logger.debug(f"Loading devices from {path}.")
             devices = [Device(**value) for _, value in json.load(f).items()]
     except FileNotFoundError:
         logger.debug("No devices.json found. Return empty list.")

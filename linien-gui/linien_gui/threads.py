@@ -123,7 +123,7 @@ class ConnectionThread(QThread):
 
         self.add_callbacks_to_write_parameters_to_disk_on_change()
 
-    def restore_parameters(self, dry_run: bool = False) -> bool:
+    def restore_parameters(self, dry_run: bool) -> bool:
         """
         Read settings for a server that were cached locally. Sends them to the server.
         If `dry_run` is...
