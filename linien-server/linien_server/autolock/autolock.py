@@ -114,7 +114,7 @@ class Autolock:
         self.add_data_listener()
 
     def start_autolock(self, mode):
-        logger.debug("start autolock with mode %s" % mode)
+        logger.debug(f"Start autolock with mode {mode}")
         self.parameters.autolock_mode.value = mode
 
         self.algorithm = [None, RobustAutolock, SimpleAutolock][mode](

@@ -151,8 +151,8 @@ class PSDAcquisition:
             data = pickle.loads(data_pickled)
 
             current_decimation = self.parameters.acquisition_raw_decimation.value
-            logger.debug("recorded signal for decimation %s" % current_decimation)
-            logger.debug("recording took %s s" % (time() - self.time_decimation_set))
+            logger.debug(f"Recorded signal for decimation {current_decimation}")
+            logger.debug(f"Recording took {time()-self.time_decimation_set} s")
             self.recorded_signals_by_decimation[current_decimation] = data
             self.recorded_psds_by_decimation[current_decimation] = residual_freq_noise(
                 1 / (125e6) * (2 ** (current_decimation)),
@@ -173,7 +173,7 @@ class PSDAcquisition:
 
             if not complete:
                 new_decimation = self.decimation_index
-                logger.debug("set new decimation %s" % new_decimation)
+                logger.debug(f"Set new decimation {new_decimation}")
                 self.set_decimation(new_decimation)
             else:
                 self.cleanup()
@@ -266,7 +266,7 @@ class PIDOptimization:
             psd_data = pickle.loads(psd_data_pickled)
 
             params = (psd_data["p"], psd_data["i"])
-            logger.debug("received fitness %s, %s" % (psd_data["fitness"], params))
+            logger.debug(f"Received fitness {psd_data['fitness']}, {params}")
 
             self.engine.tell(psd_data["fitness"], params)
 

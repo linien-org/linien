@@ -122,26 +122,22 @@ class OptimizationPanel(QtWidgets.QWidget):
             dual_channel = self.parameters.dual_channel.value
             channel = self.parameters.optimization_channel.value
             optimized = self.parameters.optimization_optimized_parameters.value
-
+            mod_phase = (
+                self.parameters.demodulation_phase_a,
+                self.parameters.demodulation_phase_b,
+            )[0 if not dual_channel else (0, 1)[channel]].value
             self.optimization_display_parameters.setText(
                 (
                     "<br />\n"
                     "<b>current parameters</b>: "
-                    " %.2f&nbsp;MHz, %.2f&nbsp;Vpp, %.2f&nbsp;deg<br />\n"
+                    f"{self.parameters.modulation_frequency.value / MHz:.2f}&nbsp;MHz, "
+                    f"{self.parameters.modulation_amplitude.value / Vpp:.2f}&nbsp;Vpp, "
+                    f"{mod_phase:.2f}&nbsp;deg<br />\n"
                     "<b>optimized parameters</b>: "
-                    "%.2f&nbsp;MHz, %.2f&nbsp;Vpp, %.2f&nbsp;deg\n"
+                    f"{optimized[0] / MHz:.2f}&nbsp;MHz, "
+                    f"{optimized[1] / Vpp:.2f}&nbsp;Vpp, "
+                    f"{optimized[2]:.2f}&nbsp;deg\n"
                     "<br />"
-                )
-                % (
-                    self.parameters.modulation_frequency.value / MHz,
-                    self.parameters.modulation_amplitude.value / Vpp,
-                    (
-                        self.parameters.demodulation_phase_a,
-                        self.parameters.demodulation_phase_b,
-                    )[0 if not dual_channel else (0, 1)[channel]].value,
-                    optimized[0] / MHz,
-                    optimized[1] / Vpp,
-                    optimized[2],
                 )
             )
 

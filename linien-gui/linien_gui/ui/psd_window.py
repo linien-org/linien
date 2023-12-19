@@ -167,7 +167,7 @@ class PSDWindow(QtWidgets.QMainWindow):
             self,
             "QFileDialog.getSaveFileName()",
             "",
-            "PICKLE (*%s)" % default_ext,
+            f"PICKLE (*{default_ext})",
             options=options,
         )
         if fn:
@@ -192,7 +192,7 @@ class PSDWindow(QtWidgets.QMainWindow):
             self,
             "QFileDialog.getSaveFileName()",
             "",
-            "JSON (*%s)" % default_ext,
+            f"JSON (*{default_ext})",
             options=options,
         )
         if fn:

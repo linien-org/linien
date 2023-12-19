@@ -109,7 +109,7 @@ class RobustAutolock:
             )
             t2 = time()
             dt = t2 - t1
-            logger.debug("calculation of autolock description took %s" % dt)
+            logger.debug(f"Calculation of autolock description took {dt}")
 
             # sets up a timeout: if the lock doesn't finish within a certain time span,
             # throw an error
@@ -135,8 +135,7 @@ class RobustAutolock:
 
         else:
             logger.error(
-                "not enough spectra collected: %d of %d"
-                % (len(self.spectra), self.N_spectra_required)
+                f"Not enough spectra collected: {len(self.spectra)} of {self.N_spectra_required}"
             )
 
     def setup_timeout(self, N_acquisitions_to_wait=5):
@@ -182,7 +181,7 @@ def calculate_autolock_instructions(spectra_with_jitter, target_idxs):
         round(np.mean([get_time_scale(spectrum, target_idxs) for spectrum in spectra]))
     )
 
-    logger.debug("x scale is %d" % time_scale)
+    logger.debug(f"x scale is {time_scale}")
 
     prepared_spectrum = get_diff_at_time_scale(sum_up_spectrum(spectra[0]), time_scale)
     peaks = get_all_peaks(prepared_spectrum, target_idxs)
@@ -191,7 +190,7 @@ def calculate_autolock_instructions(spectra_with_jitter, target_idxs):
     lock_regions = [get_lock_region(spectrum, target_idxs) for spectrum in spectra]
 
     for tolerance_factor in [0.95, 0.9, 0.85, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55, 0.5]:
-        logger.debug("try out tolerance %s" % tolerance_factor)
+        logger.debug(f"Try out tolerance {tolerance_factor}")
         peaks_filtered = [
             (peak_position, peak_height * tolerance_factor)
             for peak_position, peak_height in peaks
@@ -216,7 +215,7 @@ def calculate_autolock_instructions(spectra_with_jitter, target_idxs):
             ):
                 break
         final_wait_time = target_peak_idx - current_idx
-        logger.debug("final wait time is %d samples" % final_wait_time)
+        logger.debug(f"final wait time is {final_wait_time} samples")
 
         description = []
 
@@ -247,12 +246,10 @@ def calculate_autolock_instructions(spectra_with_jitter, target_idxs):
         raise UnableToFindDescription()
 
     if len(description) > AUTOLOCK_MAX_N_INSTRUCTIONS:
-        logger.warning(
-            "warning: autolock description too long. Cropping! %s" % len(description)
-        )
+        logger.warning(f"Autolock description too long. Cropping! {description}")
         description = description[-AUTOLOCK_MAX_N_INSTRUCTIONS:]
 
-    logger.debug("description is %s" % description)
+    logger.debug(f"Description is {description}")
     return description, final_wait_time, time_scale
 
 
