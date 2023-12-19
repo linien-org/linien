@@ -71,8 +71,11 @@ class Registers:
     def write_registers(self):
         """Writes data from `parameters` to the FPGA."""
 
-        max_ = lambda val: val if np.abs(val) <= 8191 else (8191 * val / np.abs(val))
-        phase_to_delay = lambda phase: int(phase / 360 * (1 << 14))
+        def max_(val):
+            return val if np.abs(val) <= 8191 else (8191 * val / np.abs(val))
+
+        def phase_to_delay(phase):
+            return int(phase / 360 * (1 << 14))
 
         if not self.parameters.dual_channel.value:
             factor_a = 256
