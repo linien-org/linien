@@ -20,9 +20,9 @@ import logging
 import random
 import string
 from dataclasses import asdict, dataclass, field
-from typing import Dict, List, Optional
+from typing import Dict, List
 
-from linien_common.communication import RestorableParameterValues, StrPath
+from linien_common.communication import PathLike, RestorableParameterValues
 from linien_common.config import DEFAULT_SERVER_PORT, USER_DATA_PATH
 
 logger = logging.getLogger(__name__)
@@ -67,7 +67,7 @@ class Device:
 
 
 def add_device(
-    device: Device, path: Optional[StrPath] = USER_DATA_PATH / "devices.json"
+    device: Device, path: PathLike = USER_DATA_PATH / "devices.json"
 ) -> None:
     """Add a new device to the device list and save it to disk."""
     devices = load_device_list(path)
@@ -88,7 +88,7 @@ def load_device(key: str, path) -> Device:
 
 
 def delete_device(
-    device: Device, path: Optional[StrPath] = USER_DATA_PATH / "devices.json"
+    device: Device, path: PathLike = USER_DATA_PATH / "devices.json"
 ) -> None:
     """Remove a device from the device list and save it to disk."""
     devices = load_device_list(path)
@@ -97,7 +97,7 @@ def delete_device(
 
 
 def update_device(
-    device: Device, path: Optional[StrPath] = USER_DATA_PATH / "devices.json"
+    device: Device, path: PathLike = USER_DATA_PATH / "devices.json"
 ) -> None:
     """Update a device in the device list and save it to disk."""
     devices = load_device_list(path)
@@ -119,7 +119,7 @@ def move_device(device: Device, direction: int) -> None:
 
 
 def save_device_list(
-    devices: List[Device], path: Optional[StrPath] = USER_DATA_PATH / "devices.json"
+    devices: List[Device], path: PathLike = USER_DATA_PATH / "devices.json"
 ) -> None:
     """Save a device list to disk."""
     with open(path, "w") as f:
@@ -128,7 +128,7 @@ def save_device_list(
 
 
 def load_device_list(
-    path: Optional[StrPath] = USER_DATA_PATH / "devices.json",
+    path: PathLike = USER_DATA_PATH / "devices.json",
 ) -> List[Device]:
     """Load the device list from disk."""
     try:

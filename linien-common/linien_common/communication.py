@@ -33,7 +33,7 @@ logger.setLevel(logging.DEBUG)
 
 ParameterValues = Union[int, float, str, bool, Callable, bytes]
 RestorableParameterValues = Union[int, float, bool]
-StrPath = Union[str, os.PathLike]
+PathLike = Union[str, os.PathLike]
 
 
 def pack(value: ParameterValues) -> Union[bytes, ParameterValues]:
