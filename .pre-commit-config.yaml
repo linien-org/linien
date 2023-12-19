@@ -15,3 +15,5 @@ repos:
     rev: 6.1.0
     hooks:
       - id: flake8
+        exclude: linien-server/linien_server/csrmap.py
+        additional_dependencies: [flake8-pyproject]
