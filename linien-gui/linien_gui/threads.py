@@ -18,6 +18,7 @@
 
 import logging
 import traceback
+from typing import Dict, Tuple
 
 from linien_client.connection import LinienClient
 from linien_client.deploy import install_remote_server
@@ -29,6 +30,7 @@ from linien_client.exceptions import (
     ServerNotInstalledException,
 )
 from linien_client.remote_parameters import RemoteParameter
+from linien_common.communication import RestorableParameterValues
 from PyQt5.QtCore import QObject, QThread, pyqtSignal
 
 logger = logging.getLogger(__name__)
@@ -72,9 +74,9 @@ class ConnectionThread(QThread):
     general_connection_exception_raised = pyqtSignal()
     other_exception_raised = pyqtSignal(str)
     connection_lost = pyqtSignal()
-    ask_for_parameter_restore = pyqtSignal()
+    parameter_difference = pyqtSignal(dict)
 
-    def run(self):
+    def run(self) -> None:
         try:
             self.client = LinienClient(self.device)
             self.client.connect(
@@ -85,9 +87,9 @@ class ConnectionThread(QThread):
             self.client_connected.emit(self.client)
 
             # Check for locally cached settings for this server
-            parameters_differ = self.restore_parameters(dry_run=True)
-            if parameters_differ:
-                self.ask_for_parameter_restore.emit()
+            param_diff = self.compare_local_and_remote_parameters()
+            if param_diff:
+                self.parameter_difference.emit(param_diff)
             else:
                 # if parameters don't differ, we can start monitoring remote parameter
                 # changes and write them to disk. We don't do this if parameters differ
@@ -114,52 +116,40 @@ class ConnectionThread(QThread):
             traceback.print_exc()
             self.other_exception_raised.emit(traceback.format_exc())
 
-    def on_connection_lost(self):
+    def on_connection_lost(self) -> None:
         self.connection_lost.emit()
 
-    def answer_whether_to_restore_parameters(self, should_restore):
-        if should_restore:
-            self.restore_parameters(dry_run=False)
-
-        self.add_callbacks_to_write_parameters_to_disk_on_change()
-
-    def restore_parameters(self, dry_run: bool) -> bool:
-        """
-        Read settings for a server that were cached locally. Sends them to the server.
-        If `dry_run` is...
-
-            * `True`, this function returns a boolean indicating whether the local
-              parameters differ from the ones on the server
-            * `False`, the local parameters are uploaded to the server
-        """
-        logger.info("Restoring parameters")
-        differences = False
-        for param_name, param_value in self.device.parameters.items():
-            if hasattr(self.client.parameters, param_name):
-                param: RemoteParameter = getattr(self.client.parameters, param_name)
-                if param.value != param_value:
-                    logger.info(
-                        f"Parameter {param_name} differs: "
-                        f"local={param_value}, remote={param.value}"
-                    )
-                    if dry_run:
-                        differences = True
-                        break
-                    else:
-                        param.value = param_value
-            else:
-                # This may happen if the settings were written with a different version
-                # of linien.
-                logger.warning(
-                    f"Unable to restore {param_name}. Delete the cached value."
+    def compare_local_and_remote_parameters(
+        self,
+    ) -> Dict[str, Tuple[RestorableParameterValues]]:
+        """Get differences between local and remote parameters."""
+        differences = {}
+        for local_param_name, local_param_value in self.device.parameters.items():
+            if hasattr(self.client.parameters, local_param_name):
+                remote_param: RemoteParameter = getattr(
+                    self.client.parameters, local_param_name
                 )
-                del self.device.parameters[param_name]
-                update_device(self.device)
-
-        if not dry_run:
-            self.client.control.exposed_write_registers()
-
+                if remote_param.value != local_param_value:
+                    logger.info(
+                        f"Parameter {local_param_name} differs: "
+                        f"local={local_param_value}, remote={remote_param.value}"
+                    )
+                    differences[local_param_name] = (
+                        local_param_value,
+                        remote_param.value,
+                    )
         return differences
+
+    def restore_parameters(
+        self, differences: Dict[str, Tuple[RestorableParameterValues]]
+    ) -> None:
+        """Restore the remote parameters with the local ones."""
+        logger.info("Restoring parameters...")
+        for param_name, (local_value, remote_value) in differences.items():
+            remote_param: RemoteParameter = getattr(self.client.parameters, param_name)
+            remote_param.value = local_value
+        self.client.control.exposed_write_registers()
+        logger.info("Parameters restored.")
 
     def add_callbacks_to_write_parameters_to_disk_on_change(self) -> None:
         """

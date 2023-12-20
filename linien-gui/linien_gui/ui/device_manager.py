@@ -16,8 +16,11 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
+from typing import Dict, Tuple
+
 import linien_gui
 from linien_client.device import Device, delete_device, load_device_list, move_device
+from linien_common.communication import RestorableParameterValues
 from linien_gui.dialogs import (
     LoadingDialog,
     ask_for_parameter_restore_dialog,
@@ -149,7 +152,9 @@ class DeviceManager(QtWidgets.QMainWindow):
                 )
                 error_dialog(self, display_error)
 
-        def ask_for_parameter_restore():
+        def ask_for_parameter_restore(
+            parameter_difference: Dict[str, Tuple[RestorableParameterValues]]
+        ) -> None:
             question = (
                 "Linien on RedPitaya is running with different parameters than the "
                 "ones saved locally on this machine. Do you want to upload the local "
@@ -161,7 +166,9 @@ class DeviceManager(QtWidgets.QMainWindow):
             should_restore = ask_for_parameter_restore_dialog(
                 self, question, "Restore parameters?"
             )
-            self.connection_thread.answer_whether_to_restore_parameters(should_restore)
+            if should_restore:
+                self.connection_thread.restore_parameters(parameter_difference)
+            self.connection_thread.add_callbacks_to_write_parameters_to_disk_on_change()
 
         def handle_connection_lost():
             error_dialog(self, "Lost connection to the server!")
@@ -183,9 +190,7 @@ class DeviceManager(QtWidgets.QMainWindow):
             handle_general_connection_error
         )
         self.connection_thread.other_exception_raised.connect(handle_other_exception)
-        self.connection_thread.ask_for_parameter_restore.connect(
-            ask_for_parameter_restore
-        )
+        self.connection_thread.parameter_difference.connect(ask_for_parameter_restore)
         self.connection_thread.connection_lost.connect(handle_connection_lost)
 
         # Start the worker -------------------------------------------------------------
