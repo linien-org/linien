@@ -121,7 +121,7 @@ class ConnectionThread(QThread):
 
     def compare_local_and_remote_parameters(
         self,
-    ) -> Dict[str, Tuple[RestorableParameterValues]]:
+    ) -> Dict[str, Tuple[RestorableParameterValues, RestorableParameterValues]]:
         """Get differences between local and remote parameters."""
         differences = {}
         for local_param_name, local_param_value in self.device.parameters.items():
@@ -141,7 +141,10 @@ class ConnectionThread(QThread):
         return differences
 
     def restore_parameters(
-        self, differences: Dict[str, Tuple[RestorableParameterValues]]
+        self,
+        differences: Dict[
+            str, Tuple[RestorableParameterValues, RestorableParameterValues]
+        ],
     ) -> None:
         """Restore the remote parameters with the local ones."""
         logger.info("Restoring parameters...")
