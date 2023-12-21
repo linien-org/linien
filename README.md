@@ -129,8 +129,6 @@ When you're done, head over to *Modulation, Sweep & Spectroscopy* to configure m
 The bright red line is the demodulated spectroscopy signal. The dark red area is the signal strength obtained by [iq demodulation](https://en.wikipedia.org/wiki/In-phase_and_quadrature_components), i.e. the demodulation signal obtained when demodulating in phase at this point.
 
 ### PID-only mode
-| :exclamation: Please make sure that the modulation frequency/amplitude are set to 0 if using PID-only mode. See [this issue](https://github.com/linien-org/linien/issues/314). |
-|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 
 PID-only mode is intended for bare PID operation (no demodulation or filtering), bypassing most of the FPGA functionality. If enabled, the signal flow is FAST IN 1 → PID → FAST OUT 2. This is useful, if aiming for a high control bandwidth: PID-only mode reduces propagation delay from 320 ns to 125 ns which may make a difference when phase-locking lasers.
 
