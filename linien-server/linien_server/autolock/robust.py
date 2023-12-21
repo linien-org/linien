@@ -135,8 +135,8 @@ class RobustAutolock:
 
         else:
             logger.error(
-                f"Not enough spectra collected: {len(self.spectra)} "
-                f"of {self.N_spectra_required}"
+                "Not enough spectra collected:"
+                f"{len(self.spectra)} of {self.N_spectra_required}"
             )
 
     def setup_timeout(self, N_acquisitions_to_wait=5):

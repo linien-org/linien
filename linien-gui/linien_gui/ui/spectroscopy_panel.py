@@ -82,17 +82,18 @@ class SpectroscopyPanel(QtWidgets.QWidget):
         )
 
         for filter_i in [1, 2]:
-            _get = lambda parent, attr, filter_i=filter_i: getattr(
-                parent, attr.format(filter_i)
+
+            def get_(parent, attr, filter_i=filter_i):
+                return getattr(parent, attr.format(filter_i))
+
+            get_(self, "filter_{}_enabled").stateChanged.connect(
+                get_(self, "change_filter_{}_enabled")
             )
-            _get(self, "filter_{}_enabled").stateChanged.connect(
-                _get(self, "change_filter_{}_enabled")
-            )
-            freq_input = _get(self, "filter_{}_frequency")
+            freq_input = get_(self, "filter_{}_frequency")
             freq_input.setKeyboardTracking(False)
-            freq_input.valueChanged.connect(_get(self, "change_filter_{}_frequency"))
-            _get(self, "filter_{}_type").currentIndexChanged.connect(
-                _get(self, "change_filter_{}_type")
+            freq_input.valueChanged.connect(get_(self, "change_filter_{}_frequency"))
+            get_(self, "filter_{}_type").currentIndexChanged.connect(
+                get_(self, "change_filter_{}_type")
             )
 
         def automatic_changed(value):

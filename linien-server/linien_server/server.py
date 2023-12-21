@@ -130,7 +130,8 @@ class BaseService(rpyc.Service):
             logger.info("InfluxDB credentials updated successfully")
         else:
             logger.info(
-                f"InfluxDB credentials update failed. Error message: {message} (Status Code {status_code})"
+                "InfluxDB credentials update failed. Error message: "
+                f" {message} (Status Code {status_code})"
             )
         return connection_succesful, status_code, message
 
@@ -360,7 +361,10 @@ class FakeRedPitayaControlService(BaseService):
     def _write_random_data_to_parameters_loop(self, stop_event: Event):
         while not stop_event.is_set():
             max_ = randint(0, 8191)
-            gen = lambda: np.array([randint(-max_, max_) for _ in range(N_POINTS)])
+
+            def gen():
+                return np.array([randint(-max_, max_) for _ in range(N_POINTS)])
+
             self.parameters.to_plot.value = pickle.dumps(
                 {
                     "error_signal_1": gen(),
