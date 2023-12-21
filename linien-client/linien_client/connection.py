@@ -50,6 +50,7 @@ class ServiceWithAuth(rpyc.Service):
 
     def _connect(self, channel, config):
         channel.stream.sock.send(self.auth_hash)  # send hash before rpyc takes over
+        logger.debug("Sent authentication hash")
         return super()._connect(channel, config)
 
 
