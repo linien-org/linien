@@ -42,7 +42,10 @@ class InfluxDBCredentials:
         self.measurement = measurement
 
     def __str__(self) -> str:
-        return f"url: {self.url}, org: {self.org}, token: {self.token}, bucket: {self.bucket}, measurement: {self.measurement}"
+        return (
+            f"url: {self.url}, org: {self.org}, token: {self.token}, "
+            f" bucket: {self.bucket}, measurement: {self.measurement}"
+        )
 
 
 def save_credentials(credentials: InfluxDBCredentials) -> None:

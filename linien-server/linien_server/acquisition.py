@@ -18,7 +18,6 @@
 
 import logging
 import pickle
-import shutil
 import subprocess
 from pathlib import Path
 from random import random
