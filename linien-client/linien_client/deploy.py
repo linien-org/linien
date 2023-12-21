@@ -87,7 +87,7 @@ def start_remote_server(
         logger.debug("Sending credentials")
         conn.run(
             'python3 -c "from linien_common.communication import write_hash_to_file;'
-            f"write_hash_to_file('{hash_username_and_password(device.username, device.password)}')\"",
+            f"write_hash_to_file('{hash_username_and_password(device.username, device.password)}')\"",  # noqa E501
             out_stream=out_stream,
             err_stream=out_stream,
             warn=True,
