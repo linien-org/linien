@@ -18,11 +18,9 @@
 
 from setuptools import find_packages, setup
 
-version = "1.0.0"
-
 setup(
     name="linien-server",
-    version=version,
+    version="1.0.1",
     author="Benjamin Wiegand",
     author_email="highwaychile@posteo.de",
     maintainer="Bastian Leykauf",
@@ -47,7 +45,7 @@ setup(
         "pyrp3>=1.1.0,<2.0;platform_machine=='armv7l'",  # only install on RedPitaya
         "requests==2.25.1;python_version<'3.10'",  # pinned because of bug in pip 9.0.1, see #339 # noqa: E501
         "requests>=2.25.1;python_version>='3.10'",
-        "linien-common==1.0.0",
+        "linien-common==1.0.1",
     ],
     scripts=[
         "linien_server/linien_start_server.sh",
