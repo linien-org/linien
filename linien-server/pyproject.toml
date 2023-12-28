@@ -51,4 +51,5 @@ data = [
     "linien_start_server.sh",
     "linien_stop_server.sh",
     "linien_install_requirements.sh",
+    "mdio-tool",
 ]

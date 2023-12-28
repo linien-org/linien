@@ -39,7 +39,7 @@ from linien_common.communication import (
 )
 from linien_common.config import DEFAULT_SERVER_PORT
 from linien_common.influxdb import InfluxDBCredentials, restore_credentials
-from linien_server import __version__
+from linien_server import __version__, mdio_tool
 from linien_server.autolock.autolock import Autolock
 from linien_server.influxdb import InfluxDBLogger
 from linien_server.noise_analysis import PIDOptimization, PSDAcquisition
@@ -430,13 +430,17 @@ def run_server(
     else:
         authenticator = username_and_password_authenticator
 
-    thread = ThreadedServer(
-        control,
-        port=port,
-        authenticator=authenticator,
-        protocol_config={"allow_pickle": True, "allow_public_attrs": True},
-    )
-    thread.start()
+    try:
+        mdio_tool.disable_ethernet_blinking()
+        thread = ThreadedServer(
+            control,
+            port=port,
+            authenticator=authenticator,
+            protocol_config={"allow_pickle": True, "allow_public_attrs": True},
+        )
+        thread.start()
+    finally:
+        mdio_tool.enable_ethernet_blinking()
 
 
 if __name__ == "__main__":
