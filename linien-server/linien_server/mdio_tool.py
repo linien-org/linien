@@ -15,8 +15,12 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
 import subprocess
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 def enable_ethernet_blinking() -> None:
@@ -26,6 +30,7 @@ def enable_ethernet_blinking() -> None:
     See https://github.com/RedPitaya/RedPitaya/issues/205 for details.
     """
     binary_path = Path(__file__).parent / "mdio-tool"
+    logger.info(f"Enabling ethernet blinking with mdio-tool at {binary_path}")
     subprocess.run(
         ["bash", "-c", f"{binary_path}/mdio-tool", "w", "eth0", "0x1b", "0x0f00"]
     )
@@ -38,6 +43,7 @@ def disable_ethernet_blinking() -> None:
     See https://github.com/RedPitaya/RedPitaya/issues/205 for details.
     """
     binary_path = Path(__file__).parent / "mdio-tool"
+    logger.info(f"Enabling ethernet blinking with mdio-tool at {binary_path}")
     subprocess.run(
         ["bash", "-c", f"{binary_path}/mdio-tool", "w", "eth0", "0x1b", "0x0000"]
     )
