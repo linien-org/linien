@@ -16,7 +16,6 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
-import pickle
 
 from linien_client.remote_parameters import RemoteParameters
 from linien_common.influxdb import InfluxDBCredentials
@@ -71,7 +70,7 @@ class LoggingPanel(QtWidgets.QWidget):
         self.influx_credentials_update.connect(self.on_influxdb_credentials_updated)
 
         # getting the influxdb credentials from the remote
-        credentials = pickle.loads(self.control.exposed_get_influxdb_credentials())
+        credentials = self.control.exposed_get_influxdb_credentials()
         logger.debug("Received InfluxDB credentials from server.")
         self.lineEditURL.setText(credentials.url)
         self.lineEditOrg.setText(credentials.org)

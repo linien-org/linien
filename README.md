@@ -192,14 +192,16 @@ Then, you should start the Linien server on your RedPitaya. This can be done by 
 
 Once the server is up and running, you can connect using python:
 ```python
+from linien_client.device import Device
 from linien_client.connection import LinienClient
 from linien_common.common import  MHz, Vpp, ANALOG_OUT_V
 
-c = LinienClient(
+dev = Device(
     host="rp-xxxxxx.local",
     user="root",
-    password="root"
+    password="root"    
 )
+c = LinienClient(dev)
 c.connect(autostart_server=True, use_parameter_cache=True)
 
 # read out the modulation frequency

@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-from typing import List, Tuple
+from typing import Any, List, Tuple
 
 from linien_common.influxdb import InfluxDBCredentials
 from typing_extensions import Protocol
@@ -34,7 +34,9 @@ class LinienControlService(Protocol):
     def exposed_reset_param(self, param_name: str) -> None:
         ...
 
-    def exposed_init_parameter_sync(self, uuid: str) -> bytes:
+    def exposed_init_parameter_sync(
+        self, uuid: str
+    ) -> List[Tuple[str, Any, bool, bool, bool, bool]]:
         ...
 
     def exposed_register_remote_listener(self, uuid: str, param_name: str) -> None:
@@ -45,7 +47,7 @@ class LinienControlService(Protocol):
     ) -> None:
         ...
 
-    def exposed_get_changed_parameters_queue(self, uuid: str) -> bytes:
+    def exposed_get_changed_parameters_queue(self, uuid: str) -> List[Tuple[str, Any]]:
         ...
 
     def exposed_write_registers(self) -> None:
@@ -89,7 +91,7 @@ class LinienControlService(Protocol):
     ) -> Tuple[bool, int, str]:
         ...
 
-    def exposed_get_influxdb_credentials(self) -> bytes:
+    def exposed_get_influxdb_credentials(self) -> InfluxDBCredentials:
         ...
 
     def exposed_start_logging(self, interval: float) -> None:

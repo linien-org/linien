@@ -64,7 +64,7 @@ class RemoteParameter:
     def log(self, value: bool) -> None:
         self.parent.remote.exposed_set_parameter_log(self.name, value)
 
-    def add_callback(self, callback: Callable, call_with_first_value: bool = True):
+    def add_callback(self, callback: Callable, call_immediately: bool = False):
         """
         Register a callback function that is called whenever the parameter changes.
         """
@@ -77,7 +77,7 @@ class RemoteParameter:
         self.parent._callbacks.setdefault(self.name, [])
         self.parent._callbacks[self.name].append(callback)
 
-        if call_with_first_value:
+        if call_immediately:
             callback(self.value)
 
     def reset(self) -> None:
@@ -112,7 +112,7 @@ class RemoteParameters:
         self._callbacks: Dict[str, List[Callable]] = {}
 
         # mimic functionality of `parameters.Parameters`:
-        all_parameters = unpack(self.remote.exposed_init_parameter_sync(self.uuid))
+        all_parameters = self.remote.exposed_init_parameter_sync(self.uuid)
         for name, value, can_be_cached, restorable, loggable, log in all_parameters:
             param = RemoteParameter(
                 parent=self,
@@ -188,9 +188,7 @@ class RemoteParameters:
             and self._async_changed_parameters_queue.ready
         ):
             # We have a result.
-            queue: List[Tuple[str, Any]] = unpack(
-                self._async_changed_parameters_queue.value
-            )
+            queue: List[Tuple[str, Any]] = self._async_changed_parameters_queue.value
 
             # Now that we have our result, we can start the next call.
             self._async_changed_parameters_queue = async_(

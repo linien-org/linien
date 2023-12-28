@@ -24,13 +24,14 @@ from copy import copy
 from random import randint, random
 from threading import Event, Thread
 from time import sleep
-from typing import List, Optional, Tuple
+from typing import Any, List, Optional, Tuple, Union
 
 import click
 import numpy as np
 import rpyc
 from linien_common.common import N_POINTS, check_plot_data, update_signal_history
 from linien_common.communication import (
+    ParameterValues,
     no_authenticator,
     pack,
     unpack,
@@ -79,17 +80,21 @@ class BaseService(rpyc.Service):
     def exposed_get_server_version(self) -> str:
         return __version__
 
-    def exposed_get_param(self, param_name: str) -> bytes:
+    def exposed_get_param(self, param_name: str) -> Union[bytes, ParameterValues]:
         return pack(getattr(self.parameters, param_name).value)
 
-    def exposed_set_param(self, param_name: str, value: bytes) -> None:
+    def exposed_set_param(
+        self, param_name: str, value: Union[bytes, ParameterValues]
+    ) -> None:
         getattr(self.parameters, param_name).value = unpack(value)
 
     def exposed_reset_param(self, param_name: str) -> None:
         getattr(self.parameters, param_name).reset()
 
-    def exposed_init_parameter_sync(self, uuid: str) -> bytes:
-        return pack(list(self.parameters.init_parameter_sync(uuid)))
+    def exposed_init_parameter_sync(
+        self, uuid: str
+    ) -> List[Tuple[str, Any, bool, bool, bool, bool]]:
+        return list(self.parameters.init_parameter_sync(uuid))
 
     def exposed_register_remote_listener(self, uuid: str, param_name: str) -> None:
         self.parameters.register_remote_listener(uuid, param_name)
@@ -100,8 +105,8 @@ class BaseService(rpyc.Service):
         for param_name in param_names:
             self.exposed_register_remote_listener(uuid, param_name)
 
-    def exposed_get_changed_parameters_queue(self, uuid: str) -> bytes:
-        return pack(self.parameters.get_changed_parameters_queue(uuid))
+    def exposed_get_changed_parameters_queue(self, uuid: str) -> List[Tuple[str, Any]]:
+        return self.parameters.get_changed_parameters_queue(uuid)
 
     def exposed_set_parameter_log(self, param_name: str, value: bool) -> None:
         if getattr(self.parameters, param_name).log != value:
@@ -130,8 +135,8 @@ class BaseService(rpyc.Service):
             )
         return connection_succesful, status_code, message
 
-    def exposed_get_influxdb_credentials(self) -> bytes:
-        return pack(self.influxdb_logger.credentials)
+    def exposed_get_influxdb_credentials(self) -> InfluxDBCredentials:
+        return self.influxdb_logger.credentials
 
     def exposed_start_logging(self, interval: float) -> None:
         logger.info("Starting logging")
@@ -429,7 +434,7 @@ def run_server(
         control,
         port=port,
         authenticator=authenticator,
-        protocol_config={"allow_pickle": True},
+        protocol_config={"allow_pickle": True, "allow_public_attrs": True},
     )
     thread.start()
 

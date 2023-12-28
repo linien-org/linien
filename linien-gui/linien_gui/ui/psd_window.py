@@ -78,11 +78,7 @@ class PSDWindow(QtWidgets.QMainWindow):
             self.maximum_measurement_time,
             lambda max_decimation: max_decimation - 12,
         )
-        param2ui(
-            self.parameters.psd_algorithm,
-            self.psd_algorithm,
-            lambda algo: {PSDAlgorithm.LPSD: 0, PSDAlgorithm.WELCH: 1}[algo],
-        )
+        param2ui(self.parameters.psd_algorithm, self.psd_algorithm)
 
         def update_status(_):
             psd_running = self.parameters.psd_acquisition_running.value

@@ -16,9 +16,11 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 import hashlib
+import logging
+import os
 import pickle
 from socket import socket
-from typing import Any, Tuple
+from typing import Callable, Tuple, Union
 
 from rpyc.utils.authenticators import AuthenticationError
 
@@ -26,22 +28,27 @@ from .config import USER_DATA_PATH
 
 HASH_FILE_NAME = "auth_hash.txt"
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
-def pack(value: Any) -> bytes:
+ParameterValues = Union[int, float, str, bool, Callable, bytes]
+RestorableParameterValues = Union[int, float, bool]
+PathLike = Union[str, os.PathLike]
+
+
+def pack(value: ParameterValues) -> Union[bytes, ParameterValues]:
     try:
         return pickle.dumps(value)
-    # FIXME: Replace with TypeError, AttributeError and maybe more
-    except Exception:
+    except (TypeError, AttributeError):
         # this happens when un-pickleable objects (e.g. functions) are assigned to a
         # parameter. In this case, we don't pickle it but transfer a netref instead.
         return value
 
 
-def unpack(value: Any) -> Any:
+def unpack(value: Union[bytes, ParameterValues]) -> ParameterValues:
     try:
-        return pickle.loads(value)
-    # FIXME: Replace with TypeError, AttributeError and maybe more
-    except Exception:
+        return pickle.loads(value)  # type: ignore[arg-type]
+    except TypeError:
         return value
 
 
