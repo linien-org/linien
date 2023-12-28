@@ -21,10 +21,9 @@ import pickle
 from os import path
 
 import numpy as np
-from linien_gui.config import N_COLORS
+from linien_gui.config import N_COLORS, UI_PATH
 from linien_gui.ui.spin_box import CustomDoubleSpinBoxNoSign, CustomSpinBox
 from linien_gui.utils import color_to_hex, get_linien_app_instance, param2ui
-from linien_gui.widgets import UI_PATH
 from PyQt5 import QtGui, QtWidgets, uic
 
 

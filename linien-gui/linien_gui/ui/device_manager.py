@@ -21,6 +21,7 @@ from typing import Dict, Tuple
 import linien_gui
 from linien_client.device import Device, delete_device, load_device_list, move_device
 from linien_common.communication import RestorableParameterValues
+from linien_gui.config import UI_PATH
 from linien_gui.dialogs import (
     LoadingDialog,
     ask_for_parameter_restore_dialog,
@@ -31,7 +32,6 @@ from linien_gui.dialogs import (
 from linien_gui.threads import ConnectionThread
 from linien_gui.ui.new_device_dialog import NewDeviceDialog
 from linien_gui.utils import get_linien_app_instance, set_window_icon
-from linien_gui.widgets import UI_PATH
 from PyQt5 import QtCore, QtWidgets, uic
 from PyQt5.QtWidgets import QListWidget, QPushButton
 

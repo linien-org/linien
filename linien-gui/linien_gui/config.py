@@ -20,6 +20,7 @@
 import json
 import logging
 from enum import Enum
+from pathlib import Path
 from typing import Callable, Iterator, Tuple
 
 from linien_common.config import USER_DATA_PATH
@@ -27,6 +28,7 @@ from linien_common.config import USER_DATA_PATH
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
+UI_PATH = Path(__file__).parents[0].resolve() / "ui"
 
 # don't plot more often than once per `DEFAULT_PLOT_RATE_LIMIT` seconds
 DEFAULT_PLOT_RATE_LIMIT = 0.1

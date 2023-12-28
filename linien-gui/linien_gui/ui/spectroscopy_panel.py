@@ -20,9 +20,9 @@ from typing import Union
 
 from linien_client.remote_parameters import RemoteParameter
 from linien_common.common import FilterType
+from linien_gui.config import UI_PATH
 from linien_gui.ui.spin_box import CustomDoubleSpinBox, CustomDoubleSpinBoxNoSign
 from linien_gui.utils import get_linien_app_instance, param2ui
-from linien_gui.widgets import UI_PATH
 from PyQt5 import QtWidgets, uic
 
 

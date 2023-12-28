@@ -19,8 +19,8 @@ import logging
 
 from linien_client.remote_parameters import RemoteParameters
 from linien_common.influxdb import InfluxDBCredentials
+from linien_gui.config import UI_PATH
 from linien_gui.utils import get_linien_app_instance
-from linien_gui.widgets import UI_PATH
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtCore import pyqtSignal
 

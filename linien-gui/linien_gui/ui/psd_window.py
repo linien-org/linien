@@ -21,6 +21,7 @@ from time import time
 
 import linien_gui
 from linien_common.common import PSDAlgorithm
+from linien_gui.config import UI_PATH
 from linien_gui.dialogs import error_dialog
 from linien_gui.utils import (
     RandomColorChoser,
@@ -28,7 +29,6 @@ from linien_gui.utils import (
     param2ui,
     set_window_icon,
 )
-from linien_gui.widgets import UI_PATH
 from PyQt5 import QtWidgets, uic
 
 
