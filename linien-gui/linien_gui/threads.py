@@ -18,19 +18,20 @@
 
 import logging
 import traceback
+from typing import Dict, Tuple
 
 from linien_client.connection import LinienClient
 from linien_client.deploy import install_remote_server
+from linien_client.device import Device, update_device
 from linien_client.exceptions import (
     GeneralConnectionError,
     InvalidServerVersionException,
     RPYCAuthenticationException,
     ServerNotInstalledException,
 )
-from linien_common.config import DEFAULT_SERVER_PORT
+from linien_client.remote_parameters import RemoteParameter
+from linien_common.communication import RestorableParameterValues
 from PyQt5.QtCore import QObject, QThread, pyqtSignal
-
-from .config import get_saved_parameters, save_parameter
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -50,24 +51,19 @@ class RemoteOutStream(QObject):
 
 
 class RemoteServerInstallationThread(QThread):
-    def __init__(self, device: dict):
+    def __init__(self, device: Device) -> None:
         """A thread that installs the linien server on a remote machine."""
         super(RemoteServerInstallationThread, self).__init__()
         self.device = device
 
     out_stream = RemoteOutStream()
 
-    def run(self):
-        install_remote_server(
-            host=self.device["host"],
-            user=self.device["username"],
-            password=self.device["password"],
-            out_stream=self.out_stream,
-        )
+    def run(self) -> None:
+        install_remote_server(self.device, out_stream=self.out_stream)
 
 
 class ConnectionThread(QThread):
-    def __init__(self, device: dict):
+    def __init__(self, device: Device) -> None:
         super(ConnectionThread, self).__init__()
         self.device = device
 
@@ -78,17 +74,11 @@ class ConnectionThread(QThread):
     general_connection_exception_raised = pyqtSignal()
     other_exception_raised = pyqtSignal(str)
     connection_lost = pyqtSignal()
-    ask_for_parameter_restore = pyqtSignal()
+    parameter_difference = pyqtSignal(dict)
 
-    def run(self):
+    def run(self) -> None:
         try:
-            self.client = LinienClient(
-                host=self.device["host"],
-                user=self.device["username"],
-                password=self.device["password"],
-                port=self.device.get("port", DEFAULT_SERVER_PORT),
-                name=self.device.get("name", ""),
-            )
+            self.client = LinienClient(self.device)
             self.client.connect(
                 autostart_server=True,
                 use_parameter_cache=True,
@@ -97,16 +87,16 @@ class ConnectionThread(QThread):
             self.client_connected.emit(self.client)
 
             # Check for locally cached settings for this server
-            parameters_differ = self.restore_parameters(dry_run=True)
-            if parameters_differ:
-                self.ask_for_parameter_restore.emit()
+            param_diff = self.compare_local_and_remote_parameters()
+            if param_diff:
+                self.parameter_difference.emit(param_diff)
             else:
                 # if parameters don't differ, we can start monitoring remote parameter
                 # changes and write them to disk. We don't do this if parameters differ
                 # because we don't want to override our local settings with the remote
                 # one --> we wait until user has answered whether local parameters or
                 # remote ones should be used.
-                self.write_restorable_parameters_to_disk_on_change()
+                self.add_callbacks_to_write_parameters_to_disk_on_change()
 
         except ServerNotInstalledException:
             self.server_not_installed_exception_raised.emit()
@@ -126,62 +116,60 @@ class ConnectionThread(QThread):
             traceback.print_exc()
             self.other_exception_raised.emit(traceback.format_exc())
 
-    def on_connection_lost(self):
+    def on_connection_lost(self) -> None:
         self.connection_lost.emit()
 
-    def answer_whether_to_restore_parameters(self, should_restore):
-        if should_restore:
-            self.restore_parameters(dry_run=False)
-
-        self.write_restorable_parameters_to_disk_on_change()
-
-    def restore_parameters(self, dry_run=False):
-        """
-        Reads settings for a server that were cached locally. Sends them to the server.
-        If `dry_run` is...
-
-            * `True`, this function returns a boolean indicating whether the
-              local parameters differ from the ones on the server
-            * `False`, the local parameters are uploaded to the server
-        """
-        params = get_saved_parameters(self.device["key"])
-        logger.info("Restoring parameters")
-
-        differences = False
-
-        for k, v in params.items():
-            if hasattr(self.client.parameters, k):
-                param = getattr(self.client.parameters, k)
-                if param.value != v:
-                    if dry_run:
-                        logger.info(f"parameter {k} differs")
-                        differences = True
-                        break
-                    else:
-                        param.value = v
-            else:
-                # This may happen if the settings were written with a different version
-                # of linien.
-                logger.warning(
-                    f"Unable to restore parameter {k}. Delete the cached value."
+    def compare_local_and_remote_parameters(
+        self,
+    ) -> Dict[str, Tuple[RestorableParameterValues, RestorableParameterValues]]:
+        """Get differences between local and remote parameters."""
+        differences = {}
+        for local_param_name, local_param_value in self.device.parameters.items():
+            if hasattr(self.client.parameters, local_param_name):
+                remote_param: RemoteParameter = getattr(
+                    self.client.parameters, local_param_name
                 )
-                save_parameter(self.device["key"], k, None, delete=True)
-
-        if not dry_run:
-            self.client.control.write_registers()
-
+                if remote_param.value != local_param_value:
+                    logger.info(
+                        f"Parameter {local_param_name} differs: "
+                        f"local={local_param_value}, remote={remote_param.value}"
+                    )
+                    differences[local_param_name] = (
+                        local_param_value,
+                        remote_param.value,
+                    )
         return differences
 
-    def write_restorable_parameters_to_disk_on_change(self):
+    def restore_parameters(
+        self,
+        differences: Dict[
+            str, Tuple[RestorableParameterValues, RestorableParameterValues]
+        ],
+    ) -> None:
+        """Restore the remote parameters with the local ones."""
+        logger.info("Restoring parameters...")
+        for param_name, (local_value, remote_value) in differences.items():
+            remote_param: RemoteParameter = getattr(self.client.parameters, param_name)
+            remote_param.value = local_value
+        self.client.control.exposed_write_registers()
+        logger.info("Parameters restored.")
+
+    def add_callbacks_to_write_parameters_to_disk_on_change(self) -> None:
         """
         Listens for changes of some parameters and permanently saves their values on the
         client's disk. This data can be used to restore the status later, if the client
         tries to connect to the server but it doesn't run anymore.
         """
-        for parameter_name, parameter in self.client.parameters:
-            if parameter.restorable:
+        for param_name, param in self.client.parameters:
+            if param.restorable:
 
-                def on_change(value, parameter_name: str = parameter_name) -> None:
-                    save_parameter(self.device["key"], parameter_name, value)
+                def on_change(value, parameter_name: str = param_name) -> None:
+                    logger.debug(f"Parameter {parameter_name} changed to {value}")
+                    if (
+                        parameter_name not in self.device.parameters
+                        or self.device.parameters[parameter_name] != value
+                    ):
+                        self.device.parameters[parameter_name] = value
+                        update_device(self.device)
 
-                parameter.add_callback(on_change)
+                param.add_callback(on_change)

@@ -24,13 +24,14 @@ from copy import copy
 from random import randint, random
 from threading import Event, Thread
 from time import sleep
-from typing import List, Optional, Tuple
+from typing import Any, List, Optional, Tuple, Union
 
 import click
 import numpy as np
 import rpyc
 from linien_common.common import N_POINTS, check_plot_data, update_signal_history
 from linien_common.communication import (
+    ParameterValues,
     no_authenticator,
     pack,
     unpack,
@@ -79,17 +80,21 @@ class BaseService(rpyc.Service):
     def exposed_get_server_version(self) -> str:
         return __version__
 
-    def exposed_get_param(self, param_name: str) -> bytes:
+    def exposed_get_param(self, param_name: str) -> Union[bytes, ParameterValues]:
         return pack(getattr(self.parameters, param_name).value)
 
-    def exposed_set_param(self, param_name: str, value: bytes) -> None:
+    def exposed_set_param(
+        self, param_name: str, value: Union[bytes, ParameterValues]
+    ) -> None:
         getattr(self.parameters, param_name).value = unpack(value)
 
     def exposed_reset_param(self, param_name: str) -> None:
         getattr(self.parameters, param_name).reset()
 
-    def exposed_init_parameter_sync(self, uuid: str) -> bytes:
-        return pack(list(self.parameters.init_parameter_sync(uuid)))
+    def exposed_init_parameter_sync(
+        self, uuid: str
+    ) -> List[Tuple[str, Any, bool, bool, bool, bool]]:
+        return list(self.parameters.init_parameter_sync(uuid))
 
     def exposed_register_remote_listener(self, uuid: str, param_name: str) -> None:
         self.parameters.register_remote_listener(uuid, param_name)
@@ -100,12 +105,12 @@ class BaseService(rpyc.Service):
         for param_name in param_names:
             self.exposed_register_remote_listener(uuid, param_name)
 
-    def exposed_get_changed_parameters_queue(self, uuid: str) -> bytes:
-        return pack(self.parameters.get_changed_parameters_queue(uuid))
+    def exposed_get_changed_parameters_queue(self, uuid: str) -> List[Tuple[str, Any]]:
+        return self.parameters.get_changed_parameters_queue(uuid)
 
     def exposed_set_parameter_log(self, param_name: str, value: bool) -> None:
         if getattr(self.parameters, param_name).log != value:
-            logger.debug("Setting log for %s to %s" % (param_name, value))
+            logger.debug(f"Setting log for {param_name} to {value}")
             getattr(self.parameters, param_name).log = value
 
     def exposed_get_parameter_log(self, param_name: str) -> bool:
@@ -125,13 +130,13 @@ class BaseService(rpyc.Service):
             logger.info("InfluxDB credentials updated successfully")
         else:
             logger.info(
-                "InfluxDB credentials update failed. Error message: %s (Status Code %s)"
-                % (message, status_code)
+                "InfluxDB credentials update failed. Error message: "
+                f" {message} (Status Code {status_code})"
             )
         return connection_succesful, status_code, message
 
-    def exposed_get_influxdb_credentials(self) -> bytes:
-        return pack(self.influxdb_logger.credentials)
+    def exposed_get_influxdb_credentials(self) -> InfluxDBCredentials:
+        return self.influxdb_logger.credentials
 
     def exposed_start_logging(self, interval: float) -> None:
         logger.info("Starting logging")
@@ -183,9 +188,9 @@ class RedPitayaControlService(BaseService):
         while not stop_event.is_set():
             self.parameters.ping.value += 1
             if self.parameters.ping.value <= MAX_PING:
-                logger.debug("ping  %s" % self.parameters.ping.value)
+                logger.debug(f"Ping  {self.parameters.ping.value}")
                 if self.parameters.ping.value == MAX_PING:
-                    logger.debug("further pings will be suppressed")
+                    logger.debug("Further pings will be suppressed")
             sleep(1)
 
     def _push_acquired_data_to_parameters(self, stop_event: Event):
@@ -223,10 +228,10 @@ class RedPitayaControlService(BaseService):
                     # generate signal stats
                     stats = {}
                     for signal_name, signal in data_loaded.items():
-                        stats["%s_mean" % signal_name] = np.mean(signal)
-                        stats["%s_std" % signal_name] = np.std(signal)
-                        stats["%s_max" % signal_name] = np.max(signal)
-                        stats["%s_min" % signal_name] = np.min(signal)
+                        stats[f"{signal_name}_mean"] = np.mean(signal)
+                        stats[f"{signal_name}_std"] = np.std(signal)
+                        stats[f"{signal_name}_max"] = np.max(signal)
+                        stats[f"{signal_name}_min"] = np.min(signal)
                     self.parameters.signal_stats.value = stats
                     # update signal history (if in locked state)
                     (
@@ -356,7 +361,10 @@ class FakeRedPitayaControlService(BaseService):
     def _write_random_data_to_parameters_loop(self, stop_event: Event):
         while not stop_event.is_set():
             max_ = randint(0, 8191)
-            gen = lambda: np.array([randint(-max_, max_) for _ in range(N_POINTS)])
+
+            def gen():
+                return np.array([randint(-max_, max_) for _ in range(N_POINTS)])
+
             self.parameters.to_plot.value = pickle.dumps(
                 {
                     "error_signal_1": gen(),
@@ -371,10 +379,10 @@ class FakeRedPitayaControlService(BaseService):
         pass
 
     def exposed_start_autolock(self, x0, x1, spectrum):
-        logger.debug("start autolock %s %s" % (x0, x1))
+        logger.debug(f"Start autolock {x0} {x1}")
 
     def exposed_start_optimization(self, x0, x1, spectrum):
-        logger.debug("start optimization")
+        logger.debug("Start optimization")
         self.parameters.optimization_running.value = True
 
     def exposed_shutdown(self):
@@ -409,7 +417,7 @@ def run_server(
     host: Optional[str] = None,
     no_auth: bool = False,
 ):
-    logger.info("Start server on port %s" % port)
+    logger.info(f"Start server on port {port}")
 
     if fake:
         logger.info("starting fake server")
@@ -426,7 +434,7 @@ def run_server(
         control,
         port=port,
         authenticator=authenticator,
-        protocol_config={"allow_pickle": True},
+        protocol_config={"allow_pickle": True, "allow_public_attrs": True},
     )
     thread.start()
 

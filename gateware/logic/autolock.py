@@ -247,19 +247,19 @@ class RobustAutolock(Module, AutoCSR):
 
         peak_height_bit = len(self.sum_diff_calculator.sum_value)
         self.peak_heights = [
-            CSRStorage(peak_height_bit, name="peak_height_%d" % idx)
+            CSRStorage(peak_height_bit, name=f"peak_height_{idx}")
             for idx in range(AUTOLOCK_MAX_N_INSTRUCTIONS)
         ]
         for idx, peak_height in enumerate(self.peak_heights):
-            setattr(self, "peak_height_%d" % idx, peak_height)
+            setattr(self, f"peak_height_{idx}", peak_height)
 
         x_data_length_bit = bits_for(N_points)
         self.wait_for = [
-            CSRStorage(x_data_length_bit, name="wait_for_%d" % idx)
+            CSRStorage(x_data_length_bit, name=f"wait_for_{idx}")
             for idx in range(AUTOLOCK_MAX_N_INSTRUCTIONS)
         ]
         for idx, wait_for in enumerate(self.wait_for):
-            setattr(self, "wait_for_%d" % idx, wait_for)
+            setattr(self, f"wait_for_{idx}", wait_for)
 
         return peak_height_bit, x_data_length_bit
 

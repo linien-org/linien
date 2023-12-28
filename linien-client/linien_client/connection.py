@@ -1,5 +1,5 @@
 # Copyright 2018-2022 Benjamin Wiegand <benjamin.wiegand@physik.hu-berlin.de>
-# Copyright 2021-2022 Bastian Leykauf <leykauf@physik.hu-berlin.de>
+# Copyright 2021-2023 Bastian Leykauf <leykauf@physik.hu-berlin.de>
 #
 # This file is part of Linien and based on redpid.
 #
@@ -17,19 +17,17 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
-import random
-import string
 from socket import gaierror
 from time import sleep
 from traceback import print_exc
 from typing import Callable, Optional
 
 import rpyc
-from linien_common.config import DEFAULT_SERVER_PORT
 
 from . import __version__
 from .communication import LinienControlService
 from .deploy import hash_username_and_password, start_remote_server
+from .device import Device, generate_random_key
 from .exceptions import (
     GeneralConnectionError,
     InvalidServerVersionException,
@@ -43,41 +41,27 @@ logger.setLevel(logging.DEBUG)
 
 
 class ServiceWithAuth(rpyc.Service):
-    def __init__(self, uuid: str, user: str, password: str) -> None:
+    def __init__(self, uuid: str, device: Device) -> None:
         super().__init__()
         self.exposed_uuid = uuid
-        self.auth_hash = hash_username_and_password(user, password).encode("utf-8")
+        self.auth_hash = hash_username_and_password(
+            device.username, device.password
+        ).encode("utf-8")
 
     def _connect(self, channel, config):
         channel.stream.sock.send(self.auth_hash)  # send hash before rpyc takes over
+        logger.debug("Sent authentication hash")
         return super()._connect(channel, config)
 
 
 class LinienClient:
-    def __init__(
-        self,
-        host: str,
-        user: str,
-        password: str,
-        port: int = DEFAULT_SERVER_PORT,
-        name: str = "",
-    ):
+    def __init__(self, device: Device) -> None:
         """Connect to a RedPitaya that runs linien server."""
-        self.host = host
-        self.user = user
-        self.password = password
-        self.port = port
-        self.name = name
-
-        if self.host in ("localhost", "127.0.0.1"):
-            # RP is configured such that "localhost" doesn't point to 127.0.0.1 in all
-            # cases
-            self.host = "127.0.0.1"
-
-        self.uuid = "".join(random.choice(string.ascii_lowercase) for _ in range(10))
+        self.device = device
+        self.uuid = generate_random_key()
 
         # for exposing client's uuid to server
-        self.client_service = ServiceWithAuth(self.uuid, self.user, self.password)
+        self.client_service = ServiceWithAuth(self.uuid, self.device)
 
     def connect(
         self,
@@ -91,11 +75,11 @@ class LinienClient:
         while True:
             i += 1
             try:
-                logger.info(f"Try to connect to {self.host}:{self.port}")
+                logger.info(f"Try to connect to {self.device.host}:{self.device.port}")
 
                 self.connection = rpyc.connect(
-                    self.host,
-                    self.port,
+                    self.device.host,
+                    self.device.port,
                     service=self.client_service,
                     config={"allow_pickle": True},
                 )
@@ -112,7 +96,7 @@ class LinienClient:
                 break
             except gaierror:
                 # host not found
-                logger.error(f"Error: host {self.host} not found")
+                logger.error(f"Error: host {self.device.host} not found")
                 break
             except EOFError:
                 logger.error("EOFError! Probably authentication failed")
@@ -123,7 +107,7 @@ class LinienClient:
 
                 if i == 0:
                     logger.error("Server is not running. Launching it!")
-                    start_remote_server(self.host, self.user, self.password)
+                    start_remote_server(self.device)
                     sleep(3)
                 else:
                     if i < 20:

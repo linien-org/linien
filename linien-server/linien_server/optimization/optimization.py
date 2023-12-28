@@ -62,7 +62,7 @@ class OptimizeSpectroscopy:
 
         params = self.parameters
         self.engine = OptimizerEngine(self.control, params)
-        params.to_plot.add_callback(self.react_to_new_spectrum)
+        params.to_plot.add_callback(self.react_to_new_spectrum, call_immediately=True)
         params.optimization_running.value = True
         params.optimization_improvement.value = 0
 
@@ -77,7 +77,7 @@ class OptimizeSpectroscopy:
         ) = get_lock_point(
             error_signal,
             *list(sorted([self.x0, self.x1])),
-            final_zoom_factor=FINAL_ZOOM_FACTOR
+            final_zoom_factor=FINAL_ZOOM_FACTOR,
         )
 
         self.target_zoom = target_zoom
@@ -103,8 +103,8 @@ class OptimizeSpectroscopy:
             channel = params.optimization_channel.value
             spectrum_idx = 1 if not dual_channel else (1, 2)[channel]
             unpickled = pickle.loads(spectrum)
-            spectrum = unpickled["error_signal_%d" % spectrum_idx]
-            quadrature = unpickled["error_signal_%d_quadrature" % spectrum_idx]
+            spectrum = unpickled[f"error_signal_{spectrum_idx}"]
+            quadrature = unpickled[f"error_signal_{spectrum_idx}_quadrature"]
 
             if self.parameters.optimization_approaching.value:
                 approaching_finished = self.approacher.approach_line(spectrum)

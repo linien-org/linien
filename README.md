@@ -45,8 +45,8 @@ binaries](#standalone-binary) containing the graphical user interface
 are recommended.
 These binaries run on your lab PC and contain everything to get Linien running on your RedPitaya.
 
-Both RedPitaya OS 1.x and 2.x are supported. However, support for OS 1.x will be dropped starting
-with Linien 2.x
+Starting with Linien 2.0, only RedPitaya OS 2.x is supported. Linien 1.x works on RedPitaya OS
+but is no longer actively maintain.
 
 If you want to use the python interface you should [install it using pip](#installation-with-pip).
 
@@ -192,14 +192,16 @@ Then, you should start the Linien server on your RedPitaya. This can be done by 
 
 Once the server is up and running, you can connect using python:
 ```python
+from linien_client.device import Device
 from linien_client.connection import LinienClient
 from linien_common.common import  MHz, Vpp, ANALOG_OUT_V
 
-c = LinienClient(
+dev = Device(
     host="rp-xxxxxx.local",
     user="root",
-    password="root"
+    password="root"    
 )
+c = LinienClient(dev)
 c.connect(autostart_server=True, use_parameter_cache=True)
 
 # read out the modulation frequency

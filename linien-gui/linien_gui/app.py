@@ -22,12 +22,11 @@ import sys
 import click
 from linien_client.connection import LinienClient
 from linien_gui import __version__
-from linien_gui.config import load_settings
+from linien_gui.config import UI_PATH, load_settings
 from linien_gui.ui.device_manager import DeviceManager
 from linien_gui.ui.main_window import MainWindow
 from linien_gui.ui.psd_window import PSDWindow
 from linien_gui.ui.version_checker import VersionCheckerThread
-from linien_gui.widgets import UI_PATH
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import pyqtSignal
 from pyqtgraph.Qt import QtCore
@@ -55,7 +54,7 @@ class LinienApp(QtWidgets.QApplication):
 
     def client_connected(self, client: LinienClient):
         self.device_manager.hide()
-        self.main_window.show(client.host, client.name)
+        self.main_window.show(client.device.host, client.device.name)
 
         self.client = client
         self.control = client.control

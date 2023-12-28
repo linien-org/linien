@@ -18,7 +18,6 @@
 
 import logging
 import pickle
-import shutil
 import subprocess
 from pathlib import Path
 from random import random
@@ -311,18 +310,8 @@ class AcquisitionService(Service):
 
 def flash_fpga():
     filepath = Path(__file__).resolve().parent / "gateware.bin"
-
-    # On redpitaya os < 2, flashing fpga works by copying the bit file /dev/xdevcfg. On
-    # recent versions, there is a dedicated command for this
-    # cf. https://forum.redpitaya.com/viewtopic.php?p=33494&sid=5132bf6e33709b1a7daa948f8e8dcdb1#p33494  # noqa: E501
-    fpga_dev_file = Path("/dev/xdevcfg")
-
-    if fpga_dev_file.exists():
-        logger.info("Copying gateware to %s" % fpga_dev_file)
-        shutil.copy(str(filepath), str(fpga_dev_file))
-    else:
-        logger.info("Using fpgautil to deploy gateware.")
-        subprocess.Popen(["/opt/redpitaya/bin/fpgautil", "-b", str(filepath)]).wait()
+    logger.info("Using fpgautil to deploy gateware.")
+    subprocess.Popen(["/opt/redpitaya/bin/fpgautil", "-b", str(filepath)]).wait()
 
 
 def start_nginx():
@@ -336,5 +325,5 @@ def stop_nginx():
 
 if __name__ == "__main__":
     threaded_server = ThreadedServer(AcquisitionService(), port=ACQUISITION_PORT)
-    logger.info("Starting AcquisitionService on port %s" % ACQUISITION_PORT)
+    logger.info(f"Starting AcquisitionService on port {ACQUISITION_PORT}")
     threaded_server.start()

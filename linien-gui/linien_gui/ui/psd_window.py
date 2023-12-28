@@ -21,6 +21,7 @@ from time import time
 
 import linien_gui
 from linien_common.common import PSDAlgorithm
+from linien_gui.config import UI_PATH
 from linien_gui.dialogs import error_dialog
 from linien_gui.utils import (
     RandomColorChoser,
@@ -28,7 +29,6 @@ from linien_gui.utils import (
     param2ui,
     set_window_icon,
 )
-from linien_gui.widgets import UI_PATH
 from PyQt5 import QtWidgets, uic
 
 
@@ -78,11 +78,7 @@ class PSDWindow(QtWidgets.QMainWindow):
             self.maximum_measurement_time,
             lambda max_decimation: max_decimation - 12,
         )
-        param2ui(
-            self.parameters.psd_algorithm,
-            self.psd_algorithm,
-            lambda algo: {PSDAlgorithm.LPSD: 0, PSDAlgorithm.WELCH: 1}[algo],
-        )
+        param2ui(self.parameters.psd_algorithm, self.psd_algorithm)
 
         def update_status(_):
             psd_running = self.parameters.psd_acquisition_running.value
@@ -167,7 +163,7 @@ class PSDWindow(QtWidgets.QMainWindow):
             self,
             "QFileDialog.getSaveFileName()",
             "",
-            "PICKLE (*%s)" % default_ext,
+            f"PICKLE (*{default_ext})",
             options=options,
         )
         if fn:
@@ -192,7 +188,7 @@ class PSDWindow(QtWidgets.QMainWindow):
             self,
             "QFileDialog.getSaveFileName()",
             "",
-            "JSON (*%s)" % default_ext,
+            f"JSON (*{default_ext})",
             options=options,
         )
         if fn:
