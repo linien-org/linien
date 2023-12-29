@@ -37,8 +37,7 @@ Features
 
 ![image](https://raw.githubusercontent.com/linien-org/linien/master/docs/screencast.gif)
 
-Getting started: install Linien
----------------
+## Getting started: Install Linien
 
 Linien runs on Windows and Linux. For Windows users the [standalone
 binaries](#standalone-binary) containing the graphical user interface
@@ -48,13 +47,11 @@ These binaries run on your lab PC and contain everything to get Linien running o
 Starting with Linien 2.0, only RedPitaya OS 2.x is supported. Linien 1.x works on RedPitaya OS
 but is no longer actively maintain.
 
-If you want to use the python interface you should [install it using pip](#installation-with-pip).
-
 ### Standalone binary
 
-You can download standalone binaries for Windows on [the
-releases
-page](https://github.com/linien-org/linien/releases) (download the binary in the assets section of the latest version). For Linux users, we recommend installation via pip.
+You can download standalone binaries for Windows on
+[the releases page](https://github.com/linien-org/linien/releases) (download the binary in the assets
+section of the latest version). For Linux users, we recommend installation of `linien-gui` via pip.
 
 ### Installation with pip
 
@@ -67,17 +64,56 @@ pip install linien-gui
 The GUI can be started by calling 
 
 ```bash
-linien
+linien run
 ```
 
 in a terminal (on both Linux and Windows).
 
-In case you're only interested in the python client and don't want to install the graphical application, you may use the `linien-client` package:
+In case you're only interested in the Python client and don't want to install the graphical application, you may use the `linien-client` package:
 
 ```bash
 pip install linien-client
 ```
 
+### Installation of the server on the RedPitaya
+
+The easiest way to install the server component of Linien on the RedPitaya, is to use the graphical
+user interface. The first time you are connecting to the RedPitaya, the server is automatically
+installed.
+
+In case you are using the `linien-client`, the server can be installed with
+
+```python
+from linien_client.device import Device
+from linien_client.deploy import install_remote_server
+
+dev = dev = Device(
+    host="rp-xxxxxx.local",
+    user="root",
+    password="root"    
+)
+instalL_remote_server(device)
+```
+
+Finally, you can install the server manually, by connecting to the RedPitaya via SSH and
+then running
+
+```bash
+pip install linien-server
+```
+
+In order for the server to be started in a persistent way additional requirements must
+be installed by running
+
+```bash
+linien-server init
+```
+
+For running the server manually, see
+
+```bash
+linien-server --help
+```
 
 Physical setup
 --------------
