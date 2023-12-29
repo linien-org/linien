@@ -31,9 +31,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-# ignore type, otherwise "Argument 1 has incompatible type "Callable[[int, bool, str |
-# None, bool], Any]"; expected <nothing>" is raised for click 8.1.4.
-@click.command("linien-server")  # type: ignore[arg-type]
+@click.command("linien-server")
 @click.version_option(__version__)
 @click.argument("port", default=DEFAULT_SERVER_PORT, type=int, required=False)
 @click.option(
@@ -56,7 +54,7 @@ def run_server(
     logger.info(f"Start server on port {port}")
 
     if fake:
-        logger.info("starting fake server")
+        logger.info("Starting fake server")
         control = FakeRedPitayaControlService()
     else:
         control = RedPitayaControlService(host=host)
