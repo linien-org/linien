@@ -30,7 +30,7 @@ content-type = "text/markdown"
 [project.urls]
 Homepage = "https://github.com/linien-org/linien"
 
-[project.scripts]
+[project.gui-scripts]
 linien = "linien_gui.app:run_application"
 
 [tool.setuptools]
