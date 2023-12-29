@@ -23,7 +23,7 @@ from dataclasses import asdict, dataclass, field
 from typing import Dict, List
 
 from linien_common.communication import PathLike, RestorableParameterValues
-from linien_common.config import DEFAULT_SERVER_PORT, USER_DATA_PATH
+from linien_common.config import SERVER_PORT, USER_DATA_PATH
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -41,7 +41,7 @@ class Device:
     key: str = field(default_factory=generate_random_key)
     name: str = field(default_factory=str)
     host: str = field(default_factory=str)
-    port: int = DEFAULT_SERVER_PORT
+    port: int = SERVER_PORT
     username: str = field(default_factory=str)
     password: str = field(default_factory=str)
     parameters: Dict[str, RestorableParameterValues] = field(default_factory=dict)
@@ -78,7 +78,7 @@ def add_device(
     logger.debug(f"Added device with key {device.key} to {path}.")
 
 
-def load_device(key: str, path) -> Device:
+def load_device(key: str, path: PathLike) -> Device:
     """Load a device from disk."""
     devices = load_device_list(path)
     for device in devices:

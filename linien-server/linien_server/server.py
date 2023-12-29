@@ -37,7 +37,7 @@ from linien_common.communication import (
     unpack,
     username_and_password_authenticator,
 )
-from linien_common.config import DEFAULT_SERVER_PORT
+from linien_common.config import SERVER_PORT
 from linien_common.influxdb import InfluxDBCredentials, restore_credentials
 from linien_server import __version__, mdio_tool
 from linien_server.autolock.autolock import Autolock
@@ -395,11 +395,8 @@ class FakeRedPitayaControlService(BaseService):
         pass
 
 
-# ignore type, otherwise "Argument 1 has incompatible type "Callable[[int, bool, str |
-# None, bool], Any]"; expected <nothing>" is raised for click 8.1.4.
-@click.command("linien-server")  # type: ignore[arg-type]
+@click.command("linien-server")
 @click.version_option(__version__)
-@click.argument("port", default=DEFAULT_SERVER_PORT, type=int, required=False)
 @click.option(
     "--fake", is_flag=True, help="Runs a fake server that just returns random data"
 )
@@ -407,40 +404,36 @@ class FakeRedPitayaControlService(BaseService):
     "--host",
     help=(
         "Allows to run the server locally for development and connects to a RedPitaya. "
-        "Specify the RP's host as follows: --host=rp-f0xxxx.local"
+        "Specify the RP's host as follows: '--host=rp-f0xxxx.local'. On the RedPitaya, "
+        "the AcquisitionService has to be started manually by calling acqusition.py."
     ),
 )
-@click.option("--no-auth", is_flag=True, help="Disable authentication")
-def run_server(
-    port: int = DEFAULT_SERVER_PORT,
-    fake: bool = False,
-    host: Optional[str] = None,
-    no_auth: bool = False,
-):
-    logger.info(f"Start server on port {port}")
-
+def run_server(fake: bool = False, host: Optional[str] = None):
     if fake:
-        logger.info("starting fake server")
+        logger.info("Starting fake server")
         control = FakeRedPitayaControlService()
     else:
+        logger.info("Starting server.")
         control = RedPitayaControlService(host=host)
 
-    if no_auth or fake:
+    if fake or host:
         authenticator = no_authenticator
     else:
         authenticator = username_and_password_authenticator
 
     try:
-        mdio_tool.disable_ethernet_blinking()
+        if not (fake or host):  # only available on RP
+            mdio_tool.disable_ethernet_blinking()
         thread = ThreadedServer(
             control,
-            port=port,
+            port=SERVER_PORT,
             authenticator=authenticator,
             protocol_config={"allow_pickle": True, "allow_public_attrs": True},
         )
         thread.start()
     finally:
-        mdio_tool.enable_ethernet_blinking()
+        if not (fake or host):  # only available on RP
+            mdio_tool.enable_ethernet_blinking()
 
 
 if __name__ == "__main__":
