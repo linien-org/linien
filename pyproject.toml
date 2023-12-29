@@ -42,5 +42,6 @@ module = [
   "pyrp3.*",
   "pylpsd.*",
   "pyqtgraph.*",
+  "fire",
 ]
 ignore_missing_imports = true
