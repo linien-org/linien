@@ -108,12 +108,13 @@ class LinienApp(QtWidgets.QApplication):
             QtCore.QTimer.singleShot(1000 * 60 * 60, self.check_for_new_version)
 
 
-def linien_gui_cli(version: bool = False):
-    """Start the Linien GUI."""
-    if version:
-        print(__version__)
-        return
-    else:
+class LinienGUI:
+    def version(self) -> str:
+        """Return the version of the Linien GUI."""
+        return __version__
+
+    def run(self):
+        """Start the Linien GUI."""
         app = LinienApp(sys.argv)
         logger.info("Starting Linien GUI")
 
@@ -123,7 +124,7 @@ def linien_gui_cli(version: bool = False):
 
 
 def main() -> None:
-    fire.Fire(linien_gui_cli)
+    fire.Fire(LinienGUI)
 
 
 if __name__ == "__main__":
