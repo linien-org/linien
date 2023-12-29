@@ -34,14 +34,6 @@ Homepage = "https://github.com/linien-org/linien"
 [project.scripts]
 linien-server = "linien_server.cli:main"
 
-[tool.setuptools]
-script-files = [
-    "linien_server/linien_start_server.sh",
-    "linien_server/linien_stop_server.sh",
-    "linien_server/linien_install_requirements.sh",
-]
-include-package-data = false
-
 [tool.setuptools.packages.find]
 namespaces = false
 
