@@ -43,16 +43,22 @@ class LinienServerCLI:
 
     def init(self) -> None:
         """Install the required packages for the Linien server."""
+        logger.info("Installing Linien server dependencies")
         subprocess.run(["apt", "install", "-y", "screen"])
+        logger.info("Installed Linien server dependencies")
 
     def start(self) -> None:
         """Start the Linien server in a screen session."""
         self.stop()
+        logger.info("Starting Linien server")
         subprocess.run(["screen", "-dmS", "linien-server", "linien-server", "run"])
+        logger.info("Started Linien server")
 
     def stop(self) -> None:
         """Stop the Linien server and its screen session."""
+        logger.info("Stopping Linien server")
         subprocess.run(["screen", "-XS", "linien-server", "quit"])
+        logger.info("Stopped Linien server")
 
     def run(self, fake: bool = False, host: Optional[str] = None) -> None:
         """
