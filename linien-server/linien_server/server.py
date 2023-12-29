@@ -24,29 +24,20 @@ from copy import copy
 from random import randint, random
 from threading import Event, Thread
 from time import sleep
-from typing import Any, List, Optional, Tuple, Union
+from typing import Any, List, Tuple, Union
 
-import click
 import numpy as np
 import rpyc
 from linien_common.common import N_POINTS, check_plot_data, update_signal_history
-from linien_common.communication import (
-    ParameterValues,
-    no_authenticator,
-    pack,
-    unpack,
-    username_and_password_authenticator,
-)
-from linien_common.config import DEFAULT_SERVER_PORT
+from linien_common.communication import ParameterValues, pack, unpack
 from linien_common.influxdb import InfluxDBCredentials, restore_credentials
-from linien_server import __version__, mdio_tool
+from linien_server import __version__
 from linien_server.autolock.autolock import Autolock
 from linien_server.influxdb import InfluxDBLogger
 from linien_server.noise_analysis import PIDOptimization, PSDAcquisition
 from linien_server.optimization.optimization import OptimizeSpectroscopy
 from linien_server.parameters import Parameters, restore_parameters, save_parameters
 from linien_server.registers import Registers
-from rpyc.utils.server import ThreadedServer
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -393,55 +384,3 @@ class FakeRedPitayaControlService(BaseService):
 
     def exposed_continue_acquisition(self):
         pass
-
-
-# ignore type, otherwise "Argument 1 has incompatible type "Callable[[int, bool, str |
-# None, bool], Any]"; expected <nothing>" is raised for click 8.1.4.
-@click.command("linien-server")  # type: ignore[arg-type]
-@click.version_option(__version__)
-@click.argument("port", default=DEFAULT_SERVER_PORT, type=int, required=False)
-@click.option(
-    "--fake", is_flag=True, help="Runs a fake server that just returns random data"
-)
-@click.option(
-    "--host",
-    help=(
-        "Allows to run the server locally for development and connects to a RedPitaya. "
-        "Specify the RP's host as follows: --host=rp-f0xxxx.local"
-    ),
-)
-@click.option("--no-auth", is_flag=True, help="Disable authentication")
-def run_server(
-    port: int = DEFAULT_SERVER_PORT,
-    fake: bool = False,
-    host: Optional[str] = None,
-    no_auth: bool = False,
-):
-    logger.info(f"Start server on port {port}")
-
-    if fake:
-        logger.info("starting fake server")
-        control = FakeRedPitayaControlService()
-    else:
-        control = RedPitayaControlService(host=host)
-
-    if no_auth or fake:
-        authenticator = no_authenticator
-    else:
-        authenticator = username_and_password_authenticator
-
-    try:
-        mdio_tool.disable_ethernet_blinking()
-        thread = ThreadedServer(
-            control,
-            port=port,
-            authenticator=authenticator,
-            protocol_config={"allow_pickle": True, "allow_public_attrs": True},
-        )
-        thread.start()
-    finally:
-        mdio_tool.enable_ethernet_blinking()
-
-
-if __name__ == "__main__":
-    run_server()
