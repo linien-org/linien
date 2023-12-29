@@ -28,6 +28,7 @@ markers = """slow : marks tests as slow (deselect with '-m "not slow"')"""
 
 [tool.mypy]
 plugins = "numpy.typing.mypy_plugin"
+exclude = ["[^/]+/build/"]
 
 [[tool.mypy.overrides]]
 module = [
