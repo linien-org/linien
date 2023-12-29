@@ -399,10 +399,10 @@ def run_threaded_server(
     else:
         logger.info("Starting server.")
 
-        thread = ThreadedServer(
-            control,
-            port=SERVER_PORT,
-            authenticator=authenticator,
-            protocol_config={"allow_pickle": True, "allow_public_attrs": True},
-        )
-        thread.start()
+    thread = ThreadedServer(
+        control,
+        port=SERVER_PORT,
+        authenticator=authenticator,
+        protocol_config={"allow_pickle": True, "allow_public_attrs": True},
+    )
+    thread.start()

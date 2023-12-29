@@ -19,7 +19,7 @@
 import logging
 from typing import Optional
 
-import click
+import fire
 from linien_common.communication import (
     no_authenticator,
     username_and_password_authenticator,
@@ -35,38 +35,41 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-@click.command("linien-server")
-@click.version_option(__version__)
-@click.option(
-    "--fake", is_flag=True, help="Runs a fake server that just returns random data"
-)
-@click.option(
-    "--host",
-    help=(
-        "Allows to run the server locally for development and connects to a RedPitaya. "
-        "Specify the RP's host as follows: '--host=rp-f0xxxx.local'. On the RedPitaya, "
-        "the AcquisitionService has to be started manually by calling acqusition.py."
-    ),
-)
-def run_server(fake: bool = False, host: Optional[str] = None):
-    if fake:
-        control = FakeRedPitayaControlService()
-    else:
-        control = RedPitayaControlService(host=host)
+class LinienServerCLI:
+    def version(self) -> str:
+        """Return the version of the Linien server."""
+        return __version__
 
-    if fake or host:
-        authenticator = no_authenticator
-    else:
-        authenticator = username_and_password_authenticator
+    def run(self, fake: bool = False, host: Optional[str] = None) -> None:
+        """
+        Run the Linien server.
 
-    try:
-        if not (fake or host):  # only available on RP
-            mdio_tool.disable_ethernet_blinking()
-        run_threaded_server(control, authenticator=authenticator)
-    finally:
-        if not (fake or host):  # only available on RP
-            mdio_tool.enable_ethernet_blinking()
+        Args:
+            fake: Whether to run a fake server.
+            host: The hostname of the Red Pitaya.
+        """
+        if fake:
+            control = FakeRedPitayaControlService()
+        else:
+            control = RedPitayaControlService(host=host)
+
+        if fake or host:
+            authenticator = no_authenticator
+        else:
+            authenticator = username_and_password_authenticator
+
+        try:
+            if not (fake or host):  # only available on RP
+                mdio_tool.disable_ethernet_blinking()
+            run_threaded_server(control, authenticator=authenticator)
+        finally:
+            if not (fake or host):  # only available on RP
+                mdio_tool.enable_ethernet_blinking()
+
+
+def main() -> None:
+    fire.Fire(LinienServerCLI)
 
 
 if __name__ == "__main__":
-    run_server()
+    main()

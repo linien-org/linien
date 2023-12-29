@@ -108,7 +108,7 @@ class LinienApp(QtWidgets.QApplication):
             QtCore.QTimer.singleShot(1000 * 60 * 60, self.check_for_new_version)
 
 
-def linien_gui_cli(version=False):
+def linien_gui_cli(version: bool = False):
     """Start the Linien GUI."""
     if version:
         print(__version__)
