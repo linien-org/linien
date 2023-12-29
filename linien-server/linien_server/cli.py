@@ -17,6 +17,7 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
+import subprocess
 from typing import Optional
 
 import fire
@@ -39,6 +40,19 @@ class LinienServerCLI:
     def version(self) -> str:
         """Return the version of the Linien server."""
         return __version__
+
+    def init(self) -> None:
+        """Install the required packages for the Linien server."""
+        subprocess.run(["apt", "install", "-y", "screen"])
+
+    def start(self) -> None:
+        """Start the Linien server in a screen session."""
+        self.stop()
+        subprocess.run(["screen", "-dmS", "linien-server", "linien-server", "run"])
+
+    def stop(self) -> None:
+        """Stop the Linien server and its screen session."""
+        subprocess.run(["screen", "-XS", "linien-server", "quit"])
 
     def run(self, fake: bool = False, host: Optional[str] = None) -> None:
         """

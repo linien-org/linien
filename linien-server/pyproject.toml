@@ -46,10 +46,4 @@ include-package-data = false
 namespaces = false
 
 [tool.setuptools.package-data]
-data = [
-    "gateware.bin",
-    "linien_start_server.sh",
-    "linien_stop_server.sh",
-    "linien_install_requirements.sh",
-    "mdio-tool",
-]
+data = ["gateware.bin", "mdio-tool"]
