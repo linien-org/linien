@@ -30,13 +30,13 @@ class PythonCSR:
     def __init__(self, rp) -> None:
         self.rp = rp
 
-    def set_one(self, addr: str, value: int) -> None:
+    def set_one(self, addr: int, value: int) -> None:
         self.rp.write(addr, value)
 
-    def get_one(self, addr):
+    def get_one(self, addr: int):
         return int(self.rp.read(addr))
 
-    def set(self, name, value) -> None:
+    def set(self, name: str, value: int) -> None:
         map, addr, width, wr = self.map[name]
         assert wr, name
 
@@ -66,16 +66,15 @@ class PythonCSR:
             )
         return v
 
-    def set_iir(self, prefix, b, a, z=0) -> None:
+    def set_iir(self, prefix: str, b: list[float], a: list[float]) -> None:
         shift = self.get(prefix + "_shift") or 16
         width = self.get(prefix + "_width") or 18
-        interval = self.get(prefix + "_interval") or 1
-        b, a, params = get_params(b, a, shift, width, interval)
+        bb, _, params = get_params(b, a, shift, width)
 
         for k in sorted(params):
             self.set(prefix + "_" + k, params[k])
-        self.set(prefix + "_z0", z)
-        for i in range(len(b), 3):
+        self.set(prefix + "_z0", 0)
+        for i in range(len(bb), 3):
             n = prefix + f"_b{i}"
             if n in self.map:
                 self.set(n, 0)

@@ -384,15 +384,15 @@ class Registers:
     def set(self, key, value):
         self.acquisition.exposed_set_csr(key, value)
 
-    def set_iir(self, iir_name, *args):
-        if self._iir_cache.get(iir_name) != args:
+    def set_iir(self, iir_name: str, b: list[float], a: list[float]) -> None:
+        if self._iir_cache.get(iir_name) != (b, a):
             # as setting iir parameters takes some time, take care that we don't  do it
             # too often
-            self.acquisition.exposed_set_iir_csr(iir_name, *args)
-            self._iir_cache[iir_name] = args
+            self.acquisition.exposed_set_iir_csr(iir_name, b, a)
+            self._iir_cache[iir_name] = (b, a)
 
 
-def twos_complement(num, N_bits):
+def twos_complement(num: int, N_bits: int) -> int:
     max_ = 1 << (N_bits - 1)
     full = 2 * max_
     if num < 0:

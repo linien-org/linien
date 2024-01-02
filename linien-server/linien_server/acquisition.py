@@ -46,8 +46,8 @@ class AcquisitionService(Service):
 
         self.red_pitaya = RedPitaya()
         self.csr = PythonCSR(self.red_pitaya)
-        self.csr_queue = []
-        self.csr_iir_queue = []
+        self.csr_queue: list[tuple[str, int]] = []
+        self.csr_iir_queue: list[tuple[str, list[float], list[float]]] = []
 
         self.data = pickle.dumps(None)
         self.data_was_raw = False
@@ -93,8 +93,8 @@ class AcquisitionService(Service):
                 self.csr.set(key, value)
 
             while self.csr_iir_queue:
-                args = self.csr_iir_queue.pop(0)
-                self.csr.set_iir(*args)
+                name, b, a = self.csr_iir_queue.pop(0)
+                self.csr.set_iir(name, b, a)
 
             if self.locked and not self.confirmed_that_in_lock:
                 self.confirmed_that_in_lock = self.csr.get(
@@ -272,8 +272,8 @@ class AcquisitionService(Service):
     def exposed_set_csr(self, key: str, value: int) -> None:
         self.csr_queue.append((key, value))
 
-    def exposed_set_iir_csr(self, *args):
-        self.csr_iir_queue.append(args)
+    def exposed_set_iir_csr(self, name: str, b: list[float], a: list[float]) -> None:
+        self.csr_iir_queue.append((name, b, a))
 
     def exposed_stop_acquisition(self) -> None:
         self.stop_event.set()
