@@ -58,7 +58,7 @@ class Registers:
 
         self._last_sweep_speed = None
         self._last_raw_acquisition_settings = None
-        self._iir_cache = {}  # type: ignore[var-annotated]
+        self._iir_cache: dict[str, tuple[list[float], list[float]]] = {}
 
         self.parameters.lock.add_callback(self.acquisition.exposed_set_lock_status)
         self.parameters.fetch_additional_signals.add_callback(
