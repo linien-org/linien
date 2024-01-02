@@ -38,23 +38,10 @@ content-type = "text/markdown"
 Homepage = "https://github.com/linien-org/linien"
 
 [project.scripts]
-linien-server = "linien_server.server:run_server"
-
-[tool.setuptools]
-script-files = [
-    "linien_server/linien_start_server.sh",
-    "linien_server/linien_stop_server.sh",
-    "linien_server/linien_install_requirements.sh",
-]
-include-package-data = false
+linien-server = "linien_server.cli:main"
 
 [tool.setuptools.packages.find]
 namespaces = false
 
 [tool.setuptools.package-data]
-data = [
-    "gateware.bin",
-    "linien_start_server.sh",
-    "linien_stop_server.sh",
-    "linien_install_requirements.sh",
-]
+data = ["gateware.bin", "mdio-tool"]

@@ -95,7 +95,7 @@ def start_remote_server(
 
         logger.debug("Starting server")
         conn.run(
-            "linien_start_server.sh",
+            "linien-server start",
             out_stream=out_stream,
             err_stream=out_stream,
             warn=True,
@@ -119,11 +119,11 @@ def install_remote_server(
     ) as conn:
         local_version = linien_client.__version__.split("+")[0]
         cmds = [
-            "linien_stop_server.sh",
+            "linien-server stop",
             "pip3 uninstall linien-server -y",
             "pip3 uninstall linien-common -y",
             f"pip3 install linien-server=={local_version} --no-cache-dir",
-            "linien_install_requirements.sh",
+            "linien-server init",
         ]
         for cmd in cmds:
             out_stream.write(f">> {cmd}\n")
