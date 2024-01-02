@@ -49,10 +49,10 @@ class AcquisitionService(Service):
         self.csr_queue: list[tuple[str, int]] = []
         self.csr_iir_queue: list[tuple[str, list[float], list[float]]] = []
 
-        self.data = pickle.dumps(None)
+        self.data: bytes | None = pickle.dumps(None)
         self.data_was_raw = False
-        self.data_hash = None
-        self.data_uuid = None
+        self.data_hash: float | None = None
+        self.data_uuid: float | None = None
 
         self.locked = False
         self.exposed_set_sweep_speed(9)
@@ -97,8 +97,8 @@ class AcquisitionService(Service):
                 self.csr.set_iir(name, b, a)
 
             if self.locked and not self.confirmed_that_in_lock:
-                self.confirmed_that_in_lock = self.csr.get(
-                    "logic_autolock_lock_running"
+                self.confirmed_that_in_lock = bool(
+                    self.csr.get("logic_autolock_lock_running")
                 )
                 if not self.confirmed_that_in_lock:
                     sleep(0.05)
