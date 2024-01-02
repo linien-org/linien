@@ -5,7 +5,13 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "linien-server"
 version = "2.0.0.dev0"
-authors = [{ name = "Benjamin Wiegand", email = "highwaychile@posteo.de" }]
+authors = [
+    { name = "Benjamin Wiegand", email = "benjamin.wiegand@physik.hu-berlin.de" },
+    { name = "Bastian Leykauf", email = "leykauf@physik.hu-berlin.de" },
+    { name = "Robert Jördens", email = "rj@quartiq.de" },
+    { name = "Christian Freier", email = "christian.freier@gmail.com" },
+    { name = "Doron Behar", email = "doron.behar@gmail.com" },
+]
 maintainers = [
     { name = "Bastian Leykauf", email = "leykauf@physik.hu-berlin.de" },
 ]
@@ -32,23 +38,10 @@ content-type = "text/markdown"
 Homepage = "https://github.com/linien-org/linien"
 
 [project.scripts]
-linien-server = "linien_server.server:run_server"
-
-[tool.setuptools]
-script-files = [
-    "linien_server/linien_start_server.sh",
-    "linien_server/linien_stop_server.sh",
-    "linien_server/linien_install_requirements.sh",
-]
-include-package-data = false
+linien-server = "linien_server.cli:main"
 
 [tool.setuptools.packages.find]
 namespaces = false
 
 [tool.setuptools.package-data]
-data = [
-    "gateware.bin",
-    "linien_start_server.sh",
-    "linien_stop_server.sh",
-    "linien_install_requirements.sh",
-]
+data = ["gateware.bin", "mdio-tool"]

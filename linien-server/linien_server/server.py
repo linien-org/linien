@@ -22,21 +22,16 @@ import logging
 import pickle
 from copy import copy
 from random import randint, random
+from socket import socket
 from threading import Event, Thread
 from time import sleep
-from typing import Optional
+from typing import Any, Callable, List, Tuple, Union
 
-import click
 import numpy as np
 import rpyc
 from linien_common.common import N_POINTS, check_plot_data, update_signal_history
-from linien_common.communication import (
-    no_authenticator,
-    pack,
-    unpack,
-    username_and_password_authenticator,
-)
-from linien_common.config import DEFAULT_SERVER_PORT
+from linien_common.communication import ParameterValues, pack, unpack
+from linien_common.config import SERVER_PORT
 from linien_common.influxdb import InfluxDBCredentials, restore_credentials
 from linien_server import __version__
 from linien_server.autolock.autolock import Autolock
@@ -79,17 +74,21 @@ class BaseService(rpyc.Service):
     def exposed_get_server_version(self) -> str:
         return __version__
 
-    def exposed_get_param(self, param_name: str) -> bytes:
+    def exposed_get_param(self, param_name: str) -> Union[bytes, ParameterValues]:
         return pack(getattr(self.parameters, param_name).value)
 
-    def exposed_set_param(self, param_name: str, value: bytes) -> None:
+    def exposed_set_param(
+        self, param_name: str, value: Union[bytes, ParameterValues]
+    ) -> None:
         getattr(self.parameters, param_name).value = unpack(value)
 
     def exposed_reset_param(self, param_name: str) -> None:
         getattr(self.parameters, param_name).reset()
 
-    def exposed_init_parameter_sync(self, uuid: str) -> bytes:
-        return pack(list(self.parameters.init_parameter_sync(uuid)))
+    def exposed_init_parameter_sync(
+        self, uuid: str
+    ) -> List[Tuple[str, Any, bool, bool, bool, bool]]:
+        return list(self.parameters.init_parameter_sync(uuid))
 
     def exposed_register_remote_listener(self, uuid: str, param_name: str) -> None:
         self.parameters.register_remote_listener(uuid, param_name)
@@ -100,8 +99,8 @@ class BaseService(rpyc.Service):
         for param_name in param_names:
             self.exposed_register_remote_listener(uuid, param_name)
 
-    def exposed_get_changed_parameters_queue(self, uuid: str) -> bytes:
-        return pack(self.parameters.get_changed_parameters_queue(uuid))
+    def exposed_get_changed_parameters_queue(self, uuid: str) -> List[Tuple[str, Any]]:
+        return self.parameters.get_changed_parameters_queue(uuid)
 
     def exposed_set_parameter_log(self, param_name: str, value: bool) -> None:
         if getattr(self.parameters, param_name).log != value:
@@ -125,12 +124,13 @@ class BaseService(rpyc.Service):
             logger.info("InfluxDB credentials updated successfully")
         else:
             logger.info(
-                f"InfluxDB credentials update failed. Error message: {message} (Status Code {status_code})"
+                "InfluxDB credentials update failed. Error message: "
+                f" {message} (Status Code {status_code})"
             )
         return connection_succesful, status_code, message
 
-    def exposed_get_influxdb_credentials(self) -> bytes:
-        return pack(self.influxdb_logger.credentials)
+    def exposed_get_influxdb_credentials(self) -> InfluxDBCredentials:
+        return self.influxdb_logger.credentials
 
     def exposed_start_logging(self, interval: float) -> None:
         logger.info("Starting logging")
@@ -355,7 +355,10 @@ class FakeRedPitayaControlService(BaseService):
     def _write_random_data_to_parameters_loop(self, stop_event: Event):
         while not stop_event.is_set():
             max_ = randint(0, 8191)
-            gen = lambda: np.array([randint(-max_, max_) for _ in range(N_POINTS)])
+
+            def gen():
+                return np.array([randint(-max_, max_) for _ in range(N_POINTS)])
+
             self.parameters.to_plot.value = pickle.dumps(
                 {
                     "error_signal_1": gen(),
@@ -386,49 +389,20 @@ class FakeRedPitayaControlService(BaseService):
         pass
 
 
-# ignore type, otherwise "Argument 1 has incompatible type "Callable[[int, bool, str |
-# None, bool], Any]"; expected <nothing>" is raised for click 8.1.4.
-@click.command("linien-server")  # type: ignore[arg-type]
-@click.version_option(__version__)
-@click.argument("port", default=DEFAULT_SERVER_PORT, type=int, required=False)
-@click.option(
-    "--fake", is_flag=True, help="Runs a fake server that just returns random data"
-)
-@click.option(
-    "--host",
-    help=(
-        "Allows to run the server locally for development and connects to a RedPitaya. "
-        "Specify the RP's host as follows: --host=rp-f0xxxx.local"
-    ),
-)
-@click.option("--no-auth", is_flag=True, help="Disable authentication")
-def run_server(
-    port: int = DEFAULT_SERVER_PORT,
-    fake: bool = False,
-    host: Optional[str] = None,
-    no_auth: bool = False,
-):
-    logger.info(f"Start server on port {port}")
-
-    if fake:
-        logger.info("starting fake server")
-        control = FakeRedPitayaControlService()
+def run_threaded_server(
+    control: BaseService,
+    authenticator: Callable[[socket], tuple[socket, None]],
+) -> None:
+    """Run a (Fake)RedPitayaControlService in a threaded server."""
+    if isinstance(control, FakeRedPitayaControlService):
+        logger.info("Starting fake server")
     else:
-        control = RedPitayaControlService(host=host)
-
-    if no_auth or fake:
-        authenticator = no_authenticator
-    else:
-        authenticator = username_and_password_authenticator
+        logger.info("Starting server.")
 
     thread = ThreadedServer(
         control,
-        port=port,
+        port=SERVER_PORT,
         authenticator=authenticator,
-        protocol_config={"allow_pickle": True},
+        protocol_config={"allow_pickle": True, "allow_public_attrs": True},
     )
     thread.start()
-
-
-if __name__ == "__main__":
-    run_server()

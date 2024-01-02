@@ -16,22 +16,20 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-import json
 import logging
 import pickle
 from math import log
-from time import time
 
 import linien_gui
 import numpy as np
+from linien_client.device import add_device, load_device, update_device
 from linien_common.common import check_plot_data
-from linien_gui.config import N_COLORS, Color
+from linien_gui.config import N_COLORS, UI_PATH, Color
 from linien_gui.ui.plot_widget import INVALID_POWER
 from linien_gui.ui.right_panel import RightPanel
 from linien_gui.ui.spin_box import CustomDoubleSpinBox
 from linien_gui.ui.sweep_control import SweepControlWidget, SweepSlider
 from linien_gui.utils import color_to_hex, get_linien_app_instance, set_window_icon
-from linien_gui.widgets import UI_PATH
 from PyQt5 import QtWidgets, uic
 
 ZOOM_STEP = 0.9
@@ -69,8 +67,8 @@ class MainWindow(QtWidgets.QMainWindow):
     legend_monitor_signal_history: QtWidgets.QLabel
     legend_slow_signal_history: QtWidgets.QLabel
     rightPanel: RightPanel
-    export_parameters_button: QtWidgets.QPushButton
-    import_parameters_button: QtWidgets.QPushButton
+    exportParametersButton: QtWidgets.QPushButton
+    importParametersButton: QtWidgets.QPushButton
     newVersionAvailableLabel: QtWidgets.QLabel
     pid_parameter_optimization_button: QtWidgets.QPushButton
     settings_toolbox: QtWidgets.QToolBox
@@ -96,10 +94,8 @@ class MainWindow(QtWidgets.QMainWindow):
         # handle keyboard events
         self.setFocus()
 
-        self.export_parameters_button.clicked.connect(
-            self.export_parameters_select_file
-        )
-        self.import_parameters_button.clicked.connect(self.import_parameters)
+        self.exportParametersButton.clicked.connect(self.export_parameters)
+        self.importParametersButton.clicked.connect(self.import_parameters)
 
         def display_power(power, element):
             if power == INVALID_POWER:
@@ -211,7 +207,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def handle_key_press(self, key):
         logger.debug(f"key pressed {key}")
 
-    def export_parameters_select_file(self):
+    def export_parameters(self):
         options = QtWidgets.QFileDialog.Options()
         # options |= QtWidgets.QFileDialog.DontUseNativeDialog
         default_ext = ".json"
@@ -226,19 +222,14 @@ class MainWindow(QtWidgets.QMainWindow):
             if not fn.endswith(default_ext):
                 fn = fn + default_ext
 
-            with open(fn, "w") as f:
-                json.dump(
-                    {
-                        "linien-version": linien_gui.__version__,
-                        "time": time(),
-                        "parameters": {
-                            name: param.value
-                            for name, param in self.parameters
-                            if param.restorable
-                        },
-                    },
-                    f,
+            try:
+                add_device(self.app.client.device, path=fn)
+            except KeyError:
+                logger.warning(
+                    f"Device with key {self.app.client.device.key} already exists in"
+                    f"{fn}. Updating the device instead."
                 )
+                update_device(self.app.client.device, path=fn)
 
     def import_parameters(self):
         options = QtWidgets.QFileDialog.Options()
@@ -250,18 +241,16 @@ class MainWindow(QtWidgets.QMainWindow):
             options=options,
         )
         if fn:
-            with open(fn, "r") as f:
-                data = json.load(f)
-
-            if "linien-version" not in data:
-                raise Exception("invalid parameter file")
-
-            for name, value in data["parameters"].items():
-                param = getattr(self.parameters, name)
-                if param.restorable:
+            try:
+                self.app.client.device = load_device(
+                    self.app.client.device.key, path=fn
+                )
+                for name, value in self.app.client.device.parameters.items():
+                    param = getattr(self.app.client.parameters, name)
                     param.value = value
-
-            self.control.write_registers()
+                self.control.exposed_write_registers()
+            except KeyError:
+                logger.error("Unable to load device from file. Key doesn't exist.")
 
     def update_std(self, to_plot, max_std_history_length=10):
         if self.parameters.lock.value and to_plot:

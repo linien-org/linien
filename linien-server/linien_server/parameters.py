@@ -26,7 +26,7 @@ import linien_server
 from linien_common.common import AutolockMode, MHz, PSDAlgorithm, Vpp
 from linien_common.config import USER_DATA_PATH
 
-PARAMETER_STORE_FILENAME = "linien_parameters.json"
+PARAMETER_STORE_FILENAME = "parameters.json"
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -82,13 +82,11 @@ class Parameter:
         self.value = self._start
 
     def add_callback(
-        self,
-        function: Callable[[Any], None],
-        call_with_first_value: bool = True,
+        self, function: Callable[[Any], None], call_immediately: bool = False
     ) -> None:
         self._callbacks.add(function)
 
-        if call_with_first_value:
+        if call_immediately:
             if self._value is not None:
                 function(self._value)
 
@@ -628,8 +626,8 @@ class Parameters:
             if uuid in self._changed_parameters_queue:
                 self._changed_parameters_queue[uuid].append((param_name, value))
 
-        param = getattr(self, param_name)
-        param.add_callback(append_changed_values_to_queue)
+        param: Parameter = getattr(self, param_name)
+        param.add_callback(append_changed_values_to_queue, call_immediately=True)
 
         self._remote_listener_callbacks[uuid].append(
             (param, append_changed_values_to_queue)
@@ -642,9 +640,7 @@ class Parameters:
         del self._changed_parameters_queue[uuid]
         del self._remote_listener_callbacks[uuid]
 
-    def get_changed_parameters_queue(
-        self, uuid: str
-    ) -> dict[str, list[tuple[str, Any]]]:
+    def get_changed_parameters_queue(self, uuid: str) -> list[tuple[str, Any]]:
         """Get the queue of parameter changes for a specific client."""
         queue = self._changed_parameters_queue.get(uuid, [])
         self._changed_parameters_queue[uuid] = []
@@ -666,8 +662,10 @@ def restore_parameters(parameters: Parameters) -> Parameters:
     filename = str(USER_DATA_PATH / PARAMETER_STORE_FILENAME)
     try:
         with open(filename, "r") as f:
+            logger.info(f"Restoring parameters from {filename}")
             data = json.load(f)
     except FileNotFoundError:
+        logger.info(f"Couldn't find {filename}. Using default parameters.")
         return parameters
 
     for name, attributes in data["parameters"].items():

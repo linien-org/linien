@@ -19,15 +19,14 @@ import logging
 import signal
 import sys
 
-import click
+import fire
 from linien_client.connection import LinienClient
 from linien_gui import __version__
-from linien_gui.config import load_settings
+from linien_gui.config import UI_PATH, load_settings
 from linien_gui.ui.device_manager import DeviceManager
 from linien_gui.ui.main_window import MainWindow
 from linien_gui.ui.psd_window import PSDWindow
 from linien_gui.ui.version_checker import VersionCheckerThread
-from linien_gui.widgets import UI_PATH
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import pyqtSignal
 from pyqtgraph.Qt import QtCore
@@ -55,7 +54,7 @@ class LinienApp(QtWidgets.QApplication):
 
     def client_connected(self, client: LinienClient):
         self.device_manager.hide()
-        self.main_window.show(client.host, client.name)
+        self.main_window.show(client.device.host, client.device.name)
 
         self.client = client
         self.control = client.control
@@ -109,18 +108,24 @@ class LinienApp(QtWidgets.QApplication):
             QtCore.QTimer.singleShot(1000 * 60 * 60, self.check_for_new_version)
 
 
-# ignore type, otherwise "Argument 1 has incompatible type "Callable[[int, bool, str |
-# None, bool], Any]"; expected <nothing>" is raised for click 8.1.4.
-@click.command("linien")  # type: ignore[arg-type]
-@click.version_option(__version__)
-def run_application():
-    app = LinienApp(sys.argv)
-    logger.info("Starting Linien GUI")
+class LinienGUI:
+    def version(self) -> str:
+        """Return the version of the Linien GUI."""
+        return __version__
 
-    # catch ctrl-c and shutdown
-    signal.signal(signal.SIGINT, signal.SIG_DFL)
-    sys.exit(app.exec_())
+    def run(self):
+        """Start the Linien GUI."""
+        app = LinienApp(sys.argv)
+        logger.info("Starting Linien GUI")
+
+        # catch ctrl-c and shutdown
+        signal.signal(signal.SIGINT, signal.SIG_DFL)
+        sys.exit(app.exec_())
+
+
+def main() -> None:
+    fire.Fire(LinienGUI)
 
 
 if __name__ == "__main__":
-    run_application()
+    main()

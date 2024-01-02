@@ -1,3 +1,8 @@
+[tool.flake8]
+max-line-length = 88
+extend-ignore = "E203"
+docstring-convention = "numpy"
+
 [tool.black]
 force-exclude = """
 (
@@ -23,6 +28,7 @@ markers = """slow : marks tests as slow (deselect with '-m "not slow"')"""
 
 [tool.mypy]
 plugins = "numpy.typing.mypy_plugin"
+exclude = ["[^/]+/build/"]
 
 [[tool.mypy.overrides]]
 module = [
@@ -36,5 +42,6 @@ module = [
   "pyrp3.*",
   "pylpsd.*",
   "pyqtgraph.*",
+  "fire",
 ]
 ignore_missing_imports = true
