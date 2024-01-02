@@ -5,7 +5,13 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "linien-gui"
 version = "2.0.0.dev0"
-authors = [{ name = "Benjamin Wiegand", email = "highwaychile@posteo.de" }]
+authors = [
+    { name = "Benjamin Wiegand", email = "benjamin.wiegand@physik.hu-berlin.de" },
+    { name = "Bastian Leykauf", email = "leykauf@physik.hu-berlin.de" },
+    { name = "Robert Jördens", email = "rj@quartiq.de" },
+    { name = "Christian Freier", email = "christian.freier@gmail.com" },
+    { name = "Doron Behar", email = "doron.behar@gmail.com" },
+]
 maintainers = [
     { name = "Bastian Leykauf", email = "leykauf@physik.hu-berlin.de" },
 ]
