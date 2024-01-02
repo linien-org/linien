@@ -24,6 +24,7 @@ classifiers = [
 requires-python = ">=3.10"
 dependencies = [
     "cma>=3.0.3",
+    "influxdb-client[ciso]>=1.9,<2.0",
     "pylpsd>=0.1.4",
     "pyrp3>=1.1.0,<2.0;platform_machine=='armv7l'",
     "requests>=2.25.1",
