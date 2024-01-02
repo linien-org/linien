@@ -45,6 +45,7 @@ from linien_server.noise_analysis import PIDOptimization, PSDAcquisition
 from linien_server.optimization.optimization import OptimizeSpectroscopy
 from linien_server.parameters import Parameters, restore_parameters, save_parameters
 from linien_server.registers import Registers
+from rpyc.core.protocol import Connection
 from rpyc.utils.server import ThreadedServer
 
 logger = logging.getLogger(__name__)
@@ -61,7 +62,7 @@ class BaseService(rpyc.Service):
         self.parameters = Parameters()
         self.parameters = restore_parameters(self.parameters)
         atexit.register(save_parameters, self.parameters)
-        self._uuid_mapping = {}  # type: ignore[var-annotated]
+        self._uuid_mapping: dict[Connection, str] = {}
 
         influxdb_credentials = restore_credentials()
         self.influxdb_logger = InfluxDBLogger(influxdb_credentials, self.parameters)
@@ -69,11 +70,11 @@ class BaseService(rpyc.Service):
         self.stop_event = Event()
         self.stop_log_event = Event()
 
-    def on_connect(self, client) -> None:
-        self._uuid_mapping[client] = client.root.uuid
+    def on_connect(self, conn: Connection) -> None:
+        self._uuid_mapping[conn] = conn.root.uuid
 
-    def on_disconnect(self, client) -> None:
-        uuid = self._uuid_mapping[client]
+    def on_disconnect(self, conn: Connection) -> None:
+        uuid = self._uuid_mapping[conn]
         self.parameters.unregister_remote_listeners(uuid)
 
     def exposed_get_server_version(self) -> str:
