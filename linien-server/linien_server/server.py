@@ -30,7 +30,12 @@ from typing import Any, Callable, List, Tuple, Union
 import numpy as np
 import rpyc
 from linien_common.common import N_POINTS, check_plot_data, update_signal_history
-from linien_common.communication import ParameterValues, pack, unpack
+from linien_common.communication import (
+    LinienControlService,
+    ParameterValues,
+    pack,
+    unpack,
+)
 from linien_common.config import SERVER_PORT
 from linien_common.influxdb import InfluxDBCredentials, restore_credentials
 from linien_server import __version__
@@ -144,7 +149,7 @@ class BaseService(rpyc.Service):
         return not self.influxdb_logger.stop_event.is_set()
 
 
-class RedPitayaControlService(BaseService):
+class RedPitayaControlService(BaseService, LinienControlService):
     """Control server that runs on the RP that provides high-level methods."""
 
     def __init__(self, host=None):
@@ -340,7 +345,7 @@ class RedPitayaControlService(BaseService):
         self.registers.set(key, value)
 
 
-class FakeRedPitayaControlService(BaseService):
+class FakeRedPitayaControlService(BaseService, LinienControlService):
     def __init__(self):
         super().__init__()
         self.exposed_is_locked = None
