@@ -18,11 +18,9 @@
 
 from typing import Any, Callable, Dict, Iterator, List, Tuple, Union
 
-from linien_common.communication import pack, unpack
+from linien_common.communication import LinienControlService, pack, unpack
 from rpyc import async_
 from rpyc.core.async_ import AsyncResult
-
-from .communication import LinienControlService
 
 
 class RemoteParameter:

@@ -21,7 +21,6 @@ import pickle
 import random
 import string
 from time import sleep, time
-from typing import Tuple
 
 import numpy as np
 from linien_common.common import PSDAlgorithm
@@ -39,7 +38,7 @@ logger.setLevel(logging.DEBUG)
 
 def calculate_psd(
     sig: np.ndarray, fs: float, algorithm: PSDAlgorithm
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray]:
     """
     Calculate the power spectral density.
 

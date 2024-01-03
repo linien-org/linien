@@ -23,9 +23,9 @@ from traceback import print_exc
 from typing import Callable, Optional
 
 import rpyc
+from linien_common.communication import LinienControlService
 
 from . import __version__
-from .communication import LinienControlService
 from .deploy import hash_username_and_password, start_remote_server
 from .device import Device, generate_random_key
 from .exceptions import (

@@ -25,12 +25,17 @@ from random import randint, random
 from socket import socket
 from threading import Event, Thread
 from time import sleep
-from typing import Any, Callable, List, Tuple, Union
+from typing import Any, Callable
 
 import numpy as np
 import rpyc
 from linien_common.common import N_POINTS, check_plot_data, update_signal_history
-from linien_common.communication import ParameterValues, pack, unpack
+from linien_common.communication import (
+    LinienControlService,
+    ParameterValues,
+    pack,
+    unpack,
+)
 from linien_common.config import SERVER_PORT
 from linien_common.influxdb import InfluxDBCredentials, restore_credentials
 from linien_server import __version__
@@ -40,6 +45,7 @@ from linien_server.noise_analysis import PIDOptimization, PSDAcquisition
 from linien_server.optimization.optimization import OptimizeSpectroscopy
 from linien_server.parameters import Parameters, restore_parameters, save_parameters
 from linien_server.registers import Registers
+from rpyc.core.protocol import Connection
 from rpyc.utils.server import ThreadedServer
 
 logger = logging.getLogger(__name__)
@@ -56,7 +62,7 @@ class BaseService(rpyc.Service):
         self.parameters = Parameters()
         self.parameters = restore_parameters(self.parameters)
         atexit.register(save_parameters, self.parameters)
-        self._uuid_mapping = {}  # type: ignore[var-annotated]
+        self._uuid_mapping: dict[Connection, str] = {}
 
         influxdb_credentials = restore_credentials()
         self.influxdb_logger = InfluxDBLogger(influxdb_credentials, self.parameters)
@@ -64,21 +70,21 @@ class BaseService(rpyc.Service):
         self.stop_event = Event()
         self.stop_log_event = Event()
 
-    def on_connect(self, client) -> None:
-        self._uuid_mapping[client] = client.root.uuid
+    def on_connect(self, conn: Connection) -> None:
+        self._uuid_mapping[conn] = conn.root.uuid
 
-    def on_disconnect(self, client) -> None:
-        uuid = self._uuid_mapping[client]
+    def on_disconnect(self, conn: Connection) -> None:
+        uuid = self._uuid_mapping[conn]
         self.parameters.unregister_remote_listeners(uuid)
 
     def exposed_get_server_version(self) -> str:
         return __version__
 
-    def exposed_get_param(self, param_name: str) -> Union[bytes, ParameterValues]:
+    def exposed_get_param(self, param_name: str) -> bytes | ParameterValues:
         return pack(getattr(self.parameters, param_name).value)
 
     def exposed_set_param(
-        self, param_name: str, value: Union[bytes, ParameterValues]
+        self, param_name: str, value: bytes | ParameterValues
     ) -> None:
         getattr(self.parameters, param_name).value = unpack(value)
 
@@ -87,19 +93,19 @@ class BaseService(rpyc.Service):
 
     def exposed_init_parameter_sync(
         self, uuid: str
-    ) -> List[Tuple[str, Any, bool, bool, bool, bool]]:
+    ) -> list[tuple[str, Any, bool, bool, bool, bool]]:
         return list(self.parameters.init_parameter_sync(uuid))
 
     def exposed_register_remote_listener(self, uuid: str, param_name: str) -> None:
         self.parameters.register_remote_listener(uuid, param_name)
 
     def exposed_register_remote_listeners(
-        self, uuid: str, param_names: List[str]
+        self, uuid: str, param_names: list[str]
     ) -> None:
         for param_name in param_names:
             self.exposed_register_remote_listener(uuid, param_name)
 
-    def exposed_get_changed_parameters_queue(self, uuid: str) -> List[Tuple[str, Any]]:
+    def exposed_get_changed_parameters_queue(self, uuid: str) -> list[tuple[str, Any]]:
         return self.parameters.get_changed_parameters_queue(uuid)
 
     def exposed_set_parameter_log(self, param_name: str, value: bool) -> None:
@@ -112,7 +118,7 @@ class BaseService(rpyc.Service):
 
     def exposed_update_influxdb_credentials(
         self, credentials: InfluxDBCredentials
-    ) -> Tuple[bool, int, str]:
+    ) -> tuple[bool, int, str]:
         credentials = copy(credentials)
         (
             connection_succesful,
@@ -144,7 +150,7 @@ class BaseService(rpyc.Service):
         return not self.influxdb_logger.stop_event.is_set()
 
 
-class RedPitayaControlService(BaseService):
+class RedPitayaControlService(BaseService, LinienControlService):
     """Control server that runs on the RP that provides high-level methods."""
 
     def __init__(self, host=None):
@@ -340,7 +346,7 @@ class RedPitayaControlService(BaseService):
         self.registers.set(key, value)
 
 
-class FakeRedPitayaControlService(BaseService):
+class FakeRedPitayaControlService(BaseService, LinienControlService):
     def __init__(self):
         super().__init__()
         self.exposed_is_locked = None
@@ -373,10 +379,10 @@ class FakeRedPitayaControlService(BaseService):
         pass
 
     def exposed_start_autolock(self, x0, x1, spectrum):
-        logger.debug(f"Start autolock {x0} {x1}")
+        logger.info(f"Start autolock {x0} {x1}")
 
     def exposed_start_optimization(self, x0, x1, spectrum):
-        logger.debug("Start optimization")
+        logger.info("Start optimization")
         self.parameters.optimization_running.value = True
 
     def exposed_shutdown(self):
