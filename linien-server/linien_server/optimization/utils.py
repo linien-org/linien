@@ -19,8 +19,7 @@
 import numpy as np
 from scipy import optimize, stats
 
-# after the line was centered, its width will be 1/FINAL_ZOOM_FACTOR of the
-# view.
+# after the line was centered, its width will be 1/FINAL_ZOOM_FACTOR of the view.
 FINAL_ZOOM_FACTOR = 20
 
 
