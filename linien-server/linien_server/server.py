@@ -25,7 +25,7 @@ from random import randint, random
 from socket import socket
 from threading import Event, Thread
 from time import sleep
-from typing import Any, Callable, List, Tuple, Union
+from typing import Any, Callable
 
 import numpy as np
 import rpyc
@@ -80,11 +80,11 @@ class BaseService(rpyc.Service):
     def exposed_get_server_version(self) -> str:
         return __version__
 
-    def exposed_get_param(self, param_name: str) -> Union[bytes, ParameterValues]:
+    def exposed_get_param(self, param_name: str) -> bytes | ParameterValues:
         return pack(getattr(self.parameters, param_name).value)
 
     def exposed_set_param(
-        self, param_name: str, value: Union[bytes, ParameterValues]
+        self, param_name: str, value: bytes | ParameterValues
     ) -> None:
         getattr(self.parameters, param_name).value = unpack(value)
 
@@ -93,7 +93,7 @@ class BaseService(rpyc.Service):
 
     def exposed_init_parameter_sync(
         self, uuid: str
-    ) -> List[Tuple[str, Any, bool, bool, bool, bool]]:
+    ) -> list[tuple[str, Any, bool, bool, bool, bool]]:
         return list(self.parameters.init_parameter_sync(uuid))
 
     def exposed_register_remote_listener(self, uuid: str, param_name: str) -> None:
@@ -105,7 +105,7 @@ class BaseService(rpyc.Service):
         for param_name in param_names:
             self.exposed_register_remote_listener(uuid, param_name)
 
-    def exposed_get_changed_parameters_queue(self, uuid: str) -> List[Tuple[str, Any]]:
+    def exposed_get_changed_parameters_queue(self, uuid: str) -> list[tuple[str, Any]]:
         return self.parameters.get_changed_parameters_queue(uuid)
 
     def exposed_set_parameter_log(self, param_name: str, value: bool) -> None:
@@ -379,10 +379,10 @@ class FakeRedPitayaControlService(BaseService, LinienControlService):
         pass
 
     def exposed_start_autolock(self, x0, x1, spectrum):
-        logger.debug(f"Start autolock {x0} {x1}")
+        logger.info(f"Start autolock {x0} {x1}")
 
     def exposed_start_optimization(self, x0, x1, spectrum):
-        logger.debug("Start optimization")
+        logger.info("Start optimization")
         self.parameters.optimization_running.value = True
 
     def exposed_shutdown(self):

@@ -126,8 +126,8 @@ class Parameters:
 
         self.to_plot = Parameter(sync=False)
         """
-        The `to_plot` parameter is a pickled dictionary that contains signalsvthat may
-        be plotted. Depending on the locking state, it may contain thesevsignals:
+        The `to_plot` parameter is a pickled dictionary that contains signals that may
+        be plotted. Depending on the locking state, it may contain these signals:
         Unlocked state:
           - `error_signal_1` and `error_signal_1_quadrature`:
               IQ-demodulated and low-pass-filtered error signals from ANALOG IN 0
