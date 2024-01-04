@@ -43,5 +43,6 @@ module = [
   "pylpsd.*",
   "pyqtgraph.*",
   "fire",
+  "influxdb_client.*",
 ]
 ignore_missing_imports = true
