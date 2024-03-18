@@ -99,13 +99,17 @@ class Registers:
             # NOTE: Sweep center is set by `logic_out_offset`.
             logic_sweep_min=-1 * max_(self.parameters.sweep_amplitude.value * 8191),
             logic_sweep_max=max_(self.parameters.sweep_amplitude.value * 8191),
-            logic_mod_freq=self.parameters.modulation_frequency.value
-            if not self.parameters.pid_only_mode.value
-            else 0,
-            logic_mod_amp=self.parameters.modulation_amplitude.value
-            if (self.parameters.modulation_frequency.value > 0)
-            and (not self.parameters.pid_only_mode.value)
-            else 0,
+            logic_mod_freq=(
+                self.parameters.modulation_frequency.value
+                if not self.parameters.pid_only_mode.value
+                else 0
+            ),
+            logic_mod_amp=(
+                self.parameters.modulation_amplitude.value
+                if (self.parameters.modulation_frequency.value > 0)
+                and (not self.parameters.pid_only_mode.value)
+                else 0
+            ),
             logic_dual_channel=int(self.parameters.dual_channel.value),
             logic_pid_only_mode=int(self.parameters.pid_only_mode.value),
             logic_chain_a_factor=factor_a,
@@ -136,24 +140,24 @@ class Registers:
             logic_autolock_robust_time_scale=self.parameters.autolock_time_scale.value,
             logic_autolock_robust_final_wait_time=self.parameters.autolock_final_wait_time.value,  # noqa: E501
             # channel A
-            fast_a_demod_delay=phase_to_delay(
-                self.parameters.demodulation_phase_a.value
-            )
-            if (self.parameters.modulation_frequency.value > 0)
-            and (not self.parameters.pid_only_mode.value)
-            else 0,
+            fast_a_demod_delay=(
+                phase_to_delay(self.parameters.demodulation_phase_a.value)
+                if (self.parameters.modulation_frequency.value > 0)
+                and (not self.parameters.pid_only_mode.value)
+                else 0
+            ),
             fast_a_demod_multiplier=self.parameters.demodulation_multiplier_a.value,
             fast_a_dx_sel=csrmap.signals.index("zero"),
             fast_a_y_tap=2,
             fast_a_dy_sel=csrmap.signals.index("zero"),
             fast_a_invert=int(self.parameters.invert_a.value),
             # channel B
-            fast_b_demod_delay=phase_to_delay(
-                self.parameters.demodulation_phase_b.value
-            )
-            if (self.parameters.modulation_frequency.value > 0)
-            and (not self.parameters.pid_only_mode.value)
-            else 0,
+            fast_b_demod_delay=(
+                phase_to_delay(self.parameters.demodulation_phase_b.value)
+                if (self.parameters.modulation_frequency.value > 0)
+                and (not self.parameters.pid_only_mode.value)
+                else 0
+            ),
             fast_b_demod_multiplier=self.parameters.demodulation_multiplier_b.value,
             fast_b_dx_sel=csrmap.signals.index("zero"),
             fast_b_y_tap=1,
