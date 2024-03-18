@@ -240,9 +240,7 @@ class AcquisitionService(Service):
 
         self.red_pitaya.scope.rearm(trigger_source=TriggerSource.ext_posedge)
 
-    def exposed_return_data(
-        self, last_hash: Optional[float]
-    ) -> Tuple[
+    def exposed_return_data(self, last_hash: Optional[float]) -> Tuple[
         bool,
         Union[float, None],
         Union[bool, None],
