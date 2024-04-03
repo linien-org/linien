@@ -7,7 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-
 ### Added
 * Use features of Python 3.10 available on RedPitaya OS 2.0 for `linien-server`  by @bleykauf in https://github.com/linien-org/linien/pull/366
 
@@ -25,7 +24,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * Fix and enforce flake8 by @bleykauf in https://github.com/linien-org/linien/pull/368
 
-## [1.0.0] - 2023-12-23
+## [1.0.1] - 2023-12-22
+
+* Fix `linien-server` startup by @bleykauf in https://github.com/linien-org/linien/pull/369
+
+## [1.0.0] - 2023-12-01
 
 ### Added
 
@@ -190,3 +193,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 * **Bug fixes and performance improvements**
+
+
+[Unreleased]: https://github.com/linien-org/linien/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/linien-org/linien/compare/v1.0.0...v1.0.1
+[1.0.0]: https://github.com/linien-org/linien/compare/v0.8.0...v1.0.0
+[0.8.0]: https://github.com/linien-org/linien/compare/v0.7.0...v0.8.0
+[0.7.0]: https://github.com/linien-org/linien/compare/v0.6.0...v0.7.0
+[0.6.0]: https://github.com/linien-org/linien/compare/v0.3.0.post2...v0.6.0
+[0.5.3.post2]: https://github.com/linien-org/linien/compare/v0.5.3...v0.5.3.post2
+[0.5.3]: https://github.com/linien-org/linien/compare/v0.5.2...v0.5.3
+[0.5.2]: https://github.com/linien-org/linien/compare/v0.5.1...v0.5.2
+[0.5.1]: https://github.com/linien-org/linien/compare/v0.5.0.post1...v0.5.1
+[0.5.0.post1]: https://github.com/linien-org/linien/compare/v0.4.3...v0.5.0.post1
+[0.4.3]: https://github.com/linien-org/linien/compare/v0.4.2...v0.4.3
+[0.4.2]: https://github.com/linien-org/linien/compare/v0.4.1...v0.4.2
+[0.4.1]: https://github.com/linien-org/linien/compare/v0.4.0...v0.4.1
+[0.3.2]: https://github.com/linien-org/linien/compare/v0.3.1...v0.3.2
+[0.3.1]: https://github.com/linien-org/linien/compare/v0.3.0...v0.3.1
+[0.3.0]: https://github.com/linien-org/linien/compare/v0.2.3...v0.3.0
