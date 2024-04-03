@@ -17,7 +17,9 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
+import shutil
 import subprocess
+from pathlib import Path
 from typing import Optional
 
 import fire
@@ -44,21 +46,34 @@ class LinienServerCLI:
     def init(self) -> None:
         """Install the required packages for the Linien server."""
         logger.info("Installing Linien server dependencies")
-        subprocess.run(["apt", "install", "-y", "screen"])
-        logger.info("Installed Linien server dependencies")
+        src = Path(__file__).parent / "linien-server.service"
+        shutil.copyfile(f"{src}", "/etc/systemd/system/")
+        logger.info("Copied linien-server.service to /etc/systemd/system")
 
     def start(self) -> None:
-        """Start the Linien server in a screen session."""
+        """Start the Linien server as a systemd service."""
         self.stop()
         logger.info("Starting Linien server")
-        subprocess.run(["screen", "-dmS", "linien-server", "linien-server", "run"])
+        subprocess.run(["systemctl", "start", "linien-server.service"])
         logger.info("Started Linien server")
 
     def stop(self) -> None:
-        """Stop the Linien server and its screen session."""
+        """Stop the Linien server running as a systemd service."""
         logger.info("Stopping Linien server")
-        subprocess.run(["screen", "-XS", "linien-server", "quit"])
+        subprocess.run(["systemctl", "stop", "linien-server.service"])
         logger.info("Stopped Linien server")
+
+    def enable(self) -> None:
+        """Enable the Linien server to start on boot."""
+        logger.info("Enabling Linien server")
+        subprocess.run(["systemctl", "enable", "linien-server.service"])
+        logger.info("Enabled Linien server")
+
+    def disable(self) -> None:
+        """Disable the Linien server from starting on boot."""
+        logger.info("Disabling Linien server")
+        subprocess.run(["systemctl", "disable", "linien-server.service"])
+        logger.info("Disabled Linien server")
 
     def run(self, fake: bool = False, host: Optional[str] = None) -> None:
         """
