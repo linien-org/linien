@@ -5,19 +5,42 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-### [1.0.0] - 2023-12-23
+## [Unreleased]
+
 
 ### Added
+* Use features of Python 3.10 available on RedPitaya OS 2.0 for `linien-server`  by @bleykauf in https://github.com/linien-org/linien/pull/366
+
+### Changed
+
+* Use json to store devices and parameters by @bleykauf in https://github.com/linien-org/linien/pull/357
+* Better error handling by @bleykauf in https://github.com/linien-org/linien/pull/350
+* Improve startup and installation process  by @bleykauf in https://github.com/linien-org/linien/pull/372
+* Use official influxdb client by @bleykauf in https://github.com/linien-org/linien/pull/374
+
+### Depricated
+* Removed support for RedPitaya OS 1.0: RedPitaya OS 2.0 is now necessary.
+
+### Fixed
+
+* Fix and enforce flake8 by @bleykauf in https://github.com/linien-org/linien/pull/368
+
+## [1.0.0] - 2023-12-23
+
+### Added
+
 * Add (debug) logging by @bleykauf in https://github.com/linien-org/linien/pull/349
 
 ### Changed
+
 * Better names for autolock algorithms FastPID-only mode and PID optimizationnoise analysis by @bleykauf in https://github.com/linien-org/linien/pull/346 (fixes https://github.com/linien-org/linien/issues/235)
 
 ### Fixed
+
  * Fix bug where application data directory was not created by @bleykauf in https://github.com/linien-org/linien/pull/361
 * Fix all kinds of dependencies issues by @doronbehar in https://github.com/linien-org/linien/pull/353
 
-### [0.8.0] - 2023-07-06
+## [0.8.0] - 2023-07-06
 
 ### Added
 
