@@ -8,16 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-* Use features of Python 3.10 available on RedPitaya OS 2.0 for `linien-server`  by @bleykauf in https://github.com/linien-org/linien/pull/366
+* Use features of Python 3.10 available on RedPitaya OS 2.0 for `linien-server` by @bleykauf in https://github.com/linien-org/linien/pull/366
+* Add ability to start the server upon startup by @bleykauf in https://github.com/linien-org/linien/pull/387
 
 ### Changed
-
+* Use systemd instead of screen for running the server by @bleykauf in https://github.com/linien-org/linien/pull/387
 * Use json to store devices and parameters by @bleykauf in https://github.com/linien-org/linien/pull/357
 * Better error handling by @bleykauf in https://github.com/linien-org/linien/pull/350
 * Improve startup and installation process  by @bleykauf in https://github.com/linien-org/linien/pull/372
 * Use official influxdb client by @bleykauf in https://github.com/linien-org/linien/pull/374
 
-### Depricated
+### Deprecated
 * Removed support for RedPitaya OS 1.0: RedPitaya OS 2.0 is now necessary.
 
 ### Fixed
