@@ -64,7 +64,7 @@ pip install linien-gui
 The GUI can be started by calling 
 
 ```bash
-linien run
+linien
 ```
 
 in a terminal (on both Linux and Windows).

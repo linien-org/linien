@@ -19,7 +19,7 @@ import logging
 import signal
 import sys
 
-import fire
+import click
 from linien_client.connection import LinienClient
 from linien_gui import __version__
 from linien_gui.config import UI_PATH, load_settings
@@ -108,24 +108,18 @@ class LinienApp(QtWidgets.QApplication):
             QtCore.QTimer.singleShot(1000 * 60 * 60, self.check_for_new_version)
 
 
-class LinienGUI:
-    def version(self) -> str:
-        """Return the version of the Linien GUI."""
-        return __version__
+# ignore type, otherwise "Argument 1 has incompatible type "Callable[[int, bool, str |
+# None, bool], Any]"; expected <nothing>" is raised for click 8.1.4.
+@click.command("linien")  # type: ignore[arg-type]
+@click.version_option(__version__)
+def run_application():
+    app = LinienApp(sys.argv)
+    logger.info("Starting Linien GUI")
 
-    def run(self):
-        """Start the Linien GUI."""
-        app = LinienApp(sys.argv)
-        logger.info("Starting Linien GUI")
-
-        # catch ctrl-c and shutdown
-        signal.signal(signal.SIGINT, signal.SIG_DFL)
-        sys.exit(app.exec_())
-
-
-def main() -> None:
-    fire.Fire(LinienGUI)
+    # catch ctrl-c and shutdown
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
+    sys.exit(app.exec_())
 
 
 if __name__ == "__main__":
-    main()
+    run_application()
