@@ -123,7 +123,6 @@ def install_remote_server(
             "pip3 uninstall linien-server -y",
             "pip3 uninstall linien-common -y",
             f"pip3 install linien-server=={local_version} --no-cache-dir",
-            "linien-server init",
         ]
         for cmd in cmds:
             out_stream.write(f">> {cmd}\n")
