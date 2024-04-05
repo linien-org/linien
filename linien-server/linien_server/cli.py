@@ -38,39 +38,43 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
+def copy_systemd_service_file() -> None:
+    """Copy systemd service to /etc/systemd/system."""
+    src = Path(__file__).parent / "linien-server.service"
+    dst = Path("/etc/systemd/system/")
+    shutil.copyfile(src, dst)
+    logger.debug("Copied linien-server.service to /etc/systemd/system")
+
+
 class LinienServerCLI:
     def version(self) -> str:
         """Return the version of the Linien server."""
         return __version__
 
-    def init(self) -> None:
-        """Install the required packages for the Linien server."""
-        logger.info("Installing Linien server dependencies")
-        src = Path(__file__).parent / "linien-server.service"
-        shutil.copyfile(f"{src}", "/etc/systemd/system/")
-        logger.info("Copied linien-server.service to /etc/systemd/system")
-
     def start(self) -> None:
         """Start the Linien server as a systemd service."""
-        self.stop()
+        self.stop()  # also copies the systemd service
         logger.info("Starting Linien server")
         subprocess.run(["systemctl", "start", "linien-server.service"])
         logger.info("Started Linien server")
 
     def stop(self) -> None:
         """Stop the Linien server running as a systemd service."""
+        copy_systemd_service_file()
         logger.info("Stopping Linien server")
         subprocess.run(["systemctl", "stop", "linien-server.service"])
         logger.info("Stopped Linien server")
 
     def enable(self) -> None:
         """Enable the Linien server to start on boot."""
+        copy_systemd_service_file()
         logger.info("Enabling Linien server")
         subprocess.run(["systemctl", "enable", "linien-server.service"])
         logger.info("Enabled Linien server")
 
     def disable(self) -> None:
         """Disable the Linien server from starting on boot."""
+        copy_systemd_service_file()
         logger.info("Disabling Linien server")
         subprocess.run(["systemctl", "disable", "linien-server.service"])
         logger.info("Disabled Linien server")
