@@ -239,9 +239,13 @@ class AcquisitionService(Service):
 
         self.red_pitaya.scope.rearm(trigger_source=TriggerSource.ext_posedge)
 
-    def exposed_return_data(
-        self, last_hash: Optional[float]
-    ) -> tuple[bool, float | None, bool | None, bytes | None, float | None,]:
+    def exposed_return_data(self, last_hash: Optional[float]) -> tuple[
+        bool,
+        float | None,
+        bool | None,
+        bytes | None,
+        float | None,
+    ]:
         no_data_available = self.data_hash is None
         data_not_changed = self.data_hash == last_hash
         if data_not_changed or no_data_available or self.pause_event.is_set():

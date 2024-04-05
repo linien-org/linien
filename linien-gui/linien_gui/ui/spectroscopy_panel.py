@@ -153,9 +153,9 @@ class SpectroscopyPanel(QtWidgets.QWidget):
         self.control.exposed_write_registers()
 
     def change_demod_phase(self):
-        self.get_param(
-            "demodulation_phase"
-        ).value = self.demodulationPhaseSpinBox.value()
+        self.get_param("demodulation_phase").value = (
+            self.demodulationPhaseSpinBox.value()
+        )
         self.control.exposed_write_registers()
 
     def change_demod_multiplier(self, idx):
