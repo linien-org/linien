@@ -102,13 +102,20 @@ then running
 pip install linien-server
 ```
 
-The server can then be started by running
+The server can then be started as a systemd service by running
 
 ```bash
 linien-server start
 ```
 
-on the RedPitaya. For more options, run
+on the RedPitaya. To check the status of the server, run
+
+
+```bash
+linien-server status
+```
+
+ For more options, run
 
 ```bash
 linien-server --help

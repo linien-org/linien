@@ -65,19 +65,9 @@ class LinienServerCLI:
         subprocess.run(["systemctl", "stop", "linien-server.service"])
         logger.info("Stopped Linien server")
 
-    def enable(self) -> None:
-        """Enable the Linien server to start on boot."""
-        copy_systemd_service_file()
-        logger.info("Enabling Linien server")
-        subprocess.run(["systemctl", "enable", "linien-server.service"])
-        logger.info("Enabled Linien server")
-
-    def disable(self) -> None:
-        """Disable the Linien server from starting on boot."""
-        copy_systemd_service_file()
-        logger.info("Disabling Linien server")
-        subprocess.run(["systemctl", "disable", "linien-server.service"])
-        logger.info("Disabled Linien server")
+    def status(self) -> None:
+        """Check the status of the Linien server."""
+        subprocess.run(["journalctl", "-u", "service-name.service"])
 
     def run(self, fake: bool = False, host: Optional[str] = None) -> None:
         """
@@ -104,6 +94,20 @@ class LinienServerCLI:
         finally:
             if not (fake or host):  # only available on RP
                 mdio_tool.enable_ethernet_blinking()
+
+    def enable(self) -> None:
+        """Enable the Linien server to start on boot."""
+        copy_systemd_service_file()
+        logger.info("Enabling Linien server")
+        subprocess.run(["systemctl", "enable", "linien-server.service"])
+        logger.info("Enabled Linien server")
+
+    def disable(self) -> None:
+        """Disable the Linien server from starting on boot."""
+        copy_systemd_service_file()
+        logger.info("Disabling Linien server")
+        subprocess.run(["systemctl", "disable", "linien-server.service"])
+        logger.info("Disabled Linien server")
 
 
 def main() -> None:
