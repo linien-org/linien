@@ -20,7 +20,7 @@ from setuptools import find_packages, setup
 
 setup(
     name="linien-gui",
-    version="1.0.2rc1",
+    version="1.0.2",
     author="Benjamin Wiegand",
     author_email="highwaychile@posteo.de",
     maintainer="Bastian Leykauf",
@@ -42,7 +42,7 @@ setup(
         "pyqtgraph>=0.10.0",
         "PyQt5>=5.12.0",
         "superqt>=0.2.3",
-        "linien_client==1.0.2rc1",
+        "linien_client==1.0.2",
     ],
     package_data={
         # IMPORTANT: any changes have to be made in pyinstaller.spec, too
