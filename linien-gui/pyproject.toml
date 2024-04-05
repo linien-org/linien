@@ -3,6 +3,13 @@ requires = ["setuptools>=61.2"]
 build-backend = "setuptools.build_meta"
 
 [project]
+dependencies = [
+    "pyqtgraph>=0.10.0",
+    "PyQt5>=5.12.0",
+    "requests>=2.31.0",
+    "superqt>=0.2.3",
+    "linien_client==2.0.0.dev0",
+]
 name = "linien-gui"
 version = "2.0.0.dev0"
 authors = [
@@ -22,12 +29,6 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 requires-python = ">=3.8"
-dependencies = [
-    "pyqtgraph>=0.10.0",
-    "PyQt5>=5.12.0",
-    "superqt>=0.2.3",
-    "linien_client==2.0.0.dev0",
-]
 
 [project.readme]
 text = "Have a look at the [project repository](https://github.com/linien-org/linien) for installation instructions."
