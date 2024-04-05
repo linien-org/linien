@@ -102,14 +102,13 @@ then running
 pip install linien-server
 ```
 
-In order for the server to be started in a persistent way additional requirements must
-be installed by running
+The server can then be started by running
 
 ```bash
-linien-server init
+linien-server start
 ```
 
-For running the server manually, see
+on the RedPitaya. For more options, run
 
 ```bash
 linien-server --help
