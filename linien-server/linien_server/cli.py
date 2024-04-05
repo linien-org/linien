@@ -17,7 +17,9 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
+import shutil
 import subprocess
+from pathlib import Path
 from typing import Optional
 
 import fire
@@ -36,29 +38,35 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
+def copy_systemd_service_file() -> None:
+    """Copy systemd service to /etc/systemd/system."""
+    src = Path(__file__).parent / "linien-server.service"
+    dst = Path("/etc/systemd/system/linien-server.service")
+    shutil.copyfile(src, dst)
+    logger.debug("Copied linien-server.service to /etc/systemd/system")
+
+
 class LinienServerCLI:
     def version(self) -> str:
         """Return the version of the Linien server."""
         return __version__
 
-    def init(self) -> None:
-        """Install the required packages for the Linien server."""
-        logger.info("Installing Linien server dependencies")
-        subprocess.run(["apt", "install", "-y", "screen"])
-        logger.info("Installed Linien server dependencies")
-
     def start(self) -> None:
-        """Start the Linien server in a screen session."""
-        self.stop()
+        """Start the Linien server as a systemd service."""
+        copy_systemd_service_file()
         logger.info("Starting Linien server")
-        subprocess.run(["screen", "-dmS", "linien-server", "linien-server", "run"])
+        subprocess.run(["systemctl", "start", "linien-server.service"])
         logger.info("Started Linien server")
 
     def stop(self) -> None:
-        """Stop the Linien server and its screen session."""
+        """Stop the Linien server running as a systemd service."""
         logger.info("Stopping Linien server")
-        subprocess.run(["screen", "-XS", "linien-server", "quit"])
+        subprocess.run(["systemctl", "stop", "linien-server.service"])
         logger.info("Stopped Linien server")
+
+    def status(self) -> None:
+        """Check the status of the Linien server."""
+        subprocess.run(["journalctl", "-u", "linien-server.service"])
 
     def run(self, fake: bool = False, host: Optional[str] = None) -> None:
         """
@@ -85,6 +93,19 @@ class LinienServerCLI:
         finally:
             if not (fake or host):  # only available on RP
                 mdio_tool.enable_ethernet_blinking()
+
+    def enable(self) -> None:
+        """Enable the Linien server to start on boot."""
+        copy_systemd_service_file()
+        logger.info("Enabling Linien server")
+        subprocess.run(["systemctl", "enable", "linien-server.service"])
+        logger.info("Enabled Linien server")
+
+    def disable(self) -> None:
+        """Disable the Linien server from starting on boot."""
+        logger.info("Disabling Linien server")
+        subprocess.run(["systemctl", "disable", "linien-server.service"])
+        logger.info("Disabled Linien server")
 
 
 def main() -> None:

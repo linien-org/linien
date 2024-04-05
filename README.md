@@ -87,7 +87,7 @@ In case you are using the `linien-client`, the server can be installed with
 from linien_client.device import Device
 from linien_client.deploy import install_remote_server
 
-dev = dev = Device(
+device = Device(
     host="rp-xxxxxx.local",
     user="root",
     password="root"    
@@ -102,14 +102,20 @@ then running
 pip install linien-server
 ```
 
-In order for the server to be started in a persistent way additional requirements must
-be installed by running
+The server can then be started as a systemd service by running
 
 ```bash
-linien-server init
+linien-server start
 ```
 
-For running the server manually, see
+on the RedPitaya. To check the status of the server, run
+
+
+```bash
+linien-server status
+```
+
+ For more options, run
 
 ```bash
 linien-server --help
