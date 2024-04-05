@@ -18,7 +18,7 @@
 
 from setuptools import find_packages, setup
 
-version = "1.0.1"
+version = "1.0.2rc1"
 
 setup(
     name="linien-client",
@@ -41,6 +41,6 @@ setup(
     install_requires=[
         "fabric>=2.7.0",
         "typing_extensions>=4.5.0",
-        "linien-common==1.0.1",
+        "linien-common==1.0.2rc1",
     ],
 )
