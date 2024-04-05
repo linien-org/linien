@@ -66,7 +66,7 @@ class LinienServerCLI:
 
     def status(self) -> None:
         """Check the status of the Linien server."""
-        subprocess.run(["journalctl", "-u", "service-name.service"])
+        subprocess.run(["journalctl", "-u", "linien-server.service"])
 
     def run(self, fake: bool = False, host: Optional[str] = None) -> None:
         """
