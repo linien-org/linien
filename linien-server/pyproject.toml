@@ -45,4 +45,4 @@ linien-server = "linien_server.cli:main"
 namespaces = false
 
 [tool.setuptools.package-data]
-linien-server = ["gateware.bin", "mdio-tool", "linien-server.service"]
+linien_server = ["gateware.bin", "mdio-tool", "linien-server.service"]
