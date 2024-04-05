@@ -41,7 +41,7 @@ logger.setLevel(logging.DEBUG)
 def copy_systemd_service_file() -> None:
     """Copy systemd service to /etc/systemd/system."""
     src = Path(__file__).parent / "linien-server.service"
-    dst = Path("/etc/systemd/system/")
+    dst = Path("/etc/systemd/system/linien-server.service")
     shutil.copyfile(src, dst)
     logger.debug("Copied linien-server.service to /etc/systemd/system")
 
@@ -53,14 +53,13 @@ class LinienServerCLI:
 
     def start(self) -> None:
         """Start the Linien server as a systemd service."""
-        self.stop()  # also copies the systemd service
+        copy_systemd_service_file()
         logger.info("Starting Linien server")
         subprocess.run(["systemctl", "start", "linien-server.service"])
         logger.info("Started Linien server")
 
     def stop(self) -> None:
         """Stop the Linien server running as a systemd service."""
-        copy_systemd_service_file()
         logger.info("Stopping Linien server")
         subprocess.run(["systemctl", "stop", "linien-server.service"])
         logger.info("Stopped Linien server")
@@ -104,7 +103,6 @@ class LinienServerCLI:
 
     def disable(self) -> None:
         """Disable the Linien server from starting on boot."""
-        copy_systemd_service_file()
         logger.info("Disabling Linien server")
         subprocess.run(["systemctl", "disable", "linien-server.service"])
         logger.info("Disabled Linien server")
