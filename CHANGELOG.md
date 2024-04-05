@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Better error handling by @bleykauf in https://github.com/linien-org/linien/pull/350
 * Improve startup and installation process  by @bleykauf in https://github.com/linien-org/linien/pull/372
 * Use official influxdb client by @bleykauf in https://github.com/linien-org/linien/pull/374
+* `mdio-tools` is now included in the `linien-server` package
 
 ### Deprecated
 * Removed support for RedPitaya OS 1.0: RedPitaya OS 2.0 is now necessary.
@@ -25,7 +26,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * Fix and enforce flake8 by @bleykauf in https://github.com/linien-org/linien/pull/368
 
+## [1.0.2] - 2024-04-05
+
+## Changed
+
+* Use pypi for version check instead of `version-info.json` in the Github repository.
+
 ## [1.0.1] - 2023-12-22
+
+## Fixed
 
 * Fix `linien-server` startup by @bleykauf in https://github.com/linien-org/linien/pull/369
 
@@ -196,7 +205,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * **Bug fixes and performance improvements**
 
 
-[Unreleased]: https://github.com/linien-org/linien/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/linien-org/linien/compare/v1.0.2...HEAD
+[1.0.2]: https://github.com/linien-org/linien/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/linien-org/linien/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/linien-org/linien/compare/v0.8.0...v1.0.0
 [0.8.0]: https://github.com/linien-org/linien/compare/v0.7.0...v0.8.0
