@@ -87,7 +87,7 @@ In case you are using the `linien-client`, the server can be installed with
 from linien_client.device import Device
 from linien_client.deploy import install_remote_server
 
-dev = dev = Device(
+device = Device(
     host="rp-xxxxxx.local",
     user="root",
     password="root"    
