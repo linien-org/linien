@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Better error handling by @bleykauf in https://github.com/linien-org/linien/pull/350
 * Improve startup and installation process  by @bleykauf in https://github.com/linien-org/linien/pull/372
 * Use official influxdb client by @bleykauf in https://github.com/linien-org/linien/pull/374
+* `mdio-tools` is now included in the `linien-server` package
 
 ### Depricated
 * Removed support for RedPitaya OS 1.0: RedPitaya OS 2.0 is now necessary.
