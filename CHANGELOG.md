@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [2.0.0] - 2024-04-05
 
 ### Added
 * Use features of Python 3.10 available on RedPitaya OS 2.0 for `linien-server` by @bleykauf in https://github.com/linien-org/linien/pull/366
@@ -205,7 +205,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * **Bug fixes and performance improvements**
 
 
-[Unreleased]: https://github.com/linien-org/linien/compare/v1.0.2...HEAD
+[2.0.0]: https://github.com/linien-org/linien/compare/v1.0.2...v2.0.0
 [1.0.2]: https://github.com/linien-org/linien/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/linien-org/linien/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/linien-org/linien/compare/v0.8.0...v1.0.0
