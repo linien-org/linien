@@ -1,5 +1,10 @@
+[tool.flake8]
+max-line-length = 88
+extend-ignore = "E203"
+docstring-convention = "numpy"
+
 [tool.black]
-exclude = '''
+force-exclude = """
 (
   /(
     gateware/logic
@@ -8,7 +13,7 @@ exclude = '''
    | linien-server/linien_server/csrmap.py
    )/
 )
-'''
+"""
 
 [tool.isort]
 profile = "black"
@@ -20,3 +25,24 @@ plt_dirname = "tests/plots"
 filterwarnings = "ignore::pytest.PytestConfigWarning"
 
 markers = """slow : marks tests as slow (deselect with '-m "not slow"')"""
+
+[tool.mypy]
+plugins = "numpy.typing.mypy_plugin"
+exclude = ["[^/]+/build/"]
+
+[[tool.mypy.overrides]]
+module = [
+  "linien_common.*",
+  "linien_client.*",
+  "rpyc.*",
+  "fabric",
+  "setuptools.*",
+  "scipy.*",
+  "cma.*",
+  "pyrp3.*",
+  "pylpsd.*",
+  "pyqtgraph.*",
+  "fire",
+  "influxdb_client.*",
+]
+ignore_missing_imports = true

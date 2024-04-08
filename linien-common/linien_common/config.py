@@ -21,7 +21,7 @@ from pathlib import Path
 from appdirs import AppDirs
 
 ACQUISITION_PORT = 19321
-DEFAULT_SERVER_PORT = 18862
+SERVER_PORT = 18862
 DEFAULT_SWEEP_SPEED = (125 * 2048) << 6
 
 USER_DATA_PATH = Path(AppDirs("linien").user_data_dir)

@@ -37,24 +37,21 @@ Features
 
 ![image](https://raw.githubusercontent.com/linien-org/linien/master/docs/screencast.gif)
 
-Getting started: install Linien
----------------
+## Getting started: Install Linien
 
 Linien runs on Windows and Linux. For Windows users the [standalone
 binaries](#standalone-binary) containing the graphical user interface
 are recommended.
 These binaries run on your lab PC and contain everything to get Linien running on your RedPitaya.
 
-Both RedPitaya OS 1.x and 2.x are supported. However, support for OS 1.x will be dropped starting
-with Linien 2.x
-
-If you want to use the python interface you should [install it using pip](#installation-with-pip).
+Starting with Linien 2.0, only RedPitaya OS 2.x is supported. Linien 1.x works on RedPitaya OS
+but is no longer actively maintain.
 
 ### Standalone binary
 
-You can download standalone binaries for Windows on [the
-releases
-page](https://github.com/linien-org/linien/releases) (download the binary in the assets section of the latest version). For Linux users, we recommend installation via pip.
+You can download standalone binaries for Windows on
+[the releases page](https://github.com/linien-org/linien/releases) (download the binary in the assets
+section of the latest version). For Linux users, we recommend installation of `linien-gui` via pip.
 
 ### Installation with pip
 
@@ -72,12 +69,57 @@ linien
 
 in a terminal (on both Linux and Windows).
 
-In case you're only interested in the python client and don't want to install the graphical application, you may use the `linien-client` package:
+In case you're only interested in the Python client and don't want to install the graphical application, you may use the `linien-client` package:
 
 ```bash
 pip install linien-client
 ```
 
+### Installation of the server on the RedPitaya
+
+The easiest way to install the server component of Linien on the RedPitaya, is to use the graphical
+user interface. The first time you are connecting to the RedPitaya, the server is automatically
+installed.
+
+In case you are using the `linien-client`, the server can be installed with
+
+```python
+from linien_client.device import Device
+from linien_client.deploy import install_remote_server
+
+device = Device(
+    host="rp-xxxxxx.local",
+    user="root",
+    password="root"    
+)
+instalL_remote_server(device)
+```
+
+Finally, you can install the server manually, by connecting to the RedPitaya via SSH and
+then running
+
+```bash
+pip install linien-server
+```
+
+The server can then be started as a systemd service by running
+
+```bash
+linien-server start
+```
+
+on the RedPitaya. To check the status of the server, run
+
+
+```bash
+linien-server status
+```
+
+ For more options, run
+
+```bash
+linien-server --help
+```
 
 Physical setup
 --------------
@@ -192,14 +234,16 @@ Then, you should start the Linien server on your RedPitaya. This can be done by 
 
 Once the server is up and running, you can connect using python:
 ```python
+from linien_client.device import Device
 from linien_client.connection import LinienClient
 from linien_common.common import  MHz, Vpp, ANALOG_OUT_V
 
-c = LinienClient(
+dev = Device(
     host="rp-xxxxxx.local",
     user="root",
-    password="root"
+    password="root"    
 )
+c = LinienClient(dev)
 c.connect(autostart_server=True, use_parameter_cache=True)
 
 # read out the modulation frequency
@@ -452,7 +496,7 @@ Linien ‒ User-friendly locking of lasers using RedPitaya (STEMlab 125-14) that
 
 Copyright © 2014-2015 Robert Jördens\
 Copyright © 2018-2022 Benjamin Wiegand\
-Copyright © 2021-2023 Bastian Leykauf\
+Copyright © 2021-2024 Bastian Leykauf\
 Copyright © 2022 Christian Freier
 
 Linien is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.

@@ -17,10 +17,10 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 from linien_common.common import AutolockMode
+from linien_gui.config import UI_PATH
 from linien_gui.ui.lock_status_panel import LockStatusPanel
 from linien_gui.ui.spin_box import CustomSpinBox
 from linien_gui.utils import get_linien_app_instance, param2ui
-from linien_gui.widgets import UI_PATH
 from PyQt5 import QtWidgets, uic
 
 

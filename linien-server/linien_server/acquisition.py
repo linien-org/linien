@@ -18,13 +18,12 @@
 
 import logging
 import pickle
-import shutil
 import subprocess
 from pathlib import Path
 from random import random
 from threading import Event, Thread
 from time import sleep
-from typing import Any, Dict, Optional, Tuple, Union
+from typing import Any, Optional
 
 import numpy as np
 from linien_common.common import DECIMATION, MAX_N_POINTS, N_POINTS
@@ -40,20 +39,20 @@ logger.setLevel(logging.DEBUG)
 
 
 class AcquisitionService(Service):
-    def __init__(self):
+    def __init__(self) -> None:
         super(AcquisitionService, self).__init__()
         stop_nginx()
         flash_fpga()
 
         self.red_pitaya = RedPitaya()
         self.csr = PythonCSR(self.red_pitaya)
-        self.csr_queue = []
-        self.csr_iir_queue = []
+        self.csr_queue: list[tuple[str, int]] = []
+        self.csr_iir_queue: list[tuple[str, list[float], list[float]]] = []
 
-        self.data = pickle.dumps(None)
+        self.data: bytes | None = pickle.dumps(None)
         self.data_was_raw = False
-        self.data_hash = None
-        self.data_uuid = None
+        self.data_hash: float | None = None
+        self.data_uuid: float | None = None
 
         self.locked = False
         self.exposed_set_sweep_speed(9)
@@ -94,12 +93,12 @@ class AcquisitionService(Service):
                 self.csr.set(key, value)
 
             while self.csr_iir_queue:
-                args = self.csr_iir_queue.pop(0)
-                self.csr.set_iir(*args)
+                name, b, a = self.csr_iir_queue.pop(0)
+                self.csr.set_iir(name, b, a)
 
             if self.locked and not self.confirmed_that_in_lock:
-                self.confirmed_that_in_lock = self.csr.get(
-                    "logic_autolock_lock_running"
+                self.confirmed_that_in_lock = bool(
+                    self.csr.get("logic_autolock_lock_running")
                 )
                 if not self.confirmed_that_in_lock:
                     sleep(0.05)
@@ -142,7 +141,7 @@ class AcquisitionService(Service):
 
             self.program_acquisition_and_rearm()
 
-    def read_data(self) -> Dict[str, np.ndarray]:
+    def read_data(self) -> dict[str, np.ndarray]:
         signals = []
 
         channel_offsets = [0x10000]
@@ -189,7 +188,7 @@ class AcquisitionService(Service):
 
     def read_data_raw(
         self, offset: int, addr: int, data_length: int
-    ) -> Tuple[Any, ...]:
+    ) -> tuple[Any, ...]:
         max_data_length = 16383
         if data_length + addr > max_data_length:
             to_read_later = data_length + addr - max_data_length
@@ -240,14 +239,12 @@ class AcquisitionService(Service):
 
         self.red_pitaya.scope.rearm(trigger_source=TriggerSource.ext_posedge)
 
-    def exposed_return_data(
-        self, last_hash: Optional[float]
-    ) -> Tuple[
+    def exposed_return_data(self, last_hash: Optional[float]) -> tuple[
         bool,
-        Union[float, None],
-        Union[bool, None],
-        Union[bytes, None],
-        Union[float, None],
+        float | None,
+        bool | None,
+        bytes | None,
+        float | None,
     ]:
         no_data_available = self.data_hash is None
         data_not_changed = self.data_hash == last_hash
@@ -279,8 +276,8 @@ class AcquisitionService(Service):
     def exposed_set_csr(self, key: str, value: int) -> None:
         self.csr_queue.append((key, value))
 
-    def exposed_set_iir_csr(self, *args):
-        self.csr_iir_queue.append(args)
+    def exposed_set_iir_csr(self, name: str, b: list[float], a: list[float]) -> None:
+        self.csr_iir_queue.append((name, b, a))
 
     def exposed_stop_acquisition(self) -> None:
         self.stop_event.set()
@@ -311,18 +308,8 @@ class AcquisitionService(Service):
 
 def flash_fpga():
     filepath = Path(__file__).resolve().parent / "gateware.bin"
-
-    # On redpitaya os < 2, flashing fpga works by copying the bit file /dev/xdevcfg. On
-    # recent versions, there is a dedicated command for this
-    # cf. https://forum.redpitaya.com/viewtopic.php?p=33494&sid=5132bf6e33709b1a7daa948f8e8dcdb1#p33494  # noqa: E501
-    fpga_dev_file = Path("/dev/xdevcfg")
-
-    if fpga_dev_file.exists():
-        logger.info("Copying gateware to %s" % fpga_dev_file)
-        shutil.copy(str(filepath), str(fpga_dev_file))
-    else:
-        logger.info("Using fpgautil to deploy gateware.")
-        subprocess.Popen(["/opt/redpitaya/bin/fpgautil", "-b", str(filepath)]).wait()
+    logger.info("Using fpgautil to deploy gateware.")
+    subprocess.Popen(["/opt/redpitaya/bin/fpgautil", "-b", str(filepath)]).wait()
 
 
 def start_nginx():
@@ -336,5 +323,5 @@ def stop_nginx():
 
 if __name__ == "__main__":
     threaded_server = ThreadedServer(AcquisitionService(), port=ACQUISITION_PORT)
-    logger.info("Starting AcquisitionService on port %s" % ACQUISITION_PORT)
+    logger.info(f"Starting AcquisitionService on port {ACQUISITION_PORT}")
     threaded_server.start()

@@ -19,17 +19,23 @@
 import logging
 import pickle
 
-from linien_common.common import check_plot_data, combine_error_signal, get_lock_point
+from linien_common.common import (
+    SpectrumUncorrelatedException,
+    check_plot_data,
+    combine_error_signal,
+    get_lock_point,
+)
 from linien_server.autolock.algorithm_selection import AutolockAlgorithmSelector
 from linien_server.autolock.robust import RobustAutolock
 from linien_server.autolock.simple import SimpleAutolock
+from linien_server.parameters import Parameters
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
 class Autolock:
-    def __init__(self, control, parameters):
+    def __init__(self, control, parameters: Parameters) -> None:
         self.control = control
         self.parameters = parameters
 
@@ -60,10 +66,10 @@ class Autolock:
         x0,
         x1,
         spectrum,
-        should_watch_lock=False,
-        auto_offset=True,
+        should_watch_lock: bool = False,
+        auto_offset: bool = True,
         additional_spectra=None,
-    ):
+    ) -> None:
         """
         Start the autolock.
 
@@ -103,18 +109,18 @@ class Autolock:
             if self.autolock_mode_detector.done:
                 self.start_autolock(self.autolock_mode_detector.mode)
 
-        except Exception:
+        except SpectrumUncorrelatedException:
             # This may happen if `additional_spectra` contain uncorrelated data. Then
             # either autolock algorithm selector or `start_autolock` may raise a
             # spectrum uncorrelated exception
             logger.exception("Error while starting autolock")
             self.parameters.autolock_failed.value = True
-            return self.exposed_stop()
+            self.exposed_stop()
 
         self.add_data_listener()
 
     def start_autolock(self, mode):
-        logger.debug("start autolock with mode %s" % mode)
+        logger.debug(f"Start autolock with mode {mode}")
         self.parameters.autolock_mode.value = mode
 
         self.algorithm = [None, RobustAutolock, SimpleAutolock][mode](
@@ -130,15 +136,13 @@ class Autolock:
     def add_data_listener(self):
         if not self._data_listener_added:
             self._data_listener_added = True
-            self.parameters.to_plot.add_callback(
-                self.react_to_new_spectrum, call_with_first_value=False
-            )
+            self.parameters.to_plot.add_callback(self.react_to_new_spectrum)
 
-    def remove_data_listener(self):
+    def remove_data_listener(self) -> None:
         self._data_listener_added = False
         self.parameters.to_plot.remove_callback(self.react_to_new_spectrum)
 
-    def react_to_new_spectrum(self, plot_data):
+    def react_to_new_spectrum(self, plot_data: bytes) -> None:
         """
         React to new spectrum data.
 
@@ -160,21 +164,24 @@ class Autolock:
         if plot_data is None or not self.parameters.autolock_running.value:
             return
 
-        plot_data = pickle.loads(plot_data)
-        if plot_data is None:
+        plot_data_unpickled = pickle.loads(plot_data)
+        if plot_data_unpickled is None:
             return
 
         is_locked = self.parameters.lock.value
 
         # check that `plot_data` contains the information we need otherwise skip this
         # round
-        if not check_plot_data(is_locked, plot_data):
+        if not check_plot_data(is_locked, plot_data_unpickled):
             return
 
         try:
             if not is_locked:
                 combined_error_signal = combine_error_signal(
-                    (plot_data["error_signal_1"], plot_data.get("error_signal_2")),
+                    (
+                        plot_data_unpickled["error_signal_1"],
+                        plot_data_unpickled.get("error_signal_2"),
+                    ),
                     self.parameters.dual_channel.value,
                     self.parameters.channel_mixing.value,
                     self.parameters.combined_offset.value,
@@ -194,14 +201,17 @@ class Autolock:
                     else:
                         return
 
-                return self.algorithm.handle_new_spectrum(combined_error_signal)
+                if self.algorithm is not None:
+                    return self.algorithm.handle_new_spectrum(combined_error_signal)
 
             else:
-                error_signal = plot_data["error_signal"]
-                control_signal = plot_data["control_signal"]
+                error_signal = plot_data_unpickled["error_signal"]
+                control_signal = plot_data_unpickled["control_signal"]
 
                 return self.after_lock(
-                    error_signal, control_signal, plot_data.get("slow_control_signal")
+                    error_signal,
+                    control_signal,
+                    plot_data_unpickled.get("slow_control_signal"),
                 )
 
         except Exception:
@@ -265,7 +275,7 @@ class Autolock:
         # relock.
         self.add_data_listener()
 
-    def exposed_stop(self):
+    def exposed_stop(self) -> None:
         """Abort any operation."""
         self.parameters.autolock_preparing.value = False
         self.parameters.autolock_percentage.value = 0

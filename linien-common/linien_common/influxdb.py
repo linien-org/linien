@@ -17,6 +17,7 @@
 
 import json
 import logging
+from dataclasses import dataclass
 
 from .config import USER_DATA_PATH
 
@@ -26,29 +27,13 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
+@dataclass
 class InfluxDBCredentials:
-    def __init__(
-        self,
-        url: str = "http://localhost:8086",
-        org: str = "my-org",
-        token: str = "my-token",
-        bucket: str = "my-bucket",
-        measurement: str = "my-measurement",
-    ) -> None:
-        self.url = url
-        self.org = org
-        self.token = token
-        self.bucket = bucket
-        self.measurement = measurement
-
-    def __str__(self) -> str:
-        return "url: %s, org: %s, token: %s, bucket: %s, measurement: %s" % (
-            self.url,
-            self.org,
-            self.token,
-            self.bucket,
-            self.measurement,
-        )
+    url: str = "http://localhost:8086"
+    org: str = "my-org"
+    token: str = "my-token"
+    bucket: str = "my-bucket"
+    measurement: str = "my-measurement"
 
 
 def save_credentials(credentials: InfluxDBCredentials) -> None:
@@ -66,7 +51,7 @@ def save_credentials(credentials: InfluxDBCredentials) -> None:
             f,
             indent=2,
         )
-    logger.info("Saved InfluxDB credentials to %s" % filename)
+    logger.info(f"Saved InfluxDB credentials to {filename}")
 
 
 def restore_credentials() -> InfluxDBCredentials:

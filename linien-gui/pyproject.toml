@@ -1,0 +1,51 @@
+[build-system]
+requires = ["setuptools>=61.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "linien-gui"
+version = "2.0.0"
+authors = [
+    { name = "Benjamin Wiegand", email = "benjamin.wiegand@physik.hu-berlin.de" },
+    { name = "Bastian Leykauf", email = "leykauf@physik.hu-berlin.de" },
+    { name = "Robert Jördens", email = "rj@quartiq.de" },
+    { name = "Christian Freier", email = "christian.freier@gmail.com" },
+    { name = "Doron Behar", email = "doron.behar@gmail.com" },
+]
+maintainers = [
+    { name = "Bastian Leykauf", email = "leykauf@physik.hu-berlin.de" },
+]
+description = "Graphical user interface of the Linien spectroscopy lock application."
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Operating System :: OS Independent",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "click>=8.1.7,<9.0",
+    "pyqtgraph>=0.10.0",
+    "PyQt5>=5.12.0,<6.0",
+    "requests>=2.31.0,<3.0",
+    "superqt>=0.2.3",
+    "linien_client==2.0.0",
+]
+
+[project.readme]
+text = "Have a look at the [project repository](https://github.com/linien-org/linien) for installation instructions."
+content-type = "text/markdown"
+
+[project.urls]
+Homepage = "https://github.com/linien-org/linien"
+
+[project.scripts]
+linien = "linien_gui.app:main"
+
+[tool.setuptools]
+include-package-data = false
+
+[tool.setuptools.packages.find]
+namespaces = false
+
+[tool.setuptools.package-data]
+linien_gui = ["*.ui"]

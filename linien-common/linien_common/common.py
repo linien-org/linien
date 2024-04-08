@@ -18,7 +18,7 @@
 
 """This file contains stuff that is required by the server as well as the client."""
 
-from enum import Enum, IntEnum
+from enum import IntEnum
 from time import time
 from typing import Dict, List, Tuple, Union
 
@@ -54,9 +54,9 @@ class AutolockMode(IntEnum):
     SIMPLE = 2
 
 
-class PSDAlgorithm(str, Enum):
-    WELCH = "welch"
-    LPSD = "lpsd"
+class PSDAlgorithm(IntEnum):
+    WELCH = 0
+    LPSD = 1
 
 
 class SpectrumUncorrelatedException(Exception):
@@ -293,7 +293,7 @@ def combine_error_signal(
     return np.array([v + combined_offset for v in signal])
 
 
-def check_plot_data(is_locked: bool, plot_data) -> bool:
+def check_plot_data(is_locked: bool, plot_data: Dict[str, np.ndarray]) -> bool:
     if is_locked:
         if "error_signal" not in plot_data or "control_signal" not in plot_data:
             return False

@@ -18,9 +18,9 @@
 
 """Module providing the Optimizer interface class."""
 
-from typing import List, NewType
+from typing import NewType
 
-Params = NewType("Params", List[float])
+Params = NewType("Params", list[float])
 """A type alias for actual optmizer params. """
 
 

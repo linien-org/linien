@@ -3,8 +3,29 @@
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) in spirit but
-uses [PEP440](https://peps.python.org/pep-0440/) for the version identification.
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [2.0.0] - 2024-04-05
+
+### Added
+* Use features of Python 3.10 available on RedPitaya OS 2.0 for `linien-server` by @bleykauf in https://github.com/linien-org/linien/pull/366
+* Add ability to start the server upon startup by @bleykauf in https://github.com/linien-org/linien/pull/387
+
+### Changed
+* Use systemd instead of screen for running the server by @bleykauf in https://github.com/linien-org/linien/pull/387
+* Use json to store devices and parameters by @bleykauf in https://github.com/linien-org/linien/pull/357
+* Better error handling by @bleykauf in https://github.com/linien-org/linien/pull/350
+* Improve startup and installation process  by @bleykauf in https://github.com/linien-org/linien/pull/372
+* Use official influxdb client by @bleykauf in https://github.com/linien-org/linien/pull/374
+* `mdio-tools` is now included in the `linien-server` package
+* Uses `rpyc==6.x` instead of `rpyc==4.x`
+
+### Deprecated
+* Removed support for RedPitaya OS 1.0: RedPitaya OS 2.0 is now necessary.
+
+### Fixed
+
+* Fix and enforce flake8 by @bleykauf in https://github.com/linien-org/linien/pull/368
 
 ## [1.0.2] - 2024-04-05
 
@@ -185,6 +206,7 @@ uses [PEP440](https://peps.python.org/pep-0440/) for the version identification.
 * **Bug fixes and performance improvements**
 
 
+[2.0.0]: https://github.com/linien-org/linien/compare/v1.0.2...v2.0.0
 [1.0.2]: https://github.com/linien-org/linien/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/linien-org/linien/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/linien-org/linien/compare/v0.8.0...v1.0.0

@@ -21,13 +21,14 @@ import pickle
 import random
 import string
 from time import sleep, time
-from typing import Tuple
 
 import numpy as np
 from linien_common.common import PSDAlgorithm
 from linien_server.optimization.engine import MultiDimensionalOptimizationEngine
 from pylpsd import lpsd
 from scipy import signal
+
+from .parameters import Parameters
 
 ALL_DECIMATIONS = list(range(32))
 
@@ -37,7 +38,7 @@ logger.setLevel(logging.DEBUG)
 
 def calculate_psd(
     sig: np.ndarray, fs: float, algorithm: PSDAlgorithm
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray]:
     """
     Calculate the power spectral density.
 
@@ -102,6 +103,8 @@ def generate_curve_uuid():
 
 
 class PSDAcquisition:
+    parameters: Parameters
+
     def __init__(self, control, parameters, is_child=False):
         self.decimation_index = 0
 
@@ -126,7 +129,7 @@ class PSDAcquisition:
 
     def add_callbacks(self):
         self.parameters.acquisition_raw_data.add_callback(
-            self.react_to_new_signal, call_with_first_value=False
+            self.react_to_new_signal, call_immediately=False
         )
 
     def cleanup(self):
@@ -151,8 +154,8 @@ class PSDAcquisition:
             data = pickle.loads(data_pickled)
 
             current_decimation = self.parameters.acquisition_raw_decimation.value
-            logger.debug("recorded signal for decimation %s" % current_decimation)
-            logger.debug("recording took %s s" % (time() - self.time_decimation_set))
+            logger.debug(f"Recorded signal for decimation {current_decimation}")
+            logger.debug(f"Recording took {time()-self.time_decimation_set} s")
             self.recorded_signals_by_decimation[current_decimation] = data
             self.recorded_psds_by_decimation[current_decimation] = residual_freq_noise(
                 1 / (125e6) * (2 ** (current_decimation)),
@@ -173,7 +176,7 @@ class PSDAcquisition:
 
             if not complete:
                 new_decimation = self.decimation_index
-                logger.debug("set new decimation %s" % new_decimation)
+                logger.debug(f"Set new decimation {new_decimation}")
                 self.set_decimation(new_decimation)
             else:
                 self.cleanup()
@@ -226,6 +229,8 @@ class PSDAcquisition:
 
 
 class PIDOptimization:
+    parameters: Parameters
+
     def __init__(self, control, parameters):
         self.control = control
         self.parameters = parameters
@@ -237,7 +242,7 @@ class PIDOptimization:
     def run(self):
         try:
             self.parameters.psd_data_complete.add_callback(
-                self.psd_data_received, call_with_first_value=False
+                self.psd_data_received, call_immediately=False
             )
             self.parameters.psd_optimization_running.value = True
             self.start_single_psd_measurement()
@@ -266,7 +271,7 @@ class PIDOptimization:
             psd_data = pickle.loads(psd_data_pickled)
 
             params = (psd_data["p"], psd_data["i"])
-            logger.debug("received fitness %s, %s" % (psd_data["fitness"], params))
+            logger.debug(f"Received fitness {psd_data['fitness']}, {params}")
 
             self.engine.tell(psd_data["fitness"], params)
 

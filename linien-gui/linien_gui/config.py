@@ -1,4 +1,6 @@
 # Copyright 2018-2022 Benjamin Wiegand <benjamin.wiegand@physik.hu-berlin.de>
+# Copyright 2023 Bastian Leykauf <leykauf@physik.hu-berlin.de>
+
 #
 # This file is part of Linien and based on redpid.
 #
@@ -17,15 +19,16 @@
 
 import json
 import logging
-import pickle
 from enum import Enum
-from typing import Callable, Iterator, List, Tuple
+from pathlib import Path
+from typing import Callable, Iterator, Tuple
 
-import rpyc
 from linien_common.config import USER_DATA_PATH
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
+
+UI_PATH = Path(__file__).parents[0].resolve() / "ui"
 
 # don't plot more often than once per `DEFAULT_PLOT_RATE_LIMIT` seconds
 DEFAULT_PLOT_RATE_LIMIT = 0.1
@@ -80,10 +83,10 @@ class Setting:
         for callback in self._callbacks.copy():
             callback(value)
 
-    def add_callback(self, function: Callable, call_with_first_value: bool = True):
+    def add_callback(self, function: Callable, call_immediatly: bool = True):
         self._callbacks.add(function)
 
-        if call_with_first_value:
+        if call_immediatly:
             if self._value is not None:
                 function(self._value)
 
@@ -105,9 +108,7 @@ class Settings:
 
         # save changed settings to disk
         for _, setting in self:
-            setting.add_callback(
-                lambda _: save_settings(self), call_with_first_value=False
-            )
+            setting.add_callback(lambda _: save_settings(self), call_immediatly=False)
 
     def __iter__(self) -> Iterator[Tuple[str, Setting]]:
         for name, setting in self.__dict__.items():
@@ -133,48 +134,3 @@ def load_settings() -> Settings:
         save_settings(settings)
 
     return settings
-
-
-def save_device_data(devices) -> None:
-    with open(USER_DATA_PATH / "devices", "wb") as f:
-        pickle.dump(devices, f)
-
-
-def load_device_data() -> List[dict]:
-    try:
-        with open(USER_DATA_PATH / "devices", "rb") as f:
-            devices = pickle.load(f)
-    except (FileNotFoundError, pickle.UnpicklingError, EOFError):
-        devices = []
-
-    return devices
-
-
-def save_parameter(
-    device_key: dict, param_name: str, value: object, delete: bool = False
-):
-    devices = load_device_data()
-    device = [d for d in devices if d["key"] == device_key][0]
-    device.setdefault("params", {})
-
-    if not delete:
-        # FIXME: This is the only part where rpyc is used in linien-gui. Remove it if
-        # possible. rpyc obtain is for ensuring that we don't try to save a netref here
-        try:
-            device["params"][param_name] = rpyc.classic.obtain(value)
-        except Exception:
-            logger.exception("unable to obtain and save parameter %s" % param_name)
-    else:
-        try:
-            del device["params"][param_name]
-        except KeyError:
-            pass
-
-    save_device_data(devices)
-
-
-def get_saved_parameters(device_key: dict):
-    devices = load_device_data()
-    device = [d for d in devices if d["key"] == device_key][0]
-    device.setdefault("params", {})
-    return device["params"]

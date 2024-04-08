@@ -58,21 +58,24 @@ class Registers:
 
         self._last_sweep_speed = None
         self._last_raw_acquisition_settings = None
-        self._iir_cache = {}  # type: ignore[var-annotated]
+        self._iir_cache: dict[str, tuple[list[float], list[float]]] = {}
 
         self.parameters.lock.add_callback(self.acquisition.exposed_set_lock_status)
         self.parameters.fetch_additional_signals.add_callback(
-            self.acquisition.exposed_set_fetch_additional_signals  # noqa: E501
+            self.acquisition.exposed_set_fetch_additional_signals, call_immediately=True
         )
         self.parameters.dual_channel.add_callback(
-            self.acquisition.exposed_set_dual_channel
+            self.acquisition.exposed_set_dual_channel, call_immediately=True
         )
 
     def write_registers(self):
         """Writes data from `parameters` to the FPGA."""
 
-        max_ = lambda val: val if np.abs(val) <= 8191 else (8191 * val / np.abs(val))
-        phase_to_delay = lambda phase: int(phase / 360 * (1 << 14))
+        def max_(val):
+            return val if np.abs(val) <= 8191 else (8191 * val / np.abs(val))
+
+        def phase_to_delay(phase):
+            return int(phase / 360 * (1 << 14))
 
         if not self.parameters.dual_channel.value:
             factor_a = 256
@@ -99,13 +102,17 @@ class Registers:
             # NOTE: Sweep center is set by `logic_out_offset`.
             logic_sweep_min=-1 * max_(self.parameters.sweep_amplitude.value * 8191),
             logic_sweep_max=max_(self.parameters.sweep_amplitude.value * 8191),
-            logic_mod_freq=self.parameters.modulation_frequency.value
-            if not self.parameters.pid_only_mode.value
-            else 0,
-            logic_mod_amp=self.parameters.modulation_amplitude.value
-            if (self.parameters.modulation_frequency.value > 0)
-            and (not self.parameters.pid_only_mode.value)
-            else 0,
+            logic_mod_freq=(
+                self.parameters.modulation_frequency.value
+                if not self.parameters.pid_only_mode.value
+                else 0
+            ),
+            logic_mod_amp=(
+                self.parameters.modulation_amplitude.value
+                if (self.parameters.modulation_frequency.value > 0)
+                and (not self.parameters.pid_only_mode.value)
+                else 0
+            ),
             logic_dual_channel=int(self.parameters.dual_channel.value),
             logic_pid_only_mode=int(self.parameters.pid_only_mode.value),
             logic_chain_a_factor=factor_a,
@@ -136,24 +143,24 @@ class Registers:
             logic_autolock_robust_time_scale=self.parameters.autolock_time_scale.value,
             logic_autolock_robust_final_wait_time=self.parameters.autolock_final_wait_time.value,  # noqa: E501
             # channel A
-            fast_a_demod_delay=phase_to_delay(
-                self.parameters.demodulation_phase_a.value
-            )
-            if (self.parameters.modulation_frequency.value > 0)
-            and (not self.parameters.pid_only_mode.value)
-            else 0,
+            fast_a_demod_delay=(
+                phase_to_delay(self.parameters.demodulation_phase_a.value)
+                if (self.parameters.modulation_frequency.value > 0)
+                and (not self.parameters.pid_only_mode.value)
+                else 0
+            ),
             fast_a_demod_multiplier=self.parameters.demodulation_multiplier_a.value,
             fast_a_dx_sel=csrmap.signals.index("zero"),
             fast_a_y_tap=2,
             fast_a_dy_sel=csrmap.signals.index("zero"),
             fast_a_invert=int(self.parameters.invert_a.value),
             # channel B
-            fast_b_demod_delay=phase_to_delay(
-                self.parameters.demodulation_phase_b.value
-            )
-            if (self.parameters.modulation_frequency.value > 0)
-            and (not self.parameters.pid_only_mode.value)
-            else 0,
+            fast_b_demod_delay=(
+                phase_to_delay(self.parameters.demodulation_phase_b.value)
+                if (self.parameters.modulation_frequency.value > 0)
+                and (not self.parameters.pid_only_mode.value)
+                else 0
+            ),
             fast_b_demod_multiplier=self.parameters.demodulation_multiplier_b.value,
             fast_b_dx_sel=csrmap.signals.index("zero"),
             fast_b_y_tap=1,
@@ -173,8 +180,8 @@ class Registers:
         for instruction_idx, [wait_for, peak_height] in enumerate(
             self.parameters.autolock_instructions.value
         ):
-            new["logic_autolock_robust_peak_height_%d" % instruction_idx] = peak_height
-            new["logic_autolock_robust_wait_for_%d" % instruction_idx] = wait_for
+            new[f"logic_autolock_robust_peak_height_{instruction_idx}"] = peak_height
+            new["logic_autolock_robust_wait_for_{instruction_idx}"] = wait_for
 
         if self.parameters.lock.value:
             # display combined error signal and control signal
@@ -289,15 +296,13 @@ class Registers:
         )
 
         for chain in ("a", "b"):
-            automatic = getattr(self.parameters, "filter_automatic_%s" % chain).value
+            automatic = getattr(self.parameters, f"filter_automatic_{chain}").value
             # iir_idx means iir_c or iir_d
             for iir_idx in range(2):
                 # iir_sub_idx means in-phase signal or quadrature signal
                 for iir_sub_idx in range(2):
-                    iir_name = "fast_%s_iir_%s_%d" % (
-                        chain,
-                        ("c", "d")[iir_idx],
-                        iir_sub_idx + 1,
+                    iir_name = (
+                        f"fast_{chain}_iir_{('c', 'd')[iir_idx]}_{iir_sub_idx + 1}"
                     )
 
                     if automatic:
@@ -316,15 +321,13 @@ class Registers:
                             filter_enabled = False
                     else:
                         filter_enabled = getattr(
-                            self.parameters,
-                            "filter_%d_enabled_%s" % (iir_idx + 1, chain),
+                            self.parameters, f"filter_{iir_idx + 1}_enabled_{chain}"
                         ).value
                         filter_type = getattr(
-                            self.parameters, "filter_%d_type_%s" % (iir_idx + 1, chain)
+                            self.parameters, f"filter_{iir_idx + 1}_type_{chain}"
                         ).value
                         filter_frequency = getattr(
-                            self.parameters,
-                            "filter_%d_frequency_%s" % (iir_idx + 1, chain),
+                            self.parameters, f"filter_{iir_idx + 1}_frequency_{chain}"
                         ).value
 
                     if not filter_enabled:
@@ -346,7 +349,7 @@ class Registers:
                             )
                         else:
                             raise Exception(
-                                "unknown filter %s for %s" % (filter_type, iir_name)
+                                f"Unknown filter {filter_type} for {iir_name}"
                             )
 
         if lock_changed:
@@ -385,15 +388,15 @@ class Registers:
     def set(self, key, value):
         self.acquisition.exposed_set_csr(key, value)
 
-    def set_iir(self, iir_name, *args):
-        if self._iir_cache.get(iir_name) != args:
+    def set_iir(self, iir_name: str, b: list[float], a: list[float]) -> None:
+        if self._iir_cache.get(iir_name) != (b, a):
             # as setting iir parameters takes some time, take care that we don't  do it
             # too often
-            self.acquisition.exposed_set_iir_csr(iir_name, *args)
-            self._iir_cache[iir_name] = args
+            self.acquisition.exposed_set_iir_csr(iir_name, b, a)
+            self._iir_cache[iir_name] = (b, a)
 
 
-def twos_complement(num, N_bits):
+def twos_complement(num: int, N_bits: int) -> int:
     max_ = 1 << (N_bits - 1)
     full = 2 * max_
     if num < 0:

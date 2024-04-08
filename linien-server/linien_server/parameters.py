@@ -20,13 +20,13 @@
 import json
 import logging
 from time import time
-from typing import Any, Callable, Dict, Iterator, List, Tuple
+from typing import Any, Callable, Iterator
 
 import linien_server
 from linien_common.common import AutolockMode, MHz, PSDAlgorithm, Vpp
 from linien_common.config import USER_DATA_PATH
 
-PARAMETER_STORE_FILENAME = "linien_parameters.json"
+PARAMETER_STORE_FILENAME = "parameters.json"
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -82,13 +82,11 @@ class Parameter:
         self.value = self._start
 
     def add_callback(
-        self,
-        function: Callable[[Any], None],
-        call_with_first_value: bool = True,
+        self, function: Callable[[Any], None], call_immediately: bool = False
     ) -> None:
         self._callbacks.add(function)
 
-        if call_with_first_value:
+        if call_immediately:
             if self._value is not None:
                 function(self._value)
 
@@ -121,15 +119,15 @@ class Parameters:
     """
 
     def __init__(self):
-        # Dict[str, List[Tuple[str, Any]]]
+        # dict[str, list[tuple[str, Any]]]
         self._changed_parameters_queue = {}
-        # Dict[Tuple[Parameter, Callable[[Any], None]]]
+        # dict[tuple[Parameter, Callable[[Any], None]]]
         self._remote_listener_callbacks = {}
 
         self.to_plot = Parameter(sync=False)
         """
-        The `to_plot` parameter is a pickled dictionary that contains signalsvthat may
-        be plotted. Depending on the locking state, it may contain thesevsignals:
+        The `to_plot` parameter is a pickled dictionary that contains signals that may
+        be plotted. Depending on the locking state, it may contain these signals:
         Unlocked state:
           - `error_signal_1` and `error_signal_1_quadrature`:
               IQ-demodulated and low-pass-filtered error signals from ANALOG IN 0
@@ -594,14 +592,14 @@ class Parameters:
             start=18, min_=1, max_=32, restorable=True
         )
 
-    def __iter__(self) -> Iterator[Tuple[str, Parameter]]:
+    def __iter__(self) -> Iterator[tuple[str, Parameter]]:
         for name, param in self.__dict__.items():
             if isinstance(param, Parameter):
                 yield name, param
 
     def init_parameter_sync(
         self, uuid: str
-    ) -> Iterator[Tuple[str, Any, bool, bool, bool, bool]]:
+    ) -> Iterator[tuple[str, Any, bool, bool, bool, bool]]:
         """
         To be called by a remote client: Yields all parameters as well as their values
         and if the parameters are suited to be cached registers a listener that pushes
@@ -628,8 +626,8 @@ class Parameters:
             if uuid in self._changed_parameters_queue:
                 self._changed_parameters_queue[uuid].append((param_name, value))
 
-        param = getattr(self, param_name)
-        param.add_callback(append_changed_values_to_queue)
+        param: Parameter = getattr(self, param_name)
+        param.add_callback(append_changed_values_to_queue, call_immediately=True)
 
         self._remote_listener_callbacks[uuid].append(
             (param, append_changed_values_to_queue)
@@ -642,9 +640,7 @@ class Parameters:
         del self._changed_parameters_queue[uuid]
         del self._remote_listener_callbacks[uuid]
 
-    def get_changed_parameters_queue(
-        self, uuid: str
-    ) -> Dict[str, List[Tuple[str, Any]]]:
+    def get_changed_parameters_queue(self, uuid: str) -> list[tuple[str, Any]]:
         """Get the queue of parameter changes for a specific client."""
         queue = self._changed_parameters_queue.get(uuid, [])
         self._changed_parameters_queue[uuid] = []
@@ -666,8 +662,10 @@ def restore_parameters(parameters: Parameters) -> Parameters:
     filename = str(USER_DATA_PATH / PARAMETER_STORE_FILENAME)
     try:
         with open(filename, "r") as f:
+            logger.info(f"Restoring parameters from {filename}")
             data = json.load(f)
     except FileNotFoundError:
+        logger.info(f"Couldn't find {filename}. Using default parameters.")
         return parameters
 
     for name, attributes in data["parameters"].items():
@@ -676,7 +674,7 @@ def restore_parameters(parameters: Parameters) -> Parameters:
             getattr(parameters, name).log = attributes["log"]
         except AttributeError:  # ignore parameters that don't exist (anymore)
             continue
-    logger.info("Restored parameters from %s" % filename)
+    logger.info(f"Restored parameters from {filename}")
     return parameters
 
 
@@ -699,4 +697,4 @@ def save_parameters(parameters: Parameters) -> None:
             f,
             indent=2,
         )
-    logger.info("Saved parameters to %s" % filename)
+    logger.info(f"Saved parameters to {filename}")

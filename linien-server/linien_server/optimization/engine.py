@@ -247,7 +247,7 @@ class OptimizerEngine:
 
             params.optimization_optimized_parameters.value = complete_parameter_set
 
-        logger.debug("improvement %d" % (improvement * 100))
+        logger.debug(f"improvement {improvement * 100}")
 
         fitness = math.log(1 / optimized_slope)
 
