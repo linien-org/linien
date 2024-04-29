@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/psf/black
-    rev: 24.3.0
+    rev: 24.4.2
     hooks:
       - id: black
         exclude: ^(gateware/logic/|gateware/lowlevel/|gateware/linien_module.py|linien-server/linien_server/csrmap.py)
@@ -12,7 +12,7 @@ repos:
         name: isort (python)
 
   - repo: https://github.com/pycqa/flake8
-    rev: 6.1.0
+    rev: 7.0.0
     hooks:
       - id: flake8
         exclude: linien-server/linien_server/csrmap.py
