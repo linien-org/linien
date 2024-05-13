@@ -453,12 +453,11 @@ in a command line. If this works, check whether you can connect via SSH:
 ssh rp-f0xxxx.local
 ```
 
-on the command line. If this is successful, in order to to  check whether the
-`linien-server` is running, first confirm that there is a running `screen` session with
-the name `linien-server` by  executing `screen -ls`. If that is the case attach it by
-running `screen -r linien-server`. If any errors occurred on the server side, they will
-be displayed here. Please provide the output if you are reporting an
-[issue](https://github.com/linien-org/linien/issues)  related to connection problems.
+on the command line. If this is successful, in order to check whether the
+`linien-server` is running, check that the systemd service is running.  This can be done
+by executing `linien-server status`. Errors will also be displayed. Please provide the
+output if you are reporting an [issue](https://github.com/linien-org/linien/issues)
+related to connection problems. Debugging info will also be stored in `/root/.local/share/linien/linien.log`.
 
 ### Possible conflict with openSSH
 
