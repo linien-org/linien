@@ -112,7 +112,7 @@ class LinienApp(QtWidgets.QApplication):
 # None, bool], Any]"; expected <nothing>" is raised for click 8.1.4.
 @click.command("linien")  # type: ignore[arg-type]
 @click.version_option(__version__)
-def run_application():
+def main():
     app = LinienApp(sys.argv)
     logger.info("Starting Linien GUI")
 
@@ -122,4 +122,4 @@ def run_application():
 
 
 if __name__ == "__main__":
-    run_application()
+    main()
