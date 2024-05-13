@@ -181,7 +181,7 @@ class Registers:
             self.parameters.autolock_instructions.value
         ):
             new[f"logic_autolock_robust_peak_height_{instruction_idx}"] = peak_height
-            new["logic_autolock_robust_wait_for_{instruction_idx}"] = wait_for
+            new[f"logic_autolock_robust_wait_for_{instruction_idx}"] = wait_for
 
         if self.parameters.lock.value:
             # display combined error signal and control signal
