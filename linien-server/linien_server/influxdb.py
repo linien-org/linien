@@ -53,7 +53,7 @@ class InfluxDBLogger:
         self.write_api = client.write_api(write_options=SYNCHRONOUS)
 
     def start_logging(self, interval: float) -> None:
-        conn_success, status_code, message = self.test_connection(self.credentials)
+        conn_success, message = self.test_connection(self.credentials)
         self.thread = Thread(
             target=self._logging_loop,
             args=(interval,),
@@ -63,10 +63,7 @@ class InfluxDBLogger:
             self.stop_event.clear()
             self.thread.start()
         else:
-            raise ConnectionError(
-                "Failed to connect to InfluxDB database: "
-                f" {message} (Status code: {status_code})"
-            )
+            raise ConnectionError(f"Failed to connect to InfluxDB database: {message}")
 
     def stop_logging(self) -> None:
         self.stop_event.set()
