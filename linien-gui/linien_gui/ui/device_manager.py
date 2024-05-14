@@ -167,8 +167,8 @@ class DeviceManager(QtWidgets.QMainWindow):
                 "\n"
                 "The following parameters changed (local ↔ remote):"
             )
-            for key, (local_val, remote_val) in parameter_difference.items():
-                question += f"\n{key}: {local_val} ↔ {remote_val}"
+            for param_name, (local_value, remote_value) in parameter_difference.items():
+                question += f"\n{param_name}:\n          {local_value} ↔ {remote_value}"
             should_restore = ask_for_parameter_restore_dialog(
                 self, question, title="Restore parameters?"
             )
