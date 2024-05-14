@@ -92,8 +92,8 @@ class InfluxDBLogger:
         )
 
         health = client.health()
-        message = health["message"]
-        success = health["status"] == "pass"
+        message = health.message
+        success = health.status == "pass"
         if success:
             try:
                 client.write_api(write_options=SYNCHRONOUS).write(
