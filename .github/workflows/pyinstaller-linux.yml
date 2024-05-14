@@ -41,7 +41,7 @@ jobs:
       - run: pyinstaller pyinstaller.spec
         working-directory: linien-gui
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: linien-gui-linux
           path: linien-gui/dist/*
