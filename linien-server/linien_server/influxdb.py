@@ -20,6 +20,7 @@ from time import sleep
 
 from influxdb_client import InfluxDBClient
 from influxdb_client.client.write_api import SYNCHRONOUS
+from influxdb_client.rest import ApiException
 from linien_common.communication import ParameterValues
 from linien_common.influxdb import InfluxDBCredentials, save_credentials
 from linien_server.parameters import Parameters
@@ -90,10 +91,26 @@ class InfluxDBLogger:
             org=credentials.org,
         )
 
-        # FIXME: This does not test the credentials, yet.
         health = client.health()
         message = health["message"]
         success = health["status"] == "pass"
+        if success:
+            try:
+                client.write_api(write_options=SYNCHRONOUS).write(
+                    bucket=credentials.bucket,
+                    org=credentials.org,
+                    record={
+                        "measurement": credentials.measurement,
+                        "fields": {},
+                    },
+                )
+            except ApiException as e:
+                success = False
+                message = e.message
+            except Exception:
+                success = False
+                message = "Exception occurred. Check server log file for details."
+
         return success, message
 
     def write_data(
