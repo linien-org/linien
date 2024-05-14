@@ -23,16 +23,6 @@ from pathlib import Path
 from typing import Optional
 
 import fire
-from linien_common.communication import (
-    no_authenticator,
-    username_and_password_authenticator,
-)
-from linien_server import __version__, mdio_tool
-from linien_server.server import (
-    FakeRedPitayaControlService,
-    RedPitayaControlService,
-    run_threaded_server,
-)
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -49,6 +39,8 @@ def copy_systemd_service_file() -> None:
 class LinienServerCLI:
     def version(self) -> str:
         """Return the version of the Linien server."""
+        from linien_server import __version__
+
         return __version__
 
     def start(self) -> None:
@@ -76,6 +68,17 @@ class LinienServerCLI:
             fake: Whether to run a fake server.
             host: The hostname of the Red Pitaya.
         """
+        from linien_common.communication import (
+            no_authenticator,
+            username_and_password_authenticator,
+        )
+        from linien_server import mdio_tool
+        from linien_server.server import (
+            FakeRedPitayaControlService,
+            RedPitayaControlService,
+            run_threaded_server,
+        )
+
         if fake:
             control = FakeRedPitayaControlService()
         else:

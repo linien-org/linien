@@ -20,6 +20,7 @@ from time import sleep
 
 from influxdb_client import InfluxDBClient
 from influxdb_client.client.write_api import SYNCHRONOUS
+from influxdb_client.rest import ApiException
 from linien_common.communication import ParameterValues
 from linien_common.influxdb import InfluxDBCredentials, save_credentials
 from linien_server.parameters import Parameters
@@ -29,7 +30,7 @@ class InfluxDBLogger:
     def __init__(
         self, credentials: InfluxDBCredentials, parameters: Parameters
     ) -> None:
-        self.credentials: InfluxDBClient = credentials
+        self.credentials: InfluxDBCredentials = credentials
         self.parameters: Parameters = parameters
         self.stop_event = Event()
         self.stop_event.set()
@@ -53,7 +54,7 @@ class InfluxDBLogger:
         self.write_api = client.write_api(write_options=SYNCHRONOUS)
 
     def start_logging(self, interval: float) -> None:
-        conn_success, status_code, message = self.test_connection(self.credentials)
+        conn_success, message = self.test_connection(self.credentials)
         self.thread = Thread(
             target=self._logging_loop,
             args=(interval,),
@@ -63,10 +64,7 @@ class InfluxDBLogger:
             self.stop_event.clear()
             self.thread.start()
         else:
-            raise ConnectionError(
-                "Failed to connect to InfluxDB database: "
-                f" {message} (Status code: {status_code})"
-            )
+            raise ConnectionError(f"Failed to connect to InfluxDB database: {message}")
 
     def stop_logging(self) -> None:
         self.stop_event.set()
@@ -85,9 +83,7 @@ class InfluxDBLogger:
             self.write_data(self.credentials, data)
             sleep(interval)
 
-    def test_connection(
-        self, credentials: InfluxDBCredentials
-    ) -> tuple[bool, int, str]:
+    def test_connection(self, credentials: InfluxDBCredentials) -> tuple[bool, str]:
         """Write empty data to the server to test the connection"""
         client = InfluxDBClient(
             url=credentials.url,
@@ -95,11 +91,27 @@ class InfluxDBLogger:
             org=credentials.org,
         )
 
-        # FIXME: This does not test the credentials, yet.
-        status_code = 0
-        message = ""
-        success = client.ping()
-        return success, status_code, message
+        health = client.health()
+        message = health.message
+        success = health.status == "pass"
+        if success:
+            try:
+                client.write_api(write_options=SYNCHRONOUS).write(
+                    bucket=credentials.bucket,
+                    org=credentials.org,
+                    record={
+                        "measurement": credentials.measurement,
+                        "fields": {},
+                    },
+                )
+            except ApiException as e:
+                success = False
+                message = e.message
+            except Exception:
+                success = False
+                message = "Exception occurred. Check server log file for details."
+
+        return success, message
 
     def write_data(
         self, credentials: InfluxDBCredentials, fields: dict[str, ParameterValues]
