@@ -78,6 +78,10 @@ class LoggingPanel(QtWidgets.QWidget):
         self.lineEditBucket.setText(credentials.bucket)
         self.lineEditMeas.setText(credentials.measurement)
 
+        # hide test indicator that might be set from previous connection to a different
+        # device
+        self.influxTestIndicator.setText("")
+
         # getting the logging status from the remote
         log_status = self.control.exposed_get_logging_status()
         button_text = STOP_LOG_BUTTON_TEXT if log_status else START_LOG_BUTTON_TEXT
