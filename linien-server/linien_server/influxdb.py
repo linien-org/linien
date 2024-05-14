@@ -97,8 +97,9 @@ class InfluxDBLogger:
 
         # FIXME: This does not test the credentials, yet.
         status_code = 0
-        message = ""
-        success = client.ping()
+        health = client.health()
+        message = health["message"]
+        success = health["status"] == "pass"
         return success, status_code, message
 
     def write_data(
