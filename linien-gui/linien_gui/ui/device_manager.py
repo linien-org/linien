@@ -164,9 +164,13 @@ class DeviceManager(QtWidgets.QMainWindow):
                 "only saved if Linien server was shut down properly, not when "
                 "unplugging the power plug. In this case, you should update your local "
                 "parameters."
+                "\n"
+                "The following parameters changed (local ↔ remote):"
             )
+            for key, (local_val, remote_val) in parameter_difference.items():
+                question += f"\n{key}: {local_val} ↔ {remote_val}"
             should_restore = ask_for_parameter_restore_dialog(
-                self, question, "Restore parameters?"
+                self, question, title="Restore parameters?"
             )
             if should_restore:
                 self.connection_thread.restore_parameters(parameter_difference)
