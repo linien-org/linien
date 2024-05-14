@@ -85,9 +85,7 @@ class InfluxDBLogger:
             self.write_data(self.credentials, data)
             sleep(interval)
 
-    def test_connection(
-        self, credentials: InfluxDBCredentials
-    ) -> tuple[bool, int, str]:
+    def test_connection(self, credentials: InfluxDBCredentials) -> tuple[bool, str]:
         """Write empty data to the server to test the connection"""
         client = InfluxDBClient(
             url=credentials.url,
@@ -96,11 +94,10 @@ class InfluxDBLogger:
         )
 
         # FIXME: This does not test the credentials, yet.
-        status_code = 0
         health = client.health()
         message = health["message"]
         success = health["status"] == "pass"
-        return success, status_code, message
+        return success, message
 
     def write_data(
         self, credentials: InfluxDBCredentials, fields: dict[str, ParameterValues]

@@ -118,7 +118,7 @@ class BaseService(rpyc.Service):
 
     def exposed_update_influxdb_credentials(
         self, credentials: InfluxDBCredentials
-    ) -> tuple[bool, int, str]:
+    ) -> tuple[bool, str]:
         credentials = copy(credentials)
         (
             connection_succesful,
