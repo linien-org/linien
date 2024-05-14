@@ -29,7 +29,7 @@ class InfluxDBLogger:
     def __init__(
         self, credentials: InfluxDBCredentials, parameters: Parameters
     ) -> None:
-        self.credentials: InfluxDBClient = credentials
+        self.credentials: InfluxDBCredentials = credentials
         self.parameters: Parameters = parameters
         self.stop_event = Event()
         self.stop_event.set()
