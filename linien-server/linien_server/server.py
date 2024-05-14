@@ -122,18 +122,14 @@ class BaseService(rpyc.Service):
         credentials = copy(credentials)
         (
             connection_succesful,
-            status_code,
             message,
         ) = self.influxdb_logger.test_connection(credentials)
         if connection_succesful:
             self.influxdb_logger.credentials = credentials
             logger.info("InfluxDB credentials updated successfully")
         else:
-            logger.info(
-                "InfluxDB credentials update failed. Error message: "
-                f" {message} (Status Code {status_code})"
-            )
-        return connection_succesful, status_code, message
+            logger.info(f"InfluxDB credentials update failed. Error message: {message}")
+        return connection_succesful, message
 
     def exposed_get_influxdb_credentials(self) -> InfluxDBCredentials:
         return self.influxdb_logger.credentials
