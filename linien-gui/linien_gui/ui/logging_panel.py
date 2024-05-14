@@ -33,7 +33,7 @@ logger.setLevel(logging.DEBUG)
 
 class LoggingPanel(QtWidgets.QWidget):
     set_parameter_log = pyqtSignal(str, bool)
-    influx_credentials_update = pyqtSignal(bool, int, str)
+    influx_credentials_update = pyqtSignal(bool, str)
 
     logParametersToolButton: "LoggedParametersToolButton"
     lineEditURL: QtWidgets.QLineEdit
@@ -78,6 +78,10 @@ class LoggingPanel(QtWidgets.QWidget):
         self.lineEditBucket.setText(credentials.bucket)
         self.lineEditMeas.setText(credentials.measurement)
 
+        # hide test indicator that might be set from previous connection to a different
+        # device
+        self.influxTestIndicator.setText("")
+
         # getting the logging status from the remote
         log_status = self.control.exposed_get_logging_status()
         button_text = STOP_LOG_BUTTON_TEXT if log_status else START_LOG_BUTTON_TEXT
@@ -106,28 +110,20 @@ class LoggingPanel(QtWidgets.QWidget):
             bucket=self.lineEditBucket.text(),
             measurement=self.lineEditMeas.text(),
         )
-        (
-            success,
-            status_code,
-            message,
-        ) = self.control.exposed_update_influxdb_credentials(credentials)
-        update_msg = f"Update of InfluxDB credentials successful: {success}"
-        if not success:
-            update_msg += f" (Status {status_code}): {message}"
+        (success, message) = self.control.exposed_update_influxdb_credentials(
+            credentials
+        )
+        update_msg = f"Update of InfluxDB credentials successful: {success}: {message}"
         logger.info(update_msg)
-        self.influx_credentials_update.emit(success, status_code, message)
+        self.influx_credentials_update.emit(success, message)
 
-    def on_influxdb_credentials_updated(
-        self, success: bool, status_code: int, message: str
-    ) -> None:
+    def on_influxdb_credentials_updated(self, success: bool, message: str) -> None:
         if success:
             self.influxTestIndicator.setText("✅")
-            self.influxTestIndicator.setToolTip("Connection successful")
+            self.influxTestIndicator.setToolTip(f"Connection successful: {message}")
         else:
             self.influxTestIndicator.setText("❌")
-            self.influxTestIndicator.setToolTip(
-                f"Connection failed: {message} (Status {status_code})"
-            )
+            self.influxTestIndicator.setToolTip(f"Connection failed: {message}.")
 
 
 # checkable menu for logged parameters, inspired by
