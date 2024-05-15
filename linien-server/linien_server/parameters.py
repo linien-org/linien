@@ -24,8 +24,7 @@ from typing import Any, Callable, Iterator
 
 import linien_server
 from linien_common.common import AutolockMode, MHz, PSDAlgorithm, Vpp
-
-from .config import USER_DATA_PATH, create_backup_file
+from linien_common.config import USER_DATA_PATH, create_backup_file
 
 PARAMETER_STORE_FILENAME = "parameters.json"
 
