@@ -70,5 +70,6 @@ def restore_credentials() -> InfluxDBCredentials:
     except FileNotFoundError:
         return InfluxDBCredentials()
     except json.JSONDecodeError:
+        logger.error(f"Credentials file {filename} was corrupted.")
         create_backup_file(filename)
         return InfluxDBCredentials()

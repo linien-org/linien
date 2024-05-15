@@ -23,13 +23,13 @@ from enum import Enum
 from pathlib import Path
 from typing import Callable, Iterator, Tuple
 
-from linien_common.config import USER_DATA_PATH
+from linien_common.config import USER_DATA_PATH, create_backup_file
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 UI_PATH = Path(__file__).parents[0].resolve() / "ui"
-
+SETTINGS_STORE_FILENAME = "settings.json"
 # don't plot more often than once per `DEFAULT_PLOT_RATE_LIMIT` seconds
 DEFAULT_PLOT_RATE_LIMIT = 0.1
 
@@ -118,19 +118,22 @@ class Settings:
 
 def save_settings(settings: Settings) -> None:
     data = {name: setting.value for name, setting in settings}
-    with open(USER_DATA_PATH / "settings.json", "w") as f:
+    with open(USER_DATA_PATH / SETTINGS_STORE_FILENAME, "w") as f:
         json.dump(data, f, indent=0)
 
 
 def load_settings() -> Settings:
     settings = Settings()
+    filename = USER_DATA_PATH / SETTINGS_STORE_FILENAME
     try:
-        with open(USER_DATA_PATH / "settings.json", "r") as f:
+        with open(filename, "r") as f:
             data = json.load(f)
             for name, value in data.items():
                 if name in settings.__dict__:
                     getattr(settings, name).value = value
     except FileNotFoundError:
         save_settings(settings)
-
+    except json.JSONDecodeError:
+        logger.error(f"Settings file {filename} was corrupted.")
+        create_backup_file(filename)
     return settings
