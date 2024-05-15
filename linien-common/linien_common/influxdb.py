@@ -73,9 +73,7 @@ def restore_credentials() -> InfluxDBCredentials:
         # get a unice filename
         i = 0
         while True:
-            backup_filename = (
-                filename.parent / f"{CREDENTIAL_STORE_FILENAME.stem}.backup{i}"
-            )
+            backup_filename = filename.parent / f"{CREDENTIAL_STORE_FILENAME}.backup{i}"
             if not backup_filename.exists():
                 break
             i += 1
