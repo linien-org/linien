@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+* Handle corrupted json files by @bleykauf in https://github.com/linien-org/linien/pull/398
+
 ## [2.0.2] - 2024-05-14
 
 ### Fixed
