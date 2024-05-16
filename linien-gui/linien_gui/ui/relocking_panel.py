@@ -19,7 +19,7 @@ import logging
 
 from linien_gui.config import UI_PATH
 from linien_gui.ui.spin_box import CustomDoubleSpinBoxNoSign
-from linien_gui.utils import get_linien_app_instance
+from linien_gui.utils import get_linien_app_instance, param2ui
 from PyQt5 import QtWidgets, uic
 
 logger = logging.getLogger(__name__)
@@ -45,6 +45,119 @@ class RelockingPanel(QtWidgets.QWidget):
         self.app = get_linien_app_instance()
         self.app.connection_established.connect(self.on_connection_established)
 
+        self.lossOfLockDetectionCheckBox.stateChanged.connect(
+            self.on_watch_lock_changed
+        )
+        self.automaticRelockingCheckbox.stateChanged.connect(
+            self.on_automatic_relocking_changed
+        )
+        self.lossOfLockDetectionOnControlChannelMinSpinBox.valueChanged.connect(
+            self.on_watch_lock_control_min_changed
+        )
+        self.lossOfLockDetectionOnControlChannelMaxSpinBox.valueChanged.connect(
+            self.on_watch_lock_control_max_changed
+        )
+        self.lossOfLockDetectionOnErrorChannelMinSpinBox.valueChanged.connect(
+            self.on_watch_lock_error_min_changed
+        )
+        self.lossOfLockDetectionOnErrorChannelMaxSpinBox.valueChanged.connect(
+            self.on_watch_lock_error_max_changed
+        )
+        self.lossOfLockDetectionOnMonitorChannelMinSpinBox.valueChanged.connect(
+            self.on_watch_lock_monitor_min_changed
+        )
+        self.lossOfLockDetectionOnMonitorChannelMaxSpinBox.valueChanged.connect(
+            self.on_watch_lock_monitor_max_changed
+        )
+
     def on_connection_established(self) -> None:
         self.parameters = self.app.parameters
         self.control = self.app.control
+
+        def on_watch_lock_changed(watch_lock_enabled):
+            """Disables relocking checkbox if watch lock is not enabled."""
+            self.automaticRelockingCheckbox.setEnabled(watch_lock_enabled)
+
+        self.parameters.watch_lock.add_callback(on_watch_lock_changed)
+
+        self.parameters.pid_only_mode.add_callback(on_watch_lock_changed)
+        param2ui(self.parameters.watch_lock, self.lossOfLockDetectionCheckBox)
+        param2ui(self.parameters.automatic_relocking, self.automaticRelockingCheckbox)
+        param2ui(
+            self.parameters.watch_lock_control_min,
+            self.lossOfLockDetectionOnControlChannelMinSpinBox,
+            process_value=lambda x: 100 * x,
+        )
+        param2ui(
+            self.parameters.watch_lock_control_max,
+            self.lossOfLockDetectionOnControlChannelMaxSpinBox,
+            process_value=lambda x: 100 * x,
+        )
+        param2ui(
+            self.parameters.watch_lock_error_min,
+            self.lossOfLockDetectionOnErrorChannelMinSpinBox,
+            process_value=lambda x: 100 * x,
+        )
+        param2ui(
+            self.parameters.watch_lock_error_max,
+            self.lossOfLockDetectionOnErrorChannelMaxSpinBox,
+            process_value=lambda x: 100 * x,
+        )
+        param2ui(
+            self.parameters.watch_lock_monitor_min,
+            self.lossOfLockDetectionOnControlChannelMinSpinBox,
+            process_value=lambda x: 100 * x,
+        )
+        param2ui(
+            self.parameters.watch_lock_monitor_max,
+            self.lossOfLockDetectionOnMonitorChannelMaxSpinBox,
+            process_value=lambda x: 100 * x,
+        )
+
+    def on_watch_lock_changed(self):
+        self.parameters.watch_lock.value = int(
+            self.lossOfLockDetectionCheckBox.checkState() > 0
+        )
+        self.control.write_registers()
+
+    def on_automatic_relocking_changed(self):
+        self.parameters.automatic_relocking.value = int(
+            self.automaticRelockingCheckbox.checkState() > 0
+        )
+        self.control.write_registers()
+
+    def on_watch_lock_control_min_changed(self):
+        self.parameters.watch_lock_control_min.value = (
+            self.lossOfLockDetectionOnControlChannelMinSpinBox.value()
+        )
+        self.control.write_registers()
+
+    def on_watch_lock_control_max_changed(self):
+        self.parameters.watch_lock_control_max.value = (
+            self.lossOfLockDetectionOnControlChannelMaxSpinBox.value()
+        )
+        self.control.write_registers()
+
+    def on_watch_lock_error_min_changed(self):
+        self.parameters.watch_lock_error_min.value = (
+            self.lossOfLockDetectionOnErrorChannelMinSpinBox.value()
+        )
+        self.control.write_registers()
+
+    def on_watch_lock_error_max_changed(self):
+        self.parameters.watch_lock_error_max.value = (
+            self.lossOfLockDetectionOnErrorChannelMaxSpinBox.value()
+        )
+        self.control.write_registers()
+
+    def on_watch_lock_monitor_min_changed(self):
+        self.parameters.watch_lock_control_min.value = (
+            self.lossOfLockDetectionOnControlChannelMinSpinBox.value()
+        )
+        self.control.write_registers()
+
+    def on_watch_lock_monitor_max_changed(self):
+        self.parameters.watch_lock_monitor_max.value = (
+            self.lossOfLockDetectionOnMonitorChannelMaxSpinBox.value()
+        )
+        self.control.write_registers()

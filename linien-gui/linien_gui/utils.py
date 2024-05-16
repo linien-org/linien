@@ -44,7 +44,7 @@ def param2ui(
     parameter: RemoteParameter,
     element: QtWidgets.QWidget,
     process_value: Callable[[Any], Any] = lambda x: x,
-):
+) -> None:
     """
     Updates ui elements according to parameter values.
 
