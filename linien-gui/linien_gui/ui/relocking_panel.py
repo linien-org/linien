@@ -18,6 +18,7 @@
 import logging
 
 from linien_gui.config import UI_PATH
+from linien_gui.ui.spin_box import CustomDoubleSpinBoxNoSign
 from linien_gui.utils import get_linien_app_instance
 from PyQt5 import QtWidgets, uic
 
@@ -26,6 +27,17 @@ logger.setLevel(logging.DEBUG)
 
 
 class RelockingPanel(QtWidgets.QWidget):
+    automaticRelockingCheckbox: QtWidgets.QCheckBox
+    lossOfLockDetectionCheckBox: QtWidgets.QCheckBox
+    lossOfLockDetectionOnControlChannelCheckBox: QtWidgets.QCheckBox
+    lossOfLockDetectionOnControlChannelMinSpinBox: CustomDoubleSpinBoxNoSign
+    lossOfLockDetectionOnControlChannelMaxSpinBox: CustomDoubleSpinBoxNoSign
+    lossOfLockDetectionOnErrorChannelCheckBox: QtWidgets.QCheckBox
+    lossOfLockDetectionOnErrorChannelMinSpinBox: CustomDoubleSpinBoxNoSign
+    lossOfLockDetectionOnErrorChannelMaxSpinBox: CustomDoubleSpinBoxNoSign
+    lossOfLockDetectionOnMonitorChannelCheckBox: QtWidgets.QCheckBox
+    lossOfLockDetectionOnMonitorChannelMinSpinBox: CustomDoubleSpinBoxNoSign
+    lossOfLockDetectionOnMonitorChannelMaxSpinBox: CustomDoubleSpinBoxNoSign
 
     def __init__(self, *args, **kwargs) -> None:
         super(RelockingPanel, self).__init__(*args, **kwargs)

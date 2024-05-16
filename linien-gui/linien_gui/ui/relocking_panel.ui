@@ -72,7 +72,7 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
-         <widget class="QDoubleSpinBox" name="lossOfLockDetectionOnControlChannelMinSpinBox">
+         <widget class="CustomDoubleSpinBoxNoSign" name="lossOfLockDetectionOnControlChannelMinSpinBox">
           <property name="suffix">
            <string> %</string>
           </property>
@@ -98,7 +98,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QDoubleSpinBox" name="lossOfLockDetectionOnControlChannelMaxSpinBox">
+         <widget class="CustomDoubleSpinBoxNoSign" name="lossOfLockDetectionOnControlChannelMaxSpinBox">
           <property name="suffix">
            <string> %</string>
           </property>
@@ -150,7 +150,7 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
-         <widget class="QDoubleSpinBox" name="lossOfLockDetectionOnErrorChannelMinSpinBox">
+         <widget class="CustomDoubleSpinBoxNoSign" name="lossOfLockDetectionOnErrorChannelMinSpinBox">
           <property name="suffix">
            <string> %</string>
           </property>
@@ -176,7 +176,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QDoubleSpinBox" name="lossOfLockDetectionOnErrorChannelMaxSpinBox">
+         <widget class="CustomDoubleSpinBoxNoSign" name="lossOfLockDetectionOnErrorChannelMaxSpinBox">
           <property name="suffix">
            <string> %</string>
           </property>
@@ -222,7 +222,7 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_3">
         <item>
-         <widget class="QDoubleSpinBox" name="lossOfLockDetectionOnMonitorChannelMinSpinBox">
+         <widget class="CustomDoubleSpinBoxNoSign" name="lossOfLockDetectionOnMonitorChannelMinSpinBox">
           <property name="suffix">
            <string> %</string>
           </property>
@@ -248,7 +248,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QDoubleSpinBox" name="lossOfLockDetectionOnMonitorChannelMaxSpinBox">
+         <widget class="CustomDoubleSpinBoxNoSign" name="lossOfLockDetectionOnMonitorChannelMaxSpinBox">
           <property name="suffix">
            <string> %</string>
           </property>
@@ -293,6 +293,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>CustomDoubleSpinBoxNoSign</class>
+   <extends>QDoubleSpinBox</extends>
+   <header location="global">spin_box.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>
