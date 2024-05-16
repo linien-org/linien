@@ -89,7 +89,6 @@ def test_autolock():
                 int(new_center_point - (0.01 * N)),
                 int(new_center_point + (0.01 * N)),
                 reference_signal,
-                should_watch_lock=True,
                 auto_offset=True,
             )
 

@@ -1263,7 +1263,6 @@ p, li { white-space: pre-wrap; }
     <slot>kp_changed()</slot>
     <slot>ki_changed()</slot>
     <slot>kd_changed()</slot>
-    <slot>watch_lock_changed()</slot>
     <slot>start_manual_lock()</slot>
    </slots>
   </customwidget>

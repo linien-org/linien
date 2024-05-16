@@ -523,9 +523,7 @@ class Parameters:
         integrator. Maximum value is 8191.
         """
 
-        self.check_lock = Parameter(start=True, restorable=True)
         self.watch_lock = Parameter(start=True, restorable=True)
-        self.watch_lock_threshold = Parameter(start=0.01, restorable=True)
 
         # ------------------- AUTOLOCK PARAMETERS --------------------------------------
         # These parameters are used internally by the optimization algorithm and usually
