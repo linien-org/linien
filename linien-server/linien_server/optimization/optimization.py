@@ -16,14 +16,18 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
 import pickle
-import traceback
 
 import numpy as np
 from linien_common.common import determine_shift_by_correlation, get_lock_point
-from linien_server.approach_line import Approacher
-from linien_server.optimization.engine import OptimizerEngine
-from linien_server.optimization.utils import FINAL_ZOOM_FACTOR
+
+from .approach_line import Approacher
+from .engine import OptimizerEngine
+from .utils import FINAL_ZOOM_FACTOR
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class OptimizeSpectroscopy:
@@ -58,7 +62,7 @@ class OptimizeSpectroscopy:
 
         params = self.parameters
         self.engine = OptimizerEngine(self.control, params)
-        params.to_plot.on_change(self.react_to_new_spectrum)
+        params.to_plot.add_callback(self.react_to_new_spectrum, call_immediately=True)
         params.optimization_running.value = True
         params.optimization_improvement.value = 0
 
@@ -73,7 +77,7 @@ class OptimizeSpectroscopy:
         ) = get_lock_point(
             error_signal,
             *list(sorted([self.x0, self.x1])),
-            final_zoom_factor=FINAL_ZOOM_FACTOR
+            final_zoom_factor=FINAL_ZOOM_FACTOR,
         )
 
         self.target_zoom = target_zoom
@@ -99,8 +103,8 @@ class OptimizeSpectroscopy:
             channel = params.optimization_channel.value
             spectrum_idx = 1 if not dual_channel else (1, 2)[channel]
             unpickled = pickle.loads(spectrum)
-            spectrum = unpickled["error_signal_%d" % spectrum_idx]
-            quadrature = unpickled["error_signal_%d_quadrature" % spectrum_idx]
+            spectrum = unpickled[f"error_signal_{spectrum_idx}"]
+            quadrature = unpickled[f"error_signal_{spectrum_idx}_quadrature"]
 
             if self.parameters.optimization_approaching.value:
                 approaching_finished = self.approacher.approach_line(spectrum)
@@ -152,8 +156,7 @@ class OptimizeSpectroscopy:
                     self.exposed_stop(True)
 
         except Exception:
-            print("exception at optimization task")
-            traceback.print_exc()
+            logger.exception("Exception at optimization task")
             self.parameters.optimization_failed.value = True
             self.exposed_stop(False)
 
@@ -164,17 +167,17 @@ class OptimizeSpectroscopy:
             self.engine.request_and_set_new_parameters(use_initial_parameters=True)
 
         self.parameters.optimization_running.value = False
-        self.parameters.to_plot.remove_listener(self.react_to_new_spectrum)
+        self.parameters.to_plot.remove_callback(self.react_to_new_spectrum)
         self.parameters.task.value = None
 
         self.reset_scan()
 
     def reset_scan(self):
-        self.control.pause_acquisition()
+        self.control.exposed_pause_acquisition()
 
         self.parameters.sweep_speed.value = self.initial_sweep_speed
         self.parameters.sweep_amplitude.value = self.initial_sweep_amplitude
         self.parameters.sweep_center.value = self.initial_sweep_center
         self.control.exposed_write_registers()
 
-        self.control.continue_acquisition()
+        self.control.exposed_continue_acquisition()

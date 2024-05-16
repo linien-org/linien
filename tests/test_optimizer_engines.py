@@ -16,7 +16,12 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-import cma
+import warnings
+
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
+    import cma
+
 import numpy as np
 from linien_common.common import MHz, Vpp
 from linien_server.optimization.engine import (
@@ -41,10 +46,10 @@ class FakeControl:
     def __init__(self, parameters: Parameters):
         self.parameters = parameters
 
-    def pause_acquisition(self):
+    def exposed_pause_acquisition(self):
         pass
 
-    def continue_acquisition(self):
+    def exposed_continue_acquisition(self):
         pass
 
     def exposed_write_registers(self):

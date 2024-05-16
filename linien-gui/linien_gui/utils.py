@@ -17,7 +17,10 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+from typing import TYPE_CHECKING, Any, Callable, Tuple
 
+from linien_client.remote_parameters import RemoteParameter
+from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import (
     QCheckBox,
     QComboBox,
@@ -29,19 +32,30 @@ from PyQt5.QtWidgets import (
 )
 from pyqtgraph.Qt import QtGui
 
+if TYPE_CHECKING:
+    from linien_gui.app import LinienApp
 
-def param2ui(parameter, element, process_value=lambda x: x):
+
+def get_linien_app_instance() -> "LinienApp":
+    return QtWidgets.QApplication.instance()  # type: ignore[return-value]
+
+
+def param2ui(
+    parameter: RemoteParameter,
+    element: QtWidgets.QWidget,
+    process_value: Callable[[Any], Any] = lambda x: x,
+):
     """
     Updates ui elements according to parameter values.
 
     Listens to parameter changes and sets the value of `element` automatically.
     Optionally, the value can be processed using `process_value`. This function should
     be used because it automatically blocks signal emission from the target element;
-    otherwise this can cause nasty endless loops when quickly changing a paramater
+    otherwise this can cause nasty endless loops when quickly changing a parameter
     multiple times.
     """
 
-    def on_change(value, element=element):
+    def on_change(value: Any, element=element) -> None:
         element.blockSignals(True)
 
         value = process_value(value)
@@ -57,15 +71,15 @@ def param2ui(parameter, element, process_value=lambda x: x):
 
         element.blockSignals(False)
 
-    parameter.on_change(on_change)
+    parameter.add_callback(on_change)
 
 
-def set_window_icon(window):
+def set_window_icon(window: QtWidgets.QMainWindow) -> None:
     icon_name = os.path.join(*os.path.split(__file__)[:-1], "icon.ico")
     window.setWindowIcon(QtGui.QIcon(icon_name))
 
 
-def color_to_hex(color):
+def color_to_hex(color: Tuple[int, int, int]) -> str:
     result = ""
     for part_idx in range(3):
         result += ("00" + hex(color[part_idx]).lstrip("0x"))[-2:]
@@ -73,17 +87,16 @@ def color_to_hex(color):
     return "#" + result
 
 
-def hex_to_color(hex):
-    hex = hex.lstrip("#")
-    return tuple(int(hex[i : i + 2], 16) for i in (0, 2, 4))
+def hex_to_color(hex_: str) -> Tuple[int, ...]:
+    hex_ = hex_.lstrip("#")
+    return tuple(int(hex_[i : i + 2], 16) for i in (0, 2, 4))
 
 
 class RandomColorChoser:
     def __init__(self):
         self.index = 0
-        # pick one to turn into an actual colormap
-        # generated using https://mokole.com/palette.html
-        # and shuffled using random.shuffle
+        # pick one to turn into an actual colormap generated using
+        # ttps://mokole.com/palette.html and shuffled using random.shuffle
         self.lut = [
             "#2e8b57",
             "#0000ff",

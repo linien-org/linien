@@ -1,5 +1,5 @@
 # Copyright 2018-2022 Benjamin Wiegand <benjamin.wiegand@physik.hu-berlin.de>
-# Copyright 2021-2022 Bastian Leykauf <leykauf@physik.hu-berlin.de>
+# Copyright 2021-2023 Bastian Leykauf <leykauf@physik.hu-berlin.de>
 #
 # This file is part of Linien and based on redpid.
 #
@@ -16,79 +16,58 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-import random
-import string
+import logging
 from socket import gaierror
 from time import sleep
 from traceback import print_exc
-from typing import Callable
+from typing import Callable, Optional
 
-import linien_client
 import rpyc
-from linien_client.deploy import start_remote_server
-from linien_client.exceptions import (
-    GeneralConnectionErrorException,
+from linien_common.communication import LinienControlService
+
+from . import __version__
+from .deploy import hash_username_and_password, start_remote_server
+from .device import Device, generate_random_key
+from .exceptions import (
+    GeneralConnectionError,
     InvalidServerVersionException,
     RPYCAuthenticationException,
     ServerNotRunningException,
 )
-from linien_client.remote_parameters import RemoteParameters
-from linien_common.common import hash_username_and_password
-from linien_common.config import DEFAULT_SERVER_PORT
+from .remote_parameters import RemoteParameters
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
-class RPYCClientWithAuthentication(rpyc.Service):
-    """
-    An rpyc client that authenticates using a hash.
-
-    This class is run on the client side and exposes the client's unique id to the
-    server.
-    """
-
-    def __init__(self, uuid, user, password):
+class ServiceWithAuth(rpyc.Service):
+    def __init__(self, uuid: str, device: Device) -> None:
         super().__init__()
-
         self.exposed_uuid = uuid
-        self.auth_hash = hash_username_and_password(user, password).encode()
+        self.auth_hash = hash_username_and_password(
+            device.username, device.password
+        ).encode("utf-8")
 
     def _connect(self, channel, config):
-        # send auth hash before rpyc takes over
-        channel.stream.sock.send(self.auth_hash)
-
+        channel.stream.sock.send(self.auth_hash)  # send hash before rpyc takes over
+        logger.debug("Sent authentication hash")
         return super()._connect(channel, config)
 
 
 class LinienClient:
-    def __init__(
-        self,
-        host: str,
-        user: str,
-        password: str,
-        port: int = DEFAULT_SERVER_PORT,
-        name: str = "",
-    ):
+    def __init__(self, device: Device) -> None:
         """Connect to a RedPitaya that runs linien server."""
-        self.host = host
-        self.user = user
-        self.password = password
-        self.port = port
-        self.name = name
-
-        if self.host in ("localhost", "127.0.0.1"):
-            # RP is configured such that "localhost" doesn't point to 127.0.0.1 in all
-            # cases
-            self.host = "127.0.0.1"
-
-        self.uuid = "".join(random.choice(string.ascii_lowercase) for _ in range(10))
+        self.device = device
+        self.uuid = generate_random_key()
 
         # for exposing client's uuid to server
-        self.client_service = RPYCClientWithAuthentication(self.uuid, user, password)
+        self.client_service = ServiceWithAuth(self.uuid, self.device)
 
     def connect(
         self,
         autostart_server: bool,
         use_parameter_cache: bool,
-        call_on_error: Callable = None,
+        call_on_error: Optional[Callable] = None,
     ) -> None:
         self.connection = None
 
@@ -96,66 +75,70 @@ class LinienClient:
         while True:
             i += 1
             try:
-                print(f"Try to connect to {self.host}:{self.port}")
-                self._connect_rpyc(
-                    use_parameter_cache,
-                    call_on_error=call_on_error,
+                logger.info(f"Try to connect to {self.device.host}:{self.device.port}")
+
+                self.connection = rpyc.connect(
+                    self.device.host,
+                    self.device.port,
+                    service=self.client_service,
+                    config={"allow_pickle": True},
                 )
-                self.control = self.connection.root
+
+                cls = RemoteParameters
+                if call_on_error:
+                    cls = self._catch_network_errors(cls, call_on_error)
+
+                self.parameters = cls(
+                    self.connection.root, self.uuid, use_parameter_cache
+                )
+
+                self.control: LinienControlService = self.connection.root
                 break
             except gaierror:
                 # host not found
-                print(f"Error: host {self.host} not found")
+                logger.error(f"Error: host {self.device.host} not found")
                 break
             except EOFError:
-                print("EOFError! Probably authentication failed")
+                logger.error("EOFError! Probably authentication failed")
                 raise RPYCAuthenticationException()
-            except Exception:
+            except ConnectionRefusedError:
                 if not autostart_server:
                     raise ServerNotRunningException()
 
                 if i == 0:
-                    print("Server is not running. Launching it!")
-                    start_remote_server(self.host, self.user, self.password)
+                    logger.error("Server is not running. Launching it!")
+                    start_remote_server(self.device)
                     sleep(3)
                 else:
                     if i < 20:
-                        print("Server still not running, waiting (may take some time).")
+                        logger.info(
+                            "Server still not running, waiting (may take some time)."
+                        )
                         sleep(1)
                     else:
                         print_exc()
-                        print(
+                        logger.error(
                             "Error: connection to the server could not be established"
                         )
                         break
 
         if self.connection is None:
-            raise GeneralConnectionErrorException()
+            raise GeneralConnectionError()
 
         # now check that the remote version is the same as ours
         remote_version = self.connection.root.exposed_get_server_version().split("+")[0]
-        local_version = linien_client.__version__.split("+")[0]
+        local_version = __version__.split("+")[0]
 
         if (remote_version != local_version) and not ("dev" in local_version):
             raise InvalidServerVersionException(local_version, remote_version)
 
         self.connected = True
-        print("Connection established!")
+        logger.info("Connection established!")
 
-    def _connect_rpyc(self, use_parameter_cache, call_on_error=None):
-        """Connect to the server using rpyc and instanciate `RemoteParameters`."""
-        self.connection = rpyc.connect(
-            self.host,
-            self.port,
-            service=self.client_service,
-            config={"allow_pickle": True},
-        )
-
-        cls = RemoteParameters
-        if call_on_error:
-            cls = self._catch_network_errors(cls, call_on_error)
-
-        self.parameters = cls(self.connection.root, self.uuid, use_parameter_cache)
+    def disconnect(self) -> None:
+        if self.connection is not None:
+            self.connection.close()
+        self.connected = False
 
     def _catch_network_errors(self, cls, call_on_error):
         """
@@ -176,7 +159,7 @@ class LinienClient:
                         try:
                             return method(*args, **kwargs)
                         except (EOFError,):
-                            print("Connection lost")
+                            logger.error("Connection lost")
                             self.connected = False
                             call_on_error()
                             raise
@@ -184,7 +167,3 @@ class LinienClient:
                     setattr(cls, attr_name, wrapped)
 
         return cls
-
-    def disconnect(self) -> None:
-        self.connection.close()
-        self.connected = False

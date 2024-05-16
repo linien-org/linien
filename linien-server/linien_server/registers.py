@@ -17,19 +17,16 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-import numpy as np
-from linien_common.common import (
-    HIGH_PASS_FILTER,
-    LOW_PASS_FILTER,
-    MHz,
-    convert_channel_mixing_value,
-)
-from linien_common.config import DEFAULT_SWEEP_SPEED
+from typing import Optional
 
-from .acquisition import AcquisitionMaster
-from .csr import PitayaCSR
+import numpy as np
+import rpyc
+from linien_common.common import FilterType, MHz, convert_channel_mixing_value
+from linien_common.config import ACQUISITION_PORT, DEFAULT_SWEEP_SPEED
+from linien_server.parameters import Parameters
+
+from . import csrmap
 from .iir_coeffs import make_filter
-from .utils import twos_complement
 
 
 class Registers:
@@ -40,164 +37,180 @@ class Registers:
     communicate by manipulating `Parameters` / `RemoteParameters`.
     """
 
-    def __init__(self, host=None, user=None, password=None):
-        self.host = host
-        self.user = user
-        self.password = password
-        self.acquisition = None
-
-        self._last_sweep_speed = None
-        self._last_raw_acquisition_settings = None
-        self._iir_cache = {}
-
-    def connect(self, control, parameters):
-        """Starts a process that can be used to control FPGA registers."""
+    def __init__(
+        self,
+        control,
+        parameters: Parameters,
+        host: Optional[str] = None,
+    ) -> None:
         self.control = control
         self.parameters = parameters
 
-        self.csr = PitayaCSR()
+        if host is None:
+            # AcquisitionService is imported only on the Red Pitaya since pyrp3 is not
+            # available on Windows
+            from linien_server.acquisition import AcquisitionService
 
-        def lock_status_changed(v):
-            if self.acquisition is not None:
-                self.acquisition.lock_status_changed(v)
+            self.acquisition = AcquisitionService()
+        else:
+            # AcquisitionService has to be started manually on the Red Pitaya
+            self.acquisition = rpyc.connect(host, ACQUISITION_PORT).root
 
-        self.parameters.lock.on_change(lock_status_changed)
+        self._last_sweep_speed = None
+        self._last_raw_acquisition_settings = None
+        self._iir_cache: dict[str, tuple[list[float], list[float]]] = {}
 
-        def fetch_additional_signals_changed(v):
-            if self.acquisition is not None:
-                self.acquisition.fetch_additional_signals_changed(v)
-
-        self.parameters.fetch_additional_signals.on_change(
-            fetch_additional_signals_changed
+        self.parameters.lock.add_callback(self.acquisition.exposed_set_lock_status)
+        self.parameters.fetch_additional_signals.add_callback(
+            self.acquisition.exposed_set_fetch_additional_signals, call_immediately=True
         )
-
-        def dual_channel_changed(dual_channel):
-            if self.acquisition is not None:
-                self.acquisition.set_dual_channel(dual_channel)
-
-        self.parameters.dual_channel.on_change(dual_channel_changed)
-
-        use_ssh = self.host is not None and self.host not in ("localhost", "127.0.0.1")
-        self.acquisition = AcquisitionMaster(use_ssh, self.host)
+        self.parameters.dual_channel.add_callback(
+            self.acquisition.exposed_set_dual_channel, call_immediately=True
+        )
 
     def write_registers(self):
         """Writes data from `parameters` to the FPGA."""
-        params = dict(self.parameters)
 
-        _max = lambda val: val if np.abs(val) <= 8191 else (8191 * val / np.abs(val))
-        phase_to_delay = lambda phase: int(phase / 360 * (1 << 14))
+        def max_(val):
+            return val if np.abs(val) <= 8191 else (8191 * val / np.abs(val))
 
-        if not params["dual_channel"]:
+        def phase_to_delay(phase):
+            return int(phase / 360 * (1 << 14))
+
+        if not self.parameters.dual_channel.value:
             factor_a = 256
             factor_b = 0
         else:
-            value = params["channel_mixing"]
-            factor_a, factor_b = convert_channel_mixing_value(value)
+            factor_a, factor_b = convert_channel_mixing_value(
+                self.parameters.channel_mixing.value
+            )
 
-        lock = params["lock"]
-        lock_changed = lock != self.control.exposed_is_locked
-        self.control.exposed_is_locked = lock
+        lock_changed = self.parameters.lock.value != self.control.exposed_is_locked
+        self.control.exposed_is_locked = self.parameters.lock.value
 
         new = dict(
-            # sweep run is 1 by default. The gateware automatically takes care
-            # of stopping the sweep run after `request_lock` is set by setting
+            # sweep run is 1 by default. The gateware automatically takes care of
+            # stopping the sweep run after `request_lock` is set by setting
             # `sweep.clear`
             logic_sweep_run=1,
-            logic_sweep_pause=int(params["sweep_pause"]),
+            logic_sweep_pause=int(self.parameters.sweep_pause.value),
             logic_sweep_step=int(
                 DEFAULT_SWEEP_SPEED
-                * params["sweep_amplitude"]
-                / (2 ** params["sweep_speed"])
+                * self.parameters.sweep_amplitude.value
+                / (2**self.parameters.sweep_speed.value)
             ),
             # NOTE: Sweep center is set by `logic_out_offset`.
-            logic_sweep_min=-1 * _max(params["sweep_amplitude"] * 8191),
-            logic_sweep_max=_max(params["sweep_amplitude"] * 8191),
-            logic_mod_freq=params["modulation_frequency"],
-            logic_mod_amp=params["modulation_amplitude"]
-            if params["modulation_frequency"] > 0
-            else 0,
-            logic_dual_channel=int(params["dual_channel"]),
-            logic_fast_mode=int(params["fast_mode"]),
+            logic_sweep_min=-1 * max_(self.parameters.sweep_amplitude.value * 8191),
+            logic_sweep_max=max_(self.parameters.sweep_amplitude.value * 8191),
+            logic_mod_freq=(
+                self.parameters.modulation_frequency.value
+                if not self.parameters.pid_only_mode.value
+                else 0
+            ),
+            logic_mod_amp=(
+                self.parameters.modulation_amplitude.value
+                if (self.parameters.modulation_frequency.value > 0)
+                and (not self.parameters.pid_only_mode.value)
+                else 0
+            ),
+            logic_dual_channel=int(self.parameters.dual_channel.value),
+            logic_pid_only_mode=int(self.parameters.pid_only_mode.value),
             logic_chain_a_factor=factor_a,
             logic_chain_b_factor=factor_b,
-            logic_chain_a_offset=twos_complement(int(params["offset_a"]), 14),
-            logic_chain_b_offset=twos_complement(int(params["offset_b"]), 14),
-            logic_out_offset=int(params["sweep_center"] * 8191),
-            logic_combined_offset=twos_complement(params["combined_offset"], 14),
-            logic_control_channel=params["control_channel"],
-            logic_mod_channel=params["mod_channel"],
-            logic_sweep_channel=params["sweep_channel"],
-            logic_slow_control_channel=params["slow_control_channel"],
-            slow_chain_pid_reset=not params["pid_on_slow_enabled"],
-            logic_analog_out_1=params["analog_out_1"],
-            logic_analog_out_2=params["analog_out_2"],
-            logic_analog_out_3=params["analog_out_3"],
-            logic_autolock_fast_target_position=params["autolock_target_position"],
-            logic_autolock_autolock_mode=params["autolock_mode"],
-            logic_autolock_robust_N_instructions=len(params["autolock_instructions"]),
-            logic_autolock_robust_time_scale=params["autolock_time_scale"],
-            logic_autolock_robust_final_wait_time=params["autolock_final_wait_time"],
+            logic_chain_a_offset=twos_complement(
+                int(self.parameters.offset_a.value), 14
+            ),
+            logic_chain_b_offset=twos_complement(
+                int(self.parameters.offset_b.value), 14
+            ),
+            logic_out_offset=int(self.parameters.sweep_center.value * 8191),
+            logic_combined_offset=twos_complement(
+                self.parameters.combined_offset.value, 14
+            ),
+            logic_control_channel=self.parameters.control_channel.value,
+            logic_mod_channel=self.parameters.mod_channel.value,
+            logic_sweep_channel=self.parameters.sweep_channel.value,
+            logic_slow_control_channel=self.parameters.slow_control_channel.value,
+            slow_chain_pid_reset=not self.parameters.pid_on_slow_enabled.value,
+            logic_analog_out_1=self.parameters.analog_out_1.value,
+            logic_analog_out_2=self.parameters.analog_out_2.value,
+            logic_analog_out_3=self.parameters.analog_out_3.value,
+            logic_autolock_fast_target_position=self.parameters.autolock_target_position.value,  # noqa: E501
+            logic_autolock_autolock_mode=self.parameters.autolock_mode.value,
+            logic_autolock_robust_N_instructions=len(
+                self.parameters.autolock_instructions.value
+            ),
+            logic_autolock_robust_time_scale=self.parameters.autolock_time_scale.value,
+            logic_autolock_robust_final_wait_time=self.parameters.autolock_final_wait_time.value,  # noqa: E501
             # channel A
-            fast_a_demod_delay=phase_to_delay(params["demodulation_phase_a"])
-            if params["modulation_frequency"] > 0
-            else 0,
-            fast_a_demod_multiplier=params["demodulation_multiplier_a"],
-            fast_a_dx_sel=self.csr.signal("zero"),
+            fast_a_demod_delay=(
+                phase_to_delay(self.parameters.demodulation_phase_a.value)
+                if (self.parameters.modulation_frequency.value > 0)
+                and (not self.parameters.pid_only_mode.value)
+                else 0
+            ),
+            fast_a_demod_multiplier=self.parameters.demodulation_multiplier_a.value,
+            fast_a_dx_sel=csrmap.signals.index("zero"),
             fast_a_y_tap=2,
-            fast_a_dy_sel=self.csr.signal("zero"),
-            fast_a_invert=int(params["invert_a"]),
+            fast_a_dy_sel=csrmap.signals.index("zero"),
+            fast_a_invert=int(self.parameters.invert_a.value),
             # channel B
-            fast_b_demod_delay=phase_to_delay(params["demodulation_phase_b"])
-            if params["modulation_frequency"] > 0
-            else 0,
-            fast_b_demod_multiplier=params["demodulation_multiplier_b"],
-            fast_b_dx_sel=self.csr.signal("zero"),
+            fast_b_demod_delay=(
+                phase_to_delay(self.parameters.demodulation_phase_b.value)
+                if (self.parameters.modulation_frequency.value > 0)
+                and (not self.parameters.pid_only_mode.value)
+                else 0
+            ),
+            fast_b_demod_multiplier=self.parameters.demodulation_multiplier_b.value,
+            fast_b_dx_sel=csrmap.signals.index("zero"),
             fast_b_y_tap=1,
-            fast_b_dy_sel=self.csr.signal("zero"),
-            fast_b_invert=int(params["invert_b"]),
+            fast_b_dy_sel=csrmap.signals.index("zero"),
+            fast_b_invert=int(self.parameters.invert_b.value),
             # trigger on sweep
             scopegen_external_trigger=1,
             gpio_p_oes=0b11111111,
             gpio_n_oes=0b11111111,
-            gpio_p_outs=params["gpio_p_out"],
-            gpio_n_outs=params["gpio_n_out"],
-            gpio_n_do0_en=self.csr.signal("zero"),
-            gpio_n_do1_en=self.csr.signal("zero"),
+            gpio_p_outs=self.parameters.gpio_p_out.value,
+            gpio_n_outs=self.parameters.gpio_n_out.value,
+            gpio_n_do0_en=csrmap.signals.index("zero"),
+            gpio_n_do1_en=csrmap.signals.index("zero"),
             logic_slow_decimation=16,
         )
 
         for instruction_idx, [wait_for, peak_height] in enumerate(
-            params["autolock_instructions"]
+            self.parameters.autolock_instructions.value
         ):
-            new["logic_autolock_robust_peak_height_%d" % instruction_idx] = peak_height
-            new["logic_autolock_robust_wait_for_%d" % instruction_idx] = wait_for
+            new[f"logic_autolock_robust_peak_height_{instruction_idx}"] = peak_height
+            new[f"logic_autolock_robust_wait_for_{instruction_idx}"] = wait_for
 
-        if lock:
+        if self.parameters.lock.value:
             # display combined error signal and control signal
             new.update(
                 {
-                    "scopegen_adc_a_sel": self.csr.signal(
+                    "scopegen_adc_a_sel": csrmap.signals.index(
                         "logic_combined_error_signal"
-                        if not params["acquisition_raw_filter_enabled"]
+                        if not self.parameters.acquisition_raw_filter_enabled.value
                         else "logic_combined_error_signal_filtered"
                     ),
-                    "scopegen_adc_a_q_sel": self.csr.signal("fast_b_x"),
-                    "scopegen_adc_b_sel": self.csr.signal("logic_control_signal"),
-                    "scopegen_adc_b_q_sel": self.csr.signal("zero"),
+                    "scopegen_adc_a_q_sel": csrmap.signals.index("fast_b_x"),
+                    "scopegen_adc_b_sel": csrmap.signals.index("logic_control_signal"),
+                    "scopegen_adc_b_q_sel": csrmap.signals.index("zero"),
                 }
             )
         else:
-            # display both demodulated error signals (if dual channel mode)
-            # OR: display demodulated error signal 1 + monitor signal
+            # display both demodulated error signals (if dual channel mode) OR: display
+            # demodulated error signal 1 + monitor signal
             new.update(
                 {
-                    "scopegen_adc_a_sel": self.csr.signal("fast_a_out_i"),
-                    "scopegen_adc_a_q_sel": self.csr.signal("fast_a_out_q"),
-                    "scopegen_adc_b_sel": self.csr.signal(
-                        "fast_b_out_i" if params["dual_channel"] else "fast_b_x"
+                    "scopegen_adc_a_sel": csrmap.signals.index("fast_a_out_i"),
+                    "scopegen_adc_a_q_sel": csrmap.signals.index("fast_a_out_q"),
+                    "scopegen_adc_b_sel": csrmap.signals.index(
+                        "fast_b_out_i"
+                        if self.parameters.dual_channel.value
+                        else "fast_b_x"
                     ),
-                    "scopegen_adc_b_q_sel": self.csr.signal(
-                        "fast_b_out_q" if params["dual_channel"] else "zero"
+                    "scopegen_adc_b_q_sel": csrmap.signals.index(
+                        "fast_b_out_q" if self.parameters.dual_channel.value else "zero"
                     ),
                 }
             )
@@ -214,53 +227,56 @@ class Registers:
         self.control._cached_data.update(new)
 
         # pass sweep speed changes to acquisition process
-        sweep_changed = params["sweep_speed"] != self._last_sweep_speed
+        sweep_changed = self.parameters.sweep_speed.value != self._last_sweep_speed
         if sweep_changed:
-            self._last_sweep_speed = params["sweep_speed"]
-            self.acquisition.set_sweep_speed(params["sweep_speed"])
+            self._last_sweep_speed = self.parameters.sweep_speed.value
+            self.acquisition.exposed_set_sweep_speed(self.parameters.sweep_speed.value)
 
         raw_acquisition_settings = (
-            params["acquisition_raw_enabled"],
-            params["acquisition_raw_decimation"],
+            self.parameters.acquisition_raw_enabled.value,
+            self.parameters.acquisition_raw_decimation.value,
         )
         if raw_acquisition_settings != self._last_raw_acquisition_settings:
             self._last_raw_acquisition_settings = raw_acquisition_settings
-            self.acquisition.set_raw_acquisition(*raw_acquisition_settings)
+            self.acquisition.exposed_set_raw_acquisition(*raw_acquisition_settings)
 
         fpga_base_freq = 125e6
 
         self.set_iir(
             "logic_raw_acquisition_iir",
             *make_filter(
-                "LP", f=params["acquisition_raw_filter_frequency"] / fpga_base_freq, k=1
+                "LP",
+                f=self.parameters.acquisition_raw_filter_frequency.value
+                / fpga_base_freq,
+                k=1,
             ),
         )
 
         for k, v in new.items():
             self.set(k, int(v))
 
-        if not lock and sweep_changed:
-            # reset sweep for a short time if the scan range was changed
-            # this is needed because otherwise it may take too long before
-            # the new scan range is reached --> no scope trigger is sent
+        if not self.parameters.lock.value and sweep_changed:
+            # reset sweep for a short time if the scan range was changed this is needed
+            # because otherwise it may take too long before the new scan range is
+            # reached --> no scope trigger is sent
             self.set("logic_sweep_run", 0)
             self.set("logic_sweep_run", 1)
 
-        kp = params["p"]
-        ki = params["i"]
-        kd = params["d"]
-        slope = params["target_slope_rising"]
+        kp = self.parameters.p.value
+        ki = self.parameters.i.value
+        kd = self.parameters.d.value
+        slope = self.parameters.target_slope_rising.value
         control_channel, sweep_channel, slow_control_channel = (
-            params["control_channel"],
-            params["sweep_channel"],
-            params["slow_control_channel"],
+            self.parameters.control_channel.value,
+            self.parameters.sweep_channel.value,
+            self.parameters.slow_control_channel.value,
         )
 
         def channel_polarity(channel):
             return (
-                params["polarity_fast_out1"],
-                params["polarity_fast_out2"],
-                params["polarity_analog_out0"],
+                self.parameters.polarity_fast_out1.value,
+                self.parameters.polarity_fast_out2.value,
+                self.parameters.polarity_analog_out0.value,
             )[channel]
 
         if control_channel != sweep_channel:
@@ -268,7 +284,9 @@ class Registers:
                 slope = not slope
 
         slow_strength = (
-            params["pid_on_slow_strength"] if params["pid_on_slow_enabled"] else 0
+            self.parameters.pid_on_slow_strength.value
+            if self.parameters.pid_on_slow_enabled.value
+            else 0
         )
         slow_slope = (
             1
@@ -278,51 +296,51 @@ class Registers:
         )
 
         for chain in ("a", "b"):
-            automatic = params["filter_automatic_%s" % chain]
+            automatic = getattr(self.parameters, f"filter_automatic_{chain}").value
             # iir_idx means iir_c or iir_d
             for iir_idx in range(2):
                 # iir_sub_idx means in-phase signal or quadrature signal
                 for iir_sub_idx in range(2):
-                    iir_name = "fast_%s_iir_%s_%d" % (
-                        chain,
-                        ("c", "d")[iir_idx],
-                        iir_sub_idx + 1,
+                    iir_name = (
+                        f"fast_{chain}_iir_{('c', 'd')[iir_idx]}_{iir_sub_idx + 1}"
                     )
 
                     if automatic:
                         filter_enabled = True
-                        filter_type = LOW_PASS_FILTER
+                        filter_type = FilterType.LOW_PASS
                         filter_frequency = (
-                            params["modulation_frequency"] / MHz * 1e6 / 2
+                            self.parameters.modulation_frequency.value / MHz * 1e6 / 2
                         )
 
                         # if the filter frequency is too low (< 10Hz), the IIR doesn't
-                        # work properly anymore. In that case, don't filter.
-                        # This is also helpful if the raw (not demodulated) signal
-                        # should be displayed which can be achieved by setting
-                        # modulation frequency to 0.
+                        # work properly anymore. In that case, don't filter. This is
+                        # also helpful if the raw (not demodulated) signal should be
+                        # displayed which can be achieved by setting modulation
+                        # frequency to 0.
                         if filter_frequency < 10:
                             filter_enabled = False
                     else:
-                        filter_enabled = params[
-                            "filter_%d_enabled_%s" % (iir_idx + 1, chain)
-                        ]
-                        filter_type = params["filter_%d_type_%s" % (iir_idx + 1, chain)]
-                        filter_frequency = params[
-                            "filter_%d_frequency_%s" % (iir_idx + 1, chain)
-                        ]
+                        filter_enabled = getattr(
+                            self.parameters, f"filter_{iir_idx + 1}_enabled_{chain}"
+                        ).value
+                        filter_type = getattr(
+                            self.parameters, f"filter_{iir_idx + 1}_type_{chain}"
+                        ).value
+                        filter_frequency = getattr(
+                            self.parameters, f"filter_{iir_idx + 1}_frequency_{chain}"
+                        ).value
 
                     if not filter_enabled:
                         self.set_iir(iir_name, *make_filter("P", k=1))
                     else:
-                        if filter_type == LOW_PASS_FILTER:
+                        if filter_type == FilterType.LOW_PASS:
                             self.set_iir(
                                 iir_name,
                                 *make_filter(
                                     "LP", f=filter_frequency / fpga_base_freq, k=1
                                 ),
                             )
-                        elif filter_type == HIGH_PASS_FILTER:
+                        elif filter_type == FilterType.HIGH_PASS:
                             self.set_iir(
                                 iir_name,
                                 *make_filter(
@@ -331,11 +349,11 @@ class Registers:
                             )
                         else:
                             raise Exception(
-                                "unknown filter %s for %s" % (filter_type, iir_name)
+                                f"Unknown filter {filter_type} for {iir_name}"
                             )
 
         if lock_changed:
-            if lock:
+            if self.parameters.lock.value:
                 # set PI parameters
                 self.set_pid(kp, ki, kd, slope, reset=0, request_lock=1)
                 self.set_slow_pid(slow_strength, slow_slope, reset=0)
@@ -343,7 +361,7 @@ class Registers:
                 self.set_pid(0, 0, 0, slope, reset=1, request_lock=0)
                 self.set_slow_pid(0, slow_slope, reset=1)
         else:
-            if lock:
+            if self.parameters.lock.value:
                 # set new PI parameters
                 self.set_pid(kp, ki, kd, slope)
                 self.set_slow_pid(slow_strength, slow_slope)
@@ -368,11 +386,19 @@ class Registers:
             self.set("slow_chain_pid_reset", reset)
 
     def set(self, key, value):
-        self.acquisition.set_csr(key, value)
+        self.acquisition.exposed_set_csr(key, value)
 
-    def set_iir(self, iir_name, *args):
-        if self._iir_cache.get(iir_name) != args:
-            # as setting iir parameters takes some time, take care that we don't
-            # do it too often
-            self.acquisition.set_iir_csr(iir_name, *args)
-            self._iir_cache[iir_name] = args
+    def set_iir(self, iir_name: str, b: list[float], a: list[float]) -> None:
+        if self._iir_cache.get(iir_name) != (b, a):
+            # as setting iir parameters takes some time, take care that we don't  do it
+            # too often
+            self.acquisition.exposed_set_iir_csr(iir_name, b, a)
+            self._iir_cache[iir_name] = (b, a)
+
+
+def twos_complement(num: int, N_bits: int) -> int:
+    max_ = 1 << (N_bits - 1)
+    full = 2 * max_
+    if num < 0:
+        num += full
+    return num

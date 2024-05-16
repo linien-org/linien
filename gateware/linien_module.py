@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-from linien_common.common import ANALOG_OUT0
+from linien_common.common import OutputChannel
 from migen import (
     Array,
     Cat,
@@ -64,7 +64,7 @@ class LinienLogic(Module, AutoCSR):
         self.control_channel = CSRStorage(1)
         self.sweep_channel = CSRStorage(2)
         self.slow_control_channel = CSRStorage(2)
-        self.fast_mode = CSRStorage(1)
+        self.pid_only_mode = CSRStorage(1)
 
         # we use chain_factor_width + 1 for the single channel mode
         factor_reset = 1 << (chain_factor_width - 1)
@@ -296,7 +296,7 @@ class LinienModule(Module, AutoCSR):
         pid_out = Signal((width, True))
         self.comb += [
             If(
-                self.logic.fast_mode.storage,
+                self.logic.pid_only_mode.storage,
                 self.logic.pid.input.eq(self.analog.adc_a << s),
             ).Else(
                 self.logic.pid.input.eq(mixed_limited),
@@ -351,17 +351,18 @@ class LinienModule(Module, AutoCSR):
         self.comb += [
             analog_out.eq(
                 Mux(
-                    self.logic.sweep_channel.storage == ANALOG_OUT0,
+                    self.logic.sweep_channel.storage == OutputChannel.ANALOG_OUT0,
                     self.logic.sweep.y,
                     0,
                 )
                 + Mux(
-                    self.logic.sweep_channel.storage == ANALOG_OUT0,
+                    self.logic.sweep_channel.storage == OutputChannel.ANALOG_OUT0,
                     self.logic.out_offset_signed,
                     0,
                 )
                 + Mux(
-                    self.logic.slow_control_channel.storage == ANALOG_OUT0,
+                    self.logic.slow_control_channel.storage
+                    == OutputChannel.ANALOG_OUT0,
                     self.slow_chain.output,
                     0,
                 )

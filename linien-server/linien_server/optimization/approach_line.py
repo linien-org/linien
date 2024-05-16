@@ -88,7 +88,7 @@ class Approacher:
         )
         shift *= initial_sweep_amplitude
         self.history.append((zoomed_ref, zoomed_err))
-        self.history.append("shift %f" % (-1 * shift))
+        self.history.append(f"shift {-1 * shift}")
 
         if self.N_at_this_zoom == 0:
             # if we are at the final zoom, we should be very quick.
@@ -138,7 +138,7 @@ class Approacher:
         self.zoom_factor *= ZOOM_STEP
         self.time_last_zoom = time()
 
-        self.control.pause_acquisition()
+        self.control.exposed_pause_acquisition()
 
         self.parameters.sweep_amplitude.value /= ZOOM_STEP
         if self.allow_sweep_speed_change:
@@ -149,13 +149,13 @@ class Approacher:
             )
             self.parameters.sweep_speed.value = new_sweep_speed
         self.control.exposed_write_registers()
-        self.control.continue_acquisition()
+        self.control.exposed_continue_acquisition()
 
     def _correct_current(self, shift):
-        self.control.pause_acquisition()
+        self.control.exposed_pause_acquisition()
         self.time_last_current_correction = time()
 
         self.parameters.sweep_center.value -= shift
 
         self.control.exposed_write_registers()
-        self.control.continue_acquisition()
+        self.control.exposed_continue_acquisition()

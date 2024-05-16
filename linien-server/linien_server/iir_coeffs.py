@@ -2,9 +2,9 @@
 # Copyright 2018-2022 Benjamin Wiegand <benjamin.wiegand@physik.hu-berlin.de>
 # Copyright 2021-2022 Bastian Leykauf <leykauf@physik.hu-berlin.de>
 #
-# This file is part of redpid.
+# This file is part of Linien.
 #
-# redpid is free software: you can redistribute it and/or modify
+# Linien is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
@@ -15,15 +15,18 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with Linien.  If not, see <http://www.gnu.org/licenses/>.
+# along with Linien. If not, see <http://www.gnu.org/licenses/>.
 
 import warnings
 from math import ceil, log2, pi
+from typing import Optional
 
-import scipy.signal
+from scipy import signal
 
 
-def make_filter(name, k=1.0, f=0.0, g=1e20, q=0.5):
+def make_filter(
+    name: str, k: float = 1.0, f: float = 0.0, g: float = 1e20, q: float = 0.5
+) -> tuple[list[float], list[float]]:
     f *= pi
 
     if name == "LP":  # k/(s + 1)
@@ -109,7 +112,9 @@ def make_filter(name, k=1.0, f=0.0, g=1e20, q=0.5):
     return b, a
 
 
-def quantize_filter(b, a, shift=None, width=25):
+def quantize_filter(
+    b: list[float], a: list[float], shift: Optional[int] = None, width: int = 25
+) -> tuple[list[int], list[int], int]:
     b, a = [i / a[0] for i in b], [i / a[0] for i in a]
 
     if shift is None:
@@ -121,28 +126,33 @@ def quantize_filter(b, a, shift=None, width=25):
             shift = min(shift, int(width - 1 - m))
     s = 1 << shift
 
-    b = [int(round(i * s)) for i in b]
-    a = [int(round(i * s)) for i in a]
+    bb = [int(round(i * s)) for i in b]
+    aa = [int(round(i * s)) for i in a]
 
     m = 1 << (width - 1)
-    for i in b + a:
-        assert -m <= i < m, (hex(i), hex(m))
+    for i in bb + aa:
+        assert -m <= i < m, (hex(int(i)), hex(int(m)))
 
-    z, p, k = scipy.signal.tf2zpk(b, a)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=signal.BadCoefficients)
+        warnings.simplefilter("ignore", category=RuntimeWarning)
+        z, p, k = signal.tf2zpk(bb, aa)
     if any(abs(_) > 1 for _ in p):
         warnings.warn(
             "unstable filter: z={}, p={}, k={}".format(z, p, k), RuntimeWarning
         )
 
-    return b, a, shift
+    return bb, aa, shift
 
 
-def get_params(b, a, shift=None, width=25, interval=1):
-    b, a, shift = quantize_filter(b, a, shift, width)
+def get_params(
+    b: list[float], a: list[float], shift: Optional[int] = None, width: int = 25
+) -> tuple[list[int], list[int], dict[str, int]]:
+    bb, aa, shift = quantize_filter(b, a, shift, width)
     params = {}
-    for i, (ai, bi) in enumerate(zip(a, b)):
-        params["a%i" % i] = int(-ai)
-        params["b%i" % i] = int(bi)
+    for i, (ai, bi) in enumerate(zip(aa, bb)):
+        params[f"a{i}"] = int(-ai)
+        params[f"b{i}"] = int(bi)
     del params["a0"]
     # params["shift"] = shift
-    return b, a, params
+    return bb, aa, params

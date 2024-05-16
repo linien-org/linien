@@ -12,19 +12,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
-      - name: Install dependencies
-        run: sudo apt-get install -y qt5-default qttools5-dev-tools binutils libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-xinerama0 libxcb-xfixes0 libegl1-mesa
-
-      - run: pip install pyinstaller
+      - name: Install additional dependencies
+        run: |
+          sudo apt-get install -y qt5-default qttools5-dev-tools binutils libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-xinerama0 libxcb-xfixes0 libegl1-mesa
+          pip install pyinstaller
 
       - name: Install linien-common
         working-directory: linien-common
@@ -41,7 +41,7 @@ jobs:
       - run: pyinstaller pyinstaller.spec
         working-directory: linien-gui
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: linien-gui-linux
           path: linien-gui/dist/*

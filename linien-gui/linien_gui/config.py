@@ -1,4 +1,6 @@
 # Copyright 2018-2022 Benjamin Wiegand <benjamin.wiegand@physik.hu-berlin.de>
+# Copyright 2023 Bastian Leykauf <leykauf@physik.hu-berlin.de>
+
 #
 # This file is part of Linien and based on redpid.
 #
@@ -15,15 +17,30 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-import os
-import pickle
+import json
+import logging
 from enum import Enum
+from pathlib import Path
+from typing import Callable, Iterator, Tuple
 
-import appdirs
-import rpyc
+from linien_common.config import USER_DATA_PATH, create_backup_file
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
+UI_PATH = Path(__file__).parents[0].resolve() / "ui"
+SETTINGS_STORE_FILENAME = "settings.json"
 # don't plot more often than once per `DEFAULT_PLOT_RATE_LIMIT` seconds
 DEFAULT_PLOT_RATE_LIMIT = 0.1
+
+DEFAULT_COLORS = [
+    (200, 0, 0, 200),
+    (0, 200, 0, 200),
+    (0, 0, 200, 200),
+    (200, 200, 0, 200),
+    (200, 0, 200, 200),
+]
+N_COLORS = len(DEFAULT_COLORS)
 
 
 class Color(Enum):
@@ -36,58 +53,87 @@ class Color(Enum):
     MONITOR_SIGNAL_HISTORY = 4
 
 
-def get_data_folder():
-    folder_name = appdirs.user_data_dir("linien")
+class Setting:
+    def __init__(
+        self,
+        min_=None,
+        max_=None,
+        start=None,
+    ):
+        self.min = min_
+        self.max = max_
+        self._value = start
+        self.start = start
+        self._callbacks = set()
 
-    if not os.path.exists(folder_name):
-        os.makedirs(folder_name)
+    @property
+    def value(self):
+        return self._value
 
-    return folder_name
+    @value.setter
+    def value(self, value):
+        if self.min is not None and value < self.min:
+            value = self.min
+        if self.max is not None and value > self.max:
+            value = self.max
+        self._value = value
+
+        # We copy it because a listener could remove a listener --> this would cause an
+        # error in this loop.
+        for callback in self._callbacks.copy():
+            callback(value)
+
+    def add_callback(self, function: Callable, call_immediatly: bool = True):
+        self._callbacks.add(function)
+
+        if call_immediatly:
+            if self._value is not None:
+                function(self._value)
+
+    def remove_callback(self, function):
+        if function in self._callbacks:
+            self._callbacks.remove(function)
 
 
-def get_devices_filename():
-    return os.path.join(get_data_folder(), "devices")
+class Settings:
+    def __init__(self):
+        self.plot_line_width = Setting(start=2, min_=0.1, max_=100)
+        self.plot_line_opacity = Setting(start=230, min_=0, max_=255)
+        self.plot_fill_opacity = Setting(start=70, min_=0, max_=255)
+        self.plot_color_0 = Setting(start=DEFAULT_COLORS[0])
+        self.plot_color_1 = Setting(start=DEFAULT_COLORS[1])
+        self.plot_color_2 = Setting(start=DEFAULT_COLORS[2])
+        self.plot_color_3 = Setting(start=DEFAULT_COLORS[3])
+        self.plot_color_4 = Setting(start=DEFAULT_COLORS[4])
+
+        # save changed settings to disk
+        for _, setting in self:
+            setting.add_callback(lambda _: save_settings(self), call_immediatly=False)
+
+    def __iter__(self) -> Iterator[Tuple[str, Setting]]:
+        for name, setting in self.__dict__.items():
+            if isinstance(setting, Setting):
+                yield name, setting
 
 
-def save_device_data(devices):
-    with open(get_devices_filename(), "wb") as f:
-        pickle.dump(devices, f)
+def save_settings(settings: Settings) -> None:
+    data = {name: setting.value for name, setting in settings}
+    with open(USER_DATA_PATH / SETTINGS_STORE_FILENAME, "w") as f:
+        json.dump(data, f, indent=0)
 
 
-def load_device_data():
+def load_settings() -> Settings:
+    settings = Settings()
+    filename = USER_DATA_PATH / SETTINGS_STORE_FILENAME
     try:
-        with open(get_devices_filename(), "rb") as f:
-            devices = pickle.load(f)
-    except (FileNotFoundError, pickle.UnpicklingError, EOFError):
-        devices = []
-
-    return devices
-
-
-def save_parameter(device_key, param, value, delete=False):
-    devices = load_device_data()
-    device = [d for d in devices if d["key"] == device_key][0]
-    device.setdefault("params", {})
-
-    if not delete:
-        # FIXME: This is the only part where rpyc is used in linien-gui. Remove it if
-        # possible.
-        # rpyc obtain is for ensuring that we don't try to save a netref here
-        try:
-            device["params"][param] = rpyc.classic.obtain(value)
-        except Exception:
-            print("unable to obtain and save parameter", param)
-    else:
-        try:
-            del device["params"][param]
-        except KeyError:
-            pass
-
-    save_device_data(devices)
-
-
-def get_saved_parameters(device_key):
-    devices = load_device_data()
-    device = [d for d in devices if d["key"] == device_key][0]
-    device.setdefault("params", {})
-    return device["params"]
+        with open(filename, "r") as f:
+            data = json.load(f)
+            for name, value in data.items():
+                if name in settings.__dict__:
+                    getattr(settings, name).value = value
+    except FileNotFoundError:
+        save_settings(settings)
+    except json.JSONDecodeError:
+        logger.error(f"Settings file {filename} was corrupted.")
+        create_backup_file(filename)
+    return settings

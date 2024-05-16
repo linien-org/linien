@@ -79,7 +79,7 @@
           </widget>
          </item>
          <item>
-          <widget class="CustomSpinBox" name="kp">
+          <widget class="CustomSpinBox" name="kpSpinBox">
            <property name="keyboardTracking">
             <bool>false</bool>
            </property>
@@ -157,7 +157,7 @@
           </widget>
          </item>
          <item>
-          <widget class="CustomSpinBox" name="ki">
+          <widget class="CustomSpinBox" name="kiSpinBox">
            <property name="keyboardTracking">
             <bool>false</bool>
            </property>
@@ -238,7 +238,7 @@
           </widget>
          </item>
          <item>
-          <widget class="CustomSpinBox" name="kd">
+          <widget class="CustomSpinBox" name="kdSpinBox">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
              <horstretch>0</horstretch>
@@ -302,7 +302,7 @@
          </sizepolicy>
         </property>
         <property name="text">
-         <string>Integrator from current output signal to piezo</string>
+         <string>Slow drift compensation (for example via piezo of an ECDL). Rather large values are necessary for stable operation.</string>
         </property>
         <property name="wordWrap">
          <bool>true</bool>
@@ -443,12 +443,12 @@
                </item>
                <item>
                 <property name="text">
-                 <string>Jitter-tolerant mode</string>
+                 <string>Robust mode</string>
                 </property>
                </item>
                <item>
                 <property name="text">
-                 <string>Fast mode</string>
+                 <string>Simple mode</string>
                 </property>
                </item>
               </widget>
@@ -481,7 +481,7 @@
              </size>
             </property>
             <property name="text">
-             <string>Adapt offset such that lock is in the middle between minimum and maximum. Note: this setting may reduce reproducability of absolute frequency</string>
+             <string>Adapt offset such that lock is in the middle between minimum and maximum. Note: this setting may reduce reproducibility of absolute frequency</string>
             </property>
             <property name="textFormat">
              <enum>Qt::PlainText</enum>
@@ -695,7 +695,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="stop_lock">
+       <widget class="QPushButton" name="stopLockPushButton">
         <property name="palette">
          <palette>
           <active>
@@ -1132,7 +1132,7 @@
         </property>
         <layout class="QHBoxLayout" name="horizontalLayout_9">
          <item>
-          <widget class="CustomSpinBox" name="control_signal_history_length">
+          <widget class="CustomSpinBox" name="controlSignalHistoryLengthSpinBox">
            <property name="minimum">
             <number>10</number>
            </property>

@@ -51,7 +51,7 @@ class Iir(Filter):
         self.c = c = {}
         for i in "ab":
             for j in range(order + 1):
-                name = "%s%i" % (i, j)
+                name = f"{i}{j}"
                 if name == "a0":
                     continue
                 ci = Signal((coeff_width, True), name=name)
@@ -83,8 +83,8 @@ class Iir(Filter):
         ]
 
         if mode == "pipelined":
-            r = [("b%i" % i, self.x) for i in reversed(range(order + 1))]
-            r += [("a%i" % i, y) for i in reversed(range(1, order + 1))]
+            r = [(f"b{i}", self.x) for i in reversed(range(order + 1))]
+            r += [(f"a{i}", y) for i in reversed(range(1, order + 1))]
             for coeff, signal in r:
                 zr = Signal.like(z)
                 self.sync += zr.eq(z)
@@ -105,10 +105,10 @@ class Iir(Filter):
             steps = []
             x = [self.x] + [Signal.like(self.x) for i in range(order + 1)]
             for i in reversed(range(order + 1)):
-                steps.append([x[i + 1].eq(x[i]), ma.eq(x[i]), mb.eq(c["b%i" % i])])
+                steps.append([x[i + 1].eq(x[i]), ma.eq(x[i]), mb.eq(c[f"b{i}"])])
             y = [None, y] + [Signal.like(y) for i in range(1, order + 1)]
             for i in reversed(range(1, order + 1)):
-                steps.append([y[i + 1].eq(y[i]), ma.eq(y[i]), mb.eq(c["a%i" % i])])
+                steps.append([y[i + 1].eq(y[i]), ma.eq(y[i]), mb.eq(c[f"a{i}"])])
             steps[1].append(mc.eq(z))
             latency = order + 4
             if order == 1:

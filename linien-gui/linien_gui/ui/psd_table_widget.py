@@ -18,17 +18,18 @@
 
 from datetime import datetime
 
-from linien_gui.utils import color_to_hex
-from linien_gui.widgets import CustomWidget
+from linien_gui.utils import color_to_hex, get_linien_app_instance
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtCore import pyqtSignal
 
 
-class PSDTableWidget(QtWidgets.QTableWidget, CustomWidget):
+class PSDTableWidget(QtWidgets.QTableWidget):
     show_or_hide_curve = pyqtSignal(str, bool)
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super(PSDTableWidget, self).__init__(*args, **kwargs)
+        self.app = get_linien_app_instance()
+        self.app.connection_established.connect(self.on_connection_established)
 
         self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.AdjustToContents)
@@ -75,7 +76,7 @@ class PSDTableWidget(QtWidgets.QTableWidget, CustomWidget):
         self.setItem(row_count, 3, create_item(data["p"]))
         self.setItem(row_count, 4, create_item(data["i"]))
         self.setItem(row_count, 5, create_item(data["d"]))
-        self.setItem(row_count, 6, create_item("%.4f" % data["fitness"]))
+        self.setItem(row_count, 6, create_item(f"{data['fitness']:.4f}"))
 
         self.resizeColumnsToContents()
 

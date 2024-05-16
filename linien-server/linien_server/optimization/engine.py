@@ -17,14 +17,23 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 import math
+import warnings
 
-import cma
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
+    import cma
+
+import logging
+
 from linien_common.common import MHz, Vpp
 from linien_server.optimization.utils import (
     FINAL_ZOOM_FACTOR,
     get_max_slope,
     optimize_phase_from_iq,
 )
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class NoOptimizationEngine:
@@ -173,7 +182,7 @@ class OptimizerEngine:
         ][len(self.bounds)]([[0, 1]] * len(self.bounds))
 
     def request_and_set_new_parameters(self, use_initial_parameters=False):
-        self.control.pause_acquisition()
+        self.control.exposed_pause_acquisition()
 
         if use_initial_parameters:
             for param, initial in zip(self.all_params, self.params_before_start):
@@ -192,7 +201,7 @@ class OptimizerEngine:
             self.last_parameters_internal = list(new_params)
 
         self.control.exposed_write_registers()
-        self.control.continue_acquisition()
+        self.control.exposed_continue_acquisition()
 
     def finished(self):
         return self.opt.finished()
@@ -238,7 +247,7 @@ class OptimizerEngine:
 
             params.optimization_optimized_parameters.value = complete_parameter_set
 
-        print("improvement %d" % (improvement * 100))
+        logger.debug(f"improvement {improvement * 100}")
 
         fitness = math.log(1 / optimized_slope)
 

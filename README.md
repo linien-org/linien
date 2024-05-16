@@ -26,34 +26,32 @@ Features
 -   **Lock detection**: Linien is capable of detecting loss of lock (temporarily disabled, use [v0.3.2](https://github.com/linien-org/linien/releases/tag/v0.3.2) if you rely in this feature
 -   **Automatic relocking**: if lock is lost, it relocks autonomously (temporarily disabled, use [v0.3.2](https://github.com/linien-org/linien/releases/tag/v0.3.2) if you rely in this feature)
 -   **Machine learning** is used to tune the spectroscopy parameters in order to optimize the signal
--   **Remote-controllable**: the client libraries can be used to control or monitor the spectroscopy lock with python.
+-   **Remote-controllable**: the client libraries can be used to control or monitor the spectroscopy lock with Python.
 -   **Combined FMS+MTS**: Linien supports dual-channel spectroscopy that can be
     used to implement [combined
     FMS+MTS](https://arxiv.org/pdf/1701.01918.pdf)
--   **Logging**: Use
-    [linien-influxdb](https://github.com/linien-org/linien-influxdb)
-    to log the lock status to influxdb.
+-   **Logging**: Lock status and parameters can be logged to InfluxDB v2.
 -   **Second integrator** for slow control of piezo in an ECDL
 -   **Additional analog outputs** may be used using the GUI or python client (ANALOG_OUT 1, 2 and 3)
 -   **16 GPIO outputs** may be programmed (e.g. for controlling other devices)
 
 ![image](https://raw.githubusercontent.com/linien-org/linien/master/docs/screencast.gif)
 
-Getting started: install Linien
----------------
+## Getting started: Install Linien
 
 Linien runs on Windows and Linux. For Windows users the [standalone
 binaries](#standalone-binary) containing the graphical user interface
 are recommended.
 These binaries run on your lab PC and contain everything to get Linien running on your RedPitaya.
 
-If you want to use the python interface you should [install it using pip](#installation-with-pip).
+Starting with Linien 2.0, only RedPitaya OS 2.x is supported. Linien 1.x works on RedPitaya OS
+but is no longer actively maintain.
 
 ### Standalone binary
 
-You can download standalone binaries for Windows on [the
-releases
-page](https://github.com/linien-org/linien/releases) (download the binary in the assets section of the latest version). For Linux users, we recommend installation via pip.
+You can download standalone binaries for Windows on
+[the releases page](https://github.com/linien-org/linien/releases) (download the binary in the assets
+section of the latest version). For Linux users, we recommend installation of `linien-gui` via pip.
 
 ### Installation with pip
 
@@ -71,12 +69,57 @@ linien
 
 in a terminal (on both Linux and Windows).
 
-In case you're only interested in the python client and don't want to install the graphical application, you may use the `linien-client` package:
+In case you're only interested in the Python client and don't want to install the graphical application, you may use the `linien-client` package:
 
 ```bash
 pip install linien-client
 ```
 
+### Installation of the server on the RedPitaya
+
+The easiest way to install the server component of Linien on the RedPitaya, is to use the graphical
+user interface. The first time you are connecting to the RedPitaya, the server is automatically
+installed.
+
+In case you are using the `linien-client`, the server can be installed with
+
+```python
+from linien_client.device import Device
+from linien_client.deploy import install_remote_server
+
+device = Device(
+    host="rp-xxxxxx.local",
+    user="root",
+    password="root"    
+)
+instalL_remote_server(device)
+```
+
+Finally, you can install the server manually, by connecting to the RedPitaya via SSH and
+then running
+
+```bash
+pip install linien-server
+```
+
+The server can then be started as a systemd service by running
+
+```bash
+linien-server start
+```
+
+on the RedPitaya. To check the status of the server, run
+
+
+```bash
+linien-server status
+```
+
+ For more options, run
+
+```bash
+linien-server --help
+```
 
 Physical setup
 --------------
@@ -127,11 +170,11 @@ When you're done, head over to *Modulation, Sweep & Spectroscopy* to configure m
 
 The bright red line is the demodulated spectroscopy signal. The dark red area is the signal strength obtained by [iq demodulation](https://en.wikipedia.org/wiki/In-phase_and_quadrature_components), i.e. the demodulation signal obtained when demodulating in phase at this point.
 
-### Fast Mode
+### PID-only mode
 
-Fast mode is intended for bare PID operation (no demodulation or filtering), bypassing most of the FPGA functionality. If enabled, the signal flow is FAST IN 1 → PID → FAST OUT 2. This is useful, if aiming for a high control bandwidth: fast mode reduces propagation delay from 320 ns to 125 ns which may make a difference when phase-locking lasers.
+PID-only mode is intended for bare PID operation (no demodulation or filtering), bypassing most of the FPGA functionality. If enabled, the signal flow is FAST IN 1 → PID → FAST OUT 2. This is useful, if aiming for a high control bandwidth: PID-only mode reduces propagation delay from 320 ns to 125 ns which may make a difference when phase-locking lasers.
 
-### Optimization of spectroscopy parameters using machine learning (optional)
+### Optimization of spectroscopy parameters using machine learning
 
 Linien may use machine learning to maximize the slope of a line. As for the autolock, click and drag over the line you want to optimize. Then, the line is centered and the optimization starts. Please note that this only works if initially a distinguished zero-crossing is visible.
 
@@ -148,21 +191,27 @@ The following options are available:
  * **Check lock**: Directly after turning on the lock, the control signal is investigated. If it shifts too much, the lock is assumed to have failed.
  * **Watch lock**: This option tells the Linien to continuously watch the control signal when the laser is locked. If steep changes are detected, a relock is initiated.
 
-If you experience trouble with the autolock, this is most likely due to a bad signal to noise ratio or strong laser jitter.
+If you experience trouble with the autolock, this is most likely due to a bad signal-to-noise ratio or strong laser jitter.
 
 #### Autolock algorithms
 
 Linien implements two different autolock algorithms:
 
- * **Jitter-tolerant mode**: this algorithm runs on FPGA and analyzes the peak shapes in order to turn on the lock at the right sweep position. It is able to cope with a high amount of jitter as it runs completely on the FPGA, i.e. no delays due to communication between CPU and FPGA occur.
- * **Fast mode**: this algorithm uses a simple calculation of autocorrelation on the CPU which is then used to specify at which point of the sweep the lock should start. This algorithm is less complex than the first one and may be used if you experience problems with jitter-tolerant mode. As it requires some communication between CPU and FPGA which causes some delay, it may have problems if the line jitters a lot.
+ * **Robust mode**: this algorithm runs on FPGA and analyzes the peak shapes in order to turn on the lock at the right sweep position. It is able to cope with a high amount of jitter as it runs completely on the FPGA, i.e. no delays due to communication between CPU and FPGA occur.
+ * **Simple mode**: this algorithm uses a simple calculation of auto-correlation on the CPU which is then used to specify at which point of the sweep the lock should start. This algorithm is less complex than the first one and may be used if you experience problems with jitter-tolerant mode. As it requires some communication between CPU and FPGA which causes some delay, it may have problems if the line jitters a lot.
 
- By default, **auto-detect mode** is chosen: this mode choses an algorithm based on the amount of jitter.
+ By default, **auto-detect mode** is used: this mode chooses an algorithm based on the amount of jitter.
 
 
 ### Using the manual lock
 
 If you have problems with the autolock, you may also lock manually. Activate the *Manual* tab and use the controls in the top (*Zoom* and *Position*) to center the line you want to lock to. Choose whether the target slope is rising or falling and click the green button.
+
+### Logging
+
+Linien has to option to log the lock status and parameters to an InfluxDB. Currently, only InfluxDB 2.x is supported. Logging can be configured via the Logging menu in the Linien GUI, but logging will continue even if the client is closed. Time stamps of the data points are determined by the InfluxDB, not by the RedPitaya. If updating/checking the InfluxDB credentials fails, there is additional information in the tool-tip of the fail indicator ❌.
+
+The parameter names are documented in [`parameters.py`](https://github.com/linien-org/linien/blob/master/linien-server/linien_server/parameters.py). The `signal_stats` parameter does contain statistics of the input and output signals, e.g. `control_signal_mean` or `monitor_signal_max`.
 
 Transfer function
 -----------------
@@ -179,19 +228,23 @@ Note that this equation does not account for filtering before the PID (cf. *Modu
 Scripting interface
 -------------------
 
-In addition to the GUI, Linien can also be controlled using python. For that purpose, installation via pip is required (see above).
+In addition to the GUI, Linien can also be controlled using Python. For that purpose, installation via pip is required (see above).
 
-Then, you should start the Linien server on your RedPitaya. This can be done by running the GUI client and connecting to the device (see above). Alternatively, `LinienClient` has the option `autostart_server`.
+Then, you should start the Linien server on your RedPitaya. This can be done by running the GUI client and connecting to the device (see above). Alternatively, the `connect` method of `LinienClient` has the option `autostart_server`.
 
 Once the server is up and running, you can connect using python:
 ```python
+from linien_client.device import Device
 from linien_client.connection import LinienClient
-from linien_common.common import  MHz, Vpp
-c = LinienClient(
-    {'host': 'rp-XXXXXX.local', 'username': 'root', 'password': 'change-it-to-something-else!'},
-    # starts the server if it is not running
-    autostart_server=True
+from linien_common.common import  MHz, Vpp, ANALOG_OUT_V
+
+dev = Device(
+    host="rp-xxxxxx.local",
+    user="root",
+    password="root"    
 )
+c = LinienClient(dev)
+c.connect(autostart_server=True, use_parameter_cache=True)
 
 # read out the modulation frequency
 print(c.parameters.modulation_frequency.value / MHz)
@@ -222,19 +275,19 @@ c.parameters.gpio_p_out.value = 0b01010101 # 4 on, 4 off
 c.connection.root.write_registers()
 
 # it is also possible to set up a callback function that is called whenever a
-# parameter changes (remember to call `call_listeners()` periodically)
-def on_change(value):
+# parameter changes (remember to call `check_for_changed_parameters()` periodically)
+def callback(value):
     # this function is called whenever `my_param` changes on the server.
-    # note that this only works if `call_listeners` is called from
+    # note that this only works if `check_for_changed_parameters` is called from
     # time to time as this function is responsible for checking for
     # changed parameters.
     print('parameter arrived!', value)
 
-c.parameters.modulation_amplitude.on_change(on_change)
+c.parameters.modulation_amplitude.add_callback(callback)
 
 from time import sleep
 for i in range(10):
-    c.parameters.call_listeners()
+    c.parameters.check_for_changed_parameters()
     if i == 2:
         c.parameters.modulation_amplitude.value = 0.1 * Vpp
     sleep(.1)
@@ -281,9 +334,11 @@ from matplotlib import pyplot as plt
 from time import sleep
 
 c = LinienClient(
-    {"host": "HOST", "username": "USER", "password": "PASSWORD"},
-    autostart_server=False,
+    host="rp-xxxxxx.local",
+    user="root",
+    password="root"
 )
+c.connect(autostart_server=True, use_parameter_cache=True)
 
 c.parameters.autolock_mode_preference.value = FAST_AUTOLOCK
 
@@ -341,7 +396,7 @@ c.connection.root.start_autolock(x0, x1, pickle.dumps(error_signal))
 try:
     wait_for_lock_status(True)
     print("locking the laser worked \o/")
-except:
+except Exception:
     print("locking the laser failed :(")
 
 
@@ -372,7 +427,7 @@ No, this is not possible as Linien relies on a customized FPGA bitstream.
 
 ### What control bandwidth is achievable with Linien?
 
-The propagation delay is roughly 320 ns in normal mode and 125 ns in fast mode.
+The propagation delay is roughly 320 ns in normal mode and 125 ns in PID-only mode.
 
 ### Why do ethernet LEDs of RedPitaya stop blinking when Linien is running?
 
@@ -398,12 +453,11 @@ in a command line. If this works, check whether you can connect via SSH:
 ssh rp-f0xxxx.local
 ```
 
-on the command line. If this is successful, in order to to  check whether the
-`linien-server` is running, first confirm that there is a running `screen` session with
-the name `linien-server` by  executing `screen -ls`. If that is the case attach it by
-running `screen -r linien-server`. If any errors occurred on the server side, they will
-be displayed here. Please provide the output if you are reporting an
-[issue](https://github.com/linien-org/linien/issues)  related to connection problems.
+on the command line. If this is successful, in order to check whether the
+`linien-server` is running, check that the systemd service is running.  This can be done
+by executing `linien-server status`. Errors will also be displayed. Please provide the
+output if you are reporting an [issue](https://github.com/linien-org/linien/issues)
+related to connection problems. Debugging info will also be stored in `/root/.local/share/linien/linien.log`.
 
 ### Possible conflict with openSSH
 
@@ -441,7 +495,7 @@ Linien ‒ User-friendly locking of lasers using RedPitaya (STEMlab 125-14) that
 
 Copyright © 2014-2015 Robert Jördens\
 Copyright © 2018-2022 Benjamin Wiegand\
-Copyright © 2021-2023 Bastian Leykauf\
+Copyright © 2021-2024 Bastian Leykauf\
 Copyright © 2022 Christian Freier
 
 Linien is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.

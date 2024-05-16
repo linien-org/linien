@@ -19,7 +19,7 @@
 import numpy as np
 import pyqtgraph as pg
 from linien_gui.ui.plot_widget import V
-from linien_gui.widgets import CustomWidget
+from linien_gui.utils import get_linien_app_instance
 
 
 class CustomLogAxis(pg.AxisItem):
@@ -34,7 +34,7 @@ class CustomLogAxis(pg.AxisItem):
         # this method is mainly taken from pyqtgraph, just taking care that negative
         # exponents are also displayed in scientific notation
         estrings = [
-            "%0.1e" % x for x in 10 ** np.array(values).astype(float) * np.array(scale)
+            f"{x:0.1e}" for x in 10 ** np.array(values).astype(float) * np.array(scale)
         ]
 
         convdict = {
@@ -73,16 +73,18 @@ class CustomLogAxis(pg.AxisItem):
         return dstrings
 
 
-class PSDPlotWidget(pg.PlotWidget, CustomWidget):
+class PSDPlotWidget(pg.PlotWidget):
     def __init__(self, *args, **kwargs):
-        super().__init__(
+        super(PSDPlotWidget, self).__init__(
             *args,
             axisItems={
                 "bottom": CustomLogAxis(orientation="bottom"),
                 "left": CustomLogAxis(orientation="left"),
             },
-            **kwargs
+            **kwargs,
         )
+        self.app = get_linien_app_instance()
+        self.app.connection_established.connect(self.on_connection_established)
 
         self.curves = {}
 
@@ -191,7 +193,7 @@ class PSDPlotWidget(pg.PlotWidget, CustomWidget):
 
             # if index > 0 and index < self.MFmax:
             self.cursor_label.setHtml(
-                "<span style='font-size: 12pt'>(%.1e,%.1e)</span>" % (10**x, 10**y)
+                f"<span style='font-size: 12pt'>({10**x:.1e},{10**y:.1e})</span>"
             )
             # this determines whether cursor label is on right or left side of
             # crosshair

@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
 from time import time
 
 import numpy as np
@@ -34,7 +35,9 @@ from linien_server.autolock.utils import (
     sign,
     sum_up_spectrum,
 )
-from linien_server.utils import sweep_speed_to_time
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class LockPositionNotFound(Exception):
@@ -81,11 +84,11 @@ class RobustAutolock:
         if self._done:
             return
 
-        print("handle new spectrum")
+        logger.debug("handle new spectrum")
         try:
             determine_shift_by_correlation(1, self.first_error_signal, spectrum)
         except SpectrumUncorrelatedException:
-            print("skipping spectrum because it is not correlated")
+            logger.warning("skipping spectrum because it is not correlated")
             self._error_counter += 1
             if self._error_counter > 2:
                 raise
@@ -98,21 +101,22 @@ class RobustAutolock:
         )
 
         if len(self.spectra) == self.N_spectra_required:
-            print("enough spectra!, calculate")
+            logger.debug("enough spectra!, calculate")
 
             t1 = time()
             description, final_wait_time, time_scale = calculate_autolock_instructions(
                 self.spectra, (self.x0, self.x1)
             )
             t2 = time()
-            print("calculation of autolock description took", t2 - t1)
+            dt = t2 - t1
+            logger.debug(f"Calculation of autolock description took {dt}")
 
-            # sets up a timeout: if the lock doesn't finish within a certain time
-            # span, throw an error
+            # sets up a timeout: if the lock doesn't finish within a certain time span,
+            # throw an error
             self.setup_timeout()
 
-            # first reset lock in case it was True. This ensures that autolock
-            # starts properly once all parameters are set
+            # first reset lock in case it was True. This ensures that autolock starts
+            # properly once all parameters are set
             self.parameters.lock.value = False
             self.control.exposed_write_registers()
 
@@ -130,17 +134,18 @@ class RobustAutolock:
             self._done = True
 
         else:
-            print(
-                "not enough spectra collected: %d of %d"
-                % (len(self.spectra), self.N_spectra_required)
+            logger.error(
+                "Not enough spectra collected:"
+                f"{len(self.spectra)} of {self.N_spectra_required}"
             )
 
     def setup_timeout(self, N_acquisitions_to_wait=5):
-        """Robust autolock just programs the FPGA image with a set of instructions.
-        The FPGA image then uses these instructions in order to actually turn on
-        the lock once all conditions are met. However, it may happen that the
-        FPGA image is unable to lock for some reason. For this case, we set up
-        a timeout that raises an error if this happens.
+        """
+        Robust autolock just programs the FPGA image with a set of instructions. The
+        FPGA image then uses these instructions in order to actually turn on the lock
+        once all conditions are met. However, it may happen that the FPGA image is
+        unable to lock for some reason. For this case, we set up a timeout that raises
+        an error if this happens.
         """
         self._timeout_start_time = time()
         self._timeout_time_to_wait = (
@@ -149,7 +154,7 @@ class RobustAutolock:
             * sweep_speed_to_time(self.parameters.sweep_speed.value)
         )
 
-        self.parameters.ping.on_change(self.check_for_timeout)
+        self.parameters.ping.add_callback(self.check_for_timeout, call_immediately=True)
 
     def check_for_timeout(self, ping):
         min_time_to_wait = 5
@@ -157,12 +162,12 @@ class RobustAutolock:
         if time() - self._timeout_start_time > max(
             self._timeout_time_to_wait, min_time_to_wait
         ):
-            print("Waited too long for autolock! Aborting")
+            logger.error("Waited too long for autolock! Aborting")
             self.stop_timeout()
             self.parameters.task.value.exposed_stop()
 
     def stop_timeout(self):
-        self.parameters.ping.remove_listener(self.check_for_timeout)
+        self.parameters.ping.remove_callback(self.check_for_timeout)
 
     def after_lock(self):
         self.stop_timeout()
@@ -177,7 +182,7 @@ def calculate_autolock_instructions(spectra_with_jitter, target_idxs):
         round(np.mean([get_time_scale(spectrum, target_idxs) for spectrum in spectra]))
     )
 
-    print("x scale is %d" % time_scale)
+    logger.debug(f"x scale is {time_scale}")
 
     prepared_spectrum = get_diff_at_time_scale(sum_up_spectrum(spectra[0]), time_scale)
     peaks = get_all_peaks(prepared_spectrum, target_idxs)
@@ -186,7 +191,7 @@ def calculate_autolock_instructions(spectra_with_jitter, target_idxs):
     lock_regions = [get_lock_region(spectrum, target_idxs) for spectrum in spectra]
 
     for tolerance_factor in [0.95, 0.9, 0.85, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55, 0.5]:
-        print("try out tolerance", tolerance_factor)
+        logger.debug(f"Try out tolerance {tolerance_factor}")
         peaks_filtered = [
             (peak_position, peak_height * tolerance_factor)
             for peak_position, peak_height in peaks
@@ -211,7 +216,7 @@ def calculate_autolock_instructions(spectra_with_jitter, target_idxs):
             ):
                 break
         final_wait_time = target_peak_idx - current_idx
-        print("final wait time is %d samples" % final_wait_time)
+        logger.debug(f"final wait time is {final_wait_time} samples")
 
         description = []
 
@@ -242,10 +247,10 @@ def calculate_autolock_instructions(spectra_with_jitter, target_idxs):
         raise UnableToFindDescription()
 
     if len(description) > AUTOLOCK_MAX_N_INSTRUCTIONS:
-        print("warning: autolock description too long. Cropping!", len(description))
+        logger.warning(f"Autolock description too long. Cropping! {description}")
         description = description[-AUTOLOCK_MAX_N_INSTRUCTIONS:]
 
-    print("description is", description)
+    logger.debug(f"Description is {description}")
     return description, final_wait_time, time_scale
 
 
@@ -275,3 +280,13 @@ def get_lock_position_from_autolock_instructions(
                 return idx + final_wait_time
 
     raise LockPositionNotFound()
+
+
+def sweep_speed_to_time(sweep_speed):
+    """
+    Sweep speed is an arbitrary unit (cf. `parameters.py`). This function converts it to
+    the duration of the sweep in seconds.
+    """
+    f_real = 3.8e3 / (2**sweep_speed)
+    duration = 1 / f_real
+    return duration

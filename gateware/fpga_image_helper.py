@@ -20,11 +20,11 @@
 # use `build_fpga_image.sh`
 from pathlib import Path
 
-REPO_ROOT_DIR = Path(__file__).resolve().parents[1]
-
 from .bit2bin import bit2bin
 from .hw_platform import Platform
 from .linien_module import RootModule
+
+REPO_ROOT_DIR = Path(__file__).resolve().parents[1]
 
 
 def py_csrconstants(map, fil):
@@ -74,6 +74,6 @@ if __name__ == "__main__":
     platform.build(root, build_name="top", build_dir=build_dir)
     bit2bin(
         build_dir / "top.bit",
-        REPO_ROOT_DIR / "linien-server" / "linien_server" / "linien.bin",
+        REPO_ROOT_DIR / "linien-server" / "linien_server" / "gateware.bin",
         flip=True,
     )

@@ -15,11 +15,10 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-from time import sleep
 from typing import Callable
 
-from linien_gui.threads import RemoteServerInstallationThread
-from PyQt5.QtCore import QThread, pyqtSignal
+from linien_client.device import Device
+from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import (
     QDialog,
     QListWidget,
@@ -30,16 +29,18 @@ from PyQt5.QtWidgets import (
 )
 from pyqtgraph import QtCore
 
+from .threads import RemoteServerInstallationThread
+
 
 class SSHCommandOutputWidget(QListWidget):
     command_finished = pyqtSignal()
     enable_button = pyqtSignal()
 
     def __init__(self, parent: QWidget):
-        super().__init__(parent)
+        super(SSHCommandOutputWidget, self).__init__(parent)
         self.setSelectionMode(self.NoSelection)
 
-    def run(self, thread: QThread):
+    def run(self, thread):
         self.thread = thread
         self.thread.out_stream.new_item.connect(self.on_new_item_in_out_stream)
         self.thread.finished.connect(self.on_thread_finished)
@@ -56,7 +57,7 @@ class SSHCommandOutputWidget(QListWidget):
 
 
 def show_installation_progress_widget(
-    parent: QWidget, device: dict, callback: Callable
+    parent: QWidget, device: Device, callback: Callable
 ):
     window = QDialog(parent)
     window.setWindowTitle("Deploying Linien Server")
@@ -86,7 +87,7 @@ class LoadingDialog(QMessageBox):
     aborted = pyqtSignal()
 
     def __init__(self, parent: QWidget, host: str):
-        super().__init__(parent)
+        super(LoadingDialog, self).__init__(parent)
 
         self.setIcon(QMessageBox.Information)
         self.setText(f"Connecting to {host}")
@@ -96,10 +97,10 @@ class LoadingDialog(QMessageBox):
         self.setStandardButtons(QMessageBox.NoButton)
         self.show()
 
-    def closeEvent(self, *args):
+    def closeEvent(self, *args) -> None:
         self.aborted.emit()
 
-    def keyPressEvent(self, event):
+    def keyPressEvent(self, event) -> None:
         key = event.key()
         if key == QtCore.Qt.Key_Escape:
             self.close()
@@ -109,7 +110,7 @@ def error_dialog(parent: QWidget, error):
     return QMessageBox.question(parent, "Error", error, QMessageBox.Ok, QMessageBox.Ok)
 
 
-def question_dialog(parent, question, title):
+def question_dialog(parent, question: str, title: str) -> bool:
     box = QMessageBox(parent)
     box.setText(question)
     box.setWindowTitle(title)
@@ -120,12 +121,11 @@ def question_dialog(parent, question, title):
     return reply == QMessageBox.Yes
 
 
-def ask_for_parameter_restore_dialog(parent, question, title):
+def ask_for_parameter_restore_dialog(parent, question: str, title: str) -> bool:
     box = QMessageBox(parent)
     box.setText(question)
     box.setWindowTitle(title)
-    # do_nothing_button
-    _ = box.addButton("Keep remote parameters", QMessageBox.NoRole)
+    _ = box.addButton("Keep remote parameters", QMessageBox.NoRole)  # do nothing
     upload_button = box.addButton("Upload local parameters", QMessageBox.YesRole)
 
     box.exec_()

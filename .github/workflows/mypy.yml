@@ -1,0 +1,41 @@
+name: Run Mypy
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/mypy.yml
+      - .github/actions/install-linien/**
+      - linien-common/**
+      - linien-client/**
+      - linien-gui/**
+      - linien-server/**
+
+permissions:
+  contents: read
+
+jobs:
+  mypy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install Linien
+        uses: ./.github/actions/install-linien
+
+      - name: Install additional dependencies
+        run: pip install mypy types-appdirs pyqt5-stubs types-requests
+
+      - name: mypy for linien-common
+        run: mypy linien-common/linien_common
+
+      - name: mypy for linien-server
+        run: mypy linien-server/linien_server
+
+      - name: mypy for linien-client
+        run: mypy linien-client/linien_client
+
+      - name: mypy for linien-gui
+        run: mypy linien-gui/linien_gui      
