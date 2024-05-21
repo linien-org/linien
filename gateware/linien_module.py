@@ -41,6 +41,7 @@ from .logic.iir import Iir
 from .logic.limit import LimitCSR
 from .logic.modulate import Modulate
 from .logic.pid import PID
+from .logic.relocking import RelockWatcher
 from .logic.sweep import SweepCSR
 from .lowlevel.analog import PitayaAnalog
 from .lowlevel.crg import CRG
@@ -57,6 +58,7 @@ class LinienLogic(Module, AutoCSR):
         self.init_submodules(width, signal_width)
         self.connect_pid()
         self.connect_everything(width, signal_width, coeff_width)
+        self.connect_relock_watcher()
 
     def init_csr(self, width, chain_factor_width):
         self.dual_channel = CSRStorage(1)
@@ -93,6 +95,7 @@ class LinienLogic(Module, AutoCSR):
         self.submodules.limit_fast2 = LimitCSR(width=width, guard=5)
         self.submodules.pid = PID(width=signal_width)
         self.submodules.autolock = FPGAAutolock(width=width, max_delay=8191)
+        self.init_submodules.relock_watcher = RelockWatcher(width=width)
 
     def connect_pid(self):
         # pid is not started directly by `request_lock` signal. Instead, `request_lock`
@@ -152,6 +155,16 @@ class LinienLogic(Module, AutoCSR):
                 ]
                 << signal_width - width
             ),
+        ]
+
+    def connect_relock_watcher(self):
+        self.comb += [
+            self.logic.relock_watcher.locked.eq(
+                self.logic.autolock.lock_running.status
+            ),
+            self.logic.relock_watcher.error_signal.eq(self.logic.pid.input),
+            self.logic.relock_watcher.monitor_signal.eq(self.fast_b.adc),
+            self.logic.relock_watcher.control_signal.eq(self.logic.pid.pid_out),
         ]
 
 
