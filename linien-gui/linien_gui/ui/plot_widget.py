@@ -183,6 +183,25 @@ class PlotWidget(pg.PlotWidget):
         self.signal1.setData([0, N_POINTS - 1], [1, 1])
         self.combined_signal.setData([0, N_POINTS - 1], [1, 1])
 
+        # these lines are used for configuration of the relocking system
+        threshold_pen = pg.mkPen("m", width=2)
+        self.control_signal_threshold_min = pg.InfiniteLine(pen=threshold_pen, angle=90)
+        self.control_signal_threshold_max = pg.InfiniteLine(pen=threshold_pen, angle=90)
+        self.error_signal_threshold_min = pg.InfiniteLine(pen=threshold_pen, angle=0)
+        self.error_signal_threshold_max = pg.InfiniteLine(pen=threshold_pen, angle=0)
+        self.monitor_signal_threshold_min = pg.InfiniteLine(pen=threshold_pen, angle=0)
+        self.monitor_signal_threshold_max = pg.InfiniteLine(pen=threshold_pen, angle=0)
+
+        for item in (
+            self.control_signal_threshold_min,
+            self.control_signal_threshold_max,
+            self.error_signal_threshold_min,
+            self.error_signal_threshold_max,
+            self.monitor_signal_threshold_min,
+            self.monitor_signal_threshold_max,
+        ):
+            self.addItem(item)
+
         self.connection = None
         self.parameters = None
         self.last_plot_data = None
@@ -764,6 +783,32 @@ class PlotWidget(pg.PlotWidget):
 
     def resizeEvent(self, event, *args, **kwargs):
         super().resizeEvent(event, *args, **kwargs)
-
         # we don't do it directly here because this causes problems for some reason
         self._should_reposition_reset_view_button = True
+
+    def show_control_signal_thresholds(
+        self, show: bool, min_: float, max_: float
+    ) -> None:
+        self.control_signal_threshold_min.setVisible(show)
+        self.control_signal_threshold_max.setVisible(show)
+        if show:
+            self.control_signal_threshold_min.setValue(2 * ((min_ / 100) - 0.5))
+            self.control_signal_threshold_min.setValue(2 * ((max_ / 100) - 0.5))
+
+    def show_error_signal_thresholds(
+        self, show: bool, min_: float, max_: float
+    ) -> None:
+        self.error_signal_threshold_min.setVisible(show)
+        self.error_signal_threshold_max.setVisible(show)
+        if show:
+            self.error_signal_threshold_min.setValue(min_ / 100 * 2048)
+            self.error_signal_threshold_min.setValue(max_ / 100 * 2048)
+
+    def show_monitor_signal_thresholds(
+        self, show: bool, min_: float, max_: float
+    ) -> None:
+        self.monitor_signal_threshold_min.setVisible(show)
+        self.monitor_signal_threshold_max.setVisible(show)
+        if show:
+            self.monitor_signal_threshold_min.setValue(min_ / 100 * 2048)
+            self.monitor_signal_threshold_min.setValue(max_ / 100 * 2048)
