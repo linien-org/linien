@@ -58,7 +58,6 @@ class LinienLogic(Module, AutoCSR):
         self.init_submodules(width, signal_width)
         self.connect_pid()
         self.connect_everything(width, signal_width, coeff_width)
-        self.connect_relock_watcher()
 
     def init_csr(self, width, chain_factor_width):
         self.dual_channel = CSRStorage(1)
@@ -157,16 +156,6 @@ class LinienLogic(Module, AutoCSR):
             ),
         ]
 
-    def connect_relock_watcher(self):
-        self.comb += [
-            self.logic.relock_watcher.locked.eq(
-                self.logic.autolock.lock_running.status
-            ),
-            self.logic.relock_watcher.error_signal.eq(self.logic.pid.input),
-            self.logic.relock_watcher.monitor_signal.eq(self.fast_b.adc),
-            self.logic.relock_watcher.control_signal.eq(self.logic.pid.pid_out),
-        ]
-
 
 class LinienModule(Module, AutoCSR):
     def __init__(self, platform):
@@ -179,6 +168,7 @@ class LinienModule(Module, AutoCSR):
             width, signal_width, coeff_width, chain_factor_bits, platform
         )
         self.connect_everything(width, signal_width, coeff_width, chain_factor_bits)
+        self.connect_relock_watcher()
 
     def init_submodules(
         self, width, signal_width, coeff_width, chain_factor_bits, platform
@@ -425,6 +415,16 @@ class LinienModule(Module, AutoCSR):
         self.sync += [
             self.logic.limit_fast1.x.eq(fast_outs[0]),
             self.logic.limit_fast2.x.eq(fast_outs[1]),
+        ]
+
+    def connect_relock_watcher(self):
+        self.comb += [
+            self.logic.relock_watcher.locked.eq(
+                self.logic.autolock.lock_running.status
+            ),
+            self.logic.relock_watcher.error_signal.eq(self.logic.pid.input),
+            self.logic.relock_watcher.monitor_signal.eq(self.fast_b.adc),
+            self.logic.relock_watcher.control_signal.eq(self.logic.pid.pid_out),
         ]
 
 
