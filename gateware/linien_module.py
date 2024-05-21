@@ -95,7 +95,7 @@ class LinienLogic(Module, AutoCSR):
         self.submodules.limit_fast2 = LimitCSR(width=width, guard=5)
         self.submodules.pid = PID(width=signal_width)
         self.submodules.autolock = FPGAAutolock(width=width, max_delay=8191)
-        self.init_submodules.relock_watcher = RelockWatcher(width=width)
+        self.submodules.relock_watcher = RelockWatcher(width=width)
 
     def connect_pid(self):
         # pid is not started directly by `request_lock` signal. Instead, `request_lock`
