@@ -128,36 +128,36 @@ class RelockingPanel(QtWidgets.QWidget):
 
     def on_watch_lock_control_min_changed(self):
         self.parameters.watch_lock_control_min.value = (
-            self.lossOfLockDetectionOnControlChannelMinSpinBox.value()
+            self.lossOfLockDetectionOnControlChannelMinSpinBox.value() / 100
         )
         self.control.write_registers()
 
     def on_watch_lock_control_max_changed(self):
         self.parameters.watch_lock_control_max.value = (
-            self.lossOfLockDetectionOnControlChannelMaxSpinBox.value()
+            self.lossOfLockDetectionOnControlChannelMaxSpinBox.value() / 100
         )
         self.control.write_registers()
 
     def on_watch_lock_error_min_changed(self):
         self.parameters.watch_lock_error_min.value = (
-            self.lossOfLockDetectionOnErrorChannelMinSpinBox.value()
+            self.lossOfLockDetectionOnErrorChannelMinSpinBox.value() / 100
         )
         self.control.write_registers()
 
     def on_watch_lock_error_max_changed(self):
         self.parameters.watch_lock_error_max.value = (
-            self.lossOfLockDetectionOnErrorChannelMaxSpinBox.value()
+            self.lossOfLockDetectionOnErrorChannelMaxSpinBox.value() / 100
         )
         self.control.write_registers()
 
     def on_watch_lock_monitor_min_changed(self):
         self.parameters.watch_lock_control_min.value = (
-            self.lossOfLockDetectionOnControlChannelMinSpinBox.value()
+            self.lossOfLockDetectionOnControlChannelMinSpinBox.value() / 100
         )
         self.control.write_registers()
 
     def on_watch_lock_monitor_max_changed(self):
         self.parameters.watch_lock_monitor_max.value = (
-            self.lossOfLockDetectionOnMonitorChannelMaxSpinBox.value()
+            self.lossOfLockDetectionOnMonitorChannelMaxSpinBox.value() / 100
         )
         self.control.write_registers()

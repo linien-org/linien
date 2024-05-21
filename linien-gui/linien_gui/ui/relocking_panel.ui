@@ -76,6 +76,9 @@
           <property name="suffix">
            <string> %</string>
           </property>
+          <property name="decimals">
+           <number>1</number>
+          </property>
           <property name="maximum">
            <double>100.000000000000000</double>
           </property>
@@ -101,6 +104,9 @@
          <widget class="CustomDoubleSpinBoxNoSign" name="lossOfLockDetectionOnControlChannelMaxSpinBox">
           <property name="suffix">
            <string> %</string>
+          </property>
+          <property name="decimals">
+           <number>1</number>
           </property>
           <property name="maximum">
            <double>100.000000000000000</double>
@@ -154,6 +160,9 @@
           <property name="suffix">
            <string> %</string>
           </property>
+          <property name="decimals">
+           <number>1</number>
+          </property>
           <property name="maximum">
            <double>100.000000000000000</double>
           </property>
@@ -179,6 +188,9 @@
          <widget class="CustomDoubleSpinBoxNoSign" name="lossOfLockDetectionOnErrorChannelMaxSpinBox">
           <property name="suffix">
            <string> %</string>
+          </property>
+          <property name="decimals">
+           <number>1</number>
           </property>
           <property name="maximum">
            <double>100.000000000000000</double>
@@ -226,6 +238,9 @@
           <property name="suffix">
            <string> %</string>
           </property>
+          <property name="decimals">
+           <number>1</number>
+          </property>
           <property name="maximum">
            <double>100.000000000000000</double>
           </property>
@@ -251,6 +266,9 @@
          <widget class="CustomDoubleSpinBoxNoSign" name="lossOfLockDetectionOnMonitorChannelMaxSpinBox">
           <property name="suffix">
            <string> %</string>
+          </property>
+          <property name="decimals">
+           <number>1</number>
           </property>
           <property name="maximum">
            <double>100.000000000000000</double>
