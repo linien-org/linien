@@ -96,8 +96,6 @@ def ui2param(
             value = element.value()
         elif isinstance(element, (QCheckBox, QRadioButton)):
             value = element.checkState() > 0
-        elif isinstance(element, (QTabWidget, QComboBox)):
-            value = int(element.currentIndex())
         else:
             raise TypeError(f"Unsupported element type {type(element)}")
 
@@ -107,10 +105,10 @@ def ui2param(
 
     if isinstance(element, (QSlider, QSpinBox, QDoubleSpinBox)):
         element.valueChanged.connect(on_change)
-    elif isinstance(element, (QCheckBox, QRadioButton)):
+    elif isinstance(element, (QCheckBox,)):
         element.stateChanged.connect(on_change)
-    elif isinstance(element, (QTabWidget, QComboBox)):
-        element.currentIndexChanged.connect(on_change)
+    else:
+        raise TypeError(f"Unsupported element type {type(element)}")
 
 
 def set_window_icon(window: QtWidgets.QMainWindow) -> None:
