@@ -30,18 +30,18 @@ logger.setLevel(logging.DEBUG)
 class RelockingPanel(QtWidgets.QWidget):
     automaticRelockingCheckbox: QtWidgets.QCheckBox
     watchLockCheckBox: QtWidgets.QCheckBox
-    watchLockOnControlChannelCheckBox: QtWidgets.QCheckBox
-    watchLockOnControlChannelMinSpinBox: CustomDoubleSpinBoxNoSign
-    watchLockOnControlChannelMaxSpinBox: CustomDoubleSpinBoxNoSign
-    watchLockOnErrorChannelCheckBox: QtWidgets.QCheckBox
-    watchLockOnErrorChannelMinSpinBox: CustomDoubleSpinBoxNoSign
-    watchLockOnErrorChannelMaxSpinBox: CustomDoubleSpinBoxNoSign
-    watchLockOnMonitorChannelCheckBox: QtWidgets.QCheckBox
-    watchLockOnMonitorChannelMinSpinBox: CustomDoubleSpinBoxNoSign
-    watchLockOnMonitorChannelMaxSpinBox: CustomDoubleSpinBoxNoSign
-    plotControlSignalThresholdCheckBox: QtWidgets.QCheckBox
-    plotErrorSignalThresholdCheckBox: QtWidgets.QCheckBox
-    plotMonitorSignalThresholdCheckBox: QtWidgets.QCheckBox
+    watchLockOnControlCheckBox: QtWidgets.QCheckBox
+    watchLockControlMinSpinBox: CustomDoubleSpinBoxNoSign
+    watchLockControlMaxSpinBox: CustomDoubleSpinBoxNoSign
+    watchLockOnErrorCheckBox: QtWidgets.QCheckBox
+    watchLockErrorMinSpinBox: CustomDoubleSpinBoxNoSign
+    watchLockErrorMaxSpinBox: CustomDoubleSpinBoxNoSign
+    watchLockMonitorCheckBox: QtWidgets.QCheckBox
+    watchLockMonitorMinSpinBox: CustomDoubleSpinBoxNoSign
+    watchLockMonitorMaxSpinBox: CustomDoubleSpinBoxNoSign
+    plotControlThresholdCheckBox: QtWidgets.QCheckBox
+    plotErrorThresholdCheckBox: QtWidgets.QCheckBox
+    plotMonitorThresholdCheckBox: QtWidgets.QCheckBox
 
     control_signal_thresholds = pyqtSignal(bool, float, float)
     error_signal_thresholds = pyqtSignal(bool, float, float)
@@ -75,95 +75,95 @@ class RelockingPanel(QtWidgets.QWidget):
         param2ui(self.parameters.automatic_relocking, self.automaticRelockingCheckbox)
         # Control signal stuff:
         ui2param(
-            self.plotControlSignalThresholdCheckBox,
+            self.plotControlThresholdCheckBox,
             self.settings.show_control_threshold,
         )
         param2ui(
             self.settings.show_control_threshold,
-            self.plotControlSignalThresholdCheckBox,
+            self.plotControlThresholdCheckBox,
         )
         ui2param(
-            self.watchLockOnControlChannelMinSpinBox,
+            self.watchLockControlMinSpinBox,
             self.parameters.watch_lock_control_min,
             process_value=lambda x: x / 100,
             control=self.control,
         )
         param2ui(
             self.parameters.watch_lock_control_min,
-            self.watchLockOnControlChannelMinSpinBox,
+            self.watchLockControlMinSpinBox,
             process_value=lambda x: 100 * x,
         )
         ui2param(
-            self.watchLockOnControlChannelMaxSpinBox,
+            self.watchLockControlMaxSpinBox,
             self.parameters.watch_lock_control_max,
             process_value=lambda x: x / 100,
             control=self.control,
         )
         param2ui(
             self.parameters.watch_lock_control_max,
-            self.watchLockOnControlChannelMaxSpinBox,
+            self.watchLockControlMaxSpinBox,
             process_value=lambda x: 100 * x,
         )
         # Error signal stuff:
         ui2param(
-            self.plotControlSignalThresholdCheckBox,
+            self.plotControlThresholdCheckBox,
             self.settings.show_error_threshold,
         )
         param2ui(
             self.settings.show_error_threshold,
-            self.plotErrorSignalThresholdCheckBox,
+            self.plotErrorThresholdCheckBox,
         )
         ui2param(
-            self.watchLockOnErrorChannelMinSpinBox,
+            self.watchLockErrorMinSpinBox,
             self.parameters.watch_error_control_min,
             process_value=lambda x: x / 100,
             control=self.control,
         )
         param2ui(
             self.parameters.watch_lock_error_min,
-            self.watchLockOnErrorChannelMinSpinBox,
+            self.watchLockErrorMinSpinBox,
             lambda x: 100 * x,
         )
         ui2param(
-            self.watchLockOnErrorChannelMaxSpinBox,
+            self.watchLockErrorMaxSpinBox,
             self.on_watch_lock_error_max_changed,
             process_value=lambda x: x / 100,
             control=self.control,
         )
         param2ui(
             self.parameters.watch_lock_error_max,
-            self.watchLockOnErrorChannelMaxSpinBox,
+            self.watchLockErrorMaxSpinBox,
             lambda x: 100 * x,
         )
         # Monitor signal stuff:
         ui2param(
-            self.plotMonitorSignalThresholdCheckBox,
+            self.plotMonitorThresholdCheckBox,
             self.on_monitor_thresholds_changed,
         )
         param2ui(
             self.settings.show_monitor_threshold,
-            self.plotMonitorSignalThresholdCheckBox,
+            self.plotMonitorThresholdCheckBox,
         )
         ui2param(
-            self.watchLockOnMonitorChannelMinSpinBox,
+            self.watchLockMonitorMinSpinBox,
             self.parameters.watch_lock_monitor_min,
             process_value=lambda x: x / 100,
             control=self.control,
         )
         param2ui(
             self.parameters.watch_lock_monitor_min,
-            self.watchLockOnControlChannelMinSpinBox,
+            self.watchLockControlMinSpinBox,
             lambda x: 100 * x,
         )
         ui2param(
-            self.watchLockOnMonitorChannelMaxSpinBox,
+            self.watchLockMonitorMaxSpinBox,
             self.parameters.watch_lock_monitor_max,
             process_value=lambda x: x / 100,
             control=self.control,
         )
         param2ui(
             self.parameters.watch_lock_monitor_max,
-            self.watchLockOnMonitorChannelMaxSpinBox,
+            self.watchLockMonitorMaxSpinBox,
             lambda x: 100 * x,
         )
 

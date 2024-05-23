@@ -63,7 +63,7 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
-       <widget class="QCheckBox" name="watchLockOnControlChannelCheckBox">
+       <widget class="QCheckBox" name="watchLockOnControlCheckBox">
         <property name="text">
          <string>Assume loss of lock if control signal is not within</string>
         </property>
@@ -72,7 +72,7 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
-         <widget class="CustomDoubleSpinBoxNoSign" name="watchLockOnControlChannelMinSpinBox">
+         <widget class="CustomDoubleSpinBoxNoSign" name="watchLockControlMinSpinBox">
           <property name="suffix">
            <string> %</string>
           </property>
@@ -101,7 +101,7 @@
          </widget>
         </item>
         <item>
-         <widget class="CustomDoubleSpinBoxNoSign" name="watchLockOnControlChannelMaxSpinBox">
+         <widget class="CustomDoubleSpinBoxNoSign" name="watchLockControlMaxSpinBox">
           <property name="suffix">
            <string> %</string>
           </property>
@@ -130,7 +130,7 @@
          </spacer>
         </item>
         <item>
-         <widget class="QCheckBox" name="plotControlSignalThresholdCheckBox">
+         <widget class="QCheckBox" name="plotControlThresholdCheckBox">
           <property name="text">
            <string>show threshold</string>
           </property>
@@ -154,7 +154,7 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
-       <widget class="QCheckBox" name="watchLockOnErrorChannelCheckBox">
+       <widget class="QCheckBox" name="watchLockOnErrorCheckBox">
         <property name="text">
          <string>Assume loss of lock if error signal is not within</string>
         </property>
@@ -192,7 +192,7 @@
          </widget>
         </item>
         <item>
-         <widget class="CustomDoubleSpinBoxNoSign" name="watchLockOnErrorChannelMaxSpinBox">
+         <widget class="CustomDoubleSpinBoxNoSign" name="watchLockErrorMaxSpinBox">
           <property name="suffix">
            <string> %</string>
           </property>
@@ -221,7 +221,7 @@
          </spacer>
         </item>
         <item>
-         <widget class="QCheckBox" name="plotErrorSignalThresholdCheckBox">
+         <widget class="QCheckBox" name="plotErrorThresholdCheckBox">
           <property name="text">
            <string>show threshold</string>
           </property>
@@ -239,7 +239,7 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_4">
       <item>
-       <widget class="QCheckBox" name="watchLockOnMonitorChannelCheckBox">
+       <widget class="QCheckBox" name="watchLockMonitorCheckBox">
         <property name="text">
          <string>Assume loss of lock if monitor signal is not within</string>
         </property>
@@ -248,7 +248,7 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_3">
         <item>
-         <widget class="CustomDoubleSpinBoxNoSign" name="watchLockOnMonitorChannelMinSpinBox">
+         <widget class="CustomDoubleSpinBoxNoSign" name="watchLockMonitorMinSpinBox">
           <property name="suffix">
            <string> %</string>
           </property>
@@ -277,7 +277,7 @@
          </widget>
         </item>
         <item>
-         <widget class="CustomDoubleSpinBoxNoSign" name="watchLockOnMonitorChannelMaxSpinBox">
+         <widget class="CustomDoubleSpinBoxNoSign" name="watchLockMonitorMaxSpinBox">
           <property name="suffix">
            <string> %</string>
           </property>
@@ -306,7 +306,7 @@
          </spacer>
         </item>
         <item>
-         <widget class="QCheckBox" name="plotMonitorSignalThresholdCheckBox">
+         <widget class="QCheckBox" name="plotMonitorThresholdCheckBox">
           <property name="text">
            <string>show threshold</string>
           </property>
