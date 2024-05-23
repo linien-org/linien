@@ -550,7 +550,7 @@ class Parameters:
         """Lower bound for error signal below which loss of lock is triggered."""
 
         self.watch_lock_error_max = Parameter(
-            start=0.85, restorable=True, loggable=True
+            start=0.95, restorable=True, loggable=True
         )
         """Upper bound for error signal below which loss of lock is triggered."""
 
