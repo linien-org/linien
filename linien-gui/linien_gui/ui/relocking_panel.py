@@ -43,9 +43,9 @@ class RelockingPanel(QtWidgets.QWidget):
     plotErrorThresholdCheckBox: QtWidgets.QCheckBox
     plotMonitorThresholdCheckBox: QtWidgets.QCheckBox
 
-    control_signal_thresholds = pyqtSignal(bool, float, float)
-    error_signal_thresholds = pyqtSignal(bool, float, float)
-    monitor_signal_thresholds = pyqtSignal(bool, float, float)
+    control_thresholds_signal = pyqtSignal(bool, float, float)
+    error_thresholds_signal = pyqtSignal(bool, float, float)
+    monitor_thresholds_signal = pyqtSignal(bool, float, float)
 
     def __init__(self, *args, **kwargs) -> None:
         super(RelockingPanel, self).__init__(*args, **kwargs)
@@ -59,171 +59,89 @@ class RelockingPanel(QtWidgets.QWidget):
         self.control = self.app.control
 
         # Connect parameters and GUI controls and vice-versa:
-        # Watch and relock checkboxes
-        self.parameters.watch_lock.add_callback(self.disable_relocking_checkbox)
+        self.parameters.watch_lock.add_callback(self.on_watch_lock_changed)
 
         ui2param(
             self.watchLockCheckBox, self.parameters.watch_lock, control=self.control
         )
         param2ui(self.parameters.watch_lock, self.watchLockCheckBox)
-
         ui2param(
             self.automaticRelockingCheckbox,
             self.parameters.automatic_relocking,
             control=self.control,
         )
         param2ui(self.parameters.automatic_relocking, self.automaticRelockingCheckbox)
-        # Control signal stuff:
-        ui2param(
-            self.plotControlThresholdCheckBox,
-            self.settings.show_control_threshold,
-        )
-        param2ui(
-            self.settings.show_control_threshold,
-            self.plotControlThresholdCheckBox,
-        )
-        ui2param(
-            self.watchLockControlMinSpinBox,
-            self.parameters.watch_lock_control_min,
-            process_value=lambda x: x / 100,
-            control=self.control,
-        )
-        param2ui(
-            self.parameters.watch_lock_control_min,
-            self.watchLockControlMinSpinBox,
-            process_value=lambda x: 100 * x,
-        )
-        ui2param(
-            self.watchLockControlMaxSpinBox,
-            self.parameters.watch_lock_control_max,
-            process_value=lambda x: x / 100,
-            control=self.control,
-        )
-        param2ui(
-            self.parameters.watch_lock_control_max,
-            self.watchLockControlMaxSpinBox,
-            process_value=lambda x: 100 * x,
-        )
-        # Error signal stuff:
-        ui2param(
-            self.plotControlThresholdCheckBox,
-            self.settings.show_error_threshold,
-        )
-        param2ui(
-            self.settings.show_error_threshold,
-            self.plotErrorThresholdCheckBox,
-        )
-        ui2param(
-            self.watchLockErrorMinSpinBox,
-            self.parameters.watch_error_control_min,
-            process_value=lambda x: x / 100,
-            control=self.control,
-        )
-        param2ui(
-            self.parameters.watch_lock_error_min,
-            self.watchLockErrorMinSpinBox,
-            lambda x: 100 * x,
-        )
-        ui2param(
-            self.watchLockErrorMaxSpinBox,
-            self.on_watch_lock_error_max_changed,
-            process_value=lambda x: x / 100,
-            control=self.control,
-        )
-        param2ui(
-            self.parameters.watch_lock_error_max,
-            self.watchLockErrorMaxSpinBox,
-            lambda x: 100 * x,
-        )
-        # Monitor signal stuff:
-        ui2param(
-            self.plotMonitorThresholdCheckBox,
-            self.on_monitor_thresholds_changed,
-        )
-        param2ui(
-            self.settings.show_monitor_threshold,
-            self.plotMonitorThresholdCheckBox,
-        )
-        ui2param(
-            self.watchLockMonitorMinSpinBox,
-            self.parameters.watch_lock_monitor_min,
-            process_value=lambda x: x / 100,
-            control=self.control,
-        )
-        param2ui(
-            self.parameters.watch_lock_monitor_min,
-            self.watchLockControlMinSpinBox,
-            lambda x: 100 * x,
-        )
-        ui2param(
-            self.watchLockMonitorMaxSpinBox,
-            self.parameters.watch_lock_monitor_max,
-            process_value=lambda x: x / 100,
-            control=self.control,
-        )
-        param2ui(
-            self.parameters.watch_lock_monitor_max,
-            self.watchLockMonitorMaxSpinBox,
-            lambda x: 100 * x,
-        )
 
-        # Connect changed parameter settings to plot widget:
-        # Control thresholds:
-        for param in (
-            self.settings.show_control_threshold,
-            self.parameters.watch_lock_control_min,
-            self.parameters.watch_lock_control_max,
-        ):
-            param.add_callback(self.on_control_thresholds_changed)
-        self.control_signal_thresholds.connect(
-            self.app.main_window.graphicsView.show_control_thresholds
-        )
+        for channel in ("control", "error", "monitor"):
+            ui2param(
+                getattr(self, f"plot{channel.capitalize()}ThresholdCheckBox"),
+                getattr(self.settings, f"show_{channel}_threshold"),
+            )
+            param2ui(
+                getattr(self.settings, f"show_{channel}_threshold"),
+                getattr(self, f"plot{channel.capitalize()}ThresholdCheckBox"),
+            )
+            ui2param(
+                getattr(self, f"watchLock{channel.capitalize()}MinSpinBox"),
+                getattr(self.parameters, f"watch_lock_{channel}_min"),
+                process_value=lambda x: x / 100,
+                control=self.control,
+            )
+            param2ui(
+                getattr(self.parameters, f"watch_lock_{channel}_min"),
+                getattr(self, f"watchLock{channel.capitalize()}MinSpinBox"),
+                process_value=lambda x: 100 * x,
+            )
+            ui2param(
+                getattr(self, f"watchLock{channel.capitalize()}MaxSpinBox"),
+                getattr(self.parameters, f"watch_lock_{channel}_max"),
+                process_value=lambda x: x / 100,
+                control=self.control,
+            )
+            param2ui(
+                getattr(self.parameters, f"watch_lock_{channel}_max"),
+                getattr(self, f"watchLock{channel.capitalize()}MaxSpinBox"),
+                process_value=lambda x: 100 * x,
+            )
+            # Connect changed parameters/settings to callback callback functions
+            for param in (
+                getattr(self.settings, f"show_{channel}_threshold"),
+                getattr(self.parameters, f"watch_lock_{channel}_min"),
+                getattr(self.parameters, f"watch_lock_{channel}_max"),
+            ):
+                param.add_callback(getattr(self, f"on_{channel}_thresholds_changed"))
 
-        # Error thresholds:
-        for param in (
-            self.settings.show_error_threshold,
-            self.parameters.watch_lock_error_min,
-            self.parameters.watch_lock_error_max,
-        ):
-            param.add_callback(self.on_error_thresholds_changed)
-        self.error_signal_thresholds.connect(
-            self.app.main_window.graphicsView.show_error_thresholds
-        )
+            # connect plot widget to threshold signals
+            signal = getattr(self, f"{channel}_thresholds_signal")
+            slot = getattr(
+                self.app.main_window.graphicsView, f"show_{channel}_thresholds"
+            )
+            signal.connect(slot)
 
-        # Monitor thresholds:
-        for param in (
-            self.settings.show_monitor_threshold,
-            self.parameters.watch_lock_monitor_min,
-            self.parameters.watch_lock_monitor_max,
-        ):
-            param.add_callback(self.on_monitor_thresholds_changed)
-            print("added callback")
-        self.monitor_signal_thresholds.connect(
-            self.app.main_window.graphicsView.show_monitor_thresholds
-        )
-
-    def disable_relocking_checkbox(self, watch_lock_enabled: bool) -> None:
+    def on_watch_lock_changed(self, watch_lock_enabled: bool) -> None:
         """Disable relocking checkbox if watch lock is not enabled."""
         self.automaticRelockingCheckbox.setEnabled(watch_lock_enabled)
 
-    def on_control_thresholds_changed(self) -> None:
-        print("control thresholds changed")
-        self.control_signal_thresholds.emit(
-            self.settings.show_control_threshold,
+    def on_control_thresholds_changed(self, _) -> None:
+        logger.debug("Emitting control_thresholds_signal")
+        self.control_thresholds_signal.emit(
+            self.settings.show_control_threshold.value,
             self.parameters.watch_lock_control_min.value,
             self.parameters.watch_lock_control_max.value,
         )
 
-    def on_error_thresholds_changed(self) -> None:
-        self.control_signal_thresholds.emit(
-            self.settings.show_error_threshold,
+    def on_error_thresholds_changed(self, _) -> None:
+        logger.debug("Emitting error_thresholds_signal")
+        self.control_thresholds_signal.emit(
+            self.settings.show_error_threshold.value,
             self.parameters.watch_lock_error_min.value,
             self.parameters.watch_lock_error_max.value,
         )
 
-    def on_monitor_thresholds_changed(self) -> None:
-        self.monitor_signal_thresholds.emit(
-            self.settings.show_monitor_threshold,
+    def on_monitor_thresholds_changed(self, _) -> None:
+        logger.debug("Emitting monitor_thresholds_signal")
+        self.monitor_thresholds_signal.emit(
+            self.settings.show_monitor_threshold.value,
             self.parameters.watch_lock_monitor_min.value,
             self.parameters.watch_lock_monitor_max.value,
         )
