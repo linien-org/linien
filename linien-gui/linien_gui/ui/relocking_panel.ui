@@ -27,7 +27,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QCheckBox" name="lossOfLockDetectionCheckBox">
+    <widget class="QCheckBox" name="watchLockCheckBox">
      <property name="text">
       <string>Enable loss of lock detection</string>
      </property>
@@ -63,7 +63,7 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
-       <widget class="QCheckBox" name="lossOfLockDetectionOnControlChannelCheckBox">
+       <widget class="QCheckBox" name="watchLockOnControlChannelCheckBox">
         <property name="text">
          <string>Assume loss of lock if control signal is not within</string>
         </property>
@@ -72,7 +72,7 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
-         <widget class="CustomDoubleSpinBoxNoSign" name="lossOfLockDetectionOnControlChannelMinSpinBox">
+         <widget class="CustomDoubleSpinBoxNoSign" name="watchLockOnControlChannelMinSpinBox">
           <property name="suffix">
            <string> %</string>
           </property>
@@ -101,7 +101,7 @@
          </widget>
         </item>
         <item>
-         <widget class="CustomDoubleSpinBoxNoSign" name="lossOfLockDetectionOnControlChannelMaxSpinBox">
+         <widget class="CustomDoubleSpinBoxNoSign" name="watchLockOnControlChannelMaxSpinBox">
           <property name="suffix">
            <string> %</string>
           </property>
@@ -154,7 +154,7 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
-       <widget class="QCheckBox" name="lossOfLockDetectionOnErrorChannelCheckBox">
+       <widget class="QCheckBox" name="watchLockOnErrorChannelCheckBox">
         <property name="text">
          <string>Assume loss of lock if error signal is not within</string>
         </property>
@@ -163,7 +163,7 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
-         <widget class="CustomDoubleSpinBoxNoSign" name="lossOfLockDetectionOnErrorChannelMinSpinBox">
+         <widget class="CustomDoubleSpinBoxNoSign" name="watchLockErrorChannelMinSpinBox">
           <property name="suffix">
            <string> %</string>
           </property>
@@ -192,7 +192,7 @@
          </widget>
         </item>
         <item>
-         <widget class="CustomDoubleSpinBoxNoSign" name="lossOfLockDetectionOnErrorChannelMaxSpinBox">
+         <widget class="CustomDoubleSpinBoxNoSign" name="watchLockOnErrorChannelMaxSpinBox">
           <property name="suffix">
            <string> %</string>
           </property>
@@ -239,7 +239,7 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_4">
       <item>
-       <widget class="QCheckBox" name="lossOfLockDetectionOnMonitorChannelCheckBox">
+       <widget class="QCheckBox" name="watchLockOnMonitorChannelCheckBox">
         <property name="text">
          <string>Assume loss of lock if monitor signal is not within</string>
         </property>
@@ -248,7 +248,7 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_3">
         <item>
-         <widget class="CustomDoubleSpinBoxNoSign" name="lossOfLockDetectionOnMonitorChannelMinSpinBox">
+         <widget class="CustomDoubleSpinBoxNoSign" name="watchLockOnMonitorChannelMinSpinBox">
           <property name="suffix">
            <string> %</string>
           </property>
@@ -277,7 +277,7 @@
          </widget>
         </item>
         <item>
-         <widget class="CustomDoubleSpinBoxNoSign" name="lossOfLockDetectionOnMonitorChannelMaxSpinBox">
+         <widget class="CustomDoubleSpinBoxNoSign" name="watchLockOnMonitorChannelMaxSpinBox">
           <property name="suffix">
            <string> %</string>
           </property>

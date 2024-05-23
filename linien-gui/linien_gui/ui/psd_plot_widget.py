@@ -18,7 +18,7 @@
 
 import numpy as np
 import pyqtgraph as pg
-from linien_gui.ui.plot_widget import V
+from linien_gui.ui.plot_widget import VOLTS_TO_COUNTS_FACTOR
 from linien_gui.utils import get_linien_app_instance
 
 
@@ -142,7 +142,7 @@ class PSDPlotWidget(pg.PlotWidget):
             highest_plotted_frequency = f[-1]
             highest_plotted_frequency_psd = psd[-1]
 
-            curve.setData(np.log10(f), np.log10(psd / V))
+            curve.setData(np.log10(f), np.log10(psd / VOLTS_TO_COUNTS_FACTOR))
             r, g, b = color
             curve.setPen(pg.mkPen((r, g, b, 200)))
 

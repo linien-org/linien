@@ -17,9 +17,10 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-from typing import TYPE_CHECKING, Any, Callable, Tuple
+from typing import TYPE_CHECKING, Any, Callable, Optional, Tuple, Union
 
 from linien_client.remote_parameters import RemoteParameter
+from linien_common.communication import LinienControlService
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import (
     QCheckBox,
@@ -31,6 +32,8 @@ from PyQt5.QtWidgets import (
     QTabWidget,
 )
 from pyqtgraph.Qt import QtGui
+
+from .config import Setting
 
 if TYPE_CHECKING:
     from linien_gui.app import LinienApp
@@ -46,7 +49,7 @@ def param2ui(
     process_value: Callable[[Any], Any] = lambda x: x,
 ) -> None:
     """
-    Updates ui elements according to parameter values.
+    Updates UI elements according to parameter or setting values.
 
     Listens to parameter changes and sets the value of `element` automatically.
     Optionally, the value can be processed using `process_value`. This function should
@@ -72,6 +75,42 @@ def param2ui(
         element.blockSignals(False)
 
     parameter.add_callback(on_change)
+
+
+def ui2param(
+    element: QtWidgets.QWidget,
+    parameter: Union[RemoteParameter, Setting],
+    process_value: Callable[[Any], Any] = lambda x: x,
+    control: Optional[LinienControlService] = None,
+) -> None:
+    """Update parameter or setting values from an UI element."""
+
+    def on_change(
+        *args,
+        element=element,
+        parameter=parameter,
+        process_value=process_value,
+        control=control,
+    ):
+        if isinstance(element, (QSlider, QSpinBox, QDoubleSpinBox)):
+            value = element.value()
+        elif isinstance(element, (QCheckBox, QRadioButton)):
+            value = element.checkState() > 0
+        elif isinstance(element, (QTabWidget, QComboBox)):
+            value = int(element.currentIndex())
+        else:
+            raise TypeError(f"Unsupported element type {type(element)}")
+
+        parameter.value = process_value(value)
+        if control is not None:
+            control.write_registers()
+
+    if isinstance(element, (QSlider, QSpinBox, QDoubleSpinBox)):
+        element.valueChanged.connect(on_change)
+    elif isinstance(element, (QCheckBox, QRadioButton)):
+        element.stateChanged.connect(on_change)
+    elif isinstance(element, (QTabWidget, QComboBox)):
+        element.currentIndexChanged.connect(on_change)
 
 
 def set_window_icon(window: QtWidgets.QMainWindow) -> None:
