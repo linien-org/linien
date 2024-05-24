@@ -23,8 +23,8 @@ Features
     automatically lock to it. This algorithm is built to be noise and jitter tolerant.
 -   **IQ demodulation**: Optimize demodulation phase in an instant
 -   **Noise analysis**: Record power spectral density (PSD) of the error signal for analyzing noise of the locked laser and for optimizing PID parameters
--   **Lock detection**: Linien is capable of detecting loss of lock (temporarily disabled, use [v0.3.2](https://github.com/linien-org/linien/releases/tag/v0.3.2) if you rely in this feature
--   **Automatic relocking**: if lock is lost, it relocks autonomously (temporarily disabled, use [v0.3.2](https://github.com/linien-org/linien/releases/tag/v0.3.2) if you rely in this feature)
+-   **Lock detection**: Linien is capable of detecting loss of lock
+-   **Automatic relocking**: if lock is lost, it relocks autonomously
 -   **Machine learning** is used to tune the spectroscopy parameters in order to optimize the signal
 -   **Remote-controllable**: the client libraries can be used to control or monitor the spectroscopy lock with Python.
 -   **Combined FMS+MTS**: Linien supports dual-channel spectroscopy that can be
