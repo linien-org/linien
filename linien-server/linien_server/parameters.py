@@ -523,10 +523,10 @@ class Parameters:
         integrator. Maximum value is 8191.
         """
 
-        # ------------------- LOSS OF LOCK AND RELOCKING -------------------------------
+        # ------------------- QATCH LOCK AND RELOCKING ---------------------------------
 
         self.lock_lost = Parameter(start=False, loggable=True)
-        """Set to True if loss of lock detection is enabled and lock is lost."""
+        """Set to True if `watch_lock` is enabled and lock is lost."""
 
         self.watch_lock = Parameter(start=False, restorable=True, loggable=True)
         """Watch the lock state and set `lock_lost` to True if lock is lost."""
@@ -537,32 +537,32 @@ class Parameters:
         self.watch_lock_control_min = Parameter(
             start=0.05, restorable=True, loggable=True
         )
-        """Lower bound for control signal below which loss of lock is triggered."""
+        """Lower bound for control signal below which `lock_lost` is triggered."""
 
         self.watch_lock_control_max = Parameter(
             start=0.95, restorable=True, loggable=True
         )
-        """Upper bound for control signal below which loss of lock is triggered."""
+        """Upper bound for control signal above which `lock_lost` is triggered."""
 
         self.watch_lock_error_min = Parameter(
             start=0.05, restorable=True, loggable=True
         )
-        """Lower bound for error signal below which loss of lock is triggered."""
+        """Lower bound for error signal below which `lock_lost` is triggered."""
 
         self.watch_lock_error_max = Parameter(
             start=0.95, restorable=True, loggable=True
         )
-        """Upper bound for error signal below which loss of lock is triggered."""
+        """Upper bound for error signal above which `lock_lost` is triggered."""
 
         self.watch_lock_monitor_min = Parameter(
             start=0.05, restorable=True, loggable=True
         )
-        """Lower bound for monitor signal below which loss of lock is triggered."""
+        """Lower bound for monitor signal below which `lock_lost` is triggered."""
 
         self.watch_lock_monitor_max = Parameter(
             start=0.95, restorable=True, loggable=True
         )
-        """Upper bound for monitor signal below which loss of lock is triggered."""
+        """Upper bound for monitor signal above which `lock_lost` is triggered."""
 
         # ------------------- AUTOLOCK PARAMETERS --------------------------------------
         # These parameters are used internally by the optimization algorithm and usually

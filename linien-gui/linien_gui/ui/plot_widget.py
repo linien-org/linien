@@ -188,13 +188,27 @@ class PlotWidget(pg.PlotWidget):
         self.combined_signal.setData([0, N_POINTS - 1], [1, 1])
 
         # these lines are used for configuration of the relocking system
-        threshold_pen = pg.mkPen("m", width=2)
-        self.control_signal_threshold_min = pg.InfiniteLine(pen=threshold_pen, angle=90)
-        self.control_signal_threshold_max = pg.InfiniteLine(pen=threshold_pen, angle=90)
-        self.error_signal_threshold_min = pg.InfiniteLine(pen=threshold_pen, angle=0)
-        self.error_signal_threshold_max = pg.InfiniteLine(pen=threshold_pen, angle=0)
-        self.monitor_signal_threshold_min = pg.InfiniteLine(pen=threshold_pen, angle=0)
-        self.monitor_signal_threshold_max = pg.InfiniteLine(pen=threshold_pen, angle=0)
+        control_threshold_pen = pg.mkPen("m", width=2)
+        error_threshold_pen = pg.mkPen("y", width=2)
+        monitor_threshold_pen = pg.mkPen("y", width=2)
+        self.control_signal_threshold_min = pg.InfiniteLine(
+            pen=control_threshold_pen, angle=90
+        )
+        self.control_signal_threshold_max = pg.InfiniteLine(
+            pen=control_threshold_pen, angle=90
+        )
+        self.error_signal_threshold_min = pg.InfiniteLine(
+            pen=error_threshold_pen, angle=0
+        )
+        self.error_signal_threshold_max = pg.InfiniteLine(
+            pen=error_threshold_pen, angle=0
+        )
+        self.monitor_signal_threshold_min = pg.InfiniteLine(
+            pen=monitor_threshold_pen, angle=0
+        )
+        self.monitor_signal_threshold_max = pg.InfiniteLine(
+            pen=monitor_threshold_pen, angle=0
+        )
 
         for item in (
             self.control_signal_threshold_min,
@@ -205,6 +219,7 @@ class PlotWidget(pg.PlotWidget):
             self.monitor_signal_threshold_max,
         ):
             self.addItem(item)
+            item.setVisible(True)
 
         self.connection = None
         self.parameters = None
@@ -801,28 +816,20 @@ class PlotWidget(pg.PlotWidget):
         self._should_reposition_reset_view_button = True
 
     def show_control_thresholds(self, show: bool, min_: float, max_: float) -> None:
-        logger.debug(f"{show=}, {min_=}, {max_=}")
-        min_ = (2 * min_ - 1) * VOLTS_TO_COUNTS_FACTOR
-        max_ = (2 * max_ - 1) * VOLTS_TO_COUNTS_FACTOR
+        # FIXME: displayed lines are only valid if scan range is full
+        self.control_signal_threshold_min.setValue(min_ * N_POINTS)
+        self.control_signal_threshold_max.setValue(max_ * N_POINTS)
         self.control_signal_threshold_min.setVisible(show)
         self.control_signal_threshold_max.setVisible(show)
-        self.control_signal_threshold_min.setValue(min_)
-        self.control_signal_threshold_max.setValue(max_)
 
     def show_error_thresholds(self, show: bool, min_: float, max_: float) -> None:
-        logger.debug(f"{show=}, {min_=}, {max_=}")
-        min_ = (2 * min_ - 1) * VOLTS_TO_COUNTS_FACTOR
-        max_ = (2 * max_ - 1) * VOLTS_TO_COUNTS_FACTOR
+        self.error_signal_threshold_min.setValue(2 * min_ - 1)
+        self.error_signal_threshold_max.setValue(2 * max_ - 1)
         self.error_signal_threshold_min.setVisible(show)
         self.error_signal_threshold_max.setVisible(show)
-        self.error_signal_threshold_min.setValue(min_)
-        self.error_signal_threshold_max.setValue(max_)
 
     def show_monitor_thresholds(self, show: bool, min_: float, max_: float) -> None:
-        min_ = (2 * min_ - 1) * VOLTS_TO_COUNTS_FACTOR
-        max_ = (2 * max_ - 1) * VOLTS_TO_COUNTS_FACTOR
-        logger.debug(f"{show=}, {min_=}, {max_=}")
+        self.monitor_signal_threshold_min.setValue(2 * min_ - 1)
+        self.monitor_signal_threshold_max.setValue(2 * max_ - 1)
         self.monitor_signal_threshold_min.setVisible(show)
         self.monitor_signal_threshold_max.setVisible(show)
-        self.monitor_signal_threshold_min.setValue(min_)
-        self.monitor_signal_threshold_max.setValue(max_)

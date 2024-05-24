@@ -29,14 +29,14 @@
    <item>
     <widget class="QCheckBox" name="watchLockCheckBox">
      <property name="text">
-      <string>Enable loss of lock detection</string>
+      <string>Watch lock</string>
      </property>
     </widget>
    </item>
    <item>
     <widget class="QCheckBox" name="automaticRelockingCheckbox">
      <property name="text">
-      <string>Enable automatic relocking upon loss of lock</string>
+      <string>Enable automatic relocking</string>
      </property>
     </widget>
    </item>

@@ -54,6 +54,9 @@ class RelockingPanel(QtWidgets.QWidget):
         self.app.connection_established.connect(self.on_connection_established)
 
     def on_connection_established(self) -> None:
+        logger.info(
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        )
         self.parameters = self.app.parameters
         self.settings = self.app.settings
         self.control = self.app.control
@@ -123,7 +126,6 @@ class RelockingPanel(QtWidgets.QWidget):
         self.automaticRelockingCheckbox.setEnabled(watch_lock_enabled)
 
     def on_control_thresholds_changed(self, _) -> None:
-        logger.debug("Emitting control_thresholds_signal")
         self.control_thresholds_signal.emit(
             self.settings.show_control_threshold.value,
             self.parameters.watch_lock_control_min.value,
@@ -131,15 +133,13 @@ class RelockingPanel(QtWidgets.QWidget):
         )
 
     def on_error_thresholds_changed(self, _) -> None:
-        logger.debug("Emitting error_thresholds_signal")
-        self.control_thresholds_signal.emit(
+        self.error_thresholds_signal.emit(
             self.settings.show_error_threshold.value,
             self.parameters.watch_lock_error_min.value,
             self.parameters.watch_lock_error_max.value,
         )
 
     def on_monitor_thresholds_changed(self, _) -> None:
-        logger.debug("Emitting monitor_thresholds_signal")
         self.monitor_thresholds_signal.emit(
             self.settings.show_monitor_threshold.value,
             self.parameters.watch_lock_monitor_min.value,
