@@ -11,14 +11,14 @@
    </rect>
   </property>
   <property name="sizePolicy">
-   <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
     <horstretch>0</horstretch>
     <verstretch>0</verstretch>
    </sizepolicy>
   </property>
   <property name="minimumSize">
    <size>
-    <width>400</width>
+    <width>350</width>
     <height>0</height>
    </size>
   </property>
@@ -41,22 +41,6 @@
     </widget>
    </item>
    <item>
-    <spacer name="verticalSpacer_2">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeType">
-      <enum>QSizePolicy::Fixed</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>10</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
-   <item>
     <widget class="QGroupBox" name="controlSignalGroupBox">
      <property name="title">
       <string>Control Signal</string>
@@ -65,7 +49,7 @@
       <item>
        <widget class="QCheckBox" name="watchLockOnControlCheckBox">
         <property name="text">
-         <string>Assume loss of lock if control signal is not within</string>
+         <string>enable</string>
         </property>
        </widget>
       </item>
@@ -116,27 +100,27 @@
           </property>
          </widget>
         </item>
-        <item>
-         <spacer name="horizontalSpacer_3">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>40</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="plotControlThresholdCheckBox">
-          <property name="text">
-           <string>show threshold</string>
-          </property>
-         </widget>
-        </item>
        </layout>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_2">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="plotControlThresholdCheckBox">
+        <property name="text">
+         <string>show threshold</string>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
@@ -156,7 +140,7 @@
       <item>
        <widget class="QCheckBox" name="watchLockOnErrorCheckBox">
         <property name="text">
-         <string>Assume loss of lock if error signal is not within</string>
+         <string>enable</string>
         </property>
        </widget>
       </item>
@@ -208,7 +192,7 @@
          </widget>
         </item>
         <item>
-         <spacer name="horizontalSpacer_2">
+         <spacer name="horizontalSpacer">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
@@ -220,14 +204,14 @@
           </property>
          </spacer>
         </item>
-        <item>
-         <widget class="QCheckBox" name="plotErrorThresholdCheckBox">
-          <property name="text">
-           <string>show threshold</string>
-          </property>
-         </widget>
-        </item>
        </layout>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="plotErrorThresholdCheckBox">
+        <property name="text">
+         <string>show threshold</string>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
@@ -241,7 +225,7 @@
       <item>
        <widget class="QCheckBox" name="watchLockMonitorCheckBox">
         <property name="text">
-         <string>Assume loss of lock if monitor signal is not within</string>
+         <string>enable</string>
         </property>
        </widget>
       </item>
@@ -292,27 +276,14 @@
           </property>
          </widget>
         </item>
-        <item>
-         <spacer name="horizontalSpacer">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>40</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="plotMonitorThresholdCheckBox">
-          <property name="text">
-           <string>show threshold</string>
-          </property>
-         </widget>
-        </item>
        </layout>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="plotMonitorThresholdCheckBox">
+        <property name="text">
+         <string>show threshold</string>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>

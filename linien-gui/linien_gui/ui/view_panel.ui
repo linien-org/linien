@@ -10,6 +10,12 @@
     <height>672</height>
    </rect>
   </property>
+  <property name="minimumSize">
+   <size>
+    <width>350</width>
+    <height>0</height>
+   </size>
+  </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
@@ -340,13 +346,13 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>CustomSpinBox</class>
-   <extends>QSpinBox</extends>
+   <class>CustomDoubleSpinBoxNoSign</class>
+   <extends>QDoubleSpinBox</extends>
    <header location="global">spin_box.h</header>
   </customwidget>
   <customwidget>
-   <class>CustomDoubleSpinBoxNoSign</class>
-   <extends>QDoubleSpinBox</extends>
+   <class>CustomSpinBox</class>
+   <extends>QSpinBox</extends>
    <header location="global">spin_box.h</header>
   </customwidget>
  </customwidgets>
