@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1280</width>
-    <height>800</height>
+    <height>720</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -1055,7 +1055,7 @@ p, li { white-space: pre-wrap; }
             <x>0</x>
             <y>0</y>
             <width>438</width>
-            <height>466</height>
+            <height>386</height>
            </rect>
           </property>
           <attribute name="label">
