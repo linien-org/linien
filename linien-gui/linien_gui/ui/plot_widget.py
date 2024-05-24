@@ -73,15 +73,15 @@ class TimeXAxis(pg.AxisItem):
         QtCore.QTimer.singleShot(100, self.listen_to_parameter_changes)
 
     def listen_to_parameter_changes(self):
-        self.parent.parameters.sweep_speed.add_callback(self.force_repaint_tick_strings)
-        self.parent.parameters.lock.add_callback(self.force_repaint_tick_strings)
-        self.force_repaint_tick_strings()
+        self.parent.parameters.sweep_speed.add_callback(self.repaint_tick_strings)
+        self.parent.parameters.lock.add_callback(self.repaint_tick_strings)
+        self.repaint_tick_strings()
 
-    def force_repaint_tick_strings(self, *args):
+    def repaint_tick_strings(self, *args):
         self.picture = None
         self.update()
 
-    def tickStrings(self, values, scale, spacing):
+    def tickStrings(self, values, scale, spacing) -> list[str]:
         locked = self.parent.parameters.lock.value
         sweep_speed = self.parent.parameters.sweep_speed.value if not locked else 0
         time_between_points = (1 / 125e6) * 2 ** (sweep_speed) * DECIMATION
@@ -93,9 +93,9 @@ class TimeXAxis(pg.AxisItem):
         for v in values:
             vs = v * scale
             if abs(vs) < 0.001 or abs(vs) >= 10000:
-                vstr = "%g" % vs
+                vstr = f"{vs:g}"
             else:
-                vstr = ("%%0.%df" % places) % vs
+                vstr = f"{vs:.{places}f}"
             strings.append(vstr)
         return strings
 
