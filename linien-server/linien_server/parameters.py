@@ -297,12 +297,12 @@ class Parameters:
         """
 
         self.sweep_speed = Parameter(
-            min_=0, max_=32, start=8, restorable=True, loggable=True
+            min_=0, max_=15, start=8, restorable=True, loggable=True
         )
         """
         The sweep speed in internal units. The actual speed is given by
         f_real = 3.8 kHz / (2 ** sweep_speed)
-        Allowed values are [0, ..., 16]
+        Allowed values are [0, ..., 15]
         """
 
         self.sweep_pause = Parameter(start=False, loggable=True)
