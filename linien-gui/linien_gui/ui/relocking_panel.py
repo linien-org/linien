@@ -54,9 +54,6 @@ class RelockingPanel(QtWidgets.QWidget):
         self.app.connection_established.connect(self.on_connection_established)
 
     def on_connection_established(self) -> None:
-        logger.info(
-            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-        )
         self.parameters = self.app.parameters
         self.settings = self.app.settings
         self.control = self.app.control
