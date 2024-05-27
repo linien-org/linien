@@ -77,31 +77,31 @@ class TimeXAxis(pg.AxisItem):
         QtCore.QTimer.singleShot(100, self.listen_to_parameter_changes)
 
     def listen_to_parameter_changes(self):
-        self.parent.parameters.sweep_speed.add_callback(self.force_repaint_tick_strings)
-        self.parent.parameters.lock.add_callback(self.force_repaint_tick_strings)
-        self.force_repaint_tick_strings()
+        self.parent.parameters.sweep_center.add_callback(self.repaint_tick_strings)
+        self.parent.parameters.sweep_amplitude.add_callback(self.repaint_tick_strings)
+        self.parent.parameters.lock.add_callback(self.repaint_tick_strings)
+        self.repaint_tick_strings()
 
-    def force_repaint_tick_strings(self, *args):
+    def repaint_tick_strings(self, *args):
         self.picture = None
         self.update()
 
-    def tickStrings(self, values, scale, spacing):
-        locked = self.parent.parameters.lock.value
-        sweep_speed = self.parent.parameters.sweep_speed.value if not locked else 0
-        time_between_points = (1 / 125e6) * 2 ** (sweep_speed) * DECIMATION
-        values = [v * time_between_points for v in values]
-        spacing *= time_between_points
-
-        places = max(0, np.ceil(-np.log10(spacing * scale)))
-        strings = []
-        for v in values:
-            vs = v * scale
-            if abs(vs) < 0.001 or abs(vs) >= 10000:
-                vstr = "%g" % vs
-            else:
-                vstr = ("%%0.%df" % places) % vs
-            strings.append(vstr)
-        return strings
+    def tickStrings(self, values, scale, spacing) -> list[str]:
+        if self.parent.parameters.lock.value:
+            # use µs for the x axis
+            spacing = DECIMATION / 125e6
+            values = [1e6 * scale * v * spacing for v in values]
+            precision_specifier = 1
+        else:
+            # use voltage for the x axis
+            center = self.parent.parameters.sweep_center.value
+            amplitude = self.parent.parameters.sweep_amplitude.value
+            min_ = center - amplitude
+            max_ = center + amplitude
+            spacing = abs(max_ - min_) / (N_POINTS - 1)
+            values = [scale * (v * spacing + min_) for v in values]
+            precision_specifier = 2
+        return [f"{v:.{precision_specifier}f}" for v in values]
 
 
 class PlotWidget(pg.PlotWidget):
@@ -120,7 +120,6 @@ class PlotWidget(pg.PlotWidget):
 
         self.getAxis("bottom").enableAutoSIPrefix(False)
         self.showGrid(x=True, y=True)
-        self.setLabel("bottom", "time", units="s")
 
         # Causes auto-scale button (‘A’ in lower-left corner) to be hidden for this
         # PlotItem
@@ -144,7 +143,6 @@ class PlotWidget(pg.PlotWidget):
         # OpenGL is enabled in the beginning of this file.
         # NOTE: OpenGL has a bug that causes the plot to be way too small. Therefore,
         # self.resize() is called below.
-
         self.crosshair = pg.InfiniteLine(pos=N_POINTS / 2, pen=pg.mkPen("w", width=1))
         self.addItem(self.crosshair)
 
@@ -248,7 +246,7 @@ class PlotWidget(pg.PlotWidget):
         self.parameters = self.app.parameters
         self.control = self.app.control
 
-        def set_pens(*args):
+        def on_plot_settings_changed(*args):
             pen_width = self.app.settings.plot_line_width.value
 
             for curve, color in {
@@ -267,16 +265,18 @@ class PlotWidget(pg.PlotWidget):
                 curve.setPen(pg.mkPen((r, g, b, a), width=pen_width))
 
         for color_idx in range(N_COLORS):
-            getattr(self.app.settings, f"plot_color_{color_idx}").add_callback(set_pens)
-        self.app.settings.plot_line_width.add_callback(set_pens)
-        self.app.settings.plot_line_opacity.add_callback(set_pens)
+            getattr(self.app.settings, f"plot_color_{color_idx}").add_callback(
+                on_plot_settings_changed
+            )
+        self.app.settings.plot_line_width.add_callback(on_plot_settings_changed)
+        self.app.settings.plot_line_opacity.add_callback(on_plot_settings_changed)
 
         self.control_signal_history_data = self.parameters.control_signal_history.value
         self.monitor_signal_history_data = self.parameters.monitor_signal_history.value
 
         self.parameters.to_plot.add_callback(self.replot)
 
-        def autolock_selection_changed(value):
+        def on_autolock_selection_changed(value):
             if value:
                 self.parameters.optimization_selection.value = False
                 self.enable_area_selection(selectable_width=0.99)
@@ -285,9 +285,9 @@ class PlotWidget(pg.PlotWidget):
                 self.disable_area_selection()
                 self.resume_plot_and_clear_cache()
 
-        self.parameters.autolock_selection.add_callback(autolock_selection_changed)
+        self.parameters.autolock_selection.add_callback(on_autolock_selection_changed)
 
-        def optimization_selection_changed(value):
+        def on_optimization_selection_changed(value):
             if value:
                 self.parameters.autolock_selection.value = False
                 self.enable_area_selection(selectable_width=0.75)
@@ -297,13 +297,21 @@ class PlotWidget(pg.PlotWidget):
                 self.resume_plot_and_clear_cache()
 
         self.parameters.optimization_selection.add_callback(
-            optimization_selection_changed
+            on_optimization_selection_changed
         )
 
-        def show_or_hide_crosshair(automatic_mode):
+        def show_or_hide_crosshair(automatic_mode: bool) -> None:
             self.crosshair.setVisible(not automatic_mode)
 
         self.parameters.automatic_mode.add_callback(show_or_hide_crosshair)
+
+        def set_xaxis_label(lock: bool) -> None:
+            if not lock:
+                self.setLabel("bottom", "sweep voltage", units="V")
+            else:
+                self.setLabel("bottom", "time", units="µs")
+
+        self.parameters.lock.add_callback(set_xaxis_label)
 
     def _to_data_coords(self, event):
         pos = self.plotItem.vb.mapSceneToView(event.pos())
@@ -633,7 +641,7 @@ class PlotWidget(pg.PlotWidget):
         q -= int(round(channel_offset))
         signal_strength = get_signal_strength_from_i_q(i, q)
 
-        r, g, b, *stuff = color
+        r, g, b, *_ = color
 
         x = list(range(len(signal_strength)))
         signal_strength_scaled = signal_strength / VOLTS_TO_COUNTS_FACTOR
@@ -714,14 +722,13 @@ class PlotWidget(pg.PlotWidget):
         )
 
         if self.parameters.lock.value:
-            x_axis_length = N_POINTS
 
             def scale(arr):
                 timescale = self.parameters.control_signal_history_length.value
                 if arr:
                     arr = np.array(arr)
                     arr -= arr[0]
-                    arr *= 1 / timescale * x_axis_length
+                    arr *= 1 / timescale * N_POINTS
                 return arr
 
             history = self.control_signal_history_data["values"]
@@ -752,14 +759,13 @@ class PlotWidget(pg.PlotWidget):
         # there are some glitches if the width of the overlay is exactly right.
         # Therefore we make it a little wider.
         extra_width = N_POINTS / 100
-        x_axis_length = N_POINTS
-        boundary_width = (x_axis_length * (1 - selectable_width)) / 2.0
+        boundary_width = (N_POINTS * (1 - selectable_width)) / 2.0
 
-        self.selection_boundaries = (boundary_width, x_axis_length - boundary_width)
+        self.selection_boundaries = (boundary_width, N_POINTS - boundary_width)
 
         self.boundary_overlays[0].setRegion((-extra_width, boundary_width))
         self.boundary_overlays[1].setRegion(
-            (x_axis_length - boundary_width, x_axis_length + extra_width)
+            (N_POINTS - boundary_width, N_POINTS + extra_width)
         )
 
         for overlay in self.boundary_overlays:
@@ -772,9 +778,10 @@ class PlotWidget(pg.PlotWidget):
             overlay.setVisible(False)
 
     def pause_plot_and_cache_data(self):
-        """This function pauses plot updates. All incoming data is cached though.
-        This is useful for letting the user select a line that is then used in
-        the autolock."""
+        """
+        This function pauses plot updates. All incoming data is cached though. This is
+        useful for letting the user select a line that is then used in the autolock.
+        """
         self._plot_paused = True
 
     def resume_plot_and_clear_cache(self):

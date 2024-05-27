@@ -9,8 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 * Handle corrupted json files by @bleykauf in https://github.com/linien-org/linien/pull/399
-* Show differences when local and remote paramters do not match by @bleykauf in https://github.com/linien-org/linien/pull/400
-* Add loss-of-lock detection and automatic relocking by @bleykauf in https://github.com/linien-org/linien/pull/403
+* Show differences when local and remote parameters do not match by @bleykauf in https://github.com/linien-org/linien/pull/400
+* Show voltage on the x-axis when sweeping by @bleykauf in https://github.com/linien-org/linien/pull/404
 
 ## [2.0.2] - 2024-05-14
 
