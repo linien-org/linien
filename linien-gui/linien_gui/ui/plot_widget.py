@@ -114,7 +114,6 @@ class PlotWidget(pg.PlotWidget):
 
         self.getAxis("bottom").enableAutoSIPrefix(False)
         self.showGrid(x=True, y=True)
-        self.setLabel("bottom", "time", units="s")
 
         # Causes auto-scale button (‘A’ in lower-left corner) to be hidden for this
         # PlotItem
@@ -207,7 +206,7 @@ class PlotWidget(pg.PlotWidget):
         self.parameters = self.app.parameters
         self.control = self.app.control
 
-        def set_pens(*args):
+        def on_plot_settings_changed(*args):
             pen_width = self.app.settings.plot_line_width.value
 
             for curve, color in {
@@ -226,16 +225,18 @@ class PlotWidget(pg.PlotWidget):
                 curve.setPen(pg.mkPen((r, g, b, a), width=pen_width))
 
         for color_idx in range(N_COLORS):
-            getattr(self.app.settings, f"plot_color_{color_idx}").add_callback(set_pens)
-        self.app.settings.plot_line_width.add_callback(set_pens)
-        self.app.settings.plot_line_opacity.add_callback(set_pens)
+            getattr(self.app.settings, f"plot_color_{color_idx}").add_callback(
+                on_plot_settings_changed
+            )
+        self.app.settings.plot_line_width.add_callback(on_plot_settings_changed)
+        self.app.settings.plot_line_opacity.add_callback(on_plot_settings_changed)
 
         self.control_signal_history_data = self.parameters.control_signal_history.value
         self.monitor_signal_history_data = self.parameters.monitor_signal_history.value
 
         self.parameters.to_plot.add_callback(self.replot)
 
-        def autolock_selection_changed(value):
+        def on_autolock_selection_changed(value):
             if value:
                 self.parameters.optimization_selection.value = False
                 self.enable_area_selection(selectable_width=0.99)
@@ -244,9 +245,9 @@ class PlotWidget(pg.PlotWidget):
                 self.disable_area_selection()
                 self.resume_plot_and_clear_cache()
 
-        self.parameters.autolock_selection.add_callback(autolock_selection_changed)
+        self.parameters.autolock_selection.add_callback(on_autolock_selection_changed)
 
-        def optimization_selection_changed(value):
+        def on_optimization_selection_changed(value):
             if value:
                 self.parameters.autolock_selection.value = False
                 self.enable_area_selection(selectable_width=0.75)
@@ -256,13 +257,21 @@ class PlotWidget(pg.PlotWidget):
                 self.resume_plot_and_clear_cache()
 
         self.parameters.optimization_selection.add_callback(
-            optimization_selection_changed
+            on_optimization_selection_changed
         )
 
-        def show_or_hide_crosshair(automatic_mode):
+        def show_or_hide_crosshair(automatic_mode: bool) -> None:
             self.crosshair.setVisible(not automatic_mode)
 
         self.parameters.automatic_mode.add_callback(show_or_hide_crosshair)
+
+        def set_xaxis_label(lock: bool) -> None:
+            if not lock:
+                self.setLabel("bottom", "sweep voltage", units="V")
+            else:
+                self.setLabel("bottom", "time", units="s")
+
+        self.parameters.lock.add_callback(set_xaxis_label)
 
     def _to_data_coords(self, event):
         pos = self.plotItem.vb.mapSceneToView(event.pos())
