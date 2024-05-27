@@ -535,32 +535,30 @@ class Parameters:
         """Attempt relocking if lock is lost."""
 
         self.watch_lock_control_min = Parameter(
-            start=0.05, restorable=True, loggable=True
+            start=-0.9, restorable=True, loggable=True
         )
         """Lower bound for control signal below which `lock_lost` is triggered."""
 
         self.watch_lock_control_max = Parameter(
-            start=0.95, restorable=True, loggable=True
+            start=0.9, restorable=True, loggable=True
         )
         """Upper bound for control signal above which `lock_lost` is triggered."""
 
         self.watch_lock_error_min = Parameter(
-            start=0.05, restorable=True, loggable=True
+            start=-0.9, restorable=True, loggable=True
         )
         """Lower bound for error signal below which `lock_lost` is triggered."""
 
-        self.watch_lock_error_max = Parameter(
-            start=0.95, restorable=True, loggable=True
-        )
+        self.watch_lock_error_max = Parameter(start=0.9, restorable=True, loggable=True)
         """Upper bound for error signal above which `lock_lost` is triggered."""
 
         self.watch_lock_monitor_min = Parameter(
-            start=0.05, restorable=True, loggable=True
+            start=-0.9, restorable=True, loggable=True
         )
         """Lower bound for monitor signal below which `lock_lost` is triggered."""
 
         self.watch_lock_monitor_max = Parameter(
-            start=0.95, restorable=True, loggable=True
+            start=0.9, restorable=True, loggable=True
         )
         """Upper bound for monitor signal above which `lock_lost` is triggered."""
 

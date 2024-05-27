@@ -56,18 +56,21 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
-         <widget class="CustomDoubleSpinBoxNoSign" name="watchLockControlMinSpinBox">
+         <widget class="CustomDoubleSpinBox" name="watchLockControlMinSpinBox">
           <property name="suffix">
-           <string> %</string>
+           <string> V</string>
           </property>
           <property name="decimals">
-           <number>1</number>
+           <number>2</number>
+          </property>
+          <property name="minimum">
+           <double>-1.000000000000000</double>
           </property>
           <property name="maximum">
-           <double>100.000000000000000</double>
+           <double>1.000000000000000</double>
           </property>
           <property name="value">
-           <double>5.000000000000000</double>
+           <double>-0.900000000000000</double>
           </property>
          </widget>
         </item>
@@ -85,20 +88,36 @@
          </widget>
         </item>
         <item>
-         <widget class="CustomDoubleSpinBoxNoSign" name="watchLockControlMaxSpinBox">
+         <widget class="CustomDoubleSpinBox" name="watchLockControlMaxSpinBox">
           <property name="suffix">
-           <string> %</string>
+           <string> V</string>
           </property>
           <property name="decimals">
-           <number>1</number>
+           <number>2</number>
+          </property>
+          <property name="minimum">
+           <double>-1.000000000000000</double>
           </property>
           <property name="maximum">
-           <double>100.000000000000000</double>
+           <double>1.000000000000000</double>
           </property>
           <property name="value">
-           <double>95.000000000000000</double>
+           <double>0.900000000000000</double>
           </property>
          </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer_4">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
         </item>
        </layout>
       </item>
@@ -147,18 +166,21 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
-         <widget class="CustomDoubleSpinBoxNoSign" name="watchLockErrorMinSpinBox">
+         <widget class="CustomDoubleSpinBox" name="watchLockErrorMinSpinBox">
           <property name="suffix">
-           <string> %</string>
+           <string> V</string>
           </property>
           <property name="decimals">
-           <number>1</number>
+           <number>2</number>
+          </property>
+          <property name="minimum">
+           <double>-1.000000000000000</double>
           </property>
           <property name="maximum">
-           <double>100.000000000000000</double>
+           <double>1.000000000000000</double>
           </property>
           <property name="value">
-           <double>5.000000000000000</double>
+           <double>-0.900000000000000</double>
           </property>
          </widget>
         </item>
@@ -176,18 +198,21 @@
          </widget>
         </item>
         <item>
-         <widget class="CustomDoubleSpinBoxNoSign" name="watchLockErrorMaxSpinBox">
+         <widget class="CustomDoubleSpinBox" name="watchLockErrorMaxSpinBox">
           <property name="suffix">
-           <string> %</string>
+           <string> V</string>
           </property>
           <property name="decimals">
-           <number>1</number>
+           <number>2</number>
+          </property>
+          <property name="minimum">
+           <double>-1.000000000000000</double>
           </property>
           <property name="maximum">
-           <double>100.000000000000000</double>
+           <double>1.000000000000000</double>
           </property>
           <property name="value">
-           <double>95.000000000000000</double>
+           <double>0.900000000000000</double>
           </property>
          </widget>
         </item>
@@ -232,18 +257,21 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_3">
         <item>
-         <widget class="CustomDoubleSpinBoxNoSign" name="watchLockMonitorMinSpinBox">
+         <widget class="CustomDoubleSpinBox" name="watchLockMonitorMinSpinBox">
           <property name="suffix">
-           <string> %</string>
+           <string> V</string>
           </property>
           <property name="decimals">
-           <number>1</number>
+           <number>2</number>
+          </property>
+          <property name="minimum">
+           <double>-1.000000000000000</double>
           </property>
           <property name="maximum">
-           <double>100.000000000000000</double>
+           <double>1.000000000000000</double>
           </property>
           <property name="value">
-           <double>5.000000000000000</double>
+           <double>-0.900000000000000</double>
           </property>
          </widget>
         </item>
@@ -261,20 +289,36 @@
          </widget>
         </item>
         <item>
-         <widget class="CustomDoubleSpinBoxNoSign" name="watchLockMonitorMaxSpinBox">
+         <widget class="CustomDoubleSpinBox" name="watchLockMonitorMaxSpinBox">
           <property name="suffix">
-           <string> %</string>
+           <string> V</string>
           </property>
           <property name="decimals">
-           <number>1</number>
+           <number>2</number>
+          </property>
+          <property name="minimum">
+           <double>-1.000000000000000</double>
           </property>
           <property name="maximum">
-           <double>100.000000000000000</double>
+           <double>1.000000000000000</double>
           </property>
           <property name="value">
-           <double>95.000000000000000</double>
+           <double>0.900000000000000</double>
           </property>
          </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer_3">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
         </item>
        </layout>
       </item>
@@ -305,7 +349,7 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>CustomDoubleSpinBoxNoSign</class>
+   <class>CustomDoubleSpinBox</class>
    <extends>QDoubleSpinBox</extends>
    <header location="global">spin_box.h</header>
   </customwidget>

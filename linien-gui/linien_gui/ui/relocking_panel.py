@@ -84,24 +84,20 @@ class RelockingPanel(QtWidgets.QWidget):
             ui2param(
                 getattr(self, f"watchLock{channel.capitalize()}MinSpinBox"),
                 getattr(self.parameters, f"watch_lock_{channel}_min"),
-                process_value=lambda x: x / 100,
                 control=self.control,
             )
             param2ui(
                 getattr(self.parameters, f"watch_lock_{channel}_min"),
                 getattr(self, f"watchLock{channel.capitalize()}MinSpinBox"),
-                process_value=lambda x: 100 * x,
             )
             ui2param(
                 getattr(self, f"watchLock{channel.capitalize()}MaxSpinBox"),
                 getattr(self.parameters, f"watch_lock_{channel}_max"),
-                process_value=lambda x: x / 100,
                 control=self.control,
             )
             param2ui(
                 getattr(self.parameters, f"watch_lock_{channel}_max"),
                 getattr(self, f"watchLock{channel.capitalize()}MaxSpinBox"),
-                process_value=lambda x: 100 * x,
             )
             # Connect changed parameters/settings to callback callback functions
             for param in (
