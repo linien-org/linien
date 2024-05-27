@@ -285,7 +285,7 @@ class Parameters:
         self.sweep_amplitude = Parameter(min_=0.001, max_=1, start=1, loggable=True)
         """
         Amplitude of the sweep in units of 0.5 * Vpp of the output (2 V for fast outputs
-        (range +/- 1 V) and 0.9 V for slow outputs (range 0 V to 1.8 V). That means an
+        (range +/- 1 V) and 0.9 V for slow outputs (range 0 V to 1.8 V)). That means an
         amplitude of 1.0 corresponds to the full sweep range in both cases.
         """
 
