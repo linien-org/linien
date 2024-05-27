@@ -67,8 +67,8 @@ class TimeXAxis(pg.AxisItem):
     """Plots x axis as time in seconds instead of point number."""
 
     def __init__(self, *args, parent=None, **kwargs):
-        pg.AxisItem.__init__(self, *args, **kwargs)
         self.parent = parent
+        pg.AxisItem.__init__(self, *args, **kwargs)
         self.app = get_linien_app_instance()
         self.app.connection_established.connect(self.on_connection_established)
 
@@ -823,9 +823,13 @@ class PlotWidget(pg.PlotWidget):
         self._should_reposition_reset_view_button = True
 
     def show_control_thresholds(self, show: bool, min_: float, max_: float) -> None:
-        # FIXME: displayed lines are only valid if scan range is full
-        self.control_signal_threshold_min.setValue(min_ * N_POINTS)
-        self.control_signal_threshold_max.setValue(max_ * N_POINTS)
+        sweep_center = self.app.parameters.sweep_center.value
+        sweep_amplitude = self.app.parameters.sweep_amplitude.value
+        sweep_min = sweep_center - sweep_amplitude
+        sweep_max = sweep_center + sweep_amplitude
+        spacing = (N_POINTS - 1) / abs(sweep_max - sweep_min)  # pts / V
+        self.control_signal_threshold_min.setValue(spacing * (min_ - sweep_min))
+        self.control_signal_threshold_max.setValue(spacing * (max_ - sweep_min))
         self.control_signal_threshold_min.setVisible(show)
         self.control_signal_threshold_max.setVisible(show)
 
