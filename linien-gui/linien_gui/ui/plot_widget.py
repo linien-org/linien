@@ -73,7 +73,8 @@ class TimeXAxis(pg.AxisItem):
         QtCore.QTimer.singleShot(100, self.listen_to_parameter_changes)
 
     def listen_to_parameter_changes(self):
-        self.parent.parameters.sweep_speed.add_callback(self.repaint_tick_strings)
+        self.parent.parameters.sweep_center.add_callback(self.repaint_tick_strings)
+        self.parent.parameters.sweep_amplitude.add_callback(self.repaint_tick_strings)
         self.parent.parameters.lock.add_callback(self.repaint_tick_strings)
         self.repaint_tick_strings()
 
@@ -82,22 +83,19 @@ class TimeXAxis(pg.AxisItem):
         self.update()
 
     def tickStrings(self, values, scale, spacing) -> list[str]:
-        locked = self.parent.parameters.lock.value
-        sweep_speed = self.parent.parameters.sweep_speed.value if not locked else 0
-        time_between_points = (1 / 125e6) * 2 ** (sweep_speed) * DECIMATION
-        values = [v * time_between_points for v in values]
-        spacing *= time_between_points
-
-        places = max(0, np.ceil(-np.log10(spacing * scale)))
-        strings = []
-        for v in values:
-            vs = v * scale
-            if abs(vs) < 0.001 or abs(vs) >= 10000:
-                vstr = f"{vs:g}"
-            else:
-                vstr = f"{vs:.{places}f}"
-            strings.append(vstr)
-        return strings
+        if self.parent.parameters.lock.value:
+            # use time for the x axis
+            spacing = DECIMATION / 125e6
+            values = [scale * v * spacing for v in values]
+        else:
+            # use voltage for the x axis
+            center = self.parent.parameters.sweep_center.value
+            amplitude = self.parent.parameters.sweep_amplitude.value
+            min_ = center - amplitude
+            max_ = center + amplitude
+            spacing = abs(max_ - min_) / (N_POINTS - 1)
+            values = [scale * (v * spacing + min_) for v in values]
+        return [f"{v:.2f}" for v in values]
 
 
 class PlotWidget(pg.PlotWidget):
@@ -140,7 +138,6 @@ class PlotWidget(pg.PlotWidget):
         # OpenGL is enabled in the beginning of this file.
         # NOTE: OpenGL has a bug that causes the plot to be way too small. Therefore,
         # self.resize() is called below.
-
         self.crosshair = pg.InfiniteLine(pos=N_POINTS / 2, pen=pg.mkPen("w", width=1))
         self.addItem(self.crosshair)
 
@@ -595,7 +592,7 @@ class PlotWidget(pg.PlotWidget):
         q -= int(round(channel_offset))
         signal_strength = get_signal_strength_from_i_q(i, q)
 
-        r, g, b, *stuff = color
+        r, g, b, *_ = color
 
         x = list(range(len(signal_strength)))
         signal_strength_scaled = signal_strength / V
@@ -724,9 +721,10 @@ class PlotWidget(pg.PlotWidget):
             overlay.setVisible(False)
 
     def pause_plot_and_cache_data(self):
-        """This function pauses plot updates. All incoming data is cached though.
-        This is useful for letting the user select a line that is then used in
-        the autolock."""
+        """
+        This function pauses plot updates. All incoming data is cached though. This is
+        useful for letting the user select a line that is then used in the autolock.
+        """
         self._plot_paused = True
 
     def resume_plot_and_clear_cache(self):
