@@ -84,9 +84,10 @@ class TimeXAxis(pg.AxisItem):
 
     def tickStrings(self, values, scale, spacing) -> list[str]:
         if self.parent.parameters.lock.value:
-            # use time for the x axis
+            # use µs for the x axis
             spacing = DECIMATION / 125e6
-            values = [scale * v * spacing for v in values]
+            values = [1e6 * scale * v * spacing for v in values]
+            precision_specifier = 1
         else:
             # use voltage for the x axis
             center = self.parent.parameters.sweep_center.value
@@ -95,7 +96,8 @@ class TimeXAxis(pg.AxisItem):
             max_ = center + amplitude
             spacing = abs(max_ - min_) / (N_POINTS - 1)
             values = [scale * (v * spacing + min_) for v in values]
-        return [f"{v:.2f}" for v in values]
+            precision_specifier = 2
+        return [f"{v:.{precision_specifier}f}" for v in values]
 
 
 class PlotWidget(pg.PlotWidget):
@@ -269,7 +271,7 @@ class PlotWidget(pg.PlotWidget):
             if not lock:
                 self.setLabel("bottom", "sweep voltage", units="V")
             else:
-                self.setLabel("bottom", "time", units="s")
+                self.setLabel("bottom", "time", units="µs")
 
         self.parameters.lock.add_callback(set_xaxis_label)
 
@@ -674,14 +676,13 @@ class PlotWidget(pg.PlotWidget):
         )
 
         if self.parameters.lock.value:
-            x_axis_length = N_POINTS
 
             def scale(arr):
                 timescale = self.parameters.control_signal_history_length.value
                 if arr:
                     arr = np.array(arr)
                     arr -= arr[0]
-                    arr *= 1 / timescale * x_axis_length
+                    arr *= 1 / timescale * N_POINTS
                 return arr
 
             history = self.control_signal_history_data["values"]
@@ -710,14 +711,13 @@ class PlotWidget(pg.PlotWidget):
         # there are some glitches if the width of the overlay is exactly right.
         # Therefore we make it a little wider.
         extra_width = N_POINTS / 100
-        x_axis_length = N_POINTS
-        boundary_width = (x_axis_length * (1 - selectable_width)) / 2.0
+        boundary_width = (N_POINTS * (1 - selectable_width)) / 2.0
 
-        self.selection_boundaries = (boundary_width, x_axis_length - boundary_width)
+        self.selection_boundaries = (boundary_width, N_POINTS - boundary_width)
 
         self.boundary_overlays[0].setRegion((-extra_width, boundary_width))
         self.boundary_overlays[1].setRegion(
-            (x_axis_length - boundary_width, x_axis_length + extra_width)
+            (N_POINTS - boundary_width, N_POINTS + extra_width)
         )
 
         for overlay in self.boundary_overlays:
