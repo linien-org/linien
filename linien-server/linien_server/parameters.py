@@ -188,13 +188,13 @@ class Parameters:
 
         self.gpio_p_out = Parameter(start=0, min_=0, max_=0b11111111)
         """
-        set the output of GPIO pins. Each bit corresponds to one pin, i.e.
+        Set the output of GPIO pins. Each bit corresponds to one pin, i.e.
         `parameters.gpio_p_out.value = 0b11110000` turns on the first 4 pins and turns
         off the other ones.
         """
         self.gpio_n_out = Parameter(start=0, min_=0, max_=0b11111111)
         """
-        set the output of GPIO pins. Each bit corresponds to one pin, i.e.
+        Set the output of GPIO pins. Each bit corresponds to one pin, i.e.
         `parameters.gpio_p_out.value = 0b11110000` turns on the first 4 pins and turns
         off the other ones.
         """
@@ -204,25 +204,27 @@ class Parameters:
             start=0, min_=0, max_=(2**15) - 1, restorable=True
         )
         """
-        parameters for setting ANALOG_OUT 1 voltage.
-        Usage: `parameters.analog_out_1.value = 1.2 * ANALOG_OUT_V`
-        Minimum value is 0 and maximum 1.8 * ANALOG_OUT_V
+        Set output for Analog OUT 1.
+        Usage: `parameters.analog_out_1.value = 1.2 / ANALOG_OUT_V`. Minimum value is 0
+        and maximum 1.8 / ANALOG_OUT_V
         """
+
         self.analog_out_2 = Parameter(
             start=0, min_=0, max_=(2**15) - 1, restorable=True
         )
         """
-        parameters for setting ANALOG_OUT 1 voltage.
-        Usage: `parameters.analog_out_2.value = 1.2 * ANALOG_OUT_V`
-        Minimum value is 0 and maximum 1.8 * ANALOG_OUT_V
+        Set output for Analog OUT 2.
+        Usage: `parameters.analog_out_1.value = 1.2 / ANALOG_OUT_V`. Minimum value is 0
+        and maximum 1.8 / ANALOG_OUT_V
         """
+
         self.analog_out_3 = Parameter(
             start=0, min_=0, max_=(2**15) - 1, restorable=True
         )
         """
-        parameters for setting ANALOG_OUT 1 voltage.
-        Usage: `parameters.analog_out_3.value = 1.2 * ANALOG_OUT_V`
-        Minimum value is 0 and maximum 1.8 * ANALOG_OUT_V
+        Set output for Analog OUT 3.
+        Usage: `parameters.analog_out_1.value = 1.2 / ANALOG_OUT_V`. Minimum value is 0
+        and maximum 1.8 / ANALOG_OUT_V
         """
 
         self.lock = Parameter(start=False, loggable=True)

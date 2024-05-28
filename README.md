@@ -259,7 +259,7 @@ c.parameters.modulation_amplitude.value = 1 * Vpp
 c.connection.root.write_registers()
 
 # additionally set ANALOG_OUT_1 to 1.2 volts DC (you can use this to control other devices of your experiment)
-c.parameters.analog_out_1.value = 1.2 * ANALOG_OUT_V
+c.parameters.analog_out_1.value = 1.2 / ANALOG_OUT_V
 
 # GPIO outputs can also be set
 # each bit corresponds to a pin
