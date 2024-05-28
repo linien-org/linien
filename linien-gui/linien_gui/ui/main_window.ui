@@ -66,19 +66,6 @@ p, li { white-space: pre-wrap; }
              </widget>
             </item>
             <item>
-             <spacer name="horizontalSpacer_3">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item>
              <widget class="SweepSlider" name="sweepSlider">
               <property name="minimumSize">
                <size>
@@ -93,19 +80,6 @@ p, li { white-space: pre-wrap; }
                <enum>Qt::Horizontal</enum>
               </property>
              </widget>
-            </item>
-            <item>
-             <spacer name="horizontalSpacer">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
             </item>
             <item>
              <widget class="QLabel" name="sweepCenterLabel">
@@ -1239,6 +1213,11 @@ p, li { white-space: pre-wrap; }
  </widget>
  <customwidgets>
   <customwidget>
+   <class>CustomDoubleSpinBox</class>
+   <extends>QDoubleSpinBox</extends>
+   <header location="global">spin_box.h</header>
+  </customwidget>
+  <customwidget>
    <class>PlotWidget</class>
    <extends>QGraphicsView</extends>
    <header location="global">plot_widget.h</header>
@@ -1300,11 +1279,6 @@ p, li { white-space: pre-wrap; }
    <extends>QWidget</extends>
    <header location="global">sweep_control</header>
    <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>CustomDoubleSpinBox</class>
-   <extends>QDoubleSpinBox</extends>
-   <header location="global">spin_box.h</header>
   </customwidget>
   <customwidget>
    <class>LoggingPanel</class>
