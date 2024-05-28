@@ -834,13 +834,13 @@ class PlotWidget(pg.PlotWidget):
         self.control_signal_threshold_max.setVisible(show)
 
     def show_error_thresholds(self, show: bool, min_: float, max_: float) -> None:
-        self.error_signal_threshold_min.setValue(2 * min_ - 1)
-        self.error_signal_threshold_max.setValue(2 * max_ - 1)
+        self.error_signal_threshold_min.setValue(min_)
+        self.error_signal_threshold_max.setValue(max_)
         self.error_signal_threshold_min.setVisible(show)
         self.error_signal_threshold_max.setVisible(show)
 
     def show_monitor_thresholds(self, show: bool, min_: float, max_: float) -> None:
-        self.monitor_signal_threshold_min.setValue(2 * min_ - 1)
-        self.monitor_signal_threshold_max.setValue(2 * max_ - 1)
+        self.monitor_signal_threshold_min.setValue(min_)
+        self.monitor_signal_threshold_max.setValue(max_)
         self.monitor_signal_threshold_min.setVisible(show)
         self.monitor_signal_threshold_max.setVisible(show)
