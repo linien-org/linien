@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 * Show differences when local and remote parameters do not match by @bleykauf in https://github.com/linien-org/linien/pull/400
 * Show voltage on the x-axis when sweeping by @bleykauf in https://github.com/linien-org/linien/pull/404
+* Added loss-of-lock detection and automatic relocking by @bleykauf in https://github.com/linien-org/linien/pull/403
 
 ## [2.0.3] - 2024-05-29
 
