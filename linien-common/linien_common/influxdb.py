@@ -19,7 +19,7 @@ import json
 import logging
 from dataclasses import dataclass
 
-from .config import USER_DATA_PATH
+from .config import USER_DATA_PATH, create_backup_file
 
 CREDENTIAL_STORE_FILENAME = "influxdb_credentials.json"
 
@@ -68,4 +68,8 @@ def restore_credentials() -> InfluxDBCredentials:
             measurement=data["measurement"],
         )
     except FileNotFoundError:
+        return InfluxDBCredentials()
+    except json.JSONDecodeError:
+        logger.error(f"Credentials file {filename} was corrupted.")
+        create_backup_file(filename)
         return InfluxDBCredentials()

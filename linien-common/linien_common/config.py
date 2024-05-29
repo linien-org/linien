@@ -15,10 +15,13 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
-
+import logging
 from pathlib import Path
 
 from appdirs import AppDirs
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 ACQUISITION_PORT = 19321
 SERVER_PORT = 18862
@@ -29,3 +32,16 @@ USER_DATA_PATH.mkdir(parents=True, exist_ok=True)
 
 LOG_FILE_PATH = USER_DATA_PATH / "linien.log"
 LOG_FILE_PATH.parent.mkdir(parents=True, exist_ok=True)
+
+
+def create_backup_file(filename: Path) -> None:
+    """Rename the file to a unique filename."""
+    i = 0
+    while True:
+        backup_filename = filename.parent / f"{filename.stem}.backup{i}"
+        if not backup_filename.exists():
+            break
+        i += 1
+
+    filename.rename(backup_filename)
+    logger.info(f"{filename} has been saved as {backup_filename}.")

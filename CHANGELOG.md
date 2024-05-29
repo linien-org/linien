@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 * Now compatible with Python 3.12 by bumping version of `fabric` by @bleykauf in https://github.com/linien-org/linien/pull/406, thanks to @systemofapwne for reporting this issue
 
+### Added
+* Handle corrupted json files by @bleykauf in https://github.com/linien-org/linien/pull/399
+
+
 ## [2.0.2] - 2024-05-14
 
 ### Fixed

@@ -24,7 +24,7 @@ from typing import Any, Callable, Iterator
 
 import linien_server
 from linien_common.common import AutolockMode, MHz, PSDAlgorithm, Vpp
-from linien_common.config import USER_DATA_PATH
+from linien_common.config import USER_DATA_PATH, create_backup_file
 
 PARAMETER_STORE_FILENAME = "parameters.json"
 
@@ -666,6 +666,10 @@ def restore_parameters(parameters: Parameters) -> Parameters:
             data = json.load(f)
     except FileNotFoundError:
         logger.info(f"Couldn't find {filename}. Using default parameters.")
+        return parameters
+    except json.JSONDecodeError:
+        logger.error(f"Parameters file {filename} was corrupted.")
+        create_backup_file(filename)
         return parameters
 
     for name, attributes in data["parameters"].items():
