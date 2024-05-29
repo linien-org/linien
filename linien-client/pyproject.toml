@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "linien-client"
-version = "2.0.3"
+version = "2.0.3rc1"
 authors = [
     { name = "Benjamin Wiegand", email = "benjamin.wiegand@physik.hu-berlin.de" },
     { name = "Bastian Leykauf", email = "leykauf@physik.hu-berlin.de" },
@@ -25,7 +25,7 @@ requires-python = ">=3.8"
 dependencies = [
     "fabric>=3.2.2,<4.0",
     "typing_extensions>=4.5.0,<5.0",
-    "linien-common==2.0.3",
+    "linien-common==2.0.3rc1",
 ]
 
 [project.readme]
