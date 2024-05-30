@@ -48,4 +48,4 @@ include-package-data = false
 namespaces = false
 
 [tool.setuptools.package-data]
-linien_gui = ["*.ui"]
+"linien_gui.ui" = ["*.ui"]
