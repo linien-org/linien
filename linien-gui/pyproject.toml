@@ -49,3 +49,4 @@ namespaces = false
 
 [tool.setuptools.package-data]
 "linien_gui.ui" = ["*.ui"]
+linien_gui = ["icon.ico"]
