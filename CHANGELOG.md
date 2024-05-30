@@ -12,6 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Show voltage on the x-axis when sweeping by @bleykauf in https://github.com/linien-org/linien/pull/404
 * Added loss-of-lock detection and automatic relocking by @bleykauf in https://github.com/linien-org/linien/pull/403
 
+## [2.0.4] - 2024-05-30
+
+### Fixed
+* Fixed bug where `*.ui` would not be included in the `linien-gui` package by @bleykauf in https://github.com/linien-org/linien/pull/407
+
 ## [2.0.3] - 2024-05-29
 
 ### Fixed
@@ -19,7 +24,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 * Handle corrupted json files by @bleykauf in https://github.com/linien-org/linien/pull/399
-
 
 ## [2.0.2] - 2024-05-14
 
@@ -232,7 +236,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * **Bug fixes and performance improvements**
 
-[Unreleased]: https://github.com/linien-org/linien/compare/v2.0.3...HEAD
+[Unreleased]: https://github.com/linien-org/linien/compare/v2.0.4...HEAD
+[2.0.4]: https://github.com/linien-org/linien/compare/v2.0.3...v2.0.4
 [2.0.3]: https://github.com/linien-org/linien/compare/v2.0.2...v2.0.3
 [2.0.2]: https://github.com/linien-org/linien/compare/v2.0.1...v2.0.2
 [2.0.1]: https://github.com/linien-org/linien/compare/v2.0.0...v2.0.1
