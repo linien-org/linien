@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "linien-gui"
-version = "2.0.3"
+version = "2.0.4"
 authors = [
     { name = "Benjamin Wiegand", email = "benjamin.wiegand@physik.hu-berlin.de" },
     { name = "Bastian Leykauf", email = "leykauf@physik.hu-berlin.de" },
@@ -28,7 +28,7 @@ dependencies = [
     "PyQt5>=5.12.0,<6.0",
     "requests>=2.31.0,<3.0",
     "superqt>=0.2.3",
-    "linien_client==2.0.3",
+    "linien_client==2.0.4",
 ]
 
 [project.readme]
@@ -48,4 +48,5 @@ include-package-data = false
 namespaces = false
 
 [tool.setuptools.package-data]
-linien_gui = ["*.ui"]
+"linien_gui.ui" = ["*.ui"]
+linien_gui = ["icon.ico"]
