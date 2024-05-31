@@ -236,7 +236,7 @@ class PlotWidget(pg.PlotWidget):
         self.control_signal_history_data = self.parameters.control_signal_history.value
         self.monitor_signal_history_data = self.parameters.monitor_signal_history.value
 
-        self.parameters.to_plot.add_callback(self.replot)
+        self.parameters.to_plot.add_callback(self.on_new_plot_data_received)
 
         def on_autolock_selection_changed(value):
             if value:
@@ -391,10 +391,13 @@ class PlotWidget(pg.PlotWidget):
                         )
                         self.autolock_ref_spectrum = rolled_error_signal
                     elif self.parameters.optimization_selection.value:
-                        dual_channel = self.parameters.dual_channel.value
                         channel = self.parameters.optimization_channel.value
                         spectrum = self.last_plot_data[
-                            0 if not dual_channel else (0, 1)[channel]
+                            (
+                                0
+                                if not self.parameters.dual_channel.value
+                                else (0, 1)[channel]
+                            )
                         ]
                         self.parameters.optimization_selection.value = False
                         points = sorted([int(x0), int(x)])
@@ -403,7 +406,7 @@ class PlotWidget(pg.PlotWidget):
             self.overlay.setVisible(False)
             self.touch_start = None
 
-    def replot(self, to_plot):
+    def on_new_plot_data_received(self, to_plot):
         time_beginning = time()
 
         if self._should_reposition_reset_view_button:
@@ -470,17 +473,24 @@ class PlotWidget(pg.PlotWidget):
                 )
                 all_signals = (error_signal, control_signal, history, slow_history)
 
-                self.plot_data_locked(to_plot)
+                self.combined_signal.setData(
+                    list(range(len(to_plot["error_signal"]))),
+                    to_plot["error_signal"] / V,
+                )
+                self.control_signal.setData(
+                    list(range(len(to_plot["control_signal"]))),
+                    to_plot["control_signal"] / V,
+                )
                 self.plot_autolock_target_line(None)
             else:
                 dual_channel = self.parameters.dual_channel.value
-                self.signal1.setVisible(True)
+                self.signal1.setVisible(dual_channel)
                 monitor_signal = to_plot.get("monitor_signal")
                 error_signal_2 = to_plot.get("error_signal_2")
                 self.signal2.setVisible(
                     error_signal_2 is not None or monitor_signal is not None
                 )
-                self.combined_signal.setVisible(dual_channel)
+                self.combined_signal.setVisible(True)
                 self.control_signal.setVisible(False)
                 self.control_signal_history.setVisible(False)
                 self.slow_history.setVisible(False)
@@ -505,7 +515,11 @@ class PlotWidget(pg.PlotWidget):
                 all_signals = [s1, s2] + [combined_error_signal]
                 self.last_plot_data = all_signals
 
-                self.plot_data_unlocked((s1, s2), combined_error_signal)
+                self.signal2.setData(list(range(len(s2))), s2 / V)
+                self.signal1.setData(list(range(len(s1))), s1 / V)
+                self.combined_signal.setData(
+                    list(range(len(combined_error_signal))), combined_error_signal / V
+                )
                 self.plot_autolock_target_line(combined_error_signal)
 
                 if (self.parameters.modulation_frequency.value != 0) and (
@@ -617,20 +631,6 @@ class PlotWidget(pg.PlotWidget):
         signal.setData(x, upper, pen=invisible_pen)
         neg_signal.setData(x, lower, pen=invisible_pen)
         return np.max([np.max(upper), -1 * np.min(lower)]) * V
-
-    def plot_data_unlocked(self, error_signals, combined_signal):
-        error_signal1, error_signal2 = error_signals
-        self.signal1.setData(list(range(len(error_signal1))), error_signal1 / V)
-        self.signal2.setData(list(range(len(error_signal2))), error_signal2 / V)
-        self.combined_signal.setData(
-            list(range(len(combined_signal))), combined_signal / V
-        )
-
-    def plot_data_locked(self, signals):
-        error_signal = signals["error_signal"]
-        control_signal = signals["control_signal"]
-        self.combined_signal.setData(list(range(len(error_signal))), error_signal / V)
-        self.control_signal.setData(list(range(len(error_signal))), control_signal / V)
 
     def plot_autolock_target_line(self, combined_error_signal):
         if (
