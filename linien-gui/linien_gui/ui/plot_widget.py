@@ -73,14 +73,10 @@ class TimeXAxis(pg.AxisItem):
         QtCore.QTimer.singleShot(100, self.listen_to_parameter_changes)
 
     def listen_to_parameter_changes(self):
-        self.parent.parameters.sweep_center.add_callback(self.repaint_tick_strings)
-        self.parent.parameters.sweep_amplitude.add_callback(self.repaint_tick_strings)
-        self.parent.parameters.lock.add_callback(self.repaint_tick_strings)
-        self.repaint_tick_strings()
-
-    def repaint_tick_strings(self, *args):
-        self.picture = None
-        self.update()
+        self.parent.parameters.sweep_center.add_callback(self.on_lock_changed)
+        self.parent.parameters.sweep_amplitude.add_callback(self.on_lock_changed)
+        self.parent.parameters.lock.add_callback(self.on_lock_changed)
+        self.on_lock_changed()
 
     def tickStrings(self, values, scale, spacing) -> list[str]:
         if self.parent.parameters.lock.value:
@@ -98,6 +94,10 @@ class TimeXAxis(pg.AxisItem):
             values = [scale * (v * spacing + min_) for v in values]
             precision_specifier = 2
         return [f"{v:.{precision_specifier}f}" for v in values]
+
+    def on_lock_changed(self, *args) -> None:
+        self.picture = None
+        self.update()
 
 
 class PlotWidget(pg.PlotWidget):
@@ -121,7 +121,13 @@ class PlotWidget(pg.PlotWidget):
         # PlotItem
         self.hideButtons()
         # we have our own "reset view" button instead
-        self.init_reset_view_button()
+        self.reset_view_button = QtWidgets.QPushButton(self)
+        self.reset_view_button.setText("Reset view")
+        self.reset_view_button.setStyleSheet("padding: 10px; font-weight: bold")
+        icon = QtGui.QIcon.fromTheme("view-restore")
+        self.reset_view_button.setIcon(icon)
+        self.reset_view_button.clicked.connect(self.reset_view)
+        self.position_reset_view_button()
 
         # copied from https://github.com/pyqtgraph/pyqtgraph/blob/master/pyqtgraph/graphicsItems/PlotItem/PlotItem.py#L133 # noqa: E501
         # whenever something changes, we check whether to show "auto scale" button
@@ -192,9 +198,24 @@ class PlotWidget(pg.PlotWidget):
         self.selection_running = False
         self.selection_boundaries = None
 
-        self.init_overlays()
-        self.init_lock_target_line()
+        self.overlay = pg.LinearRegionItem(values=(0, 0), movable=False)
+        self.overlay.setVisible(False)
+        self.addItem(self.overlay)
 
+        self.boundary_overlays = [
+            pg.LinearRegionItem(values=(0, 0), movable=False, brush=(0, 0, 0, 200))
+            for _ in range(2)
+        ]
+        for i, overlay in enumerate(self.boundary_overlays):
+            overlay.setVisible(False)
+            # make outer borders invisible, see
+            # https://github.com/pyqtgraph/pyqtgraph/issues/462
+            overlay.lines[i].setPen((0, 0, 0, 0))
+            self.addItem(overlay)
+
+        self.lock_target_line = pg.InfiniteLine(movable=False)
+        self.lock_target_line.setValue(1000)
+        self.addItem(self.lock_target_line)
         self._fixed_opengl_bug = False
 
         self.last_plot_time = 0
@@ -208,77 +229,46 @@ class PlotWidget(pg.PlotWidget):
         self.parameters = self.app.parameters
         self.control = self.app.control
 
-        def on_plot_settings_changed(*args):
-            pen_width = self.app.settings.plot_line_width.value
-
-            for curve, color in {
-                self.signal1: Color.SPECTRUM1,
-                self.signal2: Color.SPECTRUM2,
-                self.combined_signal: Color.SPECTRUM_COMBINED,
-                self.control_signal: Color.CONTROL_SIGNAL,
-                self.control_signal_history: Color.CONTROL_SIGNAL_HISTORY,
-                self.slow_history: Color.SLOW_HISTORY,
-                self.monitor_signal_history: Color.MONITOR_SIGNAL_HISTORY,
-            }.items():
-                r, g, b, _ = getattr(
-                    self.app.settings, f"plot_color_{color.value}"
-                ).value
-                a = self.app.settings.plot_line_opacity.value
-                curve.setPen(pg.mkPen((r, g, b, a), width=pen_width))
-
         for color_idx in range(N_COLORS):
             getattr(self.app.settings, f"plot_color_{color_idx}").add_callback(
-                on_plot_settings_changed
+                self.on_plot_settings_changed
             )
-        self.app.settings.plot_line_width.add_callback(on_plot_settings_changed)
-        self.app.settings.plot_line_opacity.add_callback(on_plot_settings_changed)
+        self.app.settings.plot_line_width.add_callback(self.on_plot_settings_changed)
+        self.app.settings.plot_line_opacity.add_callback(self.on_plot_settings_changed)
 
         self.control_signal_history_data = self.parameters.control_signal_history.value
         self.monitor_signal_history_data = self.parameters.monitor_signal_history.value
 
         self.parameters.to_plot.add_callback(self.on_new_plot_data_received)
-
-        def on_autolock_selection_changed(value):
-            if value:
-                self.parameters.optimization_selection.value = False
-                self.enable_area_selection(selectable_width=0.99)
-                self.pause_plot_and_cache_data()
-            elif not self.parameters.optimization_selection.value:
-                self.disable_area_selection()
-                self.resume_plot_and_clear_cache()
-
-        self.parameters.autolock_selection.add_callback(on_autolock_selection_changed)
-
-        def on_optimization_selection_changed(value):
-            if value:
-                self.parameters.autolock_selection.value = False
-                self.enable_area_selection(selectable_width=0.75)
-                self.pause_plot_and_cache_data()
-            elif not self.parameters.autolock_selection.value:
-                self.disable_area_selection()
-                self.resume_plot_and_clear_cache()
-
-        self.parameters.optimization_selection.add_callback(
-            on_optimization_selection_changed
+        self.parameters.autolock_selection.add_callback(
+            self.on_autolock_selection_changed
         )
-
-        def show_or_hide_crosshair(automatic_mode: bool) -> None:
-            self.crosshair.setVisible(not automatic_mode)
-
-        self.parameters.automatic_mode.add_callback(show_or_hide_crosshair)
-
-        def set_xaxis_label(lock: bool) -> None:
-            if not lock:
-                self.setLabel("bottom", "sweep voltage", units="V")
-            else:
-                self.setLabel("bottom", "time", units="µs")
-
-        self.parameters.lock.add_callback(set_xaxis_label)
+        self.parameters.optimization_selection.add_callback(
+            self.on_optimization_selection_changed
+        )
+        self.parameters.automatic_mode.add_callback(self.on_automatic_mode_changed)
+        self.parameters.lock.add_callback(self.on_lock_changed)
 
     def _to_data_coords(self, event):
         pos = self.plotItem.vb.mapSceneToView(event.pos())
         x, y = pos.x(), pos.y()
         return x, y
+
+    def _within_boundaries(self, x):
+        boundaries = (
+            self.selection_boundaries if self.selection_running else [0, N_POINTS]
+        )
+
+        if x < boundaries[0]:
+            return boundaries[0]
+        if x > boundaries[1]:
+            return boundaries[1]
+        return x
+
+    def keyPressEvent(self, event):
+        # we listen here in addition to the main window because some events are only
+        # caught here
+        self.keyPressed.emit(event.key())
 
     def mouseMoveEvent(self, event):
         if not self.selection_running:
@@ -292,62 +282,6 @@ class PlotWidget(pg.PlotWidget):
             x, y = self._to_data_coords(event)
             x = self._within_boundaries(x)
             self.set_selection_overlay(x0, x - x0)
-
-    def init_overlays(self):
-        self.overlay = pg.LinearRegionItem(values=(0, 0), movable=False)
-        self.overlay.setVisible(False)
-        self.addItem(self.overlay)
-
-        self.boundary_overlays = [
-            pg.LinearRegionItem(
-                values=(0, 0),
-                movable=False,
-                brush=(0, 0, 0, 200),
-            )
-            for i in range(2)
-        ]
-        for i, overlay in enumerate(self.boundary_overlays):
-            overlay.setVisible(False)
-            # make outer borders invisible, see
-            # https://github.com/pyqtgraph/pyqtgraph/issues/462
-            overlay.lines[i].setPen((0, 0, 0, 0))
-            self.addItem(overlay)
-
-    def init_lock_target_line(self):
-        self.lock_target_line = pg.InfiniteLine(movable=False)
-        self.lock_target_line.setValue(1000)
-        self.addItem(self.lock_target_line)
-
-    def set_selection_overlay(self, x_start, width):
-        self.overlay.setRegion((x_start, x_start + width))
-
-    def mousePressEvent(self, event):
-        super().mousePressEvent(event)
-
-        if self.selection_running:
-            if event.button() == QtCore.Qt.RightButton:
-                return
-
-            x, y = self._to_data_coords(event)
-
-            if self.selection_running:
-                if x < self.selection_boundaries[0] or x > self.selection_boundaries[1]:
-                    return
-
-            self.touch_start = x, y
-            self.set_selection_overlay(x, 0)
-            self.overlay.setVisible(True)
-
-    def _within_boundaries(self, x):
-        boundaries = (
-            self.selection_boundaries if self.selection_running else [0, N_POINTS]
-        )
-
-        if x < boundaries[0]:
-            return boundaries[0]
-        if x > boundaries[1]:
-            return boundaries[1]
-        return x
 
     def mouseReleaseEvent(self, event):
         super().mouseReleaseEvent(event)
@@ -405,6 +339,70 @@ class PlotWidget(pg.PlotWidget):
 
             self.overlay.setVisible(False)
             self.touch_start = None
+
+    def on_plot_settings_changed(self, *args):
+        pen_width = self.app.settings.plot_line_width.value
+
+        for curve, color in {
+            self.signal1: Color.SPECTRUM1,
+            self.signal2: Color.SPECTRUM2,
+            self.combined_signal: Color.SPECTRUM_COMBINED,
+            self.control_signal: Color.CONTROL_SIGNAL,
+            self.control_signal_history: Color.CONTROL_SIGNAL_HISTORY,
+            self.slow_history: Color.SLOW_HISTORY,
+            self.monitor_signal_history: Color.MONITOR_SIGNAL_HISTORY,
+        }.items():
+            r, g, b, _ = getattr(self.app.settings, f"plot_color_{color.value}").value
+            a = self.app.settings.plot_line_opacity.value
+            curve.setPen(pg.mkPen((r, g, b, a), width=pen_width))
+
+    def on_autolock_selection_changed(self, value):
+        if value:
+            self.parameters.optimization_selection.value = False
+            self.enable_area_selection(selectable_width=0.99)
+            self.pause_plot_and_cache_data()
+        elif not self.parameters.optimization_selection.value:
+            self.disable_area_selection()
+            self.resume_plot_and_clear_cache()
+
+    def on_optimization_selection_changed(self, value):
+        if value:
+            self.parameters.autolock_selection.value = False
+            self.enable_area_selection(selectable_width=0.75)
+            self.pause_plot_and_cache_data()
+        elif not self.parameters.autolock_selection.value:
+            self.disable_area_selection()
+            self.resume_plot_and_clear_cache()
+
+    def on_automatic_mode_changed(self, automatic_mode: bool) -> None:
+        """Show or hide crosshair"""
+        self.crosshair.setVisible(not automatic_mode)
+
+    def on_lock_changed(self, lock: bool) -> None:
+        if not lock:
+            self.setLabel("bottom", "sweep voltage", units="V")
+        else:
+            self.setLabel("bottom", "time", units="µs")
+
+    def set_selection_overlay(self, x_start, width):
+        self.overlay.setRegion((x_start, x_start + width))
+
+    def mousePressEvent(self, event):
+        super().mousePressEvent(event)
+
+        if self.selection_running:
+            if event.button() == QtCore.Qt.RightButton:
+                return
+
+            x, y = self._to_data_coords(event)
+
+            if self.selection_running:
+                if x < self.selection_boundaries[0] or x > self.selection_boundaries[1]:
+                    return
+
+            self.touch_start = x, y
+            self.set_selection_overlay(x, 0)
+            self.overlay.setVisible(True)
 
     def on_new_plot_data_received(self, to_plot):
         time_beginning = time()
@@ -484,13 +482,13 @@ class PlotWidget(pg.PlotWidget):
                 self.plot_autolock_target_line(None)
             else:
                 dual_channel = self.parameters.dual_channel.value
-                self.signal1.setVisible(dual_channel)
+                self.signal1.setVisible(True)
                 monitor_signal = to_plot.get("monitor_signal")
                 error_signal_2 = to_plot.get("error_signal_2")
                 self.signal2.setVisible(
                     error_signal_2 is not None or monitor_signal is not None
                 )
-                self.combined_signal.setVisible(True)
+                self.combined_signal.setVisible(dual_channel)
                 self.control_signal.setVisible(False)
                 self.control_signal_history.setVisible(False)
                 self.slow_history.setVisible(False)
@@ -661,11 +659,6 @@ class PlotWidget(pg.PlotWidget):
         else:
             self.lock_target_line.setVisible(False)
 
-    def keyPressEvent(self, event):
-        # we listen here in addition to the main window because some events are only
-        # caught here
-        self.keyPressed.emit(event.key())
-
     def update_signal_history(self, to_plot):
         update_signal_history(
             self.control_signal_history_data,
@@ -740,15 +733,6 @@ class PlotWidget(pg.PlotWidget):
         """Resumes plotting again."""
         self._plot_paused = False
         self._cached_plot_data = []
-
-    def init_reset_view_button(self):
-        self.reset_view_button = QtWidgets.QPushButton(self)
-        self.reset_view_button.setText("Reset view")
-        self.reset_view_button.setStyleSheet("padding: 10px; font-weight: bold")
-        icon = QtGui.QIcon.fromTheme("view-restore")
-        self.reset_view_button.setIcon(icon)
-        self.reset_view_button.clicked.connect(self.reset_view)
-        self.position_reset_view_button()
 
     # called when widget is resized
     def position_reset_view_button(self):
