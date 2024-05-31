@@ -148,44 +148,44 @@ class PlotWidget(pg.PlotWidget):
         self.crosshair = pg.InfiniteLine(pos=N_POINTS / 2, pen=pg.mkPen("w", width=1))
         self.addItem(self.crosshair)
 
-        self.zero_line = pg.PlotCurveItem(pen=pg.mkPen("w", width=1))
-        self.addItem(self.zero_line)
-        self.signal_strength_a = pg.PlotCurveItem()
-        self.addItem(self.signal_strength_a)
-        self.signal_strength_a2 = pg.PlotCurveItem()
-        self.addItem(self.signal_strength_a2)
-        self.signal_strength_a_fill = pg.FillBetweenItem(
-            self.signal_strength_a, self.signal_strength_a2
+        self.zeroLine = pg.PlotCurveItem(pen=pg.mkPen("w", width=1))
+        self.addItem(self.zeroLine)
+        self.signalStrengthA = pg.PlotCurveItem()
+        self.addItem(self.signalStrengthA)
+        self.signalStrengthA2 = pg.PlotCurveItem()
+        self.addItem(self.signalStrengthA2)
+        self.signalStrengthAFill = pg.FillBetweenItem(
+            self.signalStrengthA, self.signalStrengthA2
         )
-        self.addItem(self.signal_strength_a_fill)
-        self.signal_strength_b = pg.PlotCurveItem()
-        self.addItem(self.signal_strength_b)
-        self.signal_strength_b2 = pg.PlotCurveItem()
-        self.addItem(self.signal_strength_b2)
-        self.signal_strength_b_fill = pg.FillBetweenItem(
-            self.signal_strength_b, self.signal_strength_b2
+        self.addItem(self.signalStrengthAFill)
+        self.signalStrengthB = pg.PlotCurveItem()
+        self.addItem(self.signalStrengthB)
+        self.signalStrengthB2 = pg.PlotCurveItem()
+        self.addItem(self.signalStrengthB2)
+        self.signalStrengthBFill = pg.FillBetweenItem(
+            self.signalStrengthB, self.signalStrengthB2
         )
-        self.addItem(self.signal_strength_b_fill)
-        self.signal1 = pg.PlotCurveItem()
-        self.addItem(self.signal1)
-        self.signal2 = pg.PlotCurveItem()
-        self.addItem(self.signal2)
-        self.combined_signal = pg.PlotCurveItem()
-        self.addItem(self.combined_signal)
+        self.addItem(self.signalStrengthBFill)
+        self.errorSignal1 = pg.PlotCurveItem()
+        self.addItem(self.errorSignal1)
+        self.monitorOrErrorSignal2 = pg.PlotCurveItem()
+        self.addItem(self.monitorOrErrorSignal2)
+        self.combinedErrorSignal = pg.PlotCurveItem()
+        self.addItem(self.combinedErrorSignal)
 
-        self.control_signal = pg.PlotCurveItem()
-        self.addItem(self.control_signal)
-        self.control_signal_history = pg.PlotCurveItem()
-        self.addItem(self.control_signal_history)
-        self.slow_history = pg.PlotCurveItem()
-        self.addItem(self.slow_history)
-        self.monitor_signal_history = pg.PlotCurveItem()
-        self.addItem(self.monitor_signal_history)
+        self.controlSignal = pg.PlotCurveItem()
+        self.addItem(self.controlSignal)
+        self.controlSignalHistory = pg.PlotCurveItem()
+        self.addItem(self.controlSignalHistory)
+        self.slowHistory = pg.PlotCurveItem()
+        self.addItem(self.slowHistory)
+        self.monitorSignalHistory = pg.PlotCurveItem()
+        self.addItem(self.monitorSignalHistory)
 
-        self.zero_line.setData([0, N_POINTS - 1], [0, 0])
-        self.signal1.setData([0, N_POINTS - 1], [1, 1])
-        self.signal1.setData([0, N_POINTS - 1], [1, 1])
-        self.combined_signal.setData([0, N_POINTS - 1], [1, 1])
+        self.zeroLine.setData([0, N_POINTS - 1], [0, 0])
+        self.errorSignal1.setData([0, N_POINTS - 1], [1, 1])
+        self.errorSignal1.setData([0, N_POINTS - 1], [1, 1])
+        self.combinedErrorSignal.setData([0, N_POINTS - 1], [1, 1])
 
         self.connection = None
         self.parameters = None
@@ -344,13 +344,13 @@ class PlotWidget(pg.PlotWidget):
         pen_width = self.app.settings.plot_line_width.value
 
         for curve, color in {
-            self.signal1: Color.SPECTRUM1,
-            self.signal2: Color.SPECTRUM2,
-            self.combined_signal: Color.SPECTRUM_COMBINED,
-            self.control_signal: Color.CONTROL_SIGNAL,
-            self.control_signal_history: Color.CONTROL_SIGNAL_HISTORY,
-            self.slow_history: Color.SLOW_HISTORY,
-            self.monitor_signal_history: Color.MONITOR_SIGNAL_HISTORY,
+            self.errorSignal1: Color.SPECTRUM1,
+            self.monitorOrErrorSignal2: Color.SPECTRUM2,
+            self.combinedErrorSignal: Color.SPECTRUM_COMBINED,
+            self.controlSignal: Color.CONTROL_SIGNAL,
+            self.controlSignalHistory: Color.CONTROL_SIGNAL_HISTORY,
+            self.slowHistory: Color.SLOW_HISTORY,
+            self.monitorSignalHistory: Color.MONITOR_SIGNAL_HISTORY,
         }.items():
             r, g, b, _ = getattr(self.app.settings, f"plot_color_{color.value}").value
             a = self.app.settings.plot_line_opacity.value
@@ -446,53 +446,55 @@ class PlotWidget(pg.PlotWidget):
 
             # we also call this if the laser is not locked because it resets the history
             # in this case
-            history, slow_history = self.update_signal_history(to_plot)
+            history, slow_history = self.update_or_reset_signal_history(to_plot)
 
             if self.parameters.lock.value:
-                self.signal1.setVisible(False)
-                self.signal2.setVisible(False)
-                self.control_signal.setVisible(True)
-                self.control_signal_history.setVisible(True)
-                self.slow_history.setVisible(self.parameters.pid_on_slow_enabled.value)
-                self.monitor_signal_history.setVisible(
-                    not self.parameters.dual_channel.value
-                )
-                self.combined_signal.setVisible(True)
-                self.signal_strength_a.setVisible(False)
-                self.signal_strength_b.setVisible(False)
-                self.signal_strength_a2.setVisible(False)
-                self.signal_strength_b2.setVisible(False)
-                self.signal_strength_a_fill.setVisible(False)
-                self.signal_strength_b_fill.setVisible(False)
-
-                error_signal, control_signal = (
+                all_signals = (
                     to_plot["error_signal"],
                     to_plot["control_signal"],
+                    history,
+                    slow_history,
                 )
-                all_signals = (error_signal, control_signal, history, slow_history)
 
-                self.combined_signal.setData(
+                self.errorSignal1.setVisible(False)
+                self.monitorOrErrorSignal2.setVisible(False)
+                self.controlSignalHistory.setVisible(True)
+                self.slowHistory.setVisible(self.parameters.pid_on_slow_enabled.value)
+                self.monitorSignalHistory.setVisible(
+                    not self.parameters.dual_channel.value
+                )
+                self.signalStrengthA.setVisible(False)
+                self.signalStrengthB.setVisible(False)
+                self.signalStrengthA2.setVisible(False)
+                self.signalStrengthB2.setVisible(False)
+                self.signalStrengthAFill.setVisible(False)
+                self.signalStrengthBFill.setVisible(False)
+
+                self.combinedErrorSignal.setVisible(True)
+                self.combinedErrorSignal.setData(
                     list(range(len(to_plot["error_signal"]))),
                     to_plot["error_signal"] / V,
                 )
-                self.control_signal.setData(
+
+                self.controlSignal.setVisible(True)
+                self.controlSignal.setData(
                     list(range(len(to_plot["control_signal"]))),
                     to_plot["control_signal"] / V,
                 )
                 self.plot_autolock_target_line(None)
             else:
                 dual_channel = self.parameters.dual_channel.value
-                self.signal1.setVisible(True)
+                self.errorSignal1.setVisible(True)
                 monitor_signal = to_plot.get("monitor_signal")
                 error_signal_2 = to_plot.get("error_signal_2")
-                self.signal2.setVisible(
+                self.monitorOrErrorSignal2.setVisible(
                     error_signal_2 is not None or monitor_signal is not None
                 )
-                self.combined_signal.setVisible(dual_channel)
-                self.control_signal.setVisible(False)
-                self.control_signal_history.setVisible(False)
-                self.slow_history.setVisible(False)
-                self.monitor_signal_history.setVisible(False)
+                self.combinedErrorSignal.setVisible(dual_channel)
+                self.controlSignal.setVisible(False)
+                self.controlSignalHistory.setVisible(False)
+                self.slowHistory.setVisible(False)
+                self.monitorSignalHistory.setVisible(False)
 
                 s1 = to_plot["error_signal_1"]
                 s2 = error_signal_2 if error_signal_2 is not None else monitor_signal
@@ -513,9 +515,9 @@ class PlotWidget(pg.PlotWidget):
                 all_signals = [s1, s2] + [combined_error_signal]
                 self.last_plot_data = all_signals
 
-                self.signal2.setData(list(range(len(s2))), s2 / V)
-                self.signal1.setData(list(range(len(s1))), s1 / V)
-                self.combined_signal.setData(
+                self.monitorOrErrorSignal2.setData(list(range(len(s2))), s2 / V)
+                self.errorSignal1.setData(list(range(len(s1))), s1 / V)
+                self.combinedErrorSignal.setData(
                     list(range(len(combined_error_signal))), combined_error_signal / V
                 )
                 self.plot_autolock_target_line(combined_error_signal)
@@ -527,22 +529,22 @@ class PlotWidget(pg.PlotWidget):
                     s1q = to_plot.get("error_signal_1_quadrature")
                     s2q = to_plot.get("error_signal_2_quadrature")
 
-                    self.signal_strength_a.setVisible(s1q is not None)
-                    self.signal_strength_a2.setVisible(s1q is not None)
-                    self.signal_strength_a_fill.setVisible(s1q is not None)
+                    self.signalStrengthA.setVisible(s1q is not None)
+                    self.signalStrengthA2.setVisible(s1q is not None)
+                    self.signalStrengthAFill.setVisible(s1q is not None)
 
-                    self.signal_strength_b.setVisible(s2q is not None)
-                    self.signal_strength_b2.setVisible(s2q is not None)
-                    self.signal_strength_b_fill.setVisible(s2q is not None)
+                    self.signalStrengthB.setVisible(s2q is not None)
+                    self.signalStrengthB2.setVisible(s2q is not None)
+                    self.signalStrengthBFill.setVisible(s2q is not None)
 
                     if s1q is not None:
                         max_signal_strength_V = (
                             self.plot_signal_strength(
                                 s1,
                                 s1q,
-                                self.signal_strength_a,
-                                self.signal_strength_a2,
-                                self.signal_strength_a_fill,
+                                self.signalStrengthA,
+                                self.signalStrengthA2,
+                                self.signalStrengthAFill,
                                 self.parameters.offset_a.value,
                                 self.app.settings.plot_color_0.value,
                             )
@@ -566,9 +568,9 @@ class PlotWidget(pg.PlotWidget):
                             self.plot_signal_strength(
                                 s2,
                                 s2q,
-                                self.signal_strength_b,
-                                self.signal_strength_b2,
-                                self.signal_strength_b_fill,
+                                self.signalStrengthB,
+                                self.signalStrengthB2,
+                                self.signalStrengthBFill,
                                 self.parameters.offset_b.value,
                                 self.app.settings.plot_color_1.value,
                             )
@@ -588,12 +590,12 @@ class PlotWidget(pg.PlotWidget):
                     else:
                         self.signal_power2.emit(INVALID_POWER)
                 else:
-                    self.signal_strength_a.setVisible(False)
-                    self.signal_strength_b.setVisible(False)
-                    self.signal_strength_a2.setVisible(False)
-                    self.signal_strength_b2.setVisible(False)
-                    self.signal_strength_a_fill.setVisible(False)
-                    self.signal_strength_b_fill.setVisible(False)
+                    self.signalStrengthA.setVisible(False)
+                    self.signalStrengthB.setVisible(False)
+                    self.signalStrengthA2.setVisible(False)
+                    self.signalStrengthB2.setVisible(False)
+                    self.signalStrengthAFill.setVisible(False)
+                    self.signalStrengthBFill.setVisible(False)
 
                     self.signal_power1.emit(INVALID_POWER)
                     self.signal_power2.emit(INVALID_POWER)
@@ -659,7 +661,7 @@ class PlotWidget(pg.PlotWidget):
         else:
             self.lock_target_line.setVisible(False)
 
-    def update_signal_history(self, to_plot):
+    def update_or_reset_signal_history(self, to_plot):
         update_signal_history(
             self.control_signal_history_data,
             self.monitor_signal_history_data,
@@ -678,24 +680,23 @@ class PlotWidget(pg.PlotWidget):
                     arr *= 1 / timescale * N_POINTS
                 return arr
 
-            history = self.control_signal_history_data["values"]
-            self.control_signal_history.setData(
-                scale(self.control_signal_history_data["times"]), np.array(history) / V
+            history_values = self.control_signal_history_data["values"]
+            history_times = scale(self.control_signal_history_data["times"])
+            self.controlSignalHistory.setData(
+                history_times, np.array(history_values) / V
             )
 
             slow_values = self.control_signal_history_data["slow_values"]
-            self.slow_history.setData(
-                scale(self.control_signal_history_data["slow_times"]),
-                np.array(slow_values) / V,
-            )
+            slow_times = scale(self.control_signal_history_data["slow_times"])
+            self.slowHistory.setData(slow_times, np.array(slow_values) / V)
 
             if not self.parameters.dual_channel.value:
-                self.monitor_signal_history.setData(
+                self.monitorSignalHistory.setData(
                     scale(self.monitor_signal_history_data["times"]),
                     np.array(self.monitor_signal_history_data["values"]) / V,
                 )
 
-            return history, slow_values
+            return history_values, slow_values
         return [], []
 
     def enable_area_selection(self, selectable_width=0.5):
