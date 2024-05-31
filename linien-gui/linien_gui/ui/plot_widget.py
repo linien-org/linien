@@ -186,9 +186,9 @@ class PlotWidget(pg.PlotWidget):
         self.combined_signal.setData([0, N_POINTS - 1], [1, 1])
 
         # these lines are used for configuration of the relocking system
-        control_threshold_pen = pg.mkPen("m", width=2)
-        error_threshold_pen = pg.mkPen("y", width=2)
-        monitor_threshold_pen = pg.mkPen("y", width=2)
+        control_threshold_pen = pg.mkPen("m", width=2, style=QtCore.Qt.DashLine)
+        error_threshold_pen = pg.mkPen("y", width=2, style=QtCore.Qt.DashLine)
+        monitor_threshold_pen = pg.mkPen("y", width=2, style=QtCore.Qt.DashLine)
         self.control_signal_threshold_min = pg.InfiniteLine(
             pen=control_threshold_pen, angle=90
         )
@@ -823,13 +823,21 @@ class PlotWidget(pg.PlotWidget):
         self._should_reposition_reset_view_button = True
 
     def show_control_thresholds(self, show: bool, min_: float, max_: float) -> None:
-        sweep_center = self.app.parameters.sweep_center.value
-        sweep_amplitude = self.app.parameters.sweep_amplitude.value
-        sweep_min = sweep_center - sweep_amplitude
-        sweep_max = sweep_center + sweep_amplitude
-        spacing = (N_POINTS - 1) / abs(sweep_max - sweep_min)  # pts / V
-        self.control_signal_threshold_min.setValue(spacing * (min_ - sweep_min))
-        self.control_signal_threshold_max.setValue(spacing * (max_ - sweep_min))
+        if self.app.parameters.lock.value:
+            self.control_signal_threshold_min.setAngle(0)
+            self.control_signal_threshold_max.setAngle(0)
+        else:
+            sweep_center = self.app.parameters.sweep_center.value
+            sweep_amplitude = self.app.parameters.sweep_amplitude.value
+            sweep_min = sweep_center - sweep_amplitude
+            sweep_max = sweep_center + sweep_amplitude
+            spacing = (N_POINTS - 1) / abs(sweep_max - sweep_min)  # pts / V
+            min_ = spacing * (min_ - sweep_min)
+            max_ = spacing * (max_ - sweep_min)
+            self.control_signal_threshold_min.setAngle(90)
+            self.control_signal_threshold_max.setAngle(90)
+        self.control_signal_threshold_min.setValue(min_)
+        self.control_signal_threshold_max.setValue(max_)
         self.control_signal_threshold_min.setVisible(show)
         self.control_signal_threshold_max.setVisible(show)
 
