@@ -221,8 +221,8 @@ class PlotWidget(pg.PlotWidget):
         self.last_plot_time = 0
         self.plot_rate_limit = DEFAULT_PLOT_RATE_LIMIT
 
-        self._plot_paused = False
-        self._cached_plot_data = []
+        self.plot_paused = False
+        self.cached_plot_data = []
         self._should_reposition_reset_view_button = False
 
     def on_connection_established(self):
@@ -310,7 +310,7 @@ class PlotWidget(pg.PlotWidget):
                             # transmitted which blocks the autolock
                             *sorted([x0, x]),
                             pickle.dumps(last_combined_error_signal),
-                            additional_spectra=pickle.dumps(self._cached_plot_data),
+                            additional_spectra=pickle.dumps(self.cached_plot_data),
                         )
 
                         (
@@ -360,7 +360,7 @@ class PlotWidget(pg.PlotWidget):
         if value:
             self.parameters.optimization_selection.value = False
             self.enable_area_selection(selectable_width=0.99)
-            self.pause_plot_and_cache_data()
+            self.pause_plot()
         elif not self.parameters.optimization_selection.value:
             self.disable_area_selection()
             self.resume_plot_and_clear_cache()
@@ -369,7 +369,7 @@ class PlotWidget(pg.PlotWidget):
         if value:
             self.parameters.autolock_selection.value = False
             self.enable_area_selection(selectable_width=0.75)
-            self.pause_plot_and_cache_data()
+            self.pause_plot()
         elif not self.parameters.autolock_selection.value:
             self.disable_area_selection()
             self.resume_plot_and_clear_cache()
@@ -413,7 +413,7 @@ class PlotWidget(pg.PlotWidget):
 
         if (
             time_beginning - self.last_plot_time <= self.plot_rate_limit
-            and not self._plot_paused
+            and not self.plot_paused
         ):
             # don't plot too often as it only causes unnecessary load this does not
             # apply if plot is paused, because in this case we want to collect all the
@@ -446,23 +446,27 @@ class PlotWidget(pg.PlotWidget):
 
             # we also call this if the laser is not locked because it resets the history
             # in this case
-            history, slow_history = self.update_or_reset_signal_history(to_plot)
+            update_signal_history(
+                self.control_signal_history_data,
+                self.monitor_signal_history_data,
+                to_plot,
+                self.parameters.lock.value,
+                self.parameters.control_signal_history_length.value,
+            )
 
             if self.parameters.lock.value:
                 all_signals = (
                     to_plot["error_signal"],
                     to_plot["control_signal"],
-                    history,
-                    slow_history,
+                    self.control_signal_history_data["values"],
+                    self.control_signal_history_data["slow_values"],
                 )
+
+                dual_channel = self.parameters.dual_channel.value
+                timescale = self.parameters.control_signal_history_length.value
 
                 self.errorSignal1.setVisible(False)
                 self.monitorOrErrorSignal2.setVisible(False)
-                self.controlSignalHistory.setVisible(True)
-                self.slowHistory.setVisible(self.parameters.pid_on_slow_enabled.value)
-                self.monitorSignalHistory.setVisible(
-                    not self.parameters.dual_channel.value
-                )
                 self.signalStrengthA.setVisible(False)
                 self.signalStrengthB.setVisible(False)
                 self.signalStrengthA2.setVisible(False)
@@ -481,42 +485,77 @@ class PlotWidget(pg.PlotWidget):
                     list(range(len(to_plot["control_signal"]))),
                     to_plot["control_signal"] / V,
                 )
+
+                self.controlSignalHistory.setVisible(True)
+                self.controlSignalHistory.setData(
+                    scale_history_times(
+                        self.control_signal_history_data["times"], timescale
+                    ),
+                    np.array(self.control_signal_history_data["values"]) / V,
+                )
+
+                self.slowHistory.setVisible(self.parameters.pid_on_slow_enabled.value)
+                self.slowHistory.setData(
+                    scale_history_times(
+                        self.control_signal_history_data["slow_times"], timescale
+                    ),
+                    np.array(self.control_signal_history_data["slow_values"]) / V,
+                )
+
+                self.monitorSignalHistory.setVisible(not dual_channel)
+                if not dual_channel:
+                    self.monitorSignalHistory.setData(
+                        scale_history_times(
+                            self.monitor_signal_history_data["times"], timescale
+                        ),
+                        np.array(self.monitor_signal_history_data["values"]) / V,
+                    )
                 self.plot_autolock_target_line(None)
             else:
                 dual_channel = self.parameters.dual_channel.value
-                self.errorSignal1.setVisible(True)
                 monitor_signal = to_plot.get("monitor_signal")
                 error_signal_2 = to_plot.get("error_signal_2")
-                self.monitorOrErrorSignal2.setVisible(
-                    error_signal_2 is not None or monitor_signal is not None
+                error_signal_1 = to_plot["error_signal_1"]
+                monitor_or_error_signal_2 = (
+                    error_signal_2 if error_signal_2 is not None else monitor_signal
                 )
+
                 self.combinedErrorSignal.setVisible(dual_channel)
                 self.controlSignal.setVisible(False)
                 self.controlSignalHistory.setVisible(False)
                 self.slowHistory.setVisible(False)
                 self.monitorSignalHistory.setVisible(False)
 
-                s1 = to_plot["error_signal_1"]
-                s2 = error_signal_2 if error_signal_2 is not None else monitor_signal
-
                 combined_error_signal = combine_error_signal(
-                    (s1, s2),
+                    (error_signal_1, monitor_or_error_signal_2),
                     dual_channel,
                     self.parameters.channel_mixing.value,
                     self.parameters.combined_offset.value,
                 )
 
-                if self._plot_paused:
-                    self._cached_plot_data.append(combined_error_signal)
+                if self.plot_paused:
+                    self.cached_plot_data.append(combined_error_signal)
                     # don't save too much
-                    self._cached_plot_data = self._cached_plot_data[-20:]
+                    self.cached_plot_data = self.cached_plot_data[-20:]
                     return
 
-                all_signals = [s1, s2] + [combined_error_signal]
+                all_signals = [error_signal_1, monitor_or_error_signal_2] + [
+                    combined_error_signal
+                ]
                 self.last_plot_data = all_signals
 
-                self.monitorOrErrorSignal2.setData(list(range(len(s2))), s2 / V)
-                self.errorSignal1.setData(list(range(len(s1))), s1 / V)
+                self.monitorOrErrorSignal2.setVisible(
+                    error_signal_2 is not None or monitor_signal is not None
+                )
+                self.monitorOrErrorSignal2.setData(
+                    list(range(len(monitor_or_error_signal_2))),
+                    monitor_or_error_signal_2 / V,
+                )
+
+                self.errorSignal1.setVisible(True)
+                self.errorSignal1.setData(
+                    list(range(len(error_signal_1))), error_signal_1 / V
+                )
                 self.combinedErrorSignal.setData(
                     list(range(len(combined_error_signal))), combined_error_signal / V
                 )
@@ -526,22 +565,34 @@ class PlotWidget(pg.PlotWidget):
                     not self.parameters.pid_only_mode.value
                 ):
                     # check whether to plot signal strengths using quadratures
-                    s1q = to_plot.get("error_signal_1_quadrature")
-                    s2q = to_plot.get("error_signal_2_quadrature")
+                    error_signal_1_quadrature = to_plot.get("error_signal_1_quadrature")
+                    error_signal_2_quadrature = to_plot.get("error_signal_2_quadrature")
 
-                    self.signalStrengthA.setVisible(s1q is not None)
-                    self.signalStrengthA2.setVisible(s1q is not None)
-                    self.signalStrengthAFill.setVisible(s1q is not None)
+                    self.signalStrengthA.setVisible(
+                        error_signal_1_quadrature is not None
+                    )
+                    self.signalStrengthA2.setVisible(
+                        error_signal_1_quadrature is not None
+                    )
+                    self.signalStrengthAFill.setVisible(
+                        error_signal_1_quadrature is not None
+                    )
 
-                    self.signalStrengthB.setVisible(s2q is not None)
-                    self.signalStrengthB2.setVisible(s2q is not None)
-                    self.signalStrengthBFill.setVisible(s2q is not None)
+                    self.signalStrengthB.setVisible(
+                        error_signal_2_quadrature is not None
+                    )
+                    self.signalStrengthB2.setVisible(
+                        error_signal_2_quadrature is not None
+                    )
+                    self.signalStrengthBFill.setVisible(
+                        error_signal_2_quadrature is not None
+                    )
 
-                    if s1q is not None:
+                    if error_signal_1_quadrature is not None:
                         max_signal_strength_V = (
                             self.plot_signal_strength(
-                                s1,
-                                s1q,
+                                error_signal_1,
+                                error_signal_1_quadrature,
                                 self.signalStrengthA,
                                 self.signalStrengthA2,
                                 self.signalStrengthAFill,
@@ -563,11 +614,11 @@ class PlotWidget(pg.PlotWidget):
                     else:
                         self.signal_power1.emit(INVALID_POWER)
 
-                    if s2q is not None:
+                    if error_signal_2_quadrature is not None:
                         max_signal_strength2_V = (
                             self.plot_signal_strength(
-                                s2,
-                                s2q,
+                                monitor_or_error_signal_2,
+                                error_signal_2_quadrature,
                                 self.signalStrengthB,
                                 self.signalStrengthB2,
                                 self.signalStrengthBFill,
@@ -661,44 +712,6 @@ class PlotWidget(pg.PlotWidget):
         else:
             self.lock_target_line.setVisible(False)
 
-    def update_or_reset_signal_history(self, to_plot):
-        update_signal_history(
-            self.control_signal_history_data,
-            self.monitor_signal_history_data,
-            to_plot,
-            self.parameters.lock.value,
-            self.parameters.control_signal_history_length.value,
-        )
-
-        if self.parameters.lock.value:
-
-            def scale(arr):
-                timescale = self.parameters.control_signal_history_length.value
-                if arr:
-                    arr = np.array(arr)
-                    arr -= arr[0]
-                    arr *= 1 / timescale * N_POINTS
-                return arr
-
-            history_values = self.control_signal_history_data["values"]
-            history_times = scale(self.control_signal_history_data["times"])
-            self.controlSignalHistory.setData(
-                history_times, np.array(history_values) / V
-            )
-
-            slow_values = self.control_signal_history_data["slow_values"]
-            slow_times = scale(self.control_signal_history_data["slow_times"])
-            self.slowHistory.setData(slow_times, np.array(slow_values) / V)
-
-            if not self.parameters.dual_channel.value:
-                self.monitorSignalHistory.setData(
-                    scale(self.monitor_signal_history_data["times"]),
-                    np.array(self.monitor_signal_history_data["values"]) / V,
-                )
-
-            return history_values, slow_values
-        return [], []
-
     def enable_area_selection(self, selectable_width=0.5):
         self.selection_running = True
 
@@ -723,17 +736,17 @@ class PlotWidget(pg.PlotWidget):
         for overlay in self.boundary_overlays:
             overlay.setVisible(False)
 
-    def pause_plot_and_cache_data(self):
+    def pause_plot(self):
         """
-        This function pauses plot updates. All incoming data is cached though. This is
-        useful for letting the user select a line that is then used in the autolock.
+        Pauses plot updates. All incoming data is cached though. This is useful for
+        letting the user select a line that is then used in the autolock.
         """
-        self._plot_paused = True
+        self.plot_paused = True
 
     def resume_plot_and_clear_cache(self):
-        """Resumes plotting again."""
-        self._plot_paused = False
-        self._cached_plot_data = []
+        """Resume plotting again."""
+        self.plot_paused = False
+        self.cached_plot_data = []
 
     # called when widget is resized
     def position_reset_view_button(self):
@@ -759,3 +772,11 @@ class PlotWidget(pg.PlotWidget):
 
         # we don't do it directly here because this causes problems for some reason
         self._should_reposition_reset_view_button = True
+
+
+def scale_history_times(arr: np.ndarray, timescale: int) -> np.ndarray:
+    if arr:
+        arr = np.array(arr)
+        arr -= arr[0]
+        arr *= 1 / timescale * N_POINTS
+    return arr
