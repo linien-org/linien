@@ -50,9 +50,10 @@ class MainWindow(QtWidgets.QMainWindow):
     power_channel_1: QtWidgets.QLabel
     power_channel_2: QtWidgets.QLabel
     legend_unlocked: QtWidgets.QHBoxLayout
-    spectrum1LegendLabel: QtWidgets.QLabel
-    spectrum2LegendLabel: QtWidgets.QLabel
-    combinedSpectrumLegendLabel: QtWidgets.QLabel
+    error1LegendLabel: QtWidgets.QLabel
+    error2LegendLabel: QtWidgets.QLabel
+    monitorLegendLabel: QtWidgets.QLabel
+    combinedErrorLegendLabel: QtWidgets.QLabel
     sweepControlWidget: SweepControlWidget
     sweepAmplitudeSpinBox: CustomDoubleSpinBox
     sweepCenterSpinBox: CustomDoubleSpinBox
@@ -173,23 +174,23 @@ class MainWindow(QtWidgets.QMainWindow):
                 )
             )
 
-        set_color(self.spectrum1LegendLabel, Color.SPECTRUM1)
-        set_color(self.spectrum2LgendLabel, Color.SPECTRUM2)
-        set_color(self.combinedSpectrumLegendLabel, Color.SPECTRUM_COMBINED)
-        set_color(self.errorSignalLegendLabel, Color.SPECTRUM_COMBINED)
+        set_color(self.error1LegendLabel, Color.ERROR1)
+        set_color(self.error2LegendLabel, Color.ERROR2)
+        set_color(self.monitorLegendLabel, Color.MONITOR)
+        set_color(self.combinedErrorLegendLabel, Color.ERROR_COMBINED)
+        set_color(self.errorSignalLegendLabel, Color.ERROR_COMBINED)
         set_color(self.controlSignalLegendLabel, Color.CONTROL_SIGNAL)
         set_color(self.controlSignalHistoryLegendLabel, Color.CONTROL_SIGNAL_HISTORY)
         set_color(self.slowSignalHistoryLegendLabel, Color.SLOW_HISTORY)
         set_color(self.monitorSignalHistoryLegendLabel, Color.MONITOR_SIGNAL_HISTORY)
 
-    def update_legend_text(self, dual_channel):
-        self.spectrum1LegendLabel.setText(
-            "error signal" if not dual_channel else "error signal 1"
+    def update_legend_text(self, dual_channel: bool) -> None:
+        self.error1LegendLabel.setVisible(dual_channel)
+        self.error2LegendLabel.setVisible(dual_channel)
+        self.monitorLegendLabel.setVisible(not dual_channel)
+        self.combinedErrorLegendLabel.setText(
+            "error" if not dual_channel else "combined error"
         )
-        self.spectrum2LgendLabel.setText(
-            "monitor" if not dual_channel else "error signal 2"
-        )
-        self.combinedSpectrumLegendLabel.setVisible(dual_channel)
 
     def show(self, host: str, name: str) -> None:  # type: ignore[override]
         self.setWindowTitle(

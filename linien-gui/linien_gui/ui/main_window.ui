@@ -471,9 +471,9 @@ p, li { white-space: pre-wrap; }
             <item>
              <layout class="QHBoxLayout" name="unlockedLegendLayout">
               <item>
-               <widget class="QLabel" name="spectrum1LegendLabel">
+               <widget class="QLabel" name="error1LegendLabel">
                 <property name="text">
-                 <string>sig1</string>
+                 <string>error 1</string>
                 </property>
                 <property name="wordWrap">
                  <bool>false</bool>
@@ -481,9 +481,9 @@ p, li { white-space: pre-wrap; }
                </widget>
               </item>
               <item>
-               <widget class="QLabel" name="spectrum2LegendLabel">
+               <widget class="QLabel" name="error2LegendLabel">
                 <property name="text">
-                 <string>sig2</string>
+                 <string>error 2</string>
                 </property>
                 <property name="wordWrap">
                  <bool>false</bool>
@@ -491,7 +491,14 @@ p, li { white-space: pre-wrap; }
                </widget>
               </item>
               <item>
-               <widget class="QLabel" name="combinedSpectrumLegendLabel">
+               <widget class="QLabel" name="monitorLegendLabel">
+                <property name="text">
+                 <string>monitor</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="combinedErrorLegendLabel">
                 <property name="text">
                  <string>combined</string>
                 </property>

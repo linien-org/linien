@@ -168,10 +168,12 @@ class PlotWidget(pg.PlotWidget):
         self.addItem(self.signalStrengthBFill)
         self.errorSignal1 = pg.PlotCurveItem()
         self.addItem(self.errorSignal1)
-        self.monitorOrErrorSignal2 = pg.PlotCurveItem()
-        self.addItem(self.monitorOrErrorSignal2)
+        self.errorSignal2 = pg.PlotCurveItem()
+        self.addItem(self.errorSignal2)
         self.combinedErrorSignal = pg.PlotCurveItem()
         self.addItem(self.combinedErrorSignal)
+        self.monitorSignal = pg.PlotCurveItem()
+        self.addItem(self.monitorSignal)
 
         self.controlSignal = pg.PlotCurveItem()
         self.addItem(self.controlSignal)
@@ -344,9 +346,10 @@ class PlotWidget(pg.PlotWidget):
         pen_width = self.app.settings.plot_line_width.value
 
         for curve, color in {
-            self.errorSignal1: Color.SPECTRUM1,
-            self.monitorOrErrorSignal2: Color.SPECTRUM2,
-            self.combinedErrorSignal: Color.SPECTRUM_COMBINED,
+            self.errorSignal1: Color.ERROR1,
+            self.errorSignal2: Color.ERROR2,
+            self.combinedErrorSignal: Color.ERROR_COMBINED,
+            self.monitorSignal: Color.MONITOR,
             self.controlSignal: Color.CONTROL_SIGNAL,
             self.controlSignalHistory: Color.CONTROL_SIGNAL_HISTORY,
             self.slowHistory: Color.SLOW_HISTORY,
@@ -455,18 +458,12 @@ class PlotWidget(pg.PlotWidget):
             )
 
             if self.parameters.lock.value:
-                all_signals = (
-                    to_plot["error_signal"],
-                    to_plot["control_signal"],
-                    self.control_signal_history_data["values"],
-                    self.control_signal_history_data["slow_values"],
-                )
-
                 dual_channel = self.parameters.dual_channel.value
                 timescale = self.parameters.control_signal_history_length.value
 
                 self.errorSignal1.setVisible(False)
-                self.monitorOrErrorSignal2.setVisible(False)
+                self.errorSignal2.setVisible(False)
+                self.monitorSignal.setVisible(False)
                 self.signalStrengthA.setVisible(False)
                 self.signalStrengthB.setVisible(False)
                 self.signalStrengthA2.setVisible(False)
@@ -520,17 +517,11 @@ class PlotWidget(pg.PlotWidget):
                     error_signal_2 if error_signal_2 is not None else monitor_signal
                 )
 
-                self.combinedErrorSignal.setVisible(dual_channel)
-                self.controlSignal.setVisible(False)
-                self.controlSignalHistory.setVisible(False)
-                self.slowHistory.setVisible(False)
-                self.monitorSignalHistory.setVisible(False)
-
                 combined_error_signal = combine_error_signal(
                     (error_signal_1, monitor_or_error_signal_2),
                     dual_channel,
                     self.parameters.channel_mixing.value,
-                    self.parameters.combined_offset.value,
+                    self.parameters.combined_offset.value if dual_channel else 0,
                 )
 
                 if self.plot_paused:
@@ -539,60 +530,59 @@ class PlotWidget(pg.PlotWidget):
                     self.cached_plot_data = self.cached_plot_data[-20:]
                     return
 
-                all_signals = [error_signal_1, monitor_or_error_signal_2] + [
+                self.last_plot_data = [error_signal_1, monitor_or_error_signal_2] + [
                     combined_error_signal
                 ]
-                self.last_plot_data = all_signals
 
-                self.monitorOrErrorSignal2.setVisible(
-                    error_signal_2 is not None or monitor_signal is not None
-                )
-                self.monitorOrErrorSignal2.setData(
-                    list(range(len(monitor_or_error_signal_2))),
-                    monitor_or_error_signal_2 / V,
-                )
+                self.controlSignal.setVisible(False)
+                self.controlSignalHistory.setVisible(False)
+                self.slowHistory.setVisible(False)
+                self.monitorSignalHistory.setVisible(False)
 
-                self.errorSignal1.setVisible(True)
-                self.errorSignal1.setData(
+                self.combinedErrorSignal.setVisible(True)
+                self.combinedErrorSignal.setData(
                     list(range(len(error_signal_1))), error_signal_1 / V
                 )
-                self.combinedErrorSignal.setData(
-                    list(range(len(combined_error_signal))), combined_error_signal / V
-                )
+
+                self.errorSignal1.setVisible(dual_channel)
+                if error_signal_1 is not None:
+                    self.errorSignal1.setData(
+                        list(range(len(error_signal_1))), error_signal_1 / V
+                    )
+
+                self.errorSignal2.setVisible(dual_channel)
+                if error_signal_2 is not None:
+                    self.errorSignal2.setData(
+                        list(range(len(error_signal_2))), error_signal_2 / V
+                    )
+
+                self.monitorSignal.setVisible(not dual_channel)
+                if monitor_signal is not None:
+                    self.monitorSignal.setData(
+                        list(range(len(monitor_signal))), monitor_signal / V
+                    )
+
                 self.plot_autolock_target_line(combined_error_signal)
 
                 if (self.parameters.modulation_frequency.value != 0) and (
                     not self.parameters.pid_only_mode.value
                 ):
                     # check whether to plot signal strengths using quadratures
-                    error_signal_1_quadrature = to_plot.get("error_signal_1_quadrature")
-                    error_signal_2_quadrature = to_plot.get("error_signal_2_quadrature")
+                    error_1_quadrature = to_plot.get("error_signal_1_quadrature")
+                    error_2_quadrature = to_plot.get("error_signal_2_quadrature")
 
-                    self.signalStrengthA.setVisible(
-                        error_signal_1_quadrature is not None
-                    )
-                    self.signalStrengthA2.setVisible(
-                        error_signal_1_quadrature is not None
-                    )
-                    self.signalStrengthAFill.setVisible(
-                        error_signal_1_quadrature is not None
-                    )
+                    self.signalStrengthA.setVisible(error_1_quadrature is not None)
+                    self.signalStrengthA2.setVisible(error_1_quadrature is not None)
+                    self.signalStrengthAFill.setVisible(error_1_quadrature is not None)
+                    self.signalStrengthB.setVisible(error_2_quadrature is not None)
+                    self.signalStrengthB2.setVisible(error_2_quadrature is not None)
+                    self.signalStrengthBFill.setVisible(error_2_quadrature is not None)
 
-                    self.signalStrengthB.setVisible(
-                        error_signal_2_quadrature is not None
-                    )
-                    self.signalStrengthB2.setVisible(
-                        error_signal_2_quadrature is not None
-                    )
-                    self.signalStrengthBFill.setVisible(
-                        error_signal_2_quadrature is not None
-                    )
-
-                    if error_signal_1_quadrature is not None:
+                    if error_1_quadrature is not None:
                         max_signal_strength_V = (
                             self.plot_signal_strength(
                                 error_signal_1,
-                                error_signal_1_quadrature,
+                                error_1_quadrature,
                                 self.signalStrengthA,
                                 self.signalStrengthA2,
                                 self.signalStrengthAFill,
@@ -601,12 +591,6 @@ class PlotWidget(pg.PlotWidget):
                             )
                             / V
                         )
-                        all_signals.append(
-                            [
-                                max_signal_strength_V * V,
-                                -1 * max_signal_strength_V * V,
-                            ]
-                        )
 
                         self.signal_power1.emit(
                             peak_voltage_to_dBm(max_signal_strength_V)
@@ -614,11 +598,11 @@ class PlotWidget(pg.PlotWidget):
                     else:
                         self.signal_power1.emit(INVALID_POWER)
 
-                    if error_signal_2_quadrature is not None:
+                    if error_2_quadrature is not None:
                         max_signal_strength2_V = (
                             self.plot_signal_strength(
                                 monitor_or_error_signal_2,
-                                error_signal_2_quadrature,
+                                error_2_quadrature,
                                 self.signalStrengthB,
                                 self.signalStrengthB2,
                                 self.signalStrengthBFill,
@@ -626,13 +610,6 @@ class PlotWidget(pg.PlotWidget):
                                 self.app.settings.plot_color_1.value,
                             )
                             / V
-                        )
-
-                        all_signals.append(
-                            [
-                                max_signal_strength2_V * V,
-                                -1 * max_signal_strength2_V * V,
-                            ]
                         )
 
                         self.signal_power2.emit(
