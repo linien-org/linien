@@ -258,8 +258,6 @@ class RedPitayaControlService(BaseService, LinienControlService):
 
     def exposed_start_autolock(self, x0, x1, spectrum, additional_spectra=None):
         spectrum = pickle.loads(spectrum)
-        # start_watching = self.parameters.watch_lock.value
-        start_watching = False
         auto_offset = self.parameters.autolock_determine_offset.value
 
         if not self._task_running():
@@ -269,7 +267,6 @@ class RedPitayaControlService(BaseService, LinienControlService):
                 x0,
                 x1,
                 spectrum,
-                should_watch_lock=start_watching,
                 auto_offset=auto_offset,
                 additional_spectra=(
                     pickle.loads(additional_spectra)

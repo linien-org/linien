@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
 import pickle
 from time import time
 
@@ -38,6 +39,9 @@ from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import pyqtSignal
 from pyqtgraph.Qt import QtCore
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
 # NOTE: this is required for using a pen_width > 1. There is a bug though that causes
 # the plot to be way too small. Therefore, we call PlotWidget.resize() after a while
 pg.setConfigOptions(
@@ -49,7 +53,7 @@ pg.setConfigOptions(
 )
 
 # relation between counts and 1V
-V = 8192
+VOLTS_TO_COUNTS_FACTOR = 8192
 
 # pyqt signals enforce type, so...
 INVALID_POWER = -1000
@@ -63,8 +67,8 @@ class TimeXAxis(pg.AxisItem):
     """Plots x axis as time in seconds instead of point number."""
 
     def __init__(self, *args, parent=None, **kwargs):
-        pg.AxisItem.__init__(self, *args, **kwargs)
         self.parent = parent
+        pg.AxisItem.__init__(self, *args, **kwargs)
         self.app = get_linien_app_instance()
         self.app.connection_established.connect(self.on_connection_established)
 
@@ -180,6 +184,40 @@ class PlotWidget(pg.PlotWidget):
         self.signal1.setData([0, N_POINTS - 1], [1, 1])
         self.signal1.setData([0, N_POINTS - 1], [1, 1])
         self.combined_signal.setData([0, N_POINTS - 1], [1, 1])
+
+        # these lines are used for configuration of the relocking system
+        control_threshold_pen = pg.mkPen("m", width=2, style=QtCore.Qt.DashLine)
+        error_threshold_pen = pg.mkPen("y", width=2, style=QtCore.Qt.DashLine)
+        monitor_threshold_pen = pg.mkPen("y", width=2, style=QtCore.Qt.DashLine)
+        self.control_signal_threshold_min = pg.InfiniteLine(
+            pen=control_threshold_pen, angle=90
+        )
+        self.control_signal_threshold_max = pg.InfiniteLine(
+            pen=control_threshold_pen, angle=90
+        )
+        self.error_signal_threshold_min = pg.InfiniteLine(
+            pen=error_threshold_pen, angle=0
+        )
+        self.error_signal_threshold_max = pg.InfiniteLine(
+            pen=error_threshold_pen, angle=0
+        )
+        self.monitor_signal_threshold_min = pg.InfiniteLine(
+            pen=monitor_threshold_pen, angle=0
+        )
+        self.monitor_signal_threshold_max = pg.InfiniteLine(
+            pen=monitor_threshold_pen, angle=0
+        )
+
+        for item in (
+            self.control_signal_threshold_min,
+            self.control_signal_threshold_max,
+            self.error_signal_threshold_min,
+            self.error_signal_threshold_max,
+            self.monitor_signal_threshold_min,
+            self.monitor_signal_threshold_max,
+        ):
+            self.addItem(item)
+            item.setVisible(True)
 
         self.connection = None
         self.parameters = None
@@ -534,12 +572,12 @@ class PlotWidget(pg.PlotWidget):
                                 self.parameters.offset_a.value,
                                 self.app.settings.plot_color_0.value,
                             )
-                            / V
+                            / VOLTS_TO_COUNTS_FACTOR
                         )
                         all_signals.append(
                             [
-                                max_signal_strength_V * V,
-                                -1 * max_signal_strength_V * V,
+                                max_signal_strength_V * VOLTS_TO_COUNTS_FACTOR,
+                                -1 * max_signal_strength_V * VOLTS_TO_COUNTS_FACTOR,
                             ]
                         )
 
@@ -560,13 +598,13 @@ class PlotWidget(pg.PlotWidget):
                                 self.parameters.offset_b.value,
                                 self.app.settings.plot_color_1.value,
                             )
-                            / V
+                            / VOLTS_TO_COUNTS_FACTOR
                         )
 
                         all_signals.append(
                             [
-                                max_signal_strength2_V * V,
-                                -1 * max_signal_strength2_V * V,
+                                max_signal_strength2_V * VOLTS_TO_COUNTS_FACTOR,
+                                -1 * max_signal_strength2_V * VOLTS_TO_COUNTS_FACTOR,
                             ]
                         )
 
@@ -606,9 +644,9 @@ class PlotWidget(pg.PlotWidget):
         r, g, b, *_ = color
 
         x = list(range(len(signal_strength)))
-        signal_strength_scaled = signal_strength / V
-        upper = (channel_offset / V) + signal_strength_scaled
-        lower = (channel_offset / V) - 1 * signal_strength_scaled
+        signal_strength_scaled = signal_strength / VOLTS_TO_COUNTS_FACTOR
+        upper = (channel_offset / VOLTS_TO_COUNTS_FACTOR) + signal_strength_scaled
+        lower = (channel_offset / VOLTS_TO_COUNTS_FACTOR) - 1 * signal_strength_scaled
 
         brush = pg.mkBrush(r, g, b, self.app.settings.plot_fill_opacity.value)
         fill.setBrush(brush)
@@ -616,21 +654,29 @@ class PlotWidget(pg.PlotWidget):
         invisible_pen = pg.mkPen("k", width=0.00001)
         signal.setData(x, upper, pen=invisible_pen)
         neg_signal.setData(x, lower, pen=invisible_pen)
-        return np.max([np.max(upper), -1 * np.min(lower)]) * V
+        return np.max([np.max(upper), -1 * np.min(lower)]) * VOLTS_TO_COUNTS_FACTOR
 
     def plot_data_unlocked(self, error_signals, combined_signal):
         error_signal1, error_signal2 = error_signals
-        self.signal1.setData(list(range(len(error_signal1))), error_signal1 / V)
-        self.signal2.setData(list(range(len(error_signal2))), error_signal2 / V)
+        self.signal1.setData(
+            list(range(len(error_signal1))), error_signal1 / VOLTS_TO_COUNTS_FACTOR
+        )
+        self.signal2.setData(
+            list(range(len(error_signal2))), error_signal2 / VOLTS_TO_COUNTS_FACTOR
+        )
         self.combined_signal.setData(
-            list(range(len(combined_signal))), combined_signal / V
+            list(range(len(combined_signal))), combined_signal / VOLTS_TO_COUNTS_FACTOR
         )
 
     def plot_data_locked(self, signals):
         error_signal = signals["error_signal"]
         control_signal = signals["control_signal"]
-        self.combined_signal.setData(list(range(len(error_signal))), error_signal / V)
-        self.control_signal.setData(list(range(len(error_signal))), control_signal / V)
+        self.combined_signal.setData(
+            list(range(len(error_signal))), error_signal / VOLTS_TO_COUNTS_FACTOR
+        )
+        self.control_signal.setData(
+            list(range(len(error_signal))), control_signal / VOLTS_TO_COUNTS_FACTOR
+        )
 
     def plot_autolock_target_line(self, combined_error_signal):
         if (
@@ -687,19 +733,21 @@ class PlotWidget(pg.PlotWidget):
 
             history = self.control_signal_history_data["values"]
             self.control_signal_history.setData(
-                scale(self.control_signal_history_data["times"]), np.array(history) / V
+                scale(self.control_signal_history_data["times"]),
+                np.array(history) / VOLTS_TO_COUNTS_FACTOR,
             )
 
             slow_values = self.control_signal_history_data["slow_values"]
             self.slow_history.setData(
                 scale(self.control_signal_history_data["slow_times"]),
-                np.array(slow_values) / V,
+                np.array(slow_values) / VOLTS_TO_COUNTS_FACTOR,
             )
 
             if not self.parameters.dual_channel.value:
                 self.monitor_signal_history.setData(
                     scale(self.monitor_signal_history_data["times"]),
-                    np.array(self.monitor_signal_history_data["values"]) / V,
+                    np.array(self.monitor_signal_history_data["values"])
+                    / VOLTS_TO_COUNTS_FACTOR,
                 )
 
             return history, slow_values
@@ -771,6 +819,36 @@ class PlotWidget(pg.PlotWidget):
 
     def resizeEvent(self, event, *args, **kwargs):
         super().resizeEvent(event, *args, **kwargs)
-
         # we don't do it directly here because this causes problems for some reason
         self._should_reposition_reset_view_button = True
+
+    def show_control_thresholds(self, show: bool, min_: float, max_: float) -> None:
+        if self.app.parameters.lock.value:
+            self.control_signal_threshold_min.setAngle(0)
+            self.control_signal_threshold_max.setAngle(0)
+        else:
+            sweep_center = self.app.parameters.sweep_center.value
+            sweep_amplitude = self.app.parameters.sweep_amplitude.value
+            sweep_min = sweep_center - sweep_amplitude
+            sweep_max = sweep_center + sweep_amplitude
+            spacing = (N_POINTS - 1) / abs(sweep_max - sweep_min)  # pts / V
+            min_ = spacing * (min_ - sweep_min)
+            max_ = spacing * (max_ - sweep_min)
+            self.control_signal_threshold_min.setAngle(90)
+            self.control_signal_threshold_max.setAngle(90)
+        self.control_signal_threshold_min.setValue(min_)
+        self.control_signal_threshold_max.setValue(max_)
+        self.control_signal_threshold_min.setVisible(show)
+        self.control_signal_threshold_max.setVisible(show)
+
+    def show_error_thresholds(self, show: bool, min_: float, max_: float) -> None:
+        self.error_signal_threshold_min.setValue(min_)
+        self.error_signal_threshold_max.setValue(max_)
+        self.error_signal_threshold_min.setVisible(show)
+        self.error_signal_threshold_max.setVisible(show)
+
+    def show_monitor_thresholds(self, show: bool, min_: float, max_: float) -> None:
+        self.monitor_signal_threshold_min.setValue(min_)
+        self.monitor_signal_threshold_max.setValue(max_)
+        self.monitor_signal_threshold_min.setVisible(show)
+        self.monitor_signal_threshold_max.setVisible(show)

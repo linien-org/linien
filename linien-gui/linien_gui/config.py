@@ -105,6 +105,9 @@ class Settings:
         self.plot_color_2 = Setting(start=DEFAULT_COLORS[2])
         self.plot_color_3 = Setting(start=DEFAULT_COLORS[3])
         self.plot_color_4 = Setting(start=DEFAULT_COLORS[4])
+        self.show_control_threshold = Setting(start=False)
+        self.show_error_threshold = Setting(start=False)
+        self.show_monitor_threshold = Setting(start=False)
 
         # save changed settings to disk
         for _, setting in self:

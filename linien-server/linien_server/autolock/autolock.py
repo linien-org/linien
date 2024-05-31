@@ -44,7 +44,6 @@ class Autolock:
         self.parameters.autolock_running.value = False
         self.parameters.autolock_retrying.value = False
 
-        self.should_watch_lock = False
         self._data_listener_added = False
 
         self.reset_properties()
@@ -66,23 +65,15 @@ class Autolock:
         x0,
         x1,
         spectrum,
-        should_watch_lock: bool = False,
         auto_offset: bool = True,
         additional_spectra=None,
     ) -> None:
-        """
-        Start the autolock.
-
-        If `should_watch_lock` is specified, the autolock continuously monitors the
-        control and error signals after the lock was successful and tries to relock
-        automatically using the spectrum that was recorded in the first run of the lock.
-        """
+        """Start the autolock."""
         self.parameters.autolock_running.value = True
         self.parameters.autolock_preparing.value = True
         self.parameters.autolock_percentage.value = 0
         self.parameters.fetch_additional_signals.value = False
         self.x0, self.x1 = int(x0), int(x1)
-        self.should_watch_lock = should_watch_lock
 
         # collect parameters that should be restored after stopping the lock
         self.parameters.autolock_initial_sweep_amplitude.value = (

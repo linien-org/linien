@@ -164,7 +164,9 @@ class ConnectionThread(QThread):
             if param.restorable:
 
                 def on_change(value, parameter_name: str = param_name) -> None:
-                    logger.debug(f"Parameter {parameter_name} changed to {value}")
+                    logger.debug(
+                        f"Parameter {parameter_name} changed to {value} on disk."
+                    )
                     if (
                         parameter_name not in self.device.parameters
                         or self.device.parameters[parameter_name] != value

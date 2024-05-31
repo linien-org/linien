@@ -88,7 +88,6 @@ def test_forced_algorithm_selection():
             int(new_center_point - (0.01 * N)),
             int(new_center_point + (0.01 * N)),
             reference_signal,
-            should_watch_lock=True,
             auto_offset=True,
         )
 
@@ -126,7 +125,6 @@ def test_automatic_algorithm_selection():
             int(new_center_point - (0.01 * N)),
             int(new_center_point + (0.01 * N)),
             reference_signal,
-            should_watch_lock=True,
             auto_offset=True,
         )
 
