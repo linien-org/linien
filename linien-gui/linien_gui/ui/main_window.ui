@@ -236,7 +236,7 @@ p, li { white-space: pre-wrap; }
           </widget>
          </item>
          <item>
-          <widget class="QWidget" name="top_lock_panel" native="true">
+          <widget class="QWidget" name="topLockPanelWidget" native="true">
            <layout class="QHBoxLayout" name="horizontalLayout_4">
             <item>
              <widget class="QLabel" name="label_4">
@@ -252,7 +252,7 @@ p, li { white-space: pre-wrap; }
              </widget>
             </item>
             <item>
-             <widget class="QLabel" name="error_std">
+             <widget class="QLabel" name="errorStdLabel">
               <property name="text">
                <string>TextLabel</string>
               </property>
@@ -288,7 +288,7 @@ p, li { white-space: pre-wrap; }
              </widget>
             </item>
             <item>
-             <widget class="QLabel" name="control_std">
+             <widget class="QLabel" name="controlStdLabel">
               <property name="text">
                <string>TextLabel</string>
               </property>
@@ -311,7 +311,7 @@ p, li { white-space: pre-wrap; }
              </spacer>
             </item>
             <item>
-             <widget class="QLabel" name="legend_error_signal">
+             <widget class="QLabel" name="errorSignalLegendLabel">
               <property name="text">
                <string>error</string>
               </property>
@@ -321,7 +321,7 @@ p, li { white-space: pre-wrap; }
              </widget>
             </item>
             <item>
-             <widget class="QLabel" name="legend_control_signal">
+             <widget class="QLabel" name="controlSignalLegendLabel">
               <property name="text">
                <string>control</string>
               </property>
@@ -331,7 +331,7 @@ p, li { white-space: pre-wrap; }
              </widget>
             </item>
             <item>
-             <widget class="QLabel" name="legend_control_signal_history">
+             <widget class="QLabel" name="controlSignalHistoryLegendLabel">
               <property name="text">
                <string>control history</string>
               </property>
@@ -341,14 +341,14 @@ p, li { white-space: pre-wrap; }
              </widget>
             </item>
             <item>
-             <widget class="QLabel" name="legend_slow_signal_history">
+             <widget class="QLabel" name="slowSignalHistoryLegendLabel">
               <property name="text">
                <string>slow out history</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QLabel" name="legend_monitor_signal_history">
+             <widget class="QLabel" name="monitorSignalHistoryLegendLabel">
               <property name="text">
                <string>monitor signal</string>
               </property>
@@ -469,9 +469,9 @@ p, li { white-space: pre-wrap; }
              </spacer>
             </item>
             <item>
-             <layout class="QHBoxLayout" name="legend_unlocked">
+             <layout class="QHBoxLayout" name="unlockedLegendLayout">
               <item>
-               <widget class="QLabel" name="legend_spectrum_1">
+               <widget class="QLabel" name="spectrum1LegendLabel">
                 <property name="text">
                  <string>sig1</string>
                 </property>
@@ -481,7 +481,7 @@ p, li { white-space: pre-wrap; }
                </widget>
               </item>
               <item>
-               <widget class="QLabel" name="legend_spectrum_2">
+               <widget class="QLabel" name="spectrum2LegendLabel">
                 <property name="text">
                  <string>sig2</string>
                 </property>
@@ -491,7 +491,7 @@ p, li { white-space: pre-wrap; }
                </widget>
               </item>
               <item>
-               <widget class="QLabel" name="legend_spectrum_combined">
+               <widget class="QLabel" name="combinedSpectrumLegendLabel">
                 <property name="text">
                  <string>combined</string>
                 </property>
@@ -592,7 +592,7 @@ p, li { white-space: pre-wrap; }
         </layout>
        </item>
        <item>
-        <widget class="QPushButton" name="pid_parameter_optimization_button">
+        <widget class="QPushButton" name="PIDParameterOptimizationButton">
          <property name="text">
           <string>Noise analysis</string>
          </property>
@@ -1027,7 +1027,7 @@ p, li { white-space: pre-wrap; }
         </widget>
        </item>
        <item>
-        <widget class="QToolBox" name="settings_toolbox">
+        <widget class="QToolBox" name="settingsToolbox">
          <property name="enabled">
           <bool>true</bool>
          </property>
@@ -1054,8 +1054,8 @@ p, li { white-space: pre-wrap; }
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>332</width>
-            <height>400</height>
+            <width>338</width>
+            <height>488</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1072,8 +1072,8 @@ p, li { white-space: pre-wrap; }
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>332</width>
-            <height>400</height>
+            <width>338</width>
+            <height>488</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1090,8 +1090,8 @@ p, li { white-space: pre-wrap; }
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>332</width>
-            <height>400</height>
+            <width>338</width>
+            <height>488</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1108,8 +1108,8 @@ p, li { white-space: pre-wrap; }
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>332</width>
-            <height>400</height>
+            <width>338</width>
+            <height>488</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1131,8 +1131,8 @@ p, li { white-space: pre-wrap; }
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>332</width>
-            <height>400</height>
+            <width>338</width>
+            <height>488</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -1155,8 +1155,8 @@ p, li { white-space: pre-wrap; }
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>332</width>
-            <height>400</height>
+            <width>338</width>
+            <height>488</height>
            </rect>
           </property>
           <property name="sizePolicy">

@@ -34,7 +34,7 @@ class RightPanel(QtWidgets.QWidget):
         self.main_window.openDeviceManagerButton.clicked.connect(
             self.open_device_manager
         )
-        self.main_window.pid_parameter_optimization_button.clicked.connect(
+        self.main_window.PIDParameterOptimizationButton.clicked.connect(
             self.open_psd_window
         )
 
@@ -49,7 +49,7 @@ class RightPanel(QtWidgets.QWidget):
         self.parameters.lock.add_callback(self.enable_or_disable_panels)
 
         def highlight_psd_button(locked: bool) -> None:
-            self.main_window.pid_parameter_optimization_button.setStyleSheet(
+            self.main_window.PIDParameterOptimizationButton.setStyleSheet(
                 "background: #00aa00;" if locked else ""
             )
 
@@ -66,7 +66,7 @@ class RightPanel(QtWidgets.QWidget):
 
     def autolock_status_changed(self, value: bool) -> None:
         if value:
-            self.main_window.settings_toolbox.setCurrentWidget(
+            self.main_window.settingsToolbox.setCurrentWidget(
                 self.main_window.lockingPanel
             )
 
@@ -74,7 +74,7 @@ class RightPanel(QtWidgets.QWidget):
 
     def optimization_status_changed(self, value: bool) -> None:
         if value:
-            self.main_window.settings_toolbox.setCurrentWidget(
+            self.main_window.settingsToolbox.setCurrentWidget(
                 self.main_window.optimizationPanel
             )
 
