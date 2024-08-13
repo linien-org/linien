@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Show differences when local and remote parameters do not match by @bleykauf in https://github.com/linien-org/linien/pull/400
 * Show voltage on the x-axis when sweeping by @bleykauf in https://github.com/linien-org/linien/pull/404
 
+### Fixed
+
+* Fixed example code in the readme by @bleykauf in https://github.com/linien-org/linien/pull/404, thanks to @Andrew-wi for reporting this issue
+
 ## [2.0.4] - 2024-05-30
 
 ### Fixed
