@@ -28,21 +28,21 @@ from PyQt5 import QtGui, QtWidgets, uic
 
 
 class ViewPanel(QtWidgets.QWidget):
-    plot_line_width: CustomDoubleSpinBoxNoSign
-    plot_line_opacity: CustomSpinBox
-    plot_fill_opacity: CustomSpinBox
-    display_color_0: QtWidgets.QLabel
-    display_color_1: QtWidgets.QLabel
-    display_color_2: QtWidgets.QLabel
-    display_color_3: QtWidgets.QLabel
-    display_color_4: QtWidgets.QLabel
-    edit_color_0: QtWidgets.QToolButton
-    edit_color_1: QtWidgets.QToolButton
-    edit_color_2: QtWidgets.QToolButton
-    edit_color_3: QtWidgets.QToolButton
-    edit_color_4: QtWidgets.QToolButton
-    export_data: QtWidgets.QPushButton
-    export_select_file: QtWidgets.QPushButton
+    plotLineWidthSpinBox: CustomDoubleSpinBoxNoSign
+    plotLineOpacitySpinBox: CustomSpinBox
+    plotFillOpacitySpinBox: CustomSpinBox
+    displayColorLabel0: QtWidgets.QLabel
+    displayColorLabel1: QtWidgets.QLabel
+    displayColorLabel2: QtWidgets.QLabel
+    displayColorLabel3: QtWidgets.QLabel
+    displayColorLabel4: QtWidgets.QLabel
+    editColorButton0: QtWidgets.QToolButton
+    editColorButton1: QtWidgets.QToolButton
+    editColorButton2: QtWidgets.QToolButton
+    editColorButton3: QtWidgets.QToolButton
+    editColorButton4: QtWidgets.QToolButton
+    exportDataPushButton: QtWidgets.QPushButton
+    exportSelectFilePushButton: QtWidgets.QPushButton
 
     def __init__(self, *args, **kwargs):
         super(ViewPanel, self).__init__(*args, **kwargs)
@@ -50,20 +50,24 @@ class ViewPanel(QtWidgets.QWidget):
         self.app = get_linien_app_instance()
         self.app.connection_established.connect(self.on_connection_established)
 
-        self.export_select_file.clicked.connect(self.do_export_select_file)
-        self.export_data.clicked.connect(self.do_export_data)
+        self.exportSelectFilePushButton.clicked.connect(self.export_select_file)
+        self.exportDataPushButton.clicked.connect(self.export_data)
 
-        self.plot_line_width.setKeyboardTracking(False)
-        self.plot_line_width.valueChanged.connect(self.plot_line_width_changed)
+        self.plotLineWidthSpinBox.setKeyboardTracking(False)
+        self.plotLineWidthSpinBox.valueChanged.connect(self.on_plot_line_width_changed)
 
-        self.plot_line_opacity.setKeyboardTracking(False)
-        self.plot_line_opacity.valueChanged.connect(self.plot_line_opacity_changed)
+        self.plotLineOpacitySpinBox.setKeyboardTracking(False)
+        self.plotLineOpacitySpinBox.valueChanged.connect(
+            self.on_plot_line_opacity_changed
+        )
 
-        self.plot_fill_opacity.setKeyboardTracking(False)
-        self.plot_fill_opacity.valueChanged.connect(self.plot_fill_opacity_changed)
+        self.plotFillOpacitySpinBox.setKeyboardTracking(False)
+        self.plotFillOpacitySpinBox.valueChanged.connect(
+            self.on_plot_fill_opacity_changed
+        )
 
         for color_idx in range(N_COLORS):
-            getattr(self, f"edit_color_{color_idx}").clicked.connect(
+            getattr(self, f"editColorButton{color_idx}").clicked.connect(
                 lambda *args, color_idx=color_idx: self.edit_color(color_idx)
             )
 
@@ -77,13 +81,13 @@ class ViewPanel(QtWidgets.QWidget):
         self.parameters = self.app.parameters
         self.control = self.app.control
 
-        param2ui(self.app.settings.plot_line_width, self.plot_line_width)
-        param2ui(self.app.settings.plot_line_opacity, self.plot_line_opacity)
-        param2ui(self.app.settings.plot_fill_opacity, self.plot_fill_opacity)
+        param2ui(self.app.settings.plot_line_width, self.plotLineWidthSpinBox)
+        param2ui(self.app.settings.plot_line_opacity, self.plotLineOpacitySpinBox)
+        param2ui(self.app.settings.plot_fill_opacity, self.plotFillOpacitySpinBox)
 
         def preview_colors(*args):
             for color_idx in range(N_COLORS):
-                element = getattr(self, f"display_color_{color_idx}")
+                element = getattr(self, f"displayColorLabel{color_idx}")
                 setting = getattr(self.app.settings, f"plot_color_{color_idx}")
                 element.setStyleSheet(
                     f"background-color: {color_to_hex(setting.value)}"
@@ -94,16 +98,16 @@ class ViewPanel(QtWidgets.QWidget):
                 preview_colors
             )
 
-    def plot_line_width_changed(self):
-        self.app.settings.plot_line_width.value = self.plot_line_width.value()
+    def on_plot_line_width_changed(self):
+        self.app.settings.plot_line_width.value = self.plotLineWidthSpinBox.value()
 
-    def plot_line_opacity_changed(self):
-        self.app.settings.plot_line_opacity.value = self.plot_line_opacity.value()
+    def on_plot_line_opacity_changed(self):
+        self.app.settings.plot_line_opacity.value = self.plotLineOpacitySpinBox.value()
 
-    def plot_fill_opacity_changed(self):
-        self.app.settings.plot_fill_opacity.value = self.plot_fill_opacity.value()
+    def on_plot_fill_opacity_changed(self):
+        self.app.settings.plot_fill_opacity.value = self.plotFillOpacitySpinBox.value()
 
-    def do_export_select_file(self):
+    def export_select_file(self):
         options = QtWidgets.QFileDialog.Options()
         # options |= QtWidgets.QFileDialog.DontUseNativeDialog
         default_ext = ".json"
@@ -118,10 +122,12 @@ class ViewPanel(QtWidgets.QWidget):
             if not fn.endswith(default_ext):
                 fn = fn + default_ext
             self.export_fn = fn
-            self.export_select_file.setText(f"File selected: {path.split(fn)[-1]}")
-            self.export_data.setEnabled(True)
+            self.exportSelectFilePushButton.setText(
+                f"File selected: {path.split(fn)[-1]}"
+            )
+            self.exportDataPushButton.setEnabled(True)
 
-    def do_export_data(self):
+    def export_data(self):
         fn = self.export_fn
         counter = 0
 
