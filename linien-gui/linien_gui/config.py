@@ -34,11 +34,11 @@ SETTINGS_STORE_FILENAME = "settings.json"
 DEFAULT_PLOT_RATE_LIMIT = 0.1
 
 DEFAULT_COLORS = [
-    (200, 0, 0, 200),
-    (0, 200, 0, 200),
-    (0, 0, 200, 200),
-    (200, 200, 0, 200),
-    (200, 0, 200, 200),
+    (200, 0, 0, 200),  # red
+    (0, 200, 0, 200),  # green
+    (0, 0, 200, 200),  # blue
+    (200, 200, 0, 200),  # yellow
+    (200, 0, 200, 200),  # pink
 ]
 N_COLORS = len(DEFAULT_COLORS)
 
