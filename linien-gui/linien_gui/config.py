@@ -34,23 +34,27 @@ SETTINGS_STORE_FILENAME = "settings.json"
 DEFAULT_PLOT_RATE_LIMIT = 0.1
 
 DEFAULT_COLORS = [
-    (200, 0, 0, 200),
-    (0, 200, 0, 200),
-    (0, 0, 200, 200),
-    (200, 200, 0, 200),
-    (200, 0, 200, 200),
+    (214, 39, 40, 200),  # 0: red
+    (44, 160, 44, 200),  # 1: green
+    (31, 119, 180, 200),  # 2: blue
+    (188, 189, 34, 200),  # 3: yellow
+    (227, 119, 194, 200),  # 4: pink
+    (255, 127, 14, 200),  # 5: orange
+    (148, 103, 189, 200),  # 6: purple
+    (23, 190, 207, 200),  # 7: turquoise
 ]
 N_COLORS = len(DEFAULT_COLORS)
 
 
 class Color(Enum):
-    SPECTRUM1 = 0
-    SPECTRUM2 = 1
-    SPECTRUM_COMBINED = 2
-    CONTROL_SIGNAL = 0
-    CONTROL_SIGNAL_HISTORY = 1
-    SLOW_HISTORY = 3
-    MONITOR_SIGNAL_HISTORY = 4
+    ERROR_COMBINED = 0
+    SLOW_HISTORY = 1
+    MONITOR = 2
+    CONTROL_SIGNAL = 3
+    ERROR1 = 4
+    CONTROL_SIGNAL_HISTORY = 5
+    ERROR2 = 6
+    MONITOR_SIGNAL_HISTORY = 7
 
 
 class Setting:
@@ -105,6 +109,9 @@ class Settings:
         self.plot_color_2 = Setting(start=DEFAULT_COLORS[2])
         self.plot_color_3 = Setting(start=DEFAULT_COLORS[3])
         self.plot_color_4 = Setting(start=DEFAULT_COLORS[4])
+        self.plot_color_5 = Setting(start=DEFAULT_COLORS[5])
+        self.plot_color_6 = Setting(start=DEFAULT_COLORS[6])
+        self.plot_color_7 = Setting(start=DEFAULT_COLORS[7])
 
         # save changed settings to disk
         for _, setting in self:

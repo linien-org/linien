@@ -50,28 +50,29 @@ class MainWindow(QtWidgets.QMainWindow):
     power_channel_1: QtWidgets.QLabel
     power_channel_2: QtWidgets.QLabel
     legend_unlocked: QtWidgets.QHBoxLayout
-    legend_spectrum_1: QtWidgets.QLabel
-    legend_spectrum_2: QtWidgets.QLabel
-    legend_spectrum_combined: QtWidgets.QLabel
+    error1LegendLabel: QtWidgets.QLabel
+    error2LegendLabel: QtWidgets.QLabel
+    monitorLegendLabel: QtWidgets.QLabel
+    combinedErrorLegendLabel: QtWidgets.QLabel
     sweepControlWidget: SweepControlWidget
     sweepAmplitudeSpinBox: CustomDoubleSpinBox
     sweepCenterSpinBox: CustomDoubleSpinBox
     sweepSlider: SweepSlider
     sweepStartStopPushButton: QtWidgets.QPushButton
-    top_lock_panel: QtWidgets.QWidget
-    control_std: QtWidgets.QLabel
-    error_std: QtWidgets.QLabel
-    legend_control_signal: QtWidgets.QLabel
-    legend_control_signal_history: QtWidgets.QLabel
-    legend_error_signal: QtWidgets.QLabel
-    legend_monitor_signal_history: QtWidgets.QLabel
-    legend_slow_signal_history: QtWidgets.QLabel
+    topLockPanelWidget: QtWidgets.QWidget
+    controlStdLabel: QtWidgets.QLabel
+    errorStdLabel: QtWidgets.QLabel
+    controlSignalLegendLabel: QtWidgets.QLabel
+    controlSignalHistoryLegendLabel: QtWidgets.QLabel
+    errorSignalLegendLabel: QtWidgets.QLabel
+    monitorSignalHistoryLegendLabel: QtWidgets.QLabel
+    slowSignalHistoryLegendLabel: QtWidgets.QLabel
     rightPanel: RightPanel
     exportParametersButton: QtWidgets.QPushButton
     importParametersButton: QtWidgets.QPushButton
     newVersionAvailableLabel: QtWidgets.QLabel
-    pid_parameter_optimization_button: QtWidgets.QPushButton
-    settings_toolbox: QtWidgets.QToolBox
+    PIDParameterOptimizationButton: QtWidgets.QPushButton
+    settingsToolbox: QtWidgets.QToolBox
     generalPanel: QtWidgets.QWidget
     modSpectroscopyPanel: QtWidgets.QWidget
     optimizationPanel: QtWidgets.QWidget
@@ -134,19 +135,19 @@ class MainWindow(QtWidgets.QMainWindow):
         self.parameters.to_plot.add_callback(self.update_std)
 
         self.parameters.pid_on_slow_enabled.add_callback(
-            lambda v: self.legend_slow_signal_history.setVisible(v)
+            lambda v: self.slowSignalHistoryLegendLabel.setVisible(v)
         )
         self.parameters.dual_channel.add_callback(
-            lambda v: self.legend_monitor_signal_history.setVisible(not v)
+            lambda v: self.monitorSignalHistoryLegendLabel.setVisible(not v)
         )
 
-        self.settings_toolbox.setCurrentIndex(0)
+        self.settingsToolbox.setCurrentIndex(0)
 
         self.parameters.lock.add_callback(lambda *args: self.reset_std_history())
 
         for color_idx in range(N_COLORS):
             getattr(self.app.settings, f"plot_color_{color_idx}").add_callback(
-                self.update_legend_color
+                self.on_plot_color_changed
             )
 
         self.parameters.dual_channel.add_callback(self.update_legend_text)
@@ -159,12 +160,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.sweepControlWidget.setVisible(
             not al_running and not locked and not optimization
         )
-        self.top_lock_panel.setVisible(locked)
+        self.topLockPanelWidget.setVisible(locked)
         self.statusbar_unlocked.setVisible(
             not al_running and not locked and not optimization
         )
 
-    def update_legend_color(self, *args):
+    def on_plot_color_changed(self, *args):
         def set_color(el, color: Color):
             return el.setStyleSheet(
                 "color: "
@@ -173,23 +174,23 @@ class MainWindow(QtWidgets.QMainWindow):
                 )
             )
 
-        set_color(self.legend_spectrum_1, Color.SPECTRUM1)
-        set_color(self.legend_spectrum_2, Color.SPECTRUM2)
-        set_color(self.legend_spectrum_combined, Color.SPECTRUM_COMBINED)
-        set_color(self.legend_error_signal, Color.SPECTRUM_COMBINED)
-        set_color(self.legend_control_signal, Color.CONTROL_SIGNAL)
-        set_color(self.legend_control_signal_history, Color.CONTROL_SIGNAL_HISTORY)
-        set_color(self.legend_slow_signal_history, Color.SLOW_HISTORY)
-        set_color(self.legend_monitor_signal_history, Color.MONITOR_SIGNAL_HISTORY)
+        set_color(self.error1LegendLabel, Color.ERROR1)
+        set_color(self.error2LegendLabel, Color.ERROR2)
+        set_color(self.monitorLegendLabel, Color.MONITOR)
+        set_color(self.combinedErrorLegendLabel, Color.ERROR_COMBINED)
+        set_color(self.errorSignalLegendLabel, Color.ERROR_COMBINED)
+        set_color(self.controlSignalLegendLabel, Color.CONTROL_SIGNAL)
+        set_color(self.controlSignalHistoryLegendLabel, Color.CONTROL_SIGNAL_HISTORY)
+        set_color(self.slowSignalHistoryLegendLabel, Color.SLOW_HISTORY)
+        set_color(self.monitorSignalHistoryLegendLabel, Color.MONITOR_SIGNAL_HISTORY)
 
-    def update_legend_text(self, dual_channel):
-        self.legend_spectrum_1.setText(
-            "error signal" if not dual_channel else "error signal 1"
+    def update_legend_text(self, dual_channel: bool) -> None:
+        self.error1LegendLabel.setVisible(dual_channel)
+        self.error2LegendLabel.setVisible(dual_channel)
+        self.monitorLegendLabel.setVisible(not dual_channel)
+        self.combinedErrorLegendLabel.setText(
+            "error" if not dual_channel else "combined error"
         )
-        self.legend_spectrum_2.setText(
-            "monitor" if not dual_channel else "error signal 2"
-        )
-        self.legend_spectrum_combined.setVisible(dual_channel)
 
     def show(self, host: str, name: str) -> None:  # type: ignore[override]
         self.setWindowTitle(
@@ -270,8 +271,10 @@ class MainWindow(QtWidgets.QMainWindow):
                 ]
 
                 if error_signal is not None and control_signal is not None:
-                    self.error_std.setText(f"{np.mean(self.error_std_history):.2f}")
-                    self.control_std.setText(f"{np.mean(self.control_std_history):.2f}")
+                    self.errorStdLabel.setText(f"{np.mean(self.error_std_history):.2f}")
+                    self.controlStdLabel.setText(
+                        f"{np.mean(self.control_std_history):.2f}"
+                    )
 
     def reset_std_history(self):
         self.error_std_history = []
