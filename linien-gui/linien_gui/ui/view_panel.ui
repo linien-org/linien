@@ -245,16 +245,16 @@
        </layout>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="displayColorLayout7">
+       <layout class="QHBoxLayout" name="displayColorLayout4">
         <item>
-         <widget class="QLabel" name="colorLabel7">
+         <widget class="QLabel" name="colorLabel4">
           <property name="text">
            <string>Error Signal 1</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QLabel" name="displayColorLabel7">
+         <widget class="QLabel" name="displayColorLabel4">
           <property name="maximumSize">
            <size>
             <width>50</width>
@@ -267,7 +267,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QToolButton" name="editColorButton7">
+         <widget class="QToolButton" name="editColorButton4">
           <property name="text">
            <string>...</string>
           </property>
@@ -307,42 +307,11 @@
        </layout>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="displayColorLayout4">
-        <item>
-         <widget class="QLabel" name="colorLabel4">
-          <property name="text">
-           <string>Error Signal 2</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLabel" name="displayColorLabel4">
-          <property name="maximumSize">
-           <size>
-            <width>50</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QToolButton" name="editColorButton4">
-          <property name="text">
-           <string>...</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item>
        <layout class="QHBoxLayout" name="displayColorLayout6">
         <item>
          <widget class="QLabel" name="colorLabel6">
           <property name="text">
-           <string>Monitor Signal History</string>
+           <string>Error Signal 2</string>
           </property>
          </widget>
         </item>
@@ -361,6 +330,37 @@
         </item>
         <item>
          <widget class="QToolButton" name="editColorButton6">
+          <property name="text">
+           <string>...</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="displayColorLayout7">
+        <item>
+         <widget class="QLabel" name="colorLabel7">
+          <property name="text">
+           <string>Monitor Signal History</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="displayColorLabel7">
+          <property name="maximumSize">
+           <size>
+            <width>50</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QToolButton" name="editColorButton7">
           <property name="text">
            <string>...</string>
           </property>

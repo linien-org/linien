@@ -579,6 +579,11 @@ class PlotWidget(pg.PlotWidget):
                     self.signalStrengthBFill.setVisible(error_2_quadrature is not None)
 
                     if error_1_quadrature is not None:
+
+                        if self.parameters.dual_channel.value:
+                            color = Color.ERROR1.value
+                        else:
+                            color = Color.ERROR_COMBINED.value
                         max_signal_strength_V = (
                             self.plot_signal_strength(
                                 error_signal_1,
@@ -587,7 +592,7 @@ class PlotWidget(pg.PlotWidget):
                                 self.signalStrengthA2,
                                 self.signalStrengthAFill,
                                 self.parameters.offset_a.value,
-                                self.app.settings.plot_color_0.value,
+                                getattr(self.app.settings, f"plot_color_{color}").value,
                             )
                             / V
                         )
@@ -607,7 +612,10 @@ class PlotWidget(pg.PlotWidget):
                                 self.signalStrengthB2,
                                 self.signalStrengthBFill,
                                 self.parameters.offset_b.value,
-                                self.app.settings.plot_color_1.value,
+                                getattr(
+                                    self.app.settings,
+                                    f"plot_color_{Color.ERROR2.value}",
+                                ).value,
                             )
                             / V
                         )
