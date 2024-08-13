@@ -89,10 +89,10 @@ from linien_client.deploy import install_remote_server
 
 device = Device(
     host="rp-xxxxxx.local",
-    user="root",
+    username="root",
     password="root"    
 )
-instalL_remote_server(device)
+install_remote_server(device)
 ```
 
 Finally, you can install the server manually, by connecting to the RedPitaya via SSH and
@@ -240,7 +240,7 @@ from linien_common.common import  MHz, Vpp, ANALOG_OUT_V
 
 dev = Device(
     host="rp-xxxxxx.local",
-    user="root",
+    username="root",
     password="root"    
 )
 c = LinienClient(dev)
@@ -335,7 +335,7 @@ from time import sleep
 
 c = LinienClient(
     host="rp-xxxxxx.local",
-    user="root",
+    username="root",
     password="root"
 )
 c.connect(autostart_server=True, use_parameter_cache=True)
