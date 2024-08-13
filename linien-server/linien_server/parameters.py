@@ -587,7 +587,7 @@ class Parameters:
 
         self.psd_data_partial = Parameter(start=None)
         self.psd_data_complete = Parameter(start=None)
-        self.psd_algorithm = Parameter(start=PSDAlgorithm.LPSD)
+        self.psd_algorithm = Parameter(start=PSDAlgorithm.LPSD, restorable=True)
         self.psd_acquisition_running = Parameter(start=False)
         self.psd_optimization_running = Parameter(start=False)
         self.psd_acquisition_max_decimation = Parameter(
