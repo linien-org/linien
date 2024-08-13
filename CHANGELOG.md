@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+* Switched to Tableau color scheme and make colors consistent, i.e. signals have the same color while sweeping and when locked. By @bleykauf in https://github.com/linien-org/linien/pull/419.
+
 ### Added
 * Show differences when local and remote parameters do not match by @bleykauf in https://github.com/linien-org/linien/pull/400
 * Show voltage on the x-axis when sweeping by @bleykauf in https://github.com/linien-org/linien/pull/404
