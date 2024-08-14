@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 * Fixed example code in the readme by @bleykauf in https://github.com/linien-org/linien/pull/420, thanks to @Andrew-wi for reporting this issue
+* Fixed a bug preventing the selection of a PSD algorithm via the GUI by @bleykauf in https://github.com/linien-org/linien/pull/421, thanks to @martinssonh for reporting this issue
 
 ## [2.0.4] - 2024-05-30
 

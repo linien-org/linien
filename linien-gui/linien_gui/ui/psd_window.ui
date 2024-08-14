@@ -16,7 +16,7 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout">
     <item>
-     <widget class="PSDPlotWidget" name="psd_plot_widget">
+     <widget class="PSDPlotWidget" name="PSDPlot">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
         <horstretch>0</horstretch>
@@ -46,7 +46,7 @@
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_3">
          <item>
-          <widget class="QComboBox" name="maximum_measurement_time">
+          <widget class="QComboBox" name="maxMeasurementTimeComboBox">
            <property name="currentIndex">
             <number>5</number>
            </property>
@@ -161,13 +161,13 @@
        </widget>
       </item>
       <item>
-       <widget class="QGroupBox" name="groupBox_2">
+       <widget class="QGroupBox" name="algorithmGroupBox">
         <property name="title">
          <string>Algorithm</string>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_2">
          <item>
-          <widget class="QComboBox" name="psd_algorithm">
+          <widget class="QComboBox" name="PSDAlgorithmComboBox">
            <item>
             <property name="text">
              <string>LPSD</string>
@@ -184,13 +184,13 @@
        </widget>
       </item>
       <item>
-       <widget class="QGroupBox" name="container_psd_not_running">
+       <widget class="QGroupBox" name="PSDNotRunningContainer">
         <property name="title">
          <string>Single PSD measurement</string>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_4">
          <item>
-          <widget class="QPushButton" name="start_psd_button">
+          <widget class="QPushButton" name="startPSDPushButton">
            <property name="font">
             <font>
              <weight>75</weight>
@@ -209,7 +209,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QWidget" name="container_psd_running" native="true">
+       <widget class="QWidget" name="PSDRunningContainer" native="true">
         <layout class="QVBoxLayout" name="verticalLayout_5">
          <item>
           <widget class="QLabel" name="label_2">
@@ -232,7 +232,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="stop_psd_button">
+          <widget class="QPushButton" name="stopPSDPushButton">
            <property name="styleSheet">
             <string notr="true">background-color: #d40000;</string>
            </property>
@@ -245,7 +245,7 @@
        </widget>
       </item>
       <item>
-       <widget class="PSDTableWidget" name="curve_table">
+       <widget class="PSDTableWidget" name="curveTable">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
           <horstretch>0</horstretch>
@@ -290,7 +290,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="delete_curve_button">
+       <widget class="QPushButton" name="deleteCurveButton">
         <property name="text">
          <string>Delete selected</string>
         </property>
@@ -302,14 +302,14 @@
          <number>6</number>
         </property>
         <item>
-         <widget class="QPushButton" name="import_psd_button">
+         <widget class="QPushButton" name="importPSDPushButton">
           <property name="text">
            <string>Import traces</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="export_psd_button">
+         <widget class="QPushButton" name="exportPSDPushButton">
           <property name="text">
            <string>Export traces</string>
           </property>
