@@ -112,10 +112,8 @@ class PSDWindow(QtWidgets.QMainWindow):
     def on_maximum_measurement_time_changed(self, index):
         self.parameters.psd_acquisition_max_decimation.value = 12 + index
 
-    def change_psd_algorithm(self, index):
-        self.parameters.psd_algorithm.value = [PSDAlgorithm.LPSD, PSDAlgorithm.WELCH][
-            index
-        ]
+    def change_psd_algorithm(self, index: int) -> None:
+        self.parameters.psd_algorithm.value = list(PSDAlgorithm)[index]
 
     def psd_data_received(self, data_pickled):
         if data_pickled is None:
