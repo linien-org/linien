@@ -1,7 +1,6 @@
-# Copyright 2018-2022 Benjamin Wiegand <benjamin.wiegand@physik.hu-berlin.de>
-# Copyright 2021-2022 Bastian Leykauf <leykauf@physik.hu-berlin.de>
-#
 # This file is part of Linien and based on redpid.
+#
+# Copyright (C) 2016-2024 Linien Authors (https://github.com/linien-org/linien#license)
 #
 # Linien is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -164,9 +163,13 @@ class DeviceManager(QtWidgets.QMainWindow):
                 "only saved if Linien server was shut down properly, not when "
                 "unplugging the power plug. In this case, you should update your local "
                 "parameters."
+                "\n"
+                "The following parameters changed (local ↔ remote):"
             )
+            for param_name, (local_value, remote_value) in parameter_difference.items():
+                question += f"\n{param_name}:\n          {local_value} ↔ {remote_value}"
             should_restore = ask_for_parameter_restore_dialog(
-                self, question, "Restore parameters?"
+                self, question, title="Restore parameters?"
             )
             if should_restore:
                 self.connection_thread.restore_parameters(parameter_difference)

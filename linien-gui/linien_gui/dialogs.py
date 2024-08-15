@@ -1,6 +1,6 @@
-# Copyright 2018-2022 Benjamin Wiegand <benjamin.wiegand@physik.hu-berlin.de>
-#
 # This file is part of Linien and based on redpid.
+#
+# Copyright (C) 2016-2024 Linien Authors (https://github.com/linien-org/linien#license)
 #
 # Linien is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -97,10 +97,10 @@ class LoadingDialog(QMessageBox):
         self.setStandardButtons(QMessageBox.NoButton)
         self.show()
 
-    def closeEvent(self, *args):
+    def closeEvent(self, *args) -> None:
         self.aborted.emit()
 
-    def keyPressEvent(self, event):
+    def keyPressEvent(self, event) -> None:
         key = event.key()
         if key == QtCore.Qt.Key_Escape:
             self.close()
@@ -110,7 +110,7 @@ def error_dialog(parent: QWidget, error):
     return QMessageBox.question(parent, "Error", error, QMessageBox.Ok, QMessageBox.Ok)
 
 
-def question_dialog(parent, question, title):
+def question_dialog(parent, question: str, title: str) -> bool:
     box = QMessageBox(parent)
     box.setText(question)
     box.setWindowTitle(title)
@@ -121,12 +121,11 @@ def question_dialog(parent, question, title):
     return reply == QMessageBox.Yes
 
 
-def ask_for_parameter_restore_dialog(parent, question, title):
+def ask_for_parameter_restore_dialog(parent, question: str, title: str) -> bool:
     box = QMessageBox(parent)
     box.setText(question)
     box.setWindowTitle(title)
-    # do_nothing_button
-    _ = box.addButton("Keep remote parameters", QMessageBox.NoRole)
+    _ = box.addButton("Keep remote parameters", QMessageBox.NoRole)  # do nothing
     upload_button = box.addButton("Upload local parameters", QMessageBox.YesRole)
 
     box.exec_()

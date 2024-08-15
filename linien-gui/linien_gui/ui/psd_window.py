@@ -1,7 +1,6 @@
-# Copyright 2018-2022 Benjamin Wiegand <benjamin.wiegand@physik.hu-berlin.de>
-# Copyright 2021-2022 Bastian Leykauf <leykauf@physik.hu-berlin.de>
-#
 # This file is part of Linien and based on redpid.
+#
+# Copyright (C) 2016-2024 Linien Authors (https://github.com/linien-org/linien#license)
 #
 # Linien is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,6 +22,8 @@ import linien_gui
 from linien_common.common import PSDAlgorithm
 from linien_gui.config import UI_PATH
 from linien_gui.dialogs import error_dialog
+from linien_gui.ui.psd_plot_widget import PSDPlotWidget
+from linien_gui.ui.psd_table_widget import PSDTableWidget
 from linien_gui.utils import (
     RandomColorChoser,
     get_linien_app_instance,
@@ -33,6 +34,18 @@ from PyQt5 import QtWidgets, uic
 
 
 class PSDWindow(QtWidgets.QMainWindow):
+    PSDPlot: PSDPlotWidget
+    curveTable: PSDTableWidget
+    maxMeasurementTimeComboBox: QtWidgets.QComboBox
+    PSDAlgorithmComboBox: QtWidgets.QComboBox
+    startPSDPushButton: QtWidgets.QPushButton
+    stopPSDPushButton: QtWidgets.QPushButton
+    exportPSDPushButton: QtWidgets.QPushButton
+    importPSDPushButton: QtWidgets.QPushButton
+    deleteCurveButton: QtWidgets.QPushButton
+    PSDRunningContainer: QtWidgets.QWidget
+    PSDNotRunningContainer: QtWidgets.QGroupBox
+
     def __init__(self, *args, **kwargs):
         super(PSDWindow, self).__init__(*args, **kwargs)
         uic.loadUi(UI_PATH / "psd_window.ui", self)
@@ -46,21 +59,19 @@ class PSDWindow(QtWidgets.QMainWindow):
         self.data = {}
         self.complete_uids = []
 
-        self.start_psd_button.clicked.connect(self.start_psd)
-        self.stop_psd_button.clicked.connect(self.stop_psd)
+        self.startPSDPushButton.clicked.connect(self.start_psd)
+        self.stopPSDPushButton.clicked.connect(self.stop_psd)
 
-        self.curve_table.show_or_hide_curve.connect(
-            self.psd_plot_widget.show_or_hide_curve
-        )
-        self.delete_curve_button.clicked.connect(self.delete_curve)
-        self.export_psd_button.clicked.connect(self.export_psd)
-        self.import_psd_button.clicked.connect(self.import_psd)
+        self.curveTable.show_or_hide_curve.connect(self.PSDPlot.show_or_hide_curve)
+        self.deleteCurveButton.clicked.connect(self.delete_curve)
+        self.exportPSDPushButton.clicked.connect(self.export_psd)
+        self.importPSDPushButton.clicked.connect(self.import_psd)
 
-        self.maximum_measurement_time.currentIndexChanged.connect(
-            self.change_maximum_measurement_time
+        self.maxMeasurementTimeComboBox.currentIndexChanged.connect(
+            self.on_maximum_measurement_time_changed
         )
 
-        self.psd_algorithm.currentIndexChanged.connect(self.change_psd_algorithm)
+        self.PSDAlgorithmComboBox.currentIndexChanged.connect(self.change_psd_algorithm)
 
     def on_connection_established(self):
         self.parameters = self.app.parameters
@@ -75,19 +86,19 @@ class PSDWindow(QtWidgets.QMainWindow):
 
         param2ui(
             self.parameters.psd_acquisition_max_decimation,
-            self.maximum_measurement_time,
+            self.maxMeasurementTimeComboBox,
             lambda max_decimation: max_decimation - 12,
         )
-        param2ui(self.parameters.psd_algorithm, self.psd_algorithm)
+        param2ui(self.parameters.psd_algorithm, self.PSDAlgorithmComboBox)
 
         def update_status(_):
             psd_running = self.parameters.psd_acquisition_running.value
             if psd_running:
-                self.container_psd_running.show()
-                self.container_psd_not_running.hide()
+                self.PSDRunningContainer.show()
+                self.PSDNotRunningContainer.hide()
             else:
-                self.container_psd_running.hide()
-                self.container_psd_not_running.show()
+                self.PSDRunningContainer.hide()
+                self.PSDNotRunningContainer.show()
 
         self.parameters.psd_acquisition_running.add_callback(update_status)
 
@@ -97,13 +108,11 @@ class PSDWindow(QtWidgets.QMainWindow):
         event.ignore()
         self.hide()
 
-    def change_maximum_measurement_time(self, index):
+    def on_maximum_measurement_time_changed(self, index):
         self.parameters.psd_acquisition_max_decimation.value = 12 + index
 
-    def change_psd_algorithm(self, index):
-        self.parameters.psd_algorithm.value = [PSDAlgorithm.LPSD, PSDAlgorithm.WELCH][
-            index
-        ]
+    def change_psd_algorithm(self, index: int) -> None:
+        self.parameters.psd_algorithm.value = list(PSDAlgorithm)[index]
 
     def psd_data_received(self, data_pickled):
         if data_pickled is None:
@@ -130,8 +139,8 @@ class PSDWindow(QtWidgets.QMainWindow):
         else:
             color = self.colors[curve_uuid]
 
-        self.psd_plot_widget.plot_curve(curve_uuid, data["psds"], color)
-        self.curve_table.add_curve(curve_uuid, data, color)
+        self.PSDPlot.plot_curve(curve_uuid, data["psds"], color)
+        self.curveTable.add_curve(curve_uuid, data, color)
 
         self.data[curve_uuid] = data
 
@@ -150,9 +159,9 @@ class PSDWindow(QtWidgets.QMainWindow):
         self.control.start_pid_optimization()
 
     def delete_curve(self):
-        uuid = self.curve_table.delete_selected_curve()
+        uuid = self.curveTable.delete_selected_curve()
         if uuid is not None:
-            self.psd_plot_widget.delete_curve(uuid)
+            self.PSDPlot.delete_curve(uuid)
             del self.data[uuid]
 
     def export_psd(self):

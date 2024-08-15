@@ -1,6 +1,6 @@
-# Copyright 2018-2022 Benjamin Wiegand <benjamin.wiegand@physik.hu-berlin.de>
-#
 # This file is part of Linien and based on redpid.
+#
+# Copyright (C) 2016-2024 Linien Authors (https://github.com/linien-org/linien#license)
 #
 # Linien is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
 
 from enum import IntEnum
 from time import time
-from typing import Dict, List, Tuple, Union
+from typing import Dict, Iterable, List, Tuple, Union
 
 import numpy as np
 from scipy.signal import correlate, resample
@@ -278,8 +278,12 @@ def convert_channel_mixing_value(value: int) -> Tuple[int, int]:
 
 
 def combine_error_signal(
-    error_signals, dual_channel, channel_mixing, combined_offset, chain_factor_width=8
-):
+    error_signals: tuple[Iterable[int], Iterable[int]],
+    dual_channel: bool,
+    channel_mixing: int,
+    combined_offset: int,
+    chain_factor_width: int = 8,
+) -> np.ndarray:
     if not dual_channel:
         signal = error_signals[0]
     else:

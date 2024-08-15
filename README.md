@@ -89,10 +89,10 @@ from linien_client.deploy import install_remote_server
 
 device = Device(
     host="rp-xxxxxx.local",
-    user="root",
+    username="root",
     password="root"    
 )
-instalL_remote_server(device)
+install_remote_server(device)
 ```
 
 Finally, you can install the server manually, by connecting to the RedPitaya via SSH and
@@ -240,7 +240,7 @@ from linien_common.common import  MHz, Vpp, ANALOG_OUT_V
 
 dev = Device(
     host="rp-xxxxxx.local",
-    user="root",
+    username="root",
     password="root"    
 )
 c = LinienClient(dev)
@@ -259,7 +259,7 @@ c.parameters.modulation_amplitude.value = 1 * Vpp
 c.connection.root.write_registers()
 
 # additionally set ANALOG_OUT_1 to 1.2 volts DC (you can use this to control other devices of your experiment)
-c.parameters.analog_out_1.value = 1.2 * ANALOG_OUT_V
+c.parameters.analog_out_1.value = 1.2 / ANALOG_OUT_V
 
 # GPIO outputs can also be set
 # each bit corresponds to a pin
@@ -335,7 +335,7 @@ from time import sleep
 
 c = LinienClient(
     host="rp-xxxxxx.local",
-    user="root",
+    username="root",
     password="root"
 )
 c.connect(autostart_server=True, use_parameter_cache=True)
@@ -496,7 +496,9 @@ Linien ‒ User-friendly locking of lasers using RedPitaya (STEMlab 125-14) that
 Copyright © 2014-2015 Robert Jördens\
 Copyright © 2018-2022 Benjamin Wiegand\
 Copyright © 2021-2024 Bastian Leykauf\
-Copyright © 2022 Christian Freier
+Copyright © 2022 Christian Freier\
+Copyright © 2023-2024 Doron Behar\
+
 
 Linien is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 

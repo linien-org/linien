@@ -1,7 +1,6 @@
-# Copyright 2018-2022 Benjamin Wiegand <benjamin.wiegand@physik.hu-berlin.de>
-# Copyright 2021-2022 Bastian Leykauf <leykauf@physik.hu-berlin.de>
-#
 # This file is part of Linien and based on redpid.
+#
+# Copyright (C) 2016-2024 Linien Authors (https://github.com/linien-org/linien#license)
 #
 # Linien is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -34,7 +33,7 @@ class RightPanel(QtWidgets.QWidget):
         self.main_window.openDeviceManagerButton.clicked.connect(
             self.open_device_manager
         )
-        self.main_window.pid_parameter_optimization_button.clicked.connect(
+        self.main_window.PIDParameterOptimizationButton.clicked.connect(
             self.open_psd_window
         )
 
@@ -49,7 +48,7 @@ class RightPanel(QtWidgets.QWidget):
         self.parameters.lock.add_callback(self.enable_or_disable_panels)
 
         def highlight_psd_button(locked: bool) -> None:
-            self.main_window.pid_parameter_optimization_button.setStyleSheet(
+            self.main_window.PIDParameterOptimizationButton.setStyleSheet(
                 "background: #00aa00;" if locked else ""
             )
 
@@ -66,7 +65,7 @@ class RightPanel(QtWidgets.QWidget):
 
     def autolock_status_changed(self, value: bool) -> None:
         if value:
-            self.main_window.settings_toolbox.setCurrentWidget(
+            self.main_window.settingsToolbox.setCurrentWidget(
                 self.main_window.lockingPanel
             )
 
@@ -74,7 +73,7 @@ class RightPanel(QtWidgets.QWidget):
 
     def optimization_status_changed(self, value: bool) -> None:
         if value:
-            self.main_window.settings_toolbox.setCurrentWidget(
+            self.main_window.settingsToolbox.setCurrentWidget(
                 self.main_window.optimizationPanel
             )
 

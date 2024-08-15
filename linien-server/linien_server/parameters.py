@@ -1,8 +1,6 @@
-# Copyright 2018-2022 Benjamin Wiegand <benjamin.wiegand@physik.hu-berlin.de>
-# Copyright 2021-2022 Bastian Leykauf <leykauf@physik.hu-berlin.de>
-# Copyright 2023 Christian Freier <christian.freier@nomadatomics.com>
-#
 # This file is part of Linien and based on redpid.
+#
+# Copyright (C) 2016-2024 Linien Authors (https://github.com/linien-org/linien#license)
 #
 # Linien is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -188,13 +186,13 @@ class Parameters:
 
         self.gpio_p_out = Parameter(start=0, min_=0, max_=0b11111111)
         """
-        set the output of GPIO pins. Each bit corresponds to one pin, i.e.
+        Set the output of GPIO pins. Each bit corresponds to one pin, i.e.
         `parameters.gpio_p_out.value = 0b11110000` turns on the first 4 pins and turns
         off the other ones.
         """
         self.gpio_n_out = Parameter(start=0, min_=0, max_=0b11111111)
         """
-        set the output of GPIO pins. Each bit corresponds to one pin, i.e.
+        Set the output of GPIO pins. Each bit corresponds to one pin, i.e.
         `parameters.gpio_p_out.value = 0b11110000` turns on the first 4 pins and turns
         off the other ones.
         """
@@ -204,25 +202,27 @@ class Parameters:
             start=0, min_=0, max_=(2**15) - 1, restorable=True
         )
         """
-        parameters for setting ANALOG_OUT 1 voltage.
-        Usage: `parameters.analog_out_1.value = 1.2 * ANALOG_OUT_V`
-        Minimum value is 0 and maximum 1.8 * ANALOG_OUT_V
+        Set output for Analog OUT 1.
+        Usage: `parameters.analog_out_1.value = 1.2 / ANALOG_OUT_V`. Minimum value is 0
+        and maximum 1.8 / ANALOG_OUT_V
         """
+
         self.analog_out_2 = Parameter(
             start=0, min_=0, max_=(2**15) - 1, restorable=True
         )
         """
-        parameters for setting ANALOG_OUT 1 voltage.
-        Usage: `parameters.analog_out_2.value = 1.2 * ANALOG_OUT_V`
-        Minimum value is 0 and maximum 1.8 * ANALOG_OUT_V
+        Set output for Analog OUT 2.
+        Usage: `parameters.analog_out_1.value = 1.2 / ANALOG_OUT_V`. Minimum value is 0
+        and maximum 1.8 / ANALOG_OUT_V
         """
+
         self.analog_out_3 = Parameter(
             start=0, min_=0, max_=(2**15) - 1, restorable=True
         )
         """
-        parameters for setting ANALOG_OUT 1 voltage.
-        Usage: `parameters.analog_out_3.value = 1.2 * ANALOG_OUT_V`
-        Minimum value is 0 and maximum 1.8 * ANALOG_OUT_V
+        Set output for Analog OUT 3.
+        Usage: `parameters.analog_out_1.value = 1.2 / ANALOG_OUT_V`. Minimum value is 0
+        and maximum 1.8 / ANALOG_OUT_V
         """
 
         self.lock = Parameter(start=False, loggable=True)
@@ -285,7 +285,7 @@ class Parameters:
         self.sweep_amplitude = Parameter(min_=0.001, max_=1, start=1, loggable=True)
         """
         Amplitude of the sweep in units of 0.5 * Vpp of the output (2 V for fast outputs
-        (range +/- 1 V) and 0.9 V for slow outputs (range 0 V to 1.8 V). That means an
+        (range +/- 1 V) and 0.9 V for slow outputs (range 0 V to 1.8 V)). That means an
         amplitude of 1.0 corresponds to the full sweep range in both cases.
         """
 
@@ -297,12 +297,12 @@ class Parameters:
         """
 
         self.sweep_speed = Parameter(
-            min_=0, max_=32, start=8, restorable=True, loggable=True
+            min_=0, max_=15, start=8, restorable=True, loggable=True
         )
         """
         The sweep speed in internal units. The actual speed is given by
         f_real = 3.8 kHz / (2 ** sweep_speed)
-        Allowed values are [0, ..., 16]
+        Allowed values are [0, ..., 15]
         """
 
         self.sweep_pause = Parameter(start=False, loggable=True)
@@ -585,7 +585,7 @@ class Parameters:
 
         self.psd_data_partial = Parameter(start=None)
         self.psd_data_complete = Parameter(start=None)
-        self.psd_algorithm = Parameter(start=PSDAlgorithm.LPSD)
+        self.psd_algorithm = Parameter(start=PSDAlgorithm.LPSD, restorable=True)
         self.psd_acquisition_running = Parameter(start=False)
         self.psd_optimization_running = Parameter(start=False)
         self.psd_acquisition_max_decimation = Parameter(
