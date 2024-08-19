@@ -306,7 +306,7 @@ class PlotWidget(pg.PlotWidget):
                         last_combined_error_signal = self.last_plot_data[2]
                         self.parameters.autolock_selection.value = False
 
-                        self.control.start_autolock(
+                        self.control.exposed_start_autolock(
                             # we pickle it here because otherwise a netref is
                             # transmitted which blocks the autolock
                             *sorted([x0, x]),
@@ -336,7 +336,9 @@ class PlotWidget(pg.PlotWidget):
                         ]
                         self.parameters.optimization_selection.value = False
                         points = sorted([int(x0), int(x)])
-                        self.control.start_optimization(*points, pickle.dumps(spectrum))
+                        self.control.exposed_start_optimization(
+                            *points, pickle.dumps(spectrum)
+                        )
 
             self.overlay.setVisible(False)
             self.touch_start = None

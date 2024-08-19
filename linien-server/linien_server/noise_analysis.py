@@ -47,8 +47,8 @@ def calculate_psd(
     :return: One-sided power spectral density.
     """
 
-    # at beginning or end of signal, we sometimes have more glitches --> ignore
-    # them (200 points less @ 16384 points doesn't hurt much)
+    # at beginning or end of signal, we sometimes have more glitches --> ignore them
+    # (200 points less @ 16384 points doesn't hurt much)
     sig = sig[100:-100]
 
     num_pts = 256

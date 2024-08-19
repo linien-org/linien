@@ -78,10 +78,10 @@ class PSDWindow(QtWidgets.QMainWindow):
         self.control = self.app.control
 
         self.parameters.psd_data_partial.add_callback(
-            self.psd_data_received,
+            self.on_psd_data_received,
         )
         self.parameters.psd_data_complete.add_callback(
-            self.psd_data_received,
+            self.on_psd_data_received,
         )
 
         param2ui(
@@ -114,7 +114,7 @@ class PSDWindow(QtWidgets.QMainWindow):
     def change_psd_algorithm(self, index: int) -> None:
         self.parameters.psd_algorithm.value = list(PSDAlgorithm)[index]
 
-    def psd_data_received(self, data_pickled):
+    def on_psd_data_received(self, data_pickled):
         if data_pickled is None:
             return
 
@@ -148,7 +148,7 @@ class PSDWindow(QtWidgets.QMainWindow):
         if not self.parameters.lock.value:
             return error_dialog(self, """Laser has to be locked for PSD measurement!""")
 
-        self.control.start_psd_acquisition()
+        self.control.exposed_start_psd_acquisition()
 
     def stop_psd(self):
         if self.parameters.task.value is not None:
@@ -156,7 +156,7 @@ class PSDWindow(QtWidgets.QMainWindow):
             self.parameters.task.value = None
 
     def start_pid_optimization(self):
-        self.control.start_pid_optimization()
+        self.control.exposed_start_pid_optimization()
 
     def delete_curve(self):
         uuid = self.curveTable.delete_selected_curve()
@@ -207,4 +207,4 @@ class PSDWindow(QtWidgets.QMainWindow):
             assert "linien-version" in data, "invalid parameter file"
 
             for uuid, psd_data in data["psd-data"].items():
-                self.psd_data_received(pickle.dumps(psd_data))
+                self.on_psd_data_received(pickle.dumps(psd_data))

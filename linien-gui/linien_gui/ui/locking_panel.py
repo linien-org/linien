@@ -161,7 +161,7 @@ class LockingPanel(QtWidgets.QWidget):
         self.parameters.autolock_mode.value = AutolockMode.SIMPLE
         self.parameters.autolock_target_position.value = 0
         self.control.write_registers()
-        self.control.start_lock()
+        self.control.exposed_start_lock()
 
     def auto_offset_changed(self):
         self.parameters.autolock_determine_offset.value = int(
