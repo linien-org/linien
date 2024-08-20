@@ -1,7 +1,6 @@
-# Copyright 2018-2022 Benjamin Wiegand <benjamin.wiegand@physik.hu-berlin.de>
-# Copyright 2021-2022 Bastian Leykauf <leykauf@physik.hu-berlin.de>
-#
 # This file is part of Linien and based on redpid.
+#
+# Copyright (C) 2016-2024 Linien Authors (https://github.com/linien-org/linien#license)
 #
 # Linien is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -48,8 +47,8 @@ def calculate_psd(
     :return: One-sided power spectral density.
     """
 
-    # at beginning or end of signal, we sometimes have more glitches --> ignore
-    # them (200 points less @ 16384 points doesn't hurt much)
+    # at beginning or end of signal, we sometimes have more glitches --> ignore them
+    # (200 points less @ 16384 points doesn't hurt much)
     sig = sig[100:-100]
 
     num_pts = 256

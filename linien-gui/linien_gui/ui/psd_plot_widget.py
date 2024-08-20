@@ -1,7 +1,6 @@
-# Copyright 2018-2022 Benjamin Wiegand <benjamin.wiegand@physik.hu-berlin.de>
-# Copyright 2021-2022 Bastian Leykauf <leykauf@physik.hu-berlin.de>
-#
 # This file is part of Linien and based on redpid.
+#
+# Copyright (C) 2016-2024 Linien Authors (https://github.com/linien-org/linien#license)
 #
 # Linien is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -212,7 +211,9 @@ class PSDPlotWidget(pg.PlotWidget):
         self.cursor_label.setVisible(show)
 
     def leaveEvent(self, QEvent):
-        """This method is called when the mouse used to hover the plot and
-        not left. In this case, we hide crosshair and cursor label."""
+        """
+        This method is called when the mouse used to hover the plot and not left. In
+        this case, we hide crosshair and cursor label.
+        """
         super().leaveEvent(QEvent)
         self.show_cursor_position(False)

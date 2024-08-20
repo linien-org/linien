@@ -1,8 +1,6 @@
-# Copyright 2018-2022 Benjamin Wiegand <benjamin.wiegand@physik.hu-berlin.de>
-# Copyright 2021-2022 Bastian Leykauf <leykauf@physik.hu-berlin.de>
-# Copyright 2023 Christian Freier <christian.freier@nomadatomics.com>
-#
 # This file is part of Linien and based on redpid.
+#
+# Copyright (C) 2016-2024 Linien Authors (https://github.com/linien-org/linien#license)
 #
 # Linien is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -622,7 +620,7 @@ class Parameters:
 
         self.psd_data_partial = Parameter(start=None)
         self.psd_data_complete = Parameter(start=None)
-        self.psd_algorithm = Parameter(start=PSDAlgorithm.LPSD)
+        self.psd_algorithm = Parameter(start=PSDAlgorithm.LPSD, restorable=True)
         self.psd_acquisition_running = Parameter(start=False)
         self.psd_optimization_running = Parameter(start=False)
         self.psd_acquisition_max_decimation = Parameter(

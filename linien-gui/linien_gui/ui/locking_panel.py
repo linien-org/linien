@@ -1,7 +1,6 @@
-# Copyright 2018-2022 Benjamin Wiegand <benjamin.wiegand@physik.hu-berlin.de>
-# Copyright 2021-2022 Bastian Leykauf <leykauf@physik.hu-berlin.de>
-#
 # This file is part of Linien and based on redpid.
+#
+# Copyright (C) 2016-2024 Linien Authors (https://github.com/linien-org/linien#license)
 #
 # Linien is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -162,7 +161,7 @@ class LockingPanel(QtWidgets.QWidget):
         self.parameters.autolock_mode.value = AutolockMode.SIMPLE
         self.parameters.autolock_target_position.value = 0
         self.control.write_registers()
-        self.control.start_lock()
+        self.control.exposed_start_lock()
 
     def auto_offset_changed(self):
         self.parameters.autolock_determine_offset.value = int(

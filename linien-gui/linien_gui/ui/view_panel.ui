@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
+    <width>399</width>
     <height>672</height>
    </rect>
   </property>
@@ -21,7 +21,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QGroupBox" name="groupBox_10">
+    <widget class="QGroupBox" name="scalingLayout">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
        <horstretch>0</horstretch>
@@ -33,7 +33,7 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_14">
       <item>
-       <widget class="QLabel" name="label_7">
+       <widget class="QLabel" name="scalingLabel">
         <property name="text">
          <string>Just pan (zoom) the plot with your mouse (wheel). Click &quot;Reset View&quot; button for automatic scaling. Right click on plot to set up fixed scaling.</string>
         </property>
@@ -46,13 +46,13 @@
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox" name="groupBox">
+    <widget class="QGroupBox" name="graphGroupBox">
      <property name="title">
       <string>Graph</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout">
+       <layout class="QHBoxLayout" name="plotLineWidthLayout">
         <item>
          <widget class="QLabel" name="label">
           <property name="text">
@@ -61,7 +61,7 @@
          </widget>
         </item>
         <item>
-         <widget class="CustomDoubleSpinBoxNoSign" name="plot_line_width">
+         <widget class="CustomDoubleSpinBoxNoSign" name="plotLineWidthSpinBox">
           <property name="decimals">
            <number>1</number>
           </property>
@@ -82,7 +82,7 @@
        </layout>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_6">
+       <layout class="QHBoxLayout" name="plotLineOpacityLayout">
         <item>
          <widget class="QLabel" name="label_2">
           <property name="text">
@@ -91,7 +91,7 @@
          </widget>
         </item>
         <item>
-         <widget class="CustomSpinBox" name="plot_line_opacity">
+         <widget class="CustomSpinBox" name="plotLineOpacitySpinBox">
           <property name="maximum">
            <number>255</number>
           </property>
@@ -103,7 +103,7 @@
        </layout>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_7">
+       <layout class="QHBoxLayout" name="fillOpacityLayout">
         <item>
          <widget class="QLabel" name="label_5">
           <property name="text">
@@ -112,7 +112,7 @@
          </widget>
         </item>
         <item>
-         <widget class="CustomSpinBox" name="plot_fill_opacity">
+         <widget class="CustomSpinBox" name="plotFillOpacitySpinBox">
           <property name="maximum">
            <number>255</number>
           </property>
@@ -124,16 +124,16 @@
        </layout>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_4">
+       <layout class="QHBoxLayout" name="displayColorLayout0">
         <item>
-         <widget class="QLabel" name="label_6">
+         <widget class="QLabel" name="colorLabel0">
           <property name="text">
-           <string>Color 1</string>
+           <string>(Combined) Error Signal</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QLabel" name="display_color_0">
+         <widget class="QLabel" name="displayColorLabel0">
           <property name="maximumSize">
            <size>
             <width>50</width>
@@ -146,7 +146,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QToolButton" name="edit_color_0">
+         <widget class="QToolButton" name="editColorButton0">
           <property name="text">
            <string>...</string>
           </property>
@@ -158,16 +158,16 @@
        </layout>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <layout class="QHBoxLayout" name="displayColorLayout1">
         <item>
-         <widget class="QLabel" name="label_4">
+         <widget class="QLabel" name="colorLabel1">
           <property name="text">
-           <string>Color 2</string>
+           <string>Slow Control History</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QLabel" name="display_color_1">
+         <widget class="QLabel" name="displayColorLabel1">
           <property name="maximumSize">
            <size>
             <width>50</width>
@@ -180,7 +180,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QToolButton" name="edit_color_1">
+         <widget class="QToolButton" name="editColorButton1">
           <property name="text">
            <string>...</string>
           </property>
@@ -189,16 +189,16 @@
        </layout>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <layout class="QHBoxLayout" name="displayColorLayout2">
         <item>
-         <widget class="QLabel" name="label_3">
+         <widget class="QLabel" name="colorLabel2">
           <property name="text">
-           <string>Color 3</string>
+           <string>Monitor Signal</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QLabel" name="display_color_2">
+         <widget class="QLabel" name="displayColorLabel2">
           <property name="maximumSize">
            <size>
             <width>50</width>
@@ -211,7 +211,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QToolButton" name="edit_color_2">
+         <widget class="QToolButton" name="editColorButton2">
           <property name="text">
            <string>...</string>
           </property>
@@ -220,16 +220,16 @@
        </layout>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_5">
+       <layout class="QHBoxLayout" name="displayColorLayout3">
         <item>
-         <widget class="QLabel" name="color_3">
+         <widget class="QLabel" name="colorLabel3">
           <property name="text">
-           <string>Color 4</string>
+           <string>Control Signal</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QLabel" name="display_color_3">
+         <widget class="QLabel" name="displayColorLabel3">
           <property name="maximumSize">
            <size>
             <width>50</width>
@@ -242,7 +242,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QToolButton" name="edit_color_3">
+         <widget class="QToolButton" name="editColorButton3">
           <property name="text">
            <string>...</string>
           </property>
@@ -251,16 +251,16 @@
        </layout>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_8">
+       <layout class="QHBoxLayout" name="displayColorLayout4">
         <item>
-         <widget class="QLabel" name="color_4">
+         <widget class="QLabel" name="colorLabel4">
           <property name="text">
-           <string>Color 5</string>
+           <string>Error Signal 1</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QLabel" name="display_color_4">
+         <widget class="QLabel" name="displayColorLabel4">
           <property name="maximumSize">
            <size>
             <width>50</width>
@@ -273,7 +273,100 @@
          </widget>
         </item>
         <item>
-         <widget class="QToolButton" name="edit_color_4">
+         <widget class="QToolButton" name="editColorButton4">
+          <property name="text">
+           <string>...</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="displayColorLayout5">
+        <item>
+         <widget class="QLabel" name="colorLabel5">
+          <property name="text">
+           <string>Control Signal History</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="displayColorLabel5">
+          <property name="maximumSize">
+           <size>
+            <width>50</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QToolButton" name="editColorButton5">
+          <property name="text">
+           <string>...</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="displayColorLayout6">
+        <item>
+         <widget class="QLabel" name="colorLabel6">
+          <property name="text">
+           <string>Error Signal 2</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="displayColorLabel6">
+          <property name="maximumSize">
+           <size>
+            <width>50</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QToolButton" name="editColorButton6">
+          <property name="text">
+           <string>...</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="displayColorLayout7">
+        <item>
+         <widget class="QLabel" name="colorLabel7">
+          <property name="text">
+           <string>Monitor Signal History</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="displayColorLabel7">
+          <property name="maximumSize">
+           <size>
+            <width>50</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QToolButton" name="editColorButton7">
           <property name="text">
            <string>...</string>
           </property>
@@ -297,7 +390,7 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_18">
       <item>
-       <widget class="QPushButton" name="export_select_file">
+       <widget class="QPushButton" name="exportSelectFilePushButton">
         <property name="text">
          <string>Select file</string>
         </property>
@@ -317,7 +410,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="export_data">
+       <widget class="QPushButton" name="exportDataPushButton">
         <property name="enabled">
          <bool>false</bool>
         </property>
