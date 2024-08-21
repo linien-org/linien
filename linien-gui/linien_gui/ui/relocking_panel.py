@@ -1,6 +1,6 @@
-# Copyright 2024 Bastian Leykauf <leykauf@physik.hu-berlin.de>
-#
 # This file is part of Linien.
+#
+# Copyright (C) 2016-2024 Linien Authors (https://github.com/linien-org/linien#license)
 #
 # Linien is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
