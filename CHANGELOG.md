@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+* Color settings are now named by @bleykauf in https://github.com/linien-org/linien/pull/426
+
 ## [2.1.0]
 
 ### Added
