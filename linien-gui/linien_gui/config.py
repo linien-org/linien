@@ -17,7 +17,6 @@
 
 import json
 import logging
-from enum import Enum
 from pathlib import Path
 from typing import Callable, Iterator, Tuple
 
@@ -30,29 +29,6 @@ UI_PATH = Path(__file__).parents[0].resolve() / "ui"
 SETTINGS_STORE_FILENAME = "settings.json"
 # don't plot more often than once per `DEFAULT_PLOT_RATE_LIMIT` seconds
 DEFAULT_PLOT_RATE_LIMIT = 0.1
-
-DEFAULT_COLORS = [
-    (214, 39, 40, 200),  # 0: red
-    (44, 160, 44, 200),  # 1: green
-    (31, 119, 180, 200),  # 2: blue
-    (188, 189, 34, 200),  # 3: yellow
-    (227, 119, 194, 200),  # 4: pink
-    (255, 127, 14, 200),  # 5: orange
-    (148, 103, 189, 200),  # 6: purple
-    (23, 190, 207, 200),  # 7: turquoise
-]
-N_COLORS = len(DEFAULT_COLORS)
-
-
-class Color(Enum):
-    ERROR_COMBINED = 0
-    SLOW_HISTORY = 1
-    MONITOR = 2
-    CONTROL_SIGNAL = 3
-    ERROR1 = 4
-    CONTROL_SIGNAL_HISTORY = 5
-    ERROR2 = 6
-    MONITOR_SIGNAL_HISTORY = 7
 
 
 class Setting:
@@ -85,7 +61,8 @@ class Setting:
         for callback in self._callbacks.copy():
             callback(value)
 
-    def add_callback(self, function: Callable, call_immediatly: bool = True):
+    def add_callback(self, function: Callable[..., None], call_immediatly: bool = True):
+        """Add a callback function that is called when with each newly set value."""
         self._callbacks.add(function)
 
         if call_immediatly:
@@ -102,14 +79,14 @@ class Settings:
         self.plot_line_width = Setting(start=2, min_=0.1, max_=100)
         self.plot_line_opacity = Setting(start=230, min_=0, max_=255)
         self.plot_fill_opacity = Setting(start=70, min_=0, max_=255)
-        self.plot_color_0 = Setting(start=DEFAULT_COLORS[0])
-        self.plot_color_1 = Setting(start=DEFAULT_COLORS[1])
-        self.plot_color_2 = Setting(start=DEFAULT_COLORS[2])
-        self.plot_color_3 = Setting(start=DEFAULT_COLORS[3])
-        self.plot_color_4 = Setting(start=DEFAULT_COLORS[4])
-        self.plot_color_5 = Setting(start=DEFAULT_COLORS[5])
-        self.plot_color_6 = Setting(start=DEFAULT_COLORS[6])
-        self.plot_color_7 = Setting(start=DEFAULT_COLORS[7])
+        self.plot_color_error_combined = Setting(start=(214, 39, 40))
+        self.plot_color_error1 = Setting(start=(227, 119, 194))
+        self.plot_color_error2 = Setting(start=(148, 103, 189))
+        self.plot_color_monitor = Setting(start=(31, 119, 180))
+        self.plot_color_monitor_history = Setting(start=(23, 190, 207))
+        self.plot_color_control = Setting(start=(188, 189, 34))
+        self.plot_color_control_history = Setting(start=(255, 127, 14))
+        self.plot_color_slow_control = Setting(start=(44, 160, 44))
 
         # save changed settings to disk
         for _, setting in self:
@@ -119,6 +96,14 @@ class Settings:
         for name, setting in self.__dict__.items():
             if isinstance(setting, Setting):
                 yield name, setting
+
+    @property
+    def plot_colors(self) -> list[Setting]:
+        all_color_settings = []
+        for name, setting in self:
+            if name.startswith("plot_color_"):
+                all_color_settings.append(setting)
+        return all_color_settings
 
 
 def save_settings(settings: Settings) -> None:
