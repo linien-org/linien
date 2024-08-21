@@ -226,14 +226,14 @@ class PlotWidget(pg.PlotWidget):
         self.cached_plot_data = []
         self._should_reposition_reset_view_button = False
 
-    def on_connection_established(self):
-        self.parameters = self.app.parameters
-        self.control = self.app.control
-
         for plot_color_setting in self.app.settings.plot_colors:
             plot_color_setting.add_callback(self.on_plot_settings_changed)
         self.app.settings.plot_line_width.add_callback(self.on_plot_settings_changed)
         self.app.settings.plot_line_opacity.add_callback(self.on_plot_settings_changed)
+
+    def on_connection_established(self):
+        self.parameters = self.app.parameters
+        self.control = self.app.control
 
         self.control_signal_history_data = self.parameters.control_signal_history.value
         self.monitor_signal_history_data = self.parameters.monitor_signal_history.value
@@ -341,7 +341,7 @@ class PlotWidget(pg.PlotWidget):
             self.overlay.setVisible(False)
             self.touch_start = None
 
-    def on_plot_settings_changed(self, *args):
+    def on_plot_settings_changed(self, _) -> None:
         pen_width = self.app.settings.plot_line_width.value
         opacity = self.app.settings.plot_line_opacity.value
         for curve, color in {
@@ -356,7 +356,7 @@ class PlotWidget(pg.PlotWidget):
         }.items():
             curve.setPen(pg.mkPen((*color.value, opacity), width=pen_width))
 
-    def on_autolock_selection_changed(self, value):
+    def on_autolock_selection_changed(self, value: bool) -> None:
         if value:
             self.parameters.optimization_selection.value = False
             self.enable_area_selection(selectable_width=0.99)
