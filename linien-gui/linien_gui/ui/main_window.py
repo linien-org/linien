@@ -23,8 +23,8 @@ import linien_gui
 import numpy as np
 from linien_client.device import add_device, load_device, update_device
 from linien_common.common import check_plot_data
-from linien_gui.config import N_COLORS, UI_PATH, Color
-from linien_gui.ui.plot_widget import INVALID_POWER
+from linien_gui.config import UI_PATH
+from linien_gui.ui.plot_widget import INVALID_POWER, PlotWidget
 from linien_gui.ui.right_panel import RightPanel
 from linien_gui.ui.spin_box import CustomDoubleSpinBox
 from linien_gui.ui.sweep_control import SweepControlWidget, SweepSlider
@@ -81,6 +81,7 @@ class MainWindow(QtWidgets.QMainWindow):
     shutdownButton: QtWidgets.QPushButton
     closeButton: QtWidgets.QPushButton
     openDeviceManagerButton: QtWidgets.QPushButton
+    graphicsView: PlotWidget
 
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
@@ -116,6 +117,25 @@ class MainWindow(QtWidgets.QMainWindow):
         self.graphicsView.signal_power2.connect(display_power_channel_2)
         self.graphicsView.keyPressed.connect(self.handle_key_press)
 
+        # create callbacks for all relevant color settings to change the colors of the
+        # corresponding legend labels
+        for legend_label, color_setting in {
+            self.error1LegendLabel: self.app.settings.plot_color_error1,
+            self.error2LegendLabel: self.app.settings.plot_color_error2,
+            self.monitorLegendLabel: self.app.settings.plot_color_monitor,
+            self.combinedErrorLegendLabel: self.app.settings.plot_color_error_combined,
+            self.errorSignalLegendLabel: self.app.settings.plot_color_error_combined,
+            self.controlSignalLegendLabel: self.app.settings.plot_color_control,
+            self.controlSignalHistoryLegendLabel: self.app.settings.plot_color_control_history,  # noqa: E501
+            self.slowSignalHistoryLegendLabel: self.app.settings.plot_color_slow_control,  # noqa: E501
+            self.monitorSignalHistoryLegendLabel: self.app.settings.plot_color_monitor_history,  # noqa: E501
+        }.items():
+            color_setting.add_callback(
+                lambda val, label=legend_label: label.setStyleSheet(
+                    f"color: {color_to_hex(val)}"
+                )
+            )
+
         # by default we hide it and just show when a new version is available
         self.newVersionAvailableLabel.hide()
 
@@ -130,9 +150,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.parameters.optimization_running.add_callback(
             self.change_sweep_control_visibility
         )
-
         self.parameters.to_plot.add_callback(self.update_std)
-
         self.parameters.pid_on_slow_enabled.add_callback(
             lambda v: self.slowSignalHistoryLegendLabel.setVisible(v)
         )
@@ -143,11 +161,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.settingsToolbox.setCurrentIndex(0)
 
         self.parameters.lock.add_callback(lambda *args: self.reset_std_history())
-
-        for color_idx in range(N_COLORS):
-            getattr(self.app.settings, f"plot_color_{color_idx}").add_callback(
-                self.on_plot_color_changed
-            )
 
         self.parameters.dual_channel.add_callback(self.update_legend_text)
 
@@ -163,25 +176,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.statusbar_unlocked.setVisible(
             not al_running and not locked and not optimization
         )
-
-    def on_plot_color_changed(self, *args):
-        def set_color(el, color: Color):
-            return el.setStyleSheet(
-                "color: "
-                + color_to_hex(
-                    getattr(self.app.settings, f"plot_color_{color.value}").value
-                )
-            )
-
-        set_color(self.error1LegendLabel, Color.ERROR1)
-        set_color(self.error2LegendLabel, Color.ERROR2)
-        set_color(self.monitorLegendLabel, Color.MONITOR)
-        set_color(self.combinedErrorLegendLabel, Color.ERROR_COMBINED)
-        set_color(self.errorSignalLegendLabel, Color.ERROR_COMBINED)
-        set_color(self.controlSignalLegendLabel, Color.CONTROL_SIGNAL)
-        set_color(self.controlSignalHistoryLegendLabel, Color.CONTROL_SIGNAL_HISTORY)
-        set_color(self.slowSignalHistoryLegendLabel, Color.SLOW_HISTORY)
-        set_color(self.monitorSignalHistoryLegendLabel, Color.MONITOR_SIGNAL_HISTORY)
 
     def update_legend_text(self, dual_channel: bool) -> None:
         self.error1LegendLabel.setVisible(dual_channel)

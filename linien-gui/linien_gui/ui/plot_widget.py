@@ -31,7 +31,7 @@ from linien_common.common import (
     get_signal_strength_from_i_q,
     update_signal_history,
 )
-from linien_gui.config import DEFAULT_PLOT_RATE_LIMIT, N_COLORS, Color
+from linien_gui.config import DEFAULT_PLOT_RATE_LIMIT
 from linien_gui.utils import get_linien_app_instance
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import pyqtSignal
@@ -230,10 +230,8 @@ class PlotWidget(pg.PlotWidget):
         self.parameters = self.app.parameters
         self.control = self.app.control
 
-        for color_idx in range(N_COLORS):
-            getattr(self.app.settings, f"plot_color_{color_idx}").add_callback(
-                self.on_plot_settings_changed
-            )
+        for plot_color_setting in self.app.settings.plot_colors:
+            plot_color_setting.add_callback(self.on_plot_settings_changed)
         self.app.settings.plot_line_width.add_callback(self.on_plot_settings_changed)
         self.app.settings.plot_line_opacity.add_callback(self.on_plot_settings_changed)
 
@@ -345,20 +343,18 @@ class PlotWidget(pg.PlotWidget):
 
     def on_plot_settings_changed(self, *args):
         pen_width = self.app.settings.plot_line_width.value
-
+        opacity = self.app.settings.plot_line_opacity.value
         for curve, color in {
-            self.errorSignal1: Color.ERROR1,
-            self.errorSignal2: Color.ERROR2,
-            self.combinedErrorSignal: Color.ERROR_COMBINED,
-            self.monitorSignal: Color.MONITOR,
-            self.controlSignal: Color.CONTROL_SIGNAL,
-            self.controlSignalHistory: Color.CONTROL_SIGNAL_HISTORY,
-            self.slowHistory: Color.SLOW_HISTORY,
-            self.monitorSignalHistory: Color.MONITOR_SIGNAL_HISTORY,
+            self.combinedErrorSignal: self.app.settings.plot_color_error_combined,
+            self.errorSignal1: self.app.settings.plot_color_error1,
+            self.errorSignal2: self.app.settings.plot_color_error2,
+            self.monitorSignal: self.app.settings.plot_color_monitor,
+            self.monitorSignalHistory: self.app.settings.plot_color_monitor_history,
+            self.controlSignal: self.app.settings.plot_color_control,
+            self.controlSignalHistory: self.app.settings.plot_color_control_history,
+            self.slowHistory: self.app.settings.plot_color_slow_control,
         }.items():
-            r, g, b, _ = getattr(self.app.settings, f"plot_color_{color.value}").value
-            a = self.app.settings.plot_line_opacity.value
-            curve.setPen(pg.mkPen((r, g, b, a), width=pen_width))
+            curve.setPen(pg.mkPen((*color.value, opacity), width=pen_width))
 
     def on_autolock_selection_changed(self, value):
         if value:
@@ -582,9 +578,9 @@ class PlotWidget(pg.PlotWidget):
                     if error_1_quadrature is not None:
 
                         if self.parameters.dual_channel.value:
-                            color = Color.ERROR1.value
+                            color = self.app.settings.plot_color_error1
                         else:
-                            color = Color.ERROR_COMBINED.value
+                            color = self.app.settings.plot_color_error_combined
                         max_signal_strength_V = (
                             self.plot_signal_strength(
                                 error_signal_1,
@@ -593,7 +589,7 @@ class PlotWidget(pg.PlotWidget):
                                 self.signalStrengthA2,
                                 self.signalStrengthAFill,
                                 self.parameters.offset_a.value,
-                                getattr(self.app.settings, f"plot_color_{color}").value,
+                                color.value,
                             )
                             / V
                         )
@@ -613,10 +609,7 @@ class PlotWidget(pg.PlotWidget):
                                 self.signalStrengthB2,
                                 self.signalStrengthBFill,
                                 self.parameters.offset_b.value,
-                                getattr(
-                                    self.app.settings,
-                                    f"plot_color_{Color.ERROR2.value}",
-                                ).value,
+                                self.app.settings.plot_color_error2.value,
                             )
                             / V
                         )
@@ -647,21 +640,26 @@ class PlotWidget(pg.PlotWidget):
         self.plot_rate_limit = new_rate_limit
 
     def plot_signal_strength(
-        self, i, q, signal, neg_signal, fill, channel_offset, color
-    ):
+        self,
+        i,
+        q,
+        signal,
+        neg_signal,
+        fill,
+        channel_offset,
+        color: tuple[int, int, int],
+    ) -> float:
         # we have to subtract channel offset here and will add it back in the end
         i -= int(round(channel_offset))
         q -= int(round(channel_offset))
         signal_strength = get_signal_strength_from_i_q(i, q)
-
-        r, g, b, *_ = color
 
         x = list(range(len(signal_strength)))
         signal_strength_scaled = signal_strength / V
         upper = (channel_offset / V) + signal_strength_scaled
         lower = (channel_offset / V) - 1 * signal_strength_scaled
 
-        brush = pg.mkBrush(r, g, b, self.app.settings.plot_fill_opacity.value)
+        brush = pg.mkBrush(*color, self.app.settings.plot_fill_opacity.value)
         fill.setBrush(brush)
 
         invisible_pen = pg.mkPen("k", width=0.00001)
@@ -722,7 +720,7 @@ class PlotWidget(pg.PlotWidget):
         for overlay in self.boundary_overlays:
             overlay.setVisible(False)
 
-    def pause_plot(self):
+    def pause_plot(self) -> None:
         """
         Pauses plot updates. All incoming data is cached though. This is useful for
         letting the user select a line that is then used in the autolock.

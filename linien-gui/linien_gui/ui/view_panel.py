@@ -16,30 +16,40 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 import json
+import logging
 import pickle
 from os import path
 
 import numpy as np
-from linien_gui.config import N_COLORS, UI_PATH
+from linien_gui.config import UI_PATH, Setting
 from linien_gui.ui.spin_box import CustomDoubleSpinBoxNoSign, CustomSpinBox
 from linien_gui.utils import color_to_hex, get_linien_app_instance, param2ui
 from PyQt5 import QtGui, QtWidgets, uic
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class ViewPanel(QtWidgets.QWidget):
     plotLineWidthSpinBox: CustomDoubleSpinBoxNoSign
     plotLineOpacitySpinBox: CustomSpinBox
     plotFillOpacitySpinBox: CustomSpinBox
-    displayColorLabel0: QtWidgets.QLabel
-    displayColorLabel1: QtWidgets.QLabel
-    displayColorLabel2: QtWidgets.QLabel
-    displayColorLabel3: QtWidgets.QLabel
-    displayColorLabel4: QtWidgets.QLabel
-    editColorButton0: QtWidgets.QToolButton
-    editColorButton1: QtWidgets.QToolButton
-    editColorButton2: QtWidgets.QToolButton
-    editColorButton3: QtWidgets.QToolButton
-    editColorButton4: QtWidgets.QToolButton
+    colorPreviewLabelErrorCombined: QtWidgets.QLabel
+    colorPreviewLabelError1: QtWidgets.QLabel
+    colorPreviewLabelError2: QtWidgets.QLabel
+    colorPreviewLabelMonitor: QtWidgets.QLabel
+    colorPreviewLabelMonitorHistory: QtWidgets.QLabel
+    colorPreviewLabelControl: QtWidgets.QLabel
+    colorPreviewLabelControlHistory: QtWidgets.QLabel
+    colorPreviewLabelSlowControl: QtWidgets.QLabel
+    editColorButtonErrorCombined: QtWidgets.QToolButton
+    editColorButtonError1: QtWidgets.QToolButton
+    editColorButtonError2: QtWidgets.QToolButton
+    editColorButtonMonitor: QtWidgets.QToolButton
+    editColorButtonMonitorHistory: QtWidgets.QToolButton
+    editColorButtonControl: QtWidgets.QToolButton
+    editColorButtonControlHistory: QtWidgets.QToolButton
+    editColorButtonSlowControl: QtWidgets.QToolButton
     exportDataPushButton: QtWidgets.QPushButton
     exportSelectFilePushButton: QtWidgets.QPushButton
 
@@ -49,7 +59,7 @@ class ViewPanel(QtWidgets.QWidget):
         self.app = get_linien_app_instance()
         self.app.connection_established.connect(self.on_connection_established)
 
-        self.exportSelectFilePushButton.clicked.connect(self.export_select_file)
+        self.exportSelectFilePushButton.clicked.connect(self.on_export_button_clicked)
         self.exportDataPushButton.clicked.connect(self.export_data)
 
         self.plotLineWidthSpinBox.setKeyboardTracking(False)
@@ -65,16 +75,38 @@ class ViewPanel(QtWidgets.QWidget):
             self.on_plot_fill_opacity_changed
         )
 
-        for color_idx in range(N_COLORS):
-            getattr(self, f"editColorButton{color_idx}").clicked.connect(
-                lambda *args, color_idx=color_idx: self.edit_color(color_idx)
+        # connect color edit buttons to settings
+        for button, setting in {
+            self.editColorButtonErrorCombined: self.app.settings.plot_color_error_combined,  # noqa : E501
+            self.editColorButtonError1: self.app.settings.plot_color_error1,
+            self.editColorButtonError2: self.app.settings.plot_color_error2,
+            self.editColorButtonMonitor: self.app.settings.plot_color_monitor,
+            self.editColorButtonMonitorHistory: self.app.settings.plot_color_monitor_history,  # noqa: E501
+            self.editColorButtonControl: self.app.settings.plot_color_control,
+            self.editColorButtonControlHistory: self.app.settings.plot_color_control_history,  # noqa: E501
+            self.editColorButtonSlowControl: self.app.settings.plot_color_slow_control,
+        }.items():
+            button.clicked.connect(
+                lambda *_, setting=setting: self.on_edit_color_clicked(setting=setting)
             )
 
-    def edit_color(self, color_idx):
-        setting = getattr(self.app.settings, f"plot_color_{color_idx}")
-        color = QtWidgets.QColorDialog.getColor(QtGui.QColor.fromRgb(*setting.value))
-        r, g, b, a = color.getRgb()
-        getattr(self.app.settings, f"plot_color_{color_idx}").value = (r, g, b, a)
+        # connect preview labels to settings by creating callback functions for each
+        # label : color-settings pair
+        for preview_label, setting in {
+            self.colorPreviewLabelErrorCombined: self.app.settings.plot_color_error_combined,  # noqa : E501
+            self.colorPreviewLabelError1: self.app.settings.plot_color_error1,
+            self.colorPreviewLabelError2: self.app.settings.plot_color_error2,
+            self.colorPreviewLabelMonitor: self.app.settings.plot_color_monitor,
+            self.colorPreviewLabelMonitorHistory: self.app.settings.plot_color_monitor_history,  # noqa: E501
+            self.colorPreviewLabelControl: self.app.settings.plot_color_control,
+            self.colorPreviewLabelControlHistory: self.app.settings.plot_color_control_history,  # noqa: E501
+            self.colorPreviewLabelSlowControl: self.app.settings.plot_color_slow_control,  # noqa: E501
+        }.items():
+            setting.add_callback(
+                lambda val, label=preview_label: label.setStyleSheet(
+                    f"background-color: {color_to_hex(val)}"
+                )
+            )
 
     def on_connection_established(self):
         self.parameters = self.app.parameters
@@ -84,18 +116,12 @@ class ViewPanel(QtWidgets.QWidget):
         param2ui(self.app.settings.plot_line_opacity, self.plotLineOpacitySpinBox)
         param2ui(self.app.settings.plot_fill_opacity, self.plotFillOpacitySpinBox)
 
-        def preview_colors(*args):
-            for color_idx in range(N_COLORS):
-                element = getattr(self, f"displayColorLabel{color_idx}")
-                setting = getattr(self.app.settings, f"plot_color_{color_idx}")
-                element.setStyleSheet(
-                    f"background-color: {color_to_hex(setting.value)}"
-                )
-
-        for color_idx in range(N_COLORS):
-            getattr(self.app.settings, f"plot_color_{color_idx}").add_callback(
-                preview_colors
-            )
+    def on_edit_color_clicked(self, setting: Setting) -> None:
+        """Choose new color via a color selection window and write it to setting"""
+        old_color = setting.value
+        new_color = QtWidgets.QColorDialog.getColor(QtGui.QColor.fromRgb(*old_color))
+        r, g, b, _ = new_color.getRgb()
+        setting.value = (r, g, b)
 
     def on_plot_line_width_changed(self):
         self.app.settings.plot_line_width.value = self.plotLineWidthSpinBox.value()
@@ -106,7 +132,7 @@ class ViewPanel(QtWidgets.QWidget):
     def on_plot_fill_opacity_changed(self):
         self.app.settings.plot_fill_opacity.value = self.plotFillOpacitySpinBox.value()
 
-    def export_select_file(self):
+    def on_export_button_clicked(self):
         options = QtWidgets.QFileDialog.Options()
         # options |= QtWidgets.QFileDialog.DontUseNativeDialog
         default_ext = ".json"
@@ -146,7 +172,7 @@ class ViewPanel(QtWidgets.QWidget):
             except FileNotFoundError:
                 break
 
-        print(f"export data to {fn_with_suffix}")
+        logger.info(f"Exported view data to {fn_with_suffix}")
 
         with open(fn_with_suffix, "w") as f:
             data = pickle.loads(self.parameters.to_plot.value)
