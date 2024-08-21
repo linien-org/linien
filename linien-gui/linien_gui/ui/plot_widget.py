@@ -226,14 +226,8 @@ class PlotWidget(pg.PlotWidget):
             self.addItem(item)
             item.setVisible(True)
 
-        self.connection = None
-        self.parameters = None
-        self.last_plot_data = None
-        self.plot_max = 0
-        self.plot_min = np.inf
         self.touch_start = None
         self.autolock_ref_spectrum = None
-
         self.selection_running = False
         self.selection_boundaries = None
 
