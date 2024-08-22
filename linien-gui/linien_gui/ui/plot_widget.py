@@ -141,7 +141,7 @@ class PlotWidget(pg.PlotWidget):
         # user may zoom only as far out as there is still data
         # https://stackoverflow.com/questions/18868530/pyqtgraph-limit-zoom-to-upper-lower-bound-of-axes
 
-        self.getViewBox().setLimits(xMin=0, xMax=2048, yMin=-1, yMax=1)
+        self.getViewBox().setLimits(xMin=0, xMax=2048, yMin=-1.05, yMax=1.05)
 
         # NOTE: increasing the pen width requires OpenGL, otherwise painting gets
         # horribly slow. See: https://github.com/pyqtgraph/pyqtgraph/issues/533
