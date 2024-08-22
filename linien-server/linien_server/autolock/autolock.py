@@ -66,9 +66,9 @@ class Autolock:
         self,
         x0: float,
         x1: float,
-        spectrum: np.ndarray[int],
+        spectrum: np.ndarray,  # array of int
         auto_offset: bool = True,
-        additional_spectra: Optional[list[np.ndarray[int]]] = None,
+        additional_spectra: Optional[list[np.ndarray]] = None,
     ) -> None:
         """Start the autolock."""
         self.parameters.autolock_running.value = True
