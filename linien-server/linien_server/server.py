@@ -263,8 +263,6 @@ class RedPitayaControlService(BaseService, LinienControlService):
     ) -> None:
         logger.info(f"Start autolock {x0=} {x1=}")
         spectrum: np.ndarray = pickle.loads(spectrum)
-        if additional_spectra is not None:
-            additional_spectra: list[np.ndarray] = pickle.loads(additional_spectra)
         auto_offset = self.parameters.autolock_determine_offset.value
 
         if not self._task_running():
@@ -275,7 +273,8 @@ class RedPitayaControlService(BaseService, LinienControlService):
                 x1,
                 spectrum,
                 auto_offset=auto_offset,
-                additional_spectra=additional_spectra,
+                additional_spectra=additional_spectra
+                or pickle.loads(additional_spectra),
             )
 
     def exposed_start_optimization(self, x0, x1, spectrum):
