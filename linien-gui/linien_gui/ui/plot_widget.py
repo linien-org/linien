@@ -193,38 +193,18 @@ class PlotWidget(pg.PlotWidget):
         self.combinedErrorSignal.setData([0, N_POINTS - 1], [1, 1])
 
         # these lines are used for configuration of the relocking system
-        control_threshold_pen = pg.mkPen("m", width=2, style=QtCore.Qt.DashLine)
-        error_threshold_pen = pg.mkPen("y", width=2, style=QtCore.Qt.DashLine)
-        monitor_threshold_pen = pg.mkPen("y", width=2, style=QtCore.Qt.DashLine)
-        self.control_signal_threshold_min = pg.InfiniteLine(
-            pen=control_threshold_pen, angle=90
-        )
-        self.control_signal_threshold_max = pg.InfiniteLine(
-            pen=control_threshold_pen, angle=90
-        )
-        self.error_signal_threshold_min = pg.InfiniteLine(
-            pen=error_threshold_pen, angle=0
-        )
-        self.error_signal_threshold_max = pg.InfiniteLine(
-            pen=error_threshold_pen, angle=0
-        )
-        self.monitor_signal_threshold_min = pg.InfiniteLine(
-            pen=monitor_threshold_pen, angle=0
-        )
-        self.monitor_signal_threshold_max = pg.InfiniteLine(
-            pen=monitor_threshold_pen, angle=0
-        )
-
-        for item in (
-            self.control_signal_threshold_min,
-            self.control_signal_threshold_max,
-            self.error_signal_threshold_min,
-            self.error_signal_threshold_max,
-            self.monitor_signal_threshold_min,
-            self.monitor_signal_threshold_max,
-        ):
-            self.addItem(item)
-            item.setVisible(True)
+        self.control_signal_threshold_min = pg.InfiniteLine(angle=90)
+        self.addItem(self.control_signal_threshold_min)
+        self.control_signal_threshold_max = pg.InfiniteLine(angle=90)
+        self.addItem(self.control_signal_threshold_max)
+        self.error_signal_threshold_min = pg.InfiniteLine(angle=0)
+        self.addItem(self.error_signal_threshold_min)
+        self.error_signal_threshold_max = pg.InfiniteLine(angle=0)
+        self.addItem(self.error_signal_threshold_max)
+        self.monitor_signal_threshold_min = pg.InfiniteLine(angle=0)
+        self.addItem(self.monitor_signal_threshold_min)
+        self.monitor_signal_threshold_max = pg.InfiniteLine(angle=0)
+        self.addItem(self.monitor_signal_threshold_max)
 
         self.touch_start = None
         self.autolock_ref_spectrum = None
@@ -387,6 +367,20 @@ class PlotWidget(pg.PlotWidget):
             self.slowHistory: self.app.settings.plot_color_slow_control,
         }.items():
             curve.setPen(pg.mkPen((*color.value, opacity), width=pen_width))
+
+        for line, color in {
+            self.control_signal_threshold_min: self.app.settings.plot_color_control,
+            self.control_signal_threshold_max: self.app.settings.plot_color_control,
+            self.error_signal_threshold_min: self.app.settings.plot_color_error_combined,  # noqa: E501
+            self.error_signal_threshold_max: self.app.settings.plot_color_error_combined,  # noqa: E501
+            self.monitor_signal_threshold_min: self.app.settings.plot_color_monitor,
+            self.monitor_signal_threshold_max: self.app.settings.plot_color_monitor,
+        }.items():
+            line.setPen(
+                pg.mkPen(
+                    (*color.value, opacity), width=pen_width, style=QtCore.Qt.DashLine
+                )
+            )
 
     def on_autolock_selection_changed(self, value: bool) -> None:
         if value:
