@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+* Added loss of lock detection and automatic relocking by @bleykauf in https://github.com/linien-org/linien/pull/403
+
 ### Changed
 * Color settings are now named by @bleykauf in https://github.com/linien-org/linien/pull/426
 
