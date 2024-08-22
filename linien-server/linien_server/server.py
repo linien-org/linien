@@ -150,7 +150,6 @@ class RedPitayaControlService(BaseService, LinienControlService):
 
     def __init__(self, host=None):
         self._cached_data = {}
-        self.exposed_is_locked = None
 
         super(RedPitayaControlService, self).__init__()
 
@@ -343,7 +342,6 @@ class RedPitayaControlService(BaseService, LinienControlService):
 class FakeRedPitayaControlService(BaseService, LinienControlService):
     def __init__(self):
         super().__init__()
-        self.exposed_is_locked = None
 
         self.random_data_thread = Thread(
             target=self._write_random_data_to_parameters_loop,

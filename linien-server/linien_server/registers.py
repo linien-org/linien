@@ -20,6 +20,7 @@ from typing import Optional
 import numpy as np
 import rpyc
 from linien_common.common import FilterType, MHz, convert_channel_mixing_value
+from linien_common.communication import LinienControlService
 from linien_common.config import ACQUISITION_PORT, DEFAULT_SWEEP_SPEED
 from linien_server.parameters import Parameters
 
@@ -37,12 +38,13 @@ class Registers:
 
     def __init__(
         self,
-        control,
+        control: LinienControlService,
         parameters: Parameters,
         host: Optional[str] = None,
     ) -> None:
         self.control = control
         self.parameters = parameters
+        self.is_locked = False
 
         if host is None:
             # AcquisitionService is imported only on the Red Pitaya since pyrp3 is not
@@ -69,12 +71,6 @@ class Registers:
     def write_registers(self):
         """Writes data from `parameters` to the FPGA."""
 
-        def max_(val):
-            return val if np.abs(val) <= 8191 else (8191 * val / np.abs(val))
-
-        def phase_to_delay(phase):
-            return int(phase / 360 * (1 << 14))
-
         if not self.parameters.dual_channel.value:
             factor_a = 256
             factor_b = 0
@@ -82,9 +78,6 @@ class Registers:
             factor_a, factor_b = convert_channel_mixing_value(
                 self.parameters.channel_mixing.value
             )
-
-        lock_changed = self.parameters.lock.value != self.control.exposed_is_locked
-        self.control.exposed_is_locked = self.parameters.lock.value
 
         new = dict(
             # sweep run is 1 by default. The gateware automatically takes care of
@@ -349,7 +342,8 @@ class Registers:
                             raise Exception(
                                 f"Unknown filter {filter_type} for {iir_name}"
                             )
-
+        lock_changed = self.parameters.lock.value != self.is_locked
+        self.is_locked = self.parameters.lock.value
         if lock_changed:
             if self.parameters.lock.value:
                 # set PI parameters
@@ -360,7 +354,7 @@ class Registers:
                 self.set_slow_pid(0, slow_slope, reset=1)
         else:
             if self.parameters.lock.value:
-                # set new PI parameters
+                # set new PID parameters
                 self.set_pid(kp, ki, kd, slope)
                 self.set_slow_pid(slow_strength, slow_slope)
 
@@ -392,6 +386,14 @@ class Registers:
             # too often
             self.acquisition.exposed_set_iir_csr(iir_name, b, a)
             self._iir_cache[iir_name] = (b, a)
+
+
+def max_(val):
+    return val if np.abs(val) <= 8191 else (8191 * val / np.abs(val))
+
+
+def phase_to_delay(phase):
+    return int(phase / 360 * (1 << 14))
 
 
 def twos_complement(num: int, N_bits: int) -> int:
