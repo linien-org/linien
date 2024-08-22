@@ -273,8 +273,11 @@ class RedPitayaControlService(BaseService, LinienControlService):
                 x1,
                 spectrum,
                 auto_offset=auto_offset,
-                additional_spectra=additional_spectra
-                or pickle.loads(additional_spectra),
+                additional_spectra=(
+                    pickle.loads(additional_spectra)
+                    if additional_spectra is not None
+                    else None
+                ),
             )
 
     def exposed_start_optimization(self, x0, x1, spectrum):
