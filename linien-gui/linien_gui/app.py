@@ -21,6 +21,7 @@ import sys
 
 import click
 from linien_client.connection import LinienClient
+from linien_common.communication import LinienControlService
 from linien_gui import __version__
 from linien_gui.config import UI_PATH, load_settings
 from linien_gui.ui.device_manager import DeviceManager
@@ -40,7 +41,7 @@ logger.setLevel(logging.DEBUG)
 class LinienApp(QtWidgets.QApplication):
     connection_established = pyqtSignal()
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super(LinienApp, self).__init__(*args, **kwargs)
 
         self.settings = load_settings()
@@ -52,12 +53,12 @@ class LinienApp(QtWidgets.QApplication):
 
         self.aboutToQuit.connect(self.quit)
 
-    def client_connected(self, client: LinienClient):
+    def client_connected(self, client: LinienClient) -> None:
         self.device_manager.hide()
         self.main_window.show(client.device.host, client.device.name)
 
         self.client = client
-        self.control = client.control
+        self.control: LinienControlService = client.control
         self.parameters = client.parameters
 
         self.connection_established.emit()

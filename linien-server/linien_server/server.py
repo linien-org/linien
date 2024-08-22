@@ -254,7 +254,8 @@ class RedPitayaControlService(BaseService, LinienControlService):
         """Sync the parameters with the FPGA registers."""
         self.registers.write_registers()
 
-    def exposed_start_autolock(self, x0, x1, spectrum, additional_spectra=None):
+    def exposed_start_autolock(self, x0, x1, spectrum, additional_spectra=None) -> None:
+        logger.info(f"Start autolock {x0=} {x1=}")
         spectrum = pickle.loads(spectrum)
         auto_offset = self.parameters.autolock_determine_offset.value
 
@@ -370,8 +371,8 @@ class FakeRedPitayaControlService(BaseService, LinienControlService):
     def exposed_write_registers(self):
         pass
 
-    def exposed_start_autolock(self, x0, x1, spectrum):
-        logger.info(f"Start autolock {x0} {x1}")
+    def exposed_start_autolock(self, x0, x1, spectrum, additional_spectra=None) -> None:
+        logger.info(f"Start autolock {x0=} {x1=}")
 
     def exposed_start_optimization(self, x0, x1, spectrum):
         logger.info("Start optimization")

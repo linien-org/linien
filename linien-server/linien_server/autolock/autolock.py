@@ -24,6 +24,7 @@ from linien_common.common import (
     combine_error_signal,
     get_lock_point,
 )
+from linien_common.communication import LinienControlService
 from linien_server.autolock.algorithm_selection import AutolockAlgorithmSelector
 from linien_server.autolock.robust import RobustAutolock
 from linien_server.autolock.simple import SimpleAutolock
@@ -34,7 +35,7 @@ logger.setLevel(logging.DEBUG)
 
 
 class Autolock:
-    def __init__(self, control, parameters: Parameters) -> None:
+    def __init__(self, control: LinienControlService, parameters: Parameters) -> None:
         self.control = control
         self.parameters = parameters
 

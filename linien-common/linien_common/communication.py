@@ -20,7 +20,7 @@ import logging
 import os
 import pickle
 from socket import socket
-from typing import Any, Callable, List, Tuple, Union
+from typing import Any, Callable, List, Optional, Tuple, Union
 
 from linien_common.influxdb import InfluxDBCredentials
 from rpyc.utils.authenticators import AuthenticationError
@@ -62,6 +62,10 @@ class LinienControlService(Protocol):
     ) -> List[Tuple[str, Any]]: ...
 
     def exposed_write_registers(self) -> None: ...
+
+    def exposed_start_autolock(
+        self, x0, x1, spectrum, additional_spectra: Optional[Any]
+    ) -> None: ...
 
     def exposed_start_optimization(self, x0, x1, spectrum) -> None: ...
 
