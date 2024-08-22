@@ -17,7 +17,9 @@
 
 import logging
 import pickle
+from typing import Optional
 
+import numpy as np
 from linien_common.common import (
     SpectrumUncorrelatedException,
     check_plot_data,
@@ -62,11 +64,11 @@ class Autolock:
 
     def run(
         self,
-        x0,
-        x1,
-        spectrum,
+        x0: float,
+        x1: float,
+        spectrum: np.ndarray[int],
         auto_offset: bool = True,
-        additional_spectra=None,
+        additional_spectra: Optional[list[np.ndarray[int]]] = None,
     ) -> None:
         """Start the autolock."""
         self.parameters.autolock_running.value = True

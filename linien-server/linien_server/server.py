@@ -24,7 +24,7 @@ from random import randint, random
 from socket import socket
 from threading import Event, Thread
 from time import sleep
-from typing import Any, Callable
+from typing import Any, Callable, Optional
 
 import numpy as np
 import rpyc
@@ -254,9 +254,17 @@ class RedPitayaControlService(BaseService, LinienControlService):
         """Sync the parameters with the FPGA registers."""
         self.registers.write_registers()
 
-    def exposed_start_autolock(self, x0, x1, spectrum, additional_spectra=None) -> None:
+    def exposed_start_autolock(
+        self,
+        x0: float,
+        x1: float,
+        spectrum,
+        additional_spectra: Optional[Any] = None,
+    ) -> None:
         logger.info(f"Start autolock {x0=} {x1=}")
-        spectrum = pickle.loads(spectrum)
+        spectrum: np.ndarray[int] = pickle.loads(spectrum)
+        if additional_spectra is not None:
+            additional_spectra = pickle.loads(additional_spectra)
         auto_offset = self.parameters.autolock_determine_offset.value
 
         if not self._task_running():
@@ -267,11 +275,7 @@ class RedPitayaControlService(BaseService, LinienControlService):
                 x1,
                 spectrum,
                 auto_offset=auto_offset,
-                additional_spectra=(
-                    pickle.loads(additional_spectra)
-                    if additional_spectra is not None
-                    else None
-                ),
+                additional_spectra=additional_spectra,
             )
 
     def exposed_start_optimization(self, x0, x1, spectrum):
@@ -371,7 +375,9 @@ class FakeRedPitayaControlService(BaseService, LinienControlService):
     def exposed_write_registers(self):
         pass
 
-    def exposed_start_autolock(self, x0, x1, spectrum, additional_spectra=None) -> None:
+    def exposed_start_autolock(
+        self, x0: float, x1: float, spectrum, additional_spectra: Optional[Any] = None
+    ) -> None:
         logger.info(f"Start autolock {x0=} {x1=}")
 
     def exposed_start_optimization(self, x0, x1, spectrum):
