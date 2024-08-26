@@ -49,12 +49,11 @@ class Approacher:
             wait_time_between_sweep_center_changes
         )
         self.central_y = central_y
-        self.reset_properties()
 
         self.zoom_factor = 1
         self.n_at_this_zoom = 0
         self.last_shifts_at_this_zoom = None
-        self.time_of_last_sweep_center_shift = None
+        self.time_of_last_sweep_center_shift = time()
         self.time_last_zoom = time()
 
     def approach_line(self, error_signal):
