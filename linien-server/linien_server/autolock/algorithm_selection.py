@@ -17,6 +17,7 @@
 
 import logging
 
+import numpy as np
 from linien_common.common import N_POINTS, AutolockMode, determine_shift_by_correlation
 
 logger = logging.getLogger(__name__)
@@ -28,11 +29,11 @@ class AutolockAlgorithmSelector:
 
     def __init__(
         self,
-        mode_preference,
-        spectrum,
-        additional_spectra,
+        mode_preference: AutolockMode,
+        spectrum: np.ndarray,
+        additional_spectra: list[np.ndarray] | None,
         line_width,
-        N_spectra_required=3,
+        N_spectra_required: int = 3,
     ):
         self.done = False
         self.mode = None
