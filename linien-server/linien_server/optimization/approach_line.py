@@ -109,14 +109,14 @@ class Approacher:
                 return
 
             # check that the drift is slow
-            # this is needed for systems that only react slowly to changes in
-            # input parameters. In this case, we have to wait until the reaction
-            # to the last input is done.
+            # this is needed for systems that only react slowly to changes in input
+            # parameters. In this case, we have to wait until the reaction to the last
+            # input is done.
             shift_diff = np.abs(shift - self.last_shifts_at_this_zoom[-1])
             drift_slow = shift_diff < initial_sweep_amplitude / self.target_zoom / 8
 
-            # if data comes in very slowly (<1 Hz), we skip the drift analysis
-            # because it would take too much time
+            # if data comes in very slowly (<1 Hz), we skip the drift analysis because
+            # it would take too much time
             low_recording_rate = self.parameters.sweep_speed.value > 10
 
             if low_recording_rate or drift_slow:

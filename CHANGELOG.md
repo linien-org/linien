@@ -178,9 +178,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 * The parameters that deal with the sweep / ramp have been renamed:
-    * "center" is now "sweep_center"
-    * "ramp_amplitude", "ramp_speed" and * * "autolock_initial_ramp_amplitude" are now "sweep_amplitude" and * "sweep_speed" and "autolock_initial_sweep_amplitude", respectively
-        There is a new boolean parameter "sweep_pause".
+    * `center` is now `sweep_center`
+    * `ramp_amplitude`, `ramp_speed` and `autolock_initial_ramp_amplitude` are now `sweep_amplitude` and `sweep_speed` and `autolock_initial_sweep_amplitude`, respectively
+    * There is a new boolean parameter `sweep_pause`.
 
 
 ## [0.4.3] - 2021-06-22
