@@ -24,10 +24,8 @@ import pyqtgraph as pg
 from linien_common.common import (
     DECIMATION,
     N_POINTS,
-    SpectrumUncorrelatedException,
     check_plot_data,
     combine_error_signal,
-    determine_shift_by_correlation,
     get_lock_point,
     get_signal_strength_from_i_q,
     update_signal_history,
@@ -63,7 +61,7 @@ def peak_voltage_to_dBm(voltage):
 
 
 class TimeXAxis(pg.AxisItem):
-    """Plots x axis as time in seconds instead of point number."""
+    """Plot x axis as time in seconds instead of point number."""
 
     def __init__(self, *args, parent=None, **kwargs):
         self.parent = parent
@@ -226,9 +224,6 @@ class PlotWidget(pg.PlotWidget):
             overlay.lines[i].setPen((0, 0, 0, 0))
             self.addItem(overlay)
 
-        self.lock_target_line = pg.InfiniteLine(movable=False)
-        self.lock_target_line.setValue(1000)
-        self.addItem(self.lock_target_line)
         self._fixed_opengl_bug = False
 
         self.last_plot_time = 0
@@ -533,7 +528,6 @@ class PlotWidget(pg.PlotWidget):
                         np.array(self.monitor_signal_history_data["values"])
                         / VOLTS_TO_COUNTS_FACTOR,
                     )
-                self.plot_autolock_target_line(None)
             else:
                 dual_channel = self.parameters.dual_channel.value
                 monitor_signal = to_plot.get("monitor_signal")
@@ -591,8 +585,6 @@ class PlotWidget(pg.PlotWidget):
                         list(range(len(monitor_signal))),
                         monitor_signal / VOLTS_TO_COUNTS_FACTOR,
                     )
-
-                self.plot_autolock_target_line(combined_error_signal)
 
                 if (self.parameters.modulation_frequency.value != 0) and (
                     not self.parameters.pid_only_mode.value
@@ -721,35 +713,6 @@ class PlotWidget(pg.PlotWidget):
         self.control_signal.setData(
             list(range(len(error_signal))), control_signal / VOLTS_TO_COUNTS_FACTOR
         )
-
-    def plot_autolock_target_line(self, combined_error_signal):
-        if (
-            self.autolock_ref_spectrum is not None
-            and self.parameters.autolock_preparing.value
-        ):
-            sweep_amplitude = self.parameters.sweep_amplitude.value
-            zoom_factor = 1 / sweep_amplitude
-            initial_zoom_factor = (
-                1 / self.parameters.autolock_initial_sweep_amplitude.value
-            )
-
-            try:
-                shift, _, _ = determine_shift_by_correlation(
-                    zoom_factor / initial_zoom_factor,
-                    self.autolock_ref_spectrum,
-                    combined_error_signal,
-                )
-                shift *= zoom_factor / initial_zoom_factor
-                length = len(combined_error_signal)
-                shift = (length / 2) - (shift / 2 * length)
-
-                self.lock_target_line.setVisible(True)
-                self.lock_target_line.setValue(shift)
-
-            except SpectrumUncorrelatedException:
-                self.lock_target_line.setVisible(False)
-        else:
-            self.lock_target_line.setVisible(False)
 
     def update_signal_history(self, to_plot):
         update_signal_history(
