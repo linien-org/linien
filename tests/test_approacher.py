@@ -97,7 +97,7 @@ def test_approacher(plt):
                 rolled_reference_signal,
                 100,
                 central_y,
-                wait_time_between_current_corrections=0,
+                wait_time_between_sweep_center_changes=0,
             )
 
             found = False

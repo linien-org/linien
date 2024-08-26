@@ -19,6 +19,9 @@ from time import time
 
 import numpy as np
 from linien_common.common import determine_shift_by_correlation
+from linien_common.communication import LinienControlService
+
+from ..parameters import Parameters
 
 ZOOM_STEP = 2
 
@@ -26,13 +29,13 @@ ZOOM_STEP = 2
 class Approacher:
     def __init__(
         self,
-        control,
-        parameters,
+        control: LinienControlService,
+        parameters: Parameters,
         first_error_signal,
-        target_zoom,
+        target_zoom: float,
         central_y,
-        allow_sweep_speed_change=False,
-        wait_time_between_current_corrections=None,
+        allow_sweep_speed_change: bool = False,
+        wait_time_between_sweep_center_changes: float = 1.0,
     ):
         self.control = control
         self.parameters = parameters
@@ -42,21 +45,16 @@ class Approacher:
         self.first_error_signal = first_error_signal - central_y
         self.target_zoom = target_zoom
         self.allow_sweep_speed_change = allow_sweep_speed_change
-
-        self.wait_time_between_current_corrections = (
-            wait_time_between_current_corrections
+        self.wait_time_between_sweep_center_changes = (
+            wait_time_between_sweep_center_changes
         )
-
         self.central_y = central_y
-
         self.reset_properties()
 
-    def reset_properties(self):
-        self.history = []
         self.zoom_factor = 1
         self.n_at_this_zoom = 0
         self.last_shifts_at_this_zoom = None
-        self.time_last_current_correction = None
+        self.time_of_last_sweep_center_shift = None
         self.time_last_zoom = time()
 
     def approach_line(self, error_signal):
@@ -84,26 +82,22 @@ class Approacher:
             self.zoom_factor, self.first_error_signal, error_signal
         )
         shift *= initial_sweep_amplitude
-        self.history.append((zoomed_ref, zoomed_err))
-        self.history.append(f"shift {-1 * shift}")
 
         if self.n_at_this_zoom == 0:
-            # If we are at the final zoom, we should be very quick. Therefore, we just
-            # correct the current and turn the lock on immediately. We skip the rest of
+            # If we are at the final zoom, we should be very quick. Therefore, we change
+            # the sweep center and turn the lock on immediately. We skip the rest of
             # this method (drift detection etc.)
             next_step_is_lock = self.zoom_factor >= self.target_zoom
             if next_step_is_lock:
                 return True
             else:
-                self._correct_current(shift)
+                self.shift_sweep_center(shift)
         else:
-            # wait for some time after the last current correction
-            min_wait_time = (
-                1
-                if self.wait_time_between_current_corrections is None
-                else self.wait_time_between_current_corrections
-            )
-            if time() - self.time_last_current_correction < min_wait_time:
+            # wait for some time after the last sweep center shift
+            if (
+                time() - self.time_of_last_sweep_center_shift
+                < self.wait_time_between_sweep_center_changes
+            ):
                 return
 
             # Check that the drift is slow. This is needed for systems that only react
@@ -121,7 +115,7 @@ class Approacher:
                 if is_close_to_target:
                     return self._decrease_scan_range()
                 else:
-                    self._correct_current(shift)
+                    self.shift_sweep_center(shift)
 
         self.n_at_this_zoom += 1
         self.last_shifts_at_this_zoom = self.last_shifts_at_this_zoom or []
@@ -147,11 +141,9 @@ class Approacher:
         self.control.exposed_write_registers()
         self.control.exposed_continue_acquisition()
 
-    def _correct_current(self, shift):
+    def shift_sweep_center(self, shift: float):
         self.control.exposed_pause_acquisition()
-        self.time_last_current_correction = time()
-
+        self.time_of_last_sweep_center_shift = time()
         self.parameters.sweep_center.value -= shift
-
         self.control.exposed_write_registers()
         self.control.exposed_continue_acquisition()
