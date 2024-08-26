@@ -163,7 +163,7 @@ class RobustAutolock:
         ):
             logger.error("Waited too long for autolock! Aborting")
             self.stop_timeout()
-            self.parameters.task.value.exposed_stop()
+            self.parameters.task.value.stop()
 
     def stop_timeout(self):
         self.parameters.ping.remove_callback(self.check_for_timeout)

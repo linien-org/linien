@@ -96,10 +96,8 @@ class OptimizeSpectroscopy:
             return
 
         try:
-            params = self.parameters
-
-            dual_channel = params.dual_channel.value
-            channel = params.optimization_channel.value
+            dual_channel = self.parameters.dual_channel.value
+            channel = self.parameters.optimization_channel.value
             spectrum_idx = 1 if not dual_channel else (1, 2)[channel]
             unpickled = pickle.loads(spectrum)
             spectrum = unpickled[f"error_signal_{spectrum_idx}"]
@@ -113,7 +111,7 @@ class OptimizeSpectroscopy:
                 self.iteration += 1
 
                 if self.initial_spectrum is None:
-                    params = self.parameters
+                    self.parameters = self.parameters
                     self.initial_spectrum = spectrum
 
                     self.engine.tell(spectrum, quadrature)
@@ -129,8 +127,8 @@ class OptimizeSpectroscopy:
                         shift, _, _2 = determine_shift_by_correlation(
                             1, self.initial_spectrum, spectrum
                         )
-                        params.sweep_center.value -= (
-                            shift * params.sweep_amplitude.value
+                        self.parameters.sweep_center.value -= (
+                            shift * self.parameters.sweep_amplitude.value
                         )
                         self.control.exposed_write_registers()
 

@@ -108,7 +108,7 @@ class Autolock:
             # spectrum uncorrelated exception
             logger.exception("Error while starting autolock")
             self.parameters.autolock_failed.value = True
-            self.exposed_stop()
+            self.stop()
 
         self.add_data_listener()
 
@@ -147,9 +147,6 @@ class Autolock:
 
         After this procedure is done, the real lock is turned on and after some time the
         lock is verified.
-
-        If automatic relocking is desired, the control and error signals are
-        continuously monitored after locking.
         """
         if self.parameters.pause_acquisition.value:
             return
@@ -210,7 +207,7 @@ class Autolock:
         except Exception:
             logger.exception("Error while handling new spectrum")
             self.parameters.autolock_failed.value = True
-            self.exposed_stop()
+            self.stop()
 
     def record_first_error_signal(self, error_signal, auto_offset):
         (
@@ -264,11 +261,11 @@ class Autolock:
         self.reset_properties()
         self._reset_scan()
 
-        # add a listener that listens for new spectrum data and consequently # tries to
+        # add a listener that listens for new spectrum data and consequently tries to
         # relock.
         self.add_data_listener()
 
-    def exposed_stop(self) -> None:
+    def stop(self) -> None:
         """Abort any operation."""
         self.parameters.autolock_preparing.value = False
         self.parameters.autolock_percentage.value = 0
