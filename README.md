@@ -317,7 +317,7 @@ plt.show()
 
 For a full list of parameters that can be controlled or accessed have a
 look at
-[parameters.py](https://github.com/linien-org/linien/blob/master/linien/server/parameters.py). Remember that changed parameters are not written to the FPGA unless `c.connection.root.write_registers()` is called.
+[parameters.py](https://github.com/linien-org/linien/blob/master/linien-server/linien_server/parameters.py). Remember that changed parameters are not written to the FPGA unless `c.connection.root.write_registers()` is called.
 
 ### Run the autolock
 
@@ -328,19 +328,21 @@ import pickle
 import numpy as np
 
 from linien_client.connection import LinienClient
-from linien_common.common import FAST_AUTOLOCK
+from linien_client.device import Device
+from linien_common.common import AutolockMode
 
 from matplotlib import pyplot as plt
 from time import sleep
 
-c = LinienClient(
+dev = Device(
     host="rp-xxxxxx.local",
     username="root",
-    password="root"
+    password="root"    
 )
+c = LinienClient(dev)
 c.connect(autostart_server=True, use_parameter_cache=True)
 
-c.parameters.autolock_mode_preference.value = FAST_AUTOLOCK
+c.parameters.autolock_mode_preference.value = AutolockMode.SIMPLE
 
 
 def wait_for_lock_status(should_be_locked):
