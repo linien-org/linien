@@ -158,7 +158,9 @@ def check_whether_correlation_is_bad(correlation, N):
     return np.max(correlation) < 0.1
 
 
-def determine_shift_by_correlation(zoom_factor, reference_signal, error_signal):
+def determine_shift_by_correlation(
+    zoom_factor: float, reference_signal: np.ndarray, error_signal: np.ndarray
+) -> tuple[float, np.ndarray, np.ndarray]:
     """
     Compare two spectra and determines the shift by correlation.
 
@@ -196,15 +198,16 @@ def determine_shift_by_correlation(zoom_factor, reference_signal, error_signal):
 
     # now sample the error signal down to the same length as the zoomed
     # reference signal
-    downsampled_error_signal = resample(error_signal, len(zoomed_ref))
+    downsampled_error_signal: np.ndarray = resample(error_signal, len(zoomed_ref))
 
     correlation = correlate(zoomed_ref, downsampled_error_signal)
 
     if check_whether_correlation_is_bad(correlation, len(zoomed_ref)):
         raise SpectrumUncorrelatedException()
 
-    shift = np.argmax(correlation)
-    shift = (shift - len(zoomed_ref)) / len(zoomed_ref) * 2 / zoom_factor
+    shift = float(
+        (np.argmax(correlation) - len(zoomed_ref)) / len(zoomed_ref) * 2 / zoom_factor
+    )
 
     return shift, zoomed_ref, downsampled_error_signal
 

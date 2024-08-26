@@ -734,7 +734,7 @@ class PlotWidget(pg.PlotWidget):
             )
 
             try:
-                shift, _1, _2 = determine_shift_by_correlation(
+                shift, _, _ = determine_shift_by_correlation(
                     zoom_factor / initial_zoom_factor,
                     self.autolock_ref_spectrum,
                     combined_error_signal,
