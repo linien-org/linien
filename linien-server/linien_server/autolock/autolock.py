@@ -76,12 +76,6 @@ class Autolock:
         self.parameters.autolock_percentage.value = 0
         self.parameters.fetch_additional_signals.value = False
         self.x0, self.x1 = int(x0), int(x1)
-
-        # collect parameters that should be restored after stopping the lock
-        self.parameters.autolock_initial_sweep_amplitude.value = (
-            self.parameters.sweep_amplitude.value
-        )
-
         self.additional_spectra = additional_spectra or []
 
         (
@@ -280,10 +274,5 @@ class Autolock:
 
     def _reset_scan(self):
         self.control.exposed_pause_acquisition()
-
-        self.parameters.sweep_amplitude.value = (
-            self.parameters.autolock_initial_sweep_amplitude.value
-        )
         self.control.exposed_start_sweep()
-
         self.control.exposed_continue_acquisition()

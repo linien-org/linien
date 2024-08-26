@@ -54,7 +54,7 @@ class Approacher:
     def reset_properties(self):
         self.history = []
         self.zoom_factor = 1
-        self.N_at_this_zoom = 0
+        self.n_at_this_zoom = 0
         self.last_shifts_at_this_zoom = None
         self.time_last_current_correction = None
         self.time_last_zoom = time()
@@ -65,14 +65,12 @@ class Approacher:
 
         error_signal = error_signal - self.central_y
 
-        initial_sweep_amplitude = self.parameters.autolock_initial_sweep_amplitude.value
-
-        # the autolock tries to center a line by changing the sweep center.
-        # If a line was selected that is close to the edges, this can lead to
-        # a situation where sweep center + sweep_amplitude > output limits of RP.
-        # in this case, we want to ignore the error signal that was recorded at
-        # these points as it may contain a distorted version of the spectrum that
-        # disturbs the correlation.
+        # the autolock tries to center a line by changing the sweep center. If a line
+        # was selected that is close to the edges, this can lead to a situation where
+        # sweep center + sweep_amplitude > output limits of RP. In this case, we want to
+        # ignore the error signal that was recorded at these points as it may contain a
+        # distorted version of the spectrum that disturbs the correlation.
+        initial_sweep_amplitude = self.parameters.swee_amplitude.value
         sweep_amplitude = self.parameters.sweep_amplitude.value
         center = self.parameters.sweep_center.value
         sweep = (
@@ -89,10 +87,10 @@ class Approacher:
         self.history.append((zoomed_ref, zoomed_err))
         self.history.append(f"shift {-1 * shift}")
 
-        if self.N_at_this_zoom == 0:
-            # if we are at the final zoom, we should be very quick.
-            # Therefore, we just correct the current and turn the lock on
-            # immediately. We skip the rest of this method (drift detection etc.)
+        if self.n_at_this_zoom == 0:
+            # If we are at the final zoom, we should be very quick. Therefore, we just
+            # correct the current and turn the lock on immediately. We skip the rest of
+            # this method (drift detection etc.)
             next_step_is_lock = self.zoom_factor >= self.target_zoom
             if next_step_is_lock:
                 return True
@@ -108,10 +106,9 @@ class Approacher:
             if time() - self.time_last_current_correction < min_wait_time:
                 return
 
-            # check that the drift is slow
-            # this is needed for systems that only react slowly to changes in input
-            # parameters. In this case, we have to wait until the reaction to the last
-            # input is done.
+            # Check that the drift is slow. This is needed for systems that only react
+            # slowly to changes in input parameters. In this case, we have to wait until
+            # the reaction to the last input is done.
             shift_diff = np.abs(shift - self.last_shifts_at_this_zoom[-1])
             drift_slow = shift_diff < initial_sweep_amplitude / self.target_zoom / 8
 
@@ -126,12 +123,12 @@ class Approacher:
                 else:
                     self._correct_current(shift)
 
-        self.N_at_this_zoom += 1
+        self.n_at_this_zoom += 1
         self.last_shifts_at_this_zoom = self.last_shifts_at_this_zoom or []
         self.last_shifts_at_this_zoom.append(shift)
 
     def _decrease_scan_range(self):
-        self.N_at_this_zoom = 0
+        self.n_at_this_zoom = 0
         self.last_shifts_at_this_zoom = None
 
         self.zoom_factor *= ZOOM_STEP
