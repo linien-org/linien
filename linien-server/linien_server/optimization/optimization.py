@@ -20,7 +20,9 @@ import pickle
 
 import numpy as np
 from linien_common.common import determine_shift_by_correlation, get_lock_point
+from linien_common.communication import LinienControlService
 
+from ..parameters import Parameters
 from .approach_line import Approacher
 from .engine import OptimizerEngine
 from .utils import FINAL_ZOOM_FACTOR
@@ -30,18 +32,15 @@ logger.setLevel(logging.DEBUG)
 
 
 class OptimizeSpectroscopy:
-    def __init__(self, control, parameters):
+    def __init__(self, control: LinienControlService, parameters: Parameters) -> None:
         self.control = control
         self.parameters = parameters
 
         self.initial_spectrum = None
-        self.iteration = 0
-
-        self.approacher = None
-
-        self.recenter_after = 2
-        self.next_recentering_iteration = self.recenter_after
-        self.allow_increase_of_recentering_interval = True
+        self.iteration: int = 0
+        self.recenter_after: int = 2
+        self.next_recentering_iteration: int = self.recenter_after
+        self.allow_increase_of_recentering_interval: bool = True
 
         self.initial_sweep_speed = self.parameters.sweep_speed.value
         self.initial_sweep_amplitude = self.parameters.sweep_amplitude.value
@@ -88,7 +87,6 @@ class OptimizeSpectroscopy:
             self.first_error_signal,
             self.target_zoom,
             mean_signal,
-            allow_sweep_speed_change=False,
         )
 
     def react_to_new_spectrum(self, spectrum):
@@ -111,9 +109,7 @@ class OptimizeSpectroscopy:
                 self.iteration += 1
 
                 if self.initial_spectrum is None:
-                    self.parameters = self.parameters
                     self.initial_spectrum = spectrum
-
                     self.engine.tell(spectrum, quadrature)
 
                 center_line = self.iteration == self.next_recentering_iteration
@@ -124,7 +120,7 @@ class OptimizeSpectroscopy:
                 if self.iteration > 1:
                     if center_line:
                         # center the line again
-                        shift, _, _2 = determine_shift_by_correlation(
+                        shift, _, _ = determine_shift_by_correlation(
                             1, self.initial_spectrum, spectrum
                         )
                         self.parameters.sweep_center.value -= (

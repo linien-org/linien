@@ -34,7 +34,6 @@ class Approacher:
         first_error_signal: np.ndarray,
         target_zoom: float,
         central_y: float,
-        allow_sweep_speed_change: bool = False,
         wait_time_between_sweep_center_changes: float = 1.0,
     ):
         self.control = control
@@ -44,7 +43,6 @@ class Approacher:
         # correlation doesn't work if the signal is only positive.
         self.first_error_signal = first_error_signal - central_y
         self.target_zoom = target_zoom
-        self.allow_sweep_speed_change = allow_sweep_speed_change
         self.wait_time_between_sweep_center_changes = (
             wait_time_between_sweep_center_changes
         )
@@ -124,16 +122,8 @@ class Approacher:
         self.last_shifts_at_this_zoom = []
         self.zoom_factor *= ZOOM_STEP
         self.time_of_last_zoom = time()
-
         self.control.exposed_pause_acquisition()
         self.parameters.sweep_amplitude.value /= ZOOM_STEP
-        if self.allow_sweep_speed_change:
-            new_sweep_speed = (
-                self.parameters.sweep_speed.value - 1
-                if self.parameters.sweep_speed.value > 5
-                else self.parameters.sweep_speed.value
-            )
-            self.parameters.sweep_speed.value = new_sweep_speed
         self.control.exposed_write_registers()
         self.control.exposed_continue_acquisition()
 
