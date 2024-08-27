@@ -67,7 +67,7 @@ class Approacher:
         # sweep center + sweep_amplitude > output limits of RP. In this case, we want to
         # ignore the error signal that was recorded at these points as it may contain a
         # distorted version of the spectrum that disturbs the correlation.
-        initial_sweep_amplitude = self.parameters.swee_amplitude.value
+        initial_sweep_amplitude = self.parameters.sweep_amplitude.value
         sweep_amplitude = self.parameters.sweep_amplitude.value
         center = self.parameters.sweep_center.value
         sweep = (
