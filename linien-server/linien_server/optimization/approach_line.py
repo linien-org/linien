@@ -31,17 +31,17 @@ class Approacher:
         self,
         control: LinienControlService,
         parameters: Parameters,
-        first_error_signal,
+        first_error_signal: np.ndarray,
         target_zoom: float,
-        central_y,
+        central_y: float,
         allow_sweep_speed_change: bool = False,
         wait_time_between_sweep_center_changes: float = 1.0,
     ):
         self.control = control
         self.parameters = parameters
-        # central_y is the y coordinate between maximum and minimum of the
-        # target line. We vertically center the target line with respect to the
-        # x axis because correlation doesn't work if the signal is only positive
+        # central_y is the y coordinate between maximum and minimum of the target line
+        # We vertically center the target line with respect to the x axis because
+        # correlation doesn't work if the signal is only positive.
         self.first_error_signal = first_error_signal - central_y
         self.target_zoom = target_zoom
         self.allow_sweep_speed_change = allow_sweep_speed_change
@@ -50,15 +50,15 @@ class Approacher:
         )
         self.central_y = central_y
 
-        self.zoom_factor = 1
-        self.n_at_this_zoom = 0
-        self.last_shifts_at_this_zoom = None
-        self.time_of_last_sweep_center_shift = time()
-        self.time_last_zoom = time()
+        self.zoom_factor: float = 1.0
+        self.n_at_this_zoom: int = 0
+        self.last_shifts_at_this_zoom: list[float] = []
+        self.time_of_last_sweep_center_shift: float = time()
+        self.time_of_last_zoom: float = time()
 
     def approach_line(self, error_signal):
-        if time() - self.time_last_zoom > 15:
-            raise Exception("approaching took too long")
+        if time() - self.time_of_last_zoom > 15:
+            raise TimeoutError("Approaching took too long.")
 
         error_signal = error_signal - self.central_y
 
@@ -77,7 +77,7 @@ class Approacher:
         error_signal[np.abs(sweep) > 1] = np.nan
 
         # now, we calculate the correlation to find the shift
-        shift, zoomed_ref, zoomed_err = determine_shift_by_correlation(
+        shift, _, _ = determine_shift_by_correlation(
             self.zoom_factor, self.first_error_signal, error_signal
         )
         shift *= initial_sweep_amplitude
@@ -103,32 +103,29 @@ class Approacher:
             # slowly to changes in input parameters. In this case, we have to wait until
             # the reaction to the last input is done.
             shift_diff = np.abs(shift - self.last_shifts_at_this_zoom[-1])
-            drift_slow = shift_diff < initial_sweep_amplitude / self.target_zoom / 8
-
+            drift_is_slow = shift_diff < initial_sweep_amplitude / self.target_zoom / 8
             # if data comes in very slowly (<1 Hz), we skip the drift analysis because
             # it would take too much time
-            low_recording_rate = self.parameters.sweep_speed.value > 10
+            recording_rate_is_low = self.parameters.sweep_speed.value > 10
 
-            if low_recording_rate or drift_slow:
+            if recording_rate_is_low or drift_is_slow:
                 is_close_to_target = shift < self.parameters.sweep_amplitude.value / 8
                 if is_close_to_target:
-                    return self._decrease_scan_range()
+                    return self.decrease_sweep_amplitude()
+
                 else:
                     self.shift_sweep_center(shift)
 
         self.n_at_this_zoom += 1
-        self.last_shifts_at_this_zoom = self.last_shifts_at_this_zoom or []
         self.last_shifts_at_this_zoom.append(shift)
 
-    def _decrease_scan_range(self):
+    def decrease_sweep_amplitude(self) -> None:
         self.n_at_this_zoom = 0
-        self.last_shifts_at_this_zoom = None
-
+        self.last_shifts_at_this_zoom = []
         self.zoom_factor *= ZOOM_STEP
-        self.time_last_zoom = time()
+        self.time_of_last_zoom = time()
 
         self.control.exposed_pause_acquisition()
-
         self.parameters.sweep_amplitude.value /= ZOOM_STEP
         if self.allow_sweep_speed_change:
             new_sweep_speed = (
@@ -140,7 +137,7 @@ class Approacher:
         self.control.exposed_write_registers()
         self.control.exposed_continue_acquisition()
 
-    def shift_sweep_center(self, shift: float):
+    def shift_sweep_center(self, shift: float) -> None:
         self.control.exposed_pause_acquisition()
         self.time_of_last_sweep_center_shift = time()
         self.parameters.sweep_center.value -= shift
