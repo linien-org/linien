@@ -17,6 +17,7 @@
 
 import logging
 import pickle
+from typing import Union
 
 import numpy as np
 from linien_common.common import determine_shift_by_correlation, get_lock_point
@@ -36,7 +37,7 @@ class SpectroscopyOptimizer:
         self.control = control
         self.parameters = parameters
 
-        self.initial_spectrum = None
+        self.initial_spectrum: Union[bytes, None] = None
         self.iteration: int = 0
         self.recenter_after: int = 2
         self.next_recentering_iteration: int = self.recenter_after
@@ -52,9 +53,9 @@ class SpectroscopyOptimizer:
         self.parameters.optimization_failed.value = False
         self.parameters.optimization_approaching.value = True
 
+        # record first
         cropped = error_signal[x0:x1]
-        x0 = x0 + np.argmin(cropped)
-        x1 = x0 + np.argmax(cropped)
+        x0, x1 = x0 + int(np.argmin(cropped)), x0 + int(np.argmax(cropped))
         (mean_signal, _, target_zoom, first_error_signal, _, _) = get_lock_point(
             error_signal, *list(sorted([x0, x1])), final_zoom_factor=FINAL_ZOOM_FACTOR
         )
