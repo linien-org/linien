@@ -91,7 +91,7 @@ class OptimizationPanel(QtWidgets.QWidget):
         self.parameters = self.app.parameters
         self.control = self.app.control
 
-        def opt_running_changed(_):
+        def on_opt_running_changed(_):
             running = self.parameters.optimization_running.value
             approaching = self.parameters.optimization_approaching.value
             failed = self.parameters.optimization_failed.value
@@ -107,17 +107,17 @@ class OptimizationPanel(QtWidgets.QWidget):
             )
             self.optimization_failed.setVisible(failed)
 
-        self.parameters.optimization_running.add_callback(opt_running_changed)
-        self.parameters.optimization_approaching.add_callback(opt_running_changed)
-        self.parameters.optimization_failed.add_callback(opt_running_changed)
+        self.parameters.optimization_running.add_callback(on_opt_running_changed)
+        self.parameters.optimization_approaching.add_callback(on_opt_running_changed)
+        self.parameters.optimization_failed.add_callback(on_opt_running_changed)
 
-        def opt_selection_changed(value):
+        def on_opt_selection_changed(value):
             self.optimization_selecting.setVisible(value)
             self.optimization_not_selecting.setVisible(not value)
 
-        self.parameters.optimization_selection.add_callback(opt_selection_changed)
+        self.parameters.optimization_selection.add_callback(on_opt_selection_changed)
 
-        def mod_param_changed(_):
+        def on_mod_param_changed(_):
             dual_channel = self.parameters.dual_channel.value
             channel = self.parameters.optimization_channel.value
             optimized = self.parameters.optimization_optimized_parameters.value
@@ -140,17 +140,25 @@ class OptimizationPanel(QtWidgets.QWidget):
                 )
             )
 
-        for param in (
-            self.parameters.modulation_amplitude,
-            self.parameters.modulation_frequency,
-            self.parameters.demodulation_phase_a,
-        ):
-            param.add_callback(mod_param_changed)
+            self.parameters.modulation_amplitude.add_callback(on_mod_param_changed),
+            self.parameters.modulation_frequency.add_callback(on_mod_param_changed),
+            self.parameters.demodulation_phase_a.add_callback(on_mod_param_changed),
 
-        def improvement_changed(improvement):
+        def on_improvement_changed(improvement):
             self.optimization_improvement.setText(f"{improvement:%}")
 
-        self.parameters.optimization_improvement.add_callback(improvement_changed)
+        self.parameters.optimization_improvement.add_callback(on_improvement_changed)
+
+        def dual_channel_changed(value: bool) -> None:
+            self.optimization_channel_selector_box.setVisible(value)
+
+        self.parameters.dual_channel.add_callback(dual_channel_changed)
+
+        def on_pid_only_mode_changed(pid_only_mode_enabled: bool) -> None:
+            """Disable this panel if PID-only mode is enabled (nothing to optimize)."""
+            self.setEnabled(not pid_only_mode_enabled)
+
+        self.parameters.pid_only_mode.add_callback(on_pid_only_mode_changed)
 
         param2ui(
             self.parameters.optimization_mod_freq_enabled,
@@ -173,17 +181,6 @@ class OptimizationPanel(QtWidgets.QWidget):
         param2ui(
             self.parameters.optimization_mod_amp_max, self.optimization_mod_amp_max
         )
-
-        def dual_channel_changed(value: bool) -> None:
-            self.optimization_channel_selector_box.setVisible(value)
-
-        self.parameters.dual_channel.add_callback(dual_channel_changed)
-
-        def pid_only_mode_changed(pid_only_mode_enabled: bool) -> None:
-            """Disable this panel if PID-only mode is enabled (nothing to optimize)."""
-            self.setEnabled(not pid_only_mode_enabled)
-
-        self.parameters.pid_only_mode.add_callback(pid_only_mode_changed)
 
     def start_optimization(self):
         self.parameters.optimization_selection.value = True

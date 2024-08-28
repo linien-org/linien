@@ -41,7 +41,7 @@ from linien_server import __version__
 from linien_server.autolock.autolock import Autolock
 from linien_server.influxdb import InfluxDBLogger
 from linien_server.noise_analysis import PIDOptimization, PSDAcquisition
-from linien_server.optimization.optimization import OptimizeSpectroscopy
+from linien_server.optimization.optimization import SpectroscopyOptimizer
 from linien_server.parameters import Parameters, restore_parameters, save_parameters
 from linien_server.registers import Registers
 from rpyc.core.protocol import Connection
@@ -282,9 +282,9 @@ class RedPitayaControlService(BaseService, LinienControlService):
 
     def exposed_start_optimization(self, x0, x1, spectrum):
         if not self._task_running():
-            optim = OptimizeSpectroscopy(self, self.parameters)
-            self.parameters.task.value = optim
-            optim.run(x0, x1, spectrum)
+            spectroscopy_optimizer = SpectroscopyOptimizer(self, self.parameters)
+            self.parameters.task.value = spectroscopy_optimizer
+            spectroscopy_optimizer.run(x0, x1, spectrum)
 
     def exposed_start_psd_acquisition(self):
         if not self._task_running():
@@ -380,10 +380,10 @@ class FakeRedPitayaControlService(BaseService, LinienControlService):
     def exposed_start_autolock(
         self, x0: float, x1: float, spectrum, additional_spectra: Optional[Any] = None
     ) -> None:
-        logger.info(f"Start autolock {x0=} {x1=}")
+        logger.info(f"Start autolock {x0=}, {x1=}, {spectrum=}, {additional_spectra=}")
 
     def exposed_start_optimization(self, x0, x1, spectrum):
-        logger.info("Start optimization")
+        logger.info(f"Start optimization, {x0=}, {x1=}, {spectrum=}")
         self.parameters.optimization_running.value = True
 
     def exposed_shutdown(self):

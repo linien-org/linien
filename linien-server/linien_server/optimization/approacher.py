@@ -60,16 +60,19 @@ class Approacher:
 
         error_signal = error_signal - self.central_y
 
-        # the autolock tries to center a line by changing the sweep center. If a line
+        # Approacher tries to center a line by changing the sweep center. If a line
         # was selected that is close to the edges, this can lead to a situation where
         # sweep center + sweep_amplitude > output limits of RP. In this case, we want to
         # ignore the error signal that was recorded at these points as it may contain a
         # distorted version of the spectrum that disturbs the correlation.
         initial_sweep_amplitude = self.parameters.sweep_amplitude.value
-        sweep_amplitude = self.parameters.sweep_amplitude.value
-        center = self.parameters.sweep_center.value
         sweep = (
-            np.linspace(-sweep_amplitude, sweep_amplitude, len(error_signal)) + center
+            np.linspace(
+                -self.parameters.sweep_amplitude.value,
+                self.parameters.sweep_amplitude.value,
+                len(error_signal),
+            )
+            + self.parameters.sweep_center.value
         )
         error_signal = np.array(error_signal)
         error_signal[np.abs(sweep) > 1] = np.nan
