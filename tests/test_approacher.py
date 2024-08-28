@@ -17,7 +17,7 @@
 
 import numpy as np
 from linien_common.common import get_lock_point
-from linien_server.optimization.approach_line import Approacher
+from linien_server.optimization.approacher import Approacher
 from linien_server.parameters import Parameters
 
 Y_SHIFT = 4000
