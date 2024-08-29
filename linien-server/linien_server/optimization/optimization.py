@@ -77,18 +77,20 @@ class SpectroscopyOptimizer:
                 channel = self.parameters.optimization_channel.value
                 spectrum_idx = 1 if not dual_channel else (1, 2)[channel]
                 unpickled = pickle.loads(spectrum)
-                spectrum = unpickled[f"error_signal_{spectrum_idx}"]
+                spectrum_unpickled = unpickled[f"error_signal_{spectrum_idx}"]
                 quadrature = unpickled[f"error_signal_{spectrum_idx}_quadrature"]
 
                 if self.parameters.optimization_approaching.value:
-                    if self.approacher.approach_line(spectrum):  # approaching finished
+                    if self.approacher.approach_line(
+                        spectrum_unpickled
+                    ):  # approaching finished
                         logger.info("Approaching desired line finished.")
                         self.parameters.optimization_approaching.value = False
                 else:  # continue with approach
                     self.iteration += 1
                     if self.initial_spectrum is None:
-                        self.initial_spectrum = spectrum
-                        self.engine.tell(spectrum, quadrature)
+                        self.initial_spectrum = spectrum_unpickled
+                        self.engine.tell(spectrum_unpickled, quadrature)
                     do_center_line = self.iteration == self.next_recentering_iteration
                     center_line_next_time = (
                         self.iteration + 1 == self.next_recentering_iteration
@@ -97,7 +99,7 @@ class SpectroscopyOptimizer:
                         if do_center_line:
                             # center the line again
                             shift, _, _ = determine_shift_by_correlation(
-                                1, self.initial_spectrum, spectrum
+                                1, self.initial_spectrum, spectrum_unpickled
                             )
                             self.parameters.sweep_center.value -= (
                                 shift * self.parameters.sweep_amplitude.value
@@ -112,7 +114,7 @@ class SpectroscopyOptimizer:
                                 self.allow_increase_of_recentering_interval = False
                             self.next_recentering_iteration += self.recenter_after
                         else:
-                            self.engine.tell(spectrum, quadrature)
+                            self.engine.tell(spectrum_unpickled, quadrature)
                     if not self.engine.finished():
                         self.engine.request_and_set_new_parameters(
                             use_initial_parameters=center_line_next_time
