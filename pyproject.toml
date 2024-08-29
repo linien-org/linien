@@ -20,6 +20,7 @@ profile = "black"
 
 [tool.pytest.ini_options]
 plt_dirname = "tests/plots"
+addopts = ["--import-mode=importlib"]
 
 # don't complain about plt_dirname
 filterwarnings = "ignore::pytest.PytestConfigWarning"
