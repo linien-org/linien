@@ -497,7 +497,7 @@ Copyright © 2014-2015 Robert Jördens\
 Copyright © 2018-2022 Benjamin Wiegand\
 Copyright © 2021-2024 Bastian Leykauf\
 Copyright © 2022 Christian Freier\
-Copyright © 2023-2024 Doron Behar\
+Copyright © 2023-2024 Doron Behar
 
 
 Linien is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
