@@ -374,7 +374,7 @@ class FakeRedPitayaControlService(BaseService, LinienControlService):
             sleep(0.1)
 
     def exposed_write_registers(self):
-        pass
+        logger.info("writing parameters")
 
     def exposed_start_autolock(
         self,
@@ -388,6 +388,12 @@ class FakeRedPitayaControlService(BaseService, LinienControlService):
     def exposed_start_optimization(self, x0, x1, spectrum):
         logger.info(f"Start optimization, {x0=}, {x1=}, {spectrum=}")
         self.parameters.optimization_running.value = True
+
+    def exposed_start_sweep(self):
+        logger.info("Start sweep")
+
+    def exposed_start_lock(self):
+        logger.info("Start lock")
 
     def exposed_shutdown(self):
         raise SystemExit()

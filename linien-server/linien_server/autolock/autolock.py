@@ -43,6 +43,8 @@ AUTOLOCK_ALGORITHMS = {
 
 
 class Autolock:
+    algorithm: SimpleAutolock | RobustAutolock
+
     def __init__(self, control: LinienControlService, parameters: Parameters) -> None:
         self.control = control
         self.parameters = parameters
@@ -69,8 +71,7 @@ class Autolock:
         logger.debug(f"Start autolock with mode {mode}")
         self.parameters.autolock_mode.value = mode
 
-        self.algorithm = AUTOLOCK_ALGORITHMS[mode]
-        self.algorithm(
+        self.algorithm = AUTOLOCK_ALGORITHMS[mode](
             self.control,
             self.parameters,
             self.spectrum,
@@ -85,7 +86,7 @@ class Autolock:
             self.handle_more_spectra_and_start_autolock
         )
         self.parameters.autolock_running.value = False
-        self.algorithm.after_lock()  # type: ignore
+        self.algorithm.after_lock()
 
     def abort(self) -> None:
         """Abort any operation."""
