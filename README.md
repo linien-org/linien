@@ -7,7 +7,7 @@ Linien ‒ User-friendly locking of lasers using RedPitaya (STEMlab 125-14) that
 
 <img align="right" src="https://raw.githubusercontent.com/linien-org/linien/master/docs/icon.png" width="20%">
 
-User-friendly locking of lasers using RedPitaya (STEMlab 125-14) that just works.
+User-friendly locking of lasers using RedPitaya (STEMlab 125-14, including STEMlab 125-14 Z7020) that just works.
 Linien aims to follow the UNIX philosophy of doing a single thing (locking using intelligent algorithms) very well.
 It was mainly developed for locking spectroscopy signals but may also be used for Pound-Drever-Hall or other lock-in techniques as well as simple PID operation.
 Linien is built with Python and [Migen](https://github.com/m-labs/migen) and is based on [red pid](https://github.com/quartiq/redpid).
@@ -500,7 +500,7 @@ Copyright © 2018-2022 Benjamin Wiegand\
 Copyright © 2021-2024 Bastian Leykauf\
 Copyright © 2022 Christian Freier\
 Copyright © 2023-2024 Doron Behar\
-
+Copyright © 2024 Andy Kong
 
 Linien is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 
