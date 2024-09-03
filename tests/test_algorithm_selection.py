@@ -90,9 +90,7 @@ def test_forced_algorithm_selection():
             auto_offset=True,
         )
 
-        assert autolock.autolock_algorithm_selector is not None
-        assert autolock.autolock_algorithm_selector.done
-
+        assert autolock.algorithm_selector.select() == forced
         assert parameters.autolock_mode.value == forced
 
         if forced == AutolockMode.SIMPLE:
@@ -127,21 +125,20 @@ def test_automatic_algorithm_selection():
             auto_offset=True,
         )
 
-        assert autolock.autolock_algorithm_selector is not None
-        assert not autolock.autolock_algorithm_selector.done
-        assert autolock.algorithm is None
+        assert autolock.algorithm_selector.select() == AutolockMode.AUTO_DETECT
 
-        for i in range(10):
+        for _ in range(10):
             error_signal = _get_signal(jitter)[:]
             parameters.to_plot.value = pickle.dumps(
                 {"error_signal_1": error_signal, "error_signal_2": []}
             )
 
-        assert autolock.autolock_algorithm_selector.done
         if jitter == LOW_JITTER:
+            assert autolock.algorithm_selector.select() == AutolockMode.SIMPLE
             assert parameters.autolock_mode.value == AutolockMode.SIMPLE
             assert isinstance(autolock.algorithm, SimpleAutolock)
         else:
+            assert autolock.algorithm_selector.select() == AutolockMode.ROBUST
             assert parameters.autolock_mode.value == AutolockMode.ROBUST
             assert isinstance(autolock.algorithm, RobustAutolock)
 
