@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 * Color settings are now named by @bleykauf in https://github.com/linien-org/linien/pull/426
 
+### Fixed
+* Corrected scripting examples by @kongmunist in https://github.com/linien-org/linien/pull/428
+
 ## [2.1.0]
 
 ### Added
