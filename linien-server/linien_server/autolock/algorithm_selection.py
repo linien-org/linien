@@ -30,41 +30,30 @@ class AutolockAlgorithmSelector:
     """This class helps deciding which autolock method should be used."""
 
     def __init__(
-        self,
-        mode_preference: AutolockMode,
-        spectrum: np.ndarray,
-        additional_spectra: list[np.ndarray] | None,
-        line_width: int,
+        self, mode_preference: AutolockMode, spectrum: np.ndarray, line_width: int
     ) -> None:
-        self.done = False
-        self.mode = None
-        self.spectra = [spectrum] + (additional_spectra or [])
+        self.mode_preference = mode_preference
+        self.spectra = [spectrum]
         self.line_width = line_width
 
-        if mode_preference != AutolockMode.AUTO_DETECT:
-            self.mode = mode_preference
-            self.done = True
-        else:
-            self.check()
-
-    def handle_new_spectrum(self, spectrum: np.ndarray) -> None:
+    def append_spectrum(self, spectrum: np.ndarray) -> None:
         self.spectra.append(spectrum)
-        self.check()
 
-    def check(self) -> None:
-        if not self.done and len(self.spectra) > N_SPECTRA_REQUIRED:
-            abs_shifts = []
-            for spectrum in self.spectra[1:]:
-                shift, _, _ = determine_shift_by_correlation(
-                    1, self.spectra[0], spectrum
+    def select(self) -> AutolockMode:
+        if self.mode_preference == AutolockMode.AUTO_DETECT:
+            if len(self.spectra) >= N_SPECTRA_REQUIRED:
+                abs_shifts = []
+                for spectrum in self.spectra[1:]:
+                    shift, _, _ = determine_shift_by_correlation(
+                        1, self.spectra[0], spectrum
+                    )
+                    abs_shifts.append(abs(shift * N_POINTS))
+                max_shift = max(abs_shifts)
+                logger.debug(
+                    f"jitter / line width ratio: {max_shift / (self.line_width / 2)}"
                 )
-                abs_shifts.append(abs(shift * N_POINTS))
-            max_shift = max(abs_shifts)
-            logger.debug(
-                f"jitter / line width ratio: {max_shift / (self.line_width / 2)}"
-            )
-            if max_shift <= self.line_width / 2:
-                self.mode = AutolockMode.SIMPLE
-            else:
-                self.mode = AutolockMode.ROBUST
-            self.done = True
+                if max_shift <= self.line_width / 2:
+                    self.mode_preference = AutolockMode.SIMPLE
+                else:
+                    self.mode_preference = AutolockMode.ROBUST
+        return self.mode_preference

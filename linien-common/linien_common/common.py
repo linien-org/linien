@@ -18,12 +18,16 @@
 
 """This file contains stuff that is required by the server as well as the client."""
 
+import logging
 from enum import IntEnum
 from time import time
 from typing import Dict, Iterable, List, Tuple, Union
 
 import numpy as np
 from scipy.signal import correlate, resample
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 MHz = 0x10000000 / 8
 Vpp = ((1 << 14) - 1) / 4
@@ -154,7 +158,7 @@ def update_signal_history(
     return control_history, monitor_history
 
 
-def check_whether_correlation_is_bad(correlation, N):
+def check_whether_correlation_is_bad(correlation: np.ndarray) -> bool:
     return np.max(correlation) < 0.1
 
 
@@ -173,9 +177,8 @@ def determine_shift_by_correlation(
     reference_signal[np.isnan(reference_signal)] = 0
     error_signal[np.isnan(error_signal)] = 0
 
-    # prepare the signals in order to get a normalized cross-correlation
-    # this is required in order for `check_whether_correlation_is_bad` to return
-    # senseful answer
+    # Prepare the signals in order to get a normalized cross-correlation. This is
+    # required in order for `check_whether_correlation_is_bad` to return sensible answer
     # cf. https://stackoverflow.com/questions/53436231/normalized-cross-correlation-in-python  # noqa: E501
     reference_signal = (reference_signal - np.mean(reference_signal)) / (
         np.std(reference_signal) * len(reference_signal)
@@ -202,7 +205,7 @@ def determine_shift_by_correlation(
 
     correlation = correlate(zoomed_ref, downsampled_error_signal)
 
-    if check_whether_correlation_is_bad(correlation, len(zoomed_ref)):
+    if check_whether_correlation_is_bad(correlation):
         raise SpectrumUncorrelatedException()
 
     shift = float(
@@ -301,11 +304,14 @@ def combine_error_signal(
 
 
 def check_plot_data(is_locked: bool, plot_data: Dict[str, np.ndarray]) -> bool:
+    logger.debug(f"{is_locked=}")
     if is_locked:
         if "error_signal" not in plot_data or "control_signal" not in plot_data:
+            logger.debug(f"no control or error signal in {plot_data=}")
             return False
     else:
         if "error_signal_1" not in plot_data:
+            logger.debug(f"no error_signal_1 in {plot_data=}")
             return False
     return True
 

@@ -118,8 +118,8 @@ class RobustAutolock(Module, AutoCSR):
         peak_height_bit, x_data_length_bit = self.init_csr(N_points)
         self.init_inout_signals(width)
 
-        # is the autolock actively trying to detect peaks? This is set to true
-        # if lock is requested and once the sweep is at start
+        # Is the autolock actively trying to detect peaks? This is set to true if lock
+        # is requested and once the sweep is at start.
         watching = Signal()
 
         # the following signals are property of the peak that the autolock is trying to

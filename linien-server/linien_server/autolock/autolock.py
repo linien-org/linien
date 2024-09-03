@@ -21,6 +21,7 @@ from typing import Optional
 
 import numpy as np
 from linien_common.common import (
+    AutolockMode,
     SpectrumUncorrelatedException,
     check_plot_data,
     combine_error_signal,
@@ -35,6 +36,11 @@ from linien_server.parameters import Parameters
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
+AUTOLOCK_ALGORITHMS = {
+    AutolockMode.SIMPLE: SimpleAutolock,
+    AutolockMode.ROBUST: RobustAutolock,
+}
+
 
 class Autolock:
     def __init__(self, control: LinienControlService, parameters: Parameters) -> None:
@@ -43,7 +49,6 @@ class Autolock:
         self.parameters.autolock_running.value = False
         self.parameters.autolock_retrying.value = False
         self.reset_properties()
-        self.algorithm = None
 
     def reset_properties(self):
         # we check each parameter before setting it because otherwise this may crash the
@@ -55,16 +60,17 @@ class Autolock:
         if self.parameters.autolock_watching.value:
             self.parameters.autolock_watching.value = False
 
-    def reset_scan(self):
+    def reset_sweep(self):
         self.control.exposed_pause_acquisition()
         self.control.exposed_start_sweep()
         self.control.exposed_continue_acquisition()
 
-    def start_autolock(self, mode):
+    def start_autolock(self, mode: AutolockMode) -> None:
         logger.debug(f"Start autolock with mode {mode}")
         self.parameters.autolock_mode.value = mode
 
-        self.algorithm = [None, RobustAutolock, SimpleAutolock][mode](
+        self.algorithm = AUTOLOCK_ALGORITHMS[mode]
+        self.algorithm(
             self.control,
             self.parameters,
             self.spectrum,
@@ -73,8 +79,15 @@ class Autolock:
             self.peak_idxs[1],
             additional_spectra=self.additional_spectra,
         )
+        logger.debug("After lock")
+        self.parameters.autolock_locked.value = True
+        self.parameters.to_plot.remove_callback(
+            self.handle_more_spectra_and_start_autolock
+        )
+        self.parameters.autolock_running.value = False
+        self.algorithm.after_lock()  # type: ignore
 
-    def stop(self) -> None:
+    def abort(self) -> None:
         """Abort any operation."""
         self.parameters.autolock_preparing.value = False
         self.parameters.autolock_percentage.value = 0
@@ -82,8 +95,11 @@ class Autolock:
         self.parameters.autolock_locked.value = False
         self.parameters.autolock_watching.value = False
         self.parameters.fetch_additional_signals.value = True
-        self.parameters.to_plot.remove_callback(self.react_to_new_spectrum)
-        self.reset_scan()
+        self.parameters.autolock_failed.value = True
+        self.parameters.to_plot.remove_callback(
+            self.handle_more_spectra_and_start_autolock
+        )
+        self.reset_sweep()
         self.parameters.task.value = None
 
     def relock(self):
@@ -99,11 +115,12 @@ class Autolock:
             self.parameters.autolock_retrying.value = True
 
         self.reset_properties()
-        self.reset_scan()
+        self.reset_sweep()
 
-        # add a listener that listens for new spectrum data and consequently tries to
-        # relock.
-        self.parameters.to_plot.add_callback(self.react_to_new_spectrum)
+        # add a listener that listens for new spectrum data and tries to relock.
+        self.parameters.to_plot.add_callback(
+            self.handle_more_spectra_and_start_autolock
+        )
 
     def run(
         self,
@@ -113,7 +130,6 @@ class Autolock:
         auto_offset: bool = True,
         additional_spectra: Optional[list[np.ndarray]] = None,
     ) -> None:
-        """Start the autolock."""
         self.parameters.autolock_running.value = True
         self.parameters.autolock_preparing.value = True
         self.parameters.autolock_percentage.value = 0
@@ -129,7 +145,6 @@ class Autolock:
             self.line_width,
             self.peak_idxs,
         ) = get_lock_point(self.spectrum, int(x0), int(x1))
-
         self.central_y = int(mean_signal)
 
         if auto_offset:
@@ -147,38 +162,33 @@ class Autolock:
         self.control.exposed_write_registers()
 
         try:
-            self.autolock_algorithm_selector = AutolockAlgorithmSelector(
+            self.algorithm_selector = AutolockAlgorithmSelector(
                 self.parameters.autolock_mode_preference.value,
                 self.spectrum,
-                additional_spectra,
                 self.line_width,
             )
+            for additional_spectrum in self.additional_spectra:
+                self.algorithm_selector.append_spectrum(additional_spectrum)
 
-            if self.autolock_algorithm_selector.done:
-                self.start_autolock(self.autolock_algorithm_selector.mode)
+            if self.algorithm_selector.select() != AutolockMode.AUTO_DETECT:
+                # AutolockAlgorithmSelector found an appropriate algorithm, start
+                # autolock already
+                self.start_autolock(self.algorithm_selector.select())
+            else:
+                # Additional spectra are necessary. Collect them via a callback from the
+                # `to_plot` parameter
+                self.parameters.to_plot.add_callback(
+                    self.handle_more_spectra_and_start_autolock
+                )
 
         except SpectrumUncorrelatedException:
-            # This may happen if `additional_spectra` contain uncorrelated data. Then
-            # either AutolockAlgorithmSelector or `start_autolock` may raise this
-            # exception
             logger.exception("Error while starting autolock")
-            self.parameters.autolock_failed.value = True
-            self.stop()
+            self.abort()
 
-        self.parameters.to_plot.add_callback(self.react_to_new_spectrum)
-
-    def react_to_new_spectrum(self, plot_data: bytes) -> None:
+    def handle_more_spectra_and_start_autolock(self, plot_data: bytes) -> None:
         """
-        React to new spectrum data.
-
-        If this is executed for the first time, a reference spectrum is recorded.
-
-        If the autolock is approaching the desired line, a correlation function of the
-        spectrum with the reference spectrum is calculated and the laser current is
-        adapted such that the targeted line is centered.
-
-        After this procedure is done, the real lock is turned on and after some time the
-        lock is verified.
+        Callback function that handles new plot data, determines an autolock algorithm
+        and starts the autolock.
         """
         if (
             self.parameters.pause_acquisition.value
@@ -190,12 +200,11 @@ class Autolock:
         if plot_data_unpickled is None:
             return
 
-        is_locked = self.parameters.lock.value
-        if not check_plot_data(is_locked, plot_data_unpickled):
+        if not check_plot_data(self.parameters.lock.value, plot_data_unpickled):
             return
 
         try:
-            if not is_locked:
+            if not self.parameters.lock.value:
                 combined_error_signal = combine_error_signal(
                     (
                         plot_data_unpickled["error_signal_1"],
@@ -205,31 +214,12 @@ class Autolock:
                     self.parameters.channel_mixing.value,
                     self.parameters.combined_offset.value,
                 )
+                self.algorithm_selector.append_spectrum(combined_error_signal)
+                self.additional_spectra.append(combined_error_signal)
 
-                if not self.autolock_algorithm_selector.done:
-                    self.autolock_algorithm_selector.handle_new_spectrum(
-                        combined_error_signal
-                    )
-                    self.additional_spectra.append(combined_error_signal)
-
-                    if self.autolock_algorithm_selector.done:
-                        self.start_autolock(self.autolock_algorithm_selector.mode)
-                    else:
-                        return
-
-                if self.algorithm is not None:
-                    self.algorithm.handle_new_spectrum(combined_error_signal)
-                    return
-
-            else:
-                logger.debug("After lock")
-                self.parameters.autolock_locked.value = True
-                self.parameters.to_plot.remove_callback(self.react_to_new_spectrum)
-                self.parameters.autolock_running.value = False
-                if self.algorithm is not None:
-                    self.algorithm.after_lock()
+                if self.algorithm_selector.select() != AutolockMode.AUTO_DETECT:
+                    self.start_autolock(self.algorithm_selector.select())
 
         except Exception:
             logger.exception("Error while handling new spectrum")
-            self.parameters.autolock_failed.value = True
-            self.stop()
+            self.abort()
