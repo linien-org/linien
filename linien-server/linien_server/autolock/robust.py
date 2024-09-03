@@ -91,7 +91,6 @@ class RobustAutolock:
             self._error_counter += 1
             if self._error_counter > 2:
                 raise
-
             return
 
         self.spectra.append(spectrum)

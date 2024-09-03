@@ -48,34 +48,27 @@ class SimpleAutolock:
         self._error_counter = 0
 
     def handle_new_spectrum(self, spectrum) -> None:
-        if self._done:
-            return
+        if not self._done:
+            try:
+                shift, zoomed_ref, zoomed_err = determine_shift_by_correlation(
+                    1, self.first_error_signal_rolled, spectrum
+                )
+            except SpectrumUncorrelatedException:
+                self._error_counter += 1
+                logger.warning("skipping spectrum because it is not correlated")
+                if self._error_counter > 10:
+                    raise
+                return
 
-        try:
-            shift, zoomed_ref, zoomed_err = determine_shift_by_correlation(
-                1, self.first_error_signal_rolled, spectrum
+            lock_point = int(
+                round((shift * (-1)) * self.parameters.sweep_amplitude.value * 8191)
             )
-        except SpectrumUncorrelatedException:
-            self._error_counter += 1
-            logger.warning("skipping spectrum because it is not correlated")
-
-            if self._error_counter > 10:
-                raise
-
-            return
-
-        lock_point = int(
-            round((shift * (-1)) * self.parameters.sweep_amplitude.value * 8191)
-        )
-
-        logger.debug(f"lock point is {lock_point}, shift is {shift}")
-
-        self.parameters.autolock_target_position.value = int(lock_point)
-        self.parameters.autolock_preparing.value = False
-        self.control.exposed_write_registers()
-        self.control.exposed_start_lock()
-
-        self._done = True
+            logger.debug(f"lock point is {lock_point}, shift is {shift}")
+            self.parameters.autolock_target_position.value = int(lock_point)
+            self.parameters.autolock_preparing.value = False
+            self.control.exposed_write_registers()
+            self.control.exposed_start_lock()
+            self._done = True
 
     def after_lock(self):
         pass

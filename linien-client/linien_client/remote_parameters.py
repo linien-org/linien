@@ -66,13 +66,13 @@ class RemoteParameter:
         Register a callback function that is called whenever the parameter changes.
         """
 
-        if self.name not in self.parent._callbacks and not self.use_cache:
+        if self.name not in self.parent.callbacks and not self.use_cache:
             # Make sure that the server knows that we want to be notified about changes.
             # Parameters that use the cache are already registered, see `__init__`.
             self.parent._listeners_pending_remote_registration.append(self.name)
 
-        self.parent._callbacks.setdefault(self.name, [])
-        self.parent._callbacks[self.name].append(callback)
+        self.parent.callbacks.setdefault(self.name, [])
+        self.parent.callbacks[self.name].append(callback)
 
         if call_immediately:
             callback(self.value)
@@ -106,7 +106,7 @@ class RemoteParameters:
         self._async_listener_registering: Union[AsyncResult, None] = None
 
         self._listeners_pending_remote_registration: List[str] = []
-        self._callbacks: Dict[str, List[Callable]] = {}
+        self.callbacks: Dict[str, List[Callable]] = {}
 
         # mimic functionality of `parameters.Parameters`:
         all_parameters = self.remote.exposed_init_parameter_sync(self.uuid)
@@ -201,8 +201,8 @@ class RemoteParameters:
 
             # Iterate over all changed parameters and call their callback functions.
             for param_name, value in queue:
-                if param_name in self._callbacks:
-                    for callback in self._callbacks[param_name]:
+                if param_name in self.callbacks:
+                    for callback in self.callbacks[param_name]:
                         callback(value)
 
         if (

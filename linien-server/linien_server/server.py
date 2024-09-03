@@ -258,11 +258,10 @@ class RedPitayaControlService(BaseService, LinienControlService):
         self,
         x0: float,
         x1: float,
-        spectrum,
-        additional_spectra: Optional[Any] = None,
+        spectrum: bytes,
+        additional_spectra: Optional[bytes] = None,
     ) -> None:
         logger.info(f"Start autolock {x0=} {x1=}")
-        spectrum = pickle.loads(spectrum)
         auto_offset = self.parameters.autolock_determine_offset.value
 
         if not self._task_running():
@@ -271,7 +270,7 @@ class RedPitayaControlService(BaseService, LinienControlService):
             autolock.run(
                 x0,
                 x1,
-                spectrum,
+                pickle.loads(spectrum),
                 auto_offset=auto_offset,
                 additional_spectra=(
                     pickle.loads(additional_spectra)
@@ -378,7 +377,11 @@ class FakeRedPitayaControlService(BaseService, LinienControlService):
         pass
 
     def exposed_start_autolock(
-        self, x0: float, x1: float, spectrum, additional_spectra: Optional[Any] = None
+        self,
+        x0: float,
+        x1: float,
+        spectrum: bytes,
+        additional_spectra: Optional[bytes] = None,
     ) -> None:
         logger.info(f"Start autolock {x0=}, {x1=}, {spectrum=}, {additional_spectra=}")
 

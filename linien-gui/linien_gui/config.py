@@ -42,7 +42,7 @@ class Setting:
         self.max = max_
         self._value = start
         self.start = start
-        self._callbacks = set()
+        self.callbacks = set()
 
     @property
     def value(self):
@@ -58,20 +58,20 @@ class Setting:
 
         # We copy it because a listener could remove a listener --> this would cause an
         # error in this loop.
-        for callback in self._callbacks.copy():
+        for callback in self.callbacks.copy():
             callback(value)
 
     def add_callback(self, function: Callable[..., None], call_immediatly: bool = True):
         """Add a callback function that is called when with each newly set value."""
-        self._callbacks.add(function)
+        self.callbacks.add(function)
 
         if call_immediatly:
             if self._value is not None:
                 function(self._value)
 
     def remove_callback(self, function):
-        if function in self._callbacks:
-            self._callbacks.remove(function)
+        if function in self.callbacks:
+            self.callbacks.remove(function)
 
 
 class Settings:

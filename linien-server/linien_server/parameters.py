@@ -50,7 +50,7 @@ class Parameter:
         self.wrap = wrap
         self._value = start
         self._start = start
-        self._callbacks = set()
+        self.callbacks = set()
         self.can_be_cached = sync
         self._collapsed_sync = collapsed_sync
         self.restorable = restorable
@@ -73,7 +73,7 @@ class Parameter:
 
         # We copy it because a listener could remove a listener --> this would cause an
         # error in this loop.
-        for callback in self._callbacks.copy():
+        for callback in self.callbacks.copy():
             callback(value)
 
     def reset(self):
@@ -82,15 +82,15 @@ class Parameter:
     def add_callback(
         self, function: Callable[[Any], None], call_immediately: bool = False
     ) -> None:
-        self._callbacks.add(function)
+        self.callbacks.add(function)
 
         if call_immediately:
             if self._value is not None:
                 function(self._value)
 
     def remove_callback(self, function: Callable[[Any], None]) -> None:
-        if function in self._callbacks:
-            self._callbacks.remove(function)
+        if function in self.callbacks:
+            self.callbacks.remove(function)
 
 
 class Parameters:
