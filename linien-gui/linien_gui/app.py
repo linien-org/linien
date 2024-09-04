@@ -18,10 +18,12 @@
 import logging
 import signal
 import sys
+from logging.handlers import RotatingFileHandler
 
 import click
 from linien_client.connection import LinienClient
 from linien_common.communication import LinienControlService
+from linien_common.config import LOG_FILE_PATH
 from linien_gui import __version__
 from linien_gui.config import UI_PATH, load_settings
 from linien_gui.ui.device_manager import DeviceManager
@@ -114,6 +116,23 @@ class LinienApp(QtWidgets.QApplication):
 @click.command("linien")  # type: ignore[arg-type]
 @click.version_option(__version__)
 def main():
+
+    file_handler = RotatingFileHandler(
+        str(LOG_FILE_PATH), maxBytes=1000000, backupCount=10
+    )
+    file_handler.setLevel(logging.DEBUG)
+    file_formatter = logging.Formatter(
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
+    file_handler.setFormatter(file_formatter)
+    logger.addHandler(file_handler)
+
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.DEBUG)
+    console_formatter = logging.Formatter("%(name)-30s %(levelname)-8s %(message)s")
+    console_handler.setFormatter(console_formatter)
+    logger.addHandler(console_handler)
+
     app = LinienApp(sys.argv)
     logger.info("Starting Linien GUI")
 
