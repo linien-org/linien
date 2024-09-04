@@ -17,6 +17,7 @@
 
 import logging
 from time import time
+from typing import Optional
 
 import numpy as np
 from linien_common.common import (
@@ -56,8 +57,8 @@ class RobustAutolock:
         first_error_signal_rolled,
         x0,
         x1,
-        N_spectra_required=5,
-        additional_spectra=None,
+        N_spectra_required: int = 5,
+        additional_spectra: Optional[list[np.ndarray]] = None,
     ):
         self.control = control
         self.parameters = parameters

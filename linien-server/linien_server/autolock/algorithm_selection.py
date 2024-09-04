@@ -16,6 +16,7 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
+from typing import Optional
 
 import numpy as np
 from linien_common.common import N_POINTS, AutolockMode, determine_shift_by_correlation
@@ -30,16 +31,24 @@ class AutolockAlgorithmSelector:
     """This class helps deciding which autolock method should be used."""
 
     def __init__(
-        self, mode_preference: AutolockMode, spectrum: np.ndarray, line_width: int
+        self,
+        mode_preference: AutolockMode,
+        spectrum: np.ndarray,
+        line_width: int,
+        additional_spectra: Optional[list[np.ndarray]] = None,
     ) -> None:
         self.mode_preference = mode_preference
         self.spectra = [spectrum]
         self.line_width = line_width
+        if additional_spectra is not None:
+            for additional_spectrum in additional_spectra:
+                self.append_spectrum(additional_spectrum)
 
     def append_spectrum(self, spectrum: np.ndarray) -> None:
         self.spectra.append(spectrum)
 
-    def select(self) -> AutolockMode:
+    @property
+    def mode(self) -> AutolockMode:
         if self.mode_preference == AutolockMode.AUTO_DETECT:
             if len(self.spectra) >= N_SPECTRA_REQUIRED:
                 abs_shifts = []
