@@ -67,7 +67,7 @@ def test_forced_algorithm_selection():
             auto_offset=True,
         )
 
-        assert autolock.algorithm_selector.select() == forced
+        assert autolock.algorithm_selector.mode == forced
         assert parameters.autolock_mode.value == forced
 
         if forced == AutolockMode.SIMPLE:
@@ -102,7 +102,7 @@ def test_automatic_algorithm_selection():
             auto_offset=True,
         )
 
-        assert autolock.algorithm_selector.select() == AutolockMode.AUTO_DETECT
+        assert autolock.algorithm_selector.mode == AutolockMode.AUTO_DETECT
 
         for _ in range(10):
             error_signal = _get_signal(jitter)[:]
@@ -111,11 +111,11 @@ def test_automatic_algorithm_selection():
             )
 
         if jitter == LOW_JITTER:
-            assert autolock.algorithm_selector.select() == AutolockMode.SIMPLE
+            assert autolock.algorithm_selector.mode == AutolockMode.SIMPLE
             assert parameters.autolock_mode.value == AutolockMode.SIMPLE
             assert isinstance(autolock.algorithm, SimpleAutolock)
         else:
-            assert autolock.algorithm_selector.select() == AutolockMode.ROBUST
+            assert autolock.algorithm_selector.mode == AutolockMode.ROBUST
             assert parameters.autolock_mode.value == AutolockMode.ROBUST
             assert isinstance(autolock.algorithm, RobustAutolock)
 
