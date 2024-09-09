@@ -37,7 +37,8 @@ def get_signal(sweep_amplitude, center, shift):
         smaller_peaks = (peak(x - 10) * 1024) - (peak(x + 10) * 1024)
         return central_peak + smaller_peaks + Y_SHIFT
 
-    max_val = np.pi * 5 * sweep_amplitude
+    # NOTE: different factor than in the other tests (10 instead of 5)
+    max_val = np.pi * 10 * sweep_amplitude
     new_center = center + shift
     x = np.linspace((-1 + new_center) * max_val, (1 + new_center) * max_val, N_POINTS)
     return spectrum_for_testing(x)
