@@ -66,9 +66,6 @@ class FakeControl:
 
 
 def test_autolock():
-    def _get_signal(shift):
-        return get_signal(1, 0, shift)
-
     for ref_shift in (0, -0.7, 0.3):
         for target_shift in (0.5, -0.3, 0.6):
             print(f"----- ref_shift={ref_shift}, target_shift={target_shift} -----")
@@ -77,7 +74,7 @@ def test_autolock():
             parameters.autolock_mode_preference.value = AutolockMode.SIMPLE
             control = FakeControl(parameters)
 
-            reference_signal = _get_signal(ref_shift)
+            reference_signal = get_signal(1, 0, ref_shift)
 
             autolock = Autolock(control, parameters)
 
@@ -91,7 +88,7 @@ def test_autolock():
                 auto_offset=True,
             )
 
-            error_signal = _get_signal(target_shift)[:]
+            error_signal = get_signal(1, 0, target_shift)[:]
 
             parameters.to_plot.value = pickle.dumps(
                 {"error_signal_1": error_signal, "error_signal_2": []}
