@@ -67,7 +67,7 @@ class Autolock:
         self.control.exposed_start_sweep()
         self.control.exposed_continue_acquisition()
 
-    def abort(self) -> None:
+    def stop(self) -> None:
         """Abort any operation."""
         self.parameters.autolock_preparing.value = False
         self.parameters.autolock_percentage.value = 0
@@ -213,4 +213,4 @@ class Autolock:
 
         except Exception:
             logger.exception("Error while handling new spectrum")
-            self.abort()
+            self.stop()
