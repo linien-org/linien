@@ -21,22 +21,22 @@ from linien_server.optimization.approacher import Approacher
 from linien_server.parameters import Parameters
 
 Y_SHIFT = 4000
-
-
-def peak(x):
-    return np.exp(-np.abs(x)) * np.sin(x)
-
-
-def spectrum_for_testing(x):
-    central_peak = peak(x) * 2048
-    smaller_peaks = (peak(x - 10) * 1024) - (peak(x + 10) * 1024)
-    return central_peak + smaller_peaks + Y_SHIFT
+N_POINTS = 16384
 
 
 def get_signal(sweep_amplitude, center, shift):
+
+    def spectrum_for_testing(x):
+        def peak(x):
+            return np.exp(-np.abs(x)) * np.sin(x)
+
+        central_peak = peak(x) * 2048
+        smaller_peaks = (peak(x - 10) * 1024) - (peak(x + 10) * 1024)
+        return central_peak + smaller_peaks + Y_SHIFT
+
     max_val = np.pi * 5 * sweep_amplitude
     new_center = center + shift
-    x = np.linspace((-1 + new_center) * max_val, (1 + new_center) * max_val, 16384)
+    x = np.linspace((-1 + new_center) * max_val, (1 + new_center) * max_val, N_POINTS)
     return spectrum_for_testing(x)
 
 
