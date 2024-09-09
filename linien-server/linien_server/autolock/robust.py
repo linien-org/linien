@@ -95,9 +95,6 @@ class RobustAutolock:
             return
 
         self.spectra.append(spectrum)
-        self.parameters.autolock_percentage.value = int(
-            round((len(self.spectra) / self.N_spectra_required) * 100)
-        )
 
         if len(self.spectra) == self.N_spectra_required:
             logger.debug("enough spectra!, calculate")

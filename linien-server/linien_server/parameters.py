@@ -578,7 +578,6 @@ class Parameters:
         self.autolock_selection = Parameter(start=False)
         self.autolock_running = Parameter(start=False)
         self.autolock_preparing = Parameter(start=False)
-        self.autolock_percentage = Parameter(start=0, min_=0, max_=100)
         self.autolock_watching = Parameter(start=False)
         self.autolock_failed = Parameter(start=False)
         self.autolock_locked = Parameter(start=False)

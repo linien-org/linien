@@ -70,7 +70,6 @@ class Autolock:
     def stop(self) -> None:
         """Abort any operation."""
         self.parameters.autolock_preparing.value = False
-        self.parameters.autolock_percentage.value = 0
         self.parameters.autolock_running.value = False
         self.parameters.autolock_locked.value = False
         self.parameters.autolock_watching.value = False
@@ -108,7 +107,6 @@ class Autolock:
     ) -> None:
         self.parameters.autolock_running.value = True
         self.parameters.autolock_preparing.value = True
-        self.parameters.autolock_percentage.value = 0
         self.parameters.fetch_additional_signals.value = False
         self.additional_spectra = additional_spectra or []
         self.spectrum = spectrum
