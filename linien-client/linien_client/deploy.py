@@ -50,7 +50,7 @@ def read_remote_version(
         connect_kwargs={"password": device.password},
     ) as conn:
         result = conn.run(
-            'python3 -c "import linien_server; print(linien_server.__version__);"',
+            'python3 -c "import linien_server;"',
             out_stream=out_stream,
             err_stream=out_stream,
             warn=True,
