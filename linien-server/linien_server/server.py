@@ -350,6 +350,7 @@ class RedPitayaControlService(BaseService, LinienControlService):
 class FakeRedPitayaControlService(BaseService, LinienControlService):
     def __init__(self):
         super().__init__()
+        self.parameters = Parameters()
 
         self.random_data_thread = Thread(
             target=self._write_random_data_to_parameters_loop,

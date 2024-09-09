@@ -28,6 +28,7 @@ from linien_server.optimization.engine import (
     OptimizerEngine,
 )
 from linien_server.parameters import Parameters
+from linien_server.server import FakeRedPitayaControlService
 
 
 class FakeControl:
@@ -64,10 +65,10 @@ def test_multi():
     print("done", e.es.result_pretty())
 
 
-def test_optimization_0d():  #
+def test_optimization_0d():
     """ "Check that 0D optimization only optimizes phase."""
-    parameters = Parameters()
-    control = FakeControl(parameters)
+    control = FakeRedPitayaControlService()
+    parameters = control.parameters
 
     parameters.optimization_mod_freq_enabled.value = False
     parameters.optimization_mod_amp_enabled.value = False
@@ -92,8 +93,8 @@ def test_optimization_0d():  #
 
 def test_optimization_1d():
     """Test 1D optimization."""
-    parameters = Parameters()
-    control = FakeControl(parameters)
+    control = FakeRedPitayaControlService()
+    parameters = control.parameters
 
     parameters.optimization_mod_freq_enabled.value = False
     parameters.optimization_mod_amp_enabled.value = True
@@ -131,9 +132,8 @@ def test_optimization_1d():
 
 
 def test_optimization_2d():
-
-    parameters = Parameters()
-    control = FakeControl(parameters)
+    control = FakeRedPitayaControlService()
+    parameters = control.parameters
 
     parameters.optimization_mod_freq_enabled.value = True
     parameters.optimization_mod_amp_enabled.value = True
