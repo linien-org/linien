@@ -91,6 +91,13 @@ class BaseService(rpyc.Service):
     def exposed_reset_param(self, param_name: str) -> None:
         getattr(self.parameters, param_name).reset()
 
+    def exposed_start_lock(self):
+        logger.info("Start lock")
+        self.exposed_pause_acquisition()
+        self.parameters.lock.value = True
+        self.exposed_write_registers()
+        self.exposed_continue_acquisition()
+
     def exposed_init_parameter_sync(
         self, uuid: str
     ) -> list[tuple[str, Any, bool, bool, bool, bool]]:
@@ -303,12 +310,6 @@ class RedPitayaControlService(BaseService, LinienControlService):
         self.exposed_write_registers()
         self.exposed_continue_acquisition()
 
-    def exposed_start_lock(self):
-        self.exposed_pause_acquisition()
-        self.parameters.lock.value = True
-        self.exposed_write_registers()
-        self.exposed_continue_acquisition()
-
     def exposed_shutdown(self):
         self.stop_event.set()
         self.ping_thread.join()
@@ -375,7 +376,7 @@ class FakeRedPitayaControlService(BaseService, LinienControlService):
             sleep(0.1)
 
     def exposed_write_registers(self):
-        logger.info("writing parameters")
+        logger.info("Write registers")
 
     def exposed_start_autolock(
         self,
@@ -393,17 +394,14 @@ class FakeRedPitayaControlService(BaseService, LinienControlService):
     def exposed_start_sweep(self):
         logger.info("Start sweep")
 
-    def exposed_start_lock(self):
-        logger.info("Start lock")
-
     def exposed_shutdown(self):
         raise SystemExit()
 
     def exposed_pause_acquisition(self):
-        pass
+        logger.info("Pause acquisition")
 
     def exposed_continue_acquisition(self):
-        pass
+        logger.info("Continue acquisition")
 
 
 def run_threaded_server(
