@@ -110,7 +110,7 @@ class RelockingPanel(QtWidgets.QWidget):
             # connect plot widget to threshold signals
             signal = getattr(self, f"{channel}_thresholds_signal")
             slot = getattr(
-                self.app.main_window.graphicsView, f"show_{channel}_thresholds"
+                self.app.main_window.plotWidget, f"show_{channel}_thresholds"
             )
             signal.connect(slot)
 

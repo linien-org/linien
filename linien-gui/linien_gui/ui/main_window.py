@@ -81,7 +81,7 @@ class MainWindow(QtWidgets.QMainWindow):
     shutdownButton: QtWidgets.QPushButton
     closeButton: QtWidgets.QPushButton
     openDeviceManagerButton: QtWidgets.QPushButton
-    graphicsView: PlotWidget
+    plotWidget: PlotWidget
 
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
@@ -113,9 +113,9 @@ class MainWindow(QtWidgets.QMainWindow):
             el = self.power_channel_2
             display_power(power, el)
 
-        self.graphicsView.signal_power1.connect(display_power_channel_1)
-        self.graphicsView.signal_power2.connect(display_power_channel_2)
-        self.graphicsView.keyPressed.connect(self.handle_key_press)
+        self.plotWidget.signal_power1.connect(display_power_channel_1)
+        self.plotWidget.signal_power2.connect(display_power_channel_2)
+        self.plotWidget.keyPressed.connect(self.handle_key_press)
 
         # create callbacks for all relevant color settings to change the colors of the
         # corresponding legend labels
