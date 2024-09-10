@@ -325,7 +325,7 @@
  <customwidgets>
   <customwidget>
    <class>PSDPlotWidget</class>
-   <extends>QplotWidget</extends>
+   <extends>QGraphicsView</extends>
    <header location="global">psd_plot_widget.h</header>
   </customwidget>
   <customwidget>

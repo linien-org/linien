@@ -276,68 +276,75 @@ class PlotWidget(pg.PlotWidget):
         # caught here
         self.keyPressed.emit(event.key())
 
-    def mousePressEvent(self, event):
-        super().mousePressEvent(event)
-        if self.selection_running:
-            if event.button() == QtCore.Qt.RightButton:
-                return
-            x, y = self._to_data_coords(event)
-            if x < self.selection_boundaries[0] or x > self.selection_boundaries[1]:
-                return
-            self.touch_start = x, y
-            self.overlay.setRegion((x, x))
-            self.overlay.setVisible(True)
-
     def mouseMoveEvent(self, event):
         if not self.selection_running:
             super().mouseMoveEvent(event)
         else:
             if self.touch_start is None:
                 return
+
             x0, y0 = self.touch_start
+
             x, y = self._to_data_coords(event)
             x = self._within_boundaries(x)
             self.set_selection_overlay(x0, x - x0)
-            self.overlay.setRegion((x0, x))
 
     def mouseReleaseEvent(self, event):
         super().mouseReleaseEvent(event)
+
         if self.selection_running:
             if self.touch_start is None:
                 return
+
             x, y = self._to_data_coords(event)
             x = self._within_boundaries(x)
             x0, y0 = self.touch_start
             xdiff = np.abs(x0 - x)
             xmax = len(self.last_plot_data[0]) - 1
-            if xdiff / xmax < 0.01:  # it was a click
+            if xdiff / xmax < 0.01:
+                # it was a click
                 pass
-            else:  # it was a selection
-                if self.parameters.autolock_selection.value:
-                    last_combined_error_signal = self.last_plot_data[2]
-                    self.parameters.autolock_selection.value = False
-                    self.control.exposed_start_autolock(
-                        *sorted([x0, x]),
-                        pickle.dumps(last_combined_error_signal),
-                        additional_spectra=pickle.dumps(self.cached_plot_data),
-                    )
-                    (_, _, _, rolled_error_signal, _, _) = get_lock_point(
-                        last_combined_error_signal, *sorted((int(x0), int(x)))
-                    )
-                    self.autolock_ref_spectrum = rolled_error_signal
-                elif self.parameters.optimization_selection.value:
-                    spectrum = self.last_plot_data[
-                        (
-                            0
-                            if not self.parameters.dual_channel.value
-                            else (0, 1)[self.parameters.optimization_channel.value]
+            else:
+                # it was a selection
+                if self.selection_running:
+                    if self.parameters.autolock_selection.value:
+                        last_combined_error_signal = self.last_plot_data[2]
+                        self.parameters.autolock_selection.value = False
+
+                        self.control.exposed_start_autolock(
+                            # we pickle it here because otherwise a netref is
+                            # transmitted which blocks the autolock
+                            *sorted([x0, x]),
+                            pickle.dumps(last_combined_error_signal),
+                            additional_spectra=pickle.dumps(self.cached_plot_data),
                         )
-                    ]
-                    self.parameters.optimization_selection.value = False
-                    points = sorted([int(x0), int(x)])
-                    self.control.exposed_start_optimization(
-                        *points, pickle.dumps(spectrum)
-                    )
+
+                        (
+                            mean_signal,
+                            target_slope_rising,
+                            target_zoom,
+                            rolled_error_signal,
+                            line_width,
+                            peak_idxs,
+                        ) = get_lock_point(
+                            last_combined_error_signal, *sorted((int(x0), int(x)))
+                        )
+                        self.autolock_ref_spectrum = rolled_error_signal
+                    elif self.parameters.optimization_selection.value:
+                        channel = self.parameters.optimization_channel.value
+                        spectrum = self.last_plot_data[
+                            (
+                                0
+                                if not self.parameters.dual_channel.value
+                                else (0, 1)[channel]
+                            )
+                        ]
+                        self.parameters.optimization_selection.value = False
+                        points = sorted([int(x0), int(x)])
+                        self.control.exposed_start_optimization(
+                            *points, pickle.dumps(spectrum)
+                        )
+
             self.overlay.setVisible(False)
             self.touch_start = None
 
@@ -397,6 +404,26 @@ class PlotWidget(pg.PlotWidget):
             self.setLabel("bottom", "sweep voltage", units="V")
         else:
             self.setLabel("bottom", "time", units="µs")
+
+    def set_selection_overlay(self, x_start, width):
+        self.overlay.setRegion((x_start, x_start + width))
+
+    def mousePressEvent(self, event):
+        super().mousePressEvent(event)
+
+        if self.selection_running:
+            if event.button() == QtCore.Qt.RightButton:
+                return
+
+            x, y = self._to_data_coords(event)
+
+            if self.selection_running:
+                if x < self.selection_boundaries[0] or x > self.selection_boundaries[1]:
+                    return
+
+            self.touch_start = x, y
+            self.set_selection_overlay(x, 0)
+            self.overlay.setVisible(True)
 
     def on_new_plot_data_received(self, to_plot):
         time_beginning = time()
