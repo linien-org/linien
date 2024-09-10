@@ -285,7 +285,7 @@ class PlotWidget(pg.PlotWidget):
             if x < self.selection_boundaries[0] or x > self.selection_boundaries[1]:
                 return
             self.touch_start = x, y
-            self.set_selection_overlay(x, 0)
+            self.overlay.setRegion((x, x))
             self.overlay.setVisible(True)
 
     def mouseMoveEvent(self, event):
@@ -297,7 +297,7 @@ class PlotWidget(pg.PlotWidget):
             x0, y0 = self.touch_start
             x, y = self._to_data_coords(event)
             x = self._within_boundaries(x)
-            self.set_selection_overlay(x0, x - x0)
+            self.overlay.setRegion((x0, x))
 
     def mouseReleaseEvent(self, event):
         super().mouseReleaseEvent(event)
@@ -398,9 +398,6 @@ class PlotWidget(pg.PlotWidget):
             self.setLabel("bottom", "sweep voltage", units="V")
         else:
             self.setLabel("bottom", "time", units="µs")
-
-    def set_selection_overlay(self, x_start, width):
-        self.overlay.setRegion((x_start, x_start + width))
 
     def on_new_plot_data_received(self, to_plot):
         time_beginning = time()

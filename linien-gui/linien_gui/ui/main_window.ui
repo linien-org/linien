@@ -200,7 +200,7 @@ p, li { white-space: pre-wrap; }
           </widget>
          </item>
          <item>
-          <widget class="PlotWidget" name="graphicsView">
+          <widget class="PlotWidget" name="plotWidget">
            <property name="minimumSize">
             <size>
              <width>100</width>
