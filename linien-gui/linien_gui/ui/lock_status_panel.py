@@ -42,7 +42,6 @@ class LockStatusPanel(QtWidgets.QWidget):
         self.parameters.task.add_callback(self.update_status)
         self.parameters.autolock_running.add_callback(self.update_status)
         self.parameters.autolock_preparing.add_callback(self.update_status)
-        self.parameters.autolock_watching.add_callback(self.update_status)
         self.parameters.autolock_failed.add_callback(self.update_status)
         self.parameters.autolock_locked.add_callback(self.update_status)
         self.parameters.autolock_retrying.add_callback(self.update_status)
@@ -65,20 +64,15 @@ class LockStatusPanel(QtWidgets.QWidget):
         else:
             self.hide()
 
-        if task:
-            watching = self.parameters.autolock_watching.value
-        else:
+        if not task:
             running = False
-            watching = False
 
         def set_text(text):
             self.parent.lock_status.setText(text)
 
         if not running and locked:
             set_text("Locked!")
-        if running and watching:
-            set_text("Locked! Watching continuously...")
-        if running and not watching and not locked and preparing:
+        if running and not locked and preparing:
             if not retrying:
                 set_text("Autolock is running...")
             else:

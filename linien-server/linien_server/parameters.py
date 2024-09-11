@@ -577,7 +577,6 @@ class Parameters:
         self.autolock_final_wait_time = Parameter(start=0)
         self.autolock_running = Parameter(start=False)
         self.autolock_preparing = Parameter(start=False)
-        self.autolock_watching = Parameter(start=False)
         self.autolock_failed = Parameter(start=False)
         self.autolock_locked = Parameter(start=False)
         self.autolock_retrying = Parameter(start=False)

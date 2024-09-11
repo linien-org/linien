@@ -59,8 +59,6 @@ class Autolock:
             self.parameters.autolock_failed.value = False
         if self.parameters.autolock_locked.value:
             self.parameters.autolock_locked.value = False
-        if self.parameters.autolock_watching.value:
-            self.parameters.autolock_watching.value = False
 
     def reset_sweep(self):
         self.control.exposed_pause_acquisition()
@@ -72,7 +70,6 @@ class Autolock:
         self.parameters.autolock_preparing.value = False
         self.parameters.autolock_running.value = False
         self.parameters.autolock_locked.value = False
-        self.parameters.autolock_watching.value = False
         self.parameters.fetch_additional_signals.value = True
         self.parameters.autolock_failed.value = True
         self.parameters.to_plot.remove_callback(self.try_to_start_autolock)

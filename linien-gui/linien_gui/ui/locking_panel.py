@@ -99,7 +99,6 @@ class LockingPanel(QtWidgets.QWidget):
         self.parameters.pid_on_slow_enabled.add_callback(self.on_slow_pid_changed)
         self.parameters.lock.add_callback(self.on_lock_status_changed)
         self.parameters.autolock_preparing.add_callback(self.on_lock_status_changed)
-        self.parameters.autolock_watching.add_callback(self.on_lock_status_changed)
         self.parameters.autolock_failed.add_callback(self.on_lock_status_changed)
         self.parameters.autolock_locked.add_callback(self.on_lock_status_changed)
 
