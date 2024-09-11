@@ -23,29 +23,29 @@ from PyQt5 import QtWidgets, uic
 
 
 class OptimizationPanel(QtWidgets.QWidget):
-    optimization_failed: QtWidgets.QWidget
-    optimization_reset_failed_state: QtWidgets.QPushButton
-    optimization_not_running_container: QtWidgets.QWidget
-    optimization_not_selecting: QtWidgets.QWidget
-    optmization_mod_freq_max: CustomDoubleSpinBoxNoSign
-    optimization_mod_freq_min: CustomDoubleSpinBoxNoSign
-    optmization_mod_freq: QtWidgets.QCheckBox
-    optmization_mod_amp_max: CustomDoubleSpinBoxNoSign
-    optimization_mod_amp_min: CustomDoubleSpinBoxNoSign
-    optmization_mod_amp: QtWidgets.QCheckBox
+    optimizationFailedWidget: QtWidgets.QWidget
+    optimizationResetFailedStatePushButton: QtWidgets.QPushButton
+    optimizationNotRunningWidget: QtWidgets.QWidget
+    optimizationNotSelectingWidget: QtWidgets.QWidget
+    optimizationModFreqMaxSpinBox: CustomDoubleSpinBoxNoSign
+    optimizationModFreqMinSpinBox: CustomDoubleSpinBoxNoSign
+    optimizationModfreqCheckBox: QtWidgets.QCheckBox
+    optimizationModAmpMax: CustomDoubleSpinBoxNoSign
+    optimizationModAmpMinSpinBox: CustomDoubleSpinBoxNoSign
+    optimizationModAmpCheckBox: QtWidgets.QCheckBox
     checkBox: QtWidgets.QCheckBox
-    optimization_channel_selector_box: QtWidgets.QGroupBox
+    optimizationChannelSelectorGroupBox: QtWidgets.QGroupBox
     optimizationChannelComboBox: QtWidgets.QComboBox
     startOptimizationPushButton: QtWidgets.QPushButton
-    optimization_selecting: QtWidgets.QWidget
+    optimizationSelectingWidget: QtWidgets.QWidget
     abortOptimizationLineSelection: QtWidgets.QPushButton
-    optimization_preparing: QtWidgets.QWidget
+    optimizationPreparingWidget: QtWidgets.QWidget
     abortOptimizationPreparing: QtWidgets.QPushButton
-    optimization_preparing_text: QtWidgets.QLabel
-    optimization_running_container: QtWidgets.QWidget
-    optimization_abort: QtWidgets.QPushButton
-    optimization_display_parameters: QtWidgets.QLabel
-    optimization_improvement: QtWidgets.QLabel
+    optimizationPreparingLabel: QtWidgets.QLabel
+    optimizationRunningWidget: QtWidgets.QWidget
+    optimizationAbortPushButton: QtWidgets.QPushButton
+    optimizationDisplayParametersLabel: QtWidgets.QLabel
+    optimizationImprovementLabel: QtWidgets.QLabel
     useOptimizedParametersPushButton: QtWidgets.QPushButton
 
     def __init__(self, *args, **kwargs):
@@ -56,19 +56,21 @@ class OptimizationPanel(QtWidgets.QWidget):
 
         self.startOptimizationPushButton.clicked.connect(self.start_optimization)
         self.useOptimizedParametersPushButton.clicked.connect(self.use_new_parameters)
-        self.optimization_abort.clicked.connect(self.abort)
+        self.optimizationAbortPushButton.clicked.connect(self.abort)
         self.abortOptimizationLineSelection.clicked.connect(self.abort_selection)
         self.abortOptimizationPreparing.clicked.connect(self.abort_preparation)
         self.optimizationChannelComboBox.currentIndexChanged.connect(
             self.channel_changed
         )
-        self.optimization_reset_failed_state.clicked.connect(self.reset_failed_state)
+        self.optimizationResetFailedStatePushButton.clicked.connect(
+            self.reset_failed_state
+        )
 
         for param_name in (
-            "optimization_mod_freq_min",
-            "optimization_mod_freq_max",
-            "optimization_mod_amp_min",
-            "optimization_mod_amp_max",
+            "optimizationModFreqMinSpinBox",
+            "optimizationModFreqMaxSpinBox",
+            "optimizationModAmpMinSpinBox",
+            "optimizationModAmpMax",
         ):
             element = getattr(self, param_name)
             element.setKeyboardTracking(False)
@@ -78,7 +80,7 @@ class OptimizationPanel(QtWidgets.QWidget):
 
             element.valueChanged.connect(write_parameter)
 
-        for param_name in ("optimization_mod_freq", "optimization_mod_amp"):
+        for param_name in ("optimizationModfreqCheckBox", "optimizationModAmpCheckBox"):
 
             def optim_enabled_changed(_, param_name=param_name):
                 getattr(self.parameters, param_name + "_enabled").value = int(
@@ -96,24 +98,22 @@ class OptimizationPanel(QtWidgets.QWidget):
             approaching = self.parameters.optimization_approaching.value
             failed = self.parameters.optimization_failed.value
 
-            self.optimization_not_running_container.setVisible(
-                not failed and not running
-            )
-            self.optimization_running_container.setVisible(
+            self.optimizationNotRunningWidget.setVisible(not failed and not running)
+            self.optimizationRunningWidget.setVisible(
                 not failed and running and not approaching
             )
-            self.optimization_preparing.setVisible(
+            self.optimizationPreparingWidget.setVisible(
                 not failed and running and approaching
             )
-            self.optimization_failed.setVisible(failed)
+            self.optimizationFailedWidget.setVisible(failed)
 
         self.parameters.optimization_running.add_callback(on_opt_running_changed)
         self.parameters.optimization_approaching.add_callback(on_opt_running_changed)
         self.parameters.optimization_failed.add_callback(on_opt_running_changed)
 
         def on_opt_selection_changed(value):
-            self.optimization_selecting.setVisible(value)
-            self.optimization_not_selecting.setVisible(not value)
+            self.optimizationSelectingWidget.setVisible(value)
+            self.optimizationNotSelectingWidget.setVisible(not value)
 
         self.parameters.optimization_selection.add_callback(on_opt_selection_changed)
 
@@ -125,7 +125,7 @@ class OptimizationPanel(QtWidgets.QWidget):
                 self.parameters.demodulation_phase_a,
                 self.parameters.demodulation_phase_b,
             )[0 if not dual_channel else (0, 1)[channel]].value
-            self.optimization_display_parameters.setText(
+            self.optimizationDisplayParametersLabel.setText(
                 (
                     "<br />\n"
                     "<b>current parameters</b>: "
@@ -145,12 +145,12 @@ class OptimizationPanel(QtWidgets.QWidget):
             self.parameters.demodulation_phase_a.add_callback(on_mod_param_changed),
 
         def on_improvement_changed(improvement):
-            self.optimization_improvement.setText(f"{improvement:%}")
+            self.optimizationImprovementLabel.setText(f"{improvement:%}")
 
         self.parameters.optimization_improvement.add_callback(on_improvement_changed)
 
         def dual_channel_changed(value: bool) -> None:
-            self.optimization_channel_selector_box.setVisible(value)
+            self.optimizationChannelSelectorGroupBox.setVisible(value)
 
         self.parameters.dual_channel.add_callback(dual_channel_changed)
 
@@ -162,25 +162,24 @@ class OptimizationPanel(QtWidgets.QWidget):
 
         param2ui(
             self.parameters.optimization_mod_freq_enabled,
-            self.optimization_mod_freq,
+            self.optimizationModfreqCheckBox,
         )
         param2ui(
             self.parameters.optimization_mod_freq_min,
-            self.optimization_mod_freq_min,
+            self.optimizationModFreqMinSpinBox,
         )
         param2ui(
             self.parameters.optimization_mod_freq_max,
-            self.optimization_mod_freq_max,
+            self.optimizationModFreqMaxSpinBox,
         )
         param2ui(
-            self.parameters.optimization_mod_amp_enabled, self.optimization_mod_amp
+            self.parameters.optimization_mod_amp_enabled,
+            self.optimizationModAmpCheckBox,
         )
         param2ui(
-            self.parameters.optimization_mod_amp_min, self.optimization_mod_amp_min
+            self.parameters.optimization_mod_amp_min, self.optimizationModAmpMinSpinBox
         )
-        param2ui(
-            self.parameters.optimization_mod_amp_max, self.optimization_mod_amp_max
-        )
+        param2ui(self.parameters.optimization_mod_amp_max, self.optimizationModAmpMax)
 
     def start_optimization(self):
         self.parameters.optimization_selection.value = True
@@ -201,4 +200,4 @@ class OptimizationPanel(QtWidgets.QWidget):
         self.parameters.optimization_channel.value = channel
 
     def reset_failed_state(self):
-        self.parameters.optimization_failed.value = False
+        self.parameters.optimizationFailedWidget.value = False
