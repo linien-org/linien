@@ -19,7 +19,8 @@ from linien_common.common import MHz, Vpp
 from linien_gui.config import UI_PATH
 from linien_gui.ui.spin_box import CustomDoubleSpinBoxNoSign
 from linien_gui.utils import get_linien_app_instance, param2ui, ui2param
-from PyQt5 import QtWidgets, uic
+from PyQt5 import QtCore, QtWidgets, uic
+from PyQt5.QtCore import pyqtSignal
 
 
 class OptimizationPanel(QtWidgets.QWidget):
@@ -48,13 +49,18 @@ class OptimizationPanel(QtWidgets.QWidget):
     optimizationImprovementLabel: QtWidgets.QLabel
     useOptimizedParametersPushButton: QtWidgets.QPushButton
 
+    optimization_selection_signal = pyqtSignal(bool)
+
     def __init__(self, *args, **kwargs):
         super(OptimizationPanel, self).__init__(*args, **kwargs)
         uic.loadUi(UI_PATH / "optimization_panel.ui", self)
         self.app = get_linien_app_instance()
         self.app.connection_established.connect(self.on_connection_established)
+        QtCore.QTimer.singleShot(100, self.ready)
 
-        self.startOptimizationPushButton.clicked.connect(self.start_optimization)
+        self.startOptimizationPushButton.clicked.connect(
+            self.start_optimization_selection
+        )
         self.useOptimizedParametersPushButton.clicked.connect(self.use_new_parameters)
         self.optimizationAbortPushButton.clicked.connect(self.abort)
         self.abortOptimizationLineSelection.clicked.connect(self.abort_selection)
@@ -64,6 +70,14 @@ class OptimizationPanel(QtWidgets.QWidget):
         )
         self.optimizationResetFailedStatePushButton.clicked.connect(
             self.reset_failed_state
+        )
+        self.optimization_selection_signal.connect(
+            self.on_optimization_selection_changed
+        )
+
+    def ready(self):
+        self.optimization_selection_signal.connect(
+            self.app.main_window.plotWidget.on_optimization_selection_changed
         )
 
     def on_connection_established(self):
@@ -95,9 +109,6 @@ class OptimizationPanel(QtWidgets.QWidget):
         )
         self.parameters.optimization_failed.add_callback(
             self.on_optimization_running_changed
-        )
-        self.parameters.optimization_selection.add_callback(
-            self.on_optimization_selection_changed
         )
         self.parameters.modulation_amplitude.add_callback(
             self.on_modulation_parameters_changed
@@ -165,11 +176,11 @@ class OptimizationPanel(QtWidgets.QWidget):
         """Disable this panel if PID-only mode is enabled (nothing to optimize)."""
         self.setEnabled(not pid_only_mode_enabled)
 
-    def start_optimization(self) -> None:
-        self.parameters.optimization_selection.value = True
+    def start_optimization_selection(self) -> None:
+        self.optimization_selection_signal.emit(True)
 
     def abort_selection(self) -> None:
-        self.parameters.optimization_selection.value = False
+        self.optimization_selection_signal.emit(False)
 
     def abort_preparation(self) -> None:
         self.parameters.task.value.stop(False)

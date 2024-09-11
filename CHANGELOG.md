@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Deprecated
 * Unused parameter `autolock_initial_sweep_amplitude` was removed.
-* Removed parameter `autolock_selection` that was only used by the GUI.
+* Removed parameters `autolock_selection` and `optimization_selection` that were only used by the GUI.
 
 ### Fixed
 * Corrected scripting examples by @kongmunist in https://github.com/linien-org/linien/pull/428

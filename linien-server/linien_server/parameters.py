@@ -586,7 +586,6 @@ class Parameters:
         # ------------------- OPTIMIZATION PARAMETERS ----------------------------------
         # These parameters are used internally by the optimization algorithm and usually
         # should not be manipulated
-        self.optimization_selection = Parameter(start=False)
         self.optimization_running = Parameter(start=False)
         self.optimization_approaching = Parameter(start=False)
         self.optimization_improvement = Parameter(start=0)

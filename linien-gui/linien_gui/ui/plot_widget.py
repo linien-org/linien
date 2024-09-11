@@ -120,6 +120,7 @@ class PlotWidget(pg.PlotWidget):
         self.selection_running = False
         self.selection_boundaries = None
         self.autolock_selection_running = False
+        self.optimization_selection_running = False
 
         self.getAxis("bottom").enableAutoSIPrefix(False)
         self.showGrid(x=True, y=True)
@@ -245,11 +246,7 @@ class PlotWidget(pg.PlotWidget):
 
         self.control_signal_history_data = self.parameters.control_signal_history.value
         self.monitor_signal_history_data = self.parameters.monitor_signal_history.value
-
         self.parameters.to_plot.add_callback(self.on_new_plot_data_received)
-        self.parameters.optimization_selection.add_callback(
-            self.on_optimization_selection_changed
-        )
         self.parameters.automatic_mode.add_callback(self.on_automatic_mode_changed)
         self.parameters.lock.add_callback(self.on_lock_changed)
 
@@ -324,7 +321,7 @@ class PlotWidget(pg.PlotWidget):
                         last_combined_error_signal, *sorted((int(x0), int(x)))
                     )
                     self.autolock_ref_spectrum = rolled_error_signal
-                elif self.parameters.optimization_selection.value:
+                elif self.optimization_selection_running:
                     spectrum = self.last_plot_data[
                         (
                             0
@@ -332,7 +329,7 @@ class PlotWidget(pg.PlotWidget):
                             else (0, 1)[self.parameters.optimization_channel.value]
                         )
                     ]
-                    self.parameters.optimization_selection.value = False
+                    self.optimization_selection_running = False
                     points = sorted([int(x0), int(x)])
                     self.control.exposed_start_optimization(
                         *points, pickle.dumps(spectrum)
@@ -372,7 +369,7 @@ class PlotWidget(pg.PlotWidget):
     def on_autolock_selection_changed(self, value: bool) -> None:
         if value:
             self.autolock_selection_running = True
-            self.parameters.optimization_selection.value = False
+            self.optimization_selection_running = False
             self.enable_area_selection(selectable_width=0.99)
             self.pause_plot()
         else:
@@ -380,12 +377,14 @@ class PlotWidget(pg.PlotWidget):
             self.disable_area_selection()
             self.resume_plot_and_clear_cache()
 
-    def on_optimization_selection_changed(self, value):
+    def on_optimization_selection_changed(self, value: bool) -> None:
         if value:
+            self.optimization_selection_running = True
             self.autolock_selection_running = False
             self.enable_area_selection(selectable_width=0.75)
             self.pause_plot()
-        elif not self.autolock_selection_running:
+        else:
+            self.optimization_selection_running = False
             self.disable_area_selection()
             self.resume_plot_and_clear_cache()
 
