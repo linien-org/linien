@@ -17,11 +17,85 @@
 
 from linien_common.common import AutolockMode
 from linien_gui.config import UI_PATH
-from linien_gui.ui.lock_status_panel import LockStatusPanel
 from linien_gui.ui.spin_box import CustomSpinBox
 from linien_gui.utils import get_linien_app_instance, param2ui
 from PyQt5 import QtCore, QtWidgets, uic
 from PyQt5.QtCore import pyqtSignal
+
+
+class LockStatusWidget(QtWidgets.QWidget):
+    def __init__(self, *args, **kwargs):
+        super(LockStatusWidget, self).__init__(*args, **kwargs)
+        self.app = get_linien_app_instance()
+        self.app.connection_established.connect(self.on_connection_established)
+        QtCore.QTimer.singleShot(100, self.ready)
+
+    def ready(self):
+        self.parent = self.parent()
+        self.parent.stopLockPushButton.clicked.connect(self.on_stop_lock)
+        self.parent.controlSignalHistoryLengthSpinBox.setKeyboardTracking(False)
+        self.parent.controlSignalHistoryLengthSpinBox.valueChanged.connect(
+            self.on_control_signal_history_length_changed
+        )
+
+    def on_connection_established(self):
+        self.parameters = self.app.parameters
+        self.control = self.app.control
+
+        self.parameters.lock.add_callback(self.update_status)
+        self.parameters.task.add_callback(self.update_status)
+        self.parameters.autolock_running.add_callback(self.update_status)
+        self.parameters.autolock_preparing.add_callback(self.update_status)
+        self.parameters.autolock_failed.add_callback(self.update_status)
+        self.parameters.autolock_locked.add_callback(self.update_status)
+        self.parameters.autolock_retrying.add_callback(self.update_status)
+
+        param2ui(
+            self.parameters.control_signal_history_length,
+            self.parent.controlSignalHistoryLengthSpinBox,
+        )
+
+    def update_status(self, _) -> None:
+        locked = self.parameters.lock.value
+        task = self.parameters.task.value
+        al_failed = self.parameters.autolock_failed.value
+        running = self.parameters.autolock_running.value
+        retrying = self.parameters.autolock_retrying.value
+        preparing = self.parameters.autolock_preparing.value
+
+        if locked or (task is not None and not al_failed):
+            self.show()
+        else:
+            self.hide()
+
+        if not task:
+            running = False
+
+        def set_text(text):
+            self.parent.lockStatusLabel.setText(text)
+
+        if not running and locked:
+            set_text("Locked!")
+        if running and not locked and preparing:
+            if not retrying:
+                set_text("Autolock is running...")
+            else:
+                set_text("Trying again to lock...")
+
+    def on_stop_lock(self):
+        self.parameters.fetch_additional_signals.value = True
+
+        if self.parameters.task.value is not None:
+            # this may be autolock or psd acquisition
+            self.parameters.task.value.stop()
+            self.parameters.task.value = None
+
+        self.control.exposed_start_sweep()
+
+    def on_control_signal_history_length_changed(self):
+        self.parameters.control_signal_history_length.value = (
+            self.parent.controlSignalHistoryLengthSpinBox.value()
+        )
 
 
 class LockingPanel(QtWidgets.QWidget):
@@ -43,7 +117,7 @@ class LockingPanel(QtWidgets.QWidget):
     manualLockButton: QtWidgets.QPushButton
     lockFailedWidget: QtWidgets.QWidget
     resetLockFailedStatePushButton: QtWidgets.QPushButton
-    lockStatusPanel: LockStatusPanel
+    lockStatusWidget: LockStatusWidget
     controlSignalHistoryLengthSpinBox: CustomSpinBox
     lockStatusLabel: QtWidgets.QLabel
     stopLockPushButton: QtWidgets.QPushButton

@@ -672,7 +672,7 @@
     </widget>
    </item>
    <item>
-    <widget class="LockStatusPanel" name="lockStatusPanel" native="true">
+    <widget class="LockStatusWidget" name="lockStatusWidget" native="true">
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
        <widget class="QLabel" name="lockStatusLabel">
@@ -1240,9 +1240,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>LockStatusPanel</class>
+   <class>LockStatusWidget</class>
    <extends>QWidget</extends>
-   <header location="global">lock_status_panel.h</header>
+   <header location="global">locking_panel.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
