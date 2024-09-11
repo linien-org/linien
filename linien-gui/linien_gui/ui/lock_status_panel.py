@@ -38,54 +38,51 @@ class LockStatusPanel(QtWidgets.QWidget):
         self.parameters = self.app.parameters
         self.control = self.app.control
 
-        def update_status(_):
-            locked = self.parameters.lock.value
-            task = self.parameters.task.value
-            al_failed = self.parameters.autolock_failed.value
-            running = self.parameters.autolock_running.value
-            retrying = self.parameters.autolock_retrying.value
-            preparing = self.parameters.autolock_preparing.value
-
-            if locked or (task is not None and not al_failed):
-                self.show()
-            else:
-                self.hide()
-
-            if task:
-                watching = self.parameters.autolock_watching.value
-            else:
-                running = False
-                watching = False
-
-            def set_text(text):
-                self.parent.lock_status.setText(text)
-
-            if not running and locked:
-                set_text("Locked!")
-            if running and watching:
-                set_text("Locked! Watching continuously...")
-            if running and not watching and not locked and preparing:
-                if not retrying:
-                    set_text("Autolock is running...")
-                else:
-                    set_text("Trying again to lock...")
-
-        for param in (
-            self.parameters.lock,
-            self.parameters.task,
-            self.parameters.autolock_running,
-            self.parameters.autolock_preparing,
-            self.parameters.autolock_watching,
-            self.parameters.autolock_failed,
-            self.parameters.autolock_locked,
-            self.parameters.autolock_retrying,
-        ):
-            param.add_callback(update_status)
+        self.parameters.lock.add_callback(self.update_status)
+        self.parameters.task.add_callback(self.update_status)
+        self.parameters.autolock_running.add_callback(self.update_status)
+        self.parameters.autolock_preparing.add_callback(self.update_status)
+        self.parameters.autolock_watching.add_callback(self.update_status)
+        self.parameters.autolock_failed.add_callback(self.update_status)
+        self.parameters.autolock_locked.add_callback(self.update_status)
+        self.parameters.autolock_retrying.add_callback(self.update_status)
 
         param2ui(
             self.parameters.control_signal_history_length,
             self.parent.controlSignalHistoryLengthSpinBox,
         )
+
+    def update_status(self, _) -> None:
+        locked = self.parameters.lock.value
+        task = self.parameters.task.value
+        al_failed = self.parameters.autolock_failed.value
+        running = self.parameters.autolock_running.value
+        retrying = self.parameters.autolock_retrying.value
+        preparing = self.parameters.autolock_preparing.value
+
+        if locked or (task is not None and not al_failed):
+            self.show()
+        else:
+            self.hide()
+
+        if task:
+            watching = self.parameters.autolock_watching.value
+        else:
+            running = False
+            watching = False
+
+        def set_text(text):
+            self.parent.lock_status.setText(text)
+
+        if not running and locked:
+            set_text("Locked!")
+        if running and watching:
+            set_text("Locked! Watching continuously...")
+        if running and not watching and not locked and preparing:
+            if not retrying:
+                set_text("Autolock is running...")
+            else:
+                set_text("Trying again to lock...")
 
     def on_stop_lock(self):
         self.parameters.fetch_additional_signals.value = True
