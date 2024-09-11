@@ -31,7 +31,7 @@ class LockStatusWidget(QtWidgets.QWidget):
         QtCore.QTimer.singleShot(100, self.ready)
 
     def ready(self):
-        self.parent = self.parent()
+        self.parent: LockingPanel = self.parent()
         self.parent.stopLockPushButton.clicked.connect(self.on_stop_lock)
         self.parent.controlSignalHistoryLengthSpinBox.setKeyboardTracking(False)
         self.parent.controlSignalHistoryLengthSpinBox.valueChanged.connect(
@@ -114,9 +114,9 @@ class LockingPanel(QtWidgets.QWidget):
     slowPIDGroupBox: QtWidgets.QGroupBox
     pIDOnSlowStrengthSpinBox: CustomSpinBox
     lockControlTabWidget: QtWidgets.QTabWidget
-    autoModeActivatedWidget: QtWidgets.QWidget
+    autolockSelectionActivedWidget: QtWidgets.QWidget
     abortLineSelectionPushButton: QtWidgets.QPushButton
-    autoModeNotActivatedWidget: QtWidgets.QWidget
+    autolockSelectionNotActivedWidget: QtWidgets.QWidget
     autoOffsetCheckbox: QtWidgets.QCheckBox
     autolockModePreferenceComboBox: QtWidgets.QComboBox
     selectLineToLockPushButton: QtWidgets.QPushButton
@@ -159,6 +159,8 @@ class LockingPanel(QtWidgets.QWidget):
         self.autolock_selection_signal.connect(
             self.on_autolock_selection_status_changed
         )
+        self.autolockSelectionActivedWidget.setVisible(False)
+        self.autolockSelectionNotActivedWidget.setVisible(True)
 
     def ready(self) -> None:
         self.autolock_selection_signal.connect(
@@ -220,8 +222,8 @@ class LockingPanel(QtWidgets.QWidget):
         self.slowPIDGroupBox.setVisible(self.parameters.pid_on_slow_enabled.value)
 
     def on_autolock_selection_status_changed(self, value: bool) -> None:
-        self.autoModeActivatedWidget.setVisible(value)
-        self.autoModeNotActivatedWidget.setVisible(not value)
+        self.autolockSelectionActivedWidget.setVisible(value)
+        self.autolockSelectionNotActivedWidget.setVisible(not value)
 
     def on_kp_changed(self):
         self.parameters.p.value = self.kpSpinBox.value()
