@@ -87,92 +87,101 @@ class OptimizationPanel(QtWidgets.QWidget):
             ui2param(element, parameter)
             param2ui(parameter, element)
 
-        def on_opt_running_changed(_):
-            running = self.parameters.optimization_running.value
-            approaching = self.parameters.optimization_approaching.value
-            failed = self.parameters.optimization_failed.value
-
-            self.optimizationNotRunningWidget.setVisible(not failed and not running)
-            self.optimizationRunningWidget.setVisible(
-                not failed and running and not approaching
-            )
-            self.optimizationPreparingWidget.setVisible(
-                not failed and running and approaching
-            )
-            self.optimizationFailedWidget.setVisible(failed)
-
-        self.parameters.optimization_running.add_callback(on_opt_running_changed)
-        self.parameters.optimization_approaching.add_callback(on_opt_running_changed)
-        self.parameters.optimization_failed.add_callback(on_opt_running_changed)
-
-        def on_optimization_selection_changed(value):
-            self.optimizationSelectingWidget.setVisible(value)
-            self.optimizationNotSelectingWidget.setVisible(not value)
-
+        self.parameters.optimization_running.add_callback(
+            self.on_optimization_running_changed
+        )
+        self.parameters.optimization_approaching.add_callback(
+            self.on_optimization_running_changed
+        )
+        self.parameters.optimization_failed.add_callback(
+            self.on_optimization_running_changed
+        )
         self.parameters.optimization_selection.add_callback(
-            on_optimization_selection_changed
+            self.on_optimization_selection_changed
+        )
+        self.parameters.modulation_amplitude.add_callback(
+            self.on_modulation_parameters_changed
+        )
+        self.parameters.modulation_frequency.add_callback(
+            self.on_modulation_parameters_changed
+        )
+        self.parameters.demodulation_phase_a.add_callback(
+            self.on_modulation_parameters_changed
+        )
+        self.parameters.optimization_improvement.add_callback(
+            self.on_improvement_changed
+        )
+        self.parameters.dual_channel.add_callback(self.on_dual_channel_changed)
+        self.parameters.pid_only_mode.add_callback(self.on_pid_only_mode_changed)
+
+    def on_optimization_running_changed(self, _):
+        running = self.parameters.optimization_running.value
+        approaching = self.parameters.optimization_approaching.value
+        failed = self.parameters.optimization_failed.value
+
+        self.optimizationNotRunningWidget.setVisible(not failed and not running)
+        self.optimizationRunningWidget.setVisible(
+            not failed and running and not approaching
+        )
+        self.optimizationPreparingWidget.setVisible(
+            not failed and running and approaching
+        )
+        self.optimizationFailedWidget.setVisible(failed)
+
+    def on_optimization_selection_changed(self, value) -> None:
+        self.optimizationSelectingWidget.setVisible(value)
+        self.optimizationNotSelectingWidget.setVisible(not value)
+
+    def on_modulation_parameters_changed(self, _) -> None:
+        dual_channel = self.parameters.dual_channel.value
+        channel = self.parameters.optimization_channel.value
+        optimized = self.parameters.optimization_optimized_parameters.value
+        mod_phase = (
+            self.parameters.demodulation_phase_a,
+            self.parameters.demodulation_phase_b,
+        )[0 if not dual_channel else (0, 1)[channel]].value
+        self.optimizationDisplayParametersLabel.setText(
+            (
+                "<br />\n"
+                "<b>current parameters</b>: "
+                f"{self.parameters.modulation_frequency.value / MHz:.2f}&nbsp;MHz, "
+                f"{self.parameters.modulation_amplitude.value / Vpp:.2f}&nbsp;Vpp, "
+                f"{mod_phase:.2f}&nbsp;deg<br />\n"
+                "<b>optimized parameters</b>: "
+                f"{optimized[0] / MHz:.2f}&nbsp;MHz, "
+                f"{optimized[1] / Vpp:.2f}&nbsp;Vpp, "
+                f"{optimized[2]:.2f}&nbsp;deg\n"
+                "<br />"
+            )
         )
 
-        def on_mod_param_changed(_):
-            dual_channel = self.parameters.dual_channel.value
-            channel = self.parameters.optimization_channel.value
-            optimized = self.parameters.optimization_optimized_parameters.value
-            mod_phase = (
-                self.parameters.demodulation_phase_a,
-                self.parameters.demodulation_phase_b,
-            )[0 if not dual_channel else (0, 1)[channel]].value
-            self.optimizationDisplayParametersLabel.setText(
-                (
-                    "<br />\n"
-                    "<b>current parameters</b>: "
-                    f"{self.parameters.modulation_frequency.value / MHz:.2f}&nbsp;MHz, "
-                    f"{self.parameters.modulation_amplitude.value / Vpp:.2f}&nbsp;Vpp, "
-                    f"{mod_phase:.2f}&nbsp;deg<br />\n"
-                    "<b>optimized parameters</b>: "
-                    f"{optimized[0] / MHz:.2f}&nbsp;MHz, "
-                    f"{optimized[1] / Vpp:.2f}&nbsp;Vpp, "
-                    f"{optimized[2]:.2f}&nbsp;deg\n"
-                    "<br />"
-                )
-            )
+    def on_improvement_changed(self, improvement) -> None:
+        self.optimizationImprovementLabel.setText(f"{improvement:%}")
 
-            self.parameters.modulation_amplitude.add_callback(on_mod_param_changed),
-            self.parameters.modulation_frequency.add_callback(on_mod_param_changed),
-            self.parameters.demodulation_phase_a.add_callback(on_mod_param_changed),
+    def on_dual_channel_changed(self, value: bool) -> None:
+        self.optimizationChannelSelectorGroupBox.setVisible(value)
 
-        def on_improvement_changed(improvement):
-            self.optimizationImprovementLabel.setText(f"{improvement:%}")
+    def on_pid_only_mode_changed(self, pid_only_mode_enabled: bool) -> None:
+        """Disable this panel if PID-only mode is enabled (nothing to optimize)."""
+        self.setEnabled(not pid_only_mode_enabled)
 
-        self.parameters.optimization_improvement.add_callback(on_improvement_changed)
-
-        def dual_channel_changed(value: bool) -> None:
-            self.optimizationChannelSelectorGroupBox.setVisible(value)
-
-        self.parameters.dual_channel.add_callback(dual_channel_changed)
-
-        def on_pid_only_mode_changed(pid_only_mode_enabled: bool) -> None:
-            """Disable this panel if PID-only mode is enabled (nothing to optimize)."""
-            self.setEnabled(not pid_only_mode_enabled)
-
-        self.parameters.pid_only_mode.add_callback(on_pid_only_mode_changed)
-
-    def start_optimization(self):
+    def start_optimization(self) -> None:
         self.parameters.optimization_selection.value = True
 
-    def abort_selection(self):
+    def abort_selection(self) -> None:
         self.parameters.optimization_selection.value = False
 
-    def abort_preparation(self):
+    def abort_preparation(self) -> None:
         self.parameters.task.value.stop(False)
 
     def abort(self):
         self.parameters.task.value.stop(False)
 
-    def use_new_parameters(self):
+    def use_new_parameters(self) -> None:
         self.parameters.task.value.stop(True)
 
-    def channel_changed(self, channel):
+    def channel_changed(self, channel) -> None:
         self.parameters.optimization_channel.value = channel
 
-    def reset_failed_state(self):
+    def reset_failed_state(self) -> None:
         self.parameters.optimization_failed.value = False
