@@ -139,7 +139,7 @@
                </widget>
               </item>
               <item>
-               <widget class="CustomDoubleSpinBoxNoSign" name="optimizationModAmpMax">
+               <widget class="CustomDoubleSpinBoxNoSign" name="optimizationModAmpMaxSpinBox">
                 <property name="maximum">
                  <double>2.000000000000000</double>
                 </property>

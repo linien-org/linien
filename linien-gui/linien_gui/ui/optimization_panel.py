@@ -18,7 +18,7 @@
 from linien_common.common import MHz, Vpp
 from linien_gui.config import UI_PATH
 from linien_gui.ui.spin_box import CustomDoubleSpinBoxNoSign
-from linien_gui.utils import get_linien_app_instance, param2ui
+from linien_gui.utils import get_linien_app_instance, param2ui, ui2param
 from PyQt5 import QtWidgets, uic
 
 
@@ -30,7 +30,7 @@ class OptimizationPanel(QtWidgets.QWidget):
     optimizationModFreqMaxSpinBox: CustomDoubleSpinBoxNoSign
     optimizationModFreqMinSpinBox: CustomDoubleSpinBoxNoSign
     optimizationModfreqCheckBox: QtWidgets.QCheckBox
-    optimizationModAmpMax: CustomDoubleSpinBoxNoSign
+    optimizationModAmpMaxSpinBox: CustomDoubleSpinBoxNoSign
     optimizationModAmpMinSpinBox: CustomDoubleSpinBoxNoSign
     optimizationModAmpCheckBox: QtWidgets.QCheckBox
     checkBox: QtWidgets.QCheckBox
@@ -66,32 +66,26 @@ class OptimizationPanel(QtWidgets.QWidget):
             self.reset_failed_state
         )
 
-        for param_name in (
-            "optimizationModFreqMinSpinBox",
-            "optimizationModFreqMaxSpinBox",
-            "optimizationModAmpMinSpinBox",
-            "optimizationModAmpMax",
-        ):
-            element = getattr(self, param_name)
-            element.setKeyboardTracking(False)
-
-            def write_parameter(*args, param_name=param_name, element=element):
-                getattr(self.parameters, param_name).value = element.value()
-
-            element.valueChanged.connect(write_parameter)
-
-        for param_name in ("optimizationModfreqCheckBox", "optimizationModAmpCheckBox"):
-
-            def optim_enabled_changed(_, param_name=param_name):
-                getattr(self.parameters, param_name + "_enabled").value = int(
-                    getattr(self, param_name).checkState()
-                )
-
-            getattr(self, param_name).stateChanged.connect(optim_enabled_changed)
-
     def on_connection_established(self):
         self.parameters = self.app.parameters
         self.control = self.app.control
+
+        for element, parameter in {
+            self.optimizationModFreqMinSpinBox: self.parameters.optimization_mod_freq_min,  # noqa: E501
+            self.optimizationModFreqMaxSpinBox: self.parameters.optimization_mod_freq_max,  # noqa: E501
+            self.optimizationModAmpMinSpinBox: self.parameters.optimization_mod_amp_min,
+            self.optimizationModAmpMaxSpinBox: self.parameters.optimization_mod_amp_max,
+        }.items():
+            element.setKeyboardTracking(False)
+            ui2param(element, parameter)
+            param2ui(parameter, element)
+
+        for element, parameter in {
+            self.optimizationModfreqCheckBox: self.parameters.optimization_mod_freq_enabled,  # noqa: E501
+            self.optimizationModAmpCheckBox: self.parameters.optimization_mod_amp_enabled,  # noqa: E501
+        }.items():
+            ui2param(element, parameter)
+            param2ui(parameter, element)
 
         def on_opt_running_changed(_):
             running = self.parameters.optimization_running.value
@@ -111,11 +105,13 @@ class OptimizationPanel(QtWidgets.QWidget):
         self.parameters.optimization_approaching.add_callback(on_opt_running_changed)
         self.parameters.optimization_failed.add_callback(on_opt_running_changed)
 
-        def on_opt_selection_changed(value):
+        def on_optimization_selection_changed(value):
             self.optimizationSelectingWidget.setVisible(value)
             self.optimizationNotSelectingWidget.setVisible(not value)
 
-        self.parameters.optimization_selection.add_callback(on_opt_selection_changed)
+        self.parameters.optimization_selection.add_callback(
+            on_optimization_selection_changed
+        )
 
         def on_mod_param_changed(_):
             dual_channel = self.parameters.dual_channel.value
@@ -160,27 +156,6 @@ class OptimizationPanel(QtWidgets.QWidget):
 
         self.parameters.pid_only_mode.add_callback(on_pid_only_mode_changed)
 
-        param2ui(
-            self.parameters.optimization_mod_freq_enabled,
-            self.optimizationModfreqCheckBox,
-        )
-        param2ui(
-            self.parameters.optimization_mod_freq_min,
-            self.optimizationModFreqMinSpinBox,
-        )
-        param2ui(
-            self.parameters.optimization_mod_freq_max,
-            self.optimizationModFreqMaxSpinBox,
-        )
-        param2ui(
-            self.parameters.optimization_mod_amp_enabled,
-            self.optimizationModAmpCheckBox,
-        )
-        param2ui(
-            self.parameters.optimization_mod_amp_min, self.optimizationModAmpMinSpinBox
-        )
-        param2ui(self.parameters.optimization_mod_amp_max, self.optimizationModAmpMax)
-
     def start_optimization(self):
         self.parameters.optimization_selection.value = True
 
@@ -200,4 +175,4 @@ class OptimizationPanel(QtWidgets.QWidget):
         self.parameters.optimization_channel.value = channel
 
     def reset_failed_state(self):
-        self.parameters.optimizationFailedWidget.value = False
+        self.parameters.optimization_failed.value = False
