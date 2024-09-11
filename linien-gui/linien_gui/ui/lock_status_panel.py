@@ -68,7 +68,7 @@ class LockStatusPanel(QtWidgets.QWidget):
             running = False
 
         def set_text(text):
-            self.parent.lock_status.setText(text)
+            self.parent.lockStatusLabel.setText(text)
 
         if not running and locked:
             set_text("Locked!")

@@ -28,24 +28,24 @@ class LockingPanel(QtWidgets.QWidget):
     kpSpinBox: CustomSpinBox
     kiSpinBox: CustomSpinBox
     kdSpinBox: CustomSpinBox
-    slow_pid_group: QtWidgets.QGroupBox
-    pid_on_slow_strength: CustomSpinBox
-    lock_control_container: QtWidgets.QTabWidget
-    auto_mode_activated: QtWidgets.QWidget
-    abortLineSelection: QtWidgets.QPushButton
-    auto_mode_not_activated: QtWidgets.QWidget
+    slowPIDGroupBox: QtWidgets.QGroupBox
+    pIDOnSlowStrengthSpinBox: CustomSpinBox
+    lockControlTabWidget: QtWidgets.QTabWidget
+    autoModeActivatedWidget: QtWidgets.QWidget
+    abortLineSelectionPushButton: QtWidgets.QPushButton
+    autoModeNotActivatedWidget: QtWidgets.QWidget
     autoOffsetCheckbox: QtWidgets.QCheckBox
-    autolock_mode_preference: QtWidgets.QComboBox
-    selectLineToLock: QtWidgets.QPushButton
-    manual_mode: QtWidgets.QWidget
-    button_slope_falling: QtWidgets.QRadioButton
-    button_slope_rising: QtWidgets.QRadioButton
+    autolockModePreferenceComboBox: QtWidgets.QComboBox
+    selectLineToLockPushButton: QtWidgets.QPushButton
+    manualModeWidget: QtWidgets.QWidget
+    slopeFallingRadioButton: QtWidgets.QRadioButton
+    slopeRisingRadioButton: QtWidgets.QRadioButton
     manualLockButton: QtWidgets.QPushButton
-    lock_failed: QtWidgets.QWidget
-    reset_lock_failed_state: QtWidgets.QPushButton
-    lock_status_container: LockStatusPanel
+    lockFailedWidget: QtWidgets.QWidget
+    resetLockFailedStatePushButton: QtWidgets.QPushButton
+    lockStatusPanel: LockStatusPanel
     controlSignalHistoryLengthSpinBox: CustomSpinBox
-    lock_status: QtWidgets.QLabel
+    lockStatusLabel: QtWidgets.QLabel
     stopLockPushButton: QtWidgets.QPushButton
 
     autolock_selection_signal = pyqtSignal(bool)
@@ -60,17 +60,17 @@ class LockingPanel(QtWidgets.QWidget):
         self.kpSpinBox.valueChanged.connect(self.on_kp_changed)
         self.kiSpinBox.valueChanged.connect(self.on_ki_changed)
         self.kdSpinBox.valueChanged.connect(self.on_kd_changed)
-        self.lock_control_container.currentChanged.connect(self.on_lock_mode_changed)
-        self.selectLineToLock.clicked.connect(self.start_autolock_selection)
-        self.abortLineSelection.clicked.connect(self.stop_autolock_selection)
+        self.lockControlTabWidget.currentChanged.connect(self.on_lock_mode_changed)
+        self.selectLineToLockPushButton.clicked.connect(self.start_autolock_selection)
+        self.abortLineSelectionPushButton.clicked.connect(self.stop_autolock_selection)
         self.manualLockButton.clicked.connect(self.start_manual_lock)
         self.autoOffsetCheckbox.stateChanged.connect(self.auto_offset_changed)
-        self.pid_on_slow_strength.setKeyboardTracking(False)
-        self.pid_on_slow_strength.valueChanged.connect(
+        self.pIDOnSlowStrengthSpinBox.setKeyboardTracking(False)
+        self.pIDOnSlowStrengthSpinBox.valueChanged.connect(
             self.pid_on_slow_strength_changed
         )
-        self.reset_lock_failed_state.clicked.connect(self.reset_lock_failed)
-        self.autolock_mode_preference.currentIndexChanged.connect(
+        self.resetLockFailedStatePushButton.clicked.connect(self.reset_lock_failed)
+        self.autolockModePreferenceComboBox.currentIndexChanged.connect(
             self.on_autolock_mode_preference_changed
         )
         self.autolock_selection_signal.connect(
@@ -92,24 +92,25 @@ class LockingPanel(QtWidgets.QWidget):
         param2ui(self.parameters.autolock_determine_offset, self.autoOffsetCheckbox)
         param2ui(
             self.parameters.automatic_mode,
-            self.lock_control_container,
+            self.lockControlTabWidget,
             lambda value: 0 if value else 1,
         )
-        param2ui(self.parameters.pid_on_slow_strength, self.pid_on_slow_strength)
+        param2ui(self.parameters.pid_on_slow_strength, self.pIDOnSlowStrengthSpinBox)
         self.parameters.pid_on_slow_enabled.add_callback(self.on_slow_pid_changed)
         self.parameters.lock.add_callback(self.on_lock_status_changed)
         self.parameters.autolock_preparing.add_callback(self.on_lock_status_changed)
         self.parameters.autolock_failed.add_callback(self.on_lock_status_changed)
         self.parameters.autolock_locked.add_callback(self.on_lock_status_changed)
 
-        param2ui(self.parameters.target_slope_rising, self.button_slope_rising)
+        param2ui(self.parameters.target_slope_rising, self.slopeRisingRadioButton)
         param2ui(
             self.parameters.target_slope_rising,
-            self.button_slope_falling,
+            self.slopeFallingRadioButton,
             lambda value: not value,
         )
         param2ui(
-            self.parameters.autolock_mode_preference, self.autolock_mode_preference
+            self.parameters.autolock_mode_preference,
+            self.autolockModePreferenceComboBox,
         )
 
     def on_lock_status_changed(self, _):
@@ -119,18 +120,18 @@ class LockingPanel(QtWidgets.QWidget):
         task_running = (task is not None) and (not al_failed)
 
         if locked or task_running or al_failed:
-            self.lock_control_container.hide()
+            self.lockControlTabWidget.hide()
         else:
-            self.lock_control_container.show()
+            self.lockControlTabWidget.show()
 
-        self.lock_failed.setVisible(al_failed)
+        self.lockFailedWidget.setVisible(al_failed)
 
     def on_slow_pid_changed(self, _) -> None:
-        self.slow_pid_group.setVisible(self.parameters.pid_on_slow_enabled.value)
+        self.slowPIDGroupBox.setVisible(self.parameters.pid_on_slow_enabled.value)
 
     def on_autolock_selection_status_changed(self, value: bool) -> None:
-        self.auto_mode_activated.setVisible(value)
-        self.auto_mode_not_activated.setVisible(not value)
+        self.autoModeActivatedWidget.setVisible(value)
+        self.autoModeNotActivatedWidget.setVisible(not value)
 
     def on_kp_changed(self):
         self.parameters.p.value = self.kpSpinBox.value()
@@ -151,7 +152,9 @@ class LockingPanel(QtWidgets.QWidget):
         self.parameters.autolock_mode_preference.value = idx
 
     def start_manual_lock(self):
-        self.parameters.target_slope_rising.value = self.button_slope_rising.isChecked()
+        self.parameters.target_slope_rising.value = (
+            self.slopeRisingRadioButton.isChecked()
+        )
         self.parameters.fetch_additional_signals.value = False
         self.parameters.autolock_mode.value = AutolockMode.SIMPLE
         self.parameters.autolock_target_position.value = 0
@@ -164,7 +167,9 @@ class LockingPanel(QtWidgets.QWidget):
         )
 
     def pid_on_slow_strength_changed(self):
-        self.parameters.pid_on_slow_strength.value = self.pid_on_slow_strength.value()
+        self.parameters.pid_on_slow_strength.value = (
+            self.pIDOnSlowStrengthSpinBox.value()
+        )
         self.control.write_registers()
 
     def start_autolock_selection(self):

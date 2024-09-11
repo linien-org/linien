@@ -288,7 +288,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox" name="slow_pid_group">
+    <widget class="QGroupBox" name="slowPIDGroupBox">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
        <horstretch>0</horstretch>
@@ -350,7 +350,7 @@
           </widget>
          </item>
          <item>
-          <widget class="CustomSpinBox" name="pid_on_slow_strength">
+          <widget class="CustomSpinBox" name="pIDOnSlowStrengthSpinBox">
            <property name="minimum">
             <number>0</number>
            </property>
@@ -382,7 +382,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QTabWidget" name="lock_control_container">
+    <widget class="QTabWidget" name="lockControlTabWidget">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
        <horstretch>0</horstretch>
@@ -398,7 +398,7 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_10">
        <item>
-        <widget class="QWidget" name="auto_mode_not_activated" native="true">
+        <widget class="QWidget" name="autoModeNotActivatedWidget" native="true">
          <layout class="QVBoxLayout" name="verticalLayout_5">
           <property name="leftMargin">
            <number>0</number>
@@ -413,7 +413,7 @@
            <number>0</number>
           </property>
           <item>
-           <widget class="QPushButton" name="selectLineToLock">
+           <widget class="QPushButton" name="selectLineToLockPushButton">
             <property name="minimumSize">
              <size>
               <width>0</width>
@@ -441,7 +441,7 @@
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_8">
              <item>
-              <widget class="QComboBox" name="autolock_mode_preference">
+              <widget class="QComboBox" name="autolockModePreferenceComboBox">
                <item>
                 <property name="text">
                  <string>Auto-detect</string>
@@ -520,7 +520,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QWidget" name="auto_mode_activated" native="true">
+        <widget class="QWidget" name="autoModeActivatedWidget" native="true">
          <layout class="QVBoxLayout" name="verticalLayout_7">
           <property name="leftMargin">
            <number>0</number>
@@ -551,7 +551,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="abortLineSelection">
+           <widget class="QPushButton" name="abortLineSelectionPushButton">
             <property name="styleSheet">
              <string notr="true">background-color: #d40000;</string>
             </property>
@@ -565,7 +565,7 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="manual_mode">
+     <widget class="QWidget" name="manualModeWidget">
       <attribute name="title">
        <string>Manual</string>
       </attribute>
@@ -619,14 +619,14 @@
         </spacer>
        </item>
        <item>
-        <widget class="QRadioButton" name="button_slope_rising">
+        <widget class="QRadioButton" name="slopeRisingRadioButton">
          <property name="text">
           <string>Rising slope</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QRadioButton" name="button_slope_falling">
+        <widget class="QRadioButton" name="slopeFallingRadioButton">
          <property name="text">
           <string>Falling slope</string>
          </property>
@@ -672,10 +672,10 @@
     </widget>
    </item>
    <item>
-    <widget class="LockStatusPanel" name="lock_status_container" native="true">
+    <widget class="LockStatusPanel" name="lockStatusPanel" native="true">
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
-       <widget class="QLabel" name="lock_status">
+       <widget class="QLabel" name="lockStatusLabel">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -1167,7 +1167,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QWidget" name="lock_failed" native="true">
+    <widget class="QWidget" name="lockFailedWidget" native="true">
      <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
        <spacer name="verticalSpacer_5">
@@ -1199,7 +1199,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="reset_lock_failed_state">
+       <widget class="QPushButton" name="resetLockFailedStatePushButton">
         <property name="minimumSize">
          <size>
           <width>0</width>
