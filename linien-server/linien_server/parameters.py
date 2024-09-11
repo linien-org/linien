@@ -21,7 +21,7 @@ from time import time
 from typing import Any, Callable, Iterator
 
 import linien_server
-from linien_common.common import AutolockMode, MHz, PSDAlgorithm, Vpp
+from linien_common.common import AutolockMode, AutolockStatus, MHz, PSDAlgorithm, Vpp
 from linien_common.config import USER_DATA_PATH, create_backup_file
 
 PARAMETER_STORE_FILENAME = "parameters.json"
@@ -575,6 +575,7 @@ class Parameters:
         self.autolock_time_scale = Parameter(start=0)
         self.autolock_instructions = Parameter(start=[], sync=False)
         self.autolock_final_wait_time = Parameter(start=0)
+        self.autolock_status = Parameter(start=AutolockStatus.OFF)
         self.autolock_running = Parameter(start=False)
         self.autolock_preparing = Parameter(start=False)
         self.autolock_failed = Parameter(start=False)

@@ -58,6 +58,13 @@ class AutolockMode(IntEnum):
     SIMPLE = 2
 
 
+class AutolockStatus(IntEnum):
+    FAILED = -1
+    OFF = 0
+    LOCKED = 1
+    RUNNING = 2
+
+
 class PSDAlgorithm(IntEnum):
     WELCH = 0
     LPSD = 1

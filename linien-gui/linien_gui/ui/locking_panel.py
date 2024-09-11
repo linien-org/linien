@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-from linien_common.common import AutolockMode
+from linien_common.common import AutolockMode, AutolockStatus
 from linien_gui.config import UI_PATH
 from linien_gui.ui.spin_box import CustomSpinBox
 from linien_gui.utils import get_linien_app_instance, param2ui
@@ -54,6 +54,17 @@ class LockStatusWidget(QtWidgets.QWidget):
             self.parameters.control_signal_history_length,
             self.parent.controlSignalHistoryLengthSpinBox,
         )
+
+    def on_lock_status_changed(self, status: AutolockStatus) -> None:
+        match status:
+            case AutolockStatus.LOCKED:
+                self.show()
+                self.parent.lockStatusLabel.setText("Locked!")
+            case AutolockStatus.RUNNING:
+                self.show()
+                self.parent.lockStatusLabel.setText("Autolock is running...")
+            case _:
+                self.hide()
 
     def update_status(self, _) -> None:
         locked = self.parameters.lock.value
@@ -187,7 +198,15 @@ class LockingPanel(QtWidgets.QWidget):
             self.autolockModePreferenceComboBox,
         )
 
-    def on_lock_status_changed(self, _):
+    def on_lock_status_changed2(self, status: AutolockStatus) -> None:
+        match status:
+            case AutolockStatus.FAILED | AutolockStatus.LOCKED | AutolockStatus.RUNNING:
+                self.lockControlTabWidget.hide()
+            case _:
+                self.lockControlTabWidget.show()
+        self.lockFailedWidget.setVisible(status == AutolockStatus.FAILED)
+
+    def on_lock_status_changed(self, _) -> None:
         locked = self.parameters.lock.value
         task = self.parameters.task.value
         al_failed = self.parameters.autolock_failed.value
