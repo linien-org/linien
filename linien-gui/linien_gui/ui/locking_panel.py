@@ -20,7 +20,8 @@ from linien_gui.config import UI_PATH
 from linien_gui.ui.lock_status_panel import LockStatusPanel
 from linien_gui.ui.spin_box import CustomSpinBox
 from linien_gui.utils import get_linien_app_instance, param2ui
-from PyQt5 import QtWidgets, uic
+from PyQt5 import QtCore, QtWidgets, uic
+from PyQt5.QtCore import pyqtSignal
 
 
 class LockingPanel(QtWidgets.QWidget):
@@ -46,13 +47,16 @@ class LockingPanel(QtWidgets.QWidget):
     controlSignalHistoryLengthSpinBox: CustomSpinBox
     lock_status: QtWidgets.QLabel
     stopLockPushButton: QtWidgets.QPushButton
+    autolock_selection_signal = pyqtSignal(bool)
 
     def __init__(self, *args, **kwargs):
         super(LockingPanel, self).__init__(*args, **kwargs)
         uic.loadUi(UI_PATH / "locking_panel.ui", self)
         self.app = get_linien_app_instance()
         self.app.connection_established.connect(self.on_connection_established)
+        QtCore.QTimer.singleShot(100, self.ready)
 
+    def ready(self) -> None:
         self.kpSpinBox.valueChanged.connect(self.kp_changed)
         self.kiSpinBox.valueChanged.connect(self.ki_changed)
         self.kdSpinBox.valueChanged.connect(self.kd_changed)
@@ -73,6 +77,11 @@ class LockingPanel(QtWidgets.QWidget):
 
         self.autolock_mode_preference.currentIndexChanged.connect(
             self.autolock_mode_preference_changed
+        )
+
+        self.autolock_selection_signal.connect(self.autolock_selection_status_changed)
+        self.autolock_selection_signal.connect(
+            self.app.main_window.plotWidget.on_autolock_selection_changed
         )
 
     def on_connection_established(self):
@@ -125,17 +134,13 @@ class LockingPanel(QtWidgets.QWidget):
             lambda value: not value,
         )
 
-        def autolock_selection_status_changed(value):
-            self.auto_mode_activated.setVisible(value)
-            self.auto_mode_not_activated.setVisible(not value)
-
-        self.parameters.autolock_selection.add_callback(
-            autolock_selection_status_changed
-        )
-
         param2ui(
             self.parameters.autolock_mode_preference, self.autolock_mode_preference
         )
+
+    def autolock_selection_status_changed(self, value: bool) -> None:
+        self.auto_mode_activated.setVisible(value)
+        self.auto_mode_not_activated.setVisible(not value)
 
     def kp_changed(self):
         self.parameters.p.value = self.kpSpinBox.value()
@@ -173,10 +178,10 @@ class LockingPanel(QtWidgets.QWidget):
         self.control.write_registers()
 
     def start_autolock_selection(self):
-        self.parameters.autolock_selection.value = True
+        self.autolock_selection_signal.emit(True)
 
     def stop_autolock_selection(self):
-        self.parameters.autolock_selection.value = False
+        self.autolock_selection_signal.emit(False)
 
     def reset_lock_failed(self):
         self.parameters.autolock_failed.value = False

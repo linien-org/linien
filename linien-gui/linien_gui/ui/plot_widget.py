@@ -115,6 +115,12 @@ class PlotWidget(pg.PlotWidget):
         self.app = get_linien_app_instance()
         self.app.connection_established.connect(self.on_connection_established)
 
+        self.touch_start = None
+        self.autolock_ref_spectrum = None
+        self.selection_running = False
+        self.selection_boundaries = None
+        self.autolock_selection_running = False
+
         self.getAxis("bottom").enableAutoSIPrefix(False)
         self.showGrid(x=True, y=True)
 
@@ -204,11 +210,6 @@ class PlotWidget(pg.PlotWidget):
         self.monitor_signal_threshold_max = pg.InfiniteLine(angle=0)
         self.addItem(self.monitor_signal_threshold_max)
 
-        self.touch_start = None
-        self.autolock_ref_spectrum = None
-        self.selection_running = False
-        self.selection_boundaries = None
-
         self.overlay = pg.LinearRegionItem(values=(0, 0), movable=False)
         self.overlay.setVisible(False)
         self.addItem(self.overlay)
@@ -246,9 +247,6 @@ class PlotWidget(pg.PlotWidget):
         self.monitor_signal_history_data = self.parameters.monitor_signal_history.value
 
         self.parameters.to_plot.add_callback(self.on_new_plot_data_received)
-        self.parameters.autolock_selection.add_callback(
-            self.on_autolock_selection_changed
-        )
         self.parameters.optimization_selection.add_callback(
             self.on_optimization_selection_changed
         )
@@ -312,9 +310,9 @@ class PlotWidget(pg.PlotWidget):
             if xdiff / xmax < 0.01:  # it was a click
                 pass
             else:  # it was a selection
-                if self.parameters.autolock_selection.value:
+                if self.autolock_selection_running:
                     last_combined_error_signal = self.last_plot_data[2]
-                    self.parameters.autolock_selection.value = False
+                    self.autolock_selection_running = False
                     self.control.exposed_start_autolock(
                         # we pickle it here because otherwise a netref is
                         # transmitted which blocks the autolock
@@ -373,19 +371,21 @@ class PlotWidget(pg.PlotWidget):
 
     def on_autolock_selection_changed(self, value: bool) -> None:
         if value:
+            self.autolock_selection_running = True
             self.parameters.optimization_selection.value = False
             self.enable_area_selection(selectable_width=0.99)
             self.pause_plot()
-        elif not self.parameters.optimization_selection.value:
+        else:
+            self.autolock_selection_running = False
             self.disable_area_selection()
             self.resume_plot_and_clear_cache()
 
     def on_optimization_selection_changed(self, value):
         if value:
-            self.parameters.autolock_selection.value = False
+            self.autolock_selection_running = False
             self.enable_area_selection(selectable_width=0.75)
             self.pause_plot()
-        elif not self.parameters.autolock_selection.value:
+        elif not self.autolock_selection_running:
             self.disable_area_selection()
             self.resume_plot_and_clear_cache()
 

@@ -575,7 +575,6 @@ class Parameters:
         self.autolock_time_scale = Parameter(start=0)
         self.autolock_instructions = Parameter(start=[], sync=False)
         self.autolock_final_wait_time = Parameter(start=0)
-        self.autolock_selection = Parameter(start=False)
         self.autolock_running = Parameter(start=False)
         self.autolock_preparing = Parameter(start=False)
         self.autolock_watching = Parameter(start=False)
