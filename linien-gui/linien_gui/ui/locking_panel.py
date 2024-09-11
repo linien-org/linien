@@ -45,7 +45,6 @@ class LockStatusWidget(QtWidgets.QWidget):
         self.parameters.lock.add_callback(self.update_status)
         self.parameters.task.add_callback(self.update_status)
         self.parameters.autolock_running.add_callback(self.update_status)
-        self.parameters.autolock_preparing.add_callback(self.update_status)
         self.parameters.autolock_failed.add_callback(self.update_status)
         self.parameters.autolock_locked.add_callback(self.update_status)
         self.parameters.autolock_retrying.add_callback(self.update_status)
@@ -72,7 +71,6 @@ class LockStatusWidget(QtWidgets.QWidget):
         al_failed = self.parameters.autolock_failed.value
         running = self.parameters.autolock_running.value
         retrying = self.parameters.autolock_retrying.value
-        preparing = self.parameters.autolock_preparing.value
 
         if locked or (task is not None and not al_failed):
             self.show()
@@ -87,7 +85,7 @@ class LockStatusWidget(QtWidgets.QWidget):
 
         if not running and locked:
             set_text("Locked!")
-        if running and not locked and preparing:
+        if running and not locked:
             if not retrying:
                 set_text("Autolock is running...")
             else:
@@ -183,7 +181,6 @@ class LockingPanel(QtWidgets.QWidget):
         param2ui(self.parameters.pid_on_slow_strength, self.pIDOnSlowStrengthSpinBox)
         self.parameters.pid_on_slow_enabled.add_callback(self.on_slow_pid_changed)
         self.parameters.lock.add_callback(self.on_lock_status_changed)
-        self.parameters.autolock_preparing.add_callback(self.on_lock_status_changed)
         self.parameters.autolock_failed.add_callback(self.on_lock_status_changed)
         self.parameters.autolock_locked.add_callback(self.on_lock_status_changed)
 

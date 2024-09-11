@@ -67,7 +67,6 @@ class Autolock:
 
     def stop(self) -> None:
         """Abort any operation."""
-        self.parameters.autolock_preparing.value = False
         self.parameters.autolock_running.value = False
         self.parameters.autolock_locked.value = False
         self.parameters.fetch_additional_signals.value = True
@@ -103,7 +102,6 @@ class Autolock:
         additional_spectra: Optional[list[np.ndarray]] = None,
     ) -> None:
         self.parameters.autolock_running.value = True
-        self.parameters.autolock_preparing.value = True
         self.parameters.fetch_additional_signals.value = False
         self.additional_spectra = additional_spectra or []
         self.spectrum = spectrum
