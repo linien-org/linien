@@ -250,14 +250,6 @@ class RedPitayaControlService(BaseService, LinienControlService):
                     self.parameters.acquisition_raw_data.value = new_data
             sleep(0.05)
 
-    def _task_running(self):
-        return (
-            self.parameters.autolock_running.value
-            or self.parameters.optimization_running.value
-            or self.parameters.psd_acquisition_running.value
-            or self.parameters.psd_optimization_running.value
-        )
-
     def exposed_write_registers(self) -> None:
         """Sync the parameters with the FPGA registers."""
         self.registers.write_registers()
@@ -272,10 +264,9 @@ class RedPitayaControlService(BaseService, LinienControlService):
         logger.info(f"Start autolock {x0=} {x1=}")
         auto_offset = self.parameters.autolock_determine_offset.value
 
-        if not self._task_running():
-            autolock = Autolock(self, self.parameters)
-            self.parameters.task.value = autolock
-            autolock.run(
+        if self.parameters.task.value is None:
+            self.parameters.task.value = Autolock(self, self.parameters)
+            self.parameters.task.value.run(
                 x0,
                 x1,
                 pickle.loads(spectrum),
@@ -288,18 +279,17 @@ class RedPitayaControlService(BaseService, LinienControlService):
             )
 
     def exposed_start_optimization(self, x0, x1, spectrum):
-        if not self._task_running():
-            spectroscopy_optimizer = SpectroscopyOptimizer(self, self.parameters)
-            self.parameters.task.value = spectroscopy_optimizer
-            spectroscopy_optimizer.run(x0, x1, spectrum)
+        if self.parameters.task.value is None:
+            self.parameters.task.value = SpectroscopyOptimizer(self, self.parameters)
+            self.parameters.task.value.run(x0, x1, spectrum)
 
     def exposed_start_psd_acquisition(self):
-        if not self._task_running():
+        if self.parameters.task.value is None:
             self.parameters.task.value = PSDAcquisition(self, self.parameters)
             self.parameters.task.value.run()
 
     def exposed_start_pid_optimization(self):
-        if not self._task_running():
+        if self.parameters.task.value is None:
             self.parameters.task.value = PIDOptimization(self, self.parameters)
             self.parameters.task.value.run()
 
