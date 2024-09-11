@@ -125,8 +125,6 @@ class RobustAutolock:
             self.parameters.lock.value = True
             self.control.exposed_write_registers()
 
-            self.parameters.autolock_preparing.value = False
-
             self._done = True
 
         else:
