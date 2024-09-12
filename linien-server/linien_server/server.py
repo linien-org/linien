@@ -122,6 +122,33 @@ class BaseService(rpyc.Service):
     def exposed_get_parameter_log(self, param_name: str) -> bool:
         return getattr(self.parameters, param_name).log
 
+    @deprecated("Use exposed_start_manual_lock instead")
+    def exposed_start_lock(self):
+        self.exposed_start_manual_lock()
+
+    def exposed_start_manual_lock(
+        self, target_position: Optional[int] = None, slope_rising: Optional[bool] = None
+    ) -> None:
+        """
+        Engage the lock at the specified position of the sweep with the specified slope
+        sign. If one of these parameters is not specified, the previously defined values
+        of `autolock_target_position` and `target_slope_rising` are used.
+        """
+        self.parameters.fetch_additional_signals.value = False
+        self.parameters.autolock_mode.value = AutolockMode.SIMPLE
+        if target_position is not None:
+            logger.debug(f"Set target position to {target_position}.")
+            self.parameters.autolock_target_position.value = target_position
+        if slope_rising is not None:
+            logger.debug(f"Set target slope rising to {target_position}")
+            self.parameters.target_slope_rising.value = slope_rising
+        self.exposed_write_registers()
+        self.exposed_pause_acquisition()
+        logger.info("Start lock.")
+        self.parameters.lock.value = True
+        self.exposed_write_registers()
+        self.exposed_continue_acquisition()
+
     def exposed_update_influxdb_credentials(
         self, credentials: InfluxDBCredentials
     ) -> tuple[bool, str]:
@@ -252,33 +279,6 @@ class RedPitayaControlService(BaseService, LinienControlService):
     def exposed_write_registers(self) -> None:
         """Sync the parameters with the FPGA registers."""
         self.registers.write_registers()
-
-    @deprecated("Use exposed_start_manual_lock instead")
-    def exposed_start_lock(self):
-        self.exposed_start_manual_lock()
-
-    def exposed_start_manual_lock(
-        self, target_position: Optional[int] = None, slope_rising: Optional[bool] = None
-    ) -> None:
-        """
-        Engage the lock at the specified position of the sweep with the specified slope
-        sign. If one of these parameters is not specified, the previously defined values
-        of `autolock_target_position` and `target_slope_rising` are used.
-        """
-        self.parameters.fetch_additional_signals.value = False
-        self.parameters.autolock_mode.value = AutolockMode.SIMPLE
-        if target_position is not None:
-            logger.debug(f"Set target position to {target_position}.")
-            self.parameters.autolock_target_position.value = target_position
-        if slope_rising is not None:
-            logger.debug(f"Set target slope rising to {target_position}")
-            self.parameters.target_slope_rising.value = slope_rising
-        self.exposed_write_registers()
-        self.exposed_pause_acquisition()
-        logger.info("Start lock.")
-        self.parameters.lock.value = True
-        self.exposed_write_registers()
-        self.exposed_continue_acquisition()
 
     def exposed_start_autolock(
         self,
