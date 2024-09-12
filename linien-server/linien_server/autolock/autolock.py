@@ -70,7 +70,6 @@ class Autolock:
         self.parameters.autolock_running.value = False
         self.parameters.autolock_locked.value = False
         self.parameters.fetch_additional_signals.value = True
-        self.parameters.autolock_failed.value = True
         self.parameters.to_plot.remove_callback(self.try_to_start_autolock)
         self.reset_sweep()
         self.parameters.task.value = None
