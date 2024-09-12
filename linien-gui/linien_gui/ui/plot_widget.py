@@ -24,6 +24,7 @@ import pyqtgraph as pg
 from linien_common.common import (
     DECIMATION,
     N_POINTS,
+    AutolockStatus,
     check_plot_data,
     combine_error_signal,
     get_lock_point,
@@ -119,7 +120,6 @@ class PlotWidget(pg.PlotWidget):
         self.autolock_ref_spectrum = None
         self.selection_running = False
         self.selection_boundaries = None
-        self.autolock_selection_running = False
         self.optimization_selection_running = False
 
         self.getAxis("bottom").enableAutoSIPrefix(False)
@@ -244,6 +244,7 @@ class PlotWidget(pg.PlotWidget):
         self.parameters = self.app.parameters
         self.control = self.app.control
 
+        self.parameters.autolock_status.add_callback(self.on_autolock_status_changed)
         self.control_signal_history_data = self.parameters.control_signal_history.value
         self.monitor_signal_history_data = self.parameters.monitor_signal_history.value
         self.parameters.to_plot.add_callback(self.on_new_plot_data_received)
@@ -307,9 +308,8 @@ class PlotWidget(pg.PlotWidget):
             if xdiff / xmax < 0.01:  # it was a click
                 pass
             else:  # it was a selection
-                if self.autolock_selection_running:
+                if self.parameters.autolock_status == AutolockStatus.SELECTING:
                     last_combined_error_signal = self.last_plot_data[2]
-                    self.autolock_selection_running = False
                     self.control.exposed_start_autolock(
                         # we pickle it here because otherwise a netref is
                         # transmitted which blocks the autolock
@@ -366,21 +366,17 @@ class PlotWidget(pg.PlotWidget):
                 )
             )
 
-    def on_autolock_selection_changed(self, value: bool) -> None:
-        if value:
-            self.autolock_selection_running = True
-            self.optimization_selection_running = False
+    def on_autolock_status_changed(self, status: AutolockStatus) -> None:
+        if status == AutolockStatus.SELECTING:
             self.enable_area_selection(selectable_width=0.99)
             self.pause_plot()
         else:
-            self.autolock_selection_running = False
             self.disable_area_selection()
             self.resume_plot_and_clear_cache()
 
     def on_optimization_selection_changed(self, value: bool) -> None:
         if value:
             self.optimization_selection_running = True
-            self.autolock_selection_running = False
             self.enable_area_selection(selectable_width=0.75)
             self.pause_plot()
         else:
