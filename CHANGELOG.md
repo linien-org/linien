@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 * Color settings are now named by @bleykauf in https://github.com/linien-org/linien/pull/426
+* Replaced parameters `autolock_running`, `autolock_failed`, `autolock_locked`, `autolock_retrying` with `autolock_status`
 
 ### Deprecated
 * Unused parameters `autolock_initial_sweep_amplitude`, `autolock_watching`, `autolock_preparing` were removed.

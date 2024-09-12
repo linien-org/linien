@@ -22,6 +22,7 @@ from typing import Optional
 import numpy as np
 from linien_common.common import (
     AutolockMode,
+    AutolockStatus,
     check_plot_data,
     combine_error_signal,
     get_lock_point,
@@ -47,31 +48,15 @@ class Autolock:
     def __init__(self, control: LinienControlService, parameters: Parameters) -> None:
         self.control = control
         self.parameters = parameters
-        self.parameters.autolock_running.value = False
-        self.parameters.autolock_retrying.value = False
-        self.reset_properties()
+        self.parameters.autolock_status = AutolockStatus.STOPPED
         self.algorithm = None
-
-    def reset_properties(self):
-        # we check each parameter before setting it because otherwise this may crash the
-        # client if called very often (e.g.if the autolock continuously fails)
-        if self.parameters.autolock_failed.value:
-            self.parameters.autolock_failed.value = False
-        if self.parameters.autolock_locked.value:
-            self.parameters.autolock_locked.value = False
-
-    def reset_sweep(self):
-        self.control.exposed_pause_acquisition()
-        self.control.exposed_start_sweep()
-        self.control.exposed_continue_acquisition()
 
     def stop(self) -> None:
         """Abort any operation."""
-        self.parameters.autolock_running.value = False
-        self.parameters.autolock_locked.value = False
+        self.parameters.autolock_status = AutolockStatus.STOPPED
         self.parameters.fetch_additional_signals.value = True
         self.parameters.to_plot.remove_callback(self.try_to_start_autolock)
-        self.reset_sweep()
+        self.control.exposed_start_sweep()
         self.parameters.task.value = None
 
     def relock(self):
@@ -79,17 +64,9 @@ class Autolock:
         Relock the laser using the reference spectrum recorded in the first locking
         approach.
         """
-        # we check each parameter before setting it because otherwise this may crash the
-        # client if called very often (e.g.if the autolock continuously fails)
-        if not self.parameters.autolock_running.value:
-            self.parameters.autolock_running.value = True
-        if not self.parameters.autolock_retrying.value:
-            self.parameters.autolock_retrying.value = True
-
-        self.reset_properties()
-        self.reset_sweep()
-
-        # add a listener that listens for new spectrum data and tries to relock.
+        self.parameters.autock_status.value = AutolockStatus.RELOCKING
+        self.control.exposed_start_sweep()
+        # Add a listener that listens for new spectrum data and tries to relock.
         self.parameters.to_plot.add_callback(self.try_to_start_autolock)
 
     def run(
@@ -100,7 +77,7 @@ class Autolock:
         auto_offset: bool = True,
         additional_spectra: Optional[list[np.ndarray]] = None,
     ) -> None:
-        self.parameters.autolock_running.value = True
+        self.parameters.autolock_status = AutolockStatus.LOCKING
         self.parameters.fetch_additional_signals.value = False
         self.additional_spectra = additional_spectra or []
         self.spectrum = spectrum
@@ -145,7 +122,7 @@ class Autolock:
         """
         if (
             self.parameters.pause_acquisition.value
-            or not self.parameters.autolock_running.value
+            or self.parameters.autolock_status != AutolockStatus.LOCKING
         ):
             return
 
@@ -196,10 +173,9 @@ class Autolock:
                     # forward data to the algorithm, will (eventually) engange lock
                     self.algorithm.handle_new_spectrum(combined_error_signal)
             else:  # lock was already engaged
-                logger.debug("After lock")
-                self.parameters.autolock_locked.value = True
+                logger.debug("Autolock finised.")
+                self.parameters.autolock_status.value = AutolockStatus.LOCKED
                 self.parameters.to_plot.remove_callback(self.try_to_start_autolock)
-                self.parameters.autolock_running.value = False
                 if self.algorithm is not None:  # for mypy, algorithm is already set
                     self.algorithm.after_lock()
 

@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
+from linien_common.common import AutolockStatus
 from linien_gui.utils import get_linien_app_instance
 from PyQt5 import QtCore, QtWidgets
 
@@ -41,7 +42,7 @@ class RightPanel(QtWidgets.QWidget):
         self.parameters = self.app.parameters
         self.control = self.app.control
 
-        self.parameters.autolock_running.add_callback(self.autolock_status_changed)
+        self.parameters.autolock_status.add_callback(self.autolock_status_changed)
         self.parameters.optimization_running.add_callback(
             self.optimization_status_changed
         )
@@ -63,8 +64,8 @@ class RightPanel(QtWidgets.QWidget):
     def open_device_manager(self) -> None:
         self.app.open_device_manager()
 
-    def autolock_status_changed(self, value: bool) -> None:
-        if value:
+    def autolock_status_changed(self, value: AutolockStatus) -> None:
+        if value == AutolockStatus.LOCKING:
             self.main_window.settingsToolbox.setCurrentWidget(
                 self.main_window.lockingPanel
             )
@@ -80,16 +81,22 @@ class RightPanel(QtWidgets.QWidget):
         self.enable_or_disable_panels()
 
     def enable_or_disable_panels(self, *args) -> None:
-        lock = self.parameters.lock.value
-        autolock = self.parameters.autolock_running.value
-        optimization = self.parameters.optimization_running.value
+        locked = self.parameters.lock.value
+        autolock_running = (
+            self.parameters.autolock_status.value == AutolockStatus.LOCKING
+        )
+        optimization_running = self.parameters.optimization_running.value
 
         def enable_panels(panel_names, condition: bool) -> None:
             for panel_name in panel_names:
                 getattr(self.main_window, panel_name).setEnabled(condition)
 
-        enable_panels(("generalPanel",), not autolock and not optimization and not lock)
         enable_panels(
-            ("modSpectroscopyPanel", "viewPanel", "lockingPanel"), not optimization
+            ("generalPanel",),
+            not autolock_running and not optimization_running and not locked,
         )
-        enable_panels(("optimizationPanel",), not autolock and not lock)
+        enable_panels(
+            ("modSpectroscopyPanel", "viewPanel", "lockingPanel"),
+            not optimization_running,
+        )
+        enable_panels(("optimizationPanel",), not autolock_running and not locked)

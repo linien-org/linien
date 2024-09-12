@@ -60,9 +60,11 @@ class AutolockMode(IntEnum):
 
 class AutolockStatus(IntEnum):
     FAILED = -1
-    OFF = 0
-    LOCKED = 1
-    RUNNING = 2
+    STOPPED = 0
+    SELECTING = 1
+    LOCKING = 2
+    LOCKED = 3
+    RELOCKING = 4
 
 
 class PSDAlgorithm(IntEnum):

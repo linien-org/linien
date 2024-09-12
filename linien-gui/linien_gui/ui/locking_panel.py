@@ -42,12 +42,7 @@ class LockStatusWidget(QtWidgets.QWidget):
         self.parameters = self.app.parameters
         self.control = self.app.control
 
-        self.parameters.lock.add_callback(self.update_status)
-        self.parameters.task.add_callback(self.update_status)
-        self.parameters.autolock_running.add_callback(self.update_status)
-        self.parameters.autolock_failed.add_callback(self.update_status)
-        self.parameters.autolock_locked.add_callback(self.update_status)
-        self.parameters.autolock_retrying.add_callback(self.update_status)
+        self.parameters.autolock_status.add_callback(self.on_lock_status_changed)
 
         param2ui(
             self.parameters.control_signal_history_length,
@@ -59,37 +54,11 @@ class LockStatusWidget(QtWidgets.QWidget):
             case AutolockStatus.LOCKED:
                 self.show()
                 self.parent.lockStatusLabel.setText("Locked!")
-            case AutolockStatus.RUNNING:
+            case AutolockStatus.LOCKING:
                 self.show()
                 self.parent.lockStatusLabel.setText("Autolock is running...")
             case _:
                 self.hide()
-
-    def update_status(self, _) -> None:
-        locked = self.parameters.lock.value
-        task = self.parameters.task.value
-        al_failed = self.parameters.autolock_failed.value
-        running = self.parameters.autolock_running.value
-        retrying = self.parameters.autolock_retrying.value
-
-        if locked or (task is not None and not al_failed):
-            self.show()
-        else:
-            self.hide()
-
-        if not task:
-            running = False
-
-        def set_text(text):
-            self.parent.lockStatusLabel.setText(text)
-
-        if not running and locked:
-            set_text("Locked!")
-        if running and not locked:
-            if not retrying:
-                set_text("Autolock is running...")
-            else:
-                set_text("Trying again to lock...")
 
     def on_stop_lock(self):
         self.parameters.fetch_additional_signals.value = True
@@ -181,10 +150,8 @@ class LockingPanel(QtWidgets.QWidget):
             lambda value: 0 if value else 1,
         )
         param2ui(self.parameters.pid_on_slow_strength, self.pIDOnSlowStrengthSpinBox)
-        self.parameters.pid_on_slow_enabled.add_callback(self.on_slow_pid_changed)
-        self.parameters.lock.add_callback(self.on_lock_status_changed)
-        self.parameters.autolock_failed.add_callback(self.on_lock_status_changed)
-        self.parameters.autolock_locked.add_callback(self.on_lock_status_changed)
+
+        self.parameters.autolock_status.add_callback(self.on_lock_status_changed)
 
         param2ui(self.parameters.target_slope_rising, self.slopeRisingRadioButton)
         param2ui(
@@ -197,26 +164,13 @@ class LockingPanel(QtWidgets.QWidget):
             self.autolockModePreferenceComboBox,
         )
 
-    def on_lock_status_changed2(self, status: AutolockStatus) -> None:
+    def on_lock_status_changed(self, status: AutolockStatus) -> None:
         match status:
-            case AutolockStatus.FAILED | AutolockStatus.LOCKED | AutolockStatus.RUNNING:
+            case AutolockStatus.FAILED | AutolockStatus.LOCKED | AutolockStatus.LOCKING:
                 self.lockControlTabWidget.hide()
             case _:
                 self.lockControlTabWidget.show()
         self.lockFailedWidget.setVisible(status == AutolockStatus.FAILED)
-
-    def on_lock_status_changed(self, _) -> None:
-        locked = self.parameters.lock.value
-        task = self.parameters.task.value
-        al_failed = self.parameters.autolock_failed.value
-        task_running = (task is not None) and (not al_failed)
-
-        if locked or task_running or al_failed:
-            self.lockControlTabWidget.hide()
-        else:
-            self.lockControlTabWidget.show()
-
-        self.lockFailedWidget.setVisible(al_failed)
 
     def on_slow_pid_changed(self, _) -> None:
         self.slowPIDGroupBox.setVisible(self.parameters.pid_on_slow_enabled.value)
@@ -266,4 +220,4 @@ class LockingPanel(QtWidgets.QWidget):
         self.autolock_selection_signal.emit(False)
 
     def reset_lock_failed(self):
-        self.parameters.autolock_failed.value = False
+        self.parameters.autolock_status.value = AutolockStatus.STOPPED

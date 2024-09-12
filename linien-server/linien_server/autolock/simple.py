@@ -49,24 +49,26 @@ class SimpleAutolock:
         self._error_counter = 0
 
     def handle_new_spectrum(self, spectrum) -> None:
-        if not self._done:
-            try:
-                shift, zoomed_ref, zoomed_err = determine_shift_by_correlation(
-                    1, self.first_error_signal_rolled, spectrum
-                )
-            except SpectrumUncorrelatedException:
-                self._error_counter += 1
-                logger.warning("Skipping spectrum because it is not correlated.")
-                if self._error_counter > 10:
-                    raise
-                return
+        if self._done:
+            return
 
-            target_position = int(
-                round((shift * (-1)) * self.parameters.sweep_amplitude.value * 8191)
+        try:
+            shift, zoomed_ref, zoomed_err = determine_shift_by_correlation(
+                1, self.first_error_signal_rolled, spectrum
             )
-            logger.debug(f"Target position is {target_position}, shift is {shift}.")
-            self.control.exposed_start_manual_lock(target_position)
-            self._done = True
+        except SpectrumUncorrelatedException:
+            self._error_counter += 1
+            logger.warning("Skipping spectrum because it is not correlated.")
+            if self._error_counter > 10:
+                raise
+            return
+
+        target_position = int(
+            round((shift * (-1)) * self.parameters.sweep_amplitude.value * 8191)
+        )
+        logger.debug(f"Target position is {target_position}, shift is {shift}.")
+        self.control.exposed_start_manual_lock(target_position)
+        self._done = True
 
     def after_lock(self):
         pass

@@ -575,11 +575,7 @@ class Parameters:
         self.autolock_time_scale = Parameter(start=0)
         self.autolock_instructions = Parameter(start=[], sync=False)
         self.autolock_final_wait_time = Parameter(start=0)
-        self.autolock_status = Parameter(start=AutolockStatus.OFF)
-        self.autolock_running = Parameter(start=False)
-        self.autolock_failed = Parameter(start=False)
-        self.autolock_locked = Parameter(start=False)
-        self.autolock_retrying = Parameter(start=False)
+        self.autolock_status = Parameter(start=AutolockStatus.STOPPED)
         self.autolock_determine_offset = Parameter(start=True, restorable=True)
 
         # ------------------- OPTIMIZATION PARAMETERS ----------------------------------
