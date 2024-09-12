@@ -290,11 +290,13 @@ class AcquisitionService(Service):
         start_nginx()
 
     def exposed_pause_acquisition(self):
+        logger.debug("Pausing acquisition.")
         self.pause_event.set()
         self.data_hash = None
         self.data = None
 
     def exposed_continue_acquisition(self, uuid: Optional[float]) -> None:
+        logger.debug("Continuing acquisition.")
         self.program_acquisition_and_rearm()
         sleep(0.01)
         # resetting data here is not strictly required but we want to be on the safe

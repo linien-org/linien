@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-from linien_common.common import AutolockMode, AutolockStatus
+from linien_common.common import AutolockStatus
 from linien_gui.config import UI_PATH
 from linien_gui.ui.spin_box import CustomSpinBox
 from linien_gui.utils import get_linien_app_instance, param2ui
@@ -244,14 +244,9 @@ class LockingPanel(QtWidgets.QWidget):
         self.parameters.autolock_mode_preference.value = idx
 
     def start_manual_lock(self):
-        self.parameters.target_slope_rising.value = (
-            self.slopeRisingRadioButton.isChecked()
+        self.control.exposed_start_manual_lock(
+            target_position=0, slope_rising=self.slopeRisingRadioButton.isChecked()
         )
-        self.parameters.fetch_additional_signals.value = False
-        self.parameters.autolock_mode.value = AutolockMode.SIMPLE
-        self.parameters.autolock_target_position.value = 0
-        self.control.write_registers()
-        self.control.exposed_start_lock()
 
     def auto_offset_changed(self):
         self.parameters.autolock_determine_offset.value = int(

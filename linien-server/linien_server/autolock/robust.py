@@ -128,7 +128,7 @@ class RobustAutolock:
             self._done = True
 
         else:
-            logger.error(
+            logger.info(
                 "Not enough spectra collected:"
                 f"{len(self.spectra)} of {self.N_spectra_required}"
             )

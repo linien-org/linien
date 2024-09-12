@@ -21,6 +21,7 @@ from linien_common.common import (
     SpectrumUncorrelatedException,
     determine_shift_by_correlation,
 )
+from linien_common.communication import LinienControlService
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -31,7 +32,7 @@ class SimpleAutolock:
 
     def __init__(
         self,
-        control,
+        control: LinienControlService,
         parameters,
         first_error_signal,
         first_error_signal_rolled,
@@ -55,18 +56,16 @@ class SimpleAutolock:
                 )
             except SpectrumUncorrelatedException:
                 self._error_counter += 1
-                logger.warning("skipping spectrum because it is not correlated")
+                logger.warning("Skipping spectrum because it is not correlated.")
                 if self._error_counter > 10:
                     raise
                 return
 
-            lock_point = int(
+            target_position = int(
                 round((shift * (-1)) * self.parameters.sweep_amplitude.value * 8191)
             )
-            logger.debug(f"lock point is {lock_point}, shift is {shift}")
-            self.parameters.autolock_target_position.value = int(lock_point)
-            self.control.exposed_write_registers()
-            self.control.exposed_start_lock()
+            logger.debug(f"Target position is {target_position}, shift is {shift}.")
+            self.control.exposed_start_manual_lock(target_position)
             self._done = True
 
     def after_lock(self):
