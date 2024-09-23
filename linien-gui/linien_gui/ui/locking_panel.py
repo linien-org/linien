@@ -104,7 +104,6 @@ class LockingPanel(QtWidgets.QWidget):
         uic.loadUi(UI_PATH / "locking_panel.ui", self)
         self.app = get_linien_app_instance()
         self.app.connection_established.connect(self.on_connection_established)
-        QtCore.QTimer.singleShot(100, self.ready)
 
         self.kpSpinBox.valueChanged.connect(self.on_kp_changed)
         self.kiSpinBox.valueChanged.connect(self.on_ki_changed)
