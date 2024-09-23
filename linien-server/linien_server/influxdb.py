@@ -45,7 +45,7 @@ class InfluxDBLogger:
         self._credentials = value
         save_credentials(value)
 
-    def update_connection(self) -> InfluxDBClient:
+    def update_connection(self) -> None:
         client = InfluxDBClient(
             url=self.credentials.url,
             token=self.credentials.token,
