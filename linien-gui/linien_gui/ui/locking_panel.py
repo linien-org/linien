@@ -155,12 +155,12 @@ class LockingPanel(QtWidgets.QWidget):
         )
 
     def on_autolock_status_changed(self, status: AutolockStatus) -> None:
-        match status:
+        match status.value:
             case AutolockStatus.STOPPED:
                 self.lockControlTabWidget.show()
             case _:
                 self.lockControlTabWidget.hide()
-        self.lockFailedWidget.setVisible(status == AutolockStatus.FAILED)
+        self.lockFailedWidget.setVisible(status.value == AutolockStatus.FAILED)
         self.autolockSelectionActivedWidget.setVisible(
             status.value == AutolockStatus.SELECTING
         )
