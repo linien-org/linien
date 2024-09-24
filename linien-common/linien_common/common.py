@@ -19,7 +19,7 @@
 """This file contains stuff that is required by the server as well as the client."""
 
 import logging
-from enum import Enum, IntEnum, auto
+from enum import IntEnum, auto
 from time import time
 from typing import Dict, Iterable, List, Tuple, Union
 
@@ -58,7 +58,7 @@ class AutolockMode(IntEnum):
     SIMPLE = 2
 
 
-class AutolockStatus(Enum):
+class AutolockStatus(IntEnum):
     FAILED = auto()
     STOPPED = auto()
     SELECTING = auto()
