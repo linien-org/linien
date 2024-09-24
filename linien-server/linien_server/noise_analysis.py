@@ -22,7 +22,7 @@ import string
 from time import sleep, time
 
 import numpy as np
-from linien_common.common import PSDAlgorithm
+from linien_common.enums import PSDAlgorithm
 from linien_server.optimization.engine import MultiDimensionalOptimizationEngine
 from pylpsd import lpsd
 from scipy import signal
