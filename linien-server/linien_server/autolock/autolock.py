@@ -48,12 +48,12 @@ class Autolock:
     def __init__(self, control: LinienControlService, parameters: Parameters) -> None:
         self.control = control
         self.parameters = parameters
-        self.parameters.autolock_status = AutolockStatus.STOPPED
+        self.parameters.autolock_status.value = AutolockStatus.STOPPED
         self.algorithm = None
 
     def stop(self) -> None:
         """Abort any operation."""
-        self.parameters.autolock_status = AutolockStatus.STOPPED
+        self.parameters.autolock_status.value = AutolockStatus.STOPPED
         self.parameters.fetch_additional_signals.value = True
         self.parameters.to_plot.remove_callback(self.try_to_start_autolock)
         self.control.exposed_start_sweep()
@@ -77,7 +77,7 @@ class Autolock:
         auto_offset: bool = True,
         additional_spectra: Optional[list[np.ndarray]] = None,
     ) -> None:
-        self.parameters.autolock_status = AutolockStatus.LOCKING
+        self.parameters.autolock_status.value = AutolockStatus.LOCKING
         self.parameters.fetch_additional_signals.value = False
         self.additional_spectra = additional_spectra or []
         self.spectrum = spectrum
@@ -122,7 +122,7 @@ class Autolock:
         """
         if (
             self.parameters.pause_acquisition.value
-            or self.parameters.autolock_status != AutolockStatus.LOCKING
+            or self.parameters.autolock_status.value != AutolockStatus.LOCKING
         ):
             return
 

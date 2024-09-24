@@ -308,7 +308,7 @@ class PlotWidget(pg.PlotWidget):
             if xdiff / xmax < 0.01:  # it was a click
                 pass
             else:  # it was a selection
-                if self.parameters.autolock_status == AutolockStatus.SELECTING:
+                if self.parameters.autolock_status.value == AutolockStatus.SELECTING:
                     last_combined_error_signal = self.last_plot_data[2]
                     self.control.exposed_start_autolock(
                         # we pickle it here because otherwise a netref is
@@ -367,7 +367,7 @@ class PlotWidget(pg.PlotWidget):
             )
 
     def on_autolock_status_changed(self, status: AutolockStatus) -> None:
-        if status == AutolockStatus.SELECTING:
+        if status.value == AutolockStatus.SELECTING:
             self.enable_area_selection(selectable_width=0.99)
             self.pause_plot()
         else:

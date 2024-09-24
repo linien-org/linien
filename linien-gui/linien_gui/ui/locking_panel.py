@@ -49,7 +49,7 @@ class LockStatusWidget(QtWidgets.QWidget):
         )
 
     def on_lock_status_changed(self, status: AutolockStatus) -> None:
-        match status:
+        match status.value:
             case AutolockStatus.LOCKED:
                 self.show()
                 self.parent.lockStatusLabel.setText("Locked!")
@@ -162,10 +162,10 @@ class LockingPanel(QtWidgets.QWidget):
                 self.lockControlTabWidget.hide()
         self.lockFailedWidget.setVisible(status == AutolockStatus.FAILED)
         self.autolockSelectionActivedWidget.setVisible(
-            status == AutolockStatus.SELECTING
+            status.value == AutolockStatus.SELECTING
         )
         self.autolockSelectionNotActivedWidget.setVisible(
-            status != AutolockStatus.SELECTING
+            status.value != AutolockStatus.SELECTING
         )
 
     def on_slow_pid_changed(self, _) -> None:
