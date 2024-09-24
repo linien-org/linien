@@ -19,7 +19,8 @@ import logging
 from typing import Optional
 
 import numpy as np
-from linien_common.common import N_POINTS, AutolockMode, determine_shift_by_correlation
+from linien_common.common import N_POINTS, determine_shift_by_correlation
+from linien_common.enums import AutolockMode
 
 logger = logging.getLogger(__name__)
 
