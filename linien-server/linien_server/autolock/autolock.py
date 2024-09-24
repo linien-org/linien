@@ -164,7 +164,7 @@ class Autolock:
                         )
 
                 if self.algorithm is not None:  # algorithm was set (with new data)
-                    # forward data to the algorithm, will (eventually) engange lock
+                    # forward data to the algorithm, will (eventually) engage lock
                     self.algorithm.handle_new_spectrum(combined_error_signal)
             else:  # lock was already engaged
                 logger.debug("Autolock finised.")

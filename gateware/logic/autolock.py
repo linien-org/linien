@@ -71,7 +71,7 @@ class FPGAAutolock(Module, AutoCSR):
 
 class SimpleAutolock(Module, AutoCSR):
     """
-    The operation of fast autolock is simple: wait until the sweep has reached a certain
+    The operation of this autolock is simple: wait until the sweep has reached a certain
     point and turn on the lock. This method is well suited for systems with not too much
     jitter.
     """

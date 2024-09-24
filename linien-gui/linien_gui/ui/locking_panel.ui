@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>1362</height>
+    <height>945</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -392,13 +392,13 @@
      <property name="currentIndex">
       <number>0</number>
      </property>
-     <widget class="QWidget" name="auto_mode">
+     <widget class="QWidget" name="autoModeWidget">
       <attribute name="title">
        <string>Auto</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_10">
        <item>
-        <widget class="QWidget" name="autolockSelectionNotActivedWidget" native="true">
+        <widget class="QWidget" name="autolockSettingsWidget" native="true">
          <layout class="QVBoxLayout" name="verticalLayout_5">
           <property name="leftMargin">
            <number>0</number>
@@ -520,7 +520,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QWidget" name="autolockSelectionActivedWidget" native="true">
+        <widget class="QWidget" name="autolockSelectingWidget" native="true">
          <layout class="QVBoxLayout" name="verticalLayout_7">
           <property name="leftMargin">
            <number>0</number>
@@ -551,7 +551,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="abortLineSelectionPushButton">
+           <widget class="QPushButton" name="abortSelectingPushButton">
             <property name="styleSheet">
              <string notr="true">background-color: #d40000;</string>
             </property>

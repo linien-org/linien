@@ -86,9 +86,9 @@ class LockingPanel(QtWidgets.QWidget):
     slowPIDGroupBox: QtWidgets.QGroupBox
     pIDOnSlowStrengthSpinBox: CustomSpinBox
     lockControlTabWidget: QtWidgets.QTabWidget
-    autolockSelectionActivedWidget: QtWidgets.QWidget
-    abortLineSelectionPushButton: QtWidgets.QPushButton
-    autolockSelectionNotActivedWidget: QtWidgets.QWidget
+    autolockSelectingWidget: QtWidgets.QWidget
+    abortSelectingPushButton: QtWidgets.QPushButton
+    autolockSettingsWidget: QtWidgets.QWidget
     autoOffsetCheckbox: QtWidgets.QCheckBox
     autolockModePreferenceComboBox: QtWidgets.QComboBox
     selectLineToLockPushButton: QtWidgets.QPushButton
@@ -114,7 +114,7 @@ class LockingPanel(QtWidgets.QWidget):
         self.kdSpinBox.valueChanged.connect(self.on_kd_changed)
         self.lockControlTabWidget.currentChanged.connect(self.on_lock_mode_changed)
         self.selectLineToLockPushButton.clicked.connect(self.start_autolock_selection)
-        self.abortLineSelectionPushButton.clicked.connect(self.stop_autolock_selection)
+        self.abortSelectingPushButton.clicked.connect(self.stop_autolock_selection)
         self.manualLockButton.clicked.connect(self.start_manual_lock)
         self.autoOffsetCheckbox.stateChanged.connect(self.auto_offset_changed)
         self.pIDOnSlowStrengthSpinBox.setKeyboardTracking(False)
@@ -125,8 +125,6 @@ class LockingPanel(QtWidgets.QWidget):
         self.autolockModePreferenceComboBox.currentIndexChanged.connect(
             self.on_autolock_mode_preference_changed
         )
-        self.autolockSelectionActivedWidget.setVisible(False)
-        self.autolockSelectionNotActivedWidget.setVisible(True)
 
     def on_connection_established(self):
         self.parameters = self.app.parameters
@@ -159,17 +157,15 @@ class LockingPanel(QtWidgets.QWidget):
         )
 
     def on_autolock_status_changed(self, status: AutolockStatus) -> None:
-        match status.value:
-            case AutolockStatus.STOPPED:
-                self.lockControlTabWidget.show()
-            case _:
-                self.lockControlTabWidget.hide()
+        logger.debug(f"Autolock status changed to {status}")
+        if status.value == AutolockStatus.STOPPED:
+            self.lockControlTabWidget.show()
+        else:
+            self.lockControlTabWidget.hide()
+
         self.lockFailedWidget.setVisible(status.value == AutolockStatus.FAILED)
-        self.autolockSelectionActivedWidget.setVisible(
+        self.autolockSelectingWidget.setVisible(
             status.value == AutolockStatus.SELECTING
-        )
-        self.autolockSelectionNotActivedWidget.setVisible(
-            status.value != AutolockStatus.SELECTING
         )
 
     def on_slow_pid_changed(self, _) -> None:

@@ -248,7 +248,7 @@ class Registers:
             self.set(k, int(v))
 
         if not self.parameters.lock.value and sweep_changed:
-            # reset sweep for a short time if the scan range was changed this is needed
+            # Reset sweep for a short time if the scan range was changed. This is needed
             # because otherwise it may take too long before the new scan range is
             # reached --> no scope trigger is sent
             self.set("logic_sweep_run", 0)
