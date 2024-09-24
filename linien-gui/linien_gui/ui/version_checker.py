@@ -23,7 +23,6 @@ from packaging import version
 from PyQt5.QtCore import QThread, pyqtSignal
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 
 class VersionCheckerThread(QThread):

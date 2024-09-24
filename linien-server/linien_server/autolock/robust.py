@@ -37,7 +37,6 @@ from linien_server.autolock.utils import (
 )
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 
 class LockPositionNotFound(Exception):

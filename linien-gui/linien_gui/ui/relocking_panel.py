@@ -23,8 +23,7 @@ from linien_gui.utils import get_linien_app_instance, param2ui, ui2param
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtCore import pyqtSignal
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger = logging.getLogger("linien_gui.ui.relocking_panel")
 
 
 class RelockingPanel(QtWidgets.QWidget):

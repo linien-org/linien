@@ -24,7 +24,6 @@ from linien_common.common import (
 from linien_common.communication import LinienControlService
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 
 class SimpleAutolock:

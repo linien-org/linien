@@ -29,7 +29,6 @@ from .engine import OptimizerEngine
 from .utils import FINAL_ZOOM_FACTOR
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 
 class SpectroscopyOptimizer:

@@ -30,7 +30,6 @@ from linien_common.communication import hash_username_and_password
 from .device import Device
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 
 def read_remote_version(

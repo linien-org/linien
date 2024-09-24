@@ -34,7 +34,6 @@ from linien_server.autolock.simple import SimpleAutolock
 from linien_server.parameters import Parameters
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 AUTOLOCK_ALGORITHMS = {
     AutolockMode.SIMPLE: SimpleAutolock,

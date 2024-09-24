@@ -20,7 +20,6 @@ from pathlib import Path
 from appdirs import AppDirs
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 ACQUISITION_PORT = 19321
 SERVER_PORT = 18862

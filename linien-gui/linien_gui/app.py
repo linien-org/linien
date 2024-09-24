@@ -37,7 +37,6 @@ from pyqtgraph.Qt import QtCore
 sys.path += [str(UI_PATH)]
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 
 class LinienApp(QtWidgets.QApplication):
@@ -117,23 +116,29 @@ class LinienApp(QtWidgets.QApplication):
 @click.version_option(__version__)
 def main():
 
-    file_handler = RotatingFileHandler(
-        str(LOG_FILE_PATH), maxBytes=1000000, backupCount=10
-    )
-    file_handler.setLevel(logging.DEBUG)
-    file_formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    )
-    file_handler.setFormatter(file_formatter)
-    logger.addHandler(file_handler)
+    for logger_name in ["linien_client", "linien_common", "linien_gui"]:
 
-    console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.DEBUG)
-    console_formatter = logging.Formatter("%(name)-30s %(levelname)-8s %(message)s")
-    console_handler.setFormatter(console_formatter)
-    logger.addHandler(console_handler)
+        logger = logging.getLogger(logger_name)
+        logger.setLevel(logging.DEBUG)
+
+        file_handler = RotatingFileHandler(
+            str(LOG_FILE_PATH), maxBytes=1000000, backupCount=10
+        )
+        file_handler.setLevel(logging.DEBUG)
+        file_formatter = logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        )
+        file_handler.setFormatter(file_formatter)
+        logger.addHandler(file_handler)
+
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.DEBUG)
+        console_formatter = logging.Formatter("%(name)-30s %(levelname)-8s %(message)s")
+        console_handler.setFormatter(console_formatter)
+        logger.addHandler(console_handler)
 
     app = LinienApp(sys.argv)
+    logger = logging.getLogger(__name__)
     logger.info("Starting Linien GUI")
 
     # catch ctrl-c and shutdown

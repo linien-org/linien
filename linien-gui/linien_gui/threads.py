@@ -33,7 +33,6 @@ from linien_common.communication import RestorableParameterValues
 from PyQt5.QtCore import QObject, QThread, pyqtSignal
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 
 class RemoteOutStream(QObject):

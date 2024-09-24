@@ -24,7 +24,6 @@ from typing import Optional
 import fire
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 
 def copy_systemd_service_file() -> None:

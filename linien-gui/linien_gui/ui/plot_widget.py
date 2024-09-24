@@ -37,8 +37,7 @@ from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import pyqtSignal
 from pyqtgraph.Qt import QtCore
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger = logging.getLogger("linien_gui.ui.plot_widget")
 
 # NOTE: this is required for using a pen_width > 1. There is a bug though that causes
 # the plot to be way too small. Therefore, we call PlotWidget.resize() after a while

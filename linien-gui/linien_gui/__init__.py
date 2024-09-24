@@ -21,4 +21,3 @@ import logging
 __version__ = importlib.metadata.version("linien-gui")  # noqa: F401
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)

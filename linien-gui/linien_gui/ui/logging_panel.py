@@ -27,8 +27,7 @@ from PyQt5.QtCore import pyqtSignal
 START_LOG_BUTTON_TEXT = "Start Logging"
 STOP_LOG_BUTTON_TEXT = "Stop Logging"
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger = logging.getLogger("linien_gui.ui.logging_panel")
 
 
 class LoggingPanel(QtWidgets.QWidget):

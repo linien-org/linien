@@ -32,7 +32,6 @@ from .parameters import Parameters
 ALL_DECIMATIONS = list(range(32))
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 
 def calculate_psd(

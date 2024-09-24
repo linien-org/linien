@@ -27,7 +27,6 @@ import numpy as np
 from scipy.signal import correlate, resample
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 MHz = 0x10000000 / 8
 Vpp = ((1 << 14) - 1) / 4
@@ -313,7 +312,6 @@ def combine_error_signal(
 
 
 def check_plot_data(is_locked: bool, plot_data: Dict[str, np.ndarray]) -> bool:
-    logger.debug(f"{is_locked=}")
     if is_locked:
         if "error_signal" not in plot_data or "control_signal" not in plot_data:
             logger.debug(f"no control or error signal in {plot_data=}")

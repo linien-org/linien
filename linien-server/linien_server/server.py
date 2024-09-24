@@ -55,7 +55,6 @@ from rpyc.utils.server import ThreadedServer
 from typing_extensions import deprecated
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 
 class BaseService(rpyc.Service):
@@ -426,23 +425,30 @@ def run_threaded_server(
     control: BaseService,
     authenticator: Callable[[socket], tuple[socket, None]],
 ) -> None:
-    file_handler = RotatingFileHandler(
-        str(LOG_FILE_PATH), maxBytes=1000000, backupCount=10
-    )
-    file_handler.setLevel(logging.DEBUG)
-    file_formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    )
-    file_handler.setFormatter(file_formatter)
-    logger.addHandler(file_handler)
-
-    console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.DEBUG)
-    console_formatter = logging.Formatter("%(name)-30s %(levelname)-8s %(message)s")
-    console_handler.setFormatter(console_formatter)
-    logger.addHandler(console_handler)
-
     """Run a (Fake)RedPitayaControlService in a threaded server."""
+
+    for logger_name in ["linien_common", "linien_server"]:
+
+        logger = logging.getLogger(logger_name)
+        logger.setLevel(logging.DEBUG)
+
+        file_handler = RotatingFileHandler(
+            str(LOG_FILE_PATH), maxBytes=1000000, backupCount=10
+        )
+        file_handler.setLevel(logging.DEBUG)
+        file_formatter = logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        )
+        file_handler.setFormatter(file_formatter)
+        logger.addHandler(file_handler)
+
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.DEBUG)
+        console_formatter = logging.Formatter("%(name)-30s %(levelname)-8s %(message)s")
+        console_handler.setFormatter(console_formatter)
+        logger.addHandler(console_handler)
+
+    logger = logging.getLogger(__name__)
     if isinstance(control, FakeRedPitayaControlService):
         logger.info("Starting fake server")
     else:

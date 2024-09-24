@@ -35,8 +35,7 @@ ZOOM_STEP = 0.9
 MAX_ZOOM = 50
 MIN_ZOOM = 0
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger = logging.getLogger("linien_gui.ui.main_window")
 
 
 def sweep_amplitude_to_zoom_step(amplitude):

@@ -27,7 +27,6 @@ from linien_common.config import USER_DATA_PATH, create_backup_file
 PARAMETER_STORE_FILENAME = "parameters.json"
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 
 class Parameter:

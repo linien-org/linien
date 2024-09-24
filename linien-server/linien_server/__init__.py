@@ -22,4 +22,3 @@ import importlib_metadata
 __version__ = importlib_metadata.version("linien-server")  # noqa: F401
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)

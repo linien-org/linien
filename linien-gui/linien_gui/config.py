@@ -23,7 +23,6 @@ from typing import Callable, Iterator, Tuple
 from linien_common.config import USER_DATA_PATH, create_backup_file
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 UI_PATH = Path(__file__).parents[0].resolve() / "ui"
 SETTINGS_STORE_FILENAME = "settings.json"

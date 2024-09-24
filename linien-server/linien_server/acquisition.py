@@ -34,7 +34,6 @@ from rpyc import Service
 from rpyc.utils.server import ThreadedServer
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 
 class AcquisitionService(Service):

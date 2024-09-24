@@ -22,7 +22,6 @@ import numpy as np
 from linien_common.common import N_POINTS, AutolockMode, determine_shift_by_correlation
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 N_SPECTRA_REQUIRED = 3
 
