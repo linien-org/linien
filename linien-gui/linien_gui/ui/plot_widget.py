@@ -295,7 +295,7 @@ class PlotWidget(pg.PlotWidget):
             x = self._within_boundaries(x)
             self.overlay.setRegion((x0, x))
 
-    def mouseReleaseEvent(self, event):
+    def mouseReleaseEvent(self, event) -> None:
         super().mouseReleaseEvent(event)
         if self.selection_running:
             if self.touch_start is None:
@@ -311,8 +311,8 @@ class PlotWidget(pg.PlotWidget):
                 if self.parameters.autolock_status.value == AutolockStatus.SELECTING:
                     last_combined_error_signal = self.last_plot_data[2]
                     self.control.exposed_start_autolock(
-                        # we pickle it here because otherwise a netref is
-                        # transmitted which blocks the autolock
+                        # We pickle it here because otherwise a netref is transmitted
+                        # which blocks the autolock.
                         *sorted([x0, x]),
                         pickle.dumps(last_combined_error_signal),
                         additional_spectra=pickle.dumps(self.cached_plot_data),

@@ -287,7 +287,7 @@ class RedPitayaControlService(BaseService, LinienControlService):
         spectrum: bytes,
         additional_spectra: Optional[bytes] = None,
     ) -> None:
-        logger.info(f"Start autolock {x0=} {x1=}")
+        print(f"Start autolock {x0=} {x1=}")
         auto_offset = self.parameters.autolock_determine_offset.value
 
         if self.parameters.task.value is None:
