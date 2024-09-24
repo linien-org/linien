@@ -29,12 +29,7 @@ from typing import Any, Callable, Optional
 
 import numpy as np
 import rpyc
-from linien_common.common import (
-    N_POINTS,
-    AutolockMode,
-    check_plot_data,
-    update_signal_history,
-)
+from linien_common.common import N_POINTS, check_plot_data, update_signal_history
 from linien_common.communication import (
     LinienControlService,
     ParameterValues,
@@ -53,6 +48,8 @@ from linien_server.registers import Registers
 from rpyc.core.protocol import Connection
 from rpyc.utils.server import ThreadedServer
 from typing_extensions import deprecated
+
+from linien.common.enums import AutolockMode
 
 logger = logging.getLogger(__name__)
 
