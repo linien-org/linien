@@ -29,7 +29,6 @@ from typing import Any, Callable, Optional
 
 import numpy as np
 import rpyc
-from linien.common.enums import AutolockMode
 from linien_common.common import N_POINTS, check_plot_data, update_signal_history
 from linien_common.communication import (
     LinienControlService,
@@ -38,6 +37,7 @@ from linien_common.communication import (
     unpack,
 )
 from linien_common.config import LOG_FILE_PATH, SERVER_PORT
+from linien_common.enums import AutolockMode
 from linien_common.influxdb import InfluxDBCredentials, restore_credentials
 from linien_server import __version__
 from linien_server.autolock.autolock import Autolock
