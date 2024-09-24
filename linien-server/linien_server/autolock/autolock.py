@@ -48,6 +48,7 @@ class Autolock:
     def __init__(self, control: LinienControlService, parameters: Parameters) -> None:
         self.control = control
         self.parameters = parameters
+        self.parameters.autolock_status.value = AutolockStatus.STOPPED
         self.algorithm = None
 
     def stop(self) -> None:

@@ -15,16 +15,11 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-import logging
-
 from linien_common.common import AutolockStatus
 from linien_gui.config import UI_PATH
 from linien_gui.ui.spin_box import CustomSpinBox
 from linien_gui.utils import get_linien_app_instance, param2ui
 from PyQt5 import QtCore, QtWidgets, uic
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 
 class LockStatusWidget(QtWidgets.QWidget):
@@ -160,7 +155,6 @@ class LockingPanel(QtWidgets.QWidget):
         )
 
     def on_autolock_status_changed(self, status: AutolockStatus) -> None:
-        print(f"Autolock status changed to {status}")
         match status.value:
             case AutolockStatus.STOPPED:
                 self.lockControlTabWidget.show()
