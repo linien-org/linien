@@ -122,7 +122,7 @@ class Autolock:
         """
         if (
             self.parameters.pause_acquisition.value
-            or self.parameters.autolock_status.value != AutolockStatus.LOCKING
+            or self.parameters.autolock_status.value.value != AutolockStatus.LOCKING
         ):
             return
 

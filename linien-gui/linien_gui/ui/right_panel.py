@@ -83,7 +83,7 @@ class RightPanel(QtWidgets.QWidget):
     def enable_or_disable_panels(self, *args) -> None:
         locked = self.parameters.lock.value
         autolock_running = (
-            self.parameters.autolock_status.value == AutolockStatus.LOCKING
+            self.parameters.autolock_status.value.value == AutolockStatus.LOCKING
         )
         optimization_running = self.parameters.optimization_running.value
 

@@ -308,7 +308,10 @@ class PlotWidget(pg.PlotWidget):
             if xdiff / xmax < 0.01:  # it was a click
                 pass
             else:  # it was a selection
-                if self.parameters.autolock_status.value == AutolockStatus.SELECTING:
+                if (
+                    self.parameters.autolock_status.value.value
+                    == AutolockStatus.SELECTING
+                ):
                     last_combined_error_signal = self.last_plot_data[2]
                     self.control.exposed_start_autolock(
                         # we pickle it here because otherwise a netref is

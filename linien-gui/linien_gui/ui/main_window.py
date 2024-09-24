@@ -166,7 +166,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def change_sweep_control_visibility(self, *args):
         autolock_running = (
-            self.parameters.autolock_status.value == AutolockStatus.LOCKING
+            self.parameters.autolock_status.value.value == AutolockStatus.LOCKING
         )
         optimization = self.parameters.optimization_running.value
         locked = self.parameters.lock.value
