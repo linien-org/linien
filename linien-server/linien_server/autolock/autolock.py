@@ -20,14 +20,9 @@ import pickle
 from typing import Optional
 
 import numpy as np
-from linien_common.common import (
-    AutolockMode,
-    AutolockStatus,
-    check_plot_data,
-    combine_error_signal,
-    get_lock_point,
-)
+from linien_common.common import check_plot_data, combine_error_signal, get_lock_point
 from linien_common.communication import LinienControlService
+from linien_common.enums import AutolockMode, AutolockStatus
 from linien_server.autolock.algorithm_selection import AutolockAlgorithmSelector
 from linien_server.autolock.robust import RobustAutolock
 from linien_server.autolock.simple import SimpleAutolock

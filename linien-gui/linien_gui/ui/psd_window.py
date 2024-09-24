@@ -19,7 +19,7 @@ import pickle
 from time import time
 
 import linien_gui
-from linien_common.common import PSDAlgorithm
+from linien_common.enums import PSDAlgorithm
 from linien_gui.config import UI_PATH
 from linien_gui.dialogs import error_dialog
 from linien_gui.ui.psd_plot_widget import PSDPlotWidget

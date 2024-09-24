@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-from linien_common.common import AutolockStatus
+from linien_common.enums import AutolockStatus
 from linien_gui.utils import get_linien_app_instance
 from PyQt5 import QtCore, QtWidgets
 

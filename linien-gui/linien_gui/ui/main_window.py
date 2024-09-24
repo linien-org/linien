@@ -22,7 +22,8 @@ from math import log
 import linien_gui
 import numpy as np
 from linien_client.device import add_device, load_device, update_device
-from linien_common.common import AutolockStatus, check_plot_data
+from linien_common.common import check_plot_data
+from linien_common.enums import AutolockStatus
 from linien_gui.config import UI_PATH
 from linien_gui.ui.plot_widget import INVALID_POWER, PlotWidget
 from linien_gui.ui.right_panel import RightPanel

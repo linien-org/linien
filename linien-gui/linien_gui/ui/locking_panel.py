@@ -17,7 +17,7 @@
 
 import logging
 
-from linien_common.common import AutolockStatus
+from linien_common.enums import AutolockStatus
 from linien_gui.config import UI_PATH
 from linien_gui.ui.spin_box import CustomSpinBox
 from linien_gui.utils import get_linien_app_instance, param2ui

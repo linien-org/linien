@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-from linien_common.common import OutputChannel
+from linien_common.enums import OutputChannel
 from migen import (
     Array,
     Cat,

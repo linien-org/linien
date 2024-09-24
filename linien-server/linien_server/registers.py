@@ -19,9 +19,10 @@ from typing import Optional
 
 import numpy as np
 import rpyc
-from linien_common.common import FilterType, MHz, convert_channel_mixing_value
+from linien_common.common import MHz, convert_channel_mixing_value
 from linien_common.communication import LinienControlService
 from linien_common.config import ACQUISITION_PORT, DEFAULT_SWEEP_SPEED
+from linien_common.enums import FilterType
 from linien_server.parameters import Parameters
 
 from . import csrmap

@@ -18,7 +18,7 @@
 import pickle
 
 import numpy as np
-from linien_common.common import AutolockMode
+from linien_common.enums import AutolockMode
 from linien_server.autolock.autolock import Autolock
 from linien_server.server import FakeRedPitayaControlService
 

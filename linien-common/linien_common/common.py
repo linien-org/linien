@@ -19,7 +19,6 @@
 """This file contains stuff that is required by the server as well as the client."""
 
 import logging
-from enum import IntEnum, auto
 from time import time
 from typing import Dict, Iterable, List, Tuple, Union
 
@@ -38,37 +37,6 @@ AUTOLOCK_MAX_N_INSTRUCTIONS = 32
 DECIMATION = 8
 MAX_N_POINTS = 16384
 N_POINTS = int(MAX_N_POINTS / DECIMATION)
-
-
-class FilterType(IntEnum):
-    LOW_PASS = 0
-    HIGH_PASS = 1
-
-
-class OutputChannel(IntEnum):
-    FAST_OUT1 = 0
-    FAST_OUT2 = 1
-    ANALOG_OUT0 = 2
-
-
-class AutolockMode(IntEnum):
-    AUTO_DETECT = 0
-    ROBUST = 1
-    SIMPLE = 2
-
-
-class AutolockStatus(IntEnum):
-    FAILED = auto()
-    STOPPED = auto()
-    SELECTING = auto()
-    LOCKING = auto()
-    LOCKED = auto()
-    RELOCKING = auto()
-
-
-class PSDAlgorithm(IntEnum):
-    WELCH = 0
-    LPSD = 1
 
 
 class SpectrumUncorrelatedException(Exception):

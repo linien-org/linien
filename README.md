@@ -329,7 +329,7 @@ import numpy as np
 
 from linien_client.connection import LinienClient
 from linien_client.device import Device
-from linien_common.common import AutolockMode
+from linien_common.enums import AutolockMode
 
 from matplotlib import pyplot as plt
 from time import sleep

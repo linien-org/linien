@@ -15,11 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-from linien_common.common import (
-    ANALOG_OUT_V,
-    OutputChannel,
-    convert_channel_mixing_value,
-)
+from linien_common.common import ANALOG_OUT_V, convert_channel_mixing_value
+from linien_common.enums import OutputChannel
 from linien_gui.config import UI_PATH
 from linien_gui.ui.spin_box import CustomDoubleSpinBoxNoSign
 from linien_gui.utils import get_linien_app_instance, param2ui

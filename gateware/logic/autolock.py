@@ -15,7 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-from linien_common.common import AUTOLOCK_MAX_N_INSTRUCTIONS, AutolockMode
+from linien_common.common import AUTOLOCK_MAX_N_INSTRUCTIONS
+from linien_common.enums import AutolockMode
 from migen import Array, If, Module, Signal, bits_for
 from misoc.interconnect.csr import AutoCSR, CSRStatus, CSRStorage
 

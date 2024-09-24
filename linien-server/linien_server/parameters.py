@@ -21,8 +21,9 @@ from time import time
 from typing import Any, Callable, Iterator
 
 import linien_server
-from linien_common.common import AutolockMode, AutolockStatus, MHz, PSDAlgorithm, Vpp
+from linien_common.common import MHz, Vpp
 from linien_common.config import USER_DATA_PATH, create_backup_file
+from linien_common.enums import AutolockMode, AutolockStatus, PSDAlgorithm
 
 PARAMETER_STORE_FILENAME = "parameters.json"
 
@@ -465,22 +466,22 @@ class Parameters:
 
         self.filter_1_type_a = Parameter(start=0, restorable=True)
         """
-        Either `LOW_PASS` or `HIGH_PASS` of linien_common.common.FilterType` enum class.
+        Either `LOW_PASS` or `HIGH_PASS` of linien_common.enums.FilterType` enum class.
         """
 
         self.filter_2_type_a = Parameter(start=0, restorable=True)
         """
-        Either `LOW_PASS` or `HIGH_PASS` of linien_common.common.FilterType` enum class.
+        Either `LOW_PASS` or `HIGH_PASS` of linien_common.enums.FilterType` enum class.
         """
 
         self.filter_1_type_b = Parameter(start=0, restorable=True)
         """
-        Either `LOW_PASS` or `HIGH_PASS` of linien_common.common.FilterType` enum class.
+        Either `LOW_PASS` or `HIGH_PASS` of linien_common.enums.FilterType` enum class.
         """
 
         self.filter_2_type_b = Parameter(start=0, restorable=True)
         """
-        Either `LOW_PASS` or `HIGH_PASS` of linien_common.common.FilterType` enum class.
+        Either `LOW_PASS` or `HIGH_PASS` of linien_common.enums.FilterType` enum class.
         """
 
         # ------------------- LOCK AND PID PARAMETERS ----------------------------------

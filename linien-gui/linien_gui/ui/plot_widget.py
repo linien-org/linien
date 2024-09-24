@@ -24,13 +24,13 @@ import pyqtgraph as pg
 from linien_common.common import (
     DECIMATION,
     N_POINTS,
-    AutolockStatus,
     check_plot_data,
     combine_error_signal,
     get_lock_point,
     get_signal_strength_from_i_q,
     update_signal_history,
 )
+from linien_common.enums import AutolockStatus
 from linien_gui.config import DEFAULT_PLOT_RATE_LIMIT
 from linien_gui.utils import get_linien_app_instance
 from PyQt5 import QtGui, QtWidgets
