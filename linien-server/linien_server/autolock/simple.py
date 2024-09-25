@@ -70,8 +70,8 @@ class SimpleAutolock:
         self.control.exposed_pause_acquisition()
         logger.info("Start lock.")
         self.parameters.lock.value = True
-        self.exposed_write_registers()
-        self.exposed_continue_acquisition()
+        self.control.exposed_write_registers()
+        self.control.exposed_continue_acquisition()
         self._done = True
 
     def after_lock(self):
