@@ -30,7 +30,7 @@ from linien_server.parameters import Parameters
 
 logger = logging.getLogger(__name__)
 
-AUTOLOCK_ALGORITHMS = {
+AUTOLOCK_ALGORITHMS: dict[AutolockMode, type[SimpleAutolock] | type[RobustAutolock]] = {
     AutolockMode.SIMPLE: SimpleAutolock,
     AutolockMode.ROBUST: RobustAutolock,
 }
