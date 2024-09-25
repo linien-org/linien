@@ -132,10 +132,10 @@ class BaseService(rpyc.Service):
         self.parameters.fetch_additional_signals.value = False
         self.parameters.autolock_mode.value = AutolockMode.SIMPLE
         if target_position is not None:
-            logger.debug(f"Set autolock_target_position to {target_position}.")
+            logger.debug(f"Set target position to {target_position}.")
             self.parameters.autolock_target_position.value = target_position
         if slope_rising is not None:
-            logger.debug(f"Set target_slope_rising to {target_position}")
+            logger.debug(f"Set target slope rising to {target_position}")
             self.parameters.target_slope_rising.value = slope_rising
         self.exposed_write_registers()
         self.exposed_pause_acquisition()

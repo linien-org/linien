@@ -39,9 +39,6 @@ from linien_server.autolock.utils import (
 logger = logging.getLogger(__name__)
 
 
-N_SPECTRA_REQUIRED = 5
-
-
 class LockPositionNotFound(Exception):
     pass
 
@@ -59,6 +56,7 @@ class RobustAutolock:
         first_error_signal_rolled,
         x0,
         x1,
+        N_spectra_required: int = 5,
         additional_spectra: Optional[list[np.ndarray]] = None,
     ):
         self.control = control
@@ -67,6 +65,8 @@ class RobustAutolock:
         self.first_error_signal = first_error_signal
         self.x0 = x0
         self.x1 = x1
+
+        self.N_spectra_required = N_spectra_required
 
         self.spectra = [first_error_signal]
 
@@ -95,11 +95,11 @@ class RobustAutolock:
 
         self.spectra.append(spectrum)
 
-        if len(self.spectra) == N_SPECTRA_REQUIRED:
+        if len(self.spectra) == self.N_spectra_required:
             logger.debug("enough spectra!, calculate")
 
             t1 = time()
-            description, final_wait_time, time_scale = _calculate_autolock_instructions(
+            description, final_wait_time, time_scale = calculate_autolock_instructions(
                 self.spectra, (self.x0, self.x1)
             )
             t2 = time()
@@ -108,7 +108,7 @@ class RobustAutolock:
 
             # sets up a timeout: if the lock doesn't finish within a certain time span,
             # throw an error
-            self._setup_timeout()
+            self.setup_timeout()
 
             # first reset lock in case it was True. This ensures that autolock starts
             # properly once all parameters are set
@@ -129,13 +129,10 @@ class RobustAutolock:
         else:
             logger.info(
                 "Not enough spectra collected:"
-                f"{len(self.spectra)} of {N_SPECTRA_REQUIRED}"
+                f"{len(self.spectra)} of {self.N_spectra_required}"
             )
 
-    def after_lock(self):
-        self.stop_timeout()
-
-    def _setup_timeout(self, N_acquisitions_to_wait=5):
+    def setup_timeout(self, N_acquisitions_to_wait=5):
         """
         Robust autolock just programs the FPGA image with a set of instructions. The
         FPGA image then uses these instructions in order to actually turn on the lock
@@ -150,11 +147,9 @@ class RobustAutolock:
             * sweep_speed_to_time(self.parameters.sweep_speed.value)
         )
 
-        self.parameters.ping.add_callback(
-            self._check_for_timeout, call_immediately=True
-        )
+        self.parameters.ping.add_callback(self.check_for_timeout, call_immediately=True)
 
-    def _check_for_timeout(self, ping):
+    def check_for_timeout(self, ping):
         min_time_to_wait = 5
 
         if time() - self._timeout_start_time > max(
@@ -165,10 +160,13 @@ class RobustAutolock:
             self.parameters.task.value.stop()
 
     def stop_timeout(self):
-        self.parameters.ping.remove_callback(self._check_for_timeout)
+        self.parameters.ping.remove_callback(self.check_for_timeout)
+
+    def after_lock(self):
+        self.stop_timeout()
 
 
-def _calculate_autolock_instructions(spectra_with_jitter, target_idxs):
+def calculate_autolock_instructions(spectra_with_jitter, target_idxs):
     spectra, crop_left = crop_spectra_to_same_view(spectra_with_jitter)
 
     target_idxs = [idx - crop_left for idx in target_idxs]
@@ -227,7 +225,7 @@ def _calculate_autolock_instructions(spectra_with_jitter, target_idxs):
         does_work = True
         for spectrum, lock_region in zip(spectra, lock_regions):
             try:
-                lock_position = _get_lock_position_from_autolock_instructions(
+                lock_position = get_lock_position_from_autolock_instructions(
                     spectrum, description, time_scale, spectra[0], final_wait_time
                 )
                 if not lock_region[0] <= lock_position <= lock_region[1]:
@@ -249,7 +247,7 @@ def _calculate_autolock_instructions(spectra_with_jitter, target_idxs):
     return description, final_wait_time, time_scale
 
 
-def _get_lock_position_from_autolock_instructions(
+def get_lock_position_from_autolock_instructions(
     spectrum, description, time_scale, initial_spectrum, final_wait_time
 ):
     summed = sum_up_spectrum(spectrum)
