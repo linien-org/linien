@@ -563,8 +563,7 @@ class Parameters:
         """Upper bound for monitor signal above which `lock_lost` is triggered."""
 
         # ------------------- AUTOLOCK PARAMETERS --------------------------------------
-        # These parameters are used internally by the optimization algorithm and usually
-        # should not be manipulated
+        # These parameters are used internally by the optimization algorithm.
         self.task = Parameter(start=None, sync=False)
         self.automatic_mode = Parameter(start=True)
         self.autolock_target_position = Parameter(start=0)

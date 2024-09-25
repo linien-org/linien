@@ -33,6 +33,7 @@ class AutolockMode(IntEnum):
     AUTO_DETECT = 0
     ROBUST = 1
     SIMPLE = 2
+    MANUAL = 3
 
 
 class AutolockStatus(IntEnum):

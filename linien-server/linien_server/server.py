@@ -48,7 +48,6 @@ from linien_server.parameters import Parameters, restore_parameters, save_parame
 from linien_server.registers import Registers
 from rpyc.core.protocol import Connection
 from rpyc.utils.server import ThreadedServer
-from typing_extensions import deprecated
 
 logger = logging.getLogger(__name__)
 
@@ -116,33 +115,6 @@ class BaseService(rpyc.Service):
 
     def exposed_get_parameter_log(self, param_name: str) -> bool:
         return getattr(self.parameters, param_name).log
-
-    @deprecated("Use exposed_start_manual_lock instead")
-    def exposed_start_lock(self):
-        self.exposed_start_manual_lock()
-
-    def exposed_start_manual_lock(
-        self, target_position: Optional[int] = None, slope_rising: Optional[bool] = None
-    ) -> None:
-        """
-        Engage the lock at the specified position of the sweep with the specified slope
-        sign. If one of these parameters is not specified, the previously defined values
-        of `autolock_target_position` and `target_slope_rising` are used.
-        """
-        self.parameters.fetch_additional_signals.value = False
-        self.parameters.autolock_mode.value = AutolockMode.SIMPLE
-        if target_position is not None:
-            logger.debug(f"Set target position to {target_position}.")
-            self.parameters.autolock_target_position.value = target_position
-        if slope_rising is not None:
-            logger.debug(f"Set target slope rising to {target_position}")
-            self.parameters.target_slope_rising.value = slope_rising
-        self.exposed_write_registers()
-        self.exposed_pause_acquisition()
-        logger.info("Start lock.")
-        self.parameters.lock.value = True
-        self.exposed_write_registers()
-        self.exposed_continue_acquisition()
 
     def exposed_update_influxdb_credentials(
         self, credentials: InfluxDBCredentials
@@ -277,25 +249,29 @@ class RedPitayaControlService(BaseService, LinienControlService):
 
     def exposed_start_autolock(
         self,
-        x0: float,
-        x1: float,
-        spectrum: bytes,
+        x0: float = 0,
+        x1: float = 0,
+        spectrum: bytes = pickle.dumps(np.array([0])),
         additional_spectra: Optional[bytes] = None,
     ) -> None:
-        logger.info(f"Start autolock {x0=} {x1=}")
 
         if self.parameters.task.value is None:
             self.parameters.task.value = Autolock(self, self.parameters)
-            self.parameters.task.value.run(
-                x0,
-                x1,
-                pickle.loads(spectrum),
-                additional_spectra=(
-                    pickle.loads(additional_spectra)
-                    if additional_spectra is not None
-                    else None
-                ),
-            )
+            if self.parameters.autolock_mode_preference == AutolockMode.MANUAL:
+                logger.info("Start manual lock.")
+                self.parameters.task.value.run()
+            else:
+                logger.info(f"Start autolock with {x0=} {x1=}")
+                self.parameters.task.value.run(
+                    x0,
+                    x1,
+                    pickle.loads(spectrum),
+                    additional_spectra=(
+                        pickle.loads(additional_spectra)
+                        if additional_spectra is not None
+                        else None
+                    ),
+                )
 
     def exposed_start_optimization(self, x0, x1, spectrum):
         if self.parameters.task.value is None:

@@ -61,19 +61,36 @@ class Autolock:
         self.parameters.autock_status.value = AutolockStatus.RELOCKING
         self.control.exposed_start_sweep()
         # Add a listener that listens for new spectrum data and tries to relock.
-        self.parameters.to_plot.add_callback(self.try_to_start_autolock)
+        if self.parameters.autolock_mode_preference == AutolockMode.MANUAL:
+            self.start_manual_lock()
+        else:
+            self.parameters.to_plot.add_callback(self.try_to_start_autolock)
 
     def run(
         self,
-        x0: float,
-        x1: float,
-        spectrum: np.ndarray,  # array of int
+        x0: float = 0,
+        x1: float = 0,
+        spectrum: np.ndarray = np.array([0]),  # array of int
         additional_spectra: Optional[list[np.ndarray]] = None,
     ) -> None:
+        """
+        Start the autolock to a lock point between `x0` and `x1` of a `spectrum`.
+
+        An autolock algorithm will be used depending on the `autolock_mode` parameter
+        If set `AutolockMode.AUTO_DETECT` an appropriate algorithm will be chosen based
+        on the data. If `AutolockMode.MANUAL` is set, `x0`, `x1` and `spectrum` do not
+        need to be provided. Instead, the lock will be engaged at the
+        `autolock_target_position` parameter and PID control is applied depending on the
+        `target_slope_rising` parameter.
+        """
         self.parameters.autolock_status.value = AutolockStatus.LOCKING
         self.parameters.fetch_additional_signals.value = False
         self.additional_spectra = additional_spectra or []
         self.spectrum = spectrum
+
+        if self.parameters.autolock_mode_preference == AutolockMode.MANUAL:
+            self.start_manual_lock()
+            return
 
         (
             mean_signal,
@@ -175,3 +192,14 @@ class Autolock:
         except Exception:
             logger.exception("Error while handling new spectrum")
             self.stop()
+
+    def start_manual_lock(self) -> None:
+        # manual lock is just the simple algorithm with a lock point determined by the
+        # `autolock_target_position` paramter
+        self.parameters.autolock_mode.value = AutolockMode.SIMPLE
+        self.control.exposed_write_registers()
+        self.control.exposed_pause_acquisition()
+        logger.info("Start manual lock.")
+        self.parameters.lock.value = True
+        self.exposed_write_registers()
+        self.exposed_continue_acquisition()
