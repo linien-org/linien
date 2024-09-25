@@ -66,6 +66,7 @@ class SimpleAutolock:
             round((shift * (-1)) * self.parameters.sweep_amplitude.value * 8191)
         )
         logger.debug(f"Target position is {target_position}, shift is {shift}.")
+        self.parameters.autolock_target_position.value = target_position
         self.control.exposed_write_registers()
         self.control.exposed_pause_acquisition()
         logger.info("Start lock.")
