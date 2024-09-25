@@ -68,7 +68,6 @@ class Autolock:
         x0: float,
         x1: float,
         spectrum: np.ndarray,  # array of int
-        auto_offset: bool = True,
         additional_spectra: Optional[list[np.ndarray]] = None,
     ) -> None:
         self.parameters.autolock_status.value = AutolockStatus.LOCKING
@@ -86,7 +85,7 @@ class Autolock:
         ) = get_lock_point(self.spectrum, int(x0), int(x1))
         self.central_y = int(mean_signal)
 
-        if auto_offset:
+        if self.parameters.autolock_determine_offset.value:
             self.control.exposed_pause_acquisition()
             self.parameters.combined_offset.value = -1 * self.central_y
             self.spectrum -= self.central_y

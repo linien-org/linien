@@ -283,7 +283,6 @@ class RedPitayaControlService(BaseService, LinienControlService):
         additional_spectra: Optional[bytes] = None,
     ) -> None:
         logger.info(f"Start autolock {x0=} {x1=}")
-        auto_offset = self.parameters.autolock_determine_offset.value
 
         if self.parameters.task.value is None:
             self.parameters.task.value = Autolock(self, self.parameters)
@@ -291,7 +290,6 @@ class RedPitayaControlService(BaseService, LinienControlService):
                 x0,
                 x1,
                 pickle.loads(spectrum),
-                auto_offset=auto_offset,
                 additional_spectra=(
                     pickle.loads(additional_spectra)
                     if additional_spectra is not None

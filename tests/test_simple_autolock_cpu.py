@@ -61,7 +61,6 @@ def test_autolock():
                 int(new_center_point - (0.01 * N)),
                 int(new_center_point + (0.01 * N)),
                 reference_signal,
-                auto_offset=True,
             )
 
             parameters.to_plot.value = pickle.dumps(

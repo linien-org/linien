@@ -58,7 +58,7 @@ def test_forced_algorithm_selection():
         parameters = control.parameters
         parameters.autolock_mode_preference.value = mode_preference
         autolock = Autolock(control, parameters)
-        autolock.run(x0, x1, reference_signal, auto_offset=True)
+        autolock.run(x0, x1, reference_signal)
 
         parameters.to_plot.value = pickle.dumps(
             {"error_signal_1": next_signal, "error_signal_2": []}
@@ -87,7 +87,7 @@ def test_automatic_algorithm_selection():
         parameters.autolock_mode_preference.value = AutolockMode.AUTO_DETECT
 
         autolock = Autolock(control, parameters)
-        autolock.run(x0, x1, reference_signal, auto_offset=True)
+        autolock.run(x0, x1, reference_signal)
 
         assert autolock.algorithm_selector.mode == AutolockMode.AUTO_DETECT
 

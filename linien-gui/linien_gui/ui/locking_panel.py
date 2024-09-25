@@ -195,7 +195,7 @@ class LockingPanel(QtWidgets.QWidget):
         )
 
     def auto_offset_changed(self):
-        self.parameters.autolock_determine_offset.value = int(
+        self.parameters.autolock_determine_offset.value = bool(
             self.autoOffsetCheckbox.checkState()
         )
 
