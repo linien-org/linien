@@ -18,6 +18,7 @@
 import logging
 import pickle
 from time import time
+from typing import Optional
 
 import numpy as np
 import pyqtgraph as pg
@@ -393,6 +394,7 @@ class PlotWidget(pg.PlotWidget):
         self.crosshair.setVisible(mode == AutolockMode.MANUAL)
 
     def on_lock_changed(self, lock: bool) -> None:
+        self.draw_control_thresholds(lock)
         if not lock:
             self.setLabel("bottom", "sweep voltage", units="V")
         else:
@@ -789,7 +791,18 @@ class PlotWidget(pg.PlotWidget):
         self._should_reposition_reset_view_button = True
 
     def show_control_thresholds(self, show: bool, min_: float, max_: float) -> None:
-        if self.app.parameters.lock.value:
+        self.draw_control_thresholds(self.parameters.lock.value, min_=min_, max_=max_)
+        self.control_signal_threshold_min.setVisible(show)
+        self.control_signal_threshold_max.setVisible(show)
+
+    def draw_control_thresholds(
+        self, lock, min_: Optional[float] = None, max_: Optional[float] = None
+    ) -> None:
+        if min_ is None:
+            min_ = self.parameters.watch_lock_control_min.value
+        if max_ is None:
+            max_ = self.parameters.watch_lock_control_max.value
+        if lock:
             self.control_signal_threshold_min.setAngle(0)
             self.control_signal_threshold_max.setAngle(0)
         else:
@@ -804,8 +817,6 @@ class PlotWidget(pg.PlotWidget):
             self.control_signal_threshold_max.setAngle(90)
         self.control_signal_threshold_min.setValue(min_)
         self.control_signal_threshold_max.setValue(max_)
-        self.control_signal_threshold_min.setVisible(show)
-        self.control_signal_threshold_max.setVisible(show)
 
     def show_error_thresholds(self, show: bool, min_: float, max_: float) -> None:
         self.error_signal_threshold_min.setValue(min_)
