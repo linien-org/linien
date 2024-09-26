@@ -88,7 +88,7 @@ class Autolock:
         self.additional_spectra = additional_spectra or []
         self.spectrum = spectrum
 
-        if self.parameters.autolock_mode_preference == AutolockMode.MANUAL:
+        if self.parameters.autolock_mode_preference.value == AutolockMode.MANUAL:
             self.start_manual_lock()
             return
 
