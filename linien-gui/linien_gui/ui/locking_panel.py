@@ -17,10 +17,10 @@
 
 import logging
 
-from linien_common.enums import AutolockStatus
+from linien_common.enums import AutolockMode, AutolockStatus
 from linien_gui.config import UI_PATH
 from linien_gui.ui.spin_box import CustomSpinBox
-from linien_gui.utils import get_linien_app_instance, param2ui
+from linien_gui.utils import get_linien_app_instance, param2ui, ui2param
 from PyQt5 import QtCore, QtWidgets, uic
 
 logger = logging.getLogger("linien_gui.ui.locking_panel")
@@ -85,7 +85,6 @@ class LockingPanel(QtWidgets.QWidget):
     kdSpinBox: CustomSpinBox
     slowPIDGroupBox: QtWidgets.QGroupBox
     pIDOnSlowStrengthSpinBox: CustomSpinBox
-    lockControlTabWidget: QtWidgets.QTabWidget
     autolockSelectingWidget: QtWidgets.QWidget
     abortSelectingPushButton: QtWidgets.QPushButton
     autolockSettingsWidget: QtWidgets.QWidget
@@ -96,12 +95,15 @@ class LockingPanel(QtWidgets.QWidget):
     slopeFallingRadioButton: QtWidgets.QRadioButton
     slopeRisingRadioButton: QtWidgets.QRadioButton
     manualLockButton: QtWidgets.QPushButton
-    lockFailedWidget: QtWidgets.QWidget
     resetLockFailedStatePushButton: QtWidgets.QPushButton
     lockStatusWidget: LockStatusWidget
     controlSignalHistoryLengthSpinBox: CustomSpinBox
     lockStatusLabel: QtWidgets.QLabel
     stopLockPushButton: QtWidgets.QPushButton
+    autolockAlgorithmGroupBox: QtWidgets.QGroupBox
+    lockSettingsWidget: QtWidgets.QWidget
+    manualLockSettingsWidget: QtWidgets.QWidget
+    automaticLockSettingsWidget: QtWidgets.QWidget
 
     def __init__(self, *args, **kwargs):
         super(LockingPanel, self).__init__(*args, **kwargs)
@@ -112,7 +114,6 @@ class LockingPanel(QtWidgets.QWidget):
         self.kpSpinBox.valueChanged.connect(self.on_kp_changed)
         self.kiSpinBox.valueChanged.connect(self.on_ki_changed)
         self.kdSpinBox.valueChanged.connect(self.on_kd_changed)
-        self.lockControlTabWidget.currentChanged.connect(self.on_lock_mode_changed)
         self.selectLineToLockPushButton.clicked.connect(self.start_autolock_selection)
         self.abortSelectingPushButton.clicked.connect(self.stop_autolock_selection)
         self.manualLockButton.clicked.connect(self.start_manual_lock)
@@ -122,9 +123,6 @@ class LockingPanel(QtWidgets.QWidget):
             self.pid_on_slow_strength_changed
         )
         self.resetLockFailedStatePushButton.clicked.connect(self.reset_lock_failed)
-        self.autolockModePreferenceComboBox.currentIndexChanged.connect(
-            self.on_autolock_mode_preference_changed
-        )
 
     def on_connection_established(self):
         self.parameters = self.app.parameters
@@ -136,11 +134,6 @@ class LockingPanel(QtWidgets.QWidget):
         param2ui(self.parameters.i, self.kiSpinBox)
         param2ui(self.parameters.d, self.kdSpinBox)
         param2ui(self.parameters.autolock_determine_offset, self.autoOffsetCheckbox)
-        param2ui(
-            self.parameters.automatic_mode,
-            self.lockControlTabWidget,
-            lambda value: 0 if value else 1,
-        )
         param2ui(self.parameters.pid_on_slow_strength, self.pIDOnSlowStrengthSpinBox)
 
         self.parameters.autolock_status.add_callback(self.on_autolock_status_changed)
@@ -155,15 +148,20 @@ class LockingPanel(QtWidgets.QWidget):
             self.parameters.autolock_mode_preference,
             self.autolockModePreferenceComboBox,
         )
+        ui2param(
+            self.autolockModePreferenceComboBox,
+            self.parameters.autolock_mode_preference,
+        )
+        self.parameters.autolock_mode_preference.add_callback(
+            self.on_autolock_mode_preference_changed
+        )
 
     def on_autolock_status_changed(self, status: AutolockStatus) -> None:
         logger.debug(f"Autolock status changed to {status}")
-        if status.value == AutolockStatus.STOPPED:
-            self.lockControlTabWidget.show()
-        else:
-            self.lockControlTabWidget.hide()
-
-        self.lockFailedWidget.setVisible(status.value == AutolockStatus.FAILED)
+        self.lockSettingsWidget.setVisible(status.value == AutolockStatus.STOPPED)
+        self.resetLockFailedStatePushButton.setVisible(
+            status.value == AutolockStatus.FAILED
+        )
         self.autolockSelectingWidget.setVisible(
             status.value == AutolockStatus.SELECTING
         )
@@ -183,16 +181,13 @@ class LockingPanel(QtWidgets.QWidget):
         self.parameters.d.value = self.kdSpinBox.value()
         self.control.write_registers()
 
-    def on_lock_mode_changed(self, idx):
-        self.parameters.automatic_mode.value = idx == 0
-
-    def on_autolock_mode_preference_changed(self, idx):
-        self.parameters.autolock_mode_preference.value = idx
+    def on_autolock_mode_preference_changed(self, mode: AutolockMode) -> None:
+        logger.debug(f"autolock_mode_preference changed to {mode}")
+        self.manualLockSettingsWidget.setVisible(mode == AutolockMode.MANUAL)
+        self.automaticLockSettingsWidget.setVisible(mode != AutolockMode.MANUAL)
 
     def start_manual_lock(self):
-        self.control.exposed_start_manual_lock(
-            target_position=0, slope_rising=self.slopeRisingRadioButton.isChecked()
-        )
+        self.control.exposed_start_autolock()
 
     def auto_offset_changed(self):
         self.parameters.autolock_determine_offset.value = bool(

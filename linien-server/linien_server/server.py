@@ -254,7 +254,6 @@ class RedPitayaControlService(BaseService, LinienControlService):
         spectrum: bytes = pickle.dumps(np.array([0])),
         additional_spectra: Optional[bytes] = None,
     ) -> None:
-
         if self.parameters.task.value is None:
             self.parameters.task.value = Autolock(self, self.parameters)
             if self.parameters.autolock_mode_preference == AutolockMode.MANUAL:

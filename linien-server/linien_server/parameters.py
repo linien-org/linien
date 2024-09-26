@@ -565,8 +565,11 @@ class Parameters:
         # ------------------- AUTOLOCK PARAMETERS --------------------------------------
         # These parameters are used internally by the optimization algorithm.
         self.task = Parameter(start=None, sync=False)
-        self.automatic_mode = Parameter(start=True)
+        self.autolock_determine_offset = Parameter(start=True, restorable=True)
         self.autolock_target_position = Parameter(start=0)
+        """
+        Target position for the manual lock. Automatically set by the simple autolock.
+        """
         self.autolock_mode_preference = Parameter(
             start=AutolockMode.AUTO_DETECT, restorable=True
         )
@@ -575,7 +578,6 @@ class Parameters:
         self.autolock_instructions = Parameter(start=[], sync=False)
         self.autolock_final_wait_time = Parameter(start=0)
         self.autolock_status = Parameter(start=AutolockStatus.STOPPED)
-        self.autolock_determine_offset = Parameter(start=True, restorable=True)
 
         # ------------------- OPTIMIZATION PARAMETERS ----------------------------------
         # These parameters are used internally by the optimization algorithm and usually

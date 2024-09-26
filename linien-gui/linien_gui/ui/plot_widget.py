@@ -30,7 +30,7 @@ from linien_common.common import (
     get_signal_strength_from_i_q,
     update_signal_history,
 )
-from linien_common.enums import AutolockStatus
+from linien_common.enums import AutolockMode, AutolockStatus
 from linien_gui.config import DEFAULT_PLOT_RATE_LIMIT
 from linien_gui.utils import get_linien_app_instance
 from PyQt5 import QtGui, QtWidgets
@@ -247,7 +247,9 @@ class PlotWidget(pg.PlotWidget):
         self.control_signal_history_data = self.parameters.control_signal_history.value
         self.monitor_signal_history_data = self.parameters.monitor_signal_history.value
         self.parameters.to_plot.add_callback(self.on_new_plot_data_received)
-        self.parameters.automatic_mode.add_callback(self.on_automatic_mode_changed)
+        self.parameters.autolock_mode_preference.add_callback(
+            self.on_autolock_mode_preference_changed
+        )
         self.parameters.lock.add_callback(self.on_lock_changed)
 
     def _to_data_coords(self, event):
@@ -386,9 +388,9 @@ class PlotWidget(pg.PlotWidget):
             self.disable_area_selection()
             self.resume_plot_and_clear_cache()
 
-    def on_automatic_mode_changed(self, automatic_mode: bool) -> None:
+    def on_autolock_mode_preference_changed(self, mode: AutolockMode) -> None:
         """Show or hide crosshair"""
-        self.crosshair.setVisible(not automatic_mode)
+        self.crosshair.setVisible(mode == AutolockMode.MANUAL)
 
     def on_lock_changed(self, lock: bool) -> None:
         if not lock:

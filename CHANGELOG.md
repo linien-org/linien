@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Unused parameters `autolock_initial_sweep_amplitude`, `autolock_watching`, `autolock_preparing` were removed.
 * Removed parameters `autolock_selection` and `optimization_selection` that were only used by the GUI.
 * Deprecated `exposed_start_lock`, use `exposed_start_manual_lock` instead.
+* Deprecated parameter `automatic_mode`, use `autolock_mode_preference` instead.
 
 ### Fixed
 * Corrected scripting examples by @kongmunist in https://github.com/linien-org/linien/pull/428
