@@ -61,7 +61,7 @@ class Autolock:
         self.parameters.autock_status.value = AutolockStatus.RELOCKING
         self.control.exposed_start_sweep()
         # Add a listener that listens for new spectrum data and tries to relock.
-        if self.parameters.autolock_mode_preference == AutolockMode.MANUAL:
+        if self.parameters.autolock_mode_preference.value == AutolockMode.MANUAL:
             self.start_manual_lock()
         else:
             self.parameters.to_plot.add_callback(self.try_to_start_autolock)
