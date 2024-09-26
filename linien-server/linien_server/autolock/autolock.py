@@ -203,3 +203,4 @@ class Autolock:
         self.parameters.lock.value = True
         self.control.exposed_write_registers()
         self.control.exposed_continue_acquisition()
+        self.parameters.autolock_status.value = AutolockStatus.LOCKED

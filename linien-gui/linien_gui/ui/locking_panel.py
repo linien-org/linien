@@ -26,59 +26,6 @@ from PyQt5 import QtCore, QtWidgets, uic
 logger = logging.getLogger("linien_gui.ui.locking_panel")
 
 
-class LockStatusWidget(QtWidgets.QWidget):
-    def __init__(self, *args, **kwargs):
-        super(LockStatusWidget, self).__init__(*args, **kwargs)
-        self.app = get_linien_app_instance()
-        self.app.connection_established.connect(self.on_connection_established)
-        QtCore.QTimer.singleShot(100, self.ready)
-
-    def ready(self):
-        self.parent: LockingPanel = self.parent()
-        self.parent.stopLockPushButton.clicked.connect(self.on_stop_lock)
-        self.parent.controlSignalHistoryLengthSpinBox.setKeyboardTracking(False)
-        self.parent.controlSignalHistoryLengthSpinBox.valueChanged.connect(
-            self.on_control_signal_history_length_changed
-        )
-
-    def on_connection_established(self):
-        self.parameters = self.app.parameters
-        self.control = self.app.control
-
-        self.parameters.autolock_status.add_callback(self.on_lock_status_changed)
-
-        param2ui(
-            self.parameters.control_signal_history_length,
-            self.parent.controlSignalHistoryLengthSpinBox,
-        )
-
-    def on_lock_status_changed(self, status: AutolockStatus) -> None:
-        match status.value:
-            case AutolockStatus.LOCKED:
-                self.show()
-                self.parent.lockStatusLabel.setText("Locked!")
-            case AutolockStatus.LOCKING:
-                self.show()
-                self.parent.lockStatusLabel.setText("Autolock is running...")
-            case _:
-                self.hide()
-
-    def on_stop_lock(self):
-        self.parameters.fetch_additional_signals.value = True
-
-        if self.parameters.task.value is not None:
-            # this may be autolock or psd acquisition
-            self.parameters.task.value.stop()
-            self.parameters.task.value = None
-
-        self.control.exposed_start_sweep()
-
-    def on_control_signal_history_length_changed(self):
-        self.parameters.control_signal_history_length.value = (
-            self.parent.controlSignalHistoryLengthSpinBox.value()
-        )
-
-
 class LockingPanel(QtWidgets.QWidget):
     kpSpinBox: CustomSpinBox
     kiSpinBox: CustomSpinBox
@@ -96,7 +43,7 @@ class LockingPanel(QtWidgets.QWidget):
     slopeRisingRadioButton: QtWidgets.QRadioButton
     manualLockButton: QtWidgets.QPushButton
     resetLockFailedStatePushButton: QtWidgets.QPushButton
-    lockStatusWidget: LockStatusWidget
+    lockStatusWidget: QtWidgets.QWidget
     controlSignalHistoryLengthSpinBox: CustomSpinBox
     lockStatusLabel: QtWidgets.QLabel
     stopLockPushButton: QtWidgets.QPushButton
@@ -123,21 +70,28 @@ class LockingPanel(QtWidgets.QWidget):
             self.pid_on_slow_strength_changed
         )
         self.resetLockFailedStatePushButton.clicked.connect(self.reset_lock_failed)
+        QtCore.QTimer.singleShot(100, self.ready)
+
+    def ready(self):
+        self.stopLockPushButton.clicked.connect(self.on_stop_lock)
+        self.controlSignalHistoryLengthSpinBox.setKeyboardTracking(False)
+        self.controlSignalHistoryLengthSpinBox.valueChanged.connect(
+            self.on_control_signal_history_length_changed
+        )
 
     def on_connection_established(self):
         self.parameters = self.app.parameters
         self.control = self.app.control
-
-        self.parameters.autolock_status.add_callback(self.on_autolock_status_changed)
 
         param2ui(self.parameters.p, self.kpSpinBox)
         param2ui(self.parameters.i, self.kiSpinBox)
         param2ui(self.parameters.d, self.kdSpinBox)
         param2ui(self.parameters.autolock_determine_offset, self.autoOffsetCheckbox)
         param2ui(self.parameters.pid_on_slow_strength, self.pIDOnSlowStrengthSpinBox)
-
-        self.parameters.autolock_status.add_callback(self.on_autolock_status_changed)
-
+        param2ui(
+            self.parameters.control_signal_history_length,
+            self.controlSignalHistoryLengthSpinBox,
+        )
         param2ui(self.parameters.target_slope_rising, self.slopeRisingRadioButton)
         param2ui(
             self.parameters.target_slope_rising,
@@ -155,6 +109,7 @@ class LockingPanel(QtWidgets.QWidget):
         self.parameters.autolock_mode_preference.add_callback(
             self.on_autolock_mode_preference_changed
         )
+        self.parameters.autolock_status.add_callback(self.on_autolock_status_changed)
 
     def on_autolock_status_changed(self, status: AutolockStatus) -> None:
         logger.debug(f"Autolock status changed to {status}")
@@ -165,6 +120,28 @@ class LockingPanel(QtWidgets.QWidget):
         self.autolockSelectingWidget.setVisible(
             status.value == AutolockStatus.SELECTING
         )
+        self.lockStatusWidget.setVisible(
+            status.value == AutolockStatus.LOCKED
+            or status.value == AutolockStatus.LOCKING
+        )
+        match status.value:
+            case AutolockStatus.LOCKED:
+                self.lockStatusLabel.setText("Locked!")
+            case AutolockStatus.LOCKING:
+                self.lockStatusLabel.setText("Locking...")
+            case _:
+                self.lockStatusLabel.setText("Autolock status")
+
+    def on_control_signal_history_length_changed(self):
+        self.parameters.control_signal_history_length.value = (
+            self.controlSignalHistoryLengthSpinBox.value()
+        )
+
+    def on_stop_lock(self):
+        if self.parameters.task.value is not None:
+            # this may be autolock or psd acquisition
+            self.parameters.task.value.stop()
+            self.parameters.task.value = None
 
     def on_slow_pid_changed(self, _) -> None:
         self.slowPIDGroupBox.setVisible(self.parameters.pid_on_slow_enabled.value)

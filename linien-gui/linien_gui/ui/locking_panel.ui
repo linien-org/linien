@@ -604,7 +604,7 @@
     </widget>
    </item>
    <item>
-    <widget class="LockStatusWidget" name="lockStatusWidget" native="true">
+    <widget class="QWidget" name="lockStatusWidget" native="true">
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
        <widget class="QLabel" name="lockStatusLabel">
@@ -1136,12 +1136,6 @@
   </layout>
  </widget>
  <customwidgets>
-  <customwidget>
-   <class>LockStatusWidget</class>
-   <extends>QWidget</extends>
-   <header location="global">locking_panel.h</header>
-   <container>1</container>
-  </customwidget>
   <customwidget>
    <class>CustomSpinBox</class>
    <extends>QSpinBox</extends>
