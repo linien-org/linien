@@ -177,7 +177,7 @@ class Registers:
 
         for channel in ("control", "error", "monitor"):
             should_watch = (
-                getattr(self.parameters, "watch_lock_{channel}")
+                getattr(self.parameters, f"watch_lock_{channel}")
                 and self.parameters.watch_lock
             )
             new[f"logic_relock_watcher_should_watch_{channel}"] = should_watch
