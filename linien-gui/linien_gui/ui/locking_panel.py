@@ -21,7 +21,7 @@ from linien_common.enums import AutolockMode, AutolockStatus
 from linien_gui.config import UI_PATH
 from linien_gui.ui.spin_box import CustomSpinBox
 from linien_gui.utils import get_linien_app_instance, param2ui, ui2param
-from PyQt5 import QtCore, QtWidgets, uic
+from PyQt5 import QtWidgets, uic
 
 logger = logging.getLogger("linien_gui.ui.locking_panel")
 
@@ -63,9 +63,6 @@ class LockingPanel(QtWidgets.QWidget):
         self.manualLockButton.clicked.connect(self.start_manual_lock)
         self.pIDOnSlowStrengthSpinBox.setKeyboardTracking(False)
         self.resetLockFailedStatePushButton.clicked.connect(self.reset_lock_failed)
-        QtCore.QTimer.singleShot(100, self.ready)
-
-    def ready(self):
         self.stopLockPushButton.clicked.connect(self.on_stop_lock)
         self.controlSignalHistoryLengthSpinBox.setKeyboardTracking(False)
         self.controlSignalHistoryLengthSpinBox.valueChanged.connect(
