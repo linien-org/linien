@@ -175,7 +175,7 @@ class Registers:
             new[f"logic_autolock_robust_peak_height_{instruction_idx}"] = peak_height
             new[f"logic_autolock_robust_wait_for_{instruction_idx}"] = wait_for
 
-        for channel in ("control", "error", "monitor"):
+        for channel in ("error", "monitor"):
             should_watch = (
                 getattr(self.parameters, f"watch_lock_{channel}").value
                 and self.parameters.watch_lock.value
