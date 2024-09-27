@@ -73,6 +73,14 @@ class RelockingPanel(QtWidgets.QWidget):
 
         for channel in ("control", "error", "monitor"):
             ui2param(
+                getattr(self, f"watchLock{channel.capitalize()}CheckBox"),
+                getattr(self.parameters, f"watch_lock_{channel}"),
+            )
+            param2ui(
+                getattr(self.parameters, f"watch_lock_{channel}"),
+                getattr(self, f"watchLock{channel.capitalize()}CheckBox"),
+            )
+            ui2param(
                 getattr(self, f"plot{channel.capitalize()}ThresholdCheckBox"),
                 getattr(self.settings, f"show_{channel}_threshold"),
             )
@@ -98,7 +106,7 @@ class RelockingPanel(QtWidgets.QWidget):
                 getattr(self.parameters, f"watch_lock_{channel}_max"),
                 getattr(self, f"watchLock{channel.capitalize()}MaxSpinBox"),
             )
-            # Connect changed parameters/settings to callback callback functions
+            # Connect changed parameters/settings to callback functions
             for param in (
                 getattr(self.settings, f"show_{channel}_threshold"),
                 getattr(self.parameters, f"watch_lock_{channel}_min"),

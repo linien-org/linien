@@ -531,6 +531,15 @@ class Parameters:
         self.watch_lock = Parameter(start=False, restorable=True, loggable=True)
         """Watch the lock state and set `lock_lost` to True if lock is lost."""
 
+        self.watch_lock_control = Parameter(start=False, restorable=True, loggable=True)
+        """Watch the lock state on the control channel."""
+
+        self.watch_lock_error = Parameter(start=False, restorable=True, loggable=True)
+        """Watch the lock state on the error channel."""
+
+        self.watch_lock_monitor = Parameter(start=False, restorable=True, loggable=True)
+        """Watch the lock state on the monitor channel."""
+
         self.automatic_relocking = Parameter(start=False, restorable=True)
         """Attempt relocking if lock is lost."""
 
