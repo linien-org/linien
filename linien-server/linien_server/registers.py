@@ -182,11 +182,21 @@ class Registers:
             )
             new[f"logic_relock_watcher_should_watch_{channel}"] = should_watch
             new[f"logic_relock_watcher_min_{channel}"] = twos_complement(
-                int(getattr(self.parameters, f"watch_lock_{channel}_min").value * 4095),
+                max_(
+                    int(
+                        getattr(self.parameters, f"watch_lock_{channel}_min").value
+                        * 8191
+                    )
+                ),
                 14,
             )
             new[f"logic_relock_watcher_max_{channel}"] = twos_complement(
-                int(getattr(self.parameters, f"watch_lock_{channel}_max").value * 4095),
+                max_(
+                    int(
+                        getattr(self.parameters, f"watch_lock_{channel}_max").value
+                        * 8191
+                    )
+                ),
                 14,
             )
 
