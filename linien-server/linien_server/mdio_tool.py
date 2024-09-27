@@ -20,7 +20,6 @@ import subprocess
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 
 def enable_ethernet_blinking() -> None:

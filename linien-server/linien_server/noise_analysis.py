@@ -22,7 +22,7 @@ import string
 from time import sleep, time
 
 import numpy as np
-from linien_common.common import PSDAlgorithm
+from linien_common.enums import PSDAlgorithm
 from linien_server.optimization.engine import MultiDimensionalOptimizationEngine
 from pylpsd import lpsd
 from scipy import signal
@@ -32,7 +32,6 @@ from .parameters import Parameters
 ALL_DECIMATIONS = list(range(32))
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 
 def calculate_psd(

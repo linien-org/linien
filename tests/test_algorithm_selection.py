@@ -18,132 +18,92 @@
 import pickle
 
 import numpy as np
-from linien_common.common import AutolockMode
+from linien_common.enums import AutolockMode
 from linien_server.autolock.autolock import Autolock
 from linien_server.autolock.robust import RobustAutolock
 from linien_server.autolock.simple import SimpleAutolock
-from linien_server.parameters import Parameters
+from linien_server.server import FakeRedPitayaControlService
 
 Y_SHIFT = 4000
-
-
-def peak(x):
-    return np.exp(-np.abs(x)) * np.sin(x)
-
-
-def spectrum_for_testing(x):
-    central_peak = peak(x) * 2048
-    smaller_peaks = (peak(x - 10) * 1024) - (peak(x + 10) * 1024)
-    return central_peak + smaller_peaks + Y_SHIFT
+N_POINTS = 16384
+LOW_JITTER = 10 / 8191
+HIGH_JITTER = 1000 / 8191
 
 
 def get_signal(sweep_amplitude, center, shift):
+
+    def spectrum_for_testing(x):
+        def peak(x):
+            return np.exp(-np.abs(x)) * np.sin(x)
+
+        central_peak = peak(x) * 2048
+        smaller_peaks = (peak(x - 10) * 1024) - (peak(x + 10) * 1024)
+        return central_peak + smaller_peaks + Y_SHIFT
+
     max_val = np.pi * 5 * sweep_amplitude
     new_center = center + shift
-    x = np.linspace((-1 + new_center) * max_val, (1 + new_center) * max_val, 16384)
+    x = np.linspace((-1 + new_center) * max_val, (1 + new_center) * max_val, N_POINTS)
     return spectrum_for_testing(x)
 
 
-class FakeControl:
-    def __init__(self, parameters: Parameters):
-        self.parameters = parameters
-        self.locked = False
-
-    def exposed_pause_acquisition(self):
-        pass
-
-    def exposed_continue_acquisition(self):
-        pass
-
-    def exposed_write_registers(self):
-        print(
-            f"""
-            write: center={self.parameters.sweep_center.value}\n
-            amp={self.parameters.sweep_amplitude.value}
-            """
-        )
-
-    def exposed_start_lock(self):
-        self.locked = True
-
-
 def test_forced_algorithm_selection():
-    def _get_signal(shift):
-        return get_signal(1, 0, shift)
+    reference_signal = get_signal(1, 0, shift=0)
+    center = int(N_POINTS / 2)
+    x0 = int(center - (0.01 * N_POINTS))
+    x1 = int(center + (0.01 * N_POINTS))
+    next_signal = get_signal(1, 0, shift=0.1)
 
-    for forced in (AutolockMode.SIMPLE, AutolockMode.ROBUST):
-        parameters = Parameters()
-        parameters.autolock_mode_preference.value = forced
-        control = FakeControl(parameters)
-
-        reference_signal = _get_signal(0)
+    for mode_preference in (AutolockMode.SIMPLE, AutolockMode.ROBUST):
+        control = FakeRedPitayaControlService()
+        parameters = control.parameters
+        parameters.autolock_mode_preference.value = mode_preference
         autolock = Autolock(control, parameters)
+        autolock.run(x0, x1, reference_signal)
 
-        ref_shift = 0
-        N = len(reference_signal)
-        new_center_point = int((N / 2) - ((ref_shift / 2) * N))
-
-        autolock.run(
-            int(new_center_point - (0.01 * N)),
-            int(new_center_point + (0.01 * N)),
-            reference_signal,
-            should_watch_lock=True,
-            auto_offset=True,
+        parameters.to_plot.value = pickle.dumps(
+            {"error_signal_1": next_signal, "error_signal_2": []}
         )
 
-        assert autolock.autolock_mode_detector is not None
-        assert autolock.autolock_mode_detector.done
+        assert autolock.algorithm_selector.mode == mode_preference
+        assert parameters.autolock_mode.value == mode_preference
 
-        assert parameters.autolock_mode.value == forced
-
-        if forced == AutolockMode.SIMPLE:
+        if mode_preference == AutolockMode.SIMPLE:
             assert isinstance(autolock.algorithm, SimpleAutolock)
         else:
             assert isinstance(autolock.algorithm, RobustAutolock)
 
 
 def test_automatic_algorithm_selection():
-    def _get_signal(shift):
-        return get_signal(1, 0, shift)
 
-    LOW_JITTER = 10 / 8191
-    HIGH_JITTER = 1000 / 8191
+    reference_signal = get_signal(1, 0, shift=0)
+    center = int(N_POINTS / 2)
+    x0 = int(center - (0.01 * N_POINTS))
+    x1 = int(center + (0.01 * N_POINTS))
+    reference_signal = get_signal(1, 0, shift=0)
+
     for jitter in (LOW_JITTER, HIGH_JITTER):
-        print(f"jitter {jitter}")
-        parameters = Parameters()
+        control = FakeRedPitayaControlService()
+        parameters = control.parameters
         parameters.autolock_mode_preference.value = AutolockMode.AUTO_DETECT
-        control = FakeControl(parameters)
 
-        reference_signal = _get_signal(0)
         autolock = Autolock(control, parameters)
+        autolock.run(x0, x1, reference_signal)
 
-        ref_shift = 0
-        N = len(reference_signal)
-        new_center_point = int((N / 2) - ((ref_shift / 2) * N))
+        assert autolock.algorithm_selector.mode == AutolockMode.AUTO_DETECT
 
-        autolock.run(
-            int(new_center_point - (0.01 * N)),
-            int(new_center_point + (0.01 * N)),
-            reference_signal,
-            should_watch_lock=True,
-            auto_offset=True,
-        )
+        next_signal = get_signal(1, 0, jitter)[:]
 
-        assert autolock.autolock_mode_detector is not None
-        assert not autolock.autolock_mode_detector.done
-        assert autolock.algorithm is None
-
-        for i in range(10):
-            error_signal = _get_signal(jitter)[:]
+        for next_signal in 10 * [get_signal(1, 0, jitter)[:]]:
             parameters.to_plot.value = pickle.dumps(
-                {"error_signal_1": error_signal, "error_signal_2": []}
+                {"error_signal_1": next_signal, "error_signal_2": []}
             )
 
-        assert autolock.autolock_mode_detector.done
         if jitter == LOW_JITTER:
+            assert autolock.algorithm_selector.mode == AutolockMode.SIMPLE
             assert parameters.autolock_mode.value == AutolockMode.SIMPLE
             assert isinstance(autolock.algorithm, SimpleAutolock)
         else:
+            assert autolock.algorithm_selector.mode == AutolockMode.ROBUST
             assert parameters.autolock_mode.value == AutolockMode.ROBUST
             assert isinstance(autolock.algorithm, RobustAutolock)
 

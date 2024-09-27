@@ -23,6 +23,7 @@ import linien_gui
 import numpy as np
 from linien_client.device import add_device, load_device, update_device
 from linien_common.common import check_plot_data
+from linien_common.enums import AutolockStatus
 from linien_gui.config import UI_PATH
 from linien_gui.ui.plot_widget import INVALID_POWER, PlotWidget
 from linien_gui.ui.right_panel import RightPanel
@@ -35,8 +36,7 @@ ZOOM_STEP = 0.9
 MAX_ZOOM = 50
 MIN_ZOOM = 0
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger = logging.getLogger("linien_gui.ui.main_window")
 
 
 def sweep_amplitude_to_zoom_step(amplitude):
@@ -81,7 +81,7 @@ class MainWindow(QtWidgets.QMainWindow):
     shutdownButton: QtWidgets.QPushButton
     closeButton: QtWidgets.QPushButton
     openDeviceManagerButton: QtWidgets.QPushButton
-    graphicsView: PlotWidget
+    plotWidget: PlotWidget
 
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
@@ -113,9 +113,9 @@ class MainWindow(QtWidgets.QMainWindow):
             el = self.power_channel_2
             display_power(power, el)
 
-        self.graphicsView.signal_power1.connect(display_power_channel_1)
-        self.graphicsView.signal_power2.connect(display_power_channel_2)
-        self.graphicsView.keyPressed.connect(self.handle_key_press)
+        self.plotWidget.signal_power1.connect(display_power_channel_1)
+        self.plotWidget.signal_power2.connect(display_power_channel_2)
+        self.plotWidget.keyPressed.connect(self.handle_key_press)
 
         # create callbacks for all relevant color settings to change the colors of the
         # corresponding legend labels
@@ -144,7 +144,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.parameters = self.app.parameters
 
         self.parameters.lock.add_callback(self.change_sweep_control_visibility)
-        self.parameters.autolock_running.add_callback(
+        self.parameters.autolock_status.add_callback(
             self.change_sweep_control_visibility
         )
         self.parameters.optimization_running.add_callback(
@@ -165,16 +165,18 @@ class MainWindow(QtWidgets.QMainWindow):
         self.parameters.dual_channel.add_callback(self.update_legend_text)
 
     def change_sweep_control_visibility(self, *args):
-        al_running = self.parameters.autolock_running.value
+        autolock_running = (
+            self.parameters.autolock_status.value.value == AutolockStatus.LOCKING
+        )
         optimization = self.parameters.optimization_running.value
         locked = self.parameters.lock.value
 
         self.sweepControlWidget.setVisible(
-            not al_running and not locked and not optimization
+            not autolock_running and not locked and not optimization
         )
         self.topLockPanelWidget.setVisible(locked)
         self.statusbar_unlocked.setVisible(
-            not al_running and not locked and not optimization
+            not autolock_running and not locked and not optimization
         )
 
     def update_legend_text(self, dual_channel: bool) -> None:

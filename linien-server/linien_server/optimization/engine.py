@@ -32,7 +32,6 @@ from linien_server.optimization.utils import (
 )
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 
 class NoOptimizationEngine:

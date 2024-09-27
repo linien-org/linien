@@ -17,7 +17,7 @@
 
 from pathlib import Path
 
-from linien_common.common import AutolockMode
+from linien_common.enums import AutolockMode
 from migen import run_simulation
 
 from gateware.linien_module import LinienLogic

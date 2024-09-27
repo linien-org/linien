@@ -26,8 +26,7 @@ from linien_gui.ui.spin_box import CustomDoubleSpinBoxNoSign, CustomSpinBox
 from linien_gui.utils import color_to_hex, get_linien_app_instance, param2ui
 from PyQt5 import QtGui, QtWidgets, uic
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger = logging.getLogger("linien_gui.ui.view_panel")
 
 
 class ViewPanel(QtWidgets.QWidget):

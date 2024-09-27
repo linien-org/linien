@@ -20,6 +20,7 @@ from linien_server.optimization.utils import get_max_slope, optimize_phase_from_
 from scipy.optimize import minimize_scalar
 
 RNG = np.random.default_rng(seed=0)
+Y_SHIFT = 0
 
 
 def test_get_max_slope():
@@ -45,12 +46,11 @@ def test_get_max_slope():
 
 
 def test_iq():
-    Y_SHIFT = 0
-
-    def peak(x):
-        return np.exp(-np.abs(x)) * np.sin(x)
 
     def spectrum_for_testing(x):
+        def peak(x):
+            return np.exp(-np.abs(x)) * np.sin(x)
+
         central_peak = peak(x) * 2048
         return central_peak + Y_SHIFT
 

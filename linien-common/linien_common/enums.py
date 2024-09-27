@@ -15,9 +15,37 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-import importlib.metadata
-import logging
+from enum import IntEnum, auto
 
-__version__ = importlib.metadata.version("linien-client")  # noqa: F401
 
-logger = logging.getLogger(__name__)
+class FilterType(IntEnum):
+    LOW_PASS = 0
+    HIGH_PASS = 1
+
+
+class OutputChannel(IntEnum):
+    FAST_OUT1 = 0
+    FAST_OUT2 = 1
+    ANALOG_OUT0 = 2
+
+
+class AutolockMode(IntEnum):
+    AUTO_DETECT = 0
+    ROBUST = 1
+    SIMPLE = 2
+    MANUAL = 3
+
+
+class AutolockStatus(IntEnum):
+    FAILED = auto()
+    STOPPED = auto()
+    SELECTING = auto()
+    LOCKING = auto()
+    LOCKED = auto()
+    LOST = auto()
+    RELOCKING = auto()
+
+
+class PSDAlgorithm(IntEnum):
+    WELCH = 0
+    LPSD = 1

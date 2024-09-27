@@ -15,7 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-from linien_common.common import AUTOLOCK_MAX_N_INSTRUCTIONS, AutolockMode
+from linien_common.common import AUTOLOCK_MAX_N_INSTRUCTIONS
+from linien_common.enums import AutolockMode
 from migen import Array, If, Module, Signal, bits_for
 from misoc.interconnect.csr import AutoCSR, CSRStatus, CSRStorage
 
@@ -70,7 +71,7 @@ class FPGAAutolock(Module, AutoCSR):
 
 class SimpleAutolock(Module, AutoCSR):
     """
-    The operation of fast autolock is simple: wait until the sweep has reached a certain
+    The operation of this autolock is simple: wait until the sweep has reached a certain
     point and turn on the lock. This method is well suited for systems with not too much
     jitter.
     """
@@ -118,8 +119,8 @@ class RobustAutolock(Module, AutoCSR):
         peak_height_bit, x_data_length_bit = self.init_csr(N_points)
         self.init_inout_signals(width)
 
-        # is the autolock actively trying to detect peaks? This is set to true
-        # if lock is requested and once the sweep is at start
+        # Is the autolock actively trying to detect peaks? This is set to true if lock
+        # is requested and once the sweep is at start.
         watching = Signal()
 
         # the following signals are property of the peak that the autolock is trying to

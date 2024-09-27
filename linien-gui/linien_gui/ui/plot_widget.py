@@ -15,27 +15,30 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
 import pickle
 from time import time
+from typing import Optional
 
 import numpy as np
 import pyqtgraph as pg
 from linien_common.common import (
     DECIMATION,
     N_POINTS,
-    SpectrumUncorrelatedException,
     check_plot_data,
     combine_error_signal,
-    determine_shift_by_correlation,
     get_lock_point,
     get_signal_strength_from_i_q,
     update_signal_history,
 )
+from linien_common.enums import AutolockMode, AutolockStatus
 from linien_gui.config import DEFAULT_PLOT_RATE_LIMIT
 from linien_gui.utils import get_linien_app_instance
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import pyqtSignal
 from pyqtgraph.Qt import QtCore
+
+logger = logging.getLogger("linien_gui.ui.plot_widget")
 
 # NOTE: this is required for using a pen_width > 1. There is a bug though that causes
 # the plot to be way too small. Therefore, we call PlotWidget.resize() after a while
@@ -48,7 +51,7 @@ pg.setConfigOptions(
 )
 
 # relation between counts and 1V
-V = 8192
+VOLTS_TO_COUNTS_FACTOR = 8192
 
 # pyqt signals enforce type, so...
 INVALID_POWER = -1000
@@ -59,11 +62,11 @@ def peak_voltage_to_dBm(voltage):
 
 
 class TimeXAxis(pg.AxisItem):
-    """Plots x axis as time in seconds instead of point number."""
+    """Plot x axis as time in seconds instead of point number."""
 
     def __init__(self, *args, parent=None, **kwargs):
-        pg.AxisItem.__init__(self, *args, **kwargs)
         self.parent = parent
+        pg.AxisItem.__init__(self, *args, **kwargs)
         self.app = get_linien_app_instance()
         self.app.connection_established.connect(self.on_connection_established)
 
@@ -113,6 +116,12 @@ class PlotWidget(pg.PlotWidget):
         self.app = get_linien_app_instance()
         self.app.connection_established.connect(self.on_connection_established)
 
+        self.touch_start = None
+        self.autolock_ref_spectrum = None
+        self.selection_running = False
+        self.selection_boundaries = None
+        self.optimization_selection_running = False
+
         self.getAxis("bottom").enableAutoSIPrefix(False)
         self.showGrid(x=True, y=True)
 
@@ -137,7 +146,7 @@ class PlotWidget(pg.PlotWidget):
         # user may zoom only as far out as there is still data
         # https://stackoverflow.com/questions/18868530/pyqtgraph-limit-zoom-to-upper-lower-bound-of-axes
 
-        self.getViewBox().setLimits(xMin=0, xMax=2048, yMin=-1, yMax=1)
+        self.getViewBox().setLimits(xMin=0, xMax=2048, yMin=-1.05, yMax=1.05)
 
         # NOTE: increasing the pen width requires OpenGL, otherwise painting gets
         # horribly slow. See: https://github.com/pyqtgraph/pyqtgraph/issues/533
@@ -188,16 +197,19 @@ class PlotWidget(pg.PlotWidget):
         self.errorSignal1.setData([0, N_POINTS - 1], [1, 1])
         self.combinedErrorSignal.setData([0, N_POINTS - 1], [1, 1])
 
-        self.connection = None
-        self.parameters = None
-        self.last_plot_data = None
-        self.plot_max = 0
-        self.plot_min = np.inf
-        self.touch_start = None
-        self.autolock_ref_spectrum = None
-
-        self.selection_running = False
-        self.selection_boundaries = None
+        # these lines are used for configuration of the relocking system
+        self.control_signal_threshold_min = pg.InfiniteLine(angle=90)
+        self.addItem(self.control_signal_threshold_min)
+        self.control_signal_threshold_max = pg.InfiniteLine(angle=90)
+        self.addItem(self.control_signal_threshold_max)
+        self.error_signal_threshold_min = pg.InfiniteLine(angle=0)
+        self.addItem(self.error_signal_threshold_min)
+        self.error_signal_threshold_max = pg.InfiniteLine(angle=0)
+        self.addItem(self.error_signal_threshold_max)
+        self.monitor_signal_threshold_min = pg.InfiniteLine(angle=0)
+        self.addItem(self.monitor_signal_threshold_min)
+        self.monitor_signal_threshold_max = pg.InfiniteLine(angle=0)
+        self.addItem(self.monitor_signal_threshold_max)
 
         self.overlay = pg.LinearRegionItem(values=(0, 0), movable=False)
         self.overlay.setVisible(False)
@@ -214,9 +226,6 @@ class PlotWidget(pg.PlotWidget):
             overlay.lines[i].setPen((0, 0, 0, 0))
             self.addItem(overlay)
 
-        self.lock_target_line = pg.InfiniteLine(movable=False)
-        self.lock_target_line.setValue(1000)
-        self.addItem(self.lock_target_line)
         self._fixed_opengl_bug = False
 
         self.last_plot_time = 0
@@ -235,17 +244,13 @@ class PlotWidget(pg.PlotWidget):
         self.parameters = self.app.parameters
         self.control = self.app.control
 
+        self.parameters.autolock_status.add_callback(self.on_autolock_status_changed)
         self.control_signal_history_data = self.parameters.control_signal_history.value
         self.monitor_signal_history_data = self.parameters.monitor_signal_history.value
-
         self.parameters.to_plot.add_callback(self.on_new_plot_data_received)
-        self.parameters.autolock_selection.add_callback(
-            self.on_autolock_selection_changed
+        self.parameters.autolock_mode_preference.add_callback(
+            self.on_autolock_mode_preference_changed
         )
-        self.parameters.optimization_selection.add_callback(
-            self.on_optimization_selection_changed
-        )
-        self.parameters.automatic_mode.add_callback(self.on_automatic_mode_changed)
         self.parameters.lock.add_callback(self.on_lock_changed)
 
     def _to_data_coords(self, event):
@@ -269,75 +274,71 @@ class PlotWidget(pg.PlotWidget):
         # caught here
         self.keyPressed.emit(event.key())
 
+    def mousePressEvent(self, event):
+        super().mousePressEvent(event)
+        if self.selection_running:
+            if event.button() == QtCore.Qt.RightButton:
+                return
+            x, y = self._to_data_coords(event)
+            if x < self.selection_boundaries[0] or x > self.selection_boundaries[1]:
+                return
+            self.touch_start = x, y
+            self.overlay.setRegion((x, x))
+            self.overlay.setVisible(True)
+
     def mouseMoveEvent(self, event):
         if not self.selection_running:
             super().mouseMoveEvent(event)
         else:
             if self.touch_start is None:
                 return
-
             x0, y0 = self.touch_start
-
             x, y = self._to_data_coords(event)
             x = self._within_boundaries(x)
-            self.set_selection_overlay(x0, x - x0)
+            self.overlay.setRegion((x0, x))
 
     def mouseReleaseEvent(self, event):
         super().mouseReleaseEvent(event)
-
         if self.selection_running:
             if self.touch_start is None:
                 return
-
             x, y = self._to_data_coords(event)
             x = self._within_boundaries(x)
             x0, y0 = self.touch_start
             xdiff = np.abs(x0 - x)
             xmax = len(self.last_plot_data[0]) - 1
-            if xdiff / xmax < 0.01:
-                # it was a click
+            if xdiff / xmax < 0.01:  # it was a click
                 pass
-            else:
-                # it was a selection
-                if self.selection_running:
-                    if self.parameters.autolock_selection.value:
-                        last_combined_error_signal = self.last_plot_data[2]
-                        self.parameters.autolock_selection.value = False
-
-                        self.control.exposed_start_autolock(
-                            # we pickle it here because otherwise a netref is
-                            # transmitted which blocks the autolock
-                            *sorted([x0, x]),
-                            pickle.dumps(last_combined_error_signal),
-                            additional_spectra=pickle.dumps(self.cached_plot_data),
-                        )
-
+            else:  # it was a selection
+                if (
+                    self.parameters.autolock_status.value.value
+                    == AutolockStatus.SELECTING
+                ):
+                    last_combined_error_signal = self.last_plot_data[2]
+                    self.control.exposed_start_autolock(
+                        # we pickle it here because otherwise a netref is
+                        # transmitted which blocks the autolock
+                        *sorted([x0, x]),
+                        pickle.dumps(last_combined_error_signal),
+                        additional_spectra=pickle.dumps(self.cached_plot_data),
+                    )
+                    (_, _, _, rolled_error_signal, _, _) = get_lock_point(
+                        last_combined_error_signal, *sorted((int(x0), int(x)))
+                    )
+                    self.autolock_ref_spectrum = rolled_error_signal
+                elif self.optimization_selection_running:
+                    spectrum = self.last_plot_data[
                         (
-                            mean_signal,
-                            target_slope_rising,
-                            target_zoom,
-                            rolled_error_signal,
-                            line_width,
-                            peak_idxs,
-                        ) = get_lock_point(
-                            last_combined_error_signal, *sorted((int(x0), int(x)))
+                            0
+                            if not self.parameters.dual_channel.value
+                            else (0, 1)[self.parameters.optimization_channel.value]
                         )
-                        self.autolock_ref_spectrum = rolled_error_signal
-                    elif self.parameters.optimization_selection.value:
-                        channel = self.parameters.optimization_channel.value
-                        spectrum = self.last_plot_data[
-                            (
-                                0
-                                if not self.parameters.dual_channel.value
-                                else (0, 1)[channel]
-                            )
-                        ]
-                        self.parameters.optimization_selection.value = False
-                        points = sorted([int(x0), int(x)])
-                        self.control.exposed_start_optimization(
-                            *points, pickle.dumps(spectrum)
-                        )
-
+                    ]
+                    self.optimization_selection_running = False
+                    points = sorted([int(x0), int(x)])
+                    self.control.exposed_start_optimization(
+                        *points, pickle.dumps(spectrum)
+                    )
             self.overlay.setVisible(False)
             self.touch_start = None
 
@@ -356,53 +357,48 @@ class PlotWidget(pg.PlotWidget):
         }.items():
             curve.setPen(pg.mkPen((*color.value, opacity), width=pen_width))
 
-    def on_autolock_selection_changed(self, value: bool) -> None:
-        if value:
-            self.parameters.optimization_selection.value = False
+        for line, color in {
+            self.control_signal_threshold_min: self.app.settings.plot_color_control,
+            self.control_signal_threshold_max: self.app.settings.plot_color_control,
+            self.error_signal_threshold_min: self.app.settings.plot_color_error_combined,  # noqa: E501
+            self.error_signal_threshold_max: self.app.settings.plot_color_error_combined,  # noqa: E501
+            self.monitor_signal_threshold_min: self.app.settings.plot_color_monitor,
+            self.monitor_signal_threshold_max: self.app.settings.plot_color_monitor,
+        }.items():
+            line.setPen(
+                pg.mkPen(
+                    (*color.value, opacity), width=pen_width, style=QtCore.Qt.DashLine
+                )
+            )
+
+    def on_autolock_status_changed(self, status: AutolockStatus) -> None:
+        if status.value == AutolockStatus.SELECTING:
             self.enable_area_selection(selectable_width=0.99)
             self.pause_plot()
-        elif not self.parameters.optimization_selection.value:
+        else:
             self.disable_area_selection()
             self.resume_plot_and_clear_cache()
 
-    def on_optimization_selection_changed(self, value):
+    def on_optimization_selection_changed(self, value: bool) -> None:
         if value:
-            self.parameters.autolock_selection.value = False
+            self.optimization_selection_running = True
             self.enable_area_selection(selectable_width=0.75)
             self.pause_plot()
-        elif not self.parameters.autolock_selection.value:
+        else:
+            self.optimization_selection_running = False
             self.disable_area_selection()
             self.resume_plot_and_clear_cache()
 
-    def on_automatic_mode_changed(self, automatic_mode: bool) -> None:
+    def on_autolock_mode_preference_changed(self, mode: AutolockMode) -> None:
         """Show or hide crosshair"""
-        self.crosshair.setVisible(not automatic_mode)
+        self.crosshair.setVisible(mode == AutolockMode.MANUAL)
 
     def on_lock_changed(self, lock: bool) -> None:
+        self.draw_control_thresholds(lock)
         if not lock:
             self.setLabel("bottom", "sweep voltage", units="V")
         else:
             self.setLabel("bottom", "time", units="µs")
-
-    def set_selection_overlay(self, x_start, width):
-        self.overlay.setRegion((x_start, x_start + width))
-
-    def mousePressEvent(self, event):
-        super().mousePressEvent(event)
-
-        if self.selection_running:
-            if event.button() == QtCore.Qt.RightButton:
-                return
-
-            x, y = self._to_data_coords(event)
-
-            if self.selection_running:
-                if x < self.selection_boundaries[0] or x > self.selection_boundaries[1]:
-                    return
-
-            self.touch_start = x, y
-            self.set_selection_overlay(x, 0)
-            self.overlay.setVisible(True)
 
     def on_new_plot_data_received(self, to_plot):
         time_beginning = time()
@@ -471,13 +467,13 @@ class PlotWidget(pg.PlotWidget):
                 self.combinedErrorSignal.setVisible(True)
                 self.combinedErrorSignal.setData(
                     list(range(len(to_plot["error_signal"]))),
-                    to_plot["error_signal"] / V,
+                    to_plot["error_signal"] / VOLTS_TO_COUNTS_FACTOR,
                 )
 
                 self.controlSignal.setVisible(True)
                 self.controlSignal.setData(
                     list(range(len(to_plot["control_signal"]))),
-                    to_plot["control_signal"] / V,
+                    to_plot["control_signal"] / VOLTS_TO_COUNTS_FACTOR,
                 )
 
                 self.controlSignalHistory.setVisible(True)
@@ -485,7 +481,8 @@ class PlotWidget(pg.PlotWidget):
                     scale_history_times(
                         self.control_signal_history_data["times"], timescale
                     ),
-                    np.array(self.control_signal_history_data["values"]) / V,
+                    np.array(self.control_signal_history_data["values"])
+                    / VOLTS_TO_COUNTS_FACTOR,
                 )
 
                 self.slowHistory.setVisible(self.parameters.pid_on_slow_enabled.value)
@@ -493,7 +490,8 @@ class PlotWidget(pg.PlotWidget):
                     scale_history_times(
                         self.control_signal_history_data["slow_times"], timescale
                     ),
-                    np.array(self.control_signal_history_data["slow_values"]) / V,
+                    np.array(self.control_signal_history_data["slow_values"])
+                    / VOLTS_TO_COUNTS_FACTOR,
                 )
 
                 self.monitorSignalHistory.setVisible(not dual_channel)
@@ -502,9 +500,9 @@ class PlotWidget(pg.PlotWidget):
                         scale_history_times(
                             self.monitor_signal_history_data["times"], timescale
                         ),
-                        np.array(self.monitor_signal_history_data["values"]) / V,
+                        np.array(self.monitor_signal_history_data["values"])
+                        / VOLTS_TO_COUNTS_FACTOR,
                     )
-                self.plot_autolock_target_line(None)
             else:
                 dual_channel = self.parameters.dual_channel.value
                 monitor_signal = to_plot.get("monitor_signal")
@@ -538,28 +536,30 @@ class PlotWidget(pg.PlotWidget):
 
                 self.combinedErrorSignal.setVisible(True)
                 self.combinedErrorSignal.setData(
-                    list(range(len(error_signal_1))), error_signal_1 / V
+                    list(range(len(error_signal_1))),
+                    error_signal_1 / VOLTS_TO_COUNTS_FACTOR,
                 )
 
                 self.errorSignal1.setVisible(dual_channel)
                 if error_signal_1 is not None:
                     self.errorSignal1.setData(
-                        list(range(len(error_signal_1))), error_signal_1 / V
+                        list(range(len(error_signal_1))),
+                        error_signal_1 / VOLTS_TO_COUNTS_FACTOR,
                     )
 
                 self.errorSignal2.setVisible(dual_channel)
                 if error_signal_2 is not None:
                     self.errorSignal2.setData(
-                        list(range(len(error_signal_2))), error_signal_2 / V
+                        list(range(len(error_signal_2))),
+                        error_signal_2 / VOLTS_TO_COUNTS_FACTOR,
                     )
 
                 self.monitorSignal.setVisible(not dual_channel)
                 if monitor_signal is not None:
                     self.monitorSignal.setData(
-                        list(range(len(monitor_signal))), monitor_signal / V
+                        list(range(len(monitor_signal))),
+                        monitor_signal / VOLTS_TO_COUNTS_FACTOR,
                     )
-
-                self.plot_autolock_target_line(combined_error_signal)
 
                 if (self.parameters.modulation_frequency.value != 0) and (
                     not self.parameters.pid_only_mode.value
@@ -591,7 +591,7 @@ class PlotWidget(pg.PlotWidget):
                                 self.parameters.offset_a.value,
                                 color.value,
                             )
-                            / V
+                            / VOLTS_TO_COUNTS_FACTOR
                         )
 
                         self.signal_power1.emit(
@@ -611,7 +611,7 @@ class PlotWidget(pg.PlotWidget):
                                 self.parameters.offset_b.value,
                                 self.app.settings.plot_color_error2.value,
                             )
-                            / V
+                            / VOLTS_TO_COUNTS_FACTOR
                         )
 
                         self.signal_power2.emit(
@@ -655,9 +655,9 @@ class PlotWidget(pg.PlotWidget):
         signal_strength = get_signal_strength_from_i_q(i, q)
 
         x = list(range(len(signal_strength)))
-        signal_strength_scaled = signal_strength / V
-        upper = (channel_offset / V) + signal_strength_scaled
-        lower = (channel_offset / V) - 1 * signal_strength_scaled
+        signal_strength_scaled = signal_strength / VOLTS_TO_COUNTS_FACTOR
+        upper = (channel_offset / VOLTS_TO_COUNTS_FACTOR) + signal_strength_scaled
+        lower = (channel_offset / VOLTS_TO_COUNTS_FACTOR) - 1 * signal_strength_scaled
 
         brush = pg.mkBrush(*color, self.app.settings.plot_fill_opacity.value)
         fill.setBrush(brush)
@@ -665,36 +665,70 @@ class PlotWidget(pg.PlotWidget):
         invisible_pen = pg.mkPen("k", width=0.00001)
         signal.setData(x, upper, pen=invisible_pen)
         neg_signal.setData(x, lower, pen=invisible_pen)
-        return np.max([np.max(upper), -1 * np.min(lower)]) * V
+        return np.max([np.max(upper), -1 * np.min(lower)]) * VOLTS_TO_COUNTS_FACTOR
 
-    def plot_autolock_target_line(self, combined_error_signal):
-        if (
-            self.autolock_ref_spectrum is not None
-            and self.parameters.autolock_preparing.value
-        ):
-            sweep_amplitude = self.parameters.sweep_amplitude.value
-            zoom_factor = 1 / sweep_amplitude
-            initial_zoom_factor = (
-                1 / self.parameters.autolock_initial_sweep_amplitude.value
+    def plot_data_unlocked(self, error_signals, combined_signal):
+        error_signal1, error_signal2 = error_signals
+        self.signal1.setData(
+            list(range(len(error_signal1))), error_signal1 / VOLTS_TO_COUNTS_FACTOR
+        )
+        self.signal2.setData(
+            list(range(len(error_signal2))), error_signal2 / VOLTS_TO_COUNTS_FACTOR
+        )
+        self.combined_signal.setData(
+            list(range(len(combined_signal))), combined_signal / VOLTS_TO_COUNTS_FACTOR
+        )
+
+    def plot_data_locked(self, signals):
+        error_signal = signals["error_signal"]
+        control_signal = signals["control_signal"]
+        self.combined_signal.setData(
+            list(range(len(error_signal))), error_signal / VOLTS_TO_COUNTS_FACTOR
+        )
+        self.control_signal.setData(
+            list(range(len(error_signal))), control_signal / VOLTS_TO_COUNTS_FACTOR
+        )
+
+    def update_signal_history(self, to_plot):
+        update_signal_history(
+            self.control_signal_history_data,
+            self.monitor_signal_history_data,
+            to_plot,
+            self.parameters.lock.value,
+            self.parameters.control_signal_history_length.value,
+        )
+
+        if self.parameters.lock.value:
+
+            def scale(arr):
+                timescale = self.parameters.control_signal_history_length.value
+                if arr:
+                    arr = np.array(arr)
+                    arr -= arr[0]
+                    arr *= 1 / timescale * N_POINTS
+                return arr
+
+            history = self.control_signal_history_data["values"]
+            self.control_signal_history.setData(
+                scale(self.control_signal_history_data["times"]),
+                np.array(history) / VOLTS_TO_COUNTS_FACTOR,
             )
 
-            try:
-                shift, _1, _2 = determine_shift_by_correlation(
-                    zoom_factor / initial_zoom_factor,
-                    self.autolock_ref_spectrum,
-                    combined_error_signal,
+            slow_values = self.control_signal_history_data["slow_values"]
+            self.slow_history.setData(
+                scale(self.control_signal_history_data["slow_times"]),
+                np.array(slow_values) / VOLTS_TO_COUNTS_FACTOR,
+            )
+
+            if not self.parameters.dual_channel.value:
+                self.monitor_signal_history.setData(
+                    scale(self.monitor_signal_history_data["times"]),
+                    np.array(self.monitor_signal_history_data["values"])
+                    / VOLTS_TO_COUNTS_FACTOR,
                 )
-                shift *= zoom_factor / initial_zoom_factor
-                length = len(combined_error_signal)
-                shift = (length / 2) - (shift / 2 * length)
 
-                self.lock_target_line.setVisible(True)
-                self.lock_target_line.setValue(shift)
-
-            except SpectrumUncorrelatedException:
-                self.lock_target_line.setVisible(False)
-        else:
-            self.lock_target_line.setVisible(False)
+            return history, slow_values
+        return [], []
 
     def enable_area_selection(self, selectable_width=0.5):
         self.selection_running = True
@@ -753,9 +787,48 @@ class PlotWidget(pg.PlotWidget):
 
     def resizeEvent(self, event, *args, **kwargs):
         super().resizeEvent(event, *args, **kwargs)
-
         # we don't do it directly here because this causes problems for some reason
         self._should_reposition_reset_view_button = True
+
+    def show_control_thresholds(self, show: bool, min_: float, max_: float) -> None:
+        self.draw_control_thresholds(self.parameters.lock.value, min_=min_, max_=max_)
+        self.control_signal_threshold_min.setVisible(show)
+        self.control_signal_threshold_max.setVisible(show)
+
+    def draw_control_thresholds(
+        self, lock, min_: Optional[float] = None, max_: Optional[float] = None
+    ) -> None:
+        if min_ is None:
+            min_ = self.parameters.watch_lock_control_min.value
+        if max_ is None:
+            max_ = self.parameters.watch_lock_control_max.value
+        if lock:
+            self.control_signal_threshold_min.setAngle(0)
+            self.control_signal_threshold_max.setAngle(0)
+        else:
+            sweep_center = self.app.parameters.sweep_center.value
+            sweep_amplitude = self.app.parameters.sweep_amplitude.value
+            sweep_min = sweep_center - sweep_amplitude
+            sweep_max = sweep_center + sweep_amplitude
+            spacing = (N_POINTS - 1) / abs(sweep_max - sweep_min)  # pts / V
+            min_ = spacing * (min_ - sweep_min)
+            max_ = spacing * (max_ - sweep_min)
+            self.control_signal_threshold_min.setAngle(90)
+            self.control_signal_threshold_max.setAngle(90)
+        self.control_signal_threshold_min.setValue(min_)
+        self.control_signal_threshold_max.setValue(max_)
+
+    def show_error_thresholds(self, show: bool, min_: float, max_: float) -> None:
+        self.error_signal_threshold_min.setValue(min_)
+        self.error_signal_threshold_max.setValue(max_)
+        self.error_signal_threshold_min.setVisible(show)
+        self.error_signal_threshold_max.setVisible(show)
+
+    def show_monitor_thresholds(self, show: bool, min_: float, max_: float) -> None:
+        self.monitor_signal_threshold_min.setValue(min_)
+        self.monitor_signal_threshold_max.setValue(max_)
+        self.monitor_signal_threshold_min.setVisible(show)
+        self.monitor_signal_threshold_max.setVisible(show)
 
 
 def scale_history_times(arr: np.ndarray, timescale: int) -> np.ndarray:

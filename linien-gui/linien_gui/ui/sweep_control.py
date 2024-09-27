@@ -84,15 +84,15 @@ class SweepControlWidget(QtWidgets.QWidget):
     def pause_or_resume_sweep(self):
         # If sweep is paused, resume it or vice versa.
         self.parameters.sweep_pause.value = not self.parameters.sweep_pause.value
-        self.control.write_registers()
+        self.control.exposed_write_registers()
 
     def update_sweep_center(self, center):
         self.parameters.sweep_center.value = center
-        self.control.write_registers()
+        self.control.exposed_write_registers()
 
     def update_sweep_amplitude(self, amplitude):
         self.parameters.sweep_amplitude.value = amplitude
-        self.control.write_registers()
+        self.control.exposed_write_registers()
 
     def update_sweep_range(self, range_):
         min_, max_ = range_
@@ -100,7 +100,7 @@ class SweepControlWidget(QtWidgets.QWidget):
         center = (max_ + min_) / 2
         self.parameters.sweep_amplitude.value = amplitude
         self.parameters.sweep_center.value = center
-        self.control.write_registers()
+        self.control.exposed_write_registers()
 
 
 class SweepSlider(superqt.QDoubleRangeSlider):

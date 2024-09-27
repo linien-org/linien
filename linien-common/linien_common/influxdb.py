@@ -24,7 +24,6 @@ from .config import USER_DATA_PATH, create_backup_file
 CREDENTIAL_STORE_FILENAME = "influxdb_credentials.json"
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 
 @dataclass

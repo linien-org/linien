@@ -18,9 +18,12 @@
 import logging
 import signal
 import sys
+from logging.handlers import RotatingFileHandler
 
 import click
 from linien_client.connection import LinienClient
+from linien_common.communication import LinienControlService
+from linien_common.config import LOG_FILE_PATH
 from linien_gui import __version__
 from linien_gui.config import UI_PATH, load_settings
 from linien_gui.ui.device_manager import DeviceManager
@@ -34,13 +37,12 @@ from pyqtgraph.Qt import QtCore
 sys.path += [str(UI_PATH)]
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 
 class LinienApp(QtWidgets.QApplication):
     connection_established = pyqtSignal()
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super(LinienApp, self).__init__(*args, **kwargs)
 
         self.settings = load_settings()
@@ -52,12 +54,12 @@ class LinienApp(QtWidgets.QApplication):
 
         self.aboutToQuit.connect(self.quit)
 
-    def client_connected(self, client: LinienClient):
+    def client_connected(self, client: LinienClient) -> None:
         self.device_manager.hide()
         self.main_window.show(client.device.host, client.device.name)
 
         self.client = client
-        self.control = client.control
+        self.control: LinienControlService = client.control
         self.parameters = client.parameters
 
         self.connection_established.emit()
@@ -113,7 +115,30 @@ class LinienApp(QtWidgets.QApplication):
 @click.command("linien")  # type: ignore[arg-type]
 @click.version_option(__version__)
 def main():
+
+    for logger_name in ["linien_client", "linien_common", "linien_gui"]:
+
+        logger = logging.getLogger(logger_name)
+        logger.setLevel(logging.DEBUG)
+
+        file_handler = RotatingFileHandler(
+            str(LOG_FILE_PATH), maxBytes=1000000, backupCount=10
+        )
+        file_handler.setLevel(logging.DEBUG)
+        file_formatter = logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        )
+        file_handler.setFormatter(file_formatter)
+        logger.addHandler(file_handler)
+
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.DEBUG)
+        console_formatter = logging.Formatter("%(name)-30s %(levelname)-8s %(message)s")
+        console_handler.setFormatter(console_formatter)
+        logger.addHandler(console_handler)
+
     app = LinienApp(sys.argv)
+    logger = logging.getLogger(__name__)
     logger.info("Starting Linien GUI")
 
     # catch ctrl-c and shutdown
