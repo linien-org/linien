@@ -73,12 +73,12 @@ class RelockingPanel(QtWidgets.QWidget):
 
         for channel in ("control", "error", "monitor"):
             ui2param(
-                getattr(self, f"watchLock{channel.capitalize()}CheckBox"),
+                getattr(self, f"watchLockOn{channel.capitalize()}CheckBox"),
                 getattr(self.parameters, f"watch_lock_{channel}"),
             )
             param2ui(
                 getattr(self.parameters, f"watch_lock_{channel}"),
-                getattr(self, f"watchLock{channel.capitalize()}CheckBox"),
+                getattr(self, f"watchLockOn{channel.capitalize()}CheckBox"),
             )
             ui2param(
                 getattr(self, f"plot{channel.capitalize()}ThresholdCheckBox"),
