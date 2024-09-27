@@ -207,7 +207,7 @@ class RedPitayaControlService(BaseService, LinienControlService):
                 if data_uuid != self.data_uuid:
                     continue
 
-                data_loaded = pickle.loads(new_data)
+                data_loaded: dict[str, Any] = pickle.loads(new_data)
 
                 if not data_was_raw:
                     is_locked = self.parameters.lock.value
@@ -238,6 +238,9 @@ class RedPitayaControlService(BaseService, LinienControlService):
                         data_loaded,
                         is_locked,
                         self.parameters.control_signal_history_length.value,
+                    )
+                    self.parameters.lock_lost.value = data_loaded.get(
+                        "lock_lost", False
                     )
                 else:
                     self.parameters.acquisition_raw_data.value = new_data
