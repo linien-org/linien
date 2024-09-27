@@ -37,7 +37,7 @@ from linien_common.communication import (
     unpack,
 )
 from linien_common.config import LOG_FILE_PATH, SERVER_PORT
-from linien_common.enums import AutolockMode
+from linien_common.enums import AutolockMode, AutolockStatus
 from linien_common.influxdb import InfluxDBCredentials, restore_credentials
 from linien_server import __version__
 from linien_server.autolock.autolock import Autolock
@@ -242,6 +242,12 @@ class RedPitayaControlService(BaseService, LinienControlService):
                     self.parameters.lock_lost.value = data_loaded.get(
                         "lock_lost", False
                     )
+                    if (
+                        self.parameters.watch_lock.value
+                        and self.parameters.lock_lost.value
+                    ):
+                        self.parameters.autolock_status.value = AutolockStatus.LOST
+
                 else:
                     self.parameters.acquisition_raw_data.value = new_data
             sleep(0.05)

@@ -42,6 +42,7 @@ class AutolockStatus(IntEnum):
     SELECTING = auto()
     LOCKING = auto()
     LOCKED = auto()
+    LOST = auto()
     RELOCKING = auto()
 
 

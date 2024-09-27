@@ -115,7 +115,7 @@ class LockingPanel(QtWidgets.QWidget):
         logger.debug(f"Autolock status changed to {status}")
         self.lockSettingsWidget.setVisible(status.value == AutolockStatus.STOPPED)
         self.resetLockFailedStatePushButton.setVisible(
-            status.value == AutolockStatus.FAILED
+            status.value == AutolockStatus.FAILED or status.value == AutolockStatus.LOST
         )
         self.autolockSelectingWidget.setVisible(
             status.value == AutolockStatus.SELECTING
@@ -123,12 +123,15 @@ class LockingPanel(QtWidgets.QWidget):
         self.lockStatusWidget.setVisible(
             status.value == AutolockStatus.LOCKED
             or status.value == AutolockStatus.LOCKING
+            or status.value == AutolockStatus.LOST
         )
         match status.value:
             case AutolockStatus.LOCKED:
                 self.lockStatusLabel.setText("Locked!")
             case AutolockStatus.LOCKING:
                 self.lockStatusLabel.setText("Locking...")
+            case AutolockStatus.LOST:
+                self.lockStatusLabel.setText("Lock lost!")
             case _:
                 self.lockStatusLabel.setText("Autolock status")
 
