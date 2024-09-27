@@ -256,7 +256,7 @@ print(c.parameters.modulation_frequency.value / MHz)
 c.parameters.modulation_amplitude.value = 1 * Vpp
 # in the line above, we set a parameter. This is not written directly to the
 # FPGA, though. In order to do this, we have to call write_registers():
-c.connection.root.write_registers()
+c.connection.root.exposed_write_registers()
 
 # additionally set ANALOG_OUT_1 to 1.2 volts DC (you can use this to control other devices of your experiment)
 c.parameters.analog_out_1.value = 1.2 / ANALOG_OUT_V
@@ -272,7 +272,7 @@ c.parameters.gpio_n_out.value = 0b11110000 # 4 on, 4 off
 c.parameters.gpio_p_out.value = 0b01010101 # 4 on, 4 off
 
 # again, we have to call write_registers in order to write the data to the FPGA
-c.connection.root.write_registers()
+c.connection.root.exposed_write_registers()
 
 # it is also possible to set up a callback function that is called whenever a
 # parameter changes (remember to call `check_for_changed_parameters()` periodically)
@@ -317,7 +317,7 @@ plt.show()
 
 For a full list of parameters that can be controlled or accessed have a
 look at
-[parameters.py](https://github.com/linien-org/linien/blob/master/linien-server/linien_server/parameters.py). Remember that changed parameters are not written to the FPGA unless `c.connection.root.write_registers()` is called.
+[parameters.py](https://github.com/linien-org/linien/blob/master/linien-server/linien_server/parameters.py). Remember that changed parameters are not written to the FPGA unless `c.connection.root.exposed_write_registers()` is called.
 
 ### Run the autolock
 

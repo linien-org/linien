@@ -102,7 +102,7 @@ def ui2param(
 
         parameter.value = process_value(value)
         if control is not None:
-            control.write_registers()
+            control.exposed_write_registers()
 
     if isinstance(element, (QSlider, QSpinBox, QDoubleSpinBox)):
         element.valueChanged.connect(on_change)

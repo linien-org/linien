@@ -97,17 +97,17 @@ class ModulationAndSweepPanel(QtWidgets.QWidget):
         self.parameters.modulation_frequency.value = (
             self.modulationFrequencySpinBox.value() * MHz
         )
-        self.control.write_registers()
+        self.control.exposed_write_registers()
 
     def change_modulation_amplitude(self):
         self.parameters.modulation_amplitude.value = (
             self.modulationAmplitudeSpinBox.value() * Vpp
         )
-        self.control.write_registers()
+        self.control.exposed_write_registers()
 
     def change_sweep_speed(self, decimation):
         self.parameters.sweep_speed.value = decimation
-        self.control.write_registers()
+        self.control.exposed_write_registers()
 
     def dual_channel_changed(self, value):
         self.spectroscopyBPanel.setEnabled(value)

@@ -151,15 +151,15 @@ class LockingPanel(QtWidgets.QWidget):
 
     def on_kp_changed(self):
         self.parameters.p.value = self.kpSpinBox.value()
-        self.control.write_registers()
+        self.control.exposed_write_registers()
 
     def on_ki_changed(self):
         self.parameters.i.value = self.kiSpinBox.value()
-        self.control.write_registers()
+        self.control.exposed_write_registers()
 
     def on_kd_changed(self):
         self.parameters.d.value = self.kdSpinBox.value()
-        self.control.write_registers()
+        self.control.exposed_write_registers()
 
     def on_autolock_mode_preference_changed(self, mode: AutolockMode) -> None:
         logger.debug(f"autolock_mode_preference changed to {mode}")
@@ -178,7 +178,7 @@ class LockingPanel(QtWidgets.QWidget):
         self.parameters.pid_on_slow_strength.value = (
             self.pIDOnSlowStrengthSpinBox.value()
         )
-        self.control.write_registers()
+        self.control.exposed_write_registers()
 
     def start_autolock_selection(self):
         self.parameters.autolock_status.value = AutolockStatus.SELECTING
