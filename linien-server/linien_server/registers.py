@@ -19,7 +19,7 @@ from typing import Optional
 
 import numpy as np
 import rpyc
-from linien_common.common import MHz, convert_channel_mixing_value
+from linien_common.common import MHz, Vpp, convert_channel_mixing_value
 from linien_common.communication import LinienControlService
 from linien_common.config import ACQUISITION_PORT, DEFAULT_SWEEP_SPEED
 from linien_common.enums import FilterType
@@ -181,11 +181,11 @@ class Registers:
                 and self.parameters.watch_lock.value
             )
             new[f"logic_relock_watcher_should_watch_{channel}"] = should_watch
-            new[f"logic_relock_watcher_min_{channel}"] = (
-                getattr(self.parameters, f"watch_lock_{channel}_min").value * 8191
+            new[f"logic_relock_watcher_min_{channel}"] = int(
+                getattr(self.parameters, f"watch_lock_{channel}_min").value * Vpp
             )
-            new[f"logic_relock_watcher_max_{channel}"] = (
-                getattr(self.parameters, f"watch_lock_{channel}_max").value * 8191
+            new[f"logic_relock_watcher_max_{channel}"] = int(
+                getattr(self.parameters, f"watch_lock_{channel}_max").value * Vpp
             )
 
         if self.parameters.lock.value:
