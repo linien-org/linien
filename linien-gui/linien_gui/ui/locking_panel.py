@@ -58,17 +58,10 @@ class LockingPanel(QtWidgets.QWidget):
         self.app = get_linien_app_instance()
         self.app.connection_established.connect(self.on_connection_established)
 
-        self.kpSpinBox.valueChanged.connect(self.on_kp_changed)
-        self.kiSpinBox.valueChanged.connect(self.on_ki_changed)
-        self.kdSpinBox.valueChanged.connect(self.on_kd_changed)
         self.selectLineToLockPushButton.clicked.connect(self.start_autolock_selection)
         self.abortSelectingPushButton.clicked.connect(self.stop_autolock_selection)
         self.manualLockButton.clicked.connect(self.start_manual_lock)
-        self.autoOffsetCheckbox.stateChanged.connect(self.auto_offset_changed)
         self.pIDOnSlowStrengthSpinBox.setKeyboardTracking(False)
-        self.pIDOnSlowStrengthSpinBox.valueChanged.connect(
-            self.pid_on_slow_strength_changed
-        )
         self.resetLockFailedStatePushButton.clicked.connect(self.reset_lock_failed)
         QtCore.QTimer.singleShot(100, self.ready)
 
@@ -84,9 +77,18 @@ class LockingPanel(QtWidgets.QWidget):
         self.control = self.app.control
 
         param2ui(self.parameters.p, self.kpSpinBox)
+        ui2param(self.kpSpinBox, self.parameters.p, control=self.control)
         param2ui(self.parameters.i, self.kiSpinBox)
+        ui2param(self.kiSpinBox, self.parameters.i, control=self.control)
         param2ui(self.parameters.d, self.kdSpinBox)
+        ui2param(self.kdSpinBox, self.parameters.d, control=self.control)
+        ui2param(
+            self.pIDOnSlowStrengthSpinBox,
+            self.parameters.pid_on_slow_strength,
+            control=self.control,
+        )
         param2ui(self.parameters.autolock_determine_offset, self.autoOffsetCheckbox)
+        ui2param(self.autoOffsetCheckbox, self.parameters.autolock_determine_offset)
         param2ui(self.parameters.pid_on_slow_strength, self.pIDOnSlowStrengthSpinBox)
         param2ui(
             self.parameters.control_signal_history_length,
@@ -152,18 +154,6 @@ class LockingPanel(QtWidgets.QWidget):
     def on_slow_pid_enabled_changed(self, _) -> None:
         self.slowPIDGroupBox.setVisible(self.parameters.pid_on_slow_enabled.value)
 
-    def on_kp_changed(self):
-        self.parameters.p.value = self.kpSpinBox.value()
-        self.control.exposed_write_registers()
-
-    def on_ki_changed(self):
-        self.parameters.i.value = self.kiSpinBox.value()
-        self.control.exposed_write_registers()
-
-    def on_kd_changed(self):
-        self.parameters.d.value = self.kdSpinBox.value()
-        self.control.exposed_write_registers()
-
     def on_autolock_mode_preference_changed(self, mode: AutolockMode) -> None:
         logger.debug(f"autolock_mode_preference changed to {mode}")
         self.manualLockSettingsWidget.setVisible(mode == AutolockMode.MANUAL)
@@ -171,17 +161,6 @@ class LockingPanel(QtWidgets.QWidget):
 
     def start_manual_lock(self):
         self.control.exposed_start_autolock()
-
-    def auto_offset_changed(self):
-        self.parameters.autolock_determine_offset.value = bool(
-            self.autoOffsetCheckbox.checkState()
-        )
-
-    def pid_on_slow_strength_changed(self):
-        self.parameters.pid_on_slow_strength.value = (
-            self.pIDOnSlowStrengthSpinBox.value()
-        )
-        self.control.exposed_write_registers()
 
     def start_autolock_selection(self):
         self.parameters.autolock_status.value = AutolockStatus.SELECTING
