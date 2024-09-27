@@ -92,6 +92,9 @@ class LockingPanel(QtWidgets.QWidget):
             self.parameters.control_signal_history_length,
             self.controlSignalHistoryLengthSpinBox,
         )
+        self.parameters.pid_on_slow_enabled.add_callback(
+            self.on_slow_pid_enabled_changed
+        )
         param2ui(self.parameters.target_slope_rising, self.slopeRisingRadioButton)
         param2ui(
             self.parameters.target_slope_rising,
@@ -146,7 +149,7 @@ class LockingPanel(QtWidgets.QWidget):
             self.parameters.task.value.stop()
             self.parameters.task.value = None
 
-    def on_slow_pid_changed(self, _) -> None:
+    def on_slow_pid_enabled_changed(self, _) -> None:
         self.slowPIDGroupBox.setVisible(self.parameters.pid_on_slow_enabled.value)
 
     def on_kp_changed(self):
