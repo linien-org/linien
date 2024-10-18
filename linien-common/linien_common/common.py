@@ -260,7 +260,7 @@ def convert_channel_mixing_value(value: int) -> Tuple[int, int]:
 
 
 def combine_error_signal(
-    error_signals: tuple[Iterable[int], Iterable[int]],
+    error_signals: Tuple[Iterable[int], Iterable[int]],
     dual_channel: bool,
     channel_mixing: int,
     combined_offset: int,
