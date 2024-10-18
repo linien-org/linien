@@ -47,6 +47,7 @@ class LockingPanel(QtWidgets.QWidget):
     controlSignalHistoryLengthSpinBox: CustomSpinBox
     lockStatusLabel: QtWidgets.QLabel
     stopLockPushButton: QtWidgets.QPushButton
+    relockPushButton: QtWidgets.QPushButton
     autolockAlgorithmGroupBox: QtWidgets.QGroupBox
     lockSettingsWidget: QtWidgets.QWidget
     manualLockSettingsWidget: QtWidgets.QWidget
@@ -68,6 +69,7 @@ class LockingPanel(QtWidgets.QWidget):
         self.controlSignalHistoryLengthSpinBox.valueChanged.connect(
             self.on_control_signal_history_length_changed
         )
+        self.relockPushButton.clicked.connect(self.relock)
 
     def on_connection_established(self):
         self.parameters = self.app.parameters
@@ -122,6 +124,7 @@ class LockingPanel(QtWidgets.QWidget):
         self.stopLockPushButton.setVisible(
             status.value == AutolockStatus.LOCKED or status.value == AutolockStatus.LOST
         )
+        self.relockPushButton.setVisible(status.value == AutolockStatus.LOST)
         self.autolockSelectingWidget.setVisible(
             status.value == AutolockStatus.SELECTING
         )
@@ -166,7 +169,9 @@ class LockingPanel(QtWidgets.QWidget):
         self.parameters.autolock_status.value = AutolockStatus.STOPPED
 
     def stop_lock(self):
-        if self.parameters.task.value is not None:  # may be autolock or psd acquisition
-            self.parameters.autolock_status.value = AutolockStatus.STOPPED
-            self.parameters.task.value.stop()
-            self.parameters.task.value = None
+        self.parameters.autolock_status.value = AutolockStatus.STOPPED
+        self.parameters.task.value.stop()
+        self.parameters.task.value = None
+
+    def relock(self):
+        self.parameters.task.value.relock()
