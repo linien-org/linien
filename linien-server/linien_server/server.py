@@ -243,7 +243,8 @@ class RedPitayaControlService(BaseService, LinienControlService):
                     if (
                         self.parameters.watch_lock.value
                         and lock_lost
-                        and self.parameters.autolock_status.value != AutolockStatus.LOST
+                        and self.parameters.autolock_status.value
+                        == AutolockStatus.LOCKED
                     ):
                         self.parameters.autolock_status.value = AutolockStatus.LOST
 
