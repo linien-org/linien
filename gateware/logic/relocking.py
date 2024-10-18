@@ -1,6 +1,7 @@
-# Copyright 2022 Benjamin Wiegand <benjamin.wiegand@physik.hu-berlin.de>
-#
 # This file is part of Linien and based on redpid.
+#
+# Copyright (C) 2016-2024 Linien Authors (https://github.com/linien-org/linien#license)
+
 #
 # Linien is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -40,13 +41,13 @@ class RelockWatcher(Module, AutoCSR):
             channel_watcher = RelockWatcherChannel(width)
             setattr(self.submodules, channel_name, channel_watcher)
             should_watch_name = "should_watch_" + channel_name
-            should_watch_csr = CSRStorage(name=should_watch_name)
+            should_watch_csr = CSRStorage(width, name=should_watch_name)
             setattr(self, should_watch_name, should_watch_csr)
             min_name = "min_" + channel_name
-            min_csr = CSRStorage(name=min_name)
+            min_csr = CSRStorage(width, name=min_name)
             setattr(self, min_name, min_csr)
             max_name = "max_" + channel_name
-            max_csr = CSRStorage(name=max_name)
+            max_csr = CSRStorage(width, name=max_name)
             setattr(self, max_name, max_csr)
 
             self.comb += [
