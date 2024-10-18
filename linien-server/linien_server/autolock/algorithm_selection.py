@@ -16,11 +16,15 @@
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
+from typing import Optional
 
-from linien_common.common import N_POINTS, AutolockMode, determine_shift_by_correlation
+import numpy as np
+from linien_common.common import N_POINTS, determine_shift_by_correlation
+from linien_common.enums import AutolockMode
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+
+N_SPECTRA_REQUIRED = 3
 
 
 class AutolockAlgorithmSelector:
@@ -28,50 +32,37 @@ class AutolockAlgorithmSelector:
 
     def __init__(
         self,
-        mode_preference,
-        spectrum,
-        additional_spectra,
-        line_width,
-        N_spectra_required=3,
-    ):
-        self.done = False
-        self.mode = None
-        self.spectra = [spectrum] + (additional_spectra or [])
-        self.N_spectra_required = N_spectra_required
+        mode_preference: AutolockMode,
+        spectrum: np.ndarray,
+        line_width: int,
+        additional_spectra: Optional[list[np.ndarray]] = None,
+    ) -> None:
+        self.mode_preference = mode_preference
+        self.spectra = [spectrum]
         self.line_width = line_width
+        if additional_spectra is not None:
+            for additional_spectrum in additional_spectra:
+                self.append_spectrum(additional_spectrum)
 
-        if mode_preference != AutolockMode.AUTO_DETECT:
-            self.mode = mode_preference
-            self.done = True
-            return
-
-        self.check()
-
-    def handle_new_spectrum(self, spectrum):
+    def append_spectrum(self, spectrum: np.ndarray) -> None:
         self.spectra.append(spectrum)
-        self.check()
 
-    def check(self):
-        if self.done:
-            return True
-
-        if len(self.spectra) < self.N_spectra_required:
-            return
-        else:
-            ref = self.spectra[0]
-            additional = self.spectra[1:]
-            abs_shifts = [
-                abs(determine_shift_by_correlation(1, ref, spectrum)[0] * N_POINTS)
-                for spectrum in additional
-            ]
-            max_shift = max(abs_shifts)
-            logger.debug(
-                f"jitter / line width ratio: {max_shift / (self.line_width / 2)}"
-            )
-
-            if max_shift <= self.line_width / 2:
-                self.mode = AutolockMode.SIMPLE
-            else:
-                self.mode = AutolockMode.ROBUST
-
-            self.done = True
+    @property
+    def mode(self) -> AutolockMode:
+        if self.mode_preference == AutolockMode.AUTO_DETECT:
+            if len(self.spectra) >= N_SPECTRA_REQUIRED:
+                abs_shifts = []
+                for spectrum in self.spectra[1:]:
+                    shift, _, _ = determine_shift_by_correlation(
+                        1, self.spectra[0], spectrum
+                    )
+                    abs_shifts.append(abs(shift * N_POINTS))
+                max_shift = max(abs_shifts)
+                logger.debug(
+                    f"jitter / line width ratio: {max_shift / (self.line_width / 2)}"
+                )
+                if max_shift <= self.line_width / 2:
+                    self.mode_preference = AutolockMode.SIMPLE
+                else:
+                    self.mode_preference = AutolockMode.ROBUST
+        return self.mode_preference

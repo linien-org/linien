@@ -34,7 +34,6 @@ from rpyc import Service
 from rpyc.utils.server import ThreadedServer
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 
 class AcquisitionService(Service):
@@ -179,6 +178,12 @@ class AcquisitionService(Service):
             if not self.dual_channel and len(signals) >= 3:
                 signals_named["monitor_signal"] = signals[2]
 
+            if self.confirmed_that_in_lock:
+                lock_lost = bool(self.csr.get("logic_relock_watcher_lock_lost"))
+            else:
+                lock_lost = False
+            signals_named["lock_lost"] = lock_lost
+
         slow_out = self.csr.get("logic_slow_value")
         slow_out = slow_out if slow_out <= 8191 else slow_out - 16384
         signals_named["slow_control_signal"] = slow_out
@@ -284,11 +289,13 @@ class AcquisitionService(Service):
         start_nginx()
 
     def exposed_pause_acquisition(self):
+        logger.debug("Pausing acquisition.")
         self.pause_event.set()
         self.data_hash = None
         self.data = None
 
     def exposed_continue_acquisition(self, uuid: Optional[float]) -> None:
+        logger.debug("Continuing acquisition.")
         self.program_acquisition_and_rearm()
         sleep(0.01)
         # resetting data here is not strictly required but we want to be on the safe

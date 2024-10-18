@@ -36,7 +36,6 @@ from .exceptions import (
 from .remote_parameters import RemoteParameters
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 
 class ServiceWithAuth(rpyc.Service):

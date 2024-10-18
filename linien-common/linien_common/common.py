@@ -18,12 +18,14 @@
 
 """This file contains stuff that is required by the server as well as the client."""
 
-from enum import IntEnum
+import logging
 from time import time
 from typing import Dict, Iterable, List, Tuple, Union
 
 import numpy as np
 from scipy.signal import correlate, resample
+
+logger = logging.getLogger(__name__)
 
 MHz = 0x10000000 / 8
 Vpp = ((1 << 14) - 1) / 4
@@ -35,28 +37,6 @@ AUTOLOCK_MAX_N_INSTRUCTIONS = 32
 DECIMATION = 8
 MAX_N_POINTS = 16384
 N_POINTS = int(MAX_N_POINTS / DECIMATION)
-
-
-class FilterType(IntEnum):
-    LOW_PASS = 0
-    HIGH_PASS = 1
-
-
-class OutputChannel(IntEnum):
-    FAST_OUT1 = 0
-    FAST_OUT2 = 1
-    ANALOG_OUT0 = 2
-
-
-class AutolockMode(IntEnum):
-    AUTO_DETECT = 0
-    ROBUST = 1
-    SIMPLE = 2
-
-
-class PSDAlgorithm(IntEnum):
-    WELCH = 0
-    LPSD = 1
 
 
 class SpectrumUncorrelatedException(Exception):
@@ -154,11 +134,13 @@ def update_signal_history(
     return control_history, monitor_history
 
 
-def check_whether_correlation_is_bad(correlation, N):
+def check_whether_correlation_is_bad(correlation: np.ndarray) -> bool:
     return np.max(correlation) < 0.1
 
 
-def determine_shift_by_correlation(zoom_factor, reference_signal, error_signal):
+def determine_shift_by_correlation(
+    zoom_factor: float, reference_signal: np.ndarray, error_signal: np.ndarray
+) -> Tuple[float, np.ndarray, np.ndarray]:
     """
     Compare two spectra and determines the shift by correlation.
 
@@ -171,9 +153,8 @@ def determine_shift_by_correlation(zoom_factor, reference_signal, error_signal):
     reference_signal[np.isnan(reference_signal)] = 0
     error_signal[np.isnan(error_signal)] = 0
 
-    # prepare the signals in order to get a normalized cross-correlation
-    # this is required in order for `check_whether_correlation_is_bad` to return
-    # senseful answer
+    # Prepare the signals in order to get a normalized cross-correlation. This is
+    # required in order for `check_whether_correlation_is_bad` to return sensible answer
     # cf. https://stackoverflow.com/questions/53436231/normalized-cross-correlation-in-python  # noqa: E501
     reference_signal = (reference_signal - np.mean(reference_signal)) / (
         np.std(reference_signal) * len(reference_signal)
@@ -196,15 +177,16 @@ def determine_shift_by_correlation(zoom_factor, reference_signal, error_signal):
 
     # now sample the error signal down to the same length as the zoomed
     # reference signal
-    downsampled_error_signal = resample(error_signal, len(zoomed_ref))
+    downsampled_error_signal: np.ndarray = resample(error_signal, len(zoomed_ref))
 
     correlation = correlate(zoomed_ref, downsampled_error_signal)
 
-    if check_whether_correlation_is_bad(correlation, len(zoomed_ref)):
+    if check_whether_correlation_is_bad(correlation):
         raise SpectrumUncorrelatedException()
 
-    shift = np.argmax(correlation)
-    shift = (shift - len(zoomed_ref)) / len(zoomed_ref) * 2 / zoom_factor
+    shift = float(
+        (np.argmax(correlation) - len(zoomed_ref)) / len(zoomed_ref) * 2 / zoom_factor
+    )
 
     return shift, zoomed_ref, downsampled_error_signal
 
@@ -278,7 +260,7 @@ def convert_channel_mixing_value(value: int) -> Tuple[int, int]:
 
 
 def combine_error_signal(
-    error_signals: tuple[Iterable[int], Iterable[int]],
+    error_signals: Tuple[Iterable[int], Iterable[int]],
     dual_channel: bool,
     channel_mixing: int,
     combined_offset: int,
@@ -300,9 +282,11 @@ def combine_error_signal(
 def check_plot_data(is_locked: bool, plot_data: Dict[str, np.ndarray]) -> bool:
     if is_locked:
         if "error_signal" not in plot_data or "control_signal" not in plot_data:
+            logger.debug(f"no control or error signal in {plot_data=}")
             return False
     else:
         if "error_signal_1" not in plot_data:
+            logger.debug(f"no error_signal_1 in {plot_data=}")
             return False
     return True
 

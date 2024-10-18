@@ -7,17 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+* Added loss of lock detection and automatic relocking by @bleykauf in https://github.com/linien-org/linien/pull/403
+
 ### Changed
 * Color settings are now named by @bleykauf in https://github.com/linien-org/linien/pull/426
+* Replaced parameters `autolock_running`, `autolock_failed`, `autolock_locked`, `autolock_retrying` with `autolock_status`
+
+### Deprecated
+* Unused parameters `autolock_initial_sweep_amplitude`, `autolock_watching`, `autolock_preparing` were removed.
+* Removed parameters `autolock_selection` and `optimization_selection` that were only used by the GUI.
+* Deprecated `exposed_start_lock`, use `exposed_start_manual_lock` instead.
+* Deprecated parameter `automatic_mode`, use `autolock_mode_preference` instead.
 
 ### Fixed
 * Corrected scripting examples by @kongmunist in https://github.com/linien-org/linien/pull/428
+
+## [2.1.0] - 2024-08-15
+
 
 ## [2.1.0]
 
 ### Added
 * Show differences when local and remote parameters do not match by @bleykauf in https://github.com/linien-org/linien/pull/400
 * Show voltage on the x-axis when sweeping by @bleykauf in https://github.com/linien-org/linien/pull/404
+* Added loss-of-lock detection and automatic relocking by @bleykauf in https://github.com/linien-org/linien/pull/403
 
 ### Changed
 * Switched to Tableau color scheme and make colors consistent, i.e. signals have the same color while sweeping and when locked. By @bleykauf in https://github.com/linien-org/linien/pull/419.
@@ -177,9 +191,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 * The parameters that deal with the sweep / ramp have been renamed:
-    * "center" is now "sweep_center"
-    * "ramp_amplitude", "ramp_speed" and * * "autolock_initial_ramp_amplitude" are now "sweep_amplitude" and * "sweep_speed" and "autolock_initial_sweep_amplitude", respectively
-        There is a new boolean parameter "sweep_pause".
+    * `center` is now `sweep_center`
+    * `ramp_amplitude`, `ramp_speed` and `autolock_initial_ramp_amplitude` are now `sweep_amplitude` and `sweep_speed` and `autolock_initial_sweep_amplitude`, respectively
+    * There is a new boolean parameter `sweep_pause`.
 
 
 ## [0.4.3] - 2021-06-22

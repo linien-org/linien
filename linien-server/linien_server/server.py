@@ -20,11 +20,12 @@ import atexit
 import logging
 import pickle
 from copy import copy
+from logging.handlers import RotatingFileHandler
 from random import randint, random
 from socket import socket
 from threading import Event, Thread
 from time import sleep
-from typing import Any, Callable
+from typing import Any, Callable, Optional
 
 import numpy as np
 import rpyc
@@ -35,20 +36,20 @@ from linien_common.communication import (
     pack,
     unpack,
 )
-from linien_common.config import SERVER_PORT
+from linien_common.config import LOG_FILE_PATH, SERVER_PORT
+from linien_common.enums import AutolockMode, AutolockStatus
 from linien_common.influxdb import InfluxDBCredentials, restore_credentials
 from linien_server import __version__
 from linien_server.autolock.autolock import Autolock
 from linien_server.influxdb import InfluxDBLogger
 from linien_server.noise_analysis import PIDOptimization, PSDAcquisition
-from linien_server.optimization.optimization import OptimizeSpectroscopy
+from linien_server.optimization.optimization import SpectroscopyOptimizer
 from linien_server.parameters import Parameters, restore_parameters, save_parameters
 from linien_server.registers import Registers
 from rpyc.core.protocol import Connection
 from rpyc.utils.server import ThreadedServer
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 
 class BaseService(rpyc.Service):
@@ -150,7 +151,6 @@ class RedPitayaControlService(BaseService, LinienControlService):
 
     def __init__(self, host=None):
         self._cached_data = {}
-        self.exposed_is_locked = None
 
         super(RedPitayaControlService, self).__init__()
 
@@ -207,7 +207,7 @@ class RedPitayaControlService(BaseService, LinienControlService):
                 if data_uuid != self.data_uuid:
                     continue
 
-                data_loaded = pickle.loads(new_data)
+                data_loaded: dict[str, Any] = pickle.loads(new_data)
 
                 if not data_was_raw:
                     is_locked = self.parameters.lock.value
@@ -239,57 +239,60 @@ class RedPitayaControlService(BaseService, LinienControlService):
                         is_locked,
                         self.parameters.control_signal_history_length.value,
                     )
+                    lock_lost = data_loaded.get("lock_lost", False)
+                    if (
+                        lock_lost
+                        and self.parameters.watch_lock.value
+                        and self.parameters.autolock_status.value
+                        == AutolockStatus.LOCKED
+                    ):
+                        self.parameters.autolock_status.value = AutolockStatus.LOST
+
                 else:
                     self.parameters.acquisition_raw_data.value = new_data
             sleep(0.05)
-
-    def _task_running(self):
-        return (
-            self.parameters.autolock_running.value
-            or self.parameters.optimization_running.value
-            or self.parameters.psd_acquisition_running.value
-            or self.parameters.psd_optimization_running.value
-        )
 
     def exposed_write_registers(self) -> None:
         """Sync the parameters with the FPGA registers."""
         self.registers.write_registers()
 
-    def exposed_start_autolock(self, x0, x1, spectrum, additional_spectra=None):
-        spectrum = pickle.loads(spectrum)
-        # start_watching = self.parameters.watch_lock.value
-        start_watching = False
-        auto_offset = self.parameters.autolock_determine_offset.value
-
-        if not self._task_running():
-            autolock = Autolock(self, self.parameters)
-            self.parameters.task.value = autolock
-            autolock.run(
-                x0,
-                x1,
-                spectrum,
-                should_watch_lock=start_watching,
-                auto_offset=auto_offset,
-                additional_spectra=(
-                    pickle.loads(additional_spectra)
-                    if additional_spectra is not None
-                    else None
-                ),
-            )
+    def exposed_start_autolock(
+        self,
+        x0: float = 0,
+        x1: float = 0,
+        spectrum: bytes = pickle.dumps(np.array([0])),
+        additional_spectra: Optional[bytes] = None,
+    ) -> None:
+        if self.parameters.task.value is None:
+            self.parameters.task.value = Autolock(self, self.parameters)
+            if self.parameters.autolock_mode_preference == AutolockMode.MANUAL:
+                logger.info("Start manual lock.")
+                self.parameters.task.value.run()
+            else:
+                logger.info(f"Start autolock with {x0=} {x1=}")
+                self.parameters.task.value.run(
+                    x0,
+                    x1,
+                    pickle.loads(spectrum),
+                    additional_spectra=(
+                        pickle.loads(additional_spectra)
+                        if additional_spectra is not None
+                        else None
+                    ),
+                )
 
     def exposed_start_optimization(self, x0, x1, spectrum):
-        if not self._task_running():
-            optim = OptimizeSpectroscopy(self, self.parameters)
-            self.parameters.task.value = optim
-            optim.run(x0, x1, spectrum)
+        if self.parameters.task.value is None:
+            self.parameters.task.value = SpectroscopyOptimizer(self, self.parameters)
+            self.parameters.task.value.run(x0, x1, spectrum)
 
     def exposed_start_psd_acquisition(self):
-        if not self._task_running():
+        if self.parameters.task.value is None:
             self.parameters.task.value = PSDAcquisition(self, self.parameters)
             self.parameters.task.value.run()
 
     def exposed_start_pid_optimization(self):
-        if not self._task_running():
+        if self.parameters.task.value is None:
             self.parameters.task.value = PIDOptimization(self, self.parameters)
             self.parameters.task.value.run()
 
@@ -297,12 +300,6 @@ class RedPitayaControlService(BaseService, LinienControlService):
         self.exposed_pause_acquisition()
         self.parameters.combined_offset.value = 0
         self.parameters.lock.value = False
-        self.exposed_write_registers()
-        self.exposed_continue_acquisition()
-
-    def exposed_start_lock(self):
-        self.exposed_pause_acquisition()
-        self.parameters.lock.value = True
         self.exposed_write_registers()
         self.exposed_continue_acquisition()
 
@@ -332,6 +329,7 @@ class RedPitayaControlService(BaseService, LinienControlService):
         parameters values have been written to the FPGA and that data that is now
         recorded is recorded with the correct parameters.
         """
+        logger.debug("Continue acquisition.")
         self.parameters.pause_acquisition.value = False
         self.registers.acquisition.exposed_continue_acquisition(self.data_uuid)
 
@@ -346,7 +344,7 @@ class RedPitayaControlService(BaseService, LinienControlService):
 class FakeRedPitayaControlService(BaseService, LinienControlService):
     def __init__(self):
         super().__init__()
-        self.exposed_is_locked = None
+        self.parameters = Parameters()
 
         self.random_data_thread = Thread(
             target=self._write_random_data_to_parameters_loop,
@@ -373,23 +371,32 @@ class FakeRedPitayaControlService(BaseService, LinienControlService):
             sleep(0.1)
 
     def exposed_write_registers(self):
-        pass
+        logger.info("Write registers")
 
-    def exposed_start_autolock(self, x0, x1, spectrum):
-        logger.info(f"Start autolock {x0} {x1}")
+    def exposed_start_autolock(
+        self,
+        x0: float,
+        x1: float,
+        spectrum: bytes,
+        additional_spectra: Optional[bytes] = None,
+    ) -> None:
+        logger.info(f"Start autolock {x0=}, {x1=}, {spectrum=}, {additional_spectra=}")
 
     def exposed_start_optimization(self, x0, x1, spectrum):
-        logger.info("Start optimization")
+        logger.info(f"Start optimization, {x0=}, {x1=}, {spectrum=}")
         self.parameters.optimization_running.value = True
+
+    def exposed_start_sweep(self):
+        logger.info("Start sweep")
 
     def exposed_shutdown(self):
         raise SystemExit()
 
     def exposed_pause_acquisition(self):
-        pass
+        logger.info("Pause acquisition")
 
     def exposed_continue_acquisition(self):
-        pass
+        logger.info("Continue acquisition")
 
 
 def run_threaded_server(
@@ -397,6 +404,29 @@ def run_threaded_server(
     authenticator: Callable[[socket], tuple[socket, None]],
 ) -> None:
     """Run a (Fake)RedPitayaControlService in a threaded server."""
+
+    for logger_name in ["linien_common", "linien_server"]:
+
+        logger = logging.getLogger(logger_name)
+        logger.setLevel(logging.DEBUG)
+
+        file_handler = RotatingFileHandler(
+            str(LOG_FILE_PATH), maxBytes=1000000, backupCount=10
+        )
+        file_handler.setLevel(logging.DEBUG)
+        file_formatter = logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        )
+        file_handler.setFormatter(file_formatter)
+        logger.addHandler(file_handler)
+
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.DEBUG)
+        console_formatter = logging.Formatter("%(name)-30s %(levelname)-8s %(message)s")
+        console_handler.setFormatter(console_formatter)
+        logger.addHandler(console_handler)
+
+    logger = logging.getLogger(__name__)
     if isinstance(control, FakeRedPitayaControlService):
         logger.info("Starting fake server")
     else:

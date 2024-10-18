@@ -14,13 +14,13 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
+
 import logging
 from pathlib import Path
 
 from appdirs import AppDirs
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 ACQUISITION_PORT = 19321
 SERVER_PORT = 18862

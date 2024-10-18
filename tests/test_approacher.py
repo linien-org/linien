@@ -17,65 +17,45 @@
 
 import numpy as np
 from linien_common.common import get_lock_point
-from linien_server.optimization.approach_line import Approacher
-from linien_server.parameters import Parameters
+from linien_server.optimization.approacher import Approacher
+from linien_server.server import FakeRedPitayaControlService
 
 Y_SHIFT = 4000
-
-
-def peak(x):
-    return np.exp(-np.abs(x)) * np.sin(x)
-
-
-def spectrum_for_testing(x):
-    central_peak = peak(x) * 2048
-    smaller_peaks = (peak(x - 10) * 1024) - (peak(x + 10) * 1024)
-    return central_peak + smaller_peaks + Y_SHIFT
+N_POINTS = 16384
 
 
 def get_signal(sweep_amplitude, center, shift):
+
+    def spectrum_for_testing(x):
+        def peak(x):
+            return np.exp(-np.abs(x)) * np.sin(x)
+
+        central_peak = peak(x) * 2048
+        smaller_peaks = (peak(x - 10) * 1024) - (peak(x + 10) * 1024)
+        return central_peak + smaller_peaks + Y_SHIFT
+
     max_val = np.pi * 5 * sweep_amplitude
     new_center = center + shift
-    x = np.linspace((-1 + new_center) * max_val, (1 + new_center) * max_val, 16384)
+    x = np.linspace((-1 + new_center) * max_val, (1 + new_center) * max_val, N_POINTS)
     return spectrum_for_testing(x)
 
 
-class FakeControl:
-    def __init__(self, parameters: Parameters):
-        self.parameters = parameters
-
-    def exposed_pause_acquisition(self):
-        pass
-
-    def exposed_continue_acquisition(self):
-        pass
-
-    def exposed_write_registers(self):
-        print(
-            "write: center={} amp={}".format(
-                self.parameters.sweep_center.value,
-                self.parameters.sweep_amplitude.value,
-            )
-        )
-
-
 def test_approacher(plt):
-    def _get_signal(shift):
-        return get_signal(
-            parameters.sweep_amplitude.value, parameters.sweep_center.value, shift
-        )
 
     for ref_shift in (-0.4, -0.2, 0.3):
         for target_shift in (-0.3, 0.6):
-            print(f"----- ref_shift={ref_shift}, target_shift={target_shift} -----")
-            parameters = Parameters()
-            control = FakeControl(parameters)
+            control = FakeRedPitayaControlService()
+            parameters = control.parameters
 
-            # approaching a line at the center is too easy
-            # we generate a reference signal that is shifted in some direction
-            # and then simulate that the user wants to approach a line that is not at
-            # the center (this is done using get_lock_point)
-            reference_signal = _get_signal(ref_shift)
+            # Approaching a line at the center is too easy. We generate a reference
+            # signal that is shifted in some direction and then simulate that the user
+            # wants to approach a line that is not at the center. Tthis is done using
+            # `get_lock_point`.
+            reference_signal = get_signal(
+                parameters.sweep_amplitude.value,
+                parameters.sweep_center.value,
+                ref_shift,
+            )
 
             (
                 central_y,
@@ -97,14 +77,18 @@ def test_approacher(plt):
                 rolled_reference_signal,
                 100,
                 central_y,
-                wait_time_between_current_corrections=0,
+                wait_time_between_sweep_center_changes=0,
             )
 
             found = False
             rng = np.random.default_rng(seed=0)
             for _ in range(100):
                 shift = target_shift * (1 + (0.025 * rng.standard_normal()))
-                error_signal = _get_signal(shift)[:]
+                error_signal = get_signal(
+                    parameters.sweep_amplitude.value,
+                    parameters.sweep_center.value,
+                    shift,
+                )
                 approacher.approach_line(error_signal)
 
                 if parameters.sweep_amplitude.value <= 0.2:

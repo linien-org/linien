@@ -26,7 +26,6 @@ from linien_common.communication import PathLike, RestorableParameterValues
 from linien_common.config import SERVER_PORT, USER_DATA_PATH
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 
 def generate_random_key():

@@ -20,7 +20,7 @@ import logging
 import os
 import pickle
 from socket import socket
-from typing import Any, Callable, List, Tuple, Union
+from typing import Any, Callable, List, Optional, Tuple, Union
 
 from linien_common.influxdb import InfluxDBCredentials
 from rpyc.utils.authenticators import AuthenticationError
@@ -31,7 +31,6 @@ from .config import USER_DATA_PATH
 HASH_FILE_NAME = "auth_hash.txt"
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 ParameterValues = Union[int, float, str, bool, Callable, bytes]
 RestorableParameterValues = Union[int, float, bool]
@@ -63,7 +62,11 @@ class LinienControlService(Protocol):
 
     def exposed_write_registers(self) -> None: ...
 
-    def exposed_start_optimization(self, x0, x1, spectrum) -> None: ...
+    def exposed_start_autolock(
+        self, x0: float, x1: float, spectrum, additional_spectra: Optional[Any]
+    ) -> None: ...
+
+    def exposed_start_optimization(self, x0: float, x1: float, spectrum) -> None: ...
 
     def exposed_start_psd_acquisition(self) -> None: ...
 
@@ -71,7 +74,9 @@ class LinienControlService(Protocol):
 
     def exposed_start_sweep(self) -> None: ...
 
-    def exposed_start_lock(self) -> None: ...
+    def exposed_start_manual_lock(
+        self, target_position: Optional[int] = None, slope_rising: Optional[bool] = None
+    ) -> None: ...
 
     def exposed_shutdown(self) -> None: ...
 

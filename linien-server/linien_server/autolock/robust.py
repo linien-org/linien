@@ -17,6 +17,7 @@
 
 import logging
 from time import time
+from typing import Optional
 
 import numpy as np
 from linien_common.common import (
@@ -36,7 +37,8 @@ from linien_server.autolock.utils import (
 )
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+
+N_SPECTRA_REQUIRED = 5
 
 
 class LockPositionNotFound(Exception):
@@ -56,8 +58,7 @@ class RobustAutolock:
         first_error_signal_rolled,
         x0,
         x1,
-        N_spectra_required=5,
-        additional_spectra=None,
+        additional_spectra: Optional[list[np.ndarray]] = None,
     ):
         self.control = control
         self.parameters = parameters
@@ -65,8 +66,6 @@ class RobustAutolock:
         self.first_error_signal = first_error_signal
         self.x0 = x0
         self.x1 = x1
-
-        self.N_spectra_required = N_spectra_required
 
         self.spectra = [first_error_signal]
 
@@ -91,15 +90,11 @@ class RobustAutolock:
             self._error_counter += 1
             if self._error_counter > 2:
                 raise
-
             return
 
         self.spectra.append(spectrum)
-        self.parameters.autolock_percentage.value = int(
-            round((len(self.spectra) / self.N_spectra_required) * 100)
-        )
 
-        if len(self.spectra) == self.N_spectra_required:
+        if len(self.spectra) == N_SPECTRA_REQUIRED:
             logger.debug("enough spectra!, calculate")
 
             t1 = time()
@@ -128,14 +123,12 @@ class RobustAutolock:
             self.parameters.lock.value = True
             self.control.exposed_write_registers()
 
-            self.parameters.autolock_preparing.value = False
-
             self._done = True
 
         else:
-            logger.error(
+            logger.info(
                 "Not enough spectra collected:"
-                f"{len(self.spectra)} of {self.N_spectra_required}"
+                f"{len(self.spectra)} of {N_SPECTRA_REQUIRED}"
             )
 
     def setup_timeout(self, N_acquisitions_to_wait=5):
@@ -163,7 +156,7 @@ class RobustAutolock:
         ):
             logger.error("Waited too long for autolock! Aborting")
             self.stop_timeout()
-            self.parameters.task.value.exposed_stop()
+            raise TimeoutError()
 
     def stop_timeout(self):
         self.parameters.ping.remove_callback(self.check_for_timeout)

@@ -23,8 +23,8 @@ Features
     automatically lock to it. This algorithm is built to be noise and jitter tolerant.
 -   **IQ demodulation**: Optimize demodulation phase in an instant
 -   **Noise analysis**: Record power spectral density (PSD) of the error signal for analyzing noise of the locked laser and for optimizing PID parameters
--   **Lock detection**: Linien is capable of detecting loss of lock (temporarily disabled, use [v0.3.2](https://github.com/linien-org/linien/releases/tag/v0.3.2) if you rely in this feature
--   **Automatic relocking**: if lock is lost, it relocks autonomously (temporarily disabled, use [v0.3.2](https://github.com/linien-org/linien/releases/tag/v0.3.2) if you rely in this feature)
+-   **Lock detection**: Linien is capable of detecting loss of lock
+-   **Automatic relocking**: if lock is lost, it relocks autonomously
 -   **Machine learning** is used to tune the spectroscopy parameters in order to optimize the signal
 -   **Remote-controllable**: the client libraries can be used to control or monitor the spectroscopy lock with Python.
 -   **Combined FMS+MTS**: Linien supports dual-channel spectroscopy that can be
@@ -256,7 +256,7 @@ print(c.parameters.modulation_frequency.value / MHz)
 c.parameters.modulation_amplitude.value = 1 * Vpp
 # in the line above, we set a parameter. This is not written directly to the
 # FPGA, though. In order to do this, we have to call write_registers():
-c.connection.root.write_registers()
+c.connection.root.exposed_write_registers()
 
 # additionally set ANALOG_OUT_1 to 1.2 volts DC (you can use this to control other devices of your experiment)
 c.parameters.analog_out_1.value = 1.2 / ANALOG_OUT_V
@@ -272,7 +272,7 @@ c.parameters.gpio_n_out.value = 0b11110000 # 4 on, 4 off
 c.parameters.gpio_p_out.value = 0b01010101 # 4 on, 4 off
 
 # again, we have to call write_registers in order to write the data to the FPGA
-c.connection.root.write_registers()
+c.connection.root.exposed_write_registers()
 
 # it is also possible to set up a callback function that is called whenever a
 # parameter changes (remember to call `check_for_changed_parameters()` periodically)
@@ -317,7 +317,7 @@ plt.show()
 
 For a full list of parameters that can be controlled or accessed have a
 look at
-[parameters.py](https://github.com/linien-org/linien/blob/master/linien-server/linien_server/parameters.py). Remember that changed parameters are not written to the FPGA unless `c.connection.root.write_registers()` is called.
+[parameters.py](https://github.com/linien-org/linien/blob/master/linien-server/linien_server/parameters.py). Remember that changed parameters are not written to the FPGA unless `c.connection.root.exposed_write_registers()` is called.
 
 ### Run the autolock
 
@@ -329,7 +329,7 @@ import numpy as np
 
 from linien_client.connection import LinienClient
 from linien_client.device import Device
-from linien_common.common import AutolockMode
+from linien_common.enums import AutolockMode
 
 from matplotlib import pyplot as plt
 from time import sleep
@@ -499,8 +499,13 @@ Copyright © 2014-2015 Robert Jördens\
 Copyright © 2018-2022 Benjamin Wiegand\
 Copyright © 2021-2024 Bastian Leykauf\
 Copyright © 2022 Christian Freier\
+<<<<<<< HEAD
+Copyright © 2023-2024 Doron Behar
+
+=======
 Copyright © 2023-2024 Doron Behar\
 Copyright © 2024 Andy Kong
+>>>>>>> develop
 
 Linien is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 

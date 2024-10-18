@@ -15,11 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
-from linien_common.common import (
-    ANALOG_OUT_V,
-    OutputChannel,
-    convert_channel_mixing_value,
-)
+from linien_common.common import ANALOG_OUT_V, convert_channel_mixing_value
+from linien_common.enums import OutputChannel
 from linien_gui.config import UI_PATH
 from linien_gui.ui.spin_box import CustomDoubleSpinBoxNoSign
 from linien_gui.utils import get_linien_app_instance, param2ui
@@ -154,12 +151,12 @@ class GeneralPanel(QtWidgets.QWidget):
         getattr(self.parameters, f"analog_out_{idx}").value = int(
             getattr(self, f"analogOutComboBox{idx}").value() / ANALOG_OUT_V
         )
-        self.control.write_registers()
+        self.control.exposed_write_registers()
 
     def on_channel_mixing_changed(self):
         value = int(self.channelMixingSlider.value()) - 128
         self.parameters.channel_mixing.value = value
-        self.control.write_registers()
+        self.control.exposed_write_registers()
 
         # update channel mixing slider
         a_value, b_value = convert_channel_mixing_value(value)
@@ -170,21 +167,21 @@ class GeneralPanel(QtWidgets.QWidget):
         self.parameters.pid_only_mode.value = int(
             self.pidOnlyModeCheckBox.checkState() > 0
         )
-        self.control.write_registers()
+        self.control.exposed_write_registers()
 
     def on_dual_channel_changed(self):
         self.parameters.dual_channel.value = int(
             self.dualChannelCheckBox.checkState() > 0
         )
-        self.control.write_registers()
+        self.control.exposed_write_registers()
 
     def on_mod_channel_changed(self, channel):
         self.parameters.mod_channel.value = channel
-        self.control.write_registers()
+        self.control.exposed_write_registers()
 
     def on_control_channel_changed(self, channel):
         self.parameters.control_channel.value = channel
-        self.control.write_registers()
+        self.control.exposed_write_registers()
 
     def on_slow_control_channel_changed(self, channel):
         if channel > 2:
@@ -193,23 +190,23 @@ class GeneralPanel(QtWidgets.QWidget):
         else:
             self.parameters.slow_control_channel.value = channel
             self.parameters.pid_on_slow_enabled.value = True
-        self.control.write_registers()
+        self.control.exposed_write_registers()
 
     def on_sweep_channel_changed(self, channel):
         self.parameters.sweep_channel.value = channel
-        self.control.write_registers()
+        self.control.exposed_write_registers()
 
     def on_polarity_fast_out1_changed(self, polarity):
         self.parameters.polarity_fast_out1.value = bool(polarity)
-        self.control.write_registers()
+        self.control.exposed_write_registers()
 
     def on_polarity_fast_out2_changed(self, polarity):
         self.parameters.polarity_fast_out2.value = bool(polarity)
-        self.control.write_registers()
+        self.control.exposed_write_registers()
 
     def on_polarity_analog_out0_changed(self, polarity):
         self.parameters.polarity_analog_out0.value = bool(polarity)
-        self.control.write_registers()
+        self.control.exposed_write_registers()
 
     def show_polarity_settings(self, *args):
         used_channels = {

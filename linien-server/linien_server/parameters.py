@@ -21,13 +21,13 @@ from time import time
 from typing import Any, Callable, Iterator
 
 import linien_server
-from linien_common.common import AutolockMode, MHz, PSDAlgorithm, Vpp
+from linien_common.common import MHz, Vpp
 from linien_common.config import USER_DATA_PATH, create_backup_file
+from linien_common.enums import AutolockMode, AutolockStatus, PSDAlgorithm
 
 PARAMETER_STORE_FILENAME = "parameters.json"
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 
 class Parameter:
@@ -50,7 +50,7 @@ class Parameter:
         self.wrap = wrap
         self._value = start
         self._start = start
-        self._callbacks = set()
+        self.callbacks = set()
         self.can_be_cached = sync
         self._collapsed_sync = collapsed_sync
         self.restorable = restorable
@@ -73,7 +73,7 @@ class Parameter:
 
         # We copy it because a listener could remove a listener --> this would cause an
         # error in this loop.
-        for callback in self._callbacks.copy():
+        for callback in self.callbacks.copy():
             callback(value)
 
     def reset(self):
@@ -82,15 +82,15 @@ class Parameter:
     def add_callback(
         self, function: Callable[[Any], None], call_immediately: bool = False
     ) -> None:
-        self._callbacks.add(function)
+        self.callbacks.add(function)
 
         if call_immediately:
             if self._value is not None:
                 function(self._value)
 
     def remove_callback(self, function: Callable[[Any], None]) -> None:
-        if function in self._callbacks:
-            self._callbacks.remove(function)
+        if function in self.callbacks:
+            self.callbacks.remove(function)
 
 
 class Parameters:
@@ -466,22 +466,22 @@ class Parameters:
 
         self.filter_1_type_a = Parameter(start=0, restorable=True)
         """
-        Either `LOW_PASS` or `HIGH_PASS` of linien_common.common.FilterType` enum class.
+        Either `LOW_PASS` or `HIGH_PASS` of linien_common.enums.FilterType` enum class.
         """
 
         self.filter_2_type_a = Parameter(start=0, restorable=True)
         """
-        Either `LOW_PASS` or `HIGH_PASS` of linien_common.common.FilterType` enum class.
+        Either `LOW_PASS` or `HIGH_PASS` of linien_common.enums.FilterType` enum class.
         """
 
         self.filter_1_type_b = Parameter(start=0, restorable=True)
         """
-        Either `LOW_PASS` or `HIGH_PASS` of linien_common.common.FilterType` enum class.
+        Either `LOW_PASS` or `HIGH_PASS` of linien_common.enums.FilterType` enum class.
         """
 
         self.filter_2_type_b = Parameter(start=0, restorable=True)
         """
-        Either `LOW_PASS` or `HIGH_PASS` of linien_common.common.FilterType` enum class.
+        Either `LOW_PASS` or `HIGH_PASS` of linien_common.enums.FilterType` enum class.
         """
 
         # ------------------- LOCK AND PID PARAMETERS ----------------------------------
@@ -523,16 +523,58 @@ class Parameters:
         integrator. Maximum value is 8191.
         """
 
-        self.check_lock = Parameter(start=True, restorable=True)
-        self.watch_lock = Parameter(start=True, restorable=True)
-        self.watch_lock_threshold = Parameter(start=0.01, restorable=True)
+        # ------------------- QATCH LOCK AND RELOCKING ---------------------------------
+        self.watch_lock = Parameter(start=False, restorable=True, loggable=True)
+        """Watch the lock state and set `lock_status` to `LOST` if lock is lost."""
+
+        self.watch_lock_control = Parameter(start=False, restorable=True, loggable=True)
+        """Watch the lock state on the control channel."""
+
+        self.watch_lock_error = Parameter(start=False, restorable=True, loggable=True)
+        """Watch the lock state on the error channel."""
+
+        self.watch_lock_monitor = Parameter(start=False, restorable=True, loggable=True)
+        """Watch the lock state on the monitor channel."""
+
+        self.automatic_relocking = Parameter(start=False, restorable=True)
+        """Attempt relocking if lock is lost."""
+
+        self.watch_lock_control_min = Parameter(
+            start=-0.9, restorable=True, loggable=True
+        )
+        """Lower bound for control signal below which `lock_status` is set to `LOST`."""
+
+        self.watch_lock_control_max = Parameter(
+            start=0.9, restorable=True, loggable=True
+        )
+        """Upper bound for control signal above which `lock_status` is set to `LOST`."""
+
+        self.watch_lock_error_min = Parameter(
+            start=-0.9, restorable=True, loggable=True
+        )
+        """Lower bound for error signal below which `lock_status` is set to `LOST`."""
+
+        self.watch_lock_error_max = Parameter(start=0.9, restorable=True, loggable=True)
+        """Upper bound for error signal above which `lock_status` is set to `LOST`."""
+
+        self.watch_lock_monitor_min = Parameter(
+            start=-0.9, restorable=True, loggable=True
+        )
+        """Lower bound for monitor signal below which `lock_status` is set to `LOST`."""
+
+        self.watch_lock_monitor_max = Parameter(
+            start=0.9, restorable=True, loggable=True
+        )
+        """Upper bound for monitor signal above which `lock_status` is set to `LOST`."""
 
         # ------------------- AUTOLOCK PARAMETERS --------------------------------------
-        # These parameters are used internally by the optimization algorithm and usually
-        # should not be manipulated
+        # These parameters are used internally by the optimization algorithm.
         self.task = Parameter(start=None, sync=False)
-        self.automatic_mode = Parameter(start=True)
+        self.autolock_determine_offset = Parameter(start=True, restorable=True)
         self.autolock_target_position = Parameter(start=0)
+        """
+        Target position for the manual lock. Automatically set by the simple autolock.
+        """
         self.autolock_mode_preference = Parameter(
             start=AutolockMode.AUTO_DETECT, restorable=True
         )
@@ -540,30 +582,20 @@ class Parameters:
         self.autolock_time_scale = Parameter(start=0)
         self.autolock_instructions = Parameter(start=[], sync=False)
         self.autolock_final_wait_time = Parameter(start=0)
-        self.autolock_selection = Parameter(start=False)
-        self.autolock_running = Parameter(start=False)
-        self.autolock_preparing = Parameter(start=False)
-        self.autolock_percentage = Parameter(start=0, min_=0, max_=100)
-        self.autolock_watching = Parameter(start=False)
-        self.autolock_failed = Parameter(start=False)
-        self.autolock_locked = Parameter(start=False)
-        self.autolock_retrying = Parameter(start=False)
-        self.autolock_determine_offset = Parameter(start=True, restorable=True)
-        self.autolock_initial_sweep_amplitude = Parameter(start=1)
+        self.autolock_status = Parameter(start=AutolockStatus.STOPPED)
 
         # ------------------- OPTIMIZATION PARAMETERS ----------------------------------
         # These parameters are used internally by the optimization algorithm and usually
         # should not be manipulated
-        self.optimization_selection = Parameter(start=False)
         self.optimization_running = Parameter(start=False)
         self.optimization_approaching = Parameter(start=False)
         self.optimization_improvement = Parameter(start=0)
-        self.optimization_mod_freq_enabled = Parameter(start=1)
-        self.optimization_mod_freq_min = Parameter(start=0.0)
-        self.optimization_mod_freq_max = Parameter(start=10.0)
-        self.optimization_mod_amp_enabled = Parameter(start=1)
-        self.optimization_mod_amp_min = Parameter(start=0.0)
-        self.optimization_mod_amp_max = Parameter(start=2.0)
+        self.optimization_mod_freq_enabled = Parameter(start=True, restorable=True)
+        self.optimization_mod_freq_min = Parameter(start=0.0, restorable=True)
+        self.optimization_mod_freq_max = Parameter(start=10.0, restorable=True)
+        self.optimization_mod_amp_enabled = Parameter(start=True, restorable=True)
+        self.optimization_mod_amp_min = Parameter(start=0.0, restorable=True)
+        self.optimization_mod_amp_max = Parameter(start=2.0, restorable=True)
         self.optimization_optimized_parameters = Parameter(start=(0, 0, 0))
         self.optimization_channel = Parameter(start=0)
         self.optimization_failed = Parameter(start=False)

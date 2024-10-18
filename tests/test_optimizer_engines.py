@@ -28,17 +28,7 @@ from linien_server.optimization.engine import (
     OptimizerEngine,
 )
 from linien_server.parameters import Parameters
-
-
-def test_multi():
-    e = MultiDimensionalOptimizationEngine([[0, 10], [0, 10]])
-
-    while not e.finished():
-        solution = e.ask()
-        result = cma.ff.rosen(solution)
-        e.tell(result, solution)
-
-    print("done", e.es.result_pretty())
+from linien_server.server import FakeRedPitayaControlService
 
 
 class FakeControl:
@@ -60,23 +50,30 @@ class FakeControl:
         )
 
 
-def test_optimization():
-    params = Parameters()
-    control = FakeControl(params)
+def generate_slope(n=1024, slope=1):
+    return np.array([v * slope for v in range(n)])
 
-    def generate_slope(N=1024, slope=1):
-        return np.array([v * slope for v in range(N)])
 
-    # # # -------------------------------------------------------
-    #  check that 0D optimization only optimizes phase
-    # # #-------------------------------------------------------
-    params = Parameters()
-    control = FakeControl(params)
+def test_multi():
+    e = MultiDimensionalOptimizationEngine([[0, 10], [0, 10]])
 
-    params.optimization_mod_freq_enabled.value = False
-    params.optimization_mod_amp_enabled.value = False
+    while not e.finished():
+        solution = e.ask()
+        result = cma.ff.rosen(solution)
+        e.tell(result, solution)
 
-    engine = OptimizerEngine(control, params)
+    print("done", e.es.result_pretty())
+
+
+def test_optimization_0d():
+    """ "Check that 0D optimization only optimizes phase."""
+    control = FakeRedPitayaControlService()
+    parameters = control.parameters
+
+    parameters.optimization_mod_freq_enabled.value = False
+    parameters.optimization_mod_amp_enabled.value = False
+
+    engine = OptimizerEngine(control, parameters)
 
     iq_phase = 23
     generated_slope = generate_slope(slope=456)
@@ -88,21 +85,21 @@ def test_optimization():
     engine.use_best_parameters()
 
     # check that demodulation phase was correctly optimized
-    demod_phase = params.demodulation_phase_a.value
+    demod_phase = parameters.demodulation_phase_a.value
     assert (
         abs(demod_phase - iq_phase) < 0.1 or (abs(180 - demod_phase - iq_phase)) < 0.1
     )
 
-    # # # -------------------------------------------------------
-    # test 1D optimization
-    # # # -------------------------------------------------------
-    params = Parameters()
-    control = FakeControl(params)
 
-    params.optimization_mod_freq_enabled.value = False
-    params.optimization_mod_amp_enabled.value = True
+def test_optimization_1d():
+    """Test 1D optimization."""
+    control = FakeRedPitayaControlService()
+    parameters = control.parameters
 
-    engine = OptimizerEngine(control, params)
+    parameters.optimization_mod_freq_enabled.value = False
+    parameters.optimization_mod_amp_enabled.value = True
+
+    engine = OptimizerEngine(control, parameters)
     assert not engine.finished()
 
     idx = 0
@@ -111,8 +108,8 @@ def test_optimization():
     while not engine.finished():
         engine.request_and_set_new_parameters()
 
-        f = params.modulation_frequency.value / MHz
-        a = params.modulation_amplitude.value / Vpp
+        _ = parameters.modulation_frequency.value / MHz
+        a = parameters.modulation_amplitude.value / Vpp
 
         fitness = 2**2 - (a - 0.5) ** 2
 
@@ -126,24 +123,22 @@ def test_optimization():
             raise Exception("did not finish!")
 
     engine.use_best_parameters()
-    assert params.modulation_amplitude.value / Vpp - 0.5 < 0.1
-    # assert params.modulation_frequency.value / MHz - 5 < 0.1
-    demod_phase = params.demodulation_phase_a.value
+    assert parameters.modulation_amplitude.value / Vpp - 0.5 < 0.1
+    # assert parameters.modulation_frequency.value / MHz - 5 < 0.1
+    demod_phase = parameters.demodulation_phase_a.value
     assert (
         abs(demod_phase - iq_phase) < 0.1 or (abs(180 - demod_phase - iq_phase)) < 0.1
     )
 
-    # # # -------------------------------------------------------
-    # test 2D optimization
-    # # # -------------------------------------------------------
 
-    params = Parameters()
-    control = FakeControl(params)
+def test_optimization_2d():
+    control = FakeRedPitayaControlService()
+    parameters = control.parameters
 
-    params.optimization_mod_freq_enabled.value = True
-    params.optimization_mod_amp_enabled.value = True
+    parameters.optimization_mod_freq_enabled.value = True
+    parameters.optimization_mod_amp_enabled.value = True
 
-    engine = OptimizerEngine(control, params)
+    engine = OptimizerEngine(control, parameters)
     assert not engine.finished()
 
     idx = 0
@@ -152,8 +147,8 @@ def test_optimization():
     while not engine.finished():
         engine.request_and_set_new_parameters()
 
-        f = params.modulation_frequency.value / MHz
-        a = params.modulation_amplitude.value / Vpp
+        f = parameters.modulation_frequency.value / MHz
+        a = parameters.modulation_amplitude.value / Vpp
 
         fitness = (5**2 - (f - 5) ** 2) + (2**2 - (a - 0.5) ** 2)
 
@@ -167,9 +162,9 @@ def test_optimization():
             raise Exception("did not finish!")
 
     engine.use_best_parameters()
-    assert params.modulation_amplitude.value / Vpp - 0.5 < 0.1
-    assert params.modulation_frequency.value / MHz - 5 < 0.1
-    demod_phase = params.demodulation_phase_a.value
+    assert parameters.modulation_amplitude.value / Vpp - 0.5 < 0.1
+    assert parameters.modulation_frequency.value / MHz - 5 < 0.1
+    demod_phase = parameters.demodulation_phase_a.value
     assert (
         abs(demod_phase - iq_phase) < 0.1 or (abs(180 - demod_phase - iq_phase)) < 0.1
     )
@@ -177,4 +172,6 @@ def test_optimization():
 
 if __name__ == "__main__":
     test_multi()
-    test_optimization()
+    test_optimization_0d()
+    test_optimization_1d()
+    test_optimization_2d()

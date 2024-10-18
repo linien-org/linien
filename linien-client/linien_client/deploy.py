@@ -30,7 +30,6 @@ from linien_common.communication import hash_username_and_password
 from .device import Device
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 
 def read_remote_version(
@@ -50,7 +49,7 @@ def read_remote_version(
         connect_kwargs={"password": device.password},
     ) as conn:
         result = conn.run(
-            'python3 -c "import linien_server; print(linien_server.__version__);"',
+            'python3 -c "import linien_server;"',
             out_stream=out_stream,
             err_stream=out_stream,
             warn=True,
