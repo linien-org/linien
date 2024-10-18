@@ -59,11 +59,11 @@ class LockingPanel(QtWidgets.QWidget):
         self.app.connection_established.connect(self.on_connection_established)
 
         self.selectLineToLockPushButton.clicked.connect(self.start_autolock_selection)
-        self.abortSelectingPushButton.clicked.connect(self.stop_autolock_selection)
+        self.abortSelectingPushButton.clicked.connect(self.abort_autolock_selection)
         self.manualLockButton.clicked.connect(self.start_manual_lock)
         self.pIDOnSlowStrengthSpinBox.setKeyboardTracking(False)
-        self.resetLockFailedStatePushButton.clicked.connect(self.reset_lock_failed)
-        self.stopLockPushButton.clicked.connect(self.on_stop_lock)
+        self.resetLockFailedStatePushButton.clicked.connect(self.reset_failed_lock)
+        self.stopLockPushButton.clicked.connect(self.stop_lock)
         self.controlSignalHistoryLengthSpinBox.setKeyboardTracking(False)
         self.controlSignalHistoryLengthSpinBox.valueChanged.connect(
             self.on_control_signal_history_length_changed
@@ -117,7 +117,10 @@ class LockingPanel(QtWidgets.QWidget):
         logger.debug(f"Autolock status changed to {status}")
         self.lockSettingsWidget.setVisible(status.value == AutolockStatus.STOPPED)
         self.resetLockFailedStatePushButton.setVisible(
-            status.value == AutolockStatus.FAILED or status.value == AutolockStatus.LOST
+            status.value == AutolockStatus.FAILED
+        )
+        self.stopLockPushButton.setVisible(
+            status.value == AutolockStatus.LOCKED or status.value == AutolockStatus.LOST
         )
         self.autolockSelectingWidget.setVisible(
             status.value == AutolockStatus.SELECTING
@@ -142,12 +145,6 @@ class LockingPanel(QtWidgets.QWidget):
             self.controlSignalHistoryLengthSpinBox.value()
         )
 
-    def on_stop_lock(self):
-        if self.parameters.task.value is not None:  # may be autolock or psd acquisition
-            self.parameters.autolock_status.value = AutolockStatus.STOPPED
-            self.parameters.task.value.stop()
-            self.parameters.task.value = None
-
     def on_slow_pid_enabled_changed(self, _) -> None:
         self.slowPIDGroupBox.setVisible(self.parameters.pid_on_slow_enabled.value)
 
@@ -162,8 +159,14 @@ class LockingPanel(QtWidgets.QWidget):
     def start_autolock_selection(self):
         self.parameters.autolock_status.value = AutolockStatus.SELECTING
 
-    def stop_autolock_selection(self):
+    def abort_autolock_selection(self):
         self.parameters.autolock_status.value = AutolockStatus.STOPPED
 
-    def reset_lock_failed(self):
+    def reset_failed_lock(self):
         self.parameters.autolock_status.value = AutolockStatus.STOPPED
+
+    def stop_lock(self):
+        if self.parameters.task.value is not None:  # may be autolock or psd acquisition
+            self.parameters.autolock_status.value = AutolockStatus.STOPPED
+            self.parameters.task.value.stop()
+            self.parameters.task.value = None
