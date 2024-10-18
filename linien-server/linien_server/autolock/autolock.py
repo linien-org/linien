@@ -66,7 +66,7 @@ class Autolock:
         Relock the laser using the reference spectrum recorded in the first locking
         approach.
         """
-        self.parameters.autock_status.value = AutolockStatus.RELOCKING
+        self.parameters.autolock_status.value = AutolockStatus.RELOCKING
         self.control.exposed_start_sweep()
         # Add a listener that listens for new spectrum data and tries to relock.
         if self.parameters.autolock_mode_preference.value == AutolockMode.MANUAL:

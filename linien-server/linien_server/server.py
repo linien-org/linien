@@ -241,8 +241,8 @@ class RedPitayaControlService(BaseService, LinienControlService):
                     )
                     lock_lost = data_loaded.get("lock_lost", False)
                     if (
-                        self.parameters.watch_lock.value
-                        and lock_lost
+                        lock_lost
+                        and self.parameters.watch_lock.value
                         and self.parameters.autolock_status.value
                         == AutolockStatus.LOCKED
                     ):
