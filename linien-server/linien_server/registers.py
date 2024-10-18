@@ -180,7 +180,7 @@ class Registers:
                 getattr(self.parameters, f"watch_lock_{channel}").value
                 and self.parameters.watch_lock.value
             )
-            new[f"logic_relock_watcher_should_watch_{channel}"] = should_watch
+            new[f"logic_relock_watcher_should_watch_{channel}"] = int(should_watch)
             new[f"logic_relock_watcher_min_{channel}"] = max_(
                 int(getattr(self.parameters, f"watch_lock_{channel}_min").value * 8191)
             )
