@@ -239,12 +239,11 @@ class RedPitayaControlService(BaseService, LinienControlService):
                         is_locked,
                         self.parameters.control_signal_history_length.value,
                     )
-                    self.parameters.lock_lost.value = data_loaded.get(
-                        "lock_lost", False
-                    )
+                    lock_lost = data_loaded.get("lock_lost", False)
                     if (
                         self.parameters.watch_lock.value
-                        and self.parameters.lock_lost.value
+                        and lock_lost
+                        and self.parameters.autolock_status.value != AutolockStatus.LOST
                     ):
                         self.parameters.autolock_status.value = AutolockStatus.LOST
 
