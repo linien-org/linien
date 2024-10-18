@@ -20,11 +20,20 @@ import pickle
 from typing import Optional
 
 import numpy as np
-from linien_common.common import check_plot_data, combine_error_signal, get_lock_point
+from linien_common.common import (
+    SpectrumUncorrelatedException,
+    check_plot_data,
+    combine_error_signal,
+    get_lock_point,
+)
 from linien_common.communication import LinienControlService
 from linien_common.enums import AutolockMode, AutolockStatus
 from linien_server.autolock.algorithm_selection import AutolockAlgorithmSelector
-from linien_server.autolock.robust import RobustAutolock
+from linien_server.autolock.robust import (
+    LockPositionNotFound,
+    RobustAutolock,
+    UnableToFindDescription,
+)
 from linien_server.autolock.simple import SimpleAutolock
 from linien_server.parameters import Parameters
 
@@ -47,7 +56,6 @@ class Autolock:
 
     def stop(self) -> None:
         """Abort any operation."""
-        self.parameters.autolock_status.value = AutolockStatus.STOPPED
         self.parameters.fetch_additional_signals.value = True
         self.parameters.to_plot.remove_callback(self.try_to_start_autolock)
         self.control.exposed_start_sweep()
@@ -189,8 +197,14 @@ class Autolock:
                 if self.algorithm is not None:  # for mypy, algorithm is already set
                     self.algorithm.after_lock()
 
-        except Exception:
+        except (
+            UnableToFindDescription,
+            LockPositionNotFound,
+            SpectrumUncorrelatedException,
+            TimeoutError,
+        ):
             logger.exception("Error while handling new spectrum")
+            self.parameters.autolock_status.value = AutolockStatus.FAILED
             self.stop()
 
     def start_manual_lock(self) -> None:

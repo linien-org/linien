@@ -143,8 +143,8 @@ class LockingPanel(QtWidgets.QWidget):
         )
 
     def on_stop_lock(self):
-        if self.parameters.task.value is not None:
-            # this may be autolock or psd acquisition
+        if self.parameters.task.value is not None:  # may be autolock or psd acquisition
+            self.parameters.autolock_status.value = AutolockStatus.STOPPED
             self.parameters.task.value.stop()
             self.parameters.task.value = None
 
