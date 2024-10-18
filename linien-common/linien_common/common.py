@@ -140,7 +140,7 @@ def check_whether_correlation_is_bad(correlation: np.ndarray) -> bool:
 
 def determine_shift_by_correlation(
     zoom_factor: float, reference_signal: np.ndarray, error_signal: np.ndarray
-) -> tuple[float, np.ndarray, np.ndarray]:
+) -> Tuple[float, np.ndarray, np.ndarray]:
     """
     Compare two spectra and determines the shift by correlation.
 
