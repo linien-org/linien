@@ -56,8 +56,8 @@ class LimitCSR(Filter):
         width = len(self.y)
         if guard:
             self.x = Signal((width + guard, True))
-        self.min = CSRStorage(width, reset=1 << (width - 1))
-        self.max = CSRStorage(width, reset=(1 << (width - 1)) - 1)
+        self.min = CSRStorage(width, reset=1 << (width - 1), name = "min")
+        self.max = CSRStorage(width, reset=(1 << (width - 1)) - 1, name = "max")
 
         ###
 

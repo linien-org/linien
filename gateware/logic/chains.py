@@ -34,8 +34,8 @@ class FastChain(Module, AutoCSR):
         # output of quadrature demodulated signal
         self.out_q = Signal((signal_width, True))
 
-        self.y_tap = CSRStorage(2)
-        self.invert = CSRStorage(1)
+        self.y_tap = CSRStorage(2,name= "y_tap")
+        self.invert = CSRStorage(1,name= "invert")
 
         self.state_in = []
         self.state_out = []
@@ -162,8 +162,8 @@ def cross_connect(gpio, chains):
     states = Cat(states)
     state = Signal(len(states))
     gpio.comb += state.eq(states)
-    gpio.state = CSRStatus(len(state))
-    gpio.state_clr = CSR()
+    gpio.state = CSRStatus(len(state), name="state")
+    gpio.state_clr = CSR(name="state_clr")
     gpio.sync += [
         If(
             gpio.state_clr.re,

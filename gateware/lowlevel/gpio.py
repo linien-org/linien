@@ -25,9 +25,9 @@ class Gpio(Module, AutoCSR):
         n = len(pins)
         self.i = Signal(n)
         self.o = Signal(n)
-        self.ins = CSRStatus(n)
-        self.outs = CSRStorage(n)
-        self.oes = CSRStorage(n)
+        self.ins = CSRStatus(n, name = "ins")
+        self.outs = CSRStorage(n, name = "outs")
+        self.oes = CSRStorage(n, name = "oes")
 
         ###
 

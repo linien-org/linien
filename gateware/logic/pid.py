@@ -37,7 +37,7 @@ class PID(Module, AutoCSR):
         self.calculate_sum()
 
     def calculate_error_signal(self):
-        self.setpoint = CSRStorage(self.width)
+        self.setpoint = CSRStorage(self.width, name ="setpoint")
         setpoint_signed = Signal((self.width, True))
         self.comb += [setpoint_signed.eq(self.setpoint.storage)]
 
@@ -50,7 +50,7 @@ class PID(Module, AutoCSR):
         ]
 
     def calculate_p(self):
-        self.kp = CSRStorage(self.coeff_width)
+        self.kp = CSRStorage(self.coeff_width, name = "kp")
         kp_signed = Signal((self.coeff_width, True))
         self.comb += [kp_signed.eq(self.kp.storage)]
 
@@ -63,8 +63,8 @@ class PID(Module, AutoCSR):
         self.kp_mult = kp_mult
 
     def calculate_i(self):
-        self.ki = CSRStorage(self.coeff_width)
-        self.reset = CSRStorage()
+        self.ki = CSRStorage(self.coeff_width, name = "ki")
+        self.reset = CSRStorage(name = "reset")
 
         ki_signed = Signal((self.coeff_width, True))
         self.comb += [ki_signed.eq(self.ki.storage)]
@@ -106,7 +106,7 @@ class PID(Module, AutoCSR):
         mult_width = self.coeff_width + self.width + 2
         out_width = mult_width - self.coeff_width + self.d_shift + 1
 
-        self.kd = CSRStorage(self.coeff_width)
+        self.kd = CSRStorage(self.coeff_width, name = "kd")
         kd_signed = Signal((self.coeff_width, True))
         kd_mult = Signal((mult_width, True))
 

@@ -38,13 +38,13 @@ class Iir(Filter):
             intermediate_width = width + coeff_width
             # + bits_for(2*(order + 1))
 
-        self.z0 = CSRStorage(intermediate_width - shift, reset=0)
-        self.shift = CSRConstant(shift)
-        self.width = CSRConstant(coeff_width)
-        self.interval = CSRConstant(0, 8)
-        self.latency = CSRConstant(0, 8)
-        self.order = CSRConstant(order, 8)
-        self.iterative = CSRConstant(mode == "iterative", 1)
+        self.z0 = CSRStorage(intermediate_width - shift, reset=0, name = "z0")
+        self.shift = CSRConstant(shift, name = "shift")
+        self.width = CSRConstant(coeff_width, name = "width")
+        self.interval = CSRConstant(0, 8, name = "interval")
+        self.latency = CSRConstant(0, 8, name = "latency")
+        self.order = CSRConstant(order, 8, name = "order")
+        self.iterative = CSRConstant(mode == "iterative", 1, name = "iterative")
 
         self.c = c = {}
         for i in "ab":

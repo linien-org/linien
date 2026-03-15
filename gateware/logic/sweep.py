@@ -69,11 +69,11 @@ class SweepCSR(Module, AutoCSR):
         if step_width is None:
             step_width = width
 
-        self.step = CSRStorage(step_width)
-        self.min = CSRStorage(width, reset=1 << (width - 1))
-        self.max = CSRStorage(width, reset=(1 << (width - 1)) - 1)
-        self.run = CSRStorage(1)
-        self.pause = CSRStorage(1)
+        self.step = CSRStorage(step_width, name ="step")
+        self.min = CSRStorage(width, reset=1 << (width - 1), name="min")
+        self.max = CSRStorage(width, reset=(1 << (width - 1)) - 1, name="max")
+        self.run = CSRStorage(1, name="run")
+        self.pause = CSRStorage(1, name="pause")
 
         ###
 

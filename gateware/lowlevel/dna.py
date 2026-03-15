@@ -22,7 +22,7 @@ from misoc.interconnect.csr import AutoCSR, CSRStatus
 class DNA(Module, AutoCSR):
     def __init__(self, version=0b1000001):
         n = 64
-        self.dna = CSRStatus(n, reset=version << 57)
+        self.dna = CSRStatus(n, reset=version << 57, name = "dna")
 
         ###
 

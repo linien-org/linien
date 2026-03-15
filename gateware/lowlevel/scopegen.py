@@ -47,7 +47,7 @@ class ScopeGen(Module, AutoCSR):
             ).Else(automatic_trigger_signal.eq(0))
         ]
 
-        self.external_trigger = CSRStorage(1)
+        self.external_trigger = CSRStorage(1,name="external_trigger")
         ext_scope_trigger = Array([self.gpio_trigger, self.sweep_trigger])[
             self.external_trigger.storage
         ]

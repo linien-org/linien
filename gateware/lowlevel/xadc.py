@@ -35,12 +35,12 @@ class XADC(Module, AutoCSR):
         self.ot = Signal()
         self.adc = [Signal((12, True)) for i in range(4)]
 
-        self.temp = CSRStatus(12)
-        self.v = CSRStatus(12)
-        self.a = CSRStatus(12)
-        self.b = CSRStatus(12)
-        self.c = CSRStatus(12)
-        self.d = CSRStatus(12)
+        self.temp = CSRStatus(12, name = "temp")
+        self.v = CSRStatus(12, name = "v")
+        self.a = CSRStatus(12, name = "a")
+        self.b = CSRStatus(12, name = "b")
+        self.c = CSRStatus(12, name = "c")
+        self.d = CSRStatus(12, name = "d")
 
         ###
 

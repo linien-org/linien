@@ -1,0 +1,24 @@
+#-----------------------------------------------------------
+# Vivado v2025.2 (64-bit)
+# SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+# IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+# SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+# Start of session at: Fri Mar  6 09:39:46 2026
+# Process ID         : 38584
+# Current directory  : C:/Users/dimuc/Desktop/linien-src/linien
+# Command line       : vivado.exe -mode batch -source gateware\fpga_image_helper.py
+# Log file           : C:/Users/dimuc/Desktop/linien-src/linien/vivado.log
+# Journal file       : C:/Users/dimuc/Desktop/linien-src/linien\vivado.jou
+# Running On         : ZenbookGeorge
+# Platform           : Windows Server 2016 or Windows 10
+# Operating System   : 26200
+# Processor Detail   : Intel(R) Core(TM) Ultra 9 285H
+# CPU Frequency      : 3686 MHz
+# CPU Physical cores : 16
+# CPU Logical cores  : 16
+# Host memory        : 33685 MB
+# Swap memory        : 57982 MB
+# Total Virtual      : 91667 MB
+# Available Virtual  : 46222 MB
+#-----------------------------------------------------------
+source {gateware\fpga_image_helper.py}

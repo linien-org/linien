@@ -14,6 +14,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
+import pathlib
+from pathlib import Path
 
 from migen.build.generic_platform import (
     ConstraintError,
@@ -168,9 +170,14 @@ class Platform(XilinxPlatform):
     default_clk_period = 8.0
 
     def __init__(self):
-        XilinxPlatform.__init__(self, "xc7z010-clg400-1", _io, toolchain="vivado")
+        XilinxPlatform.__init__(self, "xc7z020-clg400-1", _io, toolchain="vivado")
+        xdc_path = (
+            pathlib.Path(__file__).resolve().parent
+            / "verilog"
+            / "system_processing_system7_0_0.xdc"
+        )
         self.toolchain.pre_synthesis_commands.append(
-            "read_xdc -ref processing_system7_v5_4_processing_system7 ../verilog/system_processing_system7_0_0.xdc"  # noqa: E501
+            f'read_xdc -ref processing_system7_v5_4_processing_system7 "{xdc_path.as_posix()}"'
         )
         self.toolchain.with_phys_opt = True
 

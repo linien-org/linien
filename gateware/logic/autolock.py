@@ -39,9 +39,9 @@ class FPGAAutolock(Module, AutoCSR):
 
         self.submodules.fast = SimpleAutolock(width=width)
 
-        self.request_lock = CSRStorage()
-        self.autolock_mode = CSRStorage(2)
-        self.lock_running = CSRStatus()
+        self.request_lock = CSRStorage( name = "request_lock")
+        self.autolock_mode = CSRStorage(2, name = "autolock_mode")
+        self.lock_running = CSRStatus(name= "lock_running")
 
         self.comb += [
             self.fast.request_lock.eq(self.request_lock.storage),
@@ -85,7 +85,7 @@ class SimpleAutolock(Module, AutoCSR):
         self.sweep_step = Signal(width)
         self.sweep_up = Signal()
 
-        self.target_position = CSRStorage(width)
+        self.target_position = CSRStorage(width, name = "target_position")
         target_position_signed = Signal((width, True))
 
         self.comb += [target_position_signed.eq(self.target_position.storage)]
@@ -240,9 +240,9 @@ class RobustAutolock(Module, AutoCSR):
 
     def init_csr(self, N_points):
         # CSR storages
-        self.time_scale = CSRStorage(bits_for(N_points))
-        self.N_instructions = CSRStorage(bits_for(AUTOLOCK_MAX_N_INSTRUCTIONS - 1))
-        self.final_wait_time = CSRStorage(bits_for(N_points))
+        self.time_scale = CSRStorage(bits_for(N_points), name = "time_scale")
+        self.N_instructions = CSRStorage(bits_for(AUTOLOCK_MAX_N_INSTRUCTIONS - 1), name = "N_instructions")
+        self.final_wait_time = CSRStorage(bits_for(N_points), name = "final_wait_time")
 
         peak_height_bit = len(self.sum_diff_calculator.sum_value)
         self.peak_heights = [

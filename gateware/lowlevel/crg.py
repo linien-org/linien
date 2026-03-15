@@ -20,11 +20,11 @@ from migen import ClockDomain, Instance, Module, Signal
 
 class CRG(Module):
     def __init__(self, clk_adc, clk_ps, rst):
-        self.clock_domains.cd_sys_quad = ClockDomain(reset_less=True)
-        self.clock_domains.cd_sys_double = ClockDomain(reset_less=True)
-        self.clock_domains.cd_sys = ClockDomain()
-        self.clock_domains.cd_sys_slow = ClockDomain(reset_less=True)
-        self.clock_domains.cd_sys_ps = ClockDomain()
+        self.clock_domains.cd_sys_quad = ClockDomain("sys_quad", reset_less=True)
+        self.clock_domains.cd_sys_double = ClockDomain("sys_double", reset_less=True)
+        self.clock_domains.cd_sys = ClockDomain("sys")
+        self.clock_domains.cd_sys_slow = ClockDomain("sys_slow", reset_less=True)
+        self.clock_domains.cd_sys_ps = ClockDomain("sys_ps")
         self.comb += [self.cd_sys_ps.clk.eq(clk_ps), self.cd_sys_ps.rst.eq(rst)]
 
         clk_adci = Signal()

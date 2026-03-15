@@ -15,6 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with Linien.  If not, see <http://www.gnu.org/licenses/>.
 
+from turtle import width
+
 from linien_common.common import OutputChannel
 from migen import (
     Array,
@@ -56,27 +58,27 @@ class LinienLogic(Module, AutoCSR):
         self.connect_everything(width, signal_width, coeff_width)
 
     def init_csr(self, width, chain_factor_width):
-        self.dual_channel = CSRStorage(1)
-        self.mod_channel = CSRStorage(1)
-        self.control_channel = CSRStorage(1)
-        self.sweep_channel = CSRStorage(2)
-        self.slow_control_channel = CSRStorage(2)
-        self.pid_only_mode = CSRStorage(1)
+        self.dual_channel = CSRStorage(1, name="dual_channel")
+        self.mod_channel = CSRStorage(1, name="mod_channel")
+        self.control_channel = CSRStorage(1, name="control_channel")
+        self.sweep_channel = CSRStorage(2, name="sweep_channel")
+        self.slow_control_channel = CSRStorage(2, name="slow_control_channel")
+        self.pid_only_mode = CSRStorage(1, name="pid_only_mode")
 
         # we use chain_factor_width + 1 for the single channel mode
         factor_reset = 1 << (chain_factor_width - 1)
-        self.chain_a_factor = CSRStorage(chain_factor_width + 1, reset=factor_reset)
-        self.chain_b_factor = CSRStorage(chain_factor_width + 1, reset=factor_reset)
-        self.chain_a_offset = CSRStorage(width)
-        self.chain_b_offset = CSRStorage(width)
-        self.combined_offset = CSRStorage(width)
+        self.chain_a_factor = CSRStorage(chain_factor_width + 1, reset=factor_reset, name="chain_a_factor")
+        self.chain_b_factor = CSRStorage(chain_factor_width + 1, reset=factor_reset, name="chain_b_factor")
+        self.chain_a_offset = CSRStorage(width, name="chain_a_offset")
+        self.chain_b_offset = CSRStorage(width, name="chain_b_offset")
+        self.combined_offset = CSRStorage(width, name="combined_offset")
         self.combined_offset_signed = Signal((width, True))
-        self.out_offset = CSRStorage(width)
-        self.slow_decimation = CSRStorage(bits_for(16))
+        self.out_offset = CSRStorage(width, name="out_offset")
+        self.slow_decimation = CSRStorage(bits_for(16), name="slow_decimation")
         for i in range(1, 4):
             setattr(self, f"analog_out_{i}", CSRStorage(15, name=f"analog_out_{i}"))
 
-        self.slow_value = CSRStatus(width)
+        self.slow_value = CSRStatus(width, name="slow_value")
 
         self.chain_a_offset_signed = Signal((width, True))
         self.chain_b_offset_signed = Signal((width, True))
@@ -211,7 +213,7 @@ class LinienModule(Module, AutoCSR):
         sys_double = ClockDomainsRenamer("sys_double")
         max_decimation = 16
         self.submodules.decimate = sys_double(Decimate(max_decimation))
-        self.clock_domains.cd_decimated_clock = ClockDomain()
+        self.clock_domains.cd_decimated_clock = ClockDomain("decimated_clock")
         decimated_clock = ClockDomainsRenamer("decimated_clock")
         self.submodules.slow_chain = decimated_clock(SlowChain())
 
@@ -414,7 +416,7 @@ class LinienModule(Module, AutoCSR):
 
 class DummyID(Module, AutoCSR):
     def __init__(self):
-        self.id = CSRStatus(1, reset=1)
+        self.id = CSRStatus(1, reset=1, name="id")
 
 
 class DummyHK(Module, AutoCSR):

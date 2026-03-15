@@ -31,8 +31,8 @@ class Demodulate(Module, AutoCSR):
         self.i = Signal((width, True))
         self.q = Signal((width, True))
 
-        self.delay = CSRStorage(freq_width)
-        self.multiplier = CSRStorage(4, reset=1)
+        self.delay = CSRStorage(freq_width, name="delay")
+        self.multiplier = CSRStorage(4, reset=1, name="multiplier")
         self.phase = Signal(width)
 
         self.submodules.cordic = Cordic(
@@ -60,8 +60,8 @@ class Modulate(Filter):
         Filter.__init__(self, **kwargs)
 
         width = len(self.y)
-        self.amp = CSRStorage(width)
-        self.freq = CSRStorage(freq_width)
+        self.amp = CSRStorage(width, name="amp")
+        self.freq = CSRStorage(freq_width, name="freq")
         self.phase = Signal(width)
 
         self.sync_phase = Signal()
