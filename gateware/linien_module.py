@@ -31,6 +31,7 @@ from misoc.interconnect import csr_bus
 from misoc.interconnect.csr import AutoCSR, CSRStatus, CSRStorage
 
 from .logic.autolock import FPGAAutolock
+from .logic.sequence import SequenceExecutor
 from .logic.chains import FastChain, SlowChain, cross_connect
 from .logic.decimation import Decimate
 from .logic.delta_sigma import DeltaSigma
@@ -90,12 +91,13 @@ class LinienLogic(Module, AutoCSR):
         self.submodules.limit_fast2 = LimitCSR(width=width, guard=5)
         self.submodules.pid = PID(width=signal_width)
         self.submodules.autolock = FPGAAutolock(width=width, max_delay=8191)
+        self.submodules.sequence = SequenceExecutor(width=width)
 
     def connect_pid(self):
         # pid is not started directly by `request_lock` signal. Instead, `request_lock`
         # queues a run that is then started when the sweep is at the zero crossing
         self.comb += [
-            self.pid.running.eq(self.autolock.lock_running.status),
+            self.pid.running.eq(self.autolock.lock_running.status & ~self.sequence.pid_pause),
             self.sweep.hold.eq(self.autolock.lock_running.status),
             self.autolock.fast.sweep_value.eq(self.sweep.y),
             self.autolock.fast.sweep_up.eq(self.sweep.sweep.up),
@@ -401,7 +403,11 @@ class LinienModule(Module, AutoCSR):
             self.scopegen.automatically_trigger.eq(
                 self.logic.autolock.lock_running.status
             ),
-            self.analog.dac_a.eq(self.logic.limit_fast1.y),
+            If(self.logic.sequence.active,
+                self.analog.dac_a.eq(self.logic.sequence.dac_out),
+            ).Else(
+                self.analog.dac_a.eq(self.logic.limit_fast1.y),
+            ),
             self.analog.dac_b.eq(self.logic.limit_fast2.y),
         ]
 
@@ -410,6 +416,8 @@ class LinienModule(Module, AutoCSR):
             self.logic.limit_fast1.x.eq(fast_outs[0]),
             self.logic.limit_fast2.x.eq(fast_outs[1]),
         ]
+
+        self.comb += self.logic.sequence.ttl_in.eq(self.gpio_p.i[0])
 
 
 class DummyID(Module, AutoCSR):
