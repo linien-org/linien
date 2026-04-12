@@ -32,6 +32,7 @@ from pyrp3.board import RedPitaya  # type: ignore
 from pyrp3.instrument import TriggerSource  # type: ignore
 from rpyc import Service
 from rpyc.utils.server import ThreadedServer
+from linien_server.autolock.sequence_relock import SequenceRelock
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -45,6 +46,8 @@ class AcquisitionService(Service):
 
         self.red_pitaya = RedPitaya()
         self.csr = PythonCSR(self.red_pitaya)
+        self.sequence_relock = SequenceRelock(csr=self.csr)
+        self._sequence_was_active = False
         self.csr_queue: list[tuple[str, int]] = []
         self.csr_iir_queue: list[tuple[str, list[float], list[float]]] = []
 
@@ -94,6 +97,26 @@ class AcquisitionService(Service):
             while self.csr_iir_queue:
                 name, b, a = self.csr_iir_queue.pop(0)
                 self.csr.set_iir(name, b, a)
+            
+            # --- sequence relock: detect falling edge of o_active ---
+            try:
+                seq_active = self.sequence_relock.is_sequence_active()
+            except KeyError:
+            # regfile_adapter_status not in csrmap yet (gateware not rebuilt)
+                seq_active = False
+
+            if seq_active:
+                self._sequence_was_active = True
+
+            if self._sequence_was_active and not seq_active:
+                self._sequence_was_active = False
+                logger.info("sequence finished, attempting relock")
+                success = self.sequence_relock.handle_sequence_done()
+                if not success:
+                    logger.error("sequence relock failed after all retries")
+                # skip next data — PID is settling, don't send garbage to GUI
+                skip_next_data_event.set()
+                continue
 
             if self.locked and not self.confirmed_that_in_lock:
                 self.confirmed_that_in_lock = bool(
