@@ -1,0 +1,23 @@
+After cloning the capstone repo run:
+git submodule update --init --recursive
+
+To add other submodules to this github repo run:
+git submodule add <repo-url> <folder-name>
+cd <folder-name> && git remote set-url --push origin no_push
+This is only for read-only repos. To be able to modify it we have to fork first then follow the setup below:
+
+--- Linien submodule setup. Note: claude made this for me lol ---
+The linien/ folder is a git submodule pointed at our team fork.
+
+Remotes inside linien/:
+origin -> https://github.com/Antily15503/linien (fetch + push, our fork)
+upstream -> https://github.com/linien-org/linien (fetch only, push disabled)
+
+To push your changes:
+cd linien
+git push origin <branch>
+
+To pull upstream linien updates into our fork:
+cd linien
+git fetch upstream
+git merge upstream/main

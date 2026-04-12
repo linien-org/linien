@@ -1,0 +1,11 @@
+
+State Machine - |top|control:u_control|state
+Name state.DONE state.CAPTURE_VDRIVE state.WAIT_DONE state.START_BLOCK state.LOAD_PARAMS state.LOAD_INIT state.FETCH_TYPE state.IDLE 
+state.IDLE 0 0 0 0 0 0 0 0 
+state.FETCH_TYPE 0 0 0 0 0 0 1 1 
+state.LOAD_INIT 0 0 0 0 0 1 0 1 
+state.LOAD_PARAMS 0 0 0 0 1 0 0 1 
+state.START_BLOCK 0 0 0 1 0 0 0 1 
+state.WAIT_DONE 0 0 1 0 0 0 0 1 
+state.CAPTURE_VDRIVE 0 1 0 0 0 0 0 1 
+state.DONE 1 0 0 0 0 0 0 1 

@@ -1,0 +1,18 @@
+<testsuites name="results">
+  <testsuite name="all" package="all">
+    <property name="random_seed" value="1774923150" />
+    <testcase name="test_basic_ramp_up" classname="linear_ramp_tb" file="/home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/test/linear_ramp_tb/linear_ramp_tb.py" lineno="51" time="0.0023374557495117188" sim_time_ns="216.0" ratio_time="92408.1664626683">
+      <failure error_type="AssertionError" error_msg="step 1: expected 10, got 0&#10;assert 0 == 10" />
+    </testcase>
+    <testcase name="test_ramp_down" classname="linear_ramp_tb" file="/home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/test/linear_ramp_tb/linear_ramp_tb.py" lineno="69" time="0.0013320446014404297" sim_time_ns="223.99999999999997" ratio_time="168162.53731877572">
+      <failure error_type="AssertionError" error_msg="step 0: expected 100, got 0&#10;assert 0 == 100" />
+    </testcase>
+    <testcase name="test_ramp_from_negative" classname="linear_ramp_tb" file="/home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/test/linear_ramp_tb/linear_ramp_tb.py" lineno="85" time="0.0013685226440429688" sim_time_ns="223.99999999999994" ratio_time="163680.15609756095">
+      <failure error_type="AssertionError" error_msg="step 0: expected -500, got 0&#10;assert 0 == -500" />
+    </testcase>
+    <testcase name="test_inactive_drives_zero" classname="linear_ramp_tb" file="/home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/test/linear_ramp_tb/linear_ramp_tb.py" lineno="101" time="0.0005903244018554688" sim_time_ns="88.0" ratio_time="149070.57835218095" />
+    <testcase name="test_two_sequential_ramps" classname="linear_ramp_tb" file="/home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/test/linear_ramp_tb/linear_ramp_tb.py" lineno="116" time="0.0010175704956054688" sim_time_ns="144.0" ratio_time="141513.53701968136">
+      <failure error_type="AssertionError" error_msg="ramp1 step 1: expected 10, got 0&#10;assert 0 == (1 * 10)" />
+    </testcase>
+  </testsuite>
+</testsuites>

@@ -1,0 +1,319 @@
+Design Assistant report for linien-capstone
+Thu Apr  9 15:21:17 2026
+Quartus Prime Version 25.1std.0 Build 1129 10/21/2025 SC Lite Edition
+
+
+---------------------
+; Table of Contents ;
+---------------------
+  1. Legal Notice
+  2. Design Assistant Summary
+  3. Parallel Compilation
+  4. Design Assistant Settings
+  5. Medium Violations
+  6. Information only Violations
+  7. Design Assistant Messages
+
+
+
+----------------
+; Legal Notice ;
+----------------
+Copyright (C) 2025  Altera Corporation. All rights reserved.
+Your use of Altera Corporation's design tools, logic functions 
+and other software and tools, and any partner logic 
+functions, and any output files from any of the foregoing 
+(including device programming or simulation files), and any 
+associated documentation or information are expressly subject 
+to the terms and conditions of the Altera Program License 
+Subscription Agreement, the Altera Quartus Prime License Agreement,
+the Altera IP License Agreement, or other applicable license
+agreement, including, without limitation, that your use is for
+the sole purpose of programming logic devices manufactured by
+Altera and sold by Altera or its authorized distributors.  Please
+refer to the Altera Software License Subscription Agreements 
+on the Quartus Prime software download page.
+
+
+
++-------------------------------------------------------------------------+
+; Design Assistant Summary                                                ;
++-----------------------------------+-------------------------------------+
+; Design Assistant Status           ; Analyzed - Thu Apr  9 15:21:17 2026 ;
+; Revision Name                     ; linien-capstone                     ;
+; Top-level Entity Name             ; top                                 ;
+; Family                            ; Cyclone V                           ;
+; Total Critical Violations         ; 0                                   ;
+; Total High Violations             ; 0                                   ;
+; Total Medium Violations           ; 1                                   ;
+; - Rule R102                       ; 1                                   ;
+; Total Information only Violations ; 87                                  ;
+; - Rule T101                       ; 37                                  ;
+; - Rule T102                       ; 50                                  ;
++-----------------------------------+-------------------------------------+
+
+
++------------------------------------------+
+; Parallel Compilation                     ;
++----------------------------+-------------+
+; Processors                 ; Number      ;
++----------------------------+-------------+
+; Number detected on machine ; 12          ;
+; Maximum allowed            ; 10          ;
+;                            ;             ;
+; Average used               ; 1.00        ;
+; Maximum used               ; 8           ;
+;                            ;             ;
+; Usage by Processor         ; % Time Used ;
+;     Processor 1            ; 100.0%      ;
+;     Processor 2            ;   0.0%      ;
+;     Processor 3            ;   0.0%      ;
+;     Processor 4            ;   0.0%      ;
+;     Processor 5            ;   0.0%      ;
+;     Processor 6            ;   0.0%      ;
+;     Processor 7            ;   0.0%      ;
+;     Processor 8            ;   0.0%      ;
++----------------------------+-------------+
+
+
++------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+; Design Assistant Settings                                                                                                                                                                ;
++----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------+----+
+; Option                                                                                                                                                               ; Setting      ; To ;
++----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------+----+
+; Design Assistant mode                                                                                                                                                ; Post-Fitting ;    ;
+; Threshold value for clock net not mapped to clock spines rule                                                                                                        ; 25           ;    ;
+; Minimum number of clock port feed by gated clocks                                                                                                                    ; 30           ;    ;
+; Minimum number of node fan-out                                                                                                                                       ; 30           ;    ;
+; Maximum number of nodes to report                                                                                                                                    ; 50           ;    ;
+; Rule C101: Gated clock should be implemented according to the Intel FPGA standard scheme                                                                             ; On           ;    ;
+; Rule C102: Logic cell should not be used to generate an inverted clock signal                                                                                        ; On           ;    ;
+; Rule C103: Gated clock does not feed at least a pre-defined number of clock ports to effectively save power                                                          ; On           ;    ;
+; Rule C104: Clock signal source should drive only clock input ports                                                                                                   ; On           ;    ;
+; Rule C105: Clock signal should be a global signal                                                                                                                    ; On           ;    ;
+; Rule C106: Clock signal source should not drive registers triggered by different clock edges                                                                         ; On           ;    ;
+; Rule R101: Combinational logic used as a reset signal should be synchronized                                                                                         ; On           ;    ;
+; Rule R102: External reset signals should be synchronized using two cascaded registers                                                                                ; On           ;    ;
+; Rule R103: External reset signal should be correctly synchronized                                                                                                    ; On           ;    ;
+; Rule R104: The reset signal that is generated in one clock domain and used in another clock domain should be correctly synchronized                                  ; On           ;    ;
+; Rule R105: The reset signal that is generated in one clock domain and used in another clock domain should be synchronized                                            ; On           ;    ;
+; Rule T101: Nodes with more than the specified number of fan-outs                                                                                                     ; On           ;    ;
+; Rule T102: Top nodes with the highest number of fan-outs                                                                                                             ; On           ;    ;
+; Rule A101: Design should not contain combinational loops                                                                                                             ; On           ;    ;
+; Rule A102: Register output should not drive its own control signal directly or through combinational logic                                                           ; On           ;    ;
+; Rule A103: Design should not contain delay chains                                                                                                                    ; On           ;    ;
+; Rule A104: Design should not contain ripple clock structures                                                                                                         ; On           ;    ;
+; Rule A105: Pulses should not be implemented asynchronously                                                                                                           ; On           ;    ;
+; Rule A106: Multiple pulses should not be generated in design                                                                                                         ; On           ;    ;
+; Rule A107: Design should not contain SR latches                                                                                                                      ; On           ;    ;
+; Rule A108: Design should not contain latches                                                                                                                         ; On           ;    ;
+; Rule S101: Output enable and input of the same tri-state node should not be driven by same signal source                                                             ; On           ;    ;
+; Rule S102: Synchronous port and asynchronous port of the same register should not be driven by the same signal source                                                ; On           ;    ;
+; Rule S103: More than one asynchronous port of a register should not be driven by the same signal source                                                              ; On           ;    ;
+; Rule S104: Clock port and any other port of a register should not be driven by the same signal source                                                                ; On           ;    ;
+; Rule D101: Data bits are not synchronized when transferred between asynchronous clock domains                                                                        ; On           ;    ;
+; Rule D102: Multiple data bits that are transferred across asynchronous clock domains are synchronized, but not all bits may be aligned in the receiving clock domain ; On           ;    ;
+; Rule D103: Data bits are not correctly synchronized when transferred between asynchronous clock domains                                                              ; On           ;    ;
++----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------+----+
+
+
++-----------------------------------------------------------------------------------------------------------------------------+
+; Medium Violations                                                                                                           ;
++---------------------------------------------------------------------------------------+-------------------------------------+
+; Rule name                                                                             ; Name                                ;
++---------------------------------------------------------------------------------------+-------------------------------------+
+; Rule R102: External reset signals should be synchronized using two cascaded registers ; rst_n                               ;
+;  Reset signal destination node(s) list                                                ; sinusoid:u_sinusoid|phase_accum[21] ;
+;  Reset signal destination node(s) list                                                ; sinusoid:u_sinusoid|phase_accum[20] ;
+;  Reset signal destination node(s) list                                                ; sinusoid:u_sinusoid|phase_accum[19] ;
+;  Reset signal destination node(s) list                                                ; sinusoid:u_sinusoid|phase_accum[18] ;
+;  Reset signal destination node(s) list                                                ; sinusoid:u_sinusoid|phase_accum[17] ;
+;  Reset signal destination node(s) list                                                ; sinusoid:u_sinusoid|phase_accum[16] ;
+;  Reset signal destination node(s) list                                                ; sinusoid:u_sinusoid|phase_accum[15] ;
+;  Reset signal destination node(s) list                                                ; sinusoid:u_sinusoid|phase_accum[14] ;
+;  Reset signal destination node(s) list                                                ; sinusoid:u_sinusoid|phase_accum[13] ;
+;  Reset signal destination node(s) list                                                ; sinusoid:u_sinusoid|phase_accum[12] ;
++---------------------------------------------------------------------------------------+-------------------------------------+
+
+
++----------------------------------------------------------------------------------------------------------------------------+
+; Information only Violations                                                                                                ;
++------------------------------------------------------------------+-----------------------------------------------+---------+
+; Rule name                                                        ; Name                                          ; Fan-Out ;
++------------------------------------------------------------------+-----------------------------------------------+---------+
+; Rule T101: Nodes with more than the specified number of fan-outs ; sinusoid:u_sinusoid|phase_accum[28]           ; 65      ;
+; Rule T101: Nodes with more than the specified number of fan-outs ; clk~inputCLKENA0                              ; 619     ;
+; Rule T101: Nodes with more than the specified number of fan-outs ; rst_n~inputCLKENA0                            ; 311     ;
+; Rule T101: Nodes with more than the specified number of fan-outs ; sinusoid:u_sinusoid|phase_accum[28]~DUPLICATE ; 40      ;
+; Rule T101: Nodes with more than the specified number of fan-outs ; control:u_control|o_block_active[4]~0         ; 43      ;
+; Rule T101: Nodes with more than the specified number of fan-outs ; control:u_control|count[27]~1                 ; 31      ;
+; Rule T101: Nodes with more than the specified number of fan-outs ; control:u_control|WideOr11~0                  ; 37      ;
+; Rule T101: Nodes with more than the specified number of fan-outs ; control:u_control|cur_type[0]                 ; 31      ;
+; Rule T101: Nodes with more than the specified number of fan-outs ; control:u_control|count[27]~0                 ; 31      ;
+; Rule T101: Nodes with more than the specified number of fan-outs ; control:u_control|dur[23]~0                   ; 32      ;
+; Rule T101: Nodes with more than the specified number of fan-outs ; sinusoid:u_sinusoid|params[4][31]~4           ; 32      ;
+; Rule T101: Nodes with more than the specified number of fan-outs ; control:u_control|o_param_data[1]~0           ; 243     ;
+; Rule T101: Nodes with more than the specified number of fan-outs ; sinusoid:u_sinusoid|phase_accum[27]~DUPLICATE ; 60      ;
+; Rule T101: Nodes with more than the specified number of fan-outs ; sinusoid:u_sinusoid|phase_accum[25]           ; 49      ;
+; Rule T101: Nodes with more than the specified number of fan-outs ; sinusoid:u_sinusoid|phase_accum[24]~DUPLICATE ; 57      ;
+; Rule T101: Nodes with more than the specified number of fan-outs ; sinusoid:u_sinusoid|phase_accum[23]           ; 69      ;
+; Rule T101: Nodes with more than the specified number of fan-outs ; sinusoid:u_sinusoid|phase_accum[22]           ; 40      ;
+; Rule T101: Nodes with more than the specified number of fan-outs ; sinusoid:u_sinusoid|phase_accum[29]           ; 58      ;
+; Rule T101: Nodes with more than the specified number of fan-outs ; sinusoid:u_sinusoid|phase_accum[29]~DUPLICATE ; 43      ;
+; Rule T101: Nodes with more than the specified number of fan-outs ; sinusoid:u_sinusoid|phase_accum[27]           ; 70      ;
+; Rule T101: Nodes with more than the specified number of fan-outs ; sinusoid:u_sinusoid|phase_accum[30]~DUPLICATE ; 33      ;
+; Rule T101: Nodes with more than the specified number of fan-outs ; sinusoid:u_sinusoid|phase_accum[30]           ; 85      ;
+; Rule T101: Nodes with more than the specified number of fan-outs ; sinusoid:u_sinusoid|phase_accum[23]~DUPLICATE ; 50      ;
+; Rule T101: Nodes with more than the specified number of fan-outs ; sinusoid:u_sinusoid|phase_accum[22]~DUPLICATE ; 34      ;
+; Rule T101: Nodes with more than the specified number of fan-outs ; sinusoid:u_sinusoid|phase_accum[24]           ; 43      ;
+; Rule T101: Nodes with more than the specified number of fan-outs ; sinusoid:u_sinusoid|phase_accum[25]~DUPLICATE ; 66      ;
+; Rule T101: Nodes with more than the specified number of fan-outs ; sinusoid:u_sinusoid|phase_accum[26]~DUPLICATE ; 93      ;
+; Rule T101: Nodes with more than the specified number of fan-outs ; sinusoid:u_sinusoid|params[0][18]~2           ; 32      ;
+; Rule T101: Nodes with more than the specified number of fan-outs ; sinusoid:u_sinusoid|params[2][0]~0            ; 40      ;
+; Rule T101: Nodes with more than the specified number of fan-outs ; sinusoid:u_sinusoid|params[3][0]~1            ; 32      ;
+; Rule T101: Nodes with more than the specified number of fan-outs ; chirp_gen:u_chirp_gen|cur_voltage[0]~0        ; 64      ;
+; Rule T101: Nodes with more than the specified number of fan-outs ; chirp_gen:u_chirp_gen|raterate[15]~0          ; 32      ;
+; Rule T101: Nodes with more than the specified number of fan-outs ; chirp_gen:u_chirp_gen|always1~0               ; 64      ;
+; Rule T101: Nodes with more than the specified number of fan-outs ; chirp_gen:u_chirp_gen|rate[22]~0              ; 32      ;
+; Rule T101: Nodes with more than the specified number of fan-outs ; chirp_gen:u_chirp_gen|a[27]~0                 ; 32      ;
+; Rule T101: Nodes with more than the specified number of fan-outs ; arb_wave:u_arb_wave|always0~0                 ; 32      ;
+; Rule T101: Nodes with more than the specified number of fan-outs ; arb_wave:u_arb_wave|div_counter[10]~0         ; 45      ;
+; Rule T102: Top nodes with the highest number of fan-outs         ; clk~inputCLKENA0                              ; 619     ;
+; Rule T102: Top nodes with the highest number of fan-outs         ; rst_n~inputCLKENA0                            ; 311     ;
+; Rule T102: Top nodes with the highest number of fan-outs         ; control:u_control|o_param_data[1]~0           ; 243     ;
+; Rule T102: Top nodes with the highest number of fan-outs         ; sinusoid:u_sinusoid|phase_accum[26]~DUPLICATE ; 93      ;
+; Rule T102: Top nodes with the highest number of fan-outs         ; sinusoid:u_sinusoid|phase_accum[30]           ; 85      ;
+; Rule T102: Top nodes with the highest number of fan-outs         ; sinusoid:u_sinusoid|phase_accum[27]           ; 70      ;
+; Rule T102: Top nodes with the highest number of fan-outs         ; sinusoid:u_sinusoid|phase_accum[23]           ; 69      ;
+; Rule T102: Top nodes with the highest number of fan-outs         ; sinusoid:u_sinusoid|phase_accum[25]~DUPLICATE ; 66      ;
+; Rule T102: Top nodes with the highest number of fan-outs         ; sinusoid:u_sinusoid|phase_accum[28]           ; 65      ;
+; Rule T102: Top nodes with the highest number of fan-outs         ; chirp_gen:u_chirp_gen|cur_voltage[0]~0        ; 64      ;
+; Rule T102: Top nodes with the highest number of fan-outs         ; chirp_gen:u_chirp_gen|always1~0               ; 64      ;
+; Rule T102: Top nodes with the highest number of fan-outs         ; sinusoid:u_sinusoid|phase_accum[27]~DUPLICATE ; 60      ;
+; Rule T102: Top nodes with the highest number of fan-outs         ; sinusoid:u_sinusoid|phase_accum[29]           ; 58      ;
+; Rule T102: Top nodes with the highest number of fan-outs         ; sinusoid:u_sinusoid|phase_accum[24]~DUPLICATE ; 57      ;
+; Rule T102: Top nodes with the highest number of fan-outs         ; sinusoid:u_sinusoid|phase_accum[23]~DUPLICATE ; 50      ;
+; Rule T102: Top nodes with the highest number of fan-outs         ; sinusoid:u_sinusoid|phase_accum[25]           ; 49      ;
+; Rule T102: Top nodes with the highest number of fan-outs         ; arb_wave:u_arb_wave|div_counter[10]~0         ; 45      ;
+; Rule T102: Top nodes with the highest number of fan-outs         ; control:u_control|o_block_active[4]~0         ; 43      ;
+; Rule T102: Top nodes with the highest number of fan-outs         ; sinusoid:u_sinusoid|phase_accum[29]~DUPLICATE ; 43      ;
+; Rule T102: Top nodes with the highest number of fan-outs         ; sinusoid:u_sinusoid|phase_accum[24]           ; 43      ;
+; Rule T102: Top nodes with the highest number of fan-outs         ; sinusoid:u_sinusoid|params[2][0]~0            ; 40      ;
+; Rule T102: Top nodes with the highest number of fan-outs         ; sinusoid:u_sinusoid|phase_accum[28]~DUPLICATE ; 40      ;
+; Rule T102: Top nodes with the highest number of fan-outs         ; sinusoid:u_sinusoid|phase_accum[22]           ; 40      ;
+; Rule T102: Top nodes with the highest number of fan-outs         ; control:u_control|WideOr11~0                  ; 37      ;
+; Rule T102: Top nodes with the highest number of fan-outs         ; sinusoid:u_sinusoid|phase_accum[22]~DUPLICATE ; 34      ;
+; Rule T102: Top nodes with the highest number of fan-outs         ; sinusoid:u_sinusoid|phase_accum[30]~DUPLICATE ; 33      ;
+; Rule T102: Top nodes with the highest number of fan-outs         ; sinusoid:u_sinusoid|params[0][18]~2           ; 32      ;
+; Rule T102: Top nodes with the highest number of fan-outs         ; chirp_gen:u_chirp_gen|a[27]~0                 ; 32      ;
+; Rule T102: Top nodes with the highest number of fan-outs         ; arb_wave:u_arb_wave|always0~0                 ; 32      ;
+; Rule T102: Top nodes with the highest number of fan-outs         ; chirp_gen:u_chirp_gen|rate[22]~0              ; 32      ;
+; Rule T102: Top nodes with the highest number of fan-outs         ; sinusoid:u_sinusoid|params[3][0]~1            ; 32      ;
+; Rule T102: Top nodes with the highest number of fan-outs         ; chirp_gen:u_chirp_gen|raterate[15]~0          ; 32      ;
+; Rule T102: Top nodes with the highest number of fan-outs         ; sinusoid:u_sinusoid|params[4][31]~4           ; 32      ;
+; Rule T102: Top nodes with the highest number of fan-outs         ; control:u_control|dur[23]~0                   ; 32      ;
+; Rule T102: Top nodes with the highest number of fan-outs         ; control:u_control|cur_type[0]                 ; 31      ;
+; Rule T102: Top nodes with the highest number of fan-outs         ; control:u_control|count[27]~1                 ; 31      ;
+; Rule T102: Top nodes with the highest number of fan-outs         ; control:u_control|count[27]~0                 ; 31      ;
+; Rule T102: Top nodes with the highest number of fan-outs         ; control:u_control|cur_type[1]                 ; 30      ;
+; Rule T102: Top nodes with the highest number of fan-outs         ; sinusoid:u_sinusoid|phase_accum[26]           ; 30      ;
+; Rule T102: Top nodes with the highest number of fan-outs         ; control:u_control|cur_type[2]                 ; 28      ;
+; Rule T102: Top nodes with the highest number of fan-outs         ; control:u_control|Mux6~1                      ; 28      ;
+; Rule T102: Top nodes with the highest number of fan-outs         ; control:u_control|Mux13~0                     ; 28      ;
+; Rule T102: Top nodes with the highest number of fan-outs         ; control:u_control|state.CAPTURE_VDRIVE        ; 27      ;
+; Rule T102: Top nodes with the highest number of fan-outs         ; sinusoid:u_sinusoid|phase_accum[31]~DUPLICATE ; 24      ;
+; Rule T102: Top nodes with the highest number of fan-outs         ; control:u_control|state.LOAD_PARAMS~DUPLICATE ; 18      ;
+; Rule T102: Top nodes with the highest number of fan-outs         ; control:u_control|o_block_active[5]~4         ; 17      ;
+; Rule T102: Top nodes with the highest number of fan-outs         ; sinusoid:u_sinusoid|LessThan2~33              ; 15      ;
+; Rule T102: Top nodes with the highest number of fan-outs         ; sinusoid:u_sinusoid|LessThan3~33              ; 15      ;
+; Rule T102: Top nodes with the highest number of fan-outs         ; delay:u_delay|v_prev[0]~0                     ; 14      ;
+; Rule T102: Top nodes with the highest number of fan-outs         ; linear_ramp:u_linear_ramp|active_pulse        ; 14      ;
++------------------------------------------------------------------+-----------------------------------------------+---------+
+
+
++---------------------------+
+; Design Assistant Messages ;
++---------------------------+
+Info: *******************************************************************
+Info: Running Quartus Prime Design Assistant
+    Info: Version 25.1std.0 Build 1129 10/21/2025 SC Lite Edition
+    Info: Processing started: Thu Apr  9 15:21:15 2026
+Info: Command: quartus_drc linien-capstone -c linien-capstone
+Warning (18236): Number of processors has not been specified which may cause overloading on shared machines.  Set the global assignment NUM_PARALLEL_PROCESSORS in your QSF to an appropriate value for best performance.
+Info (332104): Reading SDC File: 'synthesis/linien-capstone.sdc'
+Info (332143): No user constrained clock uncertainty found in the design. Calling "derive_clock_uncertainty"
+Info (332123): Deriving Clock Uncertainty. Please refer to report_sdc in the Timing Analyzer to see clock uncertainties.
+Warning (308023): (Medium) Rule R102: External reset signals should be synchronized using two cascaded registers. Found 1 node(s) related to this rule.
+    Warning (308010): Node  "rst_n" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/top.sv Line: 15
+Info (308046): (Information) Rule T101: Nodes with more than the specified number of fan-outs. (Value defined:30). Found 37 node(s) with highest fan-out.
+    Info (308011): Node  "sinusoid:u_sinusoid|phase_accum[28]" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/sinusoid.sv Line: 95
+    Info (308011): Node  "clk~inputCLKENA0" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/top.sv Line: 14
+    Info (308011): Node  "rst_n~inputCLKENA0" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/top.sv Line: 15
+    Info (308011): Node  "sinusoid:u_sinusoid|phase_accum[28]~DUPLICATE" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/sinusoid.sv Line: 95
+    Info (308011): Node  "control:u_control|o_block_active[4]~0" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/control.sv Line: 51
+    Info (308011): Node  "control:u_control|count[27]~1" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/control.sv Line: 156
+    Info (308011): Node  "control:u_control|WideOr11~0" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/control.sv Line: 239
+    Info (308011): Node  "control:u_control|cur_type[0]" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/control.sv Line: 156
+    Info (308011): Node  "control:u_control|count[27]~0" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/control.sv Line: 156
+    Info (308011): Node  "control:u_control|dur[23]~0" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/control.sv Line: 156
+    Info (308011): Node  "sinusoid:u_sinusoid|params[4][31]~4" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/sinusoid.sv Line: 49
+    Info (308011): Node  "control:u_control|o_param_data[1]~0" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/control.sv Line: 46
+    Info (308011): Node  "sinusoid:u_sinusoid|phase_accum[27]~DUPLICATE" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/sinusoid.sv Line: 95
+    Info (308011): Node  "sinusoid:u_sinusoid|phase_accum[25]" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/sinusoid.sv Line: 95
+    Info (308011): Node  "sinusoid:u_sinusoid|phase_accum[24]~DUPLICATE" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/sinusoid.sv Line: 95
+    Info (308011): Node  "sinusoid:u_sinusoid|phase_accum[23]" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/sinusoid.sv Line: 95
+    Info (308011): Node  "sinusoid:u_sinusoid|phase_accum[22]" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/sinusoid.sv Line: 95
+    Info (308011): Node  "sinusoid:u_sinusoid|phase_accum[29]" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/sinusoid.sv Line: 95
+    Info (308011): Node  "sinusoid:u_sinusoid|phase_accum[29]~DUPLICATE" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/sinusoid.sv Line: 95
+    Info (308011): Node  "sinusoid:u_sinusoid|phase_accum[27]" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/sinusoid.sv Line: 95
+    Info (308011): Node  "sinusoid:u_sinusoid|phase_accum[30]~DUPLICATE" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/sinusoid.sv Line: 95
+    Info (308011): Node  "sinusoid:u_sinusoid|phase_accum[30]" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/sinusoid.sv Line: 95
+    Info (308011): Node  "sinusoid:u_sinusoid|phase_accum[23]~DUPLICATE" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/sinusoid.sv Line: 95
+    Info (308011): Node  "sinusoid:u_sinusoid|phase_accum[22]~DUPLICATE" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/sinusoid.sv Line: 95
+    Info (308011): Node  "sinusoid:u_sinusoid|phase_accum[24]" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/sinusoid.sv Line: 95
+    Info (308011): Node  "sinusoid:u_sinusoid|phase_accum[25]~DUPLICATE" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/sinusoid.sv Line: 95
+    Info (308011): Node  "sinusoid:u_sinusoid|phase_accum[26]~DUPLICATE" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/sinusoid.sv Line: 95
+    Info (308011): Node  "sinusoid:u_sinusoid|params[0][18]~2" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/sinusoid.sv Line: 49
+    Info (308011): Node  "sinusoid:u_sinusoid|params[2][0]~0" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/sinusoid.sv Line: 49
+    Info (308011): Node  "sinusoid:u_sinusoid|params[3][0]~1" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/sinusoid.sv Line: 49
+    Info (308002): Truncated list of Design Assistant messages to 30 messages. Go to sections under Design Assistant section of Compilation Report for complete lists of Design Assistant messages generated.
+Info (308044): (Information) Rule T102: Top nodes with the highest number of fan-outs. (Value defined:50). Found 50 node(s) with highest fan-out.
+    Info (308011): Node  "clk~inputCLKENA0" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/top.sv Line: 14
+    Info (308011): Node  "rst_n~inputCLKENA0" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/top.sv Line: 15
+    Info (308011): Node  "control:u_control|o_param_data[1]~0" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/control.sv Line: 46
+    Info (308011): Node  "sinusoid:u_sinusoid|phase_accum[26]~DUPLICATE" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/sinusoid.sv Line: 95
+    Info (308011): Node  "sinusoid:u_sinusoid|phase_accum[30]" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/sinusoid.sv Line: 95
+    Info (308011): Node  "sinusoid:u_sinusoid|phase_accum[27]" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/sinusoid.sv Line: 95
+    Info (308011): Node  "sinusoid:u_sinusoid|phase_accum[23]" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/sinusoid.sv Line: 95
+    Info (308011): Node  "sinusoid:u_sinusoid|phase_accum[25]~DUPLICATE" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/sinusoid.sv Line: 95
+    Info (308011): Node  "sinusoid:u_sinusoid|phase_accum[28]" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/sinusoid.sv Line: 95
+    Info (308011): Node  "chirp_gen:u_chirp_gen|cur_voltage[0]~0" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/chirp_gen.sv Line: 46
+    Info (308011): Node  "chirp_gen:u_chirp_gen|always1~0"
+    Info (308011): Node  "sinusoid:u_sinusoid|phase_accum[27]~DUPLICATE" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/sinusoid.sv Line: 95
+    Info (308011): Node  "sinusoid:u_sinusoid|phase_accum[29]" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/sinusoid.sv Line: 95
+    Info (308011): Node  "sinusoid:u_sinusoid|phase_accum[24]~DUPLICATE" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/sinusoid.sv Line: 95
+    Info (308011): Node  "sinusoid:u_sinusoid|phase_accum[23]~DUPLICATE" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/sinusoid.sv Line: 95
+    Info (308011): Node  "sinusoid:u_sinusoid|phase_accum[25]" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/sinusoid.sv Line: 95
+    Info (308011): Node  "arb_wave:u_arb_wave|div_counter[10]~0" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/arb_wave.sv Line: 47
+    Info (308011): Node  "control:u_control|o_block_active[4]~0" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/control.sv Line: 51
+    Info (308011): Node  "sinusoid:u_sinusoid|phase_accum[29]~DUPLICATE" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/sinusoid.sv Line: 95
+    Info (308011): Node  "sinusoid:u_sinusoid|phase_accum[24]" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/sinusoid.sv Line: 95
+    Info (308011): Node  "sinusoid:u_sinusoid|params[2][0]~0" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/sinusoid.sv Line: 49
+    Info (308011): Node  "sinusoid:u_sinusoid|phase_accum[28]~DUPLICATE" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/sinusoid.sv Line: 95
+    Info (308011): Node  "sinusoid:u_sinusoid|phase_accum[22]" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/sinusoid.sv Line: 95
+    Info (308011): Node  "control:u_control|WideOr11~0" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/control.sv Line: 239
+    Info (308011): Node  "sinusoid:u_sinusoid|phase_accum[22]~DUPLICATE" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/sinusoid.sv Line: 95
+    Info (308011): Node  "sinusoid:u_sinusoid|phase_accum[30]~DUPLICATE" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/sinusoid.sv Line: 95
+    Info (308011): Node  "sinusoid:u_sinusoid|params[0][18]~2" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/sinusoid.sv Line: 49
+    Info (308011): Node  "chirp_gen:u_chirp_gen|a[27]~0" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/chirp_gen.sv Line: 25
+    Info (308011): Node  "arb_wave:u_arb_wave|always0~0"
+    Info (308011): Node  "chirp_gen:u_chirp_gen|rate[22]~0" File: /home/vedaant/school_files/spring2026/ECE554/ECE554-Linien-Capstone/src/chirp_gen.sv Line: 25
+    Info (308002): Truncated list of Design Assistant messages to 30 messages. Go to sections under Design Assistant section of Compilation Report for complete lists of Design Assistant messages generated.
+Info (308007): Design Assistant information: finished post-fitting analysis of current design -- generated 87 information messages and 1 warning messages
+Info: Quartus Prime Design Assistant was successful. 0 errors, 3 warnings
+    Info: Peak virtual memory: 745 megabytes
+    Info: Processing ended: Thu Apr  9 15:21:17 2026
+    Info: Elapsed time: 00:00:02
+    Info: Total CPU time (on all processors): 00:00:01
+
+

@@ -1,0 +1,13 @@
+# Compile of chirp_gen.sv was successful.
+# Compile of chirp_gen_tb.sv was successful.
+vsim -gui work.chirp_gen_tb
+# vsim -gui work.chirp_gen_tb 
+# Start time: 14:28:57 on Apr 02,2026
+# Loading sv_std.std
+# Loading work.chirp_gen_tb
+# Loading work.chirp_gen
+add wave -position insertpoint  \
+sim:/chirp_gen_tb/voltage
+run
+# ** Warning: (vsim-8315) No condition is true in the unique/priority if/case statement.
+#    Time: 1 ps  Iteration: 2  Process: /chirp_gen_tb/idut/#implicit#unique__36 File: C:/UW-Madison/ECE554/project/ECE554-Linien-Capstone/src/chirp_gen.sv Line: 36

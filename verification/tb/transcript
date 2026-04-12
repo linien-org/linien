@@ -1,0 +1,41 @@
+# vsim -c work.tb_arb_wave -do "run -all ;quit" 
+# Start time: 12:08:39 on Apr 07,2026
+# Loading sv_std.std
+# Loading work.tb_arb_wave
+# Loading work.arb_wave
+# run -all 
+# === tb_arb_wave: begin ===
+# TC-A1: Reset assertion
+#   PASS [TC-A1 o_drive after reset]: got 0x0000 (0)
+#   PASS [TC-A1 o_bram_addr after reset]: addr=0
+# TC-A2: clk_div=1, verify address increments and drive output
+#   FAIL [TC-A2 addr cycle 0]: got addr=1, expected 0
+#   FAIL [TC-A2 addr cycle 1]: got addr=2, expected 1
+#   PASS [TC-A2 o_drive cycle 1 (mem[0]=0)]: got 0x0000 (0)
+#   FAIL [TC-A2 addr cycle 2]: got addr=3, expected 2
+#   PASS [TC-A2 o_drive cycle 2 (mem[1]=4)]: got 0x0004 (4)
+#   FAIL [TC-A2 addr cycle 3]: got addr=4, expected 3
+#   PASS [TC-A2 o_drive cycle 3 (mem[2]=8)]: got 0x0008 (8)
+# TC-A3: clk_div=4, address advances every 4 cycles
+#   PASS [TC-A3 addr after 4 div-cycles]: addr=1
+#   PASS [TC-A3 addr after 8 div-cycles]: addr=2
+# TC-A4: Deassert active resets addr and clears output
+#   PASS [TC-A4 o_drive=0 after deassert]: got 0x0000 (0)
+#   PASS [TC-A4 addr reset to 0]: addr=0
+# TC-A5: Address saturates at 1023
+#   PASS [TC-A5 addr at 1023]: addr=1023
+#   PASS [TC-A5 addr stays at 1023 (no wrap)]: addr=1023
+# TC-A6: clk_div=0 edge case (addr stuck at 0)
+#   PASS [TC-A6 addr stuck at 0 when clk_div=0]: addr=0
+# TC-A7: Default clk_div=1 after reset (advances every cycle)
+#   FAIL [TC-A7 addr cycle 1]: got addr=1, expected 0
+#   FAIL [TC-A7 addr cycle 2 = 1]: got addr=2, expected 1
+# TC-A8: active_pulse (dead code) — no glitch on first active cycle
+#   FAIL [TC-A8 no addr jump on first cycle]: got addr=1, expected 0
+# === tb_arb_wave: 12 passed, 7 failed ===
+# ** Fatal: FAIL: arb_wave block has 7 failures
+#    Time: 11100 ps  Scope: tb_arb_wave File: tb_arb_wave.sv Line: 230
+# ** Note: $finish    : tb_arb_wave.sv(230)
+#    Time: 11100 ps  Iteration: 1  Instance: /tb_arb_wave
+# End time: 12:08:40 on Apr 07,2026, Elapsed time: 0:00:01
+# Errors: 1, Warnings: 0

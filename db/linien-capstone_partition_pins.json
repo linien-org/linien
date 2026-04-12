@@ -1,0 +1,421 @@
+{
+	"partitions" : [
+		{
+			"name" : "Top",
+			"pins" : [
+				{
+					"name" : "o_seq_done",
+					"strict" : false
+				},
+				{
+					"name" : "o_active",
+					"strict" : false
+				},
+				{
+					"name" : "o_dac_drive[0]",
+					"strict" : false
+				},
+				{
+					"name" : "o_dac_drive[1]",
+					"strict" : false
+				},
+				{
+					"name" : "o_dac_drive[2]",
+					"strict" : false
+				},
+				{
+					"name" : "o_dac_drive[3]",
+					"strict" : false
+				},
+				{
+					"name" : "o_dac_drive[4]",
+					"strict" : false
+				},
+				{
+					"name" : "o_dac_drive[5]",
+					"strict" : false
+				},
+				{
+					"name" : "o_dac_drive[6]",
+					"strict" : false
+				},
+				{
+					"name" : "o_dac_drive[7]",
+					"strict" : false
+				},
+				{
+					"name" : "o_dac_drive[8]",
+					"strict" : false
+				},
+				{
+					"name" : "o_dac_drive[9]",
+					"strict" : false
+				},
+				{
+					"name" : "o_dac_drive[10]",
+					"strict" : false
+				},
+				{
+					"name" : "o_dac_drive[11]",
+					"strict" : false
+				},
+				{
+					"name" : "o_dac_drive[12]",
+					"strict" : false
+				},
+				{
+					"name" : "o_dac_drive[13]",
+					"strict" : false
+				},
+				{
+					"name" : "i_num_blocks[3]",
+					"strict" : false
+				},
+				{
+					"name" : "i_num_blocks[0]",
+					"strict" : false
+				},
+				{
+					"name" : "i_num_blocks[1]",
+					"strict" : false
+				},
+				{
+					"name" : "i_num_blocks[2]",
+					"strict" : false
+				},
+				{
+					"name" : "i_start",
+					"strict" : false
+				},
+				{
+					"name" : "clk",
+					"strict" : false
+				},
+				{
+					"name" : "rst_n",
+					"strict" : false
+				},
+				{
+					"name" : "i_init_v[0]",
+					"strict" : false
+				},
+				{
+					"name" : "i_init_v[1]",
+					"strict" : false
+				},
+				{
+					"name" : "i_init_v[2]",
+					"strict" : false
+				},
+				{
+					"name" : "i_init_v[3]",
+					"strict" : false
+				},
+				{
+					"name" : "i_init_v[4]",
+					"strict" : false
+				},
+				{
+					"name" : "i_init_v[5]",
+					"strict" : false
+				},
+				{
+					"name" : "i_init_v[6]",
+					"strict" : false
+				},
+				{
+					"name" : "i_init_v[7]",
+					"strict" : false
+				},
+				{
+					"name" : "i_init_v[8]",
+					"strict" : false
+				},
+				{
+					"name" : "i_init_v[9]",
+					"strict" : false
+				},
+				{
+					"name" : "i_init_v[10]",
+					"strict" : false
+				},
+				{
+					"name" : "i_init_v[11]",
+					"strict" : false
+				},
+				{
+					"name" : "i_init_v[12]",
+					"strict" : false
+				},
+				{
+					"name" : "i_init_v[13]",
+					"strict" : false
+				},
+				{
+					"name" : "i_fsm_reg_w_en",
+					"strict" : false
+				},
+				{
+					"name" : "i_fsm_reg_w_data[2]",
+					"strict" : false
+				},
+				{
+					"name" : "i_fsm_reg_w_addr[0]",
+					"strict" : false
+				},
+				{
+					"name" : "i_fsm_reg_w_addr[1]",
+					"strict" : false
+				},
+				{
+					"name" : "i_fsm_reg_w_addr[2]",
+					"strict" : false
+				},
+				{
+					"name" : "i_fsm_reg_w_addr[3]",
+					"strict" : false
+				},
+				{
+					"name" : "i_fsm_reg_w_addr[4]",
+					"strict" : false
+				},
+				{
+					"name" : "i_fsm_reg_w_addr[5]",
+					"strict" : false
+				},
+				{
+					"name" : "i_fsm_reg_w_addr[6]",
+					"strict" : false
+				},
+				{
+					"name" : "i_fsm_reg_w_addr[7]",
+					"strict" : false
+				},
+				{
+					"name" : "i_fsm_reg_w_data[0]",
+					"strict" : false
+				},
+				{
+					"name" : "i_fsm_reg_w_data[1]",
+					"strict" : false
+				},
+				{
+					"name" : "i_fsm_reg_w_data[11]",
+					"strict" : false
+				},
+				{
+					"name" : "i_fsm_reg_w_data[14]",
+					"strict" : false
+				},
+				{
+					"name" : "i_fsm_reg_w_data[13]",
+					"strict" : false
+				},
+				{
+					"name" : "i_fsm_reg_w_data[12]",
+					"strict" : false
+				},
+				{
+					"name" : "i_fsm_reg_w_data[10]",
+					"strict" : false
+				},
+				{
+					"name" : "i_fsm_reg_w_data[9]",
+					"strict" : false
+				},
+				{
+					"name" : "i_fsm_reg_w_data[8]",
+					"strict" : false
+				},
+				{
+					"name" : "i_fsm_reg_w_data[4]",
+					"strict" : false
+				},
+				{
+					"name" : "i_fsm_reg_w_data[3]",
+					"strict" : false
+				},
+				{
+					"name" : "i_fsm_reg_w_data[7]",
+					"strict" : false
+				},
+				{
+					"name" : "i_fsm_reg_w_data[6]",
+					"strict" : false
+				},
+				{
+					"name" : "i_fsm_reg_w_data[5]",
+					"strict" : false
+				},
+				{
+					"name" : "i_fsm_reg_w_data[21]",
+					"strict" : false
+				},
+				{
+					"name" : "i_fsm_reg_w_data[20]",
+					"strict" : false
+				},
+				{
+					"name" : "i_fsm_reg_w_data[19]",
+					"strict" : false
+				},
+				{
+					"name" : "i_fsm_reg_w_data[18]",
+					"strict" : false
+				},
+				{
+					"name" : "i_fsm_reg_w_data[16]",
+					"strict" : false
+				},
+				{
+					"name" : "i_fsm_reg_w_data[17]",
+					"strict" : false
+				},
+				{
+					"name" : "i_fsm_reg_w_data[15]",
+					"strict" : false
+				},
+				{
+					"name" : "i_fsm_reg_w_data[28]",
+					"strict" : false
+				},
+				{
+					"name" : "i_fsm_reg_w_data[27]",
+					"strict" : false
+				},
+				{
+					"name" : "i_fsm_reg_w_data[26]",
+					"strict" : false
+				},
+				{
+					"name" : "i_fsm_reg_w_data[25]",
+					"strict" : false
+				},
+				{
+					"name" : "i_fsm_reg_w_data[23]",
+					"strict" : false
+				},
+				{
+					"name" : "i_fsm_reg_w_data[24]",
+					"strict" : false
+				},
+				{
+					"name" : "i_fsm_reg_w_data[22]",
+					"strict" : false
+				},
+				{
+					"name" : "i_fsm_reg_w_data[31]",
+					"strict" : false
+				},
+				{
+					"name" : "i_fsm_reg_w_data[30]",
+					"strict" : false
+				},
+				{
+					"name" : "i_fsm_reg_w_data[29]",
+					"strict" : false
+				},
+				{
+					"name" : "i_awg_reg_w_en",
+					"strict" : false
+				},
+				{
+					"name" : "i_awg_reg_w_data[0]",
+					"strict" : false
+				},
+				{
+					"name" : "i_awg_reg_w_addr[0]",
+					"strict" : false
+				},
+				{
+					"name" : "i_awg_reg_w_addr[1]",
+					"strict" : false
+				},
+				{
+					"name" : "i_awg_reg_w_addr[2]",
+					"strict" : false
+				},
+				{
+					"name" : "i_awg_reg_w_addr[3]",
+					"strict" : false
+				},
+				{
+					"name" : "i_awg_reg_w_addr[4]",
+					"strict" : false
+				},
+				{
+					"name" : "i_awg_reg_w_addr[5]",
+					"strict" : false
+				},
+				{
+					"name" : "i_awg_reg_w_addr[6]",
+					"strict" : false
+				},
+				{
+					"name" : "i_awg_reg_w_addr[7]",
+					"strict" : false
+				},
+				{
+					"name" : "i_awg_reg_w_addr[8]",
+					"strict" : false
+				},
+				{
+					"name" : "i_awg_reg_w_addr[9]",
+					"strict" : false
+				},
+				{
+					"name" : "i_awg_reg_w_data[1]",
+					"strict" : false
+				},
+				{
+					"name" : "i_awg_reg_w_data[2]",
+					"strict" : false
+				},
+				{
+					"name" : "i_awg_reg_w_data[3]",
+					"strict" : false
+				},
+				{
+					"name" : "i_awg_reg_w_data[4]",
+					"strict" : false
+				},
+				{
+					"name" : "i_awg_reg_w_data[5]",
+					"strict" : false
+				},
+				{
+					"name" : "i_awg_reg_w_data[6]",
+					"strict" : false
+				},
+				{
+					"name" : "i_awg_reg_w_data[7]",
+					"strict" : false
+				},
+				{
+					"name" : "i_awg_reg_w_data[8]",
+					"strict" : false
+				},
+				{
+					"name" : "i_awg_reg_w_data[9]",
+					"strict" : false
+				},
+				{
+					"name" : "i_awg_reg_w_data[10]",
+					"strict" : false
+				},
+				{
+					"name" : "i_awg_reg_w_data[11]",
+					"strict" : false
+				},
+				{
+					"name" : "i_awg_reg_w_data[12]",
+					"strict" : false
+				},
+				{
+					"name" : "i_awg_reg_w_data[13]",
+					"strict" : false
+				}
+			]
+		}
+	]
+}

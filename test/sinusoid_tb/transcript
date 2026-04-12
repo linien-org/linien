@@ -1,0 +1,9 @@
+# vsim -c work.sinusoid_tb -do "run -all;quit" 
+# Start time: 10:00:32 on Mar 28,2026
+# Loading sv_std.std
+# Loading work.sinusoid_tb
+# Loading work.sinusoid
+# run -all
+# quit
+# End time: 10:00:32 on Mar 28,2026, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0

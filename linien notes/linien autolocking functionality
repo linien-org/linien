@@ -1,0 +1,13 @@
+# Locations in code:
+
+#### IN THE FPGA:
+linien/gateware/logic/autolock.py
+gateware/logic/autolock_utils.py
+
+#### IN THE ARM SOFTWARE (programs the FPGA CSRs):
+autolock.py (top_level python script / orchestrator)
+simple.py
+robust.py
+algorithm_selection.py (determines whether to use simple or robust)
+utils.py
+

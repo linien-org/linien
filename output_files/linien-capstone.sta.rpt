@@ -1,0 +1,1011 @@
+Timing Analyzer report for linien-capstone
+Thu Apr  9 15:57:02 2026
+Quartus Prime Version 25.1std.0 Build 1129 10/21/2025 SC Lite Edition
+
+
+---------------------
+; Table of Contents ;
+---------------------
+  1. Legal Notice
+  2. Timing Analyzer Summary
+  3. Parallel Compilation
+  4. SDC File List
+  5. Clocks
+  6. Slow 1100mV 85C Model Fmax Summary
+  7. Timing Closure Recommendations
+  8. Slow 1100mV 85C Model Setup Summary
+  9. Slow 1100mV 85C Model Hold Summary
+ 10. Slow 1100mV 85C Model Recovery Summary
+ 11. Slow 1100mV 85C Model Removal Summary
+ 12. Slow 1100mV 85C Model Minimum Pulse Width Summary
+ 13. Slow 1100mV 85C Model Metastability Summary
+ 14. Slow 1100mV 0C Model Fmax Summary
+ 15. Slow 1100mV 0C Model Setup Summary
+ 16. Slow 1100mV 0C Model Hold Summary
+ 17. Slow 1100mV 0C Model Recovery Summary
+ 18. Slow 1100mV 0C Model Removal Summary
+ 19. Slow 1100mV 0C Model Minimum Pulse Width Summary
+ 20. Slow 1100mV 0C Model Metastability Summary
+ 21. Fast 1100mV 85C Model Setup Summary
+ 22. Fast 1100mV 85C Model Hold Summary
+ 23. Fast 1100mV 85C Model Recovery Summary
+ 24. Fast 1100mV 85C Model Removal Summary
+ 25. Fast 1100mV 85C Model Minimum Pulse Width Summary
+ 26. Fast 1100mV 85C Model Metastability Summary
+ 27. Fast 1100mV 0C Model Setup Summary
+ 28. Fast 1100mV 0C Model Hold Summary
+ 29. Fast 1100mV 0C Model Recovery Summary
+ 30. Fast 1100mV 0C Model Removal Summary
+ 31. Fast 1100mV 0C Model Minimum Pulse Width Summary
+ 32. Fast 1100mV 0C Model Metastability Summary
+ 33. Multicorner Timing Analysis Summary
+ 34. Board Trace Model Assignments
+ 35. Input Transition Times
+ 36. Signal Integrity Metrics (Slow 1100mv 0c Model)
+ 37. Signal Integrity Metrics (Slow 1100mv 85c Model)
+ 38. Signal Integrity Metrics (Fast 1100mv 0c Model)
+ 39. Signal Integrity Metrics (Fast 1100mv 85c Model)
+ 40. Setup Transfers
+ 41. Hold Transfers
+ 42. Report TCCS
+ 43. Report RSKM
+ 44. Unconstrained Paths Summary
+ 45. Clock Status Summary
+ 46. Unconstrained Input Ports
+ 47. Unconstrained Output Ports
+ 48. Unconstrained Input Ports
+ 49. Unconstrained Output Ports
+ 50. Timing Analyzer Messages
+
+
+
+----------------
+; Legal Notice ;
+----------------
+Copyright (C) 2025  Altera Corporation. All rights reserved.
+Your use of Altera Corporation's design tools, logic functions 
+and other software and tools, and any partner logic 
+functions, and any output files from any of the foregoing 
+(including device programming or simulation files), and any 
+associated documentation or information are expressly subject 
+to the terms and conditions of the Altera Program License 
+Subscription Agreement, the Altera Quartus Prime License Agreement,
+the Altera IP License Agreement, or other applicable license
+agreement, including, without limitation, that your use is for
+the sole purpose of programming logic devices manufactured by
+Altera and sold by Altera or its authorized distributors.  Please
+refer to the Altera Software License Subscription Agreements 
+on the Quartus Prime software download page.
+
+
+
++---------------------------------------------------------------------------------+
+; Timing Analyzer Summary                                                         ;
++-----------------------+---------------------------------------------------------+
+; Quartus Prime Version ; Version 25.1std.0 Build 1129 10/21/2025 SC Lite Edition ;
+; Timing Analyzer       ; Legacy Timing Analyzer                                  ;
+; Revision Name         ; linien-capstone                                         ;
+; Device Family         ; Cyclone V                                               ;
+; Device Name           ; 5CGXFC7C7F23C8                                          ;
+; Timing Models         ; Final                                                   ;
+; Delay Model           ; Combined                                                ;
+; Rise/Fall Delays      ; Enabled                                                 ;
++-----------------------+---------------------------------------------------------+
+
+
++------------------------------------------+
+; Parallel Compilation                     ;
++----------------------------+-------------+
+; Processors                 ; Number      ;
++----------------------------+-------------+
+; Number detected on machine ; 12          ;
+; Maximum allowed            ; 10          ;
+;                            ;             ;
+; Average used               ; 2.24        ;
+; Maximum used               ; 10          ;
+;                            ;             ;
+; Usage by Processor         ; % Time Used ;
+;     Processor 1            ; 100.0%      ;
+;     Processor 2            ;  14.4%      ;
+;     Processor 3            ;  14.2%      ;
+;     Processor 4            ;  14.1%      ;
+;     Processor 5            ;  13.5%      ;
+;     Processor 6            ;  13.5%      ;
+;     Processor 7            ;  13.5%      ;
+;     Processor 8            ;  13.5%      ;
+;     Processor 9            ;  13.5%      ;
+;     Processor 10           ;  13.5%      ;
++----------------------------+-------------+
+
+
++-------------------------------------------------------------------+
+; SDC File List                                                     ;
++-------------------------------+--------+--------------------------+
+; SDC File Path                 ; Status ; Read at                  ;
++-------------------------------+--------+--------------------------+
+; synthesis/linien-capstone.sdc ; OK     ; Thu Apr  9 15:56:56 2026 ;
++-------------------------------+--------+--------------------------+
+
+
++--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+; Clocks                                                                                                                                                                         ;
++------------+------+--------+-----------+-------+-------+------------+-----------+-------------+-------+--------+-----------+------------+----------+--------+--------+---------+
+; Clock Name ; Type ; Period ; Frequency ; Rise  ; Fall  ; Duty Cycle ; Divide by ; Multiply by ; Phase ; Offset ; Edge List ; Edge Shift ; Inverted ; Master ; Source ; Targets ;
++------------+------+--------+-----------+-------+-------+------------+-----------+-------------+-------+--------+-----------+------------+----------+--------+--------+---------+
+; clk        ; Base ; 10.000 ; 100.0 MHz ; 0.000 ; 5.000 ;            ;           ;             ;       ;        ;           ;            ;          ;        ;        ; { clk } ;
++------------+------+--------+-----------+-------+-------+------------+-----------+-------------+-------+--------+-----------+------------+----------+--------+--------+---------+
+
+
++-------------------------------------------------+
+; Slow 1100mV 85C Model Fmax Summary              ;
++-----------+-----------------+------------+------+
+; Fmax      ; Restricted Fmax ; Clock Name ; Note ;
++-----------+-----------------+------------+------+
+; 66.89 MHz ; 66.89 MHz       ; clk        ;      ;
++-----------+-----------------+------------+------+
+This panel reports FMAX for every clock in the design, regardless of the user-specified clock periods.  FMAX is only computed for paths where the source and destination registers or ports are driven by the same clock.  Paths of different clocks, including generated clocks, are ignored.  For paths between a clock and its inversion, FMAX is computed as if the rising and falling edges are scaled along with FMAX, such that the duty cycle (in terms of a percentage) is maintained. Altera recommends that you always use clock constraints and other slack reports for sign-off analysis.
+
+
+----------------------------------
+; Timing Closure Recommendations ;
+----------------------------------
+HTML report is unavailable in plain text report export.
+
+
++-------------------------------------+
+; Slow 1100mV 85C Model Setup Summary ;
++-------+--------+--------------------+
+; Clock ; Slack  ; End Point TNS      ;
++-------+--------+--------------------+
+; clk   ; -4.949 ; -68.547            ;
++-------+--------+--------------------+
+
+
++------------------------------------+
+; Slow 1100mV 85C Model Hold Summary ;
++-------+-------+--------------------+
+; Clock ; Slack ; End Point TNS      ;
++-------+-------+--------------------+
+; clk   ; 0.306 ; 0.000              ;
++-------+-------+--------------------+
+
+
+------------------------------------------
+; Slow 1100mV 85C Model Recovery Summary ;
+------------------------------------------
+No paths to report.
+
+
+-----------------------------------------
+; Slow 1100mV 85C Model Removal Summary ;
+-----------------------------------------
+No paths to report.
+
+
++---------------------------------------------------+
+; Slow 1100mV 85C Model Minimum Pulse Width Summary ;
++-------+-------+-----------------------------------+
+; Clock ; Slack ; End Point TNS                     ;
++-------+-------+-----------------------------------+
+; clk   ; 3.419 ; 0.000                             ;
++-------+-------+-----------------------------------+
+
+
+-----------------------------------------------
+; Slow 1100mV 85C Model Metastability Summary ;
+-----------------------------------------------
+The design MTBF is not calculated because there are no specified synchronizers in the design.
+Number of Synchronizer Chains Found: 14
+Shortest Synchronizer Chain: 2 Registers
+Fraction of Chains for which MTBFs Could Not be Calculated: 1.000
+Worst Case Available Settling Time: 13.572 ns
+
+
+
+
++-------------------------------------------------+
+; Slow 1100mV 0C Model Fmax Summary               ;
++-----------+-----------------+------------+------+
+; Fmax      ; Restricted Fmax ; Clock Name ; Note ;
++-----------+-----------------+------------+------+
+; 65.68 MHz ; 65.68 MHz       ; clk        ;      ;
++-----------+-----------------+------------+------+
+This panel reports FMAX for every clock in the design, regardless of the user-specified clock periods.  FMAX is only computed for paths where the source and destination registers or ports are driven by the same clock.  Paths of different clocks, including generated clocks, are ignored.  For paths between a clock and its inversion, FMAX is computed as if the rising and falling edges are scaled along with FMAX, such that the duty cycle (in terms of a percentage) is maintained. Altera recommends that you always use clock constraints and other slack reports for sign-off analysis.
+
+
++------------------------------------+
+; Slow 1100mV 0C Model Setup Summary ;
++-------+--------+-------------------+
+; Clock ; Slack  ; End Point TNS     ;
++-------+--------+-------------------+
+; clk   ; -5.225 ; -75.952           ;
++-------+--------+-------------------+
+
+
++-----------------------------------+
+; Slow 1100mV 0C Model Hold Summary ;
++-------+-------+-------------------+
+; Clock ; Slack ; End Point TNS     ;
++-------+-------+-------------------+
+; clk   ; 0.300 ; 0.000             ;
++-------+-------+-------------------+
+
+
+-----------------------------------------
+; Slow 1100mV 0C Model Recovery Summary ;
+-----------------------------------------
+No paths to report.
+
+
+----------------------------------------
+; Slow 1100mV 0C Model Removal Summary ;
+----------------------------------------
+No paths to report.
+
+
++--------------------------------------------------+
+; Slow 1100mV 0C Model Minimum Pulse Width Summary ;
++-------+-------+----------------------------------+
+; Clock ; Slack ; End Point TNS                    ;
++-------+-------+----------------------------------+
+; clk   ; 3.350 ; 0.000                            ;
++-------+-------+----------------------------------+
+
+
+----------------------------------------------
+; Slow 1100mV 0C Model Metastability Summary ;
+----------------------------------------------
+The design MTBF is not calculated because there are no specified synchronizers in the design.
+Number of Synchronizer Chains Found: 14
+Shortest Synchronizer Chain: 2 Registers
+Fraction of Chains for which MTBFs Could Not be Calculated: 1.000
+Worst Case Available Settling Time: 13.517 ns
+
+
+
+
++-------------------------------------+
+; Fast 1100mV 85C Model Setup Summary ;
++-------+-------+---------------------+
+; Clock ; Slack ; End Point TNS       ;
++-------+-------+---------------------+
+; clk   ; 3.812 ; 0.000               ;
++-------+-------+---------------------+
+
+
++------------------------------------+
+; Fast 1100mV 85C Model Hold Summary ;
++-------+-------+--------------------+
+; Clock ; Slack ; End Point TNS      ;
++-------+-------+--------------------+
+; clk   ; 0.136 ; 0.000              ;
++-------+-------+--------------------+
+
+
+------------------------------------------
+; Fast 1100mV 85C Model Recovery Summary ;
+------------------------------------------
+No paths to report.
+
+
+-----------------------------------------
+; Fast 1100mV 85C Model Removal Summary ;
+-----------------------------------------
+No paths to report.
+
+
++---------------------------------------------------+
+; Fast 1100mV 85C Model Minimum Pulse Width Summary ;
++-------+-------+-----------------------------------+
+; Clock ; Slack ; End Point TNS                     ;
++-------+-------+-----------------------------------+
+; clk   ; 3.785 ; 0.000                             ;
++-------+-------+-----------------------------------+
+
+
+-----------------------------------------------
+; Fast 1100mV 85C Model Metastability Summary ;
+-----------------------------------------------
+The design MTBF is not calculated because there are no specified synchronizers in the design.
+Number of Synchronizer Chains Found: 14
+Shortest Synchronizer Chain: 2 Registers
+Fraction of Chains for which MTBFs Could Not be Calculated: 1.000
+Worst Case Available Settling Time: 16.922 ns
+
+
+
+
++------------------------------------+
+; Fast 1100mV 0C Model Setup Summary ;
++-------+-------+--------------------+
+; Clock ; Slack ; End Point TNS      ;
++-------+-------+--------------------+
+; clk   ; 4.245 ; 0.000              ;
++-------+-------+--------------------+
+
+
++-----------------------------------+
+; Fast 1100mV 0C Model Hold Summary ;
++-------+-------+-------------------+
+; Clock ; Slack ; End Point TNS     ;
++-------+-------+-------------------+
+; clk   ; 0.123 ; 0.000             ;
++-------+-------+-------------------+
+
+
+-----------------------------------------
+; Fast 1100mV 0C Model Recovery Summary ;
+-----------------------------------------
+No paths to report.
+
+
+----------------------------------------
+; Fast 1100mV 0C Model Removal Summary ;
+----------------------------------------
+No paths to report.
+
+
++--------------------------------------------------+
+; Fast 1100mV 0C Model Minimum Pulse Width Summary ;
++-------+-------+----------------------------------+
+; Clock ; Slack ; End Point TNS                    ;
++-------+-------+----------------------------------+
+; clk   ; 3.776 ; 0.000                            ;
++-------+-------+----------------------------------+
+
+
+----------------------------------------------
+; Fast 1100mV 0C Model Metastability Summary ;
+----------------------------------------------
+The design MTBF is not calculated because there are no specified synchronizers in the design.
+Number of Synchronizer Chains Found: 14
+Shortest Synchronizer Chain: 2 Registers
+Fraction of Chains for which MTBFs Could Not be Calculated: 1.000
+Worst Case Available Settling Time: 17.193 ns
+
+
+
+
++-------------------------------------------------------------------------------+
+; Multicorner Timing Analysis Summary                                           ;
++------------------+---------+-------+----------+---------+---------------------+
+; Clock            ; Setup   ; Hold  ; Recovery ; Removal ; Minimum Pulse Width ;
++------------------+---------+-------+----------+---------+---------------------+
+; Worst-case Slack ; -5.225  ; 0.123 ; N/A      ; N/A     ; 3.350               ;
+;  clk             ; -5.225  ; 0.123 ; N/A      ; N/A     ; 3.350               ;
+; Design-wide TNS  ; -75.952 ; 0.0   ; 0.0      ; 0.0     ; 0.0                 ;
+;  clk             ; -75.952 ; 0.000 ; N/A      ; N/A     ; 0.000               ;
++------------------+---------+-------+----------+---------+---------------------+
+
+
++--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+; Board Trace Model Assignments                                                                                                                                                                                                                                                                                                                                                                                      ;
++-----------------+--------------+-------------------+-------------------------+-------------------------+---------------+---------------------+----------------+------------------+--------+------------------+------------------------+------------------------+--------------+---------------+-----------------+-------+---------------------+--------------------+---------------+-----------------+-------------+
+; Pin             ; I/O Standard ; Near Tline Length ; Near Tline L per Length ; Near Tline C per Length ; Near Series R ; Near Differential R ; Near Pull-up R ; Near Pull-down R ; Near C ; Far Tline Length ; Far Tline L per Length ; Far Tline C per Length ; Far Series R ; Far Pull-up R ; Far Pull-down R ; Far C ; Termination Voltage ; Far Differential R ; EBD File Name ; EBD Signal Name ; EBD Far-end ;
++-----------------+--------------+-------------------+-------------------------+-------------------------+---------------+---------------------+----------------+------------------+--------+------------------+------------------------+------------------------+--------------+---------------+-----------------+-------+---------------------+--------------------+---------------+-----------------+-------------+
+; o_seq_done      ; 2.5 V        ; 0 in              ; 0 H/in                  ; 0 F/in                  ; short         ; -                   ; open           ; open             ; open   ; 0 in             ; 0 H/in                 ; 0 F/in                 ; short        ; open          ; open            ; open  ; 0 V                 ; -                  ; n/a           ; n/a             ; n/a         ;
+; o_active        ; 2.5 V        ; 0 in              ; 0 H/in                  ; 0 F/in                  ; short         ; -                   ; open           ; open             ; open   ; 0 in             ; 0 H/in                 ; 0 F/in                 ; short        ; open          ; open            ; open  ; 0 V                 ; -                  ; n/a           ; n/a             ; n/a         ;
+; o_dac_drive[0]  ; 2.5 V        ; 0 in              ; 0 H/in                  ; 0 F/in                  ; short         ; -                   ; open           ; open             ; open   ; 0 in             ; 0 H/in                 ; 0 F/in                 ; short        ; open          ; open            ; open  ; 0 V                 ; -                  ; n/a           ; n/a             ; n/a         ;
+; o_dac_drive[1]  ; 2.5 V        ; 0 in              ; 0 H/in                  ; 0 F/in                  ; short         ; -                   ; open           ; open             ; open   ; 0 in             ; 0 H/in                 ; 0 F/in                 ; short        ; open          ; open            ; open  ; 0 V                 ; -                  ; n/a           ; n/a             ; n/a         ;
+; o_dac_drive[2]  ; 2.5 V        ; 0 in              ; 0 H/in                  ; 0 F/in                  ; short         ; -                   ; open           ; open             ; open   ; 0 in             ; 0 H/in                 ; 0 F/in                 ; short        ; open          ; open            ; open  ; 0 V                 ; -                  ; n/a           ; n/a             ; n/a         ;
+; o_dac_drive[3]  ; 2.5 V        ; 0 in              ; 0 H/in                  ; 0 F/in                  ; short         ; -                   ; open           ; open             ; open   ; 0 in             ; 0 H/in                 ; 0 F/in                 ; short        ; open          ; open            ; open  ; 0 V                 ; -                  ; n/a           ; n/a             ; n/a         ;
+; o_dac_drive[4]  ; 2.5 V        ; 0 in              ; 0 H/in                  ; 0 F/in                  ; short         ; -                   ; open           ; open             ; open   ; 0 in             ; 0 H/in                 ; 0 F/in                 ; short        ; open          ; open            ; open  ; 0 V                 ; -                  ; n/a           ; n/a             ; n/a         ;
+; o_dac_drive[5]  ; 2.5 V        ; 0 in              ; 0 H/in                  ; 0 F/in                  ; short         ; -                   ; open           ; open             ; open   ; 0 in             ; 0 H/in                 ; 0 F/in                 ; short        ; open          ; open            ; open  ; 0 V                 ; -                  ; n/a           ; n/a             ; n/a         ;
+; o_dac_drive[6]  ; 2.5 V        ; 0 in              ; 0 H/in                  ; 0 F/in                  ; short         ; -                   ; open           ; open             ; open   ; 0 in             ; 0 H/in                 ; 0 F/in                 ; short        ; open          ; open            ; open  ; 0 V                 ; -                  ; n/a           ; n/a             ; n/a         ;
+; o_dac_drive[7]  ; 2.5 V        ; 0 in              ; 0 H/in                  ; 0 F/in                  ; short         ; -                   ; open           ; open             ; open   ; 0 in             ; 0 H/in                 ; 0 F/in                 ; short        ; open          ; open            ; open  ; 0 V                 ; -                  ; n/a           ; n/a             ; n/a         ;
+; o_dac_drive[8]  ; 2.5 V        ; 0 in              ; 0 H/in                  ; 0 F/in                  ; short         ; -                   ; open           ; open             ; open   ; 0 in             ; 0 H/in                 ; 0 F/in                 ; short        ; open          ; open            ; open  ; 0 V                 ; -                  ; n/a           ; n/a             ; n/a         ;
+; o_dac_drive[9]  ; 2.5 V        ; 0 in              ; 0 H/in                  ; 0 F/in                  ; short         ; -                   ; open           ; open             ; open   ; 0 in             ; 0 H/in                 ; 0 F/in                 ; short        ; open          ; open            ; open  ; 0 V                 ; -                  ; n/a           ; n/a             ; n/a         ;
+; o_dac_drive[10] ; 2.5 V        ; 0 in              ; 0 H/in                  ; 0 F/in                  ; short         ; -                   ; open           ; open             ; open   ; 0 in             ; 0 H/in                 ; 0 F/in                 ; short        ; open          ; open            ; open  ; 0 V                 ; -                  ; n/a           ; n/a             ; n/a         ;
+; o_dac_drive[11] ; 2.5 V        ; 0 in              ; 0 H/in                  ; 0 F/in                  ; short         ; -                   ; open           ; open             ; open   ; 0 in             ; 0 H/in                 ; 0 F/in                 ; short        ; open          ; open            ; open  ; 0 V                 ; -                  ; n/a           ; n/a             ; n/a         ;
+; o_dac_drive[12] ; 2.5 V        ; 0 in              ; 0 H/in                  ; 0 F/in                  ; short         ; -                   ; open           ; open             ; open   ; 0 in             ; 0 H/in                 ; 0 F/in                 ; short        ; open          ; open            ; open  ; 0 V                 ; -                  ; n/a           ; n/a             ; n/a         ;
+; o_dac_drive[13] ; 2.5 V        ; 0 in              ; 0 H/in                  ; 0 F/in                  ; short         ; -                   ; open           ; open             ; open   ; 0 in             ; 0 H/in                 ; 0 F/in                 ; short        ; open          ; open            ; open  ; 0 V                 ; -                  ; n/a           ; n/a             ; n/a         ;
++-----------------+--------------+-------------------+-------------------------+-------------------------+---------------+---------------------+----------------+------------------+--------+------------------+------------------------+------------------------+--------------+---------------+-----------------+-------+---------------------+--------------------+---------------+-----------------+-------------+
+
+
++-------------------------------------------------------------------------+
+; Input Transition Times                                                  ;
++----------------------+--------------+-----------------+-----------------+
+; Pin                  ; I/O Standard ; 10-90 Rise Time ; 90-10 Fall Time ;
++----------------------+--------------+-----------------+-----------------+
+; i_num_blocks[3]      ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_num_blocks[0]      ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_num_blocks[1]      ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_num_blocks[2]      ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_start              ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; clk                  ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; rst_n                ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_init_v[0]          ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_init_v[1]          ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_init_v[2]          ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_init_v[3]          ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_init_v[4]          ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_init_v[5]          ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_init_v[6]          ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_init_v[7]          ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_init_v[8]          ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_init_v[9]          ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_init_v[10]         ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_init_v[11]         ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_init_v[12]         ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_init_v[13]         ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_fsm_reg_w_en       ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_fsm_reg_w_data[2]  ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_fsm_reg_w_addr[0]  ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_fsm_reg_w_addr[1]  ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_fsm_reg_w_addr[2]  ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_fsm_reg_w_addr[3]  ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_fsm_reg_w_addr[4]  ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_fsm_reg_w_addr[5]  ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_fsm_reg_w_addr[6]  ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_fsm_reg_w_addr[7]  ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_fsm_reg_w_data[0]  ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_fsm_reg_w_data[1]  ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_fsm_reg_w_data[11] ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_fsm_reg_w_data[14] ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_fsm_reg_w_data[13] ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_fsm_reg_w_data[12] ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_fsm_reg_w_data[10] ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_fsm_reg_w_data[9]  ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_fsm_reg_w_data[8]  ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_fsm_reg_w_data[4]  ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_fsm_reg_w_data[3]  ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_fsm_reg_w_data[7]  ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_fsm_reg_w_data[6]  ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_fsm_reg_w_data[5]  ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_fsm_reg_w_data[21] ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_fsm_reg_w_data[20] ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_fsm_reg_w_data[19] ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_fsm_reg_w_data[18] ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_fsm_reg_w_data[16] ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_fsm_reg_w_data[17] ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_fsm_reg_w_data[15] ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_fsm_reg_w_data[28] ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_fsm_reg_w_data[27] ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_fsm_reg_w_data[26] ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_fsm_reg_w_data[25] ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_fsm_reg_w_data[23] ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_fsm_reg_w_data[24] ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_fsm_reg_w_data[22] ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_fsm_reg_w_data[31] ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_fsm_reg_w_data[30] ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_fsm_reg_w_data[29] ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_awg_reg_w_en       ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_awg_reg_w_data[0]  ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_awg_reg_w_addr[0]  ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_awg_reg_w_addr[1]  ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_awg_reg_w_addr[2]  ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_awg_reg_w_addr[3]  ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_awg_reg_w_addr[4]  ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_awg_reg_w_addr[5]  ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_awg_reg_w_addr[6]  ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_awg_reg_w_addr[7]  ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_awg_reg_w_addr[8]  ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_awg_reg_w_addr[9]  ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_awg_reg_w_data[1]  ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_awg_reg_w_data[2]  ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_awg_reg_w_data[3]  ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_awg_reg_w_data[4]  ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_awg_reg_w_data[5]  ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_awg_reg_w_data[6]  ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_awg_reg_w_data[7]  ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_awg_reg_w_data[8]  ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_awg_reg_w_data[9]  ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_awg_reg_w_data[10] ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_awg_reg_w_data[11] ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_awg_reg_w_data[12] ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
+; i_awg_reg_w_data[13] ; 2.5 V        ; 2000 ps         ; 2000 ps         ;
++----------------------+--------------+-----------------+-----------------+
+
+
++----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+; Signal Integrity Metrics (Slow 1100mv 0c Model)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              ;
++-----------------+--------------+---------------------+---------------------+------------------------------+------------------------------+---------------------+---------------------+--------------------------------------+--------------------------------------+-----------------------------+-----------------------------+----------------------------+----------------------------+-----------------------------+-----------------------------+--------------------+--------------------+-------------------------------------+-------------------------------------+----------------------------+----------------------------+---------------------------+---------------------------+
+; Pin             ; I/O Standard ; Board Delay on Rise ; Board Delay on Fall ; Steady State Voh at FPGA Pin ; Steady State Vol at FPGA Pin ; Voh Max at FPGA Pin ; Vol Min at FPGA Pin ; Ringback Voltage on Rise at FPGA Pin ; Ringback Voltage on Fall at FPGA Pin ; 10-90 Rise Time at FPGA Pin ; 90-10 Fall Time at FPGA Pin ; Monotonic Rise at FPGA Pin ; Monotonic Fall at FPGA Pin ; Steady State Voh at Far-end ; Steady State Vol at Far-end ; Voh Max at Far-end ; Vol Min at Far-end ; Ringback Voltage on Rise at Far-end ; Ringback Voltage on Fall at Far-end ; 10-90 Rise Time at Far-end ; 90-10 Fall Time at Far-end ; Monotonic Rise at Far-end ; Monotonic Fall at Far-end ;
++-----------------+--------------+---------------------+---------------------+------------------------------+------------------------------+---------------------+---------------------+--------------------------------------+--------------------------------------+-----------------------------+-----------------------------+----------------------------+----------------------------+-----------------------------+-----------------------------+--------------------+--------------------+-------------------------------------+-------------------------------------+----------------------------+----------------------------+---------------------------+---------------------------+
+; o_seq_done      ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.32 V                       ; 6.72e-08 V                   ; 2.4 V               ; -0.041 V            ; 0.19 V                               ; 0.126 V                              ; 4.59e-10 s                  ; 4.54e-10 s                  ; No                         ; Yes                        ; 2.32 V                      ; 6.72e-08 V                  ; 2.4 V              ; -0.041 V           ; 0.19 V                              ; 0.126 V                             ; 4.59e-10 s                 ; 4.54e-10 s                 ; No                        ; Yes                       ;
+; o_active        ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.32 V                       ; 6.72e-08 V                   ; 2.4 V               ; -0.041 V            ; 0.19 V                               ; 0.126 V                              ; 4.59e-10 s                  ; 4.54e-10 s                  ; No                         ; Yes                        ; 2.32 V                      ; 6.72e-08 V                  ; 2.4 V              ; -0.041 V           ; 0.19 V                              ; 0.126 V                             ; 4.59e-10 s                 ; 4.54e-10 s                 ; No                        ; Yes                       ;
+; o_dac_drive[0]  ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.32 V                       ; 6.72e-08 V                   ; 2.4 V               ; -0.0409 V           ; 0.192 V                              ; 0.125 V                              ; 4.59e-10 s                  ; 4.54e-10 s                  ; No                         ; Yes                        ; 2.32 V                      ; 6.72e-08 V                  ; 2.4 V              ; -0.0409 V          ; 0.192 V                             ; 0.125 V                             ; 4.59e-10 s                 ; 4.54e-10 s                 ; No                        ; Yes                       ;
+; o_dac_drive[1]  ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.32 V                       ; 5.91e-08 V                   ; 2.35 V              ; -0.0136 V           ; 0.17 V                               ; 0.118 V                              ; 4.69e-10 s                  ; 4.63e-10 s                  ; Yes                        ; Yes                        ; 2.32 V                      ; 5.91e-08 V                  ; 2.35 V             ; -0.0136 V          ; 0.17 V                              ; 0.118 V                             ; 4.69e-10 s                 ; 4.63e-10 s                 ; Yes                       ; Yes                       ;
+; o_dac_drive[2]  ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.32 V                       ; 6.72e-08 V                   ; 2.4 V               ; -0.041 V            ; 0.19 V                               ; 0.126 V                              ; 4.59e-10 s                  ; 4.54e-10 s                  ; No                         ; Yes                        ; 2.32 V                      ; 6.72e-08 V                  ; 2.4 V              ; -0.041 V           ; 0.19 V                              ; 0.126 V                             ; 4.59e-10 s                 ; 4.54e-10 s                 ; No                        ; Yes                       ;
+; o_dac_drive[3]  ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.32 V                       ; 6.72e-08 V                   ; 2.4 V               ; -0.041 V            ; 0.19 V                               ; 0.126 V                              ; 4.59e-10 s                  ; 4.54e-10 s                  ; No                         ; Yes                        ; 2.32 V                      ; 6.72e-08 V                  ; 2.4 V              ; -0.041 V           ; 0.19 V                              ; 0.126 V                             ; 4.59e-10 s                 ; 4.54e-10 s                 ; No                        ; Yes                       ;
+; o_dac_drive[4]  ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.32 V                       ; 5.91e-08 V                   ; 2.35 V              ; -0.0136 V           ; 0.17 V                               ; 0.118 V                              ; 4.69e-10 s                  ; 4.63e-10 s                  ; Yes                        ; Yes                        ; 2.32 V                      ; 5.91e-08 V                  ; 2.35 V             ; -0.0136 V          ; 0.17 V                              ; 0.118 V                             ; 4.69e-10 s                 ; 4.63e-10 s                 ; Yes                       ; Yes                       ;
+; o_dac_drive[5]  ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.32 V                       ; 5.91e-08 V                   ; 2.35 V              ; -0.0136 V           ; 0.17 V                               ; 0.118 V                              ; 4.69e-10 s                  ; 4.63e-10 s                  ; Yes                        ; Yes                        ; 2.32 V                      ; 5.91e-08 V                  ; 2.35 V             ; -0.0136 V          ; 0.17 V                              ; 0.118 V                             ; 4.69e-10 s                 ; 4.63e-10 s                 ; Yes                       ; Yes                       ;
+; o_dac_drive[6]  ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.32 V                       ; 6.72e-08 V                   ; 2.4 V               ; -0.041 V            ; 0.19 V                               ; 0.126 V                              ; 4.59e-10 s                  ; 4.54e-10 s                  ; No                         ; Yes                        ; 2.32 V                      ; 6.72e-08 V                  ; 2.4 V              ; -0.041 V           ; 0.19 V                              ; 0.126 V                             ; 4.59e-10 s                 ; 4.54e-10 s                 ; No                        ; Yes                       ;
+; o_dac_drive[7]  ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.32 V                       ; 5.91e-08 V                   ; 2.35 V              ; -0.0136 V           ; 0.17 V                               ; 0.118 V                              ; 4.69e-10 s                  ; 4.63e-10 s                  ; Yes                        ; Yes                        ; 2.32 V                      ; 5.91e-08 V                  ; 2.35 V             ; -0.0136 V          ; 0.17 V                              ; 0.118 V                             ; 4.69e-10 s                 ; 4.63e-10 s                 ; Yes                       ; Yes                       ;
+; o_dac_drive[8]  ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.32 V                       ; 6.72e-08 V                   ; 2.4 V               ; -0.0409 V           ; 0.192 V                              ; 0.125 V                              ; 4.59e-10 s                  ; 4.54e-10 s                  ; No                         ; Yes                        ; 2.32 V                      ; 6.72e-08 V                  ; 2.4 V              ; -0.0409 V          ; 0.192 V                             ; 0.125 V                             ; 4.59e-10 s                 ; 4.54e-10 s                 ; No                        ; Yes                       ;
+; o_dac_drive[9]  ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.32 V                       ; 6.72e-08 V                   ; 2.4 V               ; -0.041 V            ; 0.19 V                               ; 0.126 V                              ; 4.59e-10 s                  ; 4.54e-10 s                  ; No                         ; Yes                        ; 2.32 V                      ; 6.72e-08 V                  ; 2.4 V              ; -0.041 V           ; 0.19 V                              ; 0.126 V                             ; 4.59e-10 s                 ; 4.54e-10 s                 ; No                        ; Yes                       ;
+; o_dac_drive[10] ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.32 V                       ; 6.72e-08 V                   ; 2.4 V               ; -0.0409 V           ; 0.192 V                              ; 0.125 V                              ; 4.59e-10 s                  ; 4.54e-10 s                  ; No                         ; Yes                        ; 2.32 V                      ; 6.72e-08 V                  ; 2.4 V              ; -0.0409 V          ; 0.192 V                             ; 0.125 V                             ; 4.59e-10 s                 ; 4.54e-10 s                 ; No                        ; Yes                       ;
+; o_dac_drive[11] ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.32 V                       ; 6.86e-08 V                   ; 2.4 V               ; -0.0326 V           ; 0.227 V                              ; 0.16 V                               ; 4.73e-10 s                  ; 4.78e-10 s                  ; No                         ; Yes                        ; 2.32 V                      ; 6.86e-08 V                  ; 2.4 V              ; -0.0326 V          ; 0.227 V                             ; 0.16 V                              ; 4.73e-10 s                 ; 4.78e-10 s                 ; No                        ; Yes                       ;
+; o_dac_drive[12] ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.32 V                       ; 6.72e-08 V                   ; 2.4 V               ; -0.0409 V           ; 0.192 V                              ; 0.125 V                              ; 4.59e-10 s                  ; 4.54e-10 s                  ; No                         ; Yes                        ; 2.32 V                      ; 6.72e-08 V                  ; 2.4 V              ; -0.0409 V          ; 0.192 V                             ; 0.125 V                             ; 4.59e-10 s                 ; 4.54e-10 s                 ; No                        ; Yes                       ;
+; o_dac_drive[13] ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.32 V                       ; 5.91e-08 V                   ; 2.35 V              ; -0.0136 V           ; 0.17 V                               ; 0.118 V                              ; 4.69e-10 s                  ; 4.63e-10 s                  ; Yes                        ; Yes                        ; 2.32 V                      ; 5.91e-08 V                  ; 2.35 V             ; -0.0136 V          ; 0.17 V                              ; 0.118 V                             ; 4.69e-10 s                 ; 4.63e-10 s                 ; Yes                       ; Yes                       ;
++-----------------+--------------+---------------------+---------------------+------------------------------+------------------------------+---------------------+---------------------+--------------------------------------+--------------------------------------+-----------------------------+-----------------------------+----------------------------+----------------------------+-----------------------------+-----------------------------+--------------------+--------------------+-------------------------------------+-------------------------------------+----------------------------+----------------------------+---------------------------+---------------------------+
+
+
++----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+; Signal Integrity Metrics (Slow 1100mv 85c Model)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             ;
++-----------------+--------------+---------------------+---------------------+------------------------------+------------------------------+---------------------+---------------------+--------------------------------------+--------------------------------------+-----------------------------+-----------------------------+----------------------------+----------------------------+-----------------------------+-----------------------------+--------------------+--------------------+-------------------------------------+-------------------------------------+----------------------------+----------------------------+---------------------------+---------------------------+
+; Pin             ; I/O Standard ; Board Delay on Rise ; Board Delay on Fall ; Steady State Voh at FPGA Pin ; Steady State Vol at FPGA Pin ; Voh Max at FPGA Pin ; Vol Min at FPGA Pin ; Ringback Voltage on Rise at FPGA Pin ; Ringback Voltage on Fall at FPGA Pin ; 10-90 Rise Time at FPGA Pin ; 90-10 Fall Time at FPGA Pin ; Monotonic Rise at FPGA Pin ; Monotonic Fall at FPGA Pin ; Steady State Voh at Far-end ; Steady State Vol at Far-end ; Voh Max at Far-end ; Vol Min at Far-end ; Ringback Voltage on Rise at Far-end ; Ringback Voltage on Fall at Far-end ; 10-90 Rise Time at Far-end ; 90-10 Fall Time at Far-end ; Monotonic Rise at Far-end ; Monotonic Fall at Far-end ;
++-----------------+--------------+---------------------+---------------------+------------------------------+------------------------------+---------------------+---------------------+--------------------------------------+--------------------------------------+-----------------------------+-----------------------------+----------------------------+----------------------------+-----------------------------+-----------------------------+--------------------+--------------------+-------------------------------------+-------------------------------------+----------------------------+----------------------------+---------------------------+---------------------------+
+; o_seq_done      ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.32 V                       ; 1.04e-05 V                   ; 2.38 V              ; -0.0273 V           ; 0.226 V                              ; 0.08 V                               ; 4.84e-10 s                  ; 5.19e-10 s                  ; No                         ; Yes                        ; 2.32 V                      ; 1.04e-05 V                  ; 2.38 V             ; -0.0273 V          ; 0.226 V                             ; 0.08 V                              ; 4.84e-10 s                 ; 5.19e-10 s                 ; No                        ; Yes                       ;
+; o_active        ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.32 V                       ; 1.04e-05 V                   ; 2.38 V              ; -0.0273 V           ; 0.226 V                              ; 0.08 V                               ; 4.84e-10 s                  ; 5.19e-10 s                  ; No                         ; Yes                        ; 2.32 V                      ; 1.04e-05 V                  ; 2.38 V             ; -0.0273 V          ; 0.226 V                             ; 0.08 V                              ; 4.84e-10 s                 ; 5.19e-10 s                 ; No                        ; Yes                       ;
+; o_dac_drive[0]  ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.32 V                       ; 1.04e-05 V                   ; 2.38 V              ; -0.027 V            ; 0.226 V                              ; 0.08 V                               ; 4.84e-10 s                  ; 5.18e-10 s                  ; No                         ; Yes                        ; 2.32 V                      ; 1.04e-05 V                  ; 2.38 V             ; -0.027 V           ; 0.226 V                             ; 0.08 V                              ; 4.84e-10 s                 ; 5.18e-10 s                 ; No                        ; Yes                       ;
+; o_dac_drive[1]  ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.32 V                       ; 9.38e-06 V                   ; 2.34 V              ; -0.00733 V          ; 0.234 V                              ; 0.071 V                              ; 5.36e-10 s                  ; 5.75e-10 s                  ; No                         ; Yes                        ; 2.32 V                      ; 9.38e-06 V                  ; 2.34 V             ; -0.00733 V         ; 0.234 V                             ; 0.071 V                             ; 5.36e-10 s                 ; 5.75e-10 s                 ; No                        ; Yes                       ;
+; o_dac_drive[2]  ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.32 V                       ; 1.04e-05 V                   ; 2.38 V              ; -0.0273 V           ; 0.226 V                              ; 0.08 V                               ; 4.84e-10 s                  ; 5.19e-10 s                  ; No                         ; Yes                        ; 2.32 V                      ; 1.04e-05 V                  ; 2.38 V             ; -0.0273 V          ; 0.226 V                             ; 0.08 V                              ; 4.84e-10 s                 ; 5.19e-10 s                 ; No                        ; Yes                       ;
+; o_dac_drive[3]  ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.32 V                       ; 1.04e-05 V                   ; 2.38 V              ; -0.0273 V           ; 0.226 V                              ; 0.08 V                               ; 4.84e-10 s                  ; 5.19e-10 s                  ; No                         ; Yes                        ; 2.32 V                      ; 1.04e-05 V                  ; 2.38 V             ; -0.0273 V          ; 0.226 V                             ; 0.08 V                              ; 4.84e-10 s                 ; 5.19e-10 s                 ; No                        ; Yes                       ;
+; o_dac_drive[4]  ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.32 V                       ; 9.38e-06 V                   ; 2.34 V              ; -0.00733 V          ; 0.234 V                              ; 0.071 V                              ; 5.36e-10 s                  ; 5.75e-10 s                  ; No                         ; Yes                        ; 2.32 V                      ; 9.38e-06 V                  ; 2.34 V             ; -0.00733 V         ; 0.234 V                             ; 0.071 V                             ; 5.36e-10 s                 ; 5.75e-10 s                 ; No                        ; Yes                       ;
+; o_dac_drive[5]  ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.32 V                       ; 9.38e-06 V                   ; 2.34 V              ; -0.00733 V          ; 0.234 V                              ; 0.071 V                              ; 5.36e-10 s                  ; 5.75e-10 s                  ; No                         ; Yes                        ; 2.32 V                      ; 9.38e-06 V                  ; 2.34 V             ; -0.00733 V         ; 0.234 V                             ; 0.071 V                             ; 5.36e-10 s                 ; 5.75e-10 s                 ; No                        ; Yes                       ;
+; o_dac_drive[6]  ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.32 V                       ; 1.04e-05 V                   ; 2.38 V              ; -0.0273 V           ; 0.226 V                              ; 0.08 V                               ; 4.84e-10 s                  ; 5.19e-10 s                  ; No                         ; Yes                        ; 2.32 V                      ; 1.04e-05 V                  ; 2.38 V             ; -0.0273 V          ; 0.226 V                             ; 0.08 V                              ; 4.84e-10 s                 ; 5.19e-10 s                 ; No                        ; Yes                       ;
+; o_dac_drive[7]  ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.32 V                       ; 9.38e-06 V                   ; 2.34 V              ; -0.00733 V          ; 0.234 V                              ; 0.071 V                              ; 5.36e-10 s                  ; 5.75e-10 s                  ; No                         ; Yes                        ; 2.32 V                      ; 9.38e-06 V                  ; 2.34 V             ; -0.00733 V         ; 0.234 V                             ; 0.071 V                             ; 5.36e-10 s                 ; 5.75e-10 s                 ; No                        ; Yes                       ;
+; o_dac_drive[8]  ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.32 V                       ; 1.04e-05 V                   ; 2.38 V              ; -0.027 V            ; 0.226 V                              ; 0.08 V                               ; 4.84e-10 s                  ; 5.18e-10 s                  ; No                         ; Yes                        ; 2.32 V                      ; 1.04e-05 V                  ; 2.38 V             ; -0.027 V           ; 0.226 V                             ; 0.08 V                              ; 4.84e-10 s                 ; 5.18e-10 s                 ; No                        ; Yes                       ;
+; o_dac_drive[9]  ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.32 V                       ; 1.04e-05 V                   ; 2.38 V              ; -0.0273 V           ; 0.226 V                              ; 0.08 V                               ; 4.84e-10 s                  ; 5.19e-10 s                  ; No                         ; Yes                        ; 2.32 V                      ; 1.04e-05 V                  ; 2.38 V             ; -0.0273 V          ; 0.226 V                             ; 0.08 V                              ; 4.84e-10 s                 ; 5.19e-10 s                 ; No                        ; Yes                       ;
+; o_dac_drive[10] ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.32 V                       ; 1.04e-05 V                   ; 2.38 V              ; -0.027 V            ; 0.226 V                              ; 0.08 V                               ; 4.84e-10 s                  ; 5.18e-10 s                  ; No                         ; Yes                        ; 2.32 V                      ; 1.04e-05 V                  ; 2.38 V             ; -0.027 V           ; 0.226 V                             ; 0.08 V                              ; 4.84e-10 s                 ; 5.18e-10 s                 ; No                        ; Yes                       ;
+; o_dac_drive[11] ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.32 V                       ; 1.05e-05 V                   ; 2.37 V              ; -0.0225 V           ; 0.277 V                              ; 0.104 V                              ; 5.22e-10 s                  ; 6.28e-10 s                  ; No                         ; Yes                        ; 2.32 V                      ; 1.05e-05 V                  ; 2.37 V             ; -0.0225 V          ; 0.277 V                             ; 0.104 V                             ; 5.22e-10 s                 ; 6.28e-10 s                 ; No                        ; Yes                       ;
+; o_dac_drive[12] ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.32 V                       ; 1.04e-05 V                   ; 2.38 V              ; -0.027 V            ; 0.226 V                              ; 0.08 V                               ; 4.84e-10 s                  ; 5.18e-10 s                  ; No                         ; Yes                        ; 2.32 V                      ; 1.04e-05 V                  ; 2.38 V             ; -0.027 V           ; 0.226 V                             ; 0.08 V                              ; 4.84e-10 s                 ; 5.18e-10 s                 ; No                        ; Yes                       ;
+; o_dac_drive[13] ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.32 V                       ; 9.38e-06 V                   ; 2.34 V              ; -0.00733 V          ; 0.234 V                              ; 0.071 V                              ; 5.36e-10 s                  ; 5.75e-10 s                  ; No                         ; Yes                        ; 2.32 V                      ; 9.38e-06 V                  ; 2.34 V             ; -0.00733 V         ; 0.234 V                             ; 0.071 V                             ; 5.36e-10 s                 ; 5.75e-10 s                 ; No                        ; Yes                       ;
++-----------------+--------------+---------------------+---------------------+------------------------------+------------------------------+---------------------+---------------------+--------------------------------------+--------------------------------------+-----------------------------+-----------------------------+----------------------------+----------------------------+-----------------------------+-----------------------------+--------------------+--------------------+-------------------------------------+-------------------------------------+----------------------------+----------------------------+---------------------------+---------------------------+
+
+
++----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+; Signal Integrity Metrics (Fast 1100mv 0c Model)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              ;
++-----------------+--------------+---------------------+---------------------+------------------------------+------------------------------+---------------------+---------------------+--------------------------------------+--------------------------------------+-----------------------------+-----------------------------+----------------------------+----------------------------+-----------------------------+-----------------------------+--------------------+--------------------+-------------------------------------+-------------------------------------+----------------------------+----------------------------+---------------------------+---------------------------+
+; Pin             ; I/O Standard ; Board Delay on Rise ; Board Delay on Fall ; Steady State Voh at FPGA Pin ; Steady State Vol at FPGA Pin ; Voh Max at FPGA Pin ; Vol Min at FPGA Pin ; Ringback Voltage on Rise at FPGA Pin ; Ringback Voltage on Fall at FPGA Pin ; 10-90 Rise Time at FPGA Pin ; 90-10 Fall Time at FPGA Pin ; Monotonic Rise at FPGA Pin ; Monotonic Fall at FPGA Pin ; Steady State Voh at Far-end ; Steady State Vol at Far-end ; Voh Max at Far-end ; Vol Min at Far-end ; Ringback Voltage on Rise at Far-end ; Ringback Voltage on Fall at Far-end ; 10-90 Rise Time at Far-end ; 90-10 Fall Time at Far-end ; Monotonic Rise at Far-end ; Monotonic Fall at Far-end ;
++-----------------+--------------+---------------------+---------------------+------------------------------+------------------------------+---------------------+---------------------+--------------------------------------+--------------------------------------+-----------------------------+-----------------------------+----------------------------+----------------------------+-----------------------------+-----------------------------+--------------------+--------------------+-------------------------------------+-------------------------------------+----------------------------+----------------------------+---------------------------+---------------------------+
+; o_seq_done      ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.75 V                       ; 4.14e-06 V                   ; 2.91 V              ; -0.119 V            ; 0.326 V                              ; 0.298 V                              ; 2.74e-10 s                  ; 2.8e-10 s                   ; No                         ; No                         ; 2.75 V                      ; 4.14e-06 V                  ; 2.91 V             ; -0.119 V           ; 0.326 V                             ; 0.298 V                             ; 2.74e-10 s                 ; 2.8e-10 s                  ; No                        ; No                        ;
+; o_active        ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.75 V                       ; 4.14e-06 V                   ; 2.91 V              ; -0.119 V            ; 0.326 V                              ; 0.298 V                              ; 2.74e-10 s                  ; 2.8e-10 s                   ; No                         ; No                         ; 2.75 V                      ; 4.14e-06 V                  ; 2.91 V             ; -0.119 V           ; 0.326 V                             ; 0.298 V                             ; 2.74e-10 s                 ; 2.8e-10 s                  ; No                        ; No                        ;
+; o_dac_drive[0]  ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.75 V                       ; 4.14e-06 V                   ; 2.91 V              ; -0.121 V            ; 0.326 V                              ; 0.297 V                              ; 2.74e-10 s                  ; 2.8e-10 s                   ; No                         ; No                         ; 2.75 V                      ; 4.14e-06 V                  ; 2.91 V             ; -0.121 V           ; 0.326 V                             ; 0.297 V                             ; 2.74e-10 s                 ; 2.8e-10 s                  ; No                        ; No                        ;
+; o_dac_drive[1]  ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.75 V                       ; 3.54e-06 V                   ; 2.81 V              ; -0.0578 V           ; 0.303 V                              ; 0.28 V                               ; 2.93e-10 s                  ; 3.01e-10 s                  ; No                         ; No                         ; 2.75 V                      ; 3.54e-06 V                  ; 2.81 V             ; -0.0578 V          ; 0.303 V                             ; 0.28 V                              ; 2.93e-10 s                 ; 3.01e-10 s                 ; No                        ; No                        ;
+; o_dac_drive[2]  ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.75 V                       ; 4.14e-06 V                   ; 2.91 V              ; -0.119 V            ; 0.326 V                              ; 0.298 V                              ; 2.74e-10 s                  ; 2.8e-10 s                   ; No                         ; No                         ; 2.75 V                      ; 4.14e-06 V                  ; 2.91 V             ; -0.119 V           ; 0.326 V                             ; 0.298 V                             ; 2.74e-10 s                 ; 2.8e-10 s                  ; No                        ; No                        ;
+; o_dac_drive[3]  ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.75 V                       ; 4.14e-06 V                   ; 2.91 V              ; -0.119 V            ; 0.326 V                              ; 0.298 V                              ; 2.74e-10 s                  ; 2.8e-10 s                   ; No                         ; No                         ; 2.75 V                      ; 4.14e-06 V                  ; 2.91 V             ; -0.119 V           ; 0.326 V                             ; 0.298 V                             ; 2.74e-10 s                 ; 2.8e-10 s                  ; No                        ; No                        ;
+; o_dac_drive[4]  ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.75 V                       ; 3.54e-06 V                   ; 2.81 V              ; -0.0578 V           ; 0.303 V                              ; 0.28 V                               ; 2.93e-10 s                  ; 3.01e-10 s                  ; No                         ; No                         ; 2.75 V                      ; 3.54e-06 V                  ; 2.81 V             ; -0.0578 V          ; 0.303 V                             ; 0.28 V                              ; 2.93e-10 s                 ; 3.01e-10 s                 ; No                        ; No                        ;
+; o_dac_drive[5]  ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.75 V                       ; 3.54e-06 V                   ; 2.81 V              ; -0.0578 V           ; 0.303 V                              ; 0.28 V                               ; 2.93e-10 s                  ; 3.01e-10 s                  ; No                         ; No                         ; 2.75 V                      ; 3.54e-06 V                  ; 2.81 V             ; -0.0578 V          ; 0.303 V                             ; 0.28 V                              ; 2.93e-10 s                 ; 3.01e-10 s                 ; No                        ; No                        ;
+; o_dac_drive[6]  ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.75 V                       ; 4.14e-06 V                   ; 2.91 V              ; -0.119 V            ; 0.326 V                              ; 0.298 V                              ; 2.74e-10 s                  ; 2.8e-10 s                   ; No                         ; No                         ; 2.75 V                      ; 4.14e-06 V                  ; 2.91 V             ; -0.119 V           ; 0.326 V                             ; 0.298 V                             ; 2.74e-10 s                 ; 2.8e-10 s                  ; No                        ; No                        ;
+; o_dac_drive[7]  ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.75 V                       ; 3.54e-06 V                   ; 2.81 V              ; -0.0578 V           ; 0.303 V                              ; 0.28 V                               ; 2.93e-10 s                  ; 3.01e-10 s                  ; No                         ; No                         ; 2.75 V                      ; 3.54e-06 V                  ; 2.81 V             ; -0.0578 V          ; 0.303 V                             ; 0.28 V                              ; 2.93e-10 s                 ; 3.01e-10 s                 ; No                        ; No                        ;
+; o_dac_drive[8]  ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.75 V                       ; 4.14e-06 V                   ; 2.91 V              ; -0.121 V            ; 0.326 V                              ; 0.297 V                              ; 2.74e-10 s                  ; 2.8e-10 s                   ; No                         ; No                         ; 2.75 V                      ; 4.14e-06 V                  ; 2.91 V             ; -0.121 V           ; 0.326 V                             ; 0.297 V                             ; 2.74e-10 s                 ; 2.8e-10 s                  ; No                        ; No                        ;
+; o_dac_drive[9]  ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.75 V                       ; 4.14e-06 V                   ; 2.91 V              ; -0.119 V            ; 0.326 V                              ; 0.298 V                              ; 2.74e-10 s                  ; 2.8e-10 s                   ; No                         ; No                         ; 2.75 V                      ; 4.14e-06 V                  ; 2.91 V             ; -0.119 V           ; 0.326 V                             ; 0.298 V                             ; 2.74e-10 s                 ; 2.8e-10 s                  ; No                        ; No                        ;
+; o_dac_drive[10] ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.75 V                       ; 4.14e-06 V                   ; 2.91 V              ; -0.121 V            ; 0.326 V                              ; 0.297 V                              ; 2.74e-10 s                  ; 2.8e-10 s                   ; No                         ; No                         ; 2.75 V                      ; 4.14e-06 V                  ; 2.91 V             ; -0.121 V           ; 0.326 V                             ; 0.297 V                             ; 2.74e-10 s                 ; 2.8e-10 s                  ; No                        ; No                        ;
+; o_dac_drive[11] ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.75 V                       ; 4.25e-06 V                   ; 2.9 V               ; -0.107 V            ; 0.378 V                              ; 0.16 V                               ; 2.87e-10 s                  ; 4.28e-10 s                  ; No                         ; No                         ; 2.75 V                      ; 4.25e-06 V                  ; 2.9 V              ; -0.107 V           ; 0.378 V                             ; 0.16 V                              ; 2.87e-10 s                 ; 4.28e-10 s                 ; No                        ; No                        ;
+; o_dac_drive[12] ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.75 V                       ; 4.14e-06 V                   ; 2.91 V              ; -0.121 V            ; 0.326 V                              ; 0.297 V                              ; 2.74e-10 s                  ; 2.8e-10 s                   ; No                         ; No                         ; 2.75 V                      ; 4.14e-06 V                  ; 2.91 V             ; -0.121 V           ; 0.326 V                             ; 0.297 V                             ; 2.74e-10 s                 ; 2.8e-10 s                  ; No                        ; No                        ;
+; o_dac_drive[13] ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.75 V                       ; 3.54e-06 V                   ; 2.81 V              ; -0.0578 V           ; 0.303 V                              ; 0.28 V                               ; 2.93e-10 s                  ; 3.01e-10 s                  ; No                         ; No                         ; 2.75 V                      ; 3.54e-06 V                  ; 2.81 V             ; -0.0578 V          ; 0.303 V                             ; 0.28 V                              ; 2.93e-10 s                 ; 3.01e-10 s                 ; No                        ; No                        ;
++-----------------+--------------+---------------------+---------------------+------------------------------+------------------------------+---------------------+---------------------+--------------------------------------+--------------------------------------+-----------------------------+-----------------------------+----------------------------+----------------------------+-----------------------------+-----------------------------+--------------------+--------------------+-------------------------------------+-------------------------------------+----------------------------+----------------------------+---------------------------+---------------------------+
+
+
++----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+; Signal Integrity Metrics (Fast 1100mv 85c Model)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             ;
++-----------------+--------------+---------------------+---------------------+------------------------------+------------------------------+---------------------+---------------------+--------------------------------------+--------------------------------------+-----------------------------+-----------------------------+----------------------------+----------------------------+-----------------------------+-----------------------------+--------------------+--------------------+-------------------------------------+-------------------------------------+----------------------------+----------------------------+---------------------------+---------------------------+
+; Pin             ; I/O Standard ; Board Delay on Rise ; Board Delay on Fall ; Steady State Voh at FPGA Pin ; Steady State Vol at FPGA Pin ; Voh Max at FPGA Pin ; Vol Min at FPGA Pin ; Ringback Voltage on Rise at FPGA Pin ; Ringback Voltage on Fall at FPGA Pin ; 10-90 Rise Time at FPGA Pin ; 90-10 Fall Time at FPGA Pin ; Monotonic Rise at FPGA Pin ; Monotonic Fall at FPGA Pin ; Steady State Voh at Far-end ; Steady State Vol at Far-end ; Voh Max at Far-end ; Vol Min at Far-end ; Ringback Voltage on Rise at Far-end ; Ringback Voltage on Fall at Far-end ; 10-90 Rise Time at Far-end ; 90-10 Fall Time at Far-end ; Monotonic Rise at Far-end ; Monotonic Fall at Far-end ;
++-----------------+--------------+---------------------+---------------------+------------------------------+------------------------------+---------------------+---------------------+--------------------------------------+--------------------------------------+-----------------------------+-----------------------------+----------------------------+----------------------------+-----------------------------+-----------------------------+--------------------+--------------------+-------------------------------------+-------------------------------------+----------------------------+----------------------------+---------------------------+---------------------------+
+; o_seq_done      ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.75 V                       ; 0.000242 V                   ; 2.86 V              ; -0.0805 V           ; 0.358 V                              ; 0.156 V                              ; 3.01e-10 s                  ; 4.34e-10 s                  ; No                         ; No                         ; 2.75 V                      ; 0.000242 V                  ; 2.86 V             ; -0.0805 V          ; 0.358 V                             ; 0.156 V                             ; 3.01e-10 s                 ; 4.34e-10 s                 ; No                        ; No                        ;
+; o_active        ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.75 V                       ; 0.000242 V                   ; 2.86 V              ; -0.0805 V           ; 0.358 V                              ; 0.156 V                              ; 3.01e-10 s                  ; 4.34e-10 s                  ; No                         ; No                         ; 2.75 V                      ; 0.000242 V                  ; 2.86 V             ; -0.0805 V          ; 0.358 V                             ; 0.156 V                             ; 3.01e-10 s                 ; 4.34e-10 s                 ; No                        ; No                        ;
+; o_dac_drive[0]  ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.75 V                       ; 0.000242 V                   ; 2.86 V              ; -0.0814 V           ; 0.36 V                               ; 0.156 V                              ; 3e-10 s                     ; 4.34e-10 s                  ; No                         ; No                         ; 2.75 V                      ; 0.000242 V                  ; 2.86 V             ; -0.0814 V          ; 0.36 V                              ; 0.156 V                             ; 3e-10 s                    ; 4.34e-10 s                 ; No                        ; No                        ;
+; o_dac_drive[1]  ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.75 V                       ; 0.000213 V                   ; 2.79 V              ; -0.0324 V           ; 0.139 V                              ; 0.119 V                              ; 4.42e-10 s                  ; 4.33e-10 s                  ; No                         ; Yes                        ; 2.75 V                      ; 0.000213 V                  ; 2.79 V             ; -0.0324 V          ; 0.139 V                             ; 0.119 V                             ; 4.42e-10 s                 ; 4.33e-10 s                 ; No                        ; Yes                       ;
+; o_dac_drive[2]  ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.75 V                       ; 0.000242 V                   ; 2.86 V              ; -0.0805 V           ; 0.358 V                              ; 0.156 V                              ; 3.01e-10 s                  ; 4.34e-10 s                  ; No                         ; No                         ; 2.75 V                      ; 0.000242 V                  ; 2.86 V             ; -0.0805 V          ; 0.358 V                             ; 0.156 V                             ; 3.01e-10 s                 ; 4.34e-10 s                 ; No                        ; No                        ;
+; o_dac_drive[3]  ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.75 V                       ; 0.000242 V                   ; 2.86 V              ; -0.0805 V           ; 0.358 V                              ; 0.156 V                              ; 3.01e-10 s                  ; 4.34e-10 s                  ; No                         ; No                         ; 2.75 V                      ; 0.000242 V                  ; 2.86 V             ; -0.0805 V          ; 0.358 V                             ; 0.156 V                             ; 3.01e-10 s                 ; 4.34e-10 s                 ; No                        ; No                        ;
+; o_dac_drive[4]  ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.75 V                       ; 0.000213 V                   ; 2.79 V              ; -0.0324 V           ; 0.139 V                              ; 0.119 V                              ; 4.42e-10 s                  ; 4.33e-10 s                  ; No                         ; Yes                        ; 2.75 V                      ; 0.000213 V                  ; 2.79 V             ; -0.0324 V          ; 0.139 V                             ; 0.119 V                             ; 4.42e-10 s                 ; 4.33e-10 s                 ; No                        ; Yes                       ;
+; o_dac_drive[5]  ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.75 V                       ; 0.000213 V                   ; 2.79 V              ; -0.0324 V           ; 0.139 V                              ; 0.119 V                              ; 4.42e-10 s                  ; 4.33e-10 s                  ; No                         ; Yes                        ; 2.75 V                      ; 0.000213 V                  ; 2.79 V             ; -0.0324 V          ; 0.139 V                             ; 0.119 V                             ; 4.42e-10 s                 ; 4.33e-10 s                 ; No                        ; Yes                       ;
+; o_dac_drive[6]  ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.75 V                       ; 0.000242 V                   ; 2.86 V              ; -0.0805 V           ; 0.358 V                              ; 0.156 V                              ; 3.01e-10 s                  ; 4.34e-10 s                  ; No                         ; No                         ; 2.75 V                      ; 0.000242 V                  ; 2.86 V             ; -0.0805 V          ; 0.358 V                             ; 0.156 V                             ; 3.01e-10 s                 ; 4.34e-10 s                 ; No                        ; No                        ;
+; o_dac_drive[7]  ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.75 V                       ; 0.000213 V                   ; 2.79 V              ; -0.0324 V           ; 0.139 V                              ; 0.119 V                              ; 4.42e-10 s                  ; 4.33e-10 s                  ; No                         ; Yes                        ; 2.75 V                      ; 0.000213 V                  ; 2.79 V             ; -0.0324 V          ; 0.139 V                             ; 0.119 V                             ; 4.42e-10 s                 ; 4.33e-10 s                 ; No                        ; Yes                       ;
+; o_dac_drive[8]  ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.75 V                       ; 0.000242 V                   ; 2.86 V              ; -0.0814 V           ; 0.36 V                               ; 0.156 V                              ; 3e-10 s                     ; 4.34e-10 s                  ; No                         ; No                         ; 2.75 V                      ; 0.000242 V                  ; 2.86 V             ; -0.0814 V          ; 0.36 V                              ; 0.156 V                             ; 3e-10 s                    ; 4.34e-10 s                 ; No                        ; No                        ;
+; o_dac_drive[9]  ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.75 V                       ; 0.000242 V                   ; 2.86 V              ; -0.0805 V           ; 0.358 V                              ; 0.156 V                              ; 3.01e-10 s                  ; 4.34e-10 s                  ; No                         ; No                         ; 2.75 V                      ; 0.000242 V                  ; 2.86 V             ; -0.0805 V          ; 0.358 V                             ; 0.156 V                             ; 3.01e-10 s                 ; 4.34e-10 s                 ; No                        ; No                        ;
+; o_dac_drive[10] ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.75 V                       ; 0.000242 V                   ; 2.86 V              ; -0.0814 V           ; 0.36 V                               ; 0.156 V                              ; 3e-10 s                     ; 4.34e-10 s                  ; No                         ; No                         ; 2.75 V                      ; 0.000242 V                  ; 2.86 V             ; -0.0814 V          ; 0.36 V                              ; 0.156 V                             ; 3e-10 s                    ; 4.34e-10 s                 ; No                        ; No                        ;
+; o_dac_drive[11] ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.75 V                       ; 0.000247 V                   ; 2.85 V              ; -0.0711 V           ; 0.204 V                              ; 0.181 V                              ; 4.55e-10 s                  ; 4.49e-10 s                  ; No                         ; No                         ; 2.75 V                      ; 0.000247 V                  ; 2.85 V             ; -0.0711 V          ; 0.204 V                             ; 0.181 V                             ; 4.55e-10 s                 ; 4.49e-10 s                 ; No                        ; No                        ;
+; o_dac_drive[12] ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.75 V                       ; 0.000242 V                   ; 2.86 V              ; -0.0814 V           ; 0.36 V                               ; 0.156 V                              ; 3e-10 s                     ; 4.34e-10 s                  ; No                         ; No                         ; 2.75 V                      ; 0.000242 V                  ; 2.86 V             ; -0.0814 V          ; 0.36 V                              ; 0.156 V                             ; 3e-10 s                    ; 4.34e-10 s                 ; No                        ; No                        ;
+; o_dac_drive[13] ; 2.5 V        ; 0 s                 ; 0 s                 ; 2.75 V                       ; 0.000213 V                   ; 2.79 V              ; -0.0324 V           ; 0.139 V                              ; 0.119 V                              ; 4.42e-10 s                  ; 4.33e-10 s                  ; No                         ; Yes                        ; 2.75 V                      ; 0.000213 V                  ; 2.79 V             ; -0.0324 V          ; 0.139 V                             ; 0.119 V                             ; 4.42e-10 s                 ; 4.33e-10 s                 ; No                        ; Yes                       ;
++-----------------+--------------+---------------------+---------------------+------------------------------+------------------------------+---------------------+---------------------+--------------------------------------+--------------------------------------+-----------------------------+-----------------------------+----------------------------+----------------------------+-----------------------------+-----------------------------+--------------------+--------------------+-------------------------------------+-------------------------------------+----------------------------+----------------------------+---------------------------+---------------------------+
+
+
++-------------------------------------------------------------------+
+; Setup Transfers                                                   ;
++------------+----------+----------+----------+----------+----------+
+; From Clock ; To Clock ; RR Paths ; FR Paths ; RF Paths ; FF Paths ;
++------------+----------+----------+----------+----------+----------+
+; clk        ; clk      ; 798892   ; 0        ; 0        ; 0        ;
++------------+----------+----------+----------+----------+----------+
+Entries labeled "false path" only account for clock-to-clock false paths and not path-based false paths. As a result, actual path counts may be lower than reported.
+
+
++-------------------------------------------------------------------+
+; Hold Transfers                                                    ;
++------------+----------+----------+----------+----------+----------+
+; From Clock ; To Clock ; RR Paths ; FR Paths ; RF Paths ; FF Paths ;
++------------+----------+----------+----------+----------+----------+
+; clk        ; clk      ; 798892   ; 0        ; 0        ; 0        ;
++------------+----------+----------+----------+----------+----------+
+Entries labeled "false path" only account for clock-to-clock false paths and not path-based false paths. As a result, actual path counts may be lower than reported.
+
+
+---------------
+; Report TCCS ;
+---------------
+No dedicated SERDES Transmitter circuitry present in device or used in design
+
+
+---------------
+; Report RSKM ;
+---------------
+No non-DPA dedicated SERDES Receiver circuitry present in device or used in design
+
+
++------------------------------------------------+
+; Unconstrained Paths Summary                    ;
++---------------------------------+-------+------+
+; Property                        ; Setup ; Hold ;
++---------------------------------+-------+------+
+; Illegal Clocks                  ; 0     ; 0    ;
+; Unconstrained Clocks            ; 0     ; 0    ;
+; Unconstrained Input Ports       ; 86    ; 86   ;
+; Unconstrained Input Port Paths  ; 844   ; 844  ;
+; Unconstrained Output Ports      ; 16    ; 16   ;
+; Unconstrained Output Port Paths ; 2092  ; 2092 ;
++---------------------------------+-------+------+
+
+
++-------------------------------------+
+; Clock Status Summary                ;
++--------+-------+------+-------------+
+; Target ; Clock ; Type ; Status      ;
++--------+-------+------+-------------+
+; clk    ; clk   ; Base ; Constrained ;
++--------+-------+------+-------------+
+
+
++-------------------------------------------------------------------------------------------------------------+
+; Unconstrained Input Ports                                                                                   ;
++----------------------+--------------------------------------------------------------------------------------+
+; Input Port           ; Comment                                                                              ;
++----------------------+--------------------------------------------------------------------------------------+
+; i_awg_reg_w_addr[0]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_awg_reg_w_addr[1]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_awg_reg_w_addr[2]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_awg_reg_w_addr[3]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_awg_reg_w_addr[4]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_awg_reg_w_addr[5]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_awg_reg_w_addr[6]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_awg_reg_w_addr[7]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_awg_reg_w_addr[8]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_awg_reg_w_addr[9]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_awg_reg_w_data[0]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_awg_reg_w_data[1]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_awg_reg_w_data[2]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_awg_reg_w_data[3]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_awg_reg_w_data[4]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_awg_reg_w_data[5]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_awg_reg_w_data[6]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_awg_reg_w_data[7]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_awg_reg_w_data[8]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_awg_reg_w_data[9]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_awg_reg_w_data[10] ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_awg_reg_w_data[11] ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_awg_reg_w_data[12] ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_awg_reg_w_data[13] ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_awg_reg_w_en       ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_addr[0]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_addr[1]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_addr[2]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_addr[3]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_addr[4]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_addr[5]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_addr[6]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_addr[7]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[0]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[1]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[2]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[3]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[4]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[5]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[6]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[7]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[8]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[9]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[10] ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[11] ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[12] ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[13] ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[14] ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[15] ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[16] ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[17] ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[18] ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[19] ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[20] ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[21] ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[22] ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[23] ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[24] ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[25] ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[26] ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[27] ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[28] ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[29] ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[30] ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[31] ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_en       ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_init_v[0]          ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_init_v[1]          ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_init_v[2]          ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_init_v[3]          ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_init_v[4]          ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_init_v[5]          ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_init_v[6]          ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_init_v[7]          ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_init_v[8]          ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_init_v[9]          ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_init_v[10]         ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_init_v[11]         ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_init_v[12]         ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_init_v[13]         ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_num_blocks[0]      ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_num_blocks[1]      ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_num_blocks[2]      ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_num_blocks[3]      ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_start              ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; rst_n                ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
++----------------------+--------------------------------------------------------------------------------------+
+
+
++---------------------------------------------------------------------------------------------------------+
+; Unconstrained Output Ports                                                                              ;
++-----------------+---------------------------------------------------------------------------------------+
+; Output Port     ; Comment                                                                               ;
++-----------------+---------------------------------------------------------------------------------------+
+; o_active        ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; o_dac_drive[0]  ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; o_dac_drive[1]  ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; o_dac_drive[2]  ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; o_dac_drive[3]  ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; o_dac_drive[4]  ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; o_dac_drive[5]  ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; o_dac_drive[6]  ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; o_dac_drive[7]  ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; o_dac_drive[8]  ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; o_dac_drive[9]  ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; o_dac_drive[10] ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; o_dac_drive[11] ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; o_dac_drive[12] ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; o_dac_drive[13] ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; o_seq_done      ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
++-----------------+---------------------------------------------------------------------------------------+
+
+
++-------------------------------------------------------------------------------------------------------------+
+; Unconstrained Input Ports                                                                                   ;
++----------------------+--------------------------------------------------------------------------------------+
+; Input Port           ; Comment                                                                              ;
++----------------------+--------------------------------------------------------------------------------------+
+; i_awg_reg_w_addr[0]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_awg_reg_w_addr[1]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_awg_reg_w_addr[2]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_awg_reg_w_addr[3]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_awg_reg_w_addr[4]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_awg_reg_w_addr[5]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_awg_reg_w_addr[6]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_awg_reg_w_addr[7]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_awg_reg_w_addr[8]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_awg_reg_w_addr[9]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_awg_reg_w_data[0]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_awg_reg_w_data[1]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_awg_reg_w_data[2]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_awg_reg_w_data[3]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_awg_reg_w_data[4]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_awg_reg_w_data[5]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_awg_reg_w_data[6]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_awg_reg_w_data[7]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_awg_reg_w_data[8]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_awg_reg_w_data[9]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_awg_reg_w_data[10] ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_awg_reg_w_data[11] ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_awg_reg_w_data[12] ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_awg_reg_w_data[13] ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_awg_reg_w_en       ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_addr[0]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_addr[1]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_addr[2]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_addr[3]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_addr[4]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_addr[5]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_addr[6]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_addr[7]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[0]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[1]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[2]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[3]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[4]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[5]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[6]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[7]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[8]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[9]  ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[10] ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[11] ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[12] ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[13] ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[14] ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[15] ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[16] ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[17] ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[18] ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[19] ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[20] ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[21] ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[22] ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[23] ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[24] ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[25] ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[26] ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[27] ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[28] ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[29] ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[30] ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_data[31] ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_fsm_reg_w_en       ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_init_v[0]          ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_init_v[1]          ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_init_v[2]          ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_init_v[3]          ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_init_v[4]          ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_init_v[5]          ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_init_v[6]          ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_init_v[7]          ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_init_v[8]          ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_init_v[9]          ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_init_v[10]         ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_init_v[11]         ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_init_v[12]         ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_init_v[13]         ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_num_blocks[0]      ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_num_blocks[1]      ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_num_blocks[2]      ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_num_blocks[3]      ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; i_start              ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; rst_n                ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
++----------------------+--------------------------------------------------------------------------------------+
+
+
++---------------------------------------------------------------------------------------------------------+
+; Unconstrained Output Ports                                                                              ;
++-----------------+---------------------------------------------------------------------------------------+
+; Output Port     ; Comment                                                                               ;
++-----------------+---------------------------------------------------------------------------------------+
+; o_active        ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; o_dac_drive[0]  ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; o_dac_drive[1]  ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; o_dac_drive[2]  ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; o_dac_drive[3]  ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; o_dac_drive[4]  ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; o_dac_drive[5]  ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; o_dac_drive[6]  ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; o_dac_drive[7]  ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; o_dac_drive[8]  ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; o_dac_drive[9]  ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; o_dac_drive[10] ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; o_dac_drive[11] ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; o_dac_drive[12] ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; o_dac_drive[13] ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; o_seq_done      ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
++-----------------+---------------------------------------------------------------------------------------+
+
+
++--------------------------+
+; Timing Analyzer Messages ;
++--------------------------+
+Info: *******************************************************************
+Info: Running Quartus Prime Timing Analyzer
+    Info: Version 25.1std.0 Build 1129 10/21/2025 SC Lite Edition
+    Info: Processing started: Thu Apr  9 15:56:54 2026
+Info: Command: quartus_sta linien-capstone -c linien-capstone
+Info: qsta_default_script.tcl version: #1
+Warning (18236): Number of processors has not been specified which may cause overloading on shared machines.  Set the global assignment NUM_PARALLEL_PROCESSORS in your QSF to an appropriate value for best performance.
+Info (20030): Parallel compilation is enabled and will use 10 of the 10 processors detected
+Info (21077): Low junction temperature is 0 degrees C
+Info (21077): High junction temperature is 85 degrees C
+Info (332104): Reading SDC File: 'synthesis/linien-capstone.sdc'
+Info (332143): No user constrained clock uncertainty found in the design. Calling "derive_clock_uncertainty"
+Info (332123): Deriving Clock Uncertainty. Please refer to report_sdc in the Timing Analyzer to see clock uncertainties.
+Info: Found TIMING_ANALYZER_REPORT_SCRIPT_INCLUDE_DEFAULT_ANALYSIS = ON
+Info: Analyzing Slow 1100mV 85C Model
+Critical Warning (332148): Timing requirements not met
+    Info (11105): For recommendations on closing timing, run Report Timing Closure Recommendations in the Timing Analyzer.
+Info (332146): Worst-case setup slack is -4.949
+    Info (332119):     Slack       End Point TNS Clock 
+    Info (332119): ========= =================== =====================
+    Info (332119):    -4.949             -68.547 clk 
+Info (332146): Worst-case hold slack is 0.306
+    Info (332119):     Slack       End Point TNS Clock 
+    Info (332119): ========= =================== =====================
+    Info (332119):     0.306               0.000 clk 
+Info (332140): No Recovery paths to report
+Info (332140): No Removal paths to report
+Info (332146): Worst-case minimum pulse width slack is 3.419
+    Info (332119):     Slack       End Point TNS Clock 
+    Info (332119): ========= =================== =====================
+    Info (332119):     3.419               0.000 clk 
+Info (332114): Report Metastability: Found 14 synchronizer chains.
+    Info (332114): The design MTBF is not calculated because there are no specified synchronizers in the design.
+    Info (332114): Number of Synchronizer Chains Found: 14
+    Info (332114): Shortest Synchronizer Chain: 2 Registers
+    Info (332114): Fraction of Chains for which MTBFs Could Not be Calculated: 1.000
+    Info (332114): Worst Case Available Settling Time: 13.572 ns
+    Info (332114): 
+Info: Analyzing Slow 1100mV 0C Model
+Info (334003): Started post-fitting delay annotation
+Info (334004): Delay annotation completed successfully
+Info (332123): Deriving Clock Uncertainty. Please refer to report_sdc in the Timing Analyzer to see clock uncertainties.
+Critical Warning (332148): Timing requirements not met
+    Info (11105): For recommendations on closing timing, run Report Timing Closure Recommendations in the Timing Analyzer.
+Info (332146): Worst-case setup slack is -5.225
+    Info (332119):     Slack       End Point TNS Clock 
+    Info (332119): ========= =================== =====================
+    Info (332119):    -5.225             -75.952 clk 
+Info (332146): Worst-case hold slack is 0.300
+    Info (332119):     Slack       End Point TNS Clock 
+    Info (332119): ========= =================== =====================
+    Info (332119):     0.300               0.000 clk 
+Info (332140): No Recovery paths to report
+Info (332140): No Removal paths to report
+Info (332146): Worst-case minimum pulse width slack is 3.350
+    Info (332119):     Slack       End Point TNS Clock 
+    Info (332119): ========= =================== =====================
+    Info (332119):     3.350               0.000 clk 
+Info (332114): Report Metastability: Found 14 synchronizer chains.
+    Info (332114): The design MTBF is not calculated because there are no specified synchronizers in the design.
+    Info (332114): Number of Synchronizer Chains Found: 14
+    Info (332114): Shortest Synchronizer Chain: 2 Registers
+    Info (332114): Fraction of Chains for which MTBFs Could Not be Calculated: 1.000
+    Info (332114): Worst Case Available Settling Time: 13.517 ns
+    Info (332114): 
+Info: Analyzing Fast 1100mV 85C Model
+Info (334003): Started post-fitting delay annotation
+Info (334004): Delay annotation completed successfully
+Info (332123): Deriving Clock Uncertainty. Please refer to report_sdc in the Timing Analyzer to see clock uncertainties.
+Info (332146): Worst-case setup slack is 3.812
+    Info (332119):     Slack       End Point TNS Clock 
+    Info (332119): ========= =================== =====================
+    Info (332119):     3.812               0.000 clk 
+Info (332146): Worst-case hold slack is 0.136
+    Info (332119):     Slack       End Point TNS Clock 
+    Info (332119): ========= =================== =====================
+    Info (332119):     0.136               0.000 clk 
+Info (332140): No Recovery paths to report
+Info (332140): No Removal paths to report
+Info (332146): Worst-case minimum pulse width slack is 3.785
+    Info (332119):     Slack       End Point TNS Clock 
+    Info (332119): ========= =================== =====================
+    Info (332119):     3.785               0.000 clk 
+Info (332114): Report Metastability: Found 14 synchronizer chains.
+    Info (332114): The design MTBF is not calculated because there are no specified synchronizers in the design.
+    Info (332114): Number of Synchronizer Chains Found: 14
+    Info (332114): Shortest Synchronizer Chain: 2 Registers
+    Info (332114): Fraction of Chains for which MTBFs Could Not be Calculated: 1.000
+    Info (332114): Worst Case Available Settling Time: 16.922 ns
+    Info (332114): 
+Info: Analyzing Fast 1100mV 0C Model
+Info (332123): Deriving Clock Uncertainty. Please refer to report_sdc in the Timing Analyzer to see clock uncertainties.
+Info (332146): Worst-case setup slack is 4.245
+    Info (332119):     Slack       End Point TNS Clock 
+    Info (332119): ========= =================== =====================
+    Info (332119):     4.245               0.000 clk 
+Info (332146): Worst-case hold slack is 0.123
+    Info (332119):     Slack       End Point TNS Clock 
+    Info (332119): ========= =================== =====================
+    Info (332119):     0.123               0.000 clk 
+Info (332140): No Recovery paths to report
+Info (332140): No Removal paths to report
+Info (332146): Worst-case minimum pulse width slack is 3.776
+    Info (332119):     Slack       End Point TNS Clock 
+    Info (332119): ========= =================== =====================
+    Info (332119):     3.776               0.000 clk 
+Info (332114): Report Metastability: Found 14 synchronizer chains.
+    Info (332114): The design MTBF is not calculated because there are no specified synchronizers in the design.
+    Info (332114): Number of Synchronizer Chains Found: 14
+    Info (332114): Shortest Synchronizer Chain: 2 Registers
+    Info (332114): Fraction of Chains for which MTBFs Could Not be Calculated: 1.000
+    Info (332114): Worst Case Available Settling Time: 17.193 ns
+    Info (332114): 
+Info (332102): Design is not fully constrained for setup requirements
+Info (332102): Design is not fully constrained for hold requirements
+Info: Quartus Prime Timing Analyzer was successful. 0 errors, 3 warnings
+    Info: Peak virtual memory: 1033 megabytes
+    Info: Processing ended: Thu Apr  9 15:57:02 2026
+    Info: Elapsed time: 00:00:08
+    Info: Total CPU time (on all processors): 00:00:14
+
+
