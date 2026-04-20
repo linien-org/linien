@@ -16,10 +16,10 @@ module arb_wave (
     output logic signed [13:0] o_drive
 );
 
-  //param loading
-
+  //TODO: change from asynchronous to syncrhonous reset to avoid timing
+  //violations in synthesis
   logic [31:0] clk_div;
-  always_ff @(posedge clk, negedge rst_n) begin
+  always_ff @(posedge clk) begin
     if (!rst_n) begin
       clk_div <= 32'd1;  // default: step every cycle
     end else if (i_en && i_param_addr == 4'd0) begin
@@ -40,8 +40,6 @@ module arb_wave (
   logic [31:0] div_counter;
   logic [ 9:0] bram_addr_r;
 
-  //TODO: change from asynchronous to syncrhonous reset to avoid timing
-  //violations in synthesis
   always_ff @(posedge clk, negedge rst_n) begin
     if (~rst_n) begin
       div_counter <= 32'b0;
