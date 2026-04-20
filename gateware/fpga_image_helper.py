@@ -69,6 +69,7 @@ if __name__ == "__main__":
         fil.write("signals = {}\n".format(repr(root.linien.signal_names)))
 
     platform.add_source_dir(REPO_ROOT_DIR / "gateware" / "verilog")
+    platform.add_source_dir(REPO_ROOT_DIR / "src")
     build_dir = REPO_ROOT_DIR / "gateware" / "build"
     platform.build(root, build_name="top", build_dir=build_dir)
     bit2bin(

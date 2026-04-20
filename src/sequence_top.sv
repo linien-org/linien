@@ -1,6 +1,6 @@
 `default_nettype none
 
-module top #(
+module sequence_top #(
     parameter int MAX_BLOCKS = 16,
     parameter int DATA_WIDTH = 32,
     parameter int V_DATA_WIDTH = 14,

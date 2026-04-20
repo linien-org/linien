@@ -255,6 +255,10 @@ class RedPitayaControlService(BaseService, LinienControlService):
         """Sync the parameters with the FPGA registers."""
         self.registers.write_registers()
 
+    def exposed_write_sequence_config(self) -> None:
+        """Sync the parameters with the FSM registers(?)"""
+        self.registers.write_sequence_config()
+
     def exposed_start_autolock(self, x0, x1, spectrum, additional_spectra=None):
         spectrum = pickle.loads(spectrum)
         # start_watching = self.parameters.watch_lock.value
@@ -362,14 +366,12 @@ class FakeRedPitayaControlService(BaseService, LinienControlService):
             def gen():
                 return np.array([randint(-max_, max_) for _ in range(N_POINTS)])
 
-            self.parameters.to_plot.value = pickle.dumps(
-                {
-                    "error_signal_1": gen(),
-                    "error_signal_1_quadrature": gen(),
-                    "error_signal_2": gen(),
-                    "error_signal_2_quadrature": gen(),
-                }
-            )
+            self.parameters.to_plot.value = pickle.dumps({
+                "error_signal_1": gen(),
+                "error_signal_1_quadrature": gen(),
+                "error_signal_2": gen(),
+                "error_signal_2_quadrature": gen(),
+            })
             sleep(0.1)
 
     def exposed_write_registers(self):

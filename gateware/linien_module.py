@@ -97,7 +97,9 @@ class LinienLogic(Module, AutoCSR):
         # pid is not started directly by `request_lock` signal. Instead, `request_lock`
         # queues a run that is then started when the sweep is at the zero crossing
         self.comb += [
-            self.pid.running.eq(self.autolock.lock_running.status & ~self.sequence.pid_pause),
+            self.pid.running.eq(
+                self.autolock.lock_running.status & ~self.sequence.pid_pause
+            ),
             self.sweep.hold.eq(self.autolock.lock_running.status),
             self.autolock.fast.sweep_value.eq(self.sweep.y),
             self.autolock.fast.sweep_up.eq(self.sweep.sweep.up),
@@ -242,6 +244,7 @@ class LinienModule(Module, AutoCSR):
             "scopegen": 6,
             "noise": 7,
             "logic": 8,
+            "sequence": 9,
         }
 
         self.submodules.csrbanks = csr_bus.CSRBankArray(
@@ -266,9 +269,10 @@ class LinienModule(Module, AutoCSR):
         ]
 
         # now, we combine the output of the two paths, with a variable factor each.
-        mixed = Signal(
-            (2 + ((signal_width + 1) + self.logic.chain_a_factor.size), True)
-        )
+        mixed = Signal((
+            2 + ((signal_width + 1) + self.logic.chain_a_factor.size),
+            True,
+        ))
         self.comb += [
             If(
                 self.logic.dual_channel.storage,
@@ -403,7 +407,8 @@ class LinienModule(Module, AutoCSR):
             self.scopegen.automatically_trigger.eq(
                 self.logic.autolock.lock_running.status
             ),
-            If(self.logic.sequence.active,
+            If(
+                self.logic.sequence.active,
                 self.analog.dac_a.eq(self.logic.sequence.dac_out),
             ).Else(
                 self.analog.dac_a.eq(self.logic.limit_fast1.y),
@@ -417,6 +422,7 @@ class LinienModule(Module, AutoCSR):
             self.logic.limit_fast2.x.eq(fast_outs[1]),
         ]
 
+        # NOTE: doesn't go through ttl_handler, directly feeds in ttl signal from gpio?
         self.comb += self.logic.sequence.ttl_in.eq(self.gpio_p.i[0])
 
 

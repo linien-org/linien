@@ -40,6 +40,8 @@ module arb_wave (
   logic [31:0] div_counter;
   logic [ 9:0] bram_addr_r;
 
+  //TODO: change from asynchronous to syncrhonous reset to avoid timing
+  //violations in synthesis
   always_ff @(posedge clk, negedge rst_n) begin
     if (~rst_n) begin
       div_counter <= 32'b0;

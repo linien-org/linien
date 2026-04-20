@@ -66,6 +66,42 @@ class Registers:
             self.acquisition.exposed_set_dual_channel, call_immediately=True
         )
 
+    # method used to write the sequence of configs from parameters.sequence_blocks
+    # when called, should iterate over the parameter parameters.sequence_blocks and...
+    # 1)
+    def write_sequence_config(self):
+        # maintain a local key-value dictionary for type of nistruction and number of parameters
+        base_addr = 0
+        self.set("logic_sequence_fsm_reg_wen", 0)
+        stride = 8
+        # set the arm to 0
+        self.set("logic_sequence_arm", 0)
+        sequence_blocks = self.parameters.sequence_blocks.value
+
+        # iterate over the instructions in sequence_blocks.start (list)
+        for inst in sequence_blocks:
+            # first, write the type of instruction to the base address
+            self.set("logic_sequence_fsm_reg_addr", base_addr)
+            self.set("logic_sequence_fsm_reg_data", inst["type"])
+            # pulse the w_en to load it into the BRAM
+            self.set("logic_sequence_fsm_reg_wen", 1)
+            self.set("logic_sequence_fsm_reg_wen", 0)
+
+            # iterate equal to the number of parameters
+            for i, params in enumerate(inst["params"]):
+                self.set("logic_sequence_fsm_reg_addr", base_addr + 1 + i)
+                self.set("logic_sequence_fsm_reg_data", params)
+                self.set("logic_sequence_fsm_reg_wen", 1)
+                self.set("logic_sequence_fsm_reg_wen", 0)
+
+            # increment the base_addr by the stride
+            base_addr += stride
+        # after finishing this loop, set the other parameters
+        self.set("logic_sequence_arm", 1)
+        self.set("logic_sequence_num_blocks", len(sequence_blocks) - 1)
+        # TODO: for now just set the initial voltage to 0
+        self.set("logic_sequence_init_v", 0)
+
     def write_registers(self):
         """Writes data from `parameters` to the FPGA."""
 
@@ -183,35 +219,29 @@ class Registers:
 
         if self.parameters.lock.value:
             # display combined error signal and control signal
-            new.update(
-                {
-                    "scopegen_adc_a_sel": csrmap.signals.index(
-                        "logic_combined_error_signal"
-                        if not self.parameters.acquisition_raw_filter_enabled.value
-                        else "logic_combined_error_signal_filtered"
-                    ),
-                    "scopegen_adc_a_q_sel": csrmap.signals.index("fast_b_x"),
-                    "scopegen_adc_b_sel": csrmap.signals.index("logic_control_signal"),
-                    "scopegen_adc_b_q_sel": csrmap.signals.index("zero"),
-                }
-            )
+            new.update({
+                "scopegen_adc_a_sel": csrmap.signals.index(
+                    "logic_combined_error_signal"
+                    if not self.parameters.acquisition_raw_filter_enabled.value
+                    else "logic_combined_error_signal_filtered"
+                ),
+                "scopegen_adc_a_q_sel": csrmap.signals.index("fast_b_x"),
+                "scopegen_adc_b_sel": csrmap.signals.index("logic_control_signal"),
+                "scopegen_adc_b_q_sel": csrmap.signals.index("zero"),
+            })
         else:
             # display both demodulated error signals (if dual channel mode) OR: display
             # demodulated error signal 1 + monitor signal
-            new.update(
-                {
-                    "scopegen_adc_a_sel": csrmap.signals.index("fast_a_out_i"),
-                    "scopegen_adc_a_q_sel": csrmap.signals.index("fast_a_out_q"),
-                    "scopegen_adc_b_sel": csrmap.signals.index(
-                        "fast_b_out_i"
-                        if self.parameters.dual_channel.value
-                        else "fast_b_x"
-                    ),
-                    "scopegen_adc_b_q_sel": csrmap.signals.index(
-                        "fast_b_out_q" if self.parameters.dual_channel.value else "zero"
-                    ),
-                }
-            )
+            new.update({
+                "scopegen_adc_a_sel": csrmap.signals.index("fast_a_out_i"),
+                "scopegen_adc_a_q_sel": csrmap.signals.index("fast_a_out_q"),
+                "scopegen_adc_b_sel": csrmap.signals.index(
+                    "fast_b_out_i" if self.parameters.dual_channel.value else "fast_b_x"
+                ),
+                "scopegen_adc_b_q_sel": csrmap.signals.index(
+                    "fast_b_out_q" if self.parameters.dual_channel.value else "zero"
+                ),
+            })
 
         # filter out values that did not change
         new = dict(
