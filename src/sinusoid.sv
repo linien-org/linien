@@ -39,7 +39,7 @@ module sinusoid #(
   assign phase_increment = params[4];
 
 
-  always @(posedge clk, negedge rst_n) begin
+  always @(posedge clk) begin
     if (~rst_n) begin
       for (integer i = 0; i < 5; i = i + 1) begin
         params[i] <= 32'b0;
@@ -74,14 +74,14 @@ module sinusoid #(
   //possibly add other LUT's to work with?
 
   logic [31:0] phase_accum;
-  logic signed [13:0] sin_LUT[1023:0];
+  (* ram_style = "block" *) logic signed [13:0] sin_LUT[1023:0];
   initial begin
     $readmemh("sin_lut.memh", sin_LUT);
   end
 
 
   logic active_ff;
-  always @(posedge clk, negedge rst_n) begin
+  always @(posedge clk) begin
     if (~rst_n) active_ff <= 1'b0;
     else active_ff <= i_active;
   end
@@ -90,7 +90,7 @@ module sinusoid #(
   assign active_pulse = i_active & ~active_ff;
   //o_done will be a pulse(?)
 
-  always @(posedge clk, negedge rst_n) begin
+  always @(posedge clk) begin
     if (~rst_n) phase_accum <= 32'b0;
     else if(i_active==1'b0) phase_accum<=32'b0;
     else begin
@@ -112,7 +112,7 @@ module sinusoid #(
 
   // Stage 1: LUT lookup (registered)
 logic signed [13:0] lut_reg;
-always_ff @(posedge clk, negedge rst_n) begin
+always_ff @(posedge clk)begin
     if (~rst_n) lut_reg <= '0;
     else if (i_active) lut_reg <= sin_LUT[phase_accum[31:22]];
     else lut_reg <= '0;
@@ -120,7 +120,7 @@ end
 
 // Stage 2: multiply (registered)
 logic signed [31:0] mult_reg;
-always_ff @(posedge clk, negedge rst_n) begin
+always_ff @(posedge clk) begin
     if (~rst_n) mult_reg <= '0;
     else if (i_active) mult_reg <= lut_reg * v_amp_s;
     else mult_reg <= '0;
