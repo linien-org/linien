@@ -437,8 +437,15 @@ class LinienModule(Module, AutoCSR):
             self.logic.limit_fast2.x.eq(fast_outs[1]),
         ]
 
-        # NOTE: doesn't go through ttl_handler, directly feeds in ttl signal from gpio?
-        self.comb += self.logic.sequence.ttl_in.eq(self.gpio_p.i[0])
+        # ttl_handler (inside SequenceExecutor) watches gpio_p[0]; on rising
+        # edge it snapshots linien state before the sequence takes over the DAC.
+        self.comb += [
+            self.logic.sequence.ttl_in.eq(self.gpio_p.i[0]),
+            self.logic.sequence.linien_pid_out.eq(pid_out),
+            self.logic.sequence.linien_integrator.eq(self.logic.pid.int_out),
+            self.logic.sequence.linien_sweep_pos.eq(self.logic.sweep.y),
+            self.logic.sequence.linien_dac_out.eq(self.logic.limit_fast1.y),
+        ]
 
 
 class DummyID(Module, AutoCSR):
