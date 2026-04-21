@@ -29,7 +29,7 @@ module arb_wave (
 
   logic active_ff;
 
-  always_ff @(posedge clk, negedge rst_n) begin
+  always_ff @(posedge clk) begin
     if (!rst_n) active_ff <= 1'b0;
     else active_ff <= i_active;
   end
@@ -40,7 +40,7 @@ module arb_wave (
   logic [31:0] div_counter;
   logic [ 9:0] bram_addr_r;
 
-  always_ff @(posedge clk, negedge rst_n) begin
+  always_ff @(posedge clk) begin
     if (~rst_n) begin
       div_counter <= 32'b0;
       bram_addr_r <= 10'b0;
@@ -61,7 +61,7 @@ module arb_wave (
 
   //output pipeline stage; accounting for 1 clock cycle BRAM read latency
   //use active_ff (delayed by 1 cycle) so BRAM output is valid before we sample it
-  always_ff @(posedge clk, negedge rst_n) begin
+  always_ff @(posedge clk) begin
     if (~rst_n) o_drive <= 14'b0;
     else if (~active_ff) o_drive <= 14'b0;
     else o_drive <= i_bram_data;

@@ -37,7 +37,7 @@ module linear_ramp #(
   end
 
   logic active_ff;
-  always_ff @(posedge clk, negedge rst_n) begin
+  always_ff @(posedge clk) begin
     if (!rst_n) active_ff <= 1'b0;
     else active_ff <= i_active;
   end
@@ -48,7 +48,7 @@ module linear_ramp #(
 
   logic signed [13:0] o_drive_ff;
 
-  always_ff @(posedge clk, negedge rst_n) begin
+  always_ff @(posedge clk) begin
     if (~rst_n) o_drive_ff <= 14'b0;
     else begin
       if (active_pulse) o_drive_ff <= v_start;

@@ -74,7 +74,7 @@ module sinusoid #(
   //possibly add other LUT's to work with?
 
   logic [31:0] phase_accum;
-  (* ram_style = "block" *) logic signed [13:0] sin_LUT[1023:0];
+  logic signed [13:0] sin_LUT[1023:0];
   initial begin
     $readmemh("sin_lut.memh", sin_LUT);
   end
