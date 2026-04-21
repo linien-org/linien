@@ -106,12 +106,12 @@ module control #(
   //   type 5 (arb_wfm):     4  (clk_div, length, duration) <- ps should calculate how long the awg will take (if it is used) and pass that into the fsm as duration signal.
   always_comb begin
     case (cur_type)
-      3'd0:    num_params = 3'd2;
-      3'd1:    num_params = 3'd3;
-      3'd2:    num_params = 3'd2;
-      3'd3:    num_params = 3'd5;
-      3'd4:    num_params = 3'd6;  
-      3'd5:    num_params = 3'd4;
+      6'd000001:    num_params = 3'd2;
+      6'd000010:    num_params = 3'd3;
+      6'd000100:    num_params = 3'd2;
+      6'd001000:    num_params = 3'd5;
+      6'd010000:    num_params = 3'd6;
+      6'd100000:    num_params = 3'd4;
       default: num_params = 3'd2;
     endcase
   end
