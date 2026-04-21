@@ -30,6 +30,15 @@ class SequenceExecutor(Module, AutoCSR):
         self.arm = CSRStorage(1)  # enable the ttl watcher
         self.status = CSRStatus(2)  # bit0: active, bit1: armed
 
+        # snapshot readback for relock. captured by ttl_handler on the TTL
+        # rising edge and held until the next trigger. values are signed but
+        # the CSR bus is unsigned - the server sign-extends from the
+        # declared width.
+        self.saved_pid_out = CSRStatus(width)
+        self.saved_integrator = CSRStatus(signal_width)
+        self.saved_sweep_pos = CSRStatus(width)
+        self.saved_dac_out = CSRStatus(width)
+
         # CSRs acting as regfile write port (FSM)
         self.fsm_reg_addr = CSRStorage(fsm_addr_width)
         self.fsm_reg_data = CSRStorage(data_width)
@@ -82,6 +91,12 @@ class SequenceExecutor(Module, AutoCSR):
             self.active.eq(ttl.o_active),
             self.pid_pause.eq(ttl.o_active),
             self.dac_out.eq(o_dac_drive),
+
+            # snapshot readback
+            self.saved_pid_out.status.eq(ttl.o_saved_pid_out),
+            self.saved_integrator.status.eq(ttl.o_saved_integrator),
+            self.saved_sweep_pos.status.eq(ttl.o_saved_sweep_pos),
+            self.saved_dac_out.status.eq(ttl.o_saved_dac_out),
         ]
 
         # instantiate sequence_top
