@@ -179,7 +179,7 @@ class RedPitayaControlService(BaseService, LinienControlService):
         self.exposed_write_registers()
 
     def _send_ping_loop(self, stop_event: Event):
-        MAX_PING = 3
+        MAX_PING = 100000000
         while not stop_event.is_set():
             self.parameters.ping.value += 1
             if self.parameters.ping.value <= MAX_PING:

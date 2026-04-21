@@ -182,7 +182,6 @@ chirp_gen u_chirp_gen (
 
 //Sinusoidal Block (type 4)
 //NOTE: REMOVED FOR SYNTHESIS PURPOSES
-/*
 sinusoid #(
     .DATA_WIDTH (DATA_WIDTH)
 ) u_sinusoid (
@@ -194,7 +193,6 @@ sinusoid #(
     .i_en           (block_en[4]),
     .o_drive        (block_drive[4])
 );
-*/
 
 // AWG Block (type 5)
 arb_wave u_arb_wave (

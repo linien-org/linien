@@ -193,21 +193,15 @@ class LinienModule(Module, AutoCSR):
         self.submodules.gpio_p = Gpio(exp.p)
 
         leds = Cat(*(platform.request("user_led", i) for i in range(8)))
-        blink_counter = Signal(26)
         sequence_status = Signal(2)
         # self.comb += leds.eq(self.gpio_n.o)
-        self.sync += blink_counter.eq(blink_counter + 1)
+        led_val = Signal(8)
         self.comb += [
-            leds[0].eq(self.logic.sequence.arm.storage),
-            leds[1].eq(self.logic.sequence.active),
-            leds[2].eq(sequence_status[0]),
-            # leds[3].eq(sequence_status[1]),
-            # leds[4].eq(blink_counter[25]),
-            # leds[5].eq(self.gpio_n.o[0]),
-            # leds[6].eq(self.gpio_n.o[1]),
-            # leds[7].eq(self.gpio_n.o[2]),
-            sequence_status.eq(self.logic.sequence.status.status),
+            led_val[0].eq(self.logic.sequence.arm.storage),
+            led_val[1].eq(self.logic.sequence.active),
+            led_val[2].eq(sequence_status[0]),
         ]
+        self.comb += leds.eq(led_val)
 
         self.submodules.dna = DNA(version=2)
 
