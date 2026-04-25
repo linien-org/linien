@@ -101,7 +101,11 @@ class LinienLogic(Module, AutoCSR):
             self.pid.running.eq(
                 self.autolock.lock_running.status & ~self.sequence.pid_pause
             ),
-            self.sweep.hold.eq(self.autolock.lock_running.status),
+            # freeze sweep while a sequence owns the DAC so it resumes from
+            # the same position (the snapshot captures sweep_pos at trigger).
+            self.sweep.hold.eq(
+                self.autolock.lock_running.status | self.sequence.pid_pause
+            ),
             self.autolock.fast.sweep_value.eq(self.sweep.y),
             self.autolock.fast.sweep_up.eq(self.sweep.sweep.up),
             self.autolock.fast.sweep_step.eq(
@@ -431,8 +435,15 @@ class LinienModule(Module, AutoCSR):
             self.logic.limit_fast2.x.eq(fast_outs[1]),
         ]
 
-        # NOTE: doesn't go through ttl_handler, directly feeds in ttl signal from gpio?
-        self.comb += self.logic.sequence.ttl_in.eq(self.gpio_p.i[0])
+        # ttl_handler (inside SequenceExecutor) watches gpio_p[0]; on rising
+        # edge it snapshots linien state before the sequence takes over the DAC.
+        self.comb += [
+            self.logic.sequence.ttl_in.eq(self.gpio_p.i[0]),
+            self.logic.sequence.linien_pid_out.eq(pid_out),
+            self.logic.sequence.linien_integrator.eq(self.logic.pid.int_out),
+            self.logic.sequence.linien_sweep_pos.eq(self.logic.sweep.y),
+            self.logic.sequence.linien_dac_out.eq(self.logic.limit_fast1.y),
+        ]
 
 
 class DummyID(Module, AutoCSR):
