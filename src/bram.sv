@@ -28,8 +28,6 @@
 module bram #(
     parameter int ADDR_WIDTH = 8,
     parameter int DATA_WIDTH = 32
-
-   
 ) (
     input wire clk,
 

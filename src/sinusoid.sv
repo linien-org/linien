@@ -74,7 +74,7 @@ module sinusoid #(
   //possibly add other LUT's to work with?
 
   logic [31:0] phase_accum;
-  (* ram_style = "block" *) logic signed [13:0] sin_LUT[1023:0];
+  (* rom_style = "block" *) logic [13:0] sin_LUT[0:511];
   initial begin
     $readmemh("sin_lut.memh", sin_LUT);
   end
@@ -114,7 +114,7 @@ module sinusoid #(
 logic signed [13:0] lut_reg;
 always_ff @(posedge clk)begin
     if (~rst_n) lut_reg <= '0;
-    else if (i_active) lut_reg <= sin_LUT[phase_accum[31:22]];
+    else if (i_active) lut_reg <= $signed(sin_LUT[phase_accum[31:23]]);
     else lut_reg <= '0;
 end
 
