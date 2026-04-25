@@ -151,7 +151,7 @@ module control #(
   end
 
   // state register (async reset)
-  always_ff @(posedge clk or negedge rst_n) begin
+  always_ff @(posedge clk) begin
     if (!rst_n) state <= IDLE;
     else        state <= next_state;
   end
