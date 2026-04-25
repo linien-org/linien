@@ -73,8 +73,10 @@ module sinusoid #(
   //hence phase increment becomes (f_desired/f_clk)*2^32
   //possibly add other LUT's to work with?
 
+
+  //TOOO: replace this with a BRAM block (use ethans BRAM?)
   logic [31:0] phase_accum;
-  logic signed [13:0] sin_LUT[1023:0];
+ (* ram_style = "block" *) logic signed [13:0] sin_LUT[0:1023];
   initial begin
     $readmemh("sin_lut.memh", sin_LUT);
   end

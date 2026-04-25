@@ -92,6 +92,8 @@ module control #(
 
   // ========================= Current Block Calculations ==============================
   assign block_base_addr   = {1'b0, block_idx, 3'b000};      // block_idx * 8
+  //based on cur_type, activates the relavant block by left shifting 'b1 by
+  //the given type
   assign type_onehot       = NUM_BLOCK_TYPES'(1) << cur_type;
   assign active_block_drive = i_block_drive[cur_type];
   assign timer_flag         = (count >= dur);
@@ -104,14 +106,16 @@ module control #(
   //   type 3 (chirp):       5  (a, b, rate, raterate, duration)
   //   type 4 (sinusoid):    6  (v_mid, v_amp, v_min_cut, v_max_cut, phase_inc, duration)
   //   type 5 (arb_wfm):     4  (clk_div, length, duration) <- ps should calculate how long the awg will take (if it is used) and pass that into the fsm as duration signal.
+  //   NOTE: changed it so that cur_type is given as decimal, and is
+  //   seperately converted to one-hot via type_onehot
   always_comb begin
     case (cur_type)
-      6'd000001:    num_params = 3'd2;
-      6'd000010:    num_params = 3'd3;
-      6'd000100:    num_params = 3'd2;
-      6'd001000:    num_params = 3'd5;
-      6'd010000:    num_params = 3'd6;
-      6'd100000:    num_params = 3'd4;
+      6'd0:    num_params = 3'd2; //delay
+      6'd1:    num_params = 3'd3; //linear jump
+      6'd2:    num_params = 3'd2; //direct jump
+      6'd3:    num_params = 3'd5; //chirp
+      6'd4:    num_params = 3'd6; // sinusoid
+      6'd5:    num_params = 3'd4; //arbitrary wave
       default: num_params = 3'd2;
     endcase
   end
@@ -178,6 +182,8 @@ module control #(
         end
 
         LOAD_INIT: begin
+          //on the load initial stage, the current type is decided by a 1-hot
+          //encoded scheme. Here it only inspects the last-relavant set of LSB
           cur_type <= i_regfile_data[BLOCK_TYPE_IDX_WIDTH-1:0];
         end
 
