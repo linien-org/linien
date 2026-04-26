@@ -76,10 +76,23 @@ module sinusoid #(
 
   //TOOO: replace this with a BRAM block (use ethans BRAM?)
   logic [31:0] phase_accum;
+  /*
   (* rom_style = "block" *) logic [13:0] sin_LUT[0:511];
   initial begin
     $readmemh("sin_lut.memh", sin_LUT);
   end
+  */
+
+  logic[13:0] o_sin_mem;
+  ROM #(
+    .FILE("sin_lut.memh"),
+    .DATA_WIDTH(14),
+    .ADDR_WIDTH(9)
+    ) sin_lut(
+      .clk(clk),
+      .i_rd_addr(phase_accum[31:23]),
+      .o_rd_data(o_sin_mem)
+      );
 
 
   logic active_ff;
@@ -105,7 +118,6 @@ module sinusoid #(
   //Note: sin_LUT stores signed values of sin, from -2^13 to 2^13, 
   //representing -1 to 1 normalized. 
   //v_amp scales it, v_mid shifts it. 
-  logic signed [13:0] lut_raw;
   logic signed [31:0] raw_out;
   wire signed  [31:0] v_mid_s = $signed(v_mid);
   wire signed  [31:0] v_amp_s = $signed(v_amp);
@@ -116,7 +128,7 @@ module sinusoid #(
 logic signed [13:0] lut_reg;
 always_ff @(posedge clk)begin
     if (~rst_n) lut_reg <= '0;
-    else if (i_active) lut_reg <= $signed(sin_LUT[phase_accum[31:23]]);
+    else if (i_active) lut_reg <= $signed(o_sin_mem);
     else lut_reg <= '0;
 end
 

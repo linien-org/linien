@@ -47,11 +47,11 @@ _io += [
         Subsignal("cdcs", Pins("V18"), Misc("SLEW FAST"), Misc("DRIVE 8")),
         Subsignal(
             "data_a",
-            Pins("V17 U17 Y17 W16 Y16 W15 W14 Y14 " "W13 V12 V13 T14 T15 V15 T16 V16"),
+            Pins("V17 U17 Y17 W16 Y16 W15 W14 Y14 W13 V12 V13 T14 T15 V15 T16 V16"),
         ),  # Misc("IOB TRUE")),
         Subsignal(
             "data_b",
-            Pins("T17 R16 R18 P16 P18 N17 R19 T20 " "T19 U20 V20 W20 W19 Y19 W18 Y18"),
+            Pins("T17 R16 R18 P16 P18 N17 R19 T20 T19 U20 V20 W20 W19 Y19 W18 Y18"),
         ),  # Misc("IOB TRUE")),
         IOStandard("LVCMOS18"),  # , Drive(4)
     ),
@@ -60,7 +60,7 @@ _io += [
         0,
         Subsignal(
             "data",
-            Pins("M19 M20 L19 L20 K19 J19 J20 H20 " "G19 G20 F19 F20 D20 D19"),
+            Pins("M19 M20 L19 L20 K19 J19 J20 H20 G19 G20 F19 F20 D20 D19"),
             Misc("SLEW SLOW"),
             Drive(4),
         ),
@@ -172,7 +172,18 @@ class Platform(XilinxPlatform):
         self.toolchain.pre_synthesis_commands.append(
             "read_xdc -ref processing_system7_v5_4_processing_system7 ../verilog/system_processing_system7_0_0.xdc"  # noqa: E501
         )
+        # self.toolchain.with_phys_opt = False
         self.toolchain.with_phys_opt = True
+
+        # ADDED FOR ADDITIONAL OPTIMIZATION OF CONTROL SETS
+
+        self.toolchain.post_synthesis_commands.append(
+            "opt_design -directive ExploreWithRemap"
+        )
+
+    # self.toolchain.post_synthesis_commands.append(
+    #    "set_property CONTROL_SET_REMAP ENABLE"
+    # )
 
     def do_finalize(self, fragment):
         try:

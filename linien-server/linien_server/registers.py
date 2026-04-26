@@ -79,11 +79,19 @@ class Registers:
         sequence_blocks = self.parameters.sequence_blocks.value
 
         # iterate over the instructions in sequence_blocks.start (list)
+        i = 1
         for inst in sequence_blocks:
             # first, write the type of instruction to the base address
+            print(f"=======Instruction {i} ==========")
             self.set("logic_sequence_fsm_reg_addr", base_addr)
+            print(f"Base Address:{base_addr}")
             self.set("logic_sequence_fsm_reg_data", inst["type"])
+            print(f"Insruction Type:{inst['type']}")
             # pulse the w_en to load it into the BRAM
+            print(
+                f"initial write_enable state:{self.get('logic_sequence_fsm_reg_wen')}"
+            )
+
             self.set("logic_sequence_fsm_reg_wen", 1)
             self.set("logic_sequence_fsm_reg_wen", 0)
 
