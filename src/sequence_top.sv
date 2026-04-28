@@ -6,7 +6,9 @@ module sequence_top #(
     parameter int V_DATA_WIDTH = 14,
     parameter int NUM_BLOCK_TYPES = 6,
     parameter int FSM_REGFILE_ADDR_WIDTH = 8,
-    parameter int AWG_REGFILE_ADDR_WIDTH = 10
+    parameter int AWG_REGFILE_ADDR_WIDTH = 10,
+  localparam int BLOCK_IDX_WIDTH = $clog2(MAX_BLOCKS),
+    localparam int BLOCK_TYPE_IDX_WIDTH = $clog2(NUM_BLOCK_TYPES)
 
     //auto-calculated parameters
   
@@ -40,8 +42,6 @@ module sequence_top #(
 );
 
 //Internal Wires
-  localparam int BLOCK_IDX_WIDTH = $clog2(MAX_BLOCKS);
-    localparam int BLOCK_TYPE_IDX_WIDTH = $clog2(NUM_BLOCK_TYPES);
 //reg file read port (control to reg_file)
 logic [FSM_REGFILE_ADDR_WIDTH-1:0] reg_r_addr;
 logic [DATA_WIDTH-1:0] reg_r_data;
@@ -182,7 +182,7 @@ chirp_gen u_chirp_gen (
 
 //Sinusoidal Block (type 4)
 //NOTE: REMOVED FOR SYNTHESIS PURPOSES
-/*
+
 sinusoid #(
     .DATA_WIDTH (DATA_WIDTH)
 ) u_sinusoid (
@@ -194,7 +194,7 @@ sinusoid #(
     .i_en           (block_en[4]),
     .o_drive        (block_drive[4])
 );
-*/
+
 
 // AWG Block (type 5)
 arb_wave u_arb_wave (

@@ -85,13 +85,11 @@ class SequenceExecutor(Module, AutoCSR):
             ttl.i_linien_integrator.eq(self.linien_integrator),
             ttl.i_linien_sweep_pos.eq(self.linien_sweep_pos),
             ttl.i_linien_dac_out.eq(self.linien_dac_out),
-
             # exported signals driven by ttl handler
             self.status.status.eq(ttl.o_status),
             self.active.eq(ttl.o_active),
             self.pid_pause.eq(ttl.o_active),
             self.dac_out.eq(o_dac_drive),
-
             # snapshot readback
             self.saved_pid_out.status.eq(ttl.o_saved_pid_out),
             self.saved_integrator.status.eq(ttl.o_saved_integrator),

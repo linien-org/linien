@@ -50,7 +50,7 @@ module arb_wave (
     end else begin
       if (div_counter == clk_div - 1) begin
         div_counter <= 32'b0;
-        if (bram_addr_r != 10'd1023) bram_addr_r <= bram_addr_r + 1;
+        bram_addr_r <= bram_addr_r + 1;
       end else begin
         div_counter <= div_counter + 1'b1;
       end

@@ -22,7 +22,10 @@ module control #(
 
     parameter NUM_BLOCK_TYPES = 6,
     parameter MAX_BLOCK_PARAMS = 7,     // max params any block type needs (chirp=6)
-    parameter REGFILE_ADDR_WIDTH = 8
+    parameter REGFILE_ADDR_WIDTH = 8,
+	 localparam int BLOCK_IDX_WIDTH      = $clog2(MAX_BLOCKS),
+    localparam int PARAM_IDX_WIDTH      = $clog2(MAX_BLOCK_PARAMS),
+    localparam int BLOCK_TYPE_IDX_WIDTH = $clog2(NUM_BLOCK_TYPES)
 
     // auto-calculated
    
@@ -57,9 +60,6 @@ module control #(
     output logic                          o_seq_done,
     output logic                          o_active
 );
-	 localparam int BLOCK_IDX_WIDTH      = $clog2(MAX_BLOCKS);
-    localparam int PARAM_IDX_WIDTH      = $clog2(MAX_BLOCK_PARAMS);
-    localparam int BLOCK_TYPE_IDX_WIDTH = $clog2(NUM_BLOCK_TYPES);
 
   // ========================= FSM encoding ==============================
   typedef enum logic [2:0] {
@@ -115,7 +115,8 @@ module control #(
       6'd2:    num_params = 3'd2; //direct jump
       6'd3:    num_params = 3'd5; //chirp
       6'd4:    num_params = 3'd6; // sinusoid
-      6'd5:    num_params = 3'd4; //arbitrary wave
+      //for testing, arb_wave has 2 parameters; clk div and duration
+      6'd5:    num_params = 3'd2; //arbitrary wave
       default: num_params = 3'd2;
     endcase
   end

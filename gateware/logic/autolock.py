@@ -35,7 +35,8 @@ class FPGAAutolock(Module, AutoCSR):
     """
 
     def __init__(self, width=14, N_points=16383, max_delay=16383):
-        self.submodules.robust = RobustAutolock(max_delay=max_delay)
+        # REMOVE ROBUST AUTOLOCK FOR SAVINGS PURPOSES
+        # self.submodules.robust = RobustAutolock(max_delay=max_delay)
 
         self.submodules.fast = SimpleAutolock(width=width)
 
@@ -45,7 +46,7 @@ class FPGAAutolock(Module, AutoCSR):
 
         self.comb += [
             self.fast.request_lock.eq(self.request_lock.storage),
-            self.robust.request_lock.eq(self.request_lock.storage),
+            # self.robust.request_lock.eq(self.request_lock.storage),
         ]
 
         self.sync += [
@@ -54,17 +55,16 @@ class FPGAAutolock(Module, AutoCSR):
                 self.lock_running.status.eq(0),
             ),
             If(
-                self.request_lock.storage
-                & self.fast.turn_on_lock
-                & (self.autolock_mode.storage == AutolockMode.SIMPLE),
+                self.request_lock.storage & self.fast.turn_on_lock,
+                # & (self.autolock_mode.storage == AutolockMode.SIMPLE),
                 self.lock_running.status.eq(1),
             ),
-            If(
-                self.request_lock.storage
-                & self.robust.turn_on_lock
-                & (self.autolock_mode.storage == AutolockMode.ROBUST),
-                self.lock_running.status.eq(1),
-            ),
+            # If(
+            #    self.request_lock.storage
+            #    & self.robust.turn_on_lock
+            #    & (self.autolock_mode.storage == AutolockMode.ROBUST),
+            #    self.lock_running.status.eq(1),
+            # ),
         ]
 
 

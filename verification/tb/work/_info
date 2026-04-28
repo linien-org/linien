@@ -250,170 +250,177 @@ R9
 !i113 1
 R10
 vtb_arb_wave
-R1
-Z12 !s110 1775591353
+Z12 2tb_arb_wave.sv|tb_chirp_gen.sv|tb_control.sv|tb_delay.sv|tb_direct_jump.sv|tb_linear_ramp.sv|tb_sequence_top.sv
+Z13 DXx6 sv_std 3 std 0 22 @5XbY]_OacJl=`ToSm<M^0
+Z14 !s110 1777336013
 !i10b 1
 !s100 ;E]N;e1TNZ67dRc;5ieYd0
-R3
-IeQCS_gM]X6]=4iV3dQ0j12
-R4
+IN98:Bca<UL7;b@kAkO?Ad1
 S1
-R0
-R11
+Z15 d/home/vedaant/school_files/spring2026/ECE554/linien_554/verification/tb
+Z16 w1776370651
 8tb_arb_wave.sv
 Ftb_arb_wave.sv
-!i122 8
+!i122 9
 L0 14 228
-R6
+R4
+Z17 OL;L;2025.2;82
 r1
 !s85 0
 31
-Z13 !s108 1775591353.000000
+Z18 !s108 1777336013.000000
 !s107 tb_sequence_top.sv|tb_linear_ramp.sv|tb_direct_jump.sv|tb_delay.sv|tb_control.sv|tb_chirp_gen.sv|tb_arb_wave.sv|
-Z14 !s90 tb_arb_wave.sv|tb_chirp_gen.sv|tb_control.sv|tb_delay.sv|tb_direct_jump.sv|tb_linear_ramp.sv|tb_sequence_top.sv|
-!i113 1
+Z19 !s90 tb_arb_wave.sv|tb_chirp_gen.sv|tb_control.sv|tb_delay.sv|tb_direct_jump.sv|tb_linear_ramp.sv|tb_sequence_top.sv|
+!i113 0
+Z20 o-L mtiAvm -L mtiRnm -L mtiOvm -L mtiUvm -L mtiUPF -L infact
 R10
 vtb_chirp_gen
-R1
 R12
+R13
+R14
 !i10b 1
 !s100 4o>NTfPY_1h@X[U2cABFa3
-R3
-I3O4T_z=KzZ@S]@En2>RLR0
-R4
+I:]MEoke5gYW=?PUe2j[GQ1
 S1
-R0
-R11
+R15
+R16
 8tb_chirp_gen.sv
 Ftb_chirp_gen.sv
-!i122 8
+!i122 9
 L0 18 231
-R6
+R4
+R17
 r1
 !s85 0
 31
-R13
-Z15 !s107 tb_sequence_top.sv|tb_linear_ramp.sv|tb_direct_jump.sv|tb_delay.sv|tb_control.sv|tb_chirp_gen.sv|tb_arb_wave.sv|
-R14
-!i113 1
+R18
+Z21 !s107 tb_sequence_top.sv|tb_linear_ramp.sv|tb_direct_jump.sv|tb_delay.sv|tb_control.sv|tb_chirp_gen.sv|tb_arb_wave.sv|
+R19
+!i113 0
+R20
 R10
 vtb_control
-R1
 R12
+R13
+R14
 !i10b 1
 !s100 G_o>oezPkgT5gU;ZFDcTB2
-R3
-IDzVf@CTQ;CRiWMO1FjNc=1
-R4
+IO=8l1nAIjzhDfVl`54@@g3
 S1
-R0
-w1775591345
+R15
+R16
 8tb_control.sv
 Ftb_control.sv
-!i122 8
+!i122 9
 L0 18 425
-R6
+R4
+R17
 r1
 !s85 0
 31
-R13
-R15
-R14
-!i113 1
+R18
+R21
+R19
+!i113 0
+R20
 R10
 vtb_delay
-R1
 R12
+R13
+R14
 !i10b 1
-!s100 =RX^H[[PNYW[GXhYNZAA?3
-R3
-IEeUSa;<4P4TkNNlfQzR=<3
-R4
+!s100 22NZWH98JdgbIH`AiInNR0
+I4?E;J?@g>bIeoE=9f<^V10
 S1
-R0
-R11
+R15
+R16
 8tb_delay.sv
 Ftb_delay.sv
-!i122 8
+!i122 9
 L0 11 200
-R6
+R4
+R17
 r1
 !s85 0
 31
-R13
-R15
-R14
-!i113 1
+R18
+R21
+R19
+!i113 0
+R20
 R10
 vtb_direct_jump
-R1
 R12
+R13
+R14
 !i10b 1
-!s100 DhQOEMV6JELTgZ3UO8aXW0
-R3
-IfIb7CEXAi^FPMP[?0?`VS2
-R4
+!s100 ZmFT1UTEPUW>4ob^zh5X52
+IgYI8T@P>AMT@TV1WZd1zT1
 S1
-R0
-R11
+R15
+R16
 8tb_direct_jump.sv
 Ftb_direct_jump.sv
-!i122 8
+!i122 9
 L0 11 146
-R6
+R4
+R17
 r1
 !s85 0
 31
-R13
-R15
-R14
-!i113 1
+R18
+R21
+R19
+!i113 0
+R20
 R10
 vtb_linear_ramp
-R1
 R12
+R13
+R14
 !i10b 1
 !s100 SHBmM:OALPhhSfZTmT:<02
-R3
-IhgoC0RPf4:N>b4jS00^Rn2
-R4
+IYScFLn=HWFeg`1CO:26M20
 S1
-R0
-R11
+R15
+R16
 8tb_linear_ramp.sv
 Ftb_linear_ramp.sv
-!i122 8
+!i122 9
 L0 11 204
-R6
+R4
+R17
 r1
 !s85 0
 31
-R13
-R15
-R14
-!i113 1
+R18
+R21
+R19
+!i113 0
+R20
 R10
 vtb_sequence_top
-R1
 R12
+R13
+R14
 !i10b 1
-!s100 ;9eh6=0hGG_995d6C[l;f3
-R3
-I7M3GCo=zS4;JGaFnJjb7D0
-R4
+!s100 [d[EcWoggTU43`N[gdDE22
+I2E8[?LcjSWE4CEedAUl5j1
 S1
-R0
-w1775590783
+R15
+R16
 8tb_sequence_top.sv
 Ftb_sequence_top.sv
-!i122 8
-L0 23 478
-R6
+!i122 9
+L0 23 468
+R4
+R17
 r1
 !s85 0
 31
-R13
-R15
-R14
-!i113 1
+R18
+R21
+R19
+!i113 0
+R20
 R10

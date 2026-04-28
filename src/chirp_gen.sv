@@ -68,8 +68,8 @@ always_comb begin
     else if (cur_voltage > 32'sh1FFF)       // 8191 in hex
         voltage = 14'sh1FFF;
     else if (cur_voltage < -32'sh2000)      // -8192 in hex
-        voltage = -14'sh2000;
-    else
+        voltage = -14'sd8192;
+      else
         voltage = cur_voltage[13:0];
 end
 

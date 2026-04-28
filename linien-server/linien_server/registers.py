@@ -66,9 +66,32 @@ class Registers:
             self.acquisition.exposed_set_dual_channel, call_immediately=True
         )
 
+    # method used to write to the AWG; expects a 1024 long sequence of values, 14 bits in size.
+    def write_awg(self, arr_vals):
+        # initially, set the address, data and w_en to 0
+        self.set("logic_sequence_awg_reg_addr", 0)
+        self.set("logic_sequence_awg_reg_data", 0)
+        self.set("logic_sequence_awg_reg_wen", 0)
+        for i, val in enumerate(arr_vals):
+            # set the given data
+            val = max(-8192, min(8191, int(val)))
+            self.set("logic_sequence_awg_reg_addr", i)
+            # ensure the value is 14 bits wide
+            self.set("logic_sequence_awg_reg_data", val & 0x3FFF)
+            # pulse write enable
+            self.set("logic_sequence_awg_reg_wen", 1)
+            self.set("logic_sequence_awg_reg_wen", 0)
+        # once write sequence is done, unset the values to defualts
+        self.set("logic_sequence_awg_reg_addr", 0)
+        self.set("logic_sequence_awg_reg_data", 0)
+        self.set("logic_sequence_awg_reg_wen", 0)
+        # AWG is given to be 1024 lines long
+        # TODO: define this constant in linien_common so it can be changed/accessed later?
+
     # method used to write the sequence of configs from parameters.sequence_blocks
     # when called, should iterate over the parameter parameters.sequence_blocks and...
     # 1)
+
     def write_sequence_config(self):
         # maintain a local key-value dictionary for type of nistruction and number of parameters
         base_addr = 0
@@ -82,16 +105,9 @@ class Registers:
         i = 1
         for inst in sequence_blocks:
             # first, write the type of instruction to the base address
-            print(f"=======Instruction {i} ==========")
             self.set("logic_sequence_fsm_reg_addr", base_addr)
-            print(f"Base Address:{base_addr}")
             self.set("logic_sequence_fsm_reg_data", inst["type"])
-            print(f"Insruction Type:{inst['type']}")
             # pulse the w_en to load it into the BRAM
-            print(
-                f"initial write_enable state:{self.get('logic_sequence_fsm_reg_wen')}"
-            )
-
             self.set("logic_sequence_fsm_reg_wen", 1)
             self.set("logic_sequence_fsm_reg_wen", 0)
 
@@ -107,8 +123,6 @@ class Registers:
         # after finishing this loop, set the other parameters
         self.set("logic_sequence_arm", 1)
         self.set("logic_sequence_num_blocks", len(sequence_blocks) - 1)
-        # TODO: for now just set the initial voltage to 0
-        self.set("logic_sequence_init_v", 0)
 
     def write_registers(self):
         """Writes data from `parameters` to the FPGA."""
@@ -179,11 +193,11 @@ class Registers:
             logic_analog_out_3=self.parameters.analog_out_3.value,
             logic_autolock_fast_target_position=self.parameters.autolock_target_position.value,  # noqa: E501
             logic_autolock_autolock_mode=self.parameters.autolock_mode.value,
-            logic_autolock_robust_N_instructions=len(
-                self.parameters.autolock_instructions.value
-            ),
-            logic_autolock_robust_time_scale=self.parameters.autolock_time_scale.value,
-            logic_autolock_robust_final_wait_time=self.parameters.autolock_final_wait_time.value,  # noqa: E501
+            # logic_autolock_robust_N_instructions=len(
+            #    self.parameters.autolock_instructions.value
+            # ),
+            # logic_autolock_robust_time_scale=self.parameters.autolock_time_scale.value,
+            # logic_autolock_robust_final_wait_time=self.parameters.autolock_final_wait_time.value,  # noqa: E501
             # channel A
             fast_a_demod_delay=(
                 phase_to_delay(self.parameters.demodulation_phase_a.value)
@@ -219,11 +233,11 @@ class Registers:
             logic_slow_decimation=16,
         )
 
-        for instruction_idx, [wait_for, peak_height] in enumerate(
-            self.parameters.autolock_instructions.value
-        ):
-            new[f"logic_autolock_robust_peak_height_{instruction_idx}"] = peak_height
-            new[f"logic_autolock_robust_wait_for_{instruction_idx}"] = wait_for
+        #        for instruction_idx, [wait_for, peak_height] in enumerate(
+        #            self.parameters.autolock_instructions.value
+        #        ):
+        #            new[f"logic_autolock_robust_peak_height_{instruction_idx}"] = peak_height
+        #            new[f"logic_autolock_robust_wait_for_{instruction_idx}"] = wait_for
 
         if self.parameters.lock.value:
             # display combined error signal and control signal

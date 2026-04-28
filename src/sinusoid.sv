@@ -31,32 +31,34 @@ module sinusoid #(
   wire [31:0] phase_increment;
 
   logic [31:0] params[4:0];
+  logic signed [31:0] v_mid_r,v_amp_r,v_min_cut_r,v_max_cut_r;
+  logic [31:0] phase_inc_r;
 
-  assign v_mid = params[0];
-  assign v_amp = params[1];
-  assign v_min_cut = params[2];
-  assign v_max_cut = params[3];
-  assign phase_increment = params[4];
+  assign v_mid = v_mid_r;
+  assign v_amp = v_amp_r;
+  assign v_min_cut = v_min_cut_r;
+  assign v_max_cut = v_max_cut_r;
+  assign phase_increment = phase_inc_r;
 
-
-  always @(posedge clk) begin
-    if (~rst_n) begin
-      for (integer i = 0; i < 5; i = i + 1) begin
-        params[i] <= 32'b0;
-      end
-    end else begin
-      //if this block is enabled and i_wren is high, load in the value
-      if (i_en) begin
-        //only allow values to be read in if in the range of parameters AND 
-        //not being currently driven. 
-        if (i_param_addr <= 4'h4 && i_active==1'b0) begin
-          params[i_param_addr] <= i_param_data;
-        end  //otherwise, ignore
-        else begin
-        end
-      end
+  always_ff@(posedge clk)begin
+    if(~rst_n)begin
+      v_mid_r<=32'b0;
+      v_amp_r<=32'b0;
+      v_min_cut_r<=32'b0;
+      v_max_cut_r<=32'b0;
+      phase_inc_r<=32'b0;
+    end else if(i_en && !i_active) begin
+      case(i_param_addr)
+        4'd0: v_mid_r<=i_param_data;
+        4'd1: v_amp_r<=i_param_data;
+        4'd2: v_min_cut_r<=i_param_data;
+        4'd3: v_max_cut_r<=i_param_data;
+        4'd4: phase_inc_r<=i_param_data;
+      endcase
     end
   end
+
+
 
   // logicisters to keep track of current driving voltage and current phase
 
