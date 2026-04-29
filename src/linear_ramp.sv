@@ -15,6 +15,7 @@ module linear_ramp #(
     // param 2: duration — NOT seen here, consumed by control FSM
 
     logic signed [13:0] v_start;
+    logic signed[13:0] v_step;
     logic        [31:0] clk_div;
 
     always_ff @(posedge clk) begin
@@ -24,7 +25,8 @@ module linear_ramp #(
         end else if (en) begin
             case (i_param_addr)
                 4'd0: v_start <= i_param_data[13:0];
-                4'd1: clk_div <= i_param_data;
+                4'd1:v_step<=i_param_data[13:0];
+                4'd2: clk_div <= i_param_data;
             endcase
         end
     end
@@ -53,7 +55,7 @@ module linear_ramp #(
     always_ff @(posedge clk) begin
         if (!rst_n)          o_drive_ff <= '0;
         else if (active_pulse) o_drive_ff <= v_start;
-        else if (active_ff && tick) o_drive_ff <= o_drive_ff + 14'sd1;
+        else if (active_ff && tick) o_drive_ff <= o_drive_ff + v_step;
     end
 
     assign v_drive = i_active ? o_drive_ff : '0;

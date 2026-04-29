@@ -26,9 +26,11 @@ from linien_common.common import check_plot_data
 from linien_gui.config import N_COLORS, UI_PATH, Color
 from linien_gui.ui.plot_widget import INVALID_POWER
 from linien_gui.ui.right_panel import RightPanel
+from linien_gui.ui.
 from linien_gui.ui.spin_box import CustomDoubleSpinBox
 from linien_gui.ui.sweep_control import SweepControlWidget, SweepSlider
 from linien_gui.utils import color_to_hex, get_linien_app_instance, set_window_icon
+from linien_gui.ui.sequence_panel import SequencePanel  
 from PyQt5 import QtWidgets, uic
 
 ZOOM_STEP = 0.9
@@ -139,7 +141,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.parameters.dual_channel.add_callback(
             lambda v: self.monitorSignalHistoryLegendLabel.setVisible(not v)
         )
-
+        if not hasattr(self, '_sequence_panel'):
+            self._sequence_panel = SequencePanel()
+            self.settingsToolbox.addItem(self._sequence_panel, "Sequence")
+        self._sequence_panel.on_connection_established(self.app)
         self.settingsToolbox.setCurrentIndex(0)
 
         self.parameters.lock.add_callback(lambda *args: self.reset_std_history())

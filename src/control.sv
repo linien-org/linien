@@ -101,7 +101,7 @@ module control #(
 
   // param count LUT — how many params each block type needs (duration param doesn't go into the blocks though)
   //   type 0 (delay):       2  (hold_voltage, duration)
-  //   type 1 (linear_ramp): 3  (v_start, step_size, duration)
+  //   type 1 (linear_ramp): 3  (v_start,clk_div, step_size, duration)
   //   type 2 (direct_jump): 2  (target_voltage, duration)
   //   type 3 (chirp):       5  (a, b, rate, raterate, duration)
   //   type 4 (sinusoid):    6  (v_mid, v_amp, v_min_cut, v_max_cut, phase_inc, duration)
@@ -111,7 +111,7 @@ module control #(
   always_comb begin
     case (cur_type)
       6'd0:    num_params = 3'd2; //delay
-      6'd1:    num_params = 3'd3; //linear jump
+      6'd1:    num_params = 3'd4; //linear jump
       6'd2:    num_params = 3'd2; //direct jump
       6'd3:    num_params = 3'd5; //chirp
       6'd4:    num_params = 3'd6; // sinusoid

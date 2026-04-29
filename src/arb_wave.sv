@@ -22,8 +22,10 @@ module arb_wave (
   always_ff @(posedge clk) begin
     if (!rst_n) begin
       clk_div <= 32'd1;  // default: step every cycle
-    end else if (i_en && i_param_addr == 4'd0) begin
-      clk_div <= i_param_data;
+    end else if (i_en && ~i_active) begin
+      case(i_param_addr)
+      4'b00:clk_div <= i_param_data;
+    endcase
     end
   end
 
@@ -33,8 +35,6 @@ module arb_wave (
     if (!rst_n) active_ff <= 1'b0;
     else active_ff <= i_active;
   end
-  logic active_pulse;
-  assign active_pulse = i_active & ~active_ff;
 
   //clock divider logic
   logic [31:0] div_counter;
@@ -53,6 +53,7 @@ module arb_wave (
         bram_addr_r <= bram_addr_r + 1;
       end else begin
         div_counter <= div_counter + 1'b1;
+        bram_addr_r<=bram_addr_r;
       end
     end
   end
