@@ -9,6 +9,8 @@ CLK_HZ = 125e6
 PHASE_MAX = 2**32
 DAC_FULL_SCALE_V = 1.0
 DAC_COUNTS = 8192
+DAC_MIN = -8192
+DAC_MAX = 8191
 
 BLOCK_TYPES = {
     0: "Delay",
@@ -113,6 +115,12 @@ class BlockRow(QtWidgets.QWidget):
         self.param_layout.setContentsMargins(0, 0, 0, 0)
         self.param_layout.setSpacing(4)
         layout.addWidget(self.param_container)
+
+        # inline bounds warning
+        self._warn_label = QtWidgets.QLabel("")
+        self._warn_label.setStyleSheet("color: red; font-size: 10px;")
+        self._warn_label.setVisible(False)
+        layout.addWidget(self._warn_label)
         layout.addStretch()
 
         # delete button
@@ -122,6 +130,7 @@ class BlockRow(QtWidgets.QWidget):
         layout.addWidget(del_btn)
 
         self.type_box.currentIndexChanged.connect(self._rebuild_params)
+        self.changed.connect(self._check_bounds)
         self._rebuild_params()
         self._building = False
 
@@ -191,6 +200,49 @@ class BlockRow(QtWidgets.QWidget):
         spin.setRange(lo, hi)
         spin.setSingleStep(step)
         spin.setValue(default)
+
+    def validate(self):
+        """Return list of human-readable error strings for DAC bounds violations."""
+        errors = []
+        block_type = self.type_box.currentData()
+        vals = [spin.value() for spin, _ in self._spinboxes]
+
+        def _vc(v):
+            return int(round(v / DAC_FULL_SCALE_V * DAC_COUNTS))
+
+        def _check_v(label, v):
+            c = _vc(v)
+            if not (DAC_MIN <= c <= DAC_MAX):
+                errors.append(f"{label} {v:+.3f} V → {c} counts (range {DAC_MIN}–{DAC_MAX})")
+
+        if block_type == 0:  # Delay
+            _check_v("Hold Voltage", vals[0])
+
+        elif block_type == 1:  # Linear Ramp — only start voltage is directly known
+            _check_v("V Start", vals[0])
+
+        elif block_type == 2:  # Direct Jump
+            _check_v("Target V", vals[0])
+
+        # block 3 (Chirp) and block 5 (Arb Wave) use raw/rate params with no
+        # direct voltage representation, so static bounds checking is not possible.
+
+        elif block_type == 4:  # Sinusoid
+            v_mid, v_amp = vals[0], vals[1]
+            _check_v("V Mid + V Amp", v_mid + v_amp)
+            _check_v("V Mid − V Amp", v_mid - v_amp)
+            _check_v("V Min Cut", vals[2])
+            _check_v("V Max Cut", vals[3])
+
+        return errors
+
+    def _check_bounds(self):
+        errors = self.validate()
+        if errors:
+            self._warn_label.setText("⚠ " + "  |  ".join(errors))
+            self._warn_label.setVisible(True)
+        else:
+            self._warn_label.setVisible(False)
 
     def to_block_dict(self):
         block_type = self.type_box.currentData()
@@ -307,6 +359,22 @@ class SequencePanel(QtWidgets.QWidget):
         if not self._rows:
             QtWidgets.QMessageBox.warning(self, "Empty", "Add at least one block.")
             return
+
+        all_errors = []
+        for i, row in enumerate(self._rows):
+            for err in row.validate():
+                all_errors.append(f"Block {i + 1} ({BLOCK_TYPES[row.type_box.currentData()]}): {err}")
+        if all_errors:
+            msg = "\n".join(all_errors)
+            reply = QtWidgets.QMessageBox.warning(
+                self, "DAC Bounds Exceeded",
+                f"The following blocks exceed the DAC range [{DAC_MIN}, {DAC_MAX}]:\n\n{msg}"
+                "\n\nSend anyway?",
+                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+            )
+            if reply != QtWidgets.QMessageBox.Yes:
+                return
+
         try:
             seq = self._build_sequence()
             self.parameters.sequence_blocks.value = seq
