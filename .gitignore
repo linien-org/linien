@@ -44,13 +44,11 @@ share/python-wheels/
 *.egg
 MANIFEST
 __pycache__/ttl_handler.cpython-314.pyc
-specifications/
 CLAUDE.md
-rtl/
 __pycache__/csr_param_bus.cpython-314.pyc
 **/__pycache__/
 *.qpf
 */work/
 sim_build/
 *.vvp
-
+src/temp/
