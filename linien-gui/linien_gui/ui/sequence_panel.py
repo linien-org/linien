@@ -19,6 +19,18 @@ BLOCK_TYPES = {
     5: "Arb Wave",
 }
 
+UNITS = {
+    0: "s",
+    1: "ms",
+    2: "us"
+}
+
+UNIT_CONVERTERS = {
+    "s":  lambda s:  int(round(s * CLK_HZ)),
+    "ms": lambda ms: int(round(ms * 1e-3 * CLK_HZ)),
+    "us": lambda us: int(round(us * 1e-6 * CLK_HZ)),
+}
+
 
 # Human-readable param specs per block type
 # Each entry: (label, unit, converter_fn)
@@ -26,9 +38,14 @@ BLOCK_TYPES = {
 def v_to_c(v):
     return int(round(v / DAC_FULL_SCALE_V * DAC_COUNTS))
 
+def s_to_cy(s):
+    return int(round(s * CLK_HZ))
 
 def ms_to_cy(ms):
     return int(round(ms * 1e-3 * CLK_HZ))
+
+def us_to_cy(us):
+    return int(round(us * 1e-6 * CLK_HZ))
 
 
 def hz_to_ph(hz):
@@ -44,19 +61,19 @@ def raw(v):
 
 
 BLOCK_PARAMS = {
-    0: [("Hold Voltage", "V", v_to_c), ("Duration", "ms", ms_to_cy)],
+    0: [("Hold Voltage", "V", v_to_c), ("Duration", "time", None)],
     1: [
         ("V Start", "V", v_to_c),
         ("Step Rate", "Hz", hz_to_cd),
-        ("Duration", "ms", ms_to_cy),
+        ("Duration", "time", None),
     ],
-    2: [("Target V", "V", v_to_c), ("Duration", "ms", ms_to_cy)],
+    2: [("Target V", "V", v_to_c), ("Duration", "time", None)],
     3: [
         ("a", "", raw),
         ("b", "", raw),
         ("Rate", "", raw),
         ("Rate Rate", "", raw),
-        ("Duration", "ms", ms_to_cy),
+        ("Duration", "time", None),
     ],
     4: [
         ("V Mid", "V", v_to_c),
@@ -64,9 +81,9 @@ BLOCK_PARAMS = {
         ("V Min Cut", "V", v_to_c),
         ("V Max Cut", "V", v_to_c),
         ("Frequency", "Hz", hz_to_ph),
-        ("Duration", "ms", ms_to_cy),
+        ("Duration", "time", None),
     ],
-    5: [("Step Rate", "Hz", hz_to_cd), ("Duration", "ms", ms_to_cy)],
+    5: [("Step Rate", "Hz", hz_to_cd), ("Duration", "time", None)],
 }
 
 
@@ -117,37 +134,63 @@ class BlockRow(QtWidgets.QWidget):
 
         block_type = self.type_box.currentData()
         self._spinboxes = []
-        for label, unit, _ in BLOCK_PARAMS.get(block_type, []):
-            lbl = QtWidgets.QLabel(f"{label}{' (' + unit + ')' if unit else ''}:")
-            lbl.setStyleSheet("font-size: 10px;")
+        for label, unit, conv_fn in BLOCK_PARAMS.get(block_type, []):
             spin = QtWidgets.QDoubleSpinBox()
             spin.setDecimals(3)
             spin.setFixedWidth(90)
-            # set sensible ranges per unit
-            if unit == "V":
-                spin.setRange(-1.0, 1.0)
-                spin.setSingleStep(0.01)
-            elif unit == "ms":
-                spin.setRange(0, 100000)
-                spin.setSingleStep(10)
-                spin.setValue(100)
-            elif unit == "Hz":
-                spin.setRange(0, 100000)
-                spin.setSingleStep(1)
-                spin.setValue(10)
+
+            if unit == "time":
+                lbl = QtWidgets.QLabel(f"{label}:")
+                lbl.setStyleSheet("font-size: 10px;")
+                unit_combo = QtWidgets.QComboBox()
+                unit_combo.setFixedWidth(45)
+                for sym in UNITS.values():
+                    unit_combo.addItem(sym, sym)
+                unit_combo.setCurrentIndex(1)  # default ms
+                self._apply_time_range(spin, "ms")
+                unit_combo.currentIndexChanged.connect(
+                    lambda _, s=spin, uc=unit_combo: self._apply_time_range(s, uc.currentData())
+                )
+                unit_combo.currentIndexChanged.connect(self.changed.emit)
+                spin.valueChanged.connect(self.changed.emit)
+                self.param_layout.addWidget(lbl)
+                self.param_layout.addWidget(spin)
+                self.param_layout.addWidget(unit_combo)
+                conv = lambda v, uc=unit_combo: UNIT_CONVERTERS[uc.currentData()](v)
             else:
-                spin.setRange(-1e9, 1e9)
-                spin.setSingleStep(1)
-            spin.valueChanged.connect(self.changed.emit)
-            self.param_layout.addWidget(lbl)
-            self.param_layout.addWidget(spin)
-            self._spinboxes.append((
-                spin,
-                BLOCK_PARAMS[block_type][len(self._spinboxes)][2],
-            ))
+                lbl = QtWidgets.QLabel(f"{label}{' (' + unit + ')' if unit else ''}:")
+                lbl.setStyleSheet("font-size: 10px;")
+                if unit == "V":
+                    spin.setRange(-1.0, 1.0)
+                    spin.setSingleStep(0.01)
+                elif unit == "Hz":
+                    spin.setRange(0, 100000)
+                    spin.setSingleStep(1)
+                    spin.setValue(10)
+                else:
+                    spin.setRange(-1e9, 1e9)
+                    spin.setSingleStep(1)
+                spin.valueChanged.connect(self.changed.emit)
+                self.param_layout.addWidget(lbl)
+                self.param_layout.addWidget(spin)
+                conv = conv_fn
+
+            self._spinboxes.append((spin, conv))
 
         if not self._building:
             self.changed.emit()
+
+    @staticmethod
+    def _apply_time_range(spin, unit):
+        ranges = {
+            "s":  (0, 100,    0.001, 0.1),
+            "ms": (0, 100000, 10,    100),
+            "us": (0, 1e8,    1000,  1e5),
+        }
+        lo, hi, step, default = ranges.get(unit, (0, 100000, 10, 100))
+        spin.setRange(lo, hi)
+        spin.setSingleStep(step)
+        spin.setValue(default)
 
     def to_block_dict(self):
         block_type = self.type_box.currentData()
