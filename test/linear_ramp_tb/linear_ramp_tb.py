@@ -1,6 +1,6 @@
 import cocotb
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, ClockCycles
+from cocotb.triggers import ClockCycles, RisingEdge
 
 
 # helper to sign-extend a 14-bit value to Python int
@@ -120,9 +120,9 @@ async def test_inactive_drives_zero(dut):
 
     # don't activate, just check output
     await ClockCycles(dut.clk, 5)
-    assert from_signed14(dut.v_drive.value.integer) == 0, (
-        "v_drive should be 0 when inactive"
-    )
+    assert (
+        from_signed14(dut.v_drive.value.integer) == 0
+    ), "v_drive should be 0 when inactive"
 
 
 @cocotb.test()

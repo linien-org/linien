@@ -3,7 +3,8 @@
 # Adds a "Sequence" tab to the settings toolbox in the main window.
 
 import json
-from PyQt5 import QtWidgets, QtCore
+
+from PyQt5 import QtCore, QtWidgets
 
 CLK_HZ = 125e6
 PHASE_MAX = 2**32
@@ -21,14 +22,10 @@ BLOCK_TYPES = {
     5: "Arb Wave",
 }
 
-UNITS = {
-    0: "s",
-    1: "ms",
-    2: "us"
-}
+UNITS = {0: "s", 1: "ms", 2: "us"}
 
 UNIT_CONVERTERS = {
-    "s":  lambda s:  int(round(s * CLK_HZ)),
+    "s": lambda s: int(round(s * CLK_HZ)),
     "ms": lambda ms: int(round(ms * 1e-3 * CLK_HZ)),
     "us": lambda us: int(round(us * 1e-6 * CLK_HZ)),
 }
@@ -40,11 +37,14 @@ UNIT_CONVERTERS = {
 def v_to_c(v):
     return int(round(v / DAC_FULL_SCALE_V * DAC_COUNTS))
 
+
 def s_to_cy(s):
     return int(round(s * CLK_HZ))
 
+
 def ms_to_cy(ms):
     return int(round(ms * 1e-3 * CLK_HZ))
+
 
 def us_to_cy(us):
     return int(round(us * 1e-6 * CLK_HZ))
@@ -158,7 +158,9 @@ class BlockRow(QtWidgets.QWidget):
                 unit_combo.setCurrentIndex(1)  # default ms
                 self._apply_time_range(spin, "ms")
                 unit_combo.currentIndexChanged.connect(
-                    lambda _, s=spin, uc=unit_combo: self._apply_time_range(s, uc.currentData())
+                    lambda _, s=spin, uc=unit_combo: self._apply_time_range(
+                        s, uc.currentData()
+                    )
                 )
                 unit_combo.currentIndexChanged.connect(self.changed.emit)
                 spin.valueChanged.connect(self.changed.emit)
@@ -192,9 +194,9 @@ class BlockRow(QtWidgets.QWidget):
     @staticmethod
     def _apply_time_range(spin, unit):
         ranges = {
-            "s":  (0, 100,    0.001, 0.1),
-            "ms": (0, 100000, 10,    100),
-            "us": (0, 1e8,    1000,  1e5),
+            "s": (0, 100, 0.001, 0.1),
+            "ms": (0, 100000, 10, 100),
+            "us": (0, 1e8, 1000, 1e5),
         }
         lo, hi, step, default = ranges.get(unit, (0, 100000, 10, 100))
         spin.setRange(lo, hi)
@@ -213,7 +215,9 @@ class BlockRow(QtWidgets.QWidget):
         def _check_v(label, v):
             c = _vc(v)
             if not (DAC_MIN <= c <= DAC_MAX):
-                errors.append(f"{label} {v:+.3f} V → {c} counts (range {DAC_MIN}–{DAC_MAX})")
+                errors.append(
+                    f"{label} {v:+.3f} V → {c} counts (range {DAC_MIN}–{DAC_MAX})"
+                )
 
         if block_type == 0:  # Delay
             _check_v("Hold Voltage", vals[0])
@@ -363,11 +367,14 @@ class SequencePanel(QtWidgets.QWidget):
         all_errors = []
         for i, row in enumerate(self._rows):
             for err in row.validate():
-                all_errors.append(f"Block {i + 1} ({BLOCK_TYPES[row.type_box.currentData()]}): {err}")
+                all_errors.append(
+                    f"Block {i + 1} ({BLOCK_TYPES[row.type_box.currentData()]}): {err}"
+                )
         if all_errors:
             msg = "\n".join(all_errors)
             reply = QtWidgets.QMessageBox.warning(
-                self, "DAC Bounds Exceeded",
+                self,
+                "DAC Bounds Exceeded",
                 f"The following blocks exceed the DAC range [{DAC_MIN}, {DAC_MAX}]:\n\n{msg}"
                 "\n\nSend anyway?",
                 QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,

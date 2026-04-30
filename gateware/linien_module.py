@@ -31,7 +31,6 @@ from misoc.interconnect import csr_bus
 from misoc.interconnect.csr import AutoCSR, CSRStatus, CSRStorage
 
 from .logic.autolock import FPGAAutolock
-from .logic.sequence import SequenceExecutor
 from .logic.chains import FastChain, SlowChain, cross_connect
 from .logic.decimation import Decimate
 from .logic.delta_sigma import DeltaSigma
@@ -39,6 +38,7 @@ from .logic.iir import Iir
 from .logic.limit import LimitCSR
 from .logic.modulate import Modulate
 from .logic.pid import PID
+from .logic.sequence import SequenceExecutor
 from .logic.sweep import SweepCSR
 from .lowlevel.analog import PitayaAnalog
 from .lowlevel.crg import CRG
@@ -47,7 +47,6 @@ from .lowlevel.gpio import Gpio
 from .lowlevel.pitaya_ps import PitayaPS, Sys2CSR, SysCDC, SysInterconnect
 from .lowlevel.scopegen import ScopeGen
 from .lowlevel.xadc import XADC
-from .logic.sequence import SequenceExecutor
 
 
 class LinienLogic(Module, AutoCSR):

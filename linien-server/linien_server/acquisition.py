@@ -27,12 +27,12 @@ from typing import Any, Optional
 import numpy as np
 from linien_common.common import DECIMATION, MAX_N_POINTS, N_POINTS
 from linien_common.config import ACQUISITION_PORT
+from linien_server.autolock.sequence_relock import SequenceRelock
 from linien_server.csr import PythonCSR
 from pyrp3.board import RedPitaya  # type: ignore
 from pyrp3.instrument import TriggerSource  # type: ignore
 from rpyc import Service
 from rpyc.utils.server import ThreadedServer
-from linien_server.autolock.sequence_relock import SequenceRelock
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -97,12 +97,12 @@ class AcquisitionService(Service):
             while self.csr_iir_queue:
                 name, b, a = self.csr_iir_queue.pop(0)
                 self.csr.set_iir(name, b, a)
-            
+
             # --- sequence relock: detect falling edge of o_active ---
             try:
                 seq_active = self.sequence_relock.is_sequence_active()
             except KeyError:
-            # regfile_adapter_status not in csrmap yet (gateware not rebuilt)
+                # regfile_adapter_status not in csrmap yet (gateware not rebuilt)
                 seq_active = False
 
             if seq_active:

@@ -652,10 +652,12 @@ class Parameters:
         param: Parameter = getattr(self, param_name)
         param.add_callback(append_changed_values_to_queue, call_immediately=True)
 
-        self._remote_listener_callbacks[uuid].append((
-            param,
-            append_changed_values_to_queue,
-        ))
+        self._remote_listener_callbacks[uuid].append(
+            (
+                param,
+                append_changed_values_to_queue,
+            )
+        )
 
     def unregister_remote_listeners(self, uuid: str):
         for param, callback in self._remote_listener_callbacks[uuid]:

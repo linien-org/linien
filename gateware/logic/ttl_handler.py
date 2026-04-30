@@ -14,8 +14,7 @@ this is a straight copy of src/ttl_handler.py, re-homed under gateware/logic/ so
 SequenceExecutor can instantiate it as a migen submodule.
 """
 
-from migen import Cat, FSM, If, Module, NextState, NextValue, Signal
-
+from migen import FSM, Cat, If, Module, NextState, NextValue, Signal
 
 DAC_WIDTH = 14
 INTEGRATOR_WIDTH = 25

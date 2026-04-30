@@ -20,11 +20,12 @@ through reg_file, they're just standalone config values.
 """
 
 from migen import *
-from misoc.interconnect.csr import AutoCSR, CSRStorage, CSRStatus
+from misoc.interconnect.csr import AutoCSR, CSRStatus, CSRStorage
+
 
 class RegFileAdapter(Module, AutoCSR):
     def __init__(self):
-        #param reg_file write path
+        # param reg_file write path
         self.wr_addr = CSRStorage(8, name="wr_addr")
         self.wr_data = CSRStorage(32, name="wr_data")
         self.wr_strobe = CSRStorage(name="wr_strobe")
@@ -42,7 +43,7 @@ class RegFileAdapter(Module, AutoCSR):
             self.o_wr_en.eq(self.wr_strobe.storage & ~strobe_prev),
         ]
 
-        #AWG BRAM write path
+        # AWG BRAM write path
         self.awg_addr = CSRStorage(10, name="awg_addr")
         self.awg_data = CSRStorage(14, name="awg_data")
         self.awg_strobe = CSRStorage(name="awg_strobe")
@@ -60,7 +61,7 @@ class RegFileAdapter(Module, AutoCSR):
             self.o_awg_en.eq(self.awg_strobe.storage & ~awg_strobe_prev),
         ]
 
-        #config passthrough
+        # config passthrough
         self.num_blocks = CSRStorage(4, name="num_blocks")
         self.enable = CSRStorage(1, name="enable")
 

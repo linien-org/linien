@@ -1,11 +1,8 @@
 import random
+
 import cocotb
 from cocotb.clock import Clock
-from cocotb.triggers import ClockCycles
-from cocotb.triggers import RisingEdge
-from cocotb.triggers import FallingEdge
-from cocotb.triggers import Timer
-from cocotb.triggers import First
+from cocotb.triggers import ClockCycles, FallingEdge, First, RisingEdge, Timer
 
 
 # method to load in values into the DUT.

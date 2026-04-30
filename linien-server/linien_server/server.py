@@ -370,12 +370,14 @@ class FakeRedPitayaControlService(BaseService, LinienControlService):
             def gen():
                 return np.array([randint(-max_, max_) for _ in range(N_POINTS)])
 
-            self.parameters.to_plot.value = pickle.dumps({
-                "error_signal_1": gen(),
-                "error_signal_1_quadrature": gen(),
-                "error_signal_2": gen(),
-                "error_signal_2_quadrature": gen(),
-            })
+            self.parameters.to_plot.value = pickle.dumps(
+                {
+                    "error_signal_1": gen(),
+                    "error_signal_1_quadrature": gen(),
+                    "error_signal_2": gen(),
+                    "error_signal_2_quadrature": gen(),
+                }
+            )
             sleep(0.1)
 
     def exposed_write_registers(self):

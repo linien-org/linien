@@ -1,20 +1,18 @@
-import time
 import logging
+import time
 
 logger = logging.getLogger(__name__)
 
 
 # ttl_handler status register bits
 STATUS_ACTIVE = 0b01  # bit 0: sequence running
-STATUS_ARMED  = 0b10  # bit 1: enabled and waiting for trigger
+STATUS_ARMED = 0b10  # bit 1: enabled and waiting for trigger
 
 
 class SequenceRelock:
-    def __init__(self, csr,
-                 settle_time=0.01,
-                 lock_timeout=0.05,
-                 max_retries=5,
-                 widen_step=500):
+    def __init__(
+        self, csr, settle_time=0.01, lock_timeout=0.05, max_retries=5, widen_step=500
+    ):
         """
         Args:
             csr:          register read/write interface (csr.get / csr.set)
@@ -47,8 +45,8 @@ class SequenceRelock:
         """expand sweep range symmetrically by `amount` LSBs."""
         current_min = self.csr.get("logic_sweep_min")
         current_max = self.csr.get("logic_sweep_max")
-        new_min = max(current_min - amount, -(1 << 13))      # clamp to 14-bit signed min
-        new_max = min(current_max + amount, (1 << 13) - 1)    # clamp to 14-bit signed max
+        new_min = max(current_min - amount, -(1 << 13))  # clamp to 14-bit signed min
+        new_max = min(current_max + amount, (1 << 13) - 1)  # clamp to 14-bit signed max
         self.csr.set("logic_sweep_min", new_min)
         self.csr.set("logic_sweep_max", new_max)
         logger.info(f"widened sweep: min={new_min}, max={new_max}")

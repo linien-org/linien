@@ -1,6 +1,5 @@
-from migen import Module, Signal, Instance, Cat
-from misoc.interconnect.csr import AutoCSR, CSRStorage, CSRStatus
-from migen import ClockSignal, ResetSignal
+from migen import Cat, ClockSignal, Instance, Module, ResetSignal, Signal
+from misoc.interconnect.csr import AutoCSR, CSRStatus, CSRStorage
 
 from .ttl_handler import TTLHandler
 

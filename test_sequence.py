@@ -1,6 +1,7 @@
-from linien_client.device import Device
-from linien_client.connection import LinienClient
 import random
+
+from linien_client.connection import LinienClient
+from linien_client.device import Device
 
 device = Device(host="rp-f0edf0.local", username="root", password="root")
 client = LinienClient(device)

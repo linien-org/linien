@@ -1,8 +1,15 @@
 from migen import *
+
 from Not_Needed_Files.csr_param_bus import (
-    CSRParamBus, MAX_BLOCKS, PARAMS_PER_BLOCK,
-    ADDR_BLOCK_TYPE, ADDR_DURATION,
-    ADDR_PARAM_A, ADDR_PARAM_B, ADDR_PARAM_C, ADDR_PARAM_D,
+    ADDR_BLOCK_TYPE,
+    ADDR_DURATION,
+    ADDR_PARAM_A,
+    ADDR_PARAM_B,
+    ADDR_PARAM_C,
+    ADDR_PARAM_D,
+    MAX_BLOCKS,
+    PARAMS_PER_BLOCK,
+    CSRParamBus,
 )
 
 
@@ -11,7 +18,7 @@ def tb_csr_param_bus():
 
     def run(dut):
 
-        #helpers
+        # helpers
         def write_param(block, addr, value):
             """write a single parameter: set up, pulse write, deassert."""
             yield dut.i_block_sel.eq(block)
@@ -29,11 +36,11 @@ def tb_csr_param_bus():
             yield  # one cycle for combinational settle
             return {
                 "type": (yield dut.o_block_type),
-                "dur":  (yield dut.o_duration),
-                "a":    (yield dut.o_param_a),
-                "b":    (yield dut.o_param_b),
-                "c":    (yield dut.o_param_c),
-                "d":    (yield dut.o_param_d),
+                "dur": (yield dut.o_duration),
+                "a": (yield dut.o_param_a),
+                "b": (yield dut.o_param_b),
+                "c": (yield dut.o_param_c),
+                "d": (yield dut.o_param_d),
             }
 
         def write_full_block(block, btype, duration, a, b, c, d):
@@ -45,14 +52,14 @@ def tb_csr_param_bus():
             yield from write_param(block, ADDR_PARAM_C, c)
             yield from write_param(block, ADDR_PARAM_D, d)
 
-        #test 1: write one param, read back
+        # test 1: write one param, read back
         print("test 1:  write one parameter, read back")
         yield from write_param(0, ADDR_PARAM_A, 12345)
         p = yield from read_block(0)
         assert p["a"] == 12345, f"FAIL: got {p['a']}"
         print("  passed")
 
-        #test 2: write all 6 params, verify
+        # test 2: write all 6 params, verify
         print("test 2:  write all 6 params for block 0")
         yield from write_full_block(0, 1, 50000, 2000, 10, 5000, 0)
         p = yield from read_block(0)
@@ -64,7 +71,7 @@ def tb_csr_param_bus():
         assert p["d"] == 0, f"FAIL: d={p['d']}"
         print("  passed")
 
-        #test 3: different blocks are isolated
+        # test 3: different blocks are isolated
         print("test 3:  write to block 5, block 0 unchanged")
         yield from write_full_block(5, 4, 100000, 8000, 2000, 500, 100)
 
@@ -80,21 +87,23 @@ def tb_csr_param_bus():
         assert p5["a"] == 8000, f"FAIL: a={p5['a']}"
         print("  passed")
 
-        #test 4: block_type truncated to 3 bits
+        # test 4: block_type truncated to 3 bits
         print("test 4:  block_type is 3 bits (max 7)")
         yield from write_param(1, ADDR_BLOCK_TYPE, 0xFF)  # write 255
         p = yield from read_block(1)
-        assert p["type"] == 7, f"FAIL: type={p['type']} (expected 7, 3-bit truncation of 0xFF)"
+        assert (
+            p["type"] == 7
+        ), f"FAIL: type={p['type']} (expected 7, 3-bit truncation of 0xFF)"
         print("  passed")
 
-        #test 5: duration truncated to 24 bits
+        # test 5: duration truncated to 24 bits
         print("test 5:  duration is 24 bits")
         yield from write_param(2, ADDR_DURATION, 0xFFFFFFFF)  # write max 32-bit
         p = yield from read_block(2)
         assert p["dur"] == 0xFFFFFF, f"FAIL: dur=0x{p['dur']:X} (expected 0xFFFFFF)"
         print("  passed")
 
-        #test 6: switching read_block_sel updates combinationally
+        # test 6: switching read_block_sel updates combinationally
         print("test 6:  read mux switches combinationally")
         # block 0 has type=1 (ramp), block 5 has type=4 (chirp)
         yield dut.i_read_block_sel.eq(0)
@@ -107,7 +116,7 @@ def tb_csr_param_bus():
         assert t5 == 4, f"FAIL: block 5 type={t5}"
         print("  passed")
 
-        #test 7: write to block 3 doesn't touch block 4
+        # test 7: write to block 3 doesn't touch block 4
         print("test 7:  write isolation between adjacent blocks")
         yield from write_param(3, ADDR_PARAM_A, 9999)
         p3 = yield from read_block(3)
@@ -123,49 +132,49 @@ def tb_csr_param_bus():
         assert p["a"] == 7777, f"FAIL: a={p['a']}"
         print("  passed")
 
-        #test 9: configure a ramp block, verify meanings
+        # test 9: configure a ramp block, verify meanings
         print("test 9:  full ramp block config")
         # ramp: type=1, duration=12500 (100us), start=2000, step=10, target=5000
         yield from write_full_block(
             block=7,
-            btype=1,        # ramp
+            btype=1,  # ramp
             duration=12500,
-            a=2000,         # start voltage
-            b=10,           # step size per cycle
-            c=5000,         # target voltage
-            d=0,            # unused
+            a=2000,  # start voltage
+            b=10,  # step size per cycle
+            c=5000,  # target voltage
+            d=0,  # unused
         )
         p = yield from read_block(7)
         assert p["type"] == 1
         assert p["dur"] == 12500
-        assert p["a"] == 2000   # start
-        assert p["b"] == 10     # step
-        assert p["c"] == 5000   # target
+        assert p["a"] == 2000  # start
+        assert p["b"] == 10  # step
+        assert p["c"] == 5000  # target
         print("  passed")
 
-        #test 10: configure a chirp block, verify meanings
+        # test 10: configure a chirp block, verify meanings
         print("test 10: full chirp block config")
         # chirp: type=4, duration=250000 (2ms), start_freq=5000, end_freq=2000,
         # amplitude=4000, dc_offset=1000
         yield from write_full_block(
             block=8,
-            btype=4,          # chirp
+            btype=4,  # chirp
             duration=250000,
-            a=5000,           # start frequency
-            b=2000,           # end frequency
-            c=4000,           # amplitude
-            d=1000,           # DC offset
+            a=5000,  # start frequency
+            b=2000,  # end frequency
+            c=4000,  # amplitude
+            d=1000,  # DC offset
         )
         p = yield from read_block(8)
         assert p["type"] == 4
         assert p["dur"] == 250000
-        assert p["a"] == 5000   # start freq
-        assert p["b"] == 2000   # end freq
-        assert p["c"] == 4000   # amplitude
-        assert p["d"] == 1000   # DC offset
+        assert p["a"] == 5000  # start freq
+        assert p["b"] == 2000  # end freq
+        assert p["c"] == 4000  # amplitude
+        assert p["d"] == 1000  # DC offset
         print("  passed")
 
-        #test 11: num_blocks passthrough
+        # test 11: num_blocks passthrough
         print("test 11: num_blocks passthrough")
         yield dut.i_num_blocks.eq(5)
         yield

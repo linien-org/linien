@@ -31,11 +31,10 @@ signal naming follows team convention:
 
 from migen import *
 
-
 # signal widths - match linien's CSR widths
-DAC_WIDTH = 14          # red pitaya DAC resolution
-INTEGRATOR_WIDTH = 25   # linien integrator accumulator
-SWEEP_WIDTH = 14        # linien sweep generator output
+DAC_WIDTH = 14  # red pitaya DAC resolution
+INTEGRATOR_WIDTH = 25  # linien integrator accumulator
+SWEEP_WIDTH = 14  # linien sweep generator output
 
 
 class TTLHandler(Module):
@@ -53,7 +52,9 @@ class TTLHandler(Module):
         # existing CSR bus, NOT raw internal signals. we read them like
         # any other memory-mapped register.
         self.i_linien_pid_out = Signal((DAC_WIDTH, True), name="i_linien_pid_out")
-        self.i_linien_integrator = Signal((INTEGRATOR_WIDTH, True), name="i_linien_integrator")
+        self.i_linien_integrator = Signal(
+            (INTEGRATOR_WIDTH, True), name="i_linien_integrator"
+        )
         self.i_linien_sweep_pos = Signal((SWEEP_WIDTH, True), name="i_linien_sweep_pos")
         self.i_linien_dac_out = Signal((DAC_WIDTH, True), name="i_linien_dac_out")
 
@@ -76,9 +77,13 @@ class TTLHandler(Module):
         # snapshot CSRs — opaque when idle, loaded on trigger.
         # relock reads these after the sequence completes.
         self.o_saved_pid_out = Signal((DAC_WIDTH, True), name="o_saved_pid_out")
-        self.o_saved_integrator = Signal((INTEGRATOR_WIDTH, True), name="o_saved_integrator")
+        self.o_saved_integrator = Signal(
+            (INTEGRATOR_WIDTH, True), name="o_saved_integrator"
+        )
         self.o_saved_sweep_pos = Signal((SWEEP_WIDTH, True), name="o_saved_sweep_pos")
-        self.o_saved_dac_out = Signal((DAC_WIDTH, True), name="o_saved_dac_out")  # starting voltage for relock
+        self.o_saved_dac_out = Signal(
+            (DAC_WIDTH, True), name="o_saved_dac_out"
+        )  # starting voltage for relock
 
         # two-flop synchronizer
         # GPIO is asynchronous to the 125 MHz fabric clock.
@@ -103,7 +108,6 @@ class TTLHandler(Module):
         self.comb += [
             # rising edge: was low last cycle, high now
             rising_edge.eq(ttl_sync1 & ~ttl_prev),
-
             # armed: PS enabled us and no sequence currently running.
             # prevents double-trigger - a second edge during an active
             # sequence is silently ignored.
@@ -128,49 +132,50 @@ class TTLHandler(Module):
 
         self.submodules.fsm = fsm = FSM(reset_state="IDLE")
 
-        fsm.act("IDLE",
+        fsm.act(
+            "IDLE",
             self.o_active.eq(0),
             self.o_fsm_start.eq(0),
-
-            If(armed & rising_edge,
+            If(
+                armed & rising_edge,
                 NextState("SNAPSHOT"),
-            )
+            ),
         )
 
-        fsm.act("SNAPSHOT",
+        fsm.act(
+            "SNAPSHOT",
             # transparent load: capture linien CSR values into snapshot regs.
             # o_active is still 0 here — linien is still driving the DAC
             # on this cycle, so its CSR values are still "live" and valid.
             self.o_active.eq(0),
             self.o_fsm_start.eq(0),
-
             NextValue(self.o_saved_pid_out, self.i_linien_pid_out),
             NextValue(self.o_saved_integrator, self.i_linien_integrator),
             NextValue(self.o_saved_sweep_pos, self.i_linien_sweep_pos),
             NextValue(self.o_saved_dac_out, self.i_linien_dac_out),
-
             NextState("TRIGGER"),
         )
 
-        fsm.act("TRIGGER",
+        fsm.act(
+            "TRIGGER",
             # snapshot values are now registered and stable.
             # assert start + active. the sequence FSM latches start
             # on this clock edge and begins executing block 0.
             self.o_active.eq(1),
             self.o_fsm_start.eq(1),
-
             NextState("ACTIVE"),
         )
 
-        fsm.act("ACTIVE",
+        fsm.act(
+            "ACTIVE",
             # hold active, start is back to 0.
             # the DAC mux routes sequence output while active=1.
             self.o_active.eq(1),
             self.o_fsm_start.eq(0),
-
-            If(self.i_seq_done,
+            If(
+                self.i_seq_done,
                 NextState("IDLE"),
-            )
+            ),
         )
 
         # status output

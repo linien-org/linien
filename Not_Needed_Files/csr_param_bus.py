@@ -22,7 +22,6 @@ parameter address map (same slots for all block types, interpreted differently):
 
 from migen import *
 
-
 # constants
 MAX_BLOCKS = 16
 PARAMS_PER_BLOCK = 6
@@ -40,14 +39,15 @@ ADDR_PARAM_D = 5
 class CSRParamBus(Module):
     def __init__(self):
         # PS write interface (directly from CSR registers)
-        self.i_block_sel = Signal(4, name="i_block_sel")      # which block (0-15)
-        self.i_param_addr = Signal(3, name="i_param_addr")    # which param (0-5)
+        self.i_block_sel = Signal(4, name="i_block_sel")  # which block (0-15)
+        self.i_param_addr = Signal(3, name="i_param_addr")  # which param (0-5)
         self.i_param_data = Signal(DATA_WIDTH, name="i_param_data")  # value
-        self.i_param_write = Signal(name="i_param_write")     # write strobe
-
+        self.i_param_write = Signal(name="i_param_write")  # write strobe
 
         # FSM read interface
-        self.i_read_block_sel = Signal(4, name="i_read_block_sel")  # FSM asks for this block
+        self.i_read_block_sel = Signal(
+            4, name="i_read_block_sel"
+        )  # FSM asks for this block
 
         # full parameter set for the selected block (combinational read)
         self.o_block_type = Signal(3, name="o_block_type")
@@ -61,14 +61,14 @@ class CSRParamBus(Module):
         self.i_num_blocks = Signal(4, name="i_num_blocks")
         self.o_num_blocks = Signal(4, name="o_num_blocks")
 
-
         # storage: 16 blocks × 6 params × 32 bits
         # migen Array of Arrays. outer index = block, inner index = param.
         self.storage = Array(
-            Array(Signal(DATA_WIDTH, name=f"blk{b}_p{p}") for p in range(PARAMS_PER_BLOCK))
+            Array(
+                Signal(DATA_WIDTH, name=f"blk{b}_p{p}") for p in range(PARAMS_PER_BLOCK)
+            )
             for b in range(MAX_BLOCKS)
         )
-
 
         # write logic
         # when i_param_write is pulsed, latch i_param_data into
@@ -79,10 +79,9 @@ class CSRParamBus(Module):
         # on the next cycle. standard CSR write pattern.
 
         self.sync += [
-            If(self.i_param_write,
-                self.storage[self.i_block_sel][self.i_param_addr].eq(
-                    self.i_param_data
-                ),
+            If(
+                self.i_param_write,
+                self.storage[self.i_block_sel][self.i_param_addr].eq(self.i_param_data),
             )
         ]
 
@@ -97,20 +96,10 @@ class CSRParamBus(Module):
             self.o_block_type.eq(
                 self.storage[self.i_read_block_sel][ADDR_BLOCK_TYPE][:3]
             ),
-            self.o_duration.eq(
-                self.storage[self.i_read_block_sel][ADDR_DURATION][:24]
-            ),
-            self.o_param_a.eq(
-                self.storage[self.i_read_block_sel][ADDR_PARAM_A]
-            ),
-            self.o_param_b.eq(
-                self.storage[self.i_read_block_sel][ADDR_PARAM_B]
-            ),
-            self.o_param_c.eq(
-                self.storage[self.i_read_block_sel][ADDR_PARAM_C]
-            ),
-            self.o_param_d.eq(
-                self.storage[self.i_read_block_sel][ADDR_PARAM_D]
-            ),
+            self.o_duration.eq(self.storage[self.i_read_block_sel][ADDR_DURATION][:24]),
+            self.o_param_a.eq(self.storage[self.i_read_block_sel][ADDR_PARAM_A]),
+            self.o_param_b.eq(self.storage[self.i_read_block_sel][ADDR_PARAM_B]),
+            self.o_param_c.eq(self.storage[self.i_read_block_sel][ADDR_PARAM_C]),
+            self.o_param_d.eq(self.storage[self.i_read_block_sel][ADDR_PARAM_D]),
             self.o_num_blocks.eq(self.i_num_blocks),
         ]

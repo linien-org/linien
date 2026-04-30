@@ -1,4 +1,5 @@
 from migen import *
+
 from regfile_adapter import RegFileAdapter
 
 
@@ -142,10 +143,10 @@ def tb_regfile_adapter():
         # test 10: write full block 0 sequence (type + 3 params)
         print("test 10: simulate full block 0 config (ramp: type=1, 3 params)")
         # slot 0 base = 0x00
-        yield from do_write(0x00, 1)       # block type = ramp
-        yield from do_write(0x01, 2000)    # param 0: v_start
-        yield from do_write(0x02, 10)      # param 1: step_size
-        yield from do_write(0x03, 12500)   # param 2: duration
+        yield from do_write(0x00, 1)  # block type = ramp
+        yield from do_write(0x01, 2000)  # param 0: v_start
+        yield from do_write(0x02, 10)  # param 1: step_size
+        yield from do_write(0x03, 12500)  # param 2: duration
         # verify addr/data reflect last write
         addr = yield dut.o_wr_addr
         data = yield dut.o_wr_data
@@ -155,8 +156,8 @@ def tb_regfile_adapter():
 
         # test 11: write to block 5 (base = 0x28)
         print("test 11: simulate block 5 config (base addr 0x28)")
-        yield from do_write(0x28, 4)       # block type = sinusoid
-        yield from do_write(0x29, 500)     # param 0: v_mid
+        yield from do_write(0x28, 4)  # block type = sinusoid
+        yield from do_write(0x29, 500)  # param 0: v_mid
         addr = yield dut.o_wr_addr
         assert addr == 0x29, f"FAIL: addr=0x{addr:02X}"
         print("passed")

@@ -26,11 +26,12 @@ from linien_common.common import check_plot_data
 from linien_gui.config import N_COLORS, UI_PATH, Color
 from linien_gui.ui.plot_widget import INVALID_POWER
 from linien_gui.ui.right_panel import RightPanel
+
 from linien_gui.ui.
+from linien_gui.ui.sequence_panel import SequencePanel
 from linien_gui.ui.spin_box import CustomDoubleSpinBox
 from linien_gui.ui.sweep_control import SweepControlWidget, SweepSlider
 from linien_gui.utils import color_to_hex, get_linien_app_instance, set_window_icon
-from linien_gui.ui.sequence_panel import SequencePanel  
 from PyQt5 import QtWidgets, uic
 
 ZOOM_STEP = 0.9
