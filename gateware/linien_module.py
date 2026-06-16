@@ -18,7 +18,6 @@
 from linien_common.common import OutputChannel
 from migen import (
     Array,
-    Cat,
     ClockDomain,
     ClockDomainsRenamer,
     If,
@@ -33,19 +32,13 @@ from misoc.interconnect.csr import AutoCSR, CSRStatus, CSRStorage
 from .logic.autolock import FPGAAutolock
 from .logic.chains import FastChain, SlowChain, cross_connect
 from .logic.decimation import Decimate
-from .logic.delta_sigma import DeltaSigma
 from .logic.iir import Iir
 from .logic.limit import LimitCSR
 from .logic.modulate import Modulate
 from .logic.pid import PID
 from .logic.sweep import SweepCSR
-from .lowlevel.analog import PitayaAnalog
-from .lowlevel.crg import CRG
-from .lowlevel.dna import DNA
-from .lowlevel.gpio import Gpio
-from .lowlevel.pitaya_ps import PitayaPS, Sys2CSR, SysCDC, SysInterconnect
+from .lowlevel.pitaya_ps import Sys2CSR
 from .lowlevel.scopegen import ScopeGen
-from .lowlevel.xadc import XADC
 
 
 class LinienLogic(Module, AutoCSR):
@@ -153,44 +146,25 @@ class LinienLogic(Module, AutoCSR):
 
 
 class LinienModule(Module, AutoCSR):
-    def __init__(self, platform):
+    def __init__(self, soc):
         width = 14
         signal_width = 25
         coeff_width = 25
         chain_factor_bits = 8
 
         self.init_submodules(
-            width, signal_width, coeff_width, chain_factor_bits, platform
+            width, signal_width, coeff_width, chain_factor_bits, soc
         )
-        self.connect_everything(width, signal_width, coeff_width, chain_factor_bits)
+        self.connect_everything(
+            width, signal_width, coeff_width, chain_factor_bits, soc
+        )
 
     def init_submodules(
-        self, width, signal_width, coeff_width, chain_factor_bits, platform
+        self, width, signal_width, coeff_width, chain_factor_bits, soc
     ):
-        sys_double = ClockDomainsRenamer("sys_double")
-
         self.submodules.logic = LinienLogic(
             coeff_width=coeff_width, chain_factor_width=chain_factor_bits
         )
-        self.submodules.analog = PitayaAnalog(
-            platform.request("adc"), platform.request("dac")
-        )
-        self.submodules.xadc = XADC(platform.request("xadc"))
-
-        for i in range(4):
-            pwm = platform.request("pwm", i)
-            ds = sys_double(DeltaSigma(width=15))
-            self.comb += pwm.eq(ds.out)
-            setattr(self.submodules, f"ds{i}", ds)
-
-        exp = platform.request("exp")
-        self.submodules.gpio_n = Gpio(exp.n)
-        self.submodules.gpio_p = Gpio(exp.p)
-
-        leds = Cat(*(platform.request("user_led", i) for i in range(8)))
-        self.comb += leds.eq(self.gpio_n.o)
-
-        self.submodules.dna = DNA(version=2)
 
         self.submodules.fast_a = FastChain(
             width,
@@ -217,8 +191,11 @@ class LinienModule(Module, AutoCSR):
 
         self.submodules.scopegen = ScopeGen(signal_width)
 
+        soc.add_interconnect_slave(self.scopegen.scope_sys)
+        soc.add_interconnect_slave(self.scopegen.asg_sys)
+
         self.state_names, self.signal_names = cross_connect(
-            self.gpio_n,
+            soc.gpio_n,
             [
                 ("fast_a", self.fast_a),
                 ("fast_b", self.fast_b),
@@ -230,10 +207,6 @@ class LinienModule(Module, AutoCSR):
         )
 
         csr_map = {
-            "dna": 28,
-            "xadc": 29,
-            "gpio_n": 30,
-            "gpio_p": 31,
             "fast_a": 0,
             "fast_b": 1,
             "slow_chain": 2,
@@ -248,19 +221,15 @@ class LinienModule(Module, AutoCSR):
                 name if mem is None else name + "_" + mem.name_override
             ],
         )
-        self.submodules.sys2csr = Sys2CSR()
-        self.submodules.csrcon = csr_bus.Interconnect(
-            self.sys2csr.csr, self.csrbanks.get_buses()
-        )
-        self.submodules.syscdc = SysCDC()
-        self.comb += self.syscdc.target.connect(self.sys2csr.sys)
 
-    def connect_everything(self, width, signal_width, coeff_width, chain_factor_bits):
+    def connect_everything(
+        self, width, signal_width, coeff_width, chain_factor_bits, soc
+    ):
         s = signal_width - width
 
         self.comb += [
-            self.fast_a.adc.eq(self.analog.adc_a),
-            self.fast_b.adc.eq(self.analog.adc_b),
+            self.fast_a.adc.eq(soc.analog.adc_a),
+            self.fast_b.adc.eq(soc.analog.adc_b),
         ]
 
         # now, we combine the output of the two paths, with a variable factor each.
@@ -294,7 +263,7 @@ class LinienModule(Module, AutoCSR):
         self.comb += [
             If(
                 self.logic.pid_only_mode.storage,
-                self.logic.pid.input.eq(self.analog.adc_a << s),
+                self.logic.pid.input.eq(soc.analog.adc_a << s),
             ).Else(
                 self.logic.pid.input.eq(mixed_limited),
             ),
@@ -370,13 +339,13 @@ class LinienModule(Module, AutoCSR):
         # ds0 apparently has 16 bit, but only allowing positive  values --> "15 bit"?
         slow_out_shifted = Signal(15)
         self.sync += slow_out_shifted.eq((self.slow_chain.limit.y << 1) + (1 << 14))
-        self.comb += self.ds0.data.eq(slow_out_shifted)
+        self.comb += soc.ds0.data.eq(slow_out_shifted)
 
         # connect other analog outputs
         self.comb += [
-            self.ds1.data.eq(self.logic.analog_out_1.storage),
-            self.ds2.data.eq(self.logic.analog_out_2.storage),
-            self.ds3.data.eq(self.logic.analog_out_3.storage),
+            soc.ds1.data.eq(self.logic.analog_out_1.storage),
+            soc.ds2.data.eq(self.logic.analog_out_2.storage),
+            soc.ds3.data.eq(self.logic.analog_out_3.storage),
         ]
 
         # ------------------------------------------------------------------------------
@@ -392,7 +361,7 @@ class LinienModule(Module, AutoCSR):
 
         self.comb += [
             self.logic.autolock.robust.at_start.eq(self.logic.sweep.sweep.trigger),
-            self.scopegen.gpio_trigger.eq(self.gpio_p.i[0]),
+            self.scopegen.gpio_trigger.eq(soc.gpio_p.i[0]),
             self.scopegen.sweep_trigger.eq(self.logic.sweep.sweep.trigger),
             self.scopegen.automatically_rearm.eq(
                 self.logic.autolock.request_lock.storage
@@ -401,8 +370,8 @@ class LinienModule(Module, AutoCSR):
             self.scopegen.automatically_trigger.eq(
                 self.logic.autolock.lock_running.status
             ),
-            self.analog.dac_a.eq(self.logic.limit_fast1.y),
-            self.analog.dac_b.eq(self.logic.limit_fast2.y),
+            soc.analog.dac_a.eq(self.logic.limit_fast1.y),
+            soc.analog.dac_b.eq(self.logic.limit_fast2.y),
         ]
 
         # Having this in a comb statement caused errors. See PR #251.
@@ -426,22 +395,3 @@ class DummyHK(Module, AutoCSR):
             self.sys2csr.csr, self.csrbanks.get_buses()
         )
         self.sys = self.sys2csr.sys
-
-
-class RootModule(Module):
-    def __init__(self, platform):
-        self.submodules.ps = PitayaPS(platform.request("cpu"))
-        self.submodules.crg = CRG(
-            platform.request("clk125"), self.ps.fclk[0], ~self.ps.frstn[0]
-        )
-        self.submodules.linien = LinienModule(platform)
-
-        self.submodules.hk = ClockDomainsRenamer("sys_ps")(DummyHK())
-
-        self.submodules.ic = SysInterconnect(
-            self.ps.axi.sys,
-            self.hk.sys,
-            self.linien.scopegen.scope_sys,
-            self.linien.scopegen.asg_sys,
-            self.linien.syscdc.source,
-        )
