@@ -21,15 +21,19 @@ from pathlib import Path
 
 from .bit2bin import bit2bin
 from .hw_platform import Platform
-from .linien_module import RootModule
+from .targets.red_pitaya import PitayaSoC
 
 REPO_ROOT_DIR = Path(__file__).resolve().parents[1]
 
 
 def py_csrconstants(map, fil):
     fil.write("csr_constants = {\n")
-    for k, v in root.linien.csrbanks.constants:
-        fil.write("    '{}_{}': {},\n".format(k, v.name, v.value.value))
+    for k, v in map:
+        if v.name.startswith(k + "_"):
+            key = v.name
+        else:
+            key = "{}_{}".format(k, v.name)
+        fil.write("    '{}': {},\n".format(key, v.value.value))
     fil.write("}\n\n")
 
 
@@ -50,20 +54,31 @@ def get_csrmap(banks):
 
 def py_csrmap(it, fil):
     fil.write("csr = {\n")
-    for reg in it:
-        fil.write("    '{}_{}': ({}, 0x{:03x}, {}, {}),\n".format(*reg))
+    for name, reg_name, map_addr, reg_addr, size, writable in it:
+        # When the SoC collects CSRs nested inside LinienModule, misoc already
+        # prefixes the register name with its bank (e.g. "fast_a_out_q_max").
+        # Avoid doubling that prefix so names match the historical layout.
+        if reg_name.startswith(name + "_"):
+            key = reg_name
+        else:
+            key = "{}_{}".format(name, reg_name)
+        fil.write(
+            "    '{}': ({}, 0x{:03x}, {}, {}),\n".format(
+                key, map_addr, reg_addr, size, writable
+            )
+        )
     fil.write("}\n")
 
 
 if __name__ == "__main__":
     platform = Platform()
-    root = RootModule(platform)
+    root = PitayaSoC(platform)
 
     with open(
         REPO_ROOT_DIR / "linien-server" / "linien_server" / "csrmap.py", "w"
     ) as fil:
         py_csrconstants(root.linien.csrbanks.constants, fil)
-        csr = get_csrmap(root.linien.csrbanks.banks)
+        csr = get_csrmap([*root.csrbanks.banks, *root.linien.csrbanks.banks])
         py_csrmap(csr, fil)
         fil.write("states = {}\n".format(repr(root.linien.state_names)))
         fil.write("signals = {}\n".format(repr(root.linien.signal_names)))
