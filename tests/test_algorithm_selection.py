@@ -56,12 +56,10 @@ class FakeControl:
         pass
 
     def exposed_write_registers(self):
-        print(
-            f"""
+        print(f"""
             write: center={self.parameters.sweep_center.value}\n
             amp={self.parameters.sweep_amplitude.value}
-            """
-        )
+            """)
 
     def exposed_start_lock(self):
         self.locked = True
