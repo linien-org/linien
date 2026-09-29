@@ -540,7 +540,7 @@ class PlotWidget(pg.PlotWidget):
 
                 self.combinedErrorSignal.setVisible(True)
                 self.combinedErrorSignal.setData(
-                    list(range(len(error_signal_1))), error_signal_1 / V
+                    list(range(len(combined_error_signal))), combined_error_signal / V    
                 )
 
                 self.errorSignal1.setVisible(dual_channel)
