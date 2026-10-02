@@ -86,7 +86,7 @@ else:
     default_name = f"control_trace_{int(time.time())}.csv"
     prompt_msg = f"Enter filename to save (default: {default_name}) or enter 'delete file' to discard): "
     user_name = input(prompt_msg).strip()
-    
+
     if user_name.lower() == "delete file":
         if os.path.exists(temp_file):
             os.remove(temp_file)
@@ -95,12 +95,18 @@ else:
         if not user_name:
             final_filename = default_name
         else:
-            final_filename = user_name if user_name.lower().endswith(".csv") else f"{user_name}.csv"
-            
+            final_filename = (
+                user_name if user_name.lower().endswith(".csv") else f"{user_name}.csv"
+            )
+
         if os.path.exists(final_filename):
-            overwrite = input(f"'{final_filename}' already exists. Overwrite? (y/n): ").strip().lower()
+            overwrite = (
+                input(f"'{final_filename}' already exists. Overwrite? (y/n): ")
+                .strip()
+                .lower()
+            )
             if overwrite != "y":
                 final_filename = f"copy_{final_filename}"
-                
+
         os.replace(temp_file, final_filename)
         print(f"Successfully saved {total_written} points to '{final_filename}'.")
