@@ -154,7 +154,7 @@ class DeviceManager(QtWidgets.QMainWindow):
         def ask_for_parameter_restore(
             parameter_difference: Dict[
                 str, Tuple[RestorableParameterValues, RestorableParameterValues]
-            ]
+            ],
         ) -> None:
             question = (
                 "Linien on RedPitaya is running with different parameters than the "
